@@ -7,6 +7,7 @@
 
 #include <AnalyzerOccupancy.h>
 
+#include <memory>
 #include <global_constants.h>
 
 #include <BeamPipe.h>
@@ -15,15 +16,19 @@
 #include <IrradiationMap.h>
 #include <Layer.h>
 #include <Ring.h>
-#include <rootweb.h>
+#include "RootWContent.h"
+#include "RootWImage.h"
+#include "RootWPage.h"
+#include "RootWSite.h"
+#include "RootWTable.h"
 #include <Tracker.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <Units.h>
 #include <TLegend.h>
 
-AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) :
- AnalyzerUnit("AnalyzerOccupancy", trackers, beamPipe)
+AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, const Detector& detector) :
+ AnalyzerUnit("AnalyzerOccupancy", detector)
 {
   // Set geometry, i.e. individual trackers
   //for (auto it : trackers) m_trackers.push_back(it);
@@ -106,146 +111,131 @@ bool AnalyzerOccupancy::analyze()
 
 bool AnalyzerOccupancy::visualize(RootWSite& webSite)
 {
-  RootWPage* myPage = new RootWPage("Occupancy");
-  myPage->setAddress("occupancy.html");
-  webSite.addPage(myPage);
+  RootWPage& myPage = webSite.addPage("indexOccupancy");
+  myPage.setAddress("occupancy.html");
+
 
   // Draw magnetic fiel - map
   if (m_bFieldMap!=nullptr && m_bFieldMap->isOK()) {
 
-    RootWContent* magFieldContent   = new RootWContent("Magnetic field map:", true);
-    myPage->addContent(magFieldContent);
+    RootWContent& magFieldContent = myPage.addContent("Magnetic field map:", true);
 
-    TCanvas* canvasXZBField = new TCanvas("canvasXZBField", "XZ view of B field [T] (Y=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    TCanvas* canvasYZBField = new TCanvas("canvasYZBField", "YZ view of B field [T] (X=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    TCanvas canvasXZBField("canvasXZBField", "XZ view of B field [T] (Y=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    TCanvas canvasYZBField("canvasYZBField", "YZ view of B field [T] (X=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 
     m_bFieldMap->drawXZBFieldProj(canvasXZBField, "XZ view of B field [T] (Y=0)", 0, geom_max_radius, 0, geom_max_length);
     m_bFieldMap->drawYZBFieldProj(canvasYZBField, "YZ view of B field [T] (X=0)", 0, geom_max_radius, 0, geom_max_length);
 
-    RootWImage* anImageXZBField = new RootWImage(canvasXZBField, canvasXZBField->GetWindowWidth(), canvasXZBField->GetWindowHeight());
-    anImageXZBField->setComment("XZ view of B field [T] (Y=0)");
-    magFieldContent->addItem(anImageXZBField);
-    RootWImage* anImageYZBField = new RootWImage(canvasYZBField, canvasYZBField->GetWindowWidth(), canvasYZBField->GetWindowHeight());
-    anImageYZBField->setComment("YZ view of B field [T] (X=0)");
-    magFieldContent->addItem(anImageYZBField);
+    RootWImage& anImageXZBField = magFieldContent.addImage(canvasXZBField, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    anImageXZBField.setComment("XZ view of B field [T] (Y=0)");
+    RootWImage& anImageYZBField = magFieldContent.addImage(canvasYZBField, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    anImageYZBField.setComment("YZ view of B field [T] (X=0)");
   }
 
   // Draw plots - photons
-  RootWContent* plotsPhotonsContent   = new RootWContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
-  myPage->addContent(plotsPhotonsContent);
+  RootWContent& plotsPhotonsContent = myPage.addContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
 
-  TCanvas* canvasPhotonsBOnMatOn   = nullptr;
-  TCanvas* canvasPhotonsBOffMatOn  = nullptr;
-  TCanvas* canvasPhotonsBOnMatOff  = nullptr;
-  TCanvas* canvasPhotonsBOffMatOff = nullptr;
-  TCanvas* canvasPhotonsBOffTrkOff = nullptr;
+  TCanvas canvasPhotonsBOnMatOn;
+  TCanvas canvasPhotonsBOffMatOn;
+  TCanvas canvasPhotonsBOnMatOff;
+  TCanvas canvasPhotonsBOffMatOff;
+  TCanvas canvasPhotonsBOffTrkOff;
 
   if (drawHistogram(canvasPhotonsBOffMatOff, m_hisPhotonsFluxBOffMatOff, m_photonsMapBOffMatOff, "PhotonsCanvasBOffMatOff", "RZ view of photons flux")) {
-    canvasPhotonsBOffMatOff->SetLogz();
+    canvasPhotonsBOffMatOff.SetLogz();
     m_hisPhotonsFluxBOffMatOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffMatOff->SetMaximum(c_fluxMax);
-    RootWImage* anImagePhotonsBOffMatOff = new RootWImage(canvasPhotonsBOffMatOff, canvasPhotonsBOffMatOff->GetWindowWidth(), canvasPhotonsBOffMatOff->GetWindowHeight());
-    anImagePhotonsBOffMatOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  material off");
-    plotsPhotonsContent->addItem(anImagePhotonsBOffMatOff);
+    RootWImage& anImagePhotonsBOffMatOff = plotsPhotonsContent.addImage(canvasPhotonsBOffMatOff);
+    anImagePhotonsBOffMatOff.setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  material off");
   }
   if (drawHistogram(canvasPhotonsBOnMatOff, m_hisPhotonsFluxBOnMatOff, m_photonsMapBOnMatOff, "PhotonsCanvasBOnMatOff", "RZ view of photons flux")) {
-    canvasPhotonsBOnMatOff->SetLogz();
+    canvasPhotonsBOnMatOff.SetLogz();
     m_hisPhotonsFluxBOnMatOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOnMatOff->SetMaximum(c_fluxMax);
-    RootWImage* anImagePhotonsBOnMatOff = new RootWImage(canvasPhotonsBOnMatOff, canvasPhotonsBOnMatOff->GetWindowWidth(), canvasPhotonsBOnMatOff->GetWindowHeight());
-    anImagePhotonsBOnMatOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B on,  material off");
-    plotsPhotonsContent->addItem(anImagePhotonsBOnMatOff);
+    RootWImage& anImagePhotonsBOnMatOff = plotsPhotonsContent.addImage(canvasPhotonsBOnMatOff);
+    anImagePhotonsBOnMatOff.setComment("RZ view of photons flux [cm^-2] in a tracker - B on,  material off");
   }
   if (drawHistogram(canvasPhotonsBOffTrkOff, m_hisPhotonsFluxBOffTrkOff, m_photonsMapBOffTrkOff, "PhotonsCanvasBOffTrkOff", "RZ view of photons flux")) {
-    canvasPhotonsBOffTrkOff->SetLogz();
+    canvasPhotonsBOffTrkOff.SetLogz();
     m_hisPhotonsFluxBOffTrkOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffTrkOff->SetMaximum(c_fluxMax);
-    RootWImage* anImagePhotonsBOffTrkOff = new RootWImage(canvasPhotonsBOffTrkOff, canvasPhotonsBOffTrkOff->GetWindowWidth(), canvasPhotonsBOffTrkOff->GetWindowHeight());
-    anImagePhotonsBOffTrkOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  tracker material off (calorimeter on)");
-    plotsPhotonsContent->addItem(anImagePhotonsBOffTrkOff);
+    RootWImage& anImagePhotonsBOffTrkOff = plotsPhotonsContent.addImage(canvasPhotonsBOffTrkOff);
+    anImagePhotonsBOffTrkOff.setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  tracker material off (calorimeter on)");
   }
   if (drawHistogram(canvasPhotonsBOffMatOn, m_hisPhotonsFluxBOffMatOn, m_photonsMapBOffMatOn, "PhotonsCanvasBOffMatOn", "RZ view of photonsflux")) {
-    canvasPhotonsBOffMatOn->SetLogz();
+    canvasPhotonsBOffMatOn.SetLogz();
     m_hisPhotonsFluxBOffMatOn->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffMatOn->SetMaximum(c_fluxMax);
-    RootWImage* anImagePhotonsBOffMatOn = new RootWImage(canvasPhotonsBOffMatOn, canvasPhotonsBOffMatOn->GetWindowWidth(), canvasPhotonsBOffMatOn->GetWindowHeight());
-    anImagePhotonsBOffMatOn->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  all material on");
-    plotsPhotonsContent->addItem(anImagePhotonsBOffMatOn);
+    RootWImage& anImagePhotonsBOffMatOn = plotsPhotonsContent.addImage(canvasPhotonsBOffMatOn);
+    anImagePhotonsBOffMatOn.setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  all material on");
   }
   if (drawHistogram(canvasPhotonsBOnMatOn, m_hisPhotonsFluxBOnMatOn, m_photonsMapBOnMatOn, "PhotonsCanvasBOnMatOn", "RZ view of photons flux")) {
-    canvasPhotonsBOnMatOn->SetLogz();
+    canvasPhotonsBOnMatOn.SetLogz();
     m_hisPhotonsFluxBOnMatOn->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOnMatOn->SetMaximum(c_fluxMax);
-    RootWImage* anImagePhotonsBOnMatOn = new RootWImage(canvasPhotonsBOnMatOn, canvasPhotonsBOnMatOn->GetWindowWidth(), canvasPhotonsBOnMatOn->GetWindowHeight());
-    anImagePhotonsBOnMatOn->setComment("RZ view of photons flux [cm^-2] in a tracker - B on,  all material on");
-    plotsPhotonsContent->addItem(anImagePhotonsBOnMatOn);
+    RootWImage& anImagePhotonsBOnMatOn = plotsPhotonsContent.addImage(canvasPhotonsBOnMatOn);
+    anImagePhotonsBOnMatOn.setComment("RZ view of photons flux [cm^-2] in a tracker - B on,  all material on");
   }
 
 
   // Draw plots - charged
-  RootWContent* plotsChargedContent   = new RootWContent("Fluka simulation - charged particles fluxes per pp collision -> adding individual effects:", false);
-  myPage->addContent(plotsChargedContent);
+  RootWContent& plotsChargedContent = myPage.addContent("Fluka simulation - charged particles fluxes per pp collision -> adding individual effects:", false);
 
-  TCanvas* canvasChargedBOnMatOn   = nullptr;
-  TCanvas* canvasChargedBOffMatOn  = nullptr;
-  TCanvas* canvasChargedBOnMatOff  = nullptr;
-  TCanvas* canvasChargedBOffMatOff = nullptr;
-  TCanvas* canvasChargedBOffTrkOff = nullptr;
+  TCanvas canvasChargedBOnMatOn  ;
+  TCanvas canvasChargedBOffMatOn ;
+  TCanvas canvasChargedBOnMatOff ;
+  TCanvas canvasChargedBOffMatOff;
+  TCanvas canvasChargedBOffTrkOff;
 
   if (drawHistogram(canvasChargedBOffMatOff, m_hisChargedFluxBOffMatOff, m_chargedMapBOffMatOff, "ChargedCanvasBOffMatOff", "RZ view of charged particles flux")) {
-    canvasChargedBOffMatOff->SetLogz();
+    canvasChargedBOffMatOff.SetLogz();
     m_hisChargedFluxBOffMatOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffMatOff->SetMaximum(c_fluxMax);
-    RootWImage* anImageChargedBOffMatOff = new RootWImage(canvasChargedBOffMatOff, canvasChargedBOffMatOff->GetWindowWidth(), canvasChargedBOffMatOff->GetWindowHeight());
-    anImageChargedBOffMatOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  material off");
-    plotsChargedContent->addItem(anImageChargedBOffMatOff);
+    RootWImage& anImageChargedBOffMatOff = plotsChargedContent.addImage(canvasChargedBOffMatOff);
+    anImageChargedBOffMatOff.setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  material off");
   }
   if (drawHistogram(canvasChargedBOnMatOff, m_hisChargedFluxBOnMatOff, m_chargedMapBOnMatOff, "ChargedCanvasBOnMatOff", "RZ view of charged particles flux")) {
-    canvasChargedBOnMatOff->SetLogz();
+    canvasChargedBOnMatOff.SetLogz();
     m_hisChargedFluxBOnMatOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOnMatOff->SetMaximum(c_fluxMax);
-    RootWImage* anImageChargedBOnMatOff = new RootWImage(canvasChargedBOnMatOff, canvasChargedBOnMatOff->GetWindowWidth(), canvasChargedBOnMatOff->GetWindowHeight());
-    anImageChargedBOnMatOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B on,  material off");
-    plotsChargedContent->addItem(anImageChargedBOnMatOff);
+    RootWImage& anImageChargedBOnMatOff = plotsChargedContent.addImage(canvasChargedBOnMatOff);
+    anImageChargedBOnMatOff.setComment("RZ view of charged particles flux [cm^-2] in a tracker - B on,  material off");
   }
   if (drawHistogram(canvasChargedBOffTrkOff, m_hisChargedFluxBOffTrkOff, m_chargedMapBOffTrkOff, "ChargedCanvasBOffTrkOff", "RZ view of charged particles flux")) {
-    canvasChargedBOffTrkOff->SetLogz();
+    canvasChargedBOffTrkOff.SetLogz();
     m_hisChargedFluxBOffTrkOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffTrkOff->SetMaximum(c_fluxMax);
-    RootWImage* anImageChargedBOffTrkOff = new RootWImage(canvasChargedBOffTrkOff, canvasChargedBOffTrkOff->GetWindowWidth(), canvasChargedBOffTrkOff->GetWindowHeight());
-    anImageChargedBOffTrkOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  tracker material off");
-    plotsChargedContent->addItem(anImageChargedBOffTrkOff);
+    RootWImage& anImageChargedBOffTrkOff = plotsChargedContent.addImage(canvasChargedBOffTrkOff);
+    anImageChargedBOffTrkOff.setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  tracker material off");
   }
   if (drawHistogram(canvasChargedBOffMatOn, m_hisChargedFluxBOffMatOn, m_chargedMapBOffMatOn, "ChargedCanvasBOffMatOn", "RZ view of charged particles flux")) {
-    canvasChargedBOffMatOn->SetLogz();
+    canvasChargedBOffMatOn.SetLogz();
     m_hisChargedFluxBOffMatOn->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffMatOn->SetMaximum(c_fluxMax);
-    RootWImage* anImageChargedBOffMatOn = new RootWImage(canvasChargedBOffMatOn, canvasChargedBOffMatOn->GetWindowWidth(), canvasChargedBOffMatOn->GetWindowHeight());
-    anImageChargedBOffMatOn->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  all material on");
-    plotsChargedContent->addItem(anImageChargedBOffMatOn);
+    RootWImage& anImageChargedBOffMatOn = plotsChargedContent.addImage(canvasChargedBOffMatOn);
+    anImageChargedBOffMatOn.setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  all material on");
   }
   if (drawHistogram(canvasChargedBOnMatOn, m_hisChargedFluxBOnMatOn, m_chargedMapBOnMatOn, "ChargedCanvasBOnMatOn", "RZ view of charged particles flux")) {
-    canvasChargedBOnMatOn->SetLogz();
+    canvasChargedBOnMatOn.SetLogz();
     m_hisChargedFluxBOnMatOn->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOnMatOn->SetMaximum(c_fluxMax);
-    RootWImage* anImageChargedBOnMatOn = new RootWImage(canvasChargedBOnMatOn, canvasChargedBOnMatOn->GetWindowWidth(), canvasChargedBOnMatOn->GetWindowHeight());
-    anImageChargedBOnMatOn->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B on,  all material on");
-    plotsChargedContent->addItem(anImageChargedBOnMatOn);
+    RootWImage& anImageChargedBOnMatOn = plotsChargedContent.addImage(canvasChargedBOnMatOn);
+    anImageChargedBOnMatOn.setComment("RZ view of charged particles flux [cm^-2] in a tracker - B on,  all material on");
   }
 
   // Ratios
-  TCanvas * canvasPhotonsRatioLTh     = nullptr;
-  TCanvas * canvasPhotonsRatioECalMat = nullptr;
-  TCanvas * canvasPhotonsRatioMat     = nullptr;
-  TCanvas * canvasPhotonsRatioB       = nullptr;
-  TCanvas * canvasPhotonsRatioTrkB    = nullptr;
-  TCanvas * canvasPhotonsRatioMatB    = nullptr;
-  TCanvas * canvasChargedRatioLTh     = nullptr;
-  TCanvas * canvasChargedRatioECalMat = nullptr;
-  TCanvas * canvasChargedRatioMat     = nullptr;
-  TCanvas * canvasChargedRatioB       = nullptr;
-  TCanvas * canvasChargedRatioTrkB    = nullptr;
-  TCanvas * canvasChargedRatioMatB    = nullptr;
+  TCanvas canvasPhotonsRatioLTh    ;
+  TCanvas canvasPhotonsRatioECalMat;
+  TCanvas canvasPhotonsRatioMat    ;
+  TCanvas canvasPhotonsRatioB      ;
+  TCanvas canvasPhotonsRatioTrkB   ;
+  TCanvas canvasPhotonsRatioMatB   ;
+  TCanvas canvasChargedRatioLTh    ;
+  TCanvas canvasChargedRatioECalMat;
+  TCanvas canvasChargedRatioMat    ;
+  TCanvas canvasChargedRatioB      ;
+  TCanvas canvasChargedRatioTrkB   ;
+  TCanvas canvasChargedRatioMatB   ;
 
   RootWContent* plotsPhotonsRatioContent  = nullptr;
   RootWContent* plotsChargedRatioContent  = nullptr;
@@ -253,10 +243,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
   if ((m_hisPhotonsFluxBOffMatOn  && m_hisChargedFluxBOffMatOn) ||
       (m_hisPhotonsFluxBOnMatOff  && m_hisChargedFluxBOnMatOff) ||
       (m_hisPhotonsFluxBOffMatOff && m_hisChargedFluxBOffMatOff)) {
-    plotsPhotonsRatioContent   = new RootWContent("Fluka simulation - ratio of photons fluxes per pp collision -> adding individual effects:", true);
-    plotsChargedRatioContent   = new RootWContent("Fluka simulation - ratio of charged particles fluxes per pp collision -> adding individual effects:", true);
-    myPage->addContent(plotsPhotonsRatioContent);
-    myPage->addContent(plotsChargedRatioContent);
+    plotsPhotonsRatioContent   = &(myPage.addContent("Fluka simulation - ratio of photons fluxes per pp collision -> adding individual effects:", true));
+    plotsChargedRatioContent   = &(myPage.addContent("Fluka simulation - ratio of charged particles fluxes per pp collision -> adding individual effects:", true));
   }
 
   // Ratio plots - photons
@@ -267,9 +255,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioB->SetMaximum(5);
 
     if (drawHistogram(canvasPhotonsRatioB, m_hisPhotonsRatioB, m_photonsMapBOnMatOff, "PhotonsRatioB", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioB = new RootWImage(canvasPhotonsRatioB, canvasPhotonsRatioB->GetWindowWidth(), canvasPhotonsRatioB->GetWindowHeight());
-      anImagePhotonsRatioB->setComment("RZ ratio of photons fluxes - (Mag.field)/(No material+No mag.field)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioB);
+      RootWImage& anImagePhotonsRatioB = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioB);
+      anImagePhotonsRatioB.setComment("RZ ratio of photons fluxes - (Mag.field)/(No material+No mag.field)");
     }
   }
   if (m_hisPhotonsFluxBOffTrkOff && m_hisPhotonsFluxBOffMatOff) {
@@ -279,9 +266,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioECalMat->SetMaximum(100);
 
     if (drawHistogram(canvasPhotonsRatioECalMat, m_hisPhotonsRatioECalMat, m_photonsMapBOffTrkOff, "PhotonsRatioECalMat", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioECalMat = new RootWImage(canvasPhotonsRatioECalMat, canvasPhotonsRatioECalMat->GetWindowWidth(), canvasPhotonsRatioECalMat->GetWindowHeight());
-      anImagePhotonsRatioECalMat->setComment("RZ ratio of photons fluxes - (ECal Material)/(No material+No mag.field)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioECalMat);
+      RootWImage& anImagePhotonsRatioECalMat = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioECalMat);
+      anImagePhotonsRatioECalMat.setComment("RZ ratio of photons fluxes - (ECal Material)/(No material+No mag.field)");
     }
   }
   if (m_hisPhotonsFluxBOffMatOn && m_hisPhotonsFluxBOffMatOff) {
@@ -291,9 +277,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioMat->SetMaximum(100);
 
     if (drawHistogram(canvasPhotonsRatioMat, m_hisPhotonsRatioMat, m_photonsMapBOffMatOn, "PhotonsRatioMat", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioMat = new RootWImage(canvasPhotonsRatioMat, canvasPhotonsRatioMat->GetWindowWidth(), canvasPhotonsRatioMat->GetWindowHeight());
-      anImagePhotonsRatioMat->setComment("RZ ratio of photons fluxes - (Material)/(No material+No mag.field)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioMat);
+      RootWImage& anImagePhotonsRatioMat = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioMat);
+      anImagePhotonsRatioMat.setComment("RZ ratio of photons fluxes - (Material)/(No material+No mag.field)");
     }
   }
   if (m_hisPhotonsFluxBOnMatOn && m_hisPhotonsFluxBOffTrkOff) {
@@ -303,9 +288,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioTrkB->SetMaximum(5);
 
     if (drawHistogram(canvasPhotonsRatioTrkB, m_hisPhotonsRatioTrkB, m_photonsMapBOnMatOn, "PhotonsRatioTrkB", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioTrkB = new RootWImage(canvasPhotonsRatioTrkB, canvasPhotonsRatioTrkB->GetWindowWidth(), canvasPhotonsRatioTrkB->GetWindowHeight());
-      anImagePhotonsRatioTrkB->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioTrkB);
+      RootWImage& anImagePhotonsRatioTrkB = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioTrkB);
+      anImagePhotonsRatioTrkB.setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
     }
   }
   if (m_hisPhotonsFluxBOnMatOn && m_hisPhotonsFluxBOffMatOff) {
@@ -315,13 +299,12 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioMatB->SetMaximum(100);
 
     if (drawHistogram(canvasPhotonsRatioMatB, m_hisPhotonsRatioMatB, m_photonsMapBOnMatOn, "PhotonsRatioMatB", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioMatB = new RootWImage(canvasPhotonsRatioMatB, canvasPhotonsRatioMatB->GetWindowWidth(), canvasPhotonsRatioMatB->GetWindowHeight());
-      anImagePhotonsRatioMatB->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioMatB);
+      RootWImage& anImagePhotonsRatioMatB = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioMatB);
+      anImagePhotonsRatioMatB.setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field)");
     }
 
-    TCanvas* canvasRatioMatBProj = new TCanvas("PhotonsRatioMatBProj", "RZ ratio of photons fluxes - projection Z=?mm", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    TLegend* legend = new TLegend(0.12,0.5,0.5,0.88);
+    TCanvas canvasRatioMatBProj("PhotonsRatioMatBProj", "RZ ratio of photons fluxes - projection Z=?mm", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    TLegend legend(0.12,0.5,0.5,0.88);
     for (int i=0; i<8; i++) {
 
       std::ostringstream name;
@@ -332,14 +315,13 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
       name << m_hisPhotonsFluxBOnMatOn->GetXaxis()->GetBinCenter(int(m_hisPhotonsFluxBOnMatOn->GetNbinsX()/8.1*i)+1);
       his->SetTitle(std::string("Ratio of photons flux - (All Material+Mag.field)/(No material+No mag.field)").c_str());
       his->GetYaxis()->SetRangeUser(0, 100);
-      legend->AddEntry(his,std::string("Z="+name.str()+"mm").c_str());
+      legend.AddEntry(his,std::string("Z="+name.str()+"mm").c_str());
       if (i==0) his->Draw();
       else      his->Draw("SAME");
     }
-    legend->Draw("SAME");
-    RootWImage* anImagePhotonsRatioMatBProj = new RootWImage(canvasRatioMatBProj, canvasRatioMatBProj->GetWindowWidth(), canvasRatioMatBProj->GetWindowHeight());
-    anImagePhotonsRatioMatBProj->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field) Z=?mm");
-    plotsPhotonsRatioContent->addItem(anImagePhotonsRatioMatBProj);
+    legend.Draw("SAME");
+    RootWImage& anImagePhotonsRatioMatBProj = plotsPhotonsRatioContent->addImage(canvasRatioMatBProj);
+    anImagePhotonsRatioMatBProj.setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field) Z=?mm");
   }
   if (m_hisPhotonsFluxBOnMatOn && m_hisPhotonsFluxBOnMatOnLTh) {
     m_hisPhotonsRatioLTh  = (TH2D*)(m_hisPhotonsFluxBOnMatOnLTh->Clone("PhotonsFluxPerPPRatioLTh"));
@@ -347,9 +329,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioLTh->SetTitle("Ratio of photon flux - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
 
     if (drawHistogram(canvasPhotonsRatioLTh, m_hisPhotonsRatioLTh, m_photonsMapBOnMatOn, "PhotonsRatioLTh", "RZ ratio of photons fluxes")) {
-      RootWImage* anImagePhotonsRatioLTh = new RootWImage(canvasPhotonsRatioLTh, canvasPhotonsRatioLTh->GetWindowWidth(), canvasPhotonsRatioLTh->GetWindowHeight());
-      anImagePhotonsRatioLTh->setComment("RZ ratio of photons fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
-      plotsPhotonsRatioContent->addItem(anImagePhotonsRatioLTh);
+      RootWImage& anImagePhotonsRatioLTh = plotsPhotonsRatioContent->addImage(canvasPhotonsRatioLTh);
+      anImagePhotonsRatioLTh.setComment("RZ ratio of photons fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
     }
   }
 
@@ -361,9 +342,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioB->SetMaximum(5);
 
     if (drawHistogram(canvasChargedRatioB, m_hisChargedRatioB, m_chargedMapBOnMatOff, "ChargedRatioB", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioB = new RootWImage(canvasChargedRatioB, canvasChargedRatioB->GetWindowWidth(), canvasChargedRatioB->GetWindowHeight());
-      anImageChargedRatioB->setComment("RZ ratio of charged particles fluxes - (Mag.field)/(No material+No mag.field)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioB);
+      RootWImage& anImageChargedRatioB = plotsChargedRatioContent->addImage(canvasChargedRatioB);
+      anImageChargedRatioB.setComment("RZ ratio of charged particles fluxes - (Mag.field)/(No material+No mag.field)");
     }
   }
   if (m_hisChargedFluxBOffTrkOff && m_hisChargedFluxBOffMatOff) {
@@ -373,9 +353,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioECalMat->SetMaximum(5);
 
     if (drawHistogram(canvasChargedRatioECalMat, m_hisChargedRatioECalMat, m_chargedMapBOffTrkOff, "ChargedRatioECalMat", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioECalMat = new RootWImage(canvasChargedRatioECalMat, canvasChargedRatioECalMat->GetWindowWidth(), canvasChargedRatioECalMat->GetWindowHeight());
-      anImageChargedRatioECalMat->setComment("RZ ratio of charged particles fluxes - (ECal Material)/(No material+No mag.field)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioECalMat);
+      RootWImage& anImageChargedRatioECalMat = plotsChargedRatioContent->addImage(canvasChargedRatioECalMat);
+      anImageChargedRatioECalMat.setComment("RZ ratio of charged particles fluxes - (ECal Material)/(No material+No mag.field)");
     }
   }
   if (m_hisChargedFluxBOffMatOn && m_hisChargedFluxBOffMatOff) {
@@ -385,9 +364,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioMat->SetMaximum(10);
 
     if (drawHistogram(canvasChargedRatioMat, m_hisChargedRatioMat, m_chargedMapBOffMatOn, "ChargedRatioMat", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioMat = new RootWImage(canvasChargedRatioMat, canvasChargedRatioMat->GetWindowWidth(), canvasChargedRatioMat->GetWindowHeight());
-      anImageChargedRatioMat->setComment("RZ ratio of charged particles fluxes - (Material)/(No material+No mag.field)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioMat);
+      RootWImage& anImageChargedRatioMat = plotsChargedRatioContent->addImage(canvasChargedRatioMat);
+      anImageChargedRatioMat.setComment("RZ ratio of charged particles fluxes - (Material)/(No material+No mag.field)");
     }
   }
   if (m_hisChargedFluxBOnMatOn && m_hisChargedFluxBOffTrkOff) {
@@ -397,9 +375,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioTrkB->SetMaximum(10);
 
     if (drawHistogram(canvasChargedRatioTrkB, m_hisChargedRatioTrkB, m_chargedMapBOnMatOn, "ChargedRatioTrkB", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioTrkB = new RootWImage(canvasChargedRatioTrkB, canvasChargedRatioTrkB->GetWindowWidth(), canvasChargedRatioTrkB->GetWindowHeight());
-      anImageChargedRatioTrkB->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioTrkB);
+      RootWImage& anImageChargedRatioTrkB = plotsChargedRatioContent->addImage(canvasChargedRatioTrkB);
+      anImageChargedRatioTrkB.setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
     }
   }
   if (m_hisChargedFluxBOnMatOn && m_hisChargedFluxBOffMatOff) {
@@ -409,13 +386,12 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioMatB->SetMaximum(10);
 
     if (drawHistogram(canvasChargedRatioMatB, m_hisChargedRatioMatB, m_chargedMapBOnMatOn, "ChargedRatioMatB", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioMatB = new RootWImage(canvasChargedRatioMatB, canvasChargedRatioMatB->GetWindowWidth(), canvasChargedRatioMatB->GetWindowHeight());
-      anImageChargedRatioMatB->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioMatB);
+      RootWImage& anImageChargedRatioMatB = plotsChargedRatioContent->addImage(canvasChargedRatioMatB);
+      anImageChargedRatioMatB.setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field)");
     }
 
-    TCanvas* canvasRatioMatBProj = new TCanvas("ChargedRatioMatBProj", "RZ ratio of charged particle fluxes - projection Z=?mm", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    TLegend* legend = new TLegend(0.5,0.5,0.88,0.88);
+    TCanvas canvasRatioMatBProj("ChargedRatioMatBProj", "RZ ratio of charged particle fluxes - projection Z=?mm", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    TLegend legend(0.5,0.5,0.88,0.88);
     for (int i=0; i<8; i++) {
 
       std::ostringstream name;
@@ -426,14 +402,13 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
       name << m_hisChargedFluxBOnMatOn->GetXaxis()->GetBinCenter(int(m_hisChargedFluxBOnMatOn->GetNbinsX()/8.1*i)+1);
       his->SetTitle(std::string("Ratio of charged particles flux - (All Material+Mag.field)/(No material+No mag.field)").c_str());
       his->GetYaxis()->SetRangeUser(0, 20);
-      legend->AddEntry(his,std::string("Z="+name.str()+"mm").c_str());
+      legend.AddEntry(his,std::string("Z="+name.str()+"mm").c_str());
       if (i==0) his->Draw();
       else      his->Draw("SAME");
     }
-    legend->Draw("SAME");
-    RootWImage* anImageChargedRatioMatBProj = new RootWImage(canvasRatioMatBProj, canvasRatioMatBProj->GetWindowWidth(), canvasRatioMatBProj->GetWindowHeight());
-    anImageChargedRatioMatBProj->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field) Z=?mm");
-    plotsChargedRatioContent->addItem(anImageChargedRatioMatBProj);
+    legend.Draw("SAME");
+    RootWImage& anImageChargedRatioMatBProj = plotsChargedRatioContent->addImage(canvasRatioMatBProj);
+    anImageChargedRatioMatBProj.setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field) Z=?mm");
   }
   if (m_hisChargedFluxBOnMatOn && m_hisChargedFluxBOnMatOnLTh) {
     m_hisChargedRatioLTh  = (TH2D*)(m_hisChargedFluxBOnMatOnLTh->Clone("ChargedFluxPerPPRatioLTh"));
@@ -441,9 +416,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioLTh->SetTitle("Ratio of charged particles flux - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
 
     if (drawHistogram(canvasChargedRatioLTh, m_hisChargedRatioLTh, m_chargedMapBOnMatOn, "ChargedRatioLTh", "RZ ratio of charged particle fluxes")) {
-      RootWImage* anImageChargedRatioLTh = new RootWImage(canvasChargedRatioLTh, canvasChargedRatioLTh->GetWindowWidth(), canvasChargedRatioLTh->GetWindowHeight());
-      anImageChargedRatioLTh->setComment("RZ ratio of charged particles fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
-      plotsChargedRatioContent->addItem(anImageChargedRatioLTh);
+      RootWImage& anImageChargedRatioLTh = plotsChargedRatioContent->addImage(canvasChargedRatioLTh);
+      anImageChargedRatioLTh.setComment("RZ ratio of charged particles fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
     }
   }
 
@@ -452,10 +426,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
 
     // Create table
     std::string trkName = itTracker->myid();
-    RootWContent* occupancyBarrelContent = new RootWContent("Occupancy - charged particles ("+trkName+"-barrel)", true);
-    RootWContent* occupancyEndcapContent = new RootWContent("Occupancy - charged particles ("+trkName+"-endcap)", true);
-    myPage->addContent(occupancyBarrelContent);
-    myPage->addContent(occupancyEndcapContent);
+    RootWContent& occupancyBarrelContent = myPage.addContent("Occupancy - charged particles ("+trkName+"-barrel)", true);
+    RootWContent& occupancyEndcapContent = myPage.addContent("Occupancy - charged particles ("+trkName+"-endcap)", true);
 
     // Create visitor class & fill tables with data
     class OccupancyVisitor : public ConstGeometryVisitor {
@@ -804,9 +776,9 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
         m_ringNModules[iRing]++;
       }
 
-      RootWTable* getLayerTable(signed int nPileUps, std::string trkName) {
+      std::unique_ptr<RootWTable> getLayerTable(signed int nPileUps, std::string trkName) {
 
-        RootWTable* layerTable = new RootWTable();
+        std::unique_ptr<RootWTable> layerTable(new RootWTable());
 
         double precisionFlux      = 2*c_coordPrecision;
         double precisionArea      = 2*c_coordPrecision;
@@ -931,12 +903,12 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           layerTable->setContent(14, m_nLayers+1, totDataRateTriggerSpar/(Units::TB/Units::s));
         }
 
-        return layerTable;
+        return std::move(layerTable);
       }
 
-      RootWTable* getRingTable(signed int nPileUps, std::string trkName) {
+      std::unique_ptr<RootWTable> getRingTable(signed int nPileUps, std::string trkName) {
 
-        RootWTable* ringTable = new RootWTable();
+        std::unique_ptr<RootWTable> ringTable(new RootWTable());
 
         double precisionFlux      = 2*c_coordPrecision;
         double precisionArea      = 2*c_coordPrecision;
@@ -1081,17 +1053,17 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     // Print out layer & disk table
     for (auto nPileUps : trk_pile_up) {
 
-      RootWTable*        pileUpTable = new RootWTable();
+      std::unique_ptr<RootWTable> pileUpTable(new RootWTable());
       std::ostringstream namePileUp;
       namePileUp << nPileUps;
 
       pileUpTable->setContent(0, 0, "Number of pile-up events: ");
       pileUpTable->setContent(0, 1, namePileUp.str());
 
-      occupancyBarrelContent->addItem(pileUpTable);
-      occupancyBarrelContent->addItem(geometryVisitor.getLayerTable(nPileUps, itTracker->myid()));
-      occupancyEndcapContent->addItem(pileUpTable);
-      occupancyEndcapContent->addItem(geometryVisitor.getRingTable(nPileUps, itTracker->myid()));
+      occupancyBarrelContent.addItem(std::move(pileUpTable));
+      occupancyBarrelContent.addItem(std::move(geometryVisitor.getLayerTable(nPileUps, itTracker->myid())));
+      occupancyEndcapContent.addItem(std::move(pileUpTable));
+      occupancyEndcapContent.addItem(std::move(geometryVisitor.getRingTable(nPileUps, itTracker->myid())));
     }
   }
 
@@ -1197,15 +1169,17 @@ bool AnalyzerOccupancy::fillHistogram(const IrradiationMap* map, TH2D*& his, std
   else return false;
 }
 
-bool AnalyzerOccupancy::drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, std::string name, std::string title)
+bool AnalyzerOccupancy::drawHistogram(TCanvas& canvas, TH2D* his, const IrradiationMap* map, std::string name, std::string title)
 {
   if (his!=nullptr) {
 
     std::string canvasName  = name+"Canvas";
     std::string canvasTitle = title;
-    canvas = new TCanvas(canvasName.c_str(), canvasTitle.c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvas.SetName(canvasName.c_str());
+    canvas.SetTitle(canvasTitle.c_str());
+    canvas.SetWindowSize(vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 
-    canvas->cd();
+    canvas.cd();
     his->Draw("COLZ");
     his->GetXaxis()->SetTitle(std::string("Z ["+map->getZUnit()+"]").c_str());
     his->GetXaxis()->SetTitleOffset(1.2);

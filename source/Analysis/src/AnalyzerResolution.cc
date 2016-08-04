@@ -14,17 +14,23 @@
 #include "MessageLogger.h"
 #include "ModuleCap.h"
 #include <Palette.h>
-#include "rootweb.h"
+#include "RootWContent.h"
+#include "RootWImage.h"
+#include "RootWPage.h"
+#include "RootWSite.h"
+#include "RootWTable.h"
 #include "SimParms.h"
+#include <TCanvas.h>
 #include <TProfile.h>
 #include <TRandom3.h>
+#include <TList.h>
 #include "Tracker.h"
 #include "Track.h"
 #include <TStyle.h>
 #include "Units.h"
 
 
-AnalyzerResolution::AnalyzerResolution(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerResolution", trackers, beamPipe),
+AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit("AnalyzerResolution", detector),
  m_nTracks(0),
  m_etaMin(-1*geom_max_eta_coverage),
  m_etaMax(+1*geom_max_eta_coverage)
@@ -82,7 +88,7 @@ bool AnalyzerResolution::analyze()
   myDice.SetSeed(random_seed);
 
   // Initialize
-  double efficiency  = SimParms::getInstance()->efficiency();
+  double efficiency  = SimParms::getInstance().efficiency();
 
   // Tracks pruned
   bool isPruned = false;
@@ -114,7 +120,7 @@ bool AnalyzerResolution::analyze()
         matTrack.keepTaggedOnly(tag);
 
         // Add IP constraint
-        if (SimParms::getInstance()->useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance()->rError(), SimParms::getInstance()->zErrorCollider());
+        if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rError(), SimParms::getInstance().zErrorCollider());
 
         // Sort hits
         bool smallerRadius = true;
@@ -228,12 +234,6 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
   Palette::setRootPalette(55);
 
   // Go through all trackers & prepare web content
-  int webPriority         = web_priority_Resol;
-  RootWPage*    myPage    = nullptr;
-  RootWContent* myContent = nullptr;
-  RootWImage*   myImage   = nullptr;
-  RootWTable*   myTable   = nullptr;
-
   for (auto& key : m_taggedTrackPtCollectionMap) {
 
     std::string tag       = key.first;
@@ -244,32 +244,31 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
     // Correct naming...
     std::string wName = "";
     if      (tag=="beampipe")                wName = "BP";
-    else if (tag=="pixel")                   wName = "PIXEL";
-    else if (tag=="trigger" || tag=="strip") wName = "STRIP";
+    else if (tag=="pixel")                   wName = "Pixel";
+    else if (tag=="trigger" || tag=="strip") wName = "Strip";
     else if (tag=="barrel")                  wName = "BRL";
     else if (tag=="endcap")                  wName = "ECAP";
     else if (tag=="forward")                 wName = "FWD";
-    else if (tag=="tracker")                 wName = "TRK";
+    else if (tag=="tracker")                 wName = "Tracker";
     else                                     wName = tag;
 
-    pageTitle           += " ("+wName+")";
-    additionalSummaryTag = "_"+wName+"_";
-    verticalScale        = 10;
-    std::string pageAddress = "errors" + wName + ".html";
+    pageTitle              += " ("+wName+")";
+    additionalSummaryTag    = "_"+wName+"_";
+    verticalScale           = 10;
+    std::string pageAddress = "indexResol" + wName + ".html";
 
-    myPage = new RootWPage(pageTitle);
-    myPage->setAddress(pageAddress);
-    if      (wName=="PIXEL")  webSite.addPage(myPage,webPriority);
-    else if (wName=="STRIP")  webSite.addPage(myPage,webPriority-1);
-    else if (wName=="FWD")    webSite.addPage(myPage,webPriority-2);
-    else if (wName=="BARREL") webSite.addPage(myPage,webPriority-3);
-    else if (wName=="ENDCAP") webSite.addPage(myPage,webPriority-4);
-    else if (wName=="TRK")    webSite.addPage(myPage,webPriority-5);
-    else                      webSite.addPage(myPage);
+    int webPriority         = 0;
+    if      (wName=="PIXEL")  webPriority = web_priority_Resol;
+    else if (wName=="STRIP")  webPriority = web_priority_Resol-1;
+    else if (wName=="FWD")    webPriority = web_priority_Resol-2;
+    else if (wName=="BARREL") webPriority = web_priority_Resol-3;
+    else if (wName=="ENDCAP") webPriority = web_priority_Resol-4;
+    else if (wName=="TRK")    webPriority = web_priority_Resol-5;
+
+    RootWPage& myPage = webSite.addPage(pageTitle, webPriority);
+    myPage.setAddress(pageAddress);
 
     // Canvases
-    std::unique_ptr<TCanvas> canvasResPtLog, canvasResPtLin, canvasResP, canvasResD0, canvasResZ0, canvasResPhi0, canvasResCotgTh;
-
     gStyle->SetGridStyle(style_grid);
     gStyle->SetGridColor(Palette::color_hard_grid);
     gStyle->SetOptStat(0);
@@ -316,10 +315,25 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       preparePlot(profHisArray_Phi0     , "phi0"     , scenarioName, *taggedTrackCollectionMap);
       preparePlot(profHisArray_CotgTheta, "cotgTheta", scenarioName, *taggedTrackCollectionMap);
 
-      if      (i==0) myContent = new RootWContent("Track resolution for const Pt across "  +web_etaLetter+" (active+pasive material)", true);
-      else if (i==1) myContent = new RootWContent("Track resolution for const Pt across "  +web_etaLetter+" (ideal - no material)", true);
-      else if (i==2) myContent = new RootWContent("Track resolution for const P across "   +web_etaLetter+" (active+pasive material)", false);
-      else if (i==3) myContent = new RootWContent("Track resolution for const P across "   +web_etaLetter+" (ideal - no material)", false);
+      std::string contentName = "";
+      bool        contentVis  = true;
+
+      if      (i==0) {
+        contentName = "Track resolution for const Pt across "  +web_etaLetter+" (active+pasive material)";
+        contentVis  = true;
+      }
+      else if (i==1) {
+        contentName = "Track resolution for const Pt across "  +web_etaLetter+" (ideal - no material)";
+        contentVis  = true;
+      }
+      else if (i==2) {
+        contentName = "Track resolution for const P across "   +web_etaLetter+" (active+pasive material)";
+        contentVis  = false;
+      }
+      else if (i==3) {
+        contentName = "Track resolution for const P across "   +web_etaLetter+" (ideal - no material)";
+        contentVis  = false;
+      }
       else {
 
         std::ostringstream message;
@@ -327,140 +341,134 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
         logERROR(message.str());
         return false;
       }
-      myPage->addContent(myContent);
+      RootWContent& myContentPlots = myPage.addContent(contentName, contentVis);
 
       // a) Resolution in Pt
-      canvasResPtLin = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResPtLin->SetGrid(1,1);
-      canvasResPtLin->SetLogy(0);
-      canvasResPtLin->SetFillColor(Palette::color_plot_background);
-      canvasResPtLin->SetObjectStat(false);
+      TCanvas canvasResPtLin(std::string("ResPtLin_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResPtLin.SetGrid(1,1);
+      canvasResPtLin.SetLogy(0);
+      canvasResPtLin.SetFillColor(Palette::color_plot_background);
+      canvasResPtLin.SetObjectStat(false);
       for (auto itHis=profHisArray_Pt.begin(); itHis!=profHisArray_Pt.end(); itHis++) {
 
         if (itHis==profHisArray_Pt.begin()) (*itHis)->Draw("PE1");
         else                                (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResPtLin.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Transverse momentum resolution vs. "+web_etaLetter+" (lin. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("linptres_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageLinPt = myContentPlots.addImage(canvasResPtLin, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageLinPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (lin. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageLinPt.setName(Form("linptres_%s_%s", tag.c_str(), scenario.c_str()));
 
-      canvasResPtLog = std::unique_ptr<TCanvas>(new TCanvas);;
-      canvasResPtLog->SetGrid(1,1);
-      canvasResPtLog->SetLogy(1);
-      canvasResPtLog->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResPtLog(std::string("ResPtLog_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResPtLog.SetGrid(1,1);
+      canvasResPtLog.SetLogy(1);
+      canvasResPtLog.SetFillColor(Palette::color_plot_background);
       for (auto itHis=profHisArray_Pt.begin(); itHis!=profHisArray_Pt.end(); itHis++) {
 
         if (itHis==profHisArray_Pt.begin()) (*itHis)->Draw("PE1");
         else                                (*itHis)->Draw("PE1 SAME");
       }
-      myImage = new RootWImage(canvasResPtLog.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Transverse momentum resolution vs. "+web_etaLetter+" (log. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("logptres_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageLogPt = myContentPlots.addImage(canvasResPtLog, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageLogPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (log. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageLogPt.setName(Form("logptres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Pt.clear();
 
       // b) Resolution in P
-      canvasResP = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResP->SetGrid(1,1);
-      canvasResP->SetLogy(1);
-      canvasResP->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResP(std::string("ResP_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResP.SetGrid(1,1);
+      canvasResP.SetLogy(1);
+      canvasResP.SetFillColor(Palette::color_plot_background);
+
       for (auto itHis=profHisArray_P.begin(); itHis!=profHisArray_P.end(); itHis++) {
 
         if (itHis==profHisArray_P.begin()) (*itHis)->Draw("PE1");
         else                               (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResP.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Momentum resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("pres_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageP = myContentPlots.addImage(canvasResP, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageP.setComment("Momentum resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageP.setName(Form("pres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_P.clear();
 
       // c) Resolution in D0
-      canvasResD0 = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResD0->SetGrid(1,1);
-      canvasResD0->SetLogy(1);
-      canvasResD0->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResD0(std::string("ResD0_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResD0.SetGrid(1,1);
+      canvasResD0.SetLogy(1);
+      canvasResD0.SetFillColor(Palette::color_plot_background);
       for (auto itHis=profHisArray_D0.begin(); itHis!=profHisArray_D0.end(); itHis++) {
 
         if (itHis==profHisArray_D0.begin()) (*itHis)->Draw("PE1");
         else                                (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResD0.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("d0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("d0res_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageD0 = myContentPlots.addImage(canvasResD0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageD0.setComment("d0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageD0.setName(Form("d0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_D0.clear();
 
       // d) Resolution in Z0
-      canvasResZ0 = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResZ0->SetGrid(1,1);
-      canvasResZ0->SetLogy(1);
-      canvasResZ0->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResZ0(std::string("ResZ0_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResZ0.SetGrid(1,1);
+      canvasResZ0.SetLogy(1);
+      canvasResZ0.SetFillColor(Palette::color_plot_background);
       for (auto itHis=profHisArray_Z0.begin(); itHis!=profHisArray_Z0.end(); itHis++) {
 
         if (itHis==profHisArray_Z0.begin()) (*itHis)->Draw("PE1");
         else                                (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResZ0.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("z0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("z0res_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageZ0 = myContentPlots.addImage(canvasResZ0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageZ0.setComment("z0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageZ0.setName(Form("z0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Z0.clear();
 
       // e) Resolution in Phi0
-      canvasResPhi0 = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResPhi0->SetGrid(1,1);
-      canvasResPhi0->SetLogy(1);
-      canvasResPhi0->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResPhi0(std::string("ResPhi0_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResPhi0.SetGrid(1,1);
+      canvasResPhi0.SetLogy(1);
+      canvasResPhi0.SetFillColor(Palette::color_plot_background);
       for (auto itHis=profHisArray_Phi0.begin(); itHis!=profHisArray_Phi0.end(); itHis++) {
 
         if (itHis==profHisArray_Phi0.begin()) (*itHis)->Draw("PE1");
         else                                  (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResPhi0.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment(web_phiLetter + "0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("phi0res_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImagePhi0 = myContentPlots.addImage(canvasResPhi0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePhi0.setComment(web_phiLetter + "0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImagePhi0.setName(Form("phi0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Phi0.clear();
 
       // f) Resolution in cotg(theta)
-      canvasResCotgTh = std::unique_ptr<TCanvas>(new TCanvas);
-      canvasResCotgTh->SetGrid(1,1);
-      canvasResCotgTh->SetLogy(1);
-      canvasResCotgTh->SetFillColor(Palette::color_plot_background);
+      TCanvas canvasResCotgTh(std::string("ResCotgTh_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResCotgTh.SetGrid(1,1);
+      canvasResCotgTh.SetLogy(1);
+      canvasResCotgTh.SetFillColor(Palette::color_plot_background);
       for (auto itHis=profHisArray_CotgTheta.begin(); itHis!=profHisArray_CotgTheta.end(); itHis++) {
 
         if (itHis==profHisArray_CotgTheta.begin()) (*itHis)->Draw("PE1");
         else                                       (*itHis)->Draw("PE1 SAME");
       }
 
-      myImage = new RootWImage(canvasResCotgTh.release(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Ctg("+web_thetaLetter+") resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
-      myImage->setName(Form("cotgThres_%s_%s", tag.c_str(), scenario.c_str()));
-      myContent->addItem(myImage);
+      RootWImage& myImageCtg = myContentPlots.addImage(canvasResCotgTh, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageCtg.setComment("Ctg("+web_thetaLetter+") resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageCtg.setName(Form("cotgThres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_CotgTheta.clear();
 
     } // For scenarios
 
     // Set Summary content for const Pt
-    RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+web_etaLetter);
-    prepareSummaryTable(tag, "Pt", *myPage, summaryContent_Pt, *m_csvResPt);
+    RootWContent& summaryContent_Pt = myPage.addContent("Summary - const Pt across "+web_etaLetter);
+    prepareSummaryTable(tag, "Pt", myPage, summaryContent_Pt, *m_csvResPt);
 
     // Set Summary content for const P
-    RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+web_etaLetter, false);
-    prepareSummaryTable(tag, "P", *myPage, summaryContent_P, *m_csvResP);
+    RootWContent& summaryContent_P = myPage.addContent("Summary - const P across "+web_etaLetter, false);
+    prepareSummaryTable(tag, "P", myPage, summaryContent_P, *m_csvResP);
   } // For tag
 
   return true;
@@ -610,8 +618,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
 
   for (auto& name : plotNames) {
 
-    RootWTable* myTable = new RootWTable();
-    summaryContent.addItem(myTable);
+    RootWTable* myTable = &(summaryContent.addTable());
     tableMap[name] = myTable;
     tableMap[name]->setContent(0,0,name);
   }
@@ -692,33 +699,33 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
       std::string profileName = "";
 
       if      (plotName==std::string(web_deltaLetter+"pt/pt [%]:           ")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("linptres_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("linptres_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("linptres_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("linptres_"+tag+"_noMS_"+scenario));
         profileName= "pT_vs_eta"+any2str(momenta[iMom],0);
       }
       else if (plotName==std::string(web_deltaLetter+"p/p [%]:             ")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("pres_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("pres_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("pres_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("pres_"+tag+"_noMS_"+scenario));
         profileName= "p_vs_eta"+any2str(momenta[iMom],0);
       }
       else if (plotName==std::string(web_deltaLetter+"d0 ["+web_muLetter+"m]:  ")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("d0res_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("d0res_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("d0res_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("d0res_"+tag+"_noMS_"+scenario));
         profileName= "d0_vs_eta"+any2str(momenta[iMom],0);
       }
       else if (plotName==std::string(web_deltaLetter+"z0 ["+web_muLetter+"m]:  ")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("z0res_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("z0res_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("z0res_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("z0res_"+tag+"_noMS_"+scenario));
         profileName= "z0_vs_eta"+any2str(momenta[iMom],0);
       }
       else if (plotName==std::string(web_deltaLetter+web_phiLetter+"0:          ")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("phi0res_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("phi0res_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("phi0res_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("phi0res_"+tag+"_noMS_"+scenario));
         profileName= "phi0_vs_eta"+any2str(momenta[iMom],0);
       }
       else if (plotName==std::string(web_deltaLetter+"ctg("+web_thetaLetter+"):")) {
-        canvasReal = webPage.findContent(scenarioNameReal)->findImage("cotgThres_"+tag+"_withMS_"+scenario);
-        canvasIdeal= webPage.findContent(scenarioNameIdeal)->findImage("cotgThres_"+tag+"_noMS_"+scenario);
+        canvasReal = &(webPage.findContent(scenarioNameReal).findImage("cotgThres_"+tag+"_withMS_"+scenario));
+        canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("cotgThres_"+tag+"_noMS_"+scenario));
         profileName= "cotgTh_vs_eta"+any2str(momenta[iMom],0);
       }
 

@@ -15,9 +15,13 @@
 #include <MaterialProperties.h>
 #include <Math/Vector3D.h>
 #include <ModuleCap.h>
-#include <rootweb.h>
 #include <ostream>
 #include <Palette.h>
+#include "RootWContent.h"
+#include "RootWImage.h"
+#include "RootWPage.h"
+#include "RootWSite.h"
+#include "RootWTable.h"
 #include <TCanvas.h>
 #include <TColor.h>
 #include <TGraph.h>
@@ -36,7 +40,7 @@
 //
 // AnalyzerMatBudget constructor
 //
-AnalyzerMatBudget::AnalyzerMatBudget(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerMatBudget", trackers, beamPipe),
+AnalyzerMatBudget::AnalyzerMatBudget(const Detector& detector) : AnalyzerUnit("AnalyzerMatBudget", detector),
  m_nTracks(0),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
@@ -89,6 +93,9 @@ bool AnalyzerMatBudget::init(int nMatTracks)
       maxZ = MAX(maxZ, iTrk->maxZ()*vis_safety_factor);
       maxR = MAX(maxR, iTrk->maxR()*vis_safety_factor);
     }
+
+    // Prepare Csv containers -> keep final pT/p resolution in csv file
+    m_csvMatBudget = std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
 
     // Prepare histogram containers for each subdetector (components will be initialized on the fly)
     for (int iTrk=0; iTrk<=m_trackers.size(); iTrk++) {
@@ -454,10 +461,6 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
   // Go through all trackers & prepare web content
   int webPriority         = web_priority_MB;
-  RootWPage*    myPage    = nullptr;
-  RootWContent* myContent = nullptr;
-  RootWImage*   myImage   = nullptr;
-  RootWTable*   myTable   = nullptr;
 
   // Set Rainbow palette for drawing
   Palette::setRootPalette(55);
@@ -481,25 +484,22 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     // Create dedicated web-page & its content
     std::string        pageTitle  = "MatBudget";
     if (trkName != "") pageTitle +=" (" + trkName + ")";
-    myPage = new RootWPage(pageTitle);
 
-    // Page address
-    std::string pageAddress = "mb"+trkName+".html";
-    myPage->setAddress(pageAddress);
+    std::string pageAddress = "indexMB"+trkName+".html";
 
-    webSite.addPage(myPage, webPriority);
+    RootWPage& myPage = webSite.addPage(pageTitle, webPriority);
+    myPage.setAddress(pageAddress);
     webPriority--;
 
     //
     // Material overview
-    myContent = new RootWContent("Material overview", true);
-    myPage->addContent(myContent);
+    RootWContent& myContentOverview = myPage.addContent("Material overview", true);
 
     // Prepare canvas
-    TCanvas* myCanvas = new TCanvas(std::string("MaterialInTrackingVolume"+trkName).c_str());
-    myCanvas->SetFillColor(Palette::color_plot_background);
-    myCanvas->Divide(2, 1);
-    TPad* myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
+    TCanvas myCanvasMat(std::string("MaterialInTrackingVolume"+trkName).c_str());
+    myCanvasMat.SetFillColor(Palette::color_plot_background);
+    myCanvasMat.Divide(2, 1);
+    TPad* myPad = dynamic_cast<TPad*>(myCanvasMat.GetPad(0));
     myPad->SetFillColor(Palette::color_pad_background);
 
     // Rebin material histograms to readable values
@@ -508,7 +508,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_radMB[trkName]["Total"].SetXTitle("#eta");
     double max = m_radMB[trkName]["Total"].GetMaximum();
     m_radMB[trkName]["Total"].GetYaxis()->SetRangeUser(0, vis_safety_factor*max);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
+    myPad = dynamic_cast<TPad*>(myCanvasMat.GetPad(1));
     myPad->cd();
     m_radMB[trkName]["Total"].SetStats(kFALSE);
     m_radMB[trkName]["Total"].Draw();
@@ -518,29 +518,27 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMB[trkName]["Total"].SetXTitle("#eta");
     max = m_intMB[trkName]["Total"].GetMaximum();
     m_intMB[trkName]["Total"].GetYaxis()->SetRangeUser(0, vis_safety_factor*max);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
+    myPad = dynamic_cast<TPad*>(myCanvasMat.GetPad(2));
     myPad->cd();
     m_intMB[trkName]["Total"].SetStats(kFALSE);
     m_intMB[trkName]["Total"].Draw();
 
     // Write tracking volume plots to the web site
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment(std::string("Material overview in tracking volume: "+trkName));
-    myImage->setName("matOverview");
+    RootWImage& myImageOverview = myContentOverview.addImage(myCanvasMat, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImageOverview.setComment(std::string("Material overview in tracking volume: "+trkName));
+    myImageOverview.setName("matOverview");
 
-    myTable = new RootWTable();
+    RootWTable& myTableOverview = myContentOverview.addTable();
     char titleString[256];
     sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
-    myTable->setContent(1, 1, titleString);
+    myTableOverview.setContent(1, 1, titleString);
     sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
-    myTable->setContent(2, 1, titleString);
-    myTable->setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
-    myContent->addItem(myTable);
-    myContent->addItem(myImage);
+    myTableOverview.setContent(2, 1, titleString);
+    myTableOverview.setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
+    myTableOverview.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
 
     // Calculate summary table
-    RootWTable* materialSummaryTable = new RootWTable();
+    std::unique_ptr<RootWTable> materialSummaryTable(new RootWTable());
 
     double averageValue;
     materialSummaryTable->setContent(0,0,"Material    ");
@@ -549,21 +547,21 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     materialSummaryTable->setContent(3,0,"Photon conv. prob.");
 
     // Material csv file
-    if (!m_materialCsv.existCsvText("Label")) {
+    if (!m_csvMatBudget->existCsvText("Label")) {
 
-      m_materialCsv.addCsvElement("Label", "Tracker/Component name");
-      m_materialCsv.addCsvElement("Label", "Type");
+      m_csvMatBudget->addCsvElement("Label", "Tracker/Component name");
+      m_csvMatBudget->addCsvElement("Label", "Type");
       for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
 
         ostringstream label;
         label << "eta(" << std::fixed << std::setprecision(1) << geom_range_eta_regions[j-1] << "-" <<geom_range_eta_regions[j] << ")";
-        m_materialCsv.addCsvElement("Label", label.str());
+        m_csvMatBudget->addCsvElement("Label", label.str());
       }
-      m_materialCsv.addCsvEOL("Label");
+      m_csvMatBudget->addCsvEOL("Label");
     }
 
-    m_materialCsv.addCsvElement(trkName, trkName);
-    m_materialCsv.addCsvElement(trkName, "Rad. length [%]");
+    m_csvMatBudget->addCsvElement(trkName, trkName);
+    m_csvMatBudget->addCsvElement(trkName, "Rad. length [%]");
     for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
       // First row: the cut name
       materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
@@ -571,40 +569,39 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       // Second row: the radiation length
       averageValue = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       materialSummaryTable->setContent(1,j, averageValue*100 ,2);
-      m_materialCsv.addCsvElement(trkName, averageValue*100);
+      m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
-    m_materialCsv.addCsvEOL(trkName);
+    m_csvMatBudget->addCsvEOL(trkName);
 
-    m_materialCsv.addCsvElement(trkName, "");
-    m_materialCsv.addCsvElement(trkName, "Int. length [%]");
+    m_csvMatBudget->addCsvElement(trkName, "");
+    m_csvMatBudget->addCsvElement(trkName, "Int. length [%]");
     for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
       // Third row: the interaction length
       averageValue = averageHistogramValues(m_intMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       materialSummaryTable->setContent(2,j, averageValue*100 ,2);
-      m_materialCsv.addCsvElement(trkName, averageValue*100);
+      m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
-    m_materialCsv.addCsvEOL(trkName);
+    m_csvMatBudget->addCsvEOL(trkName);
 
-    m_materialCsv.addCsvElement(trkName, "");
-    m_materialCsv.addCsvElement(trkName, "Photon conv. prob.");
+    m_csvMatBudget->addCsvElement(trkName, "");
+    m_csvMatBudget->addCsvElement(trkName, "Photon conv. prob.");
     for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
       // Fourth row: the photon conversion probability
       averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       averageValue *= -7./9.;
       averageValue  = 1 - exp(averageValue);
       materialSummaryTable->setContent(3,j, averageValue ,4);
-      m_materialCsv.addCsvElement(trkName, averageValue);
+      m_csvMatBudget->addCsvElement(trkName, averageValue);
     }
-    m_materialCsv.addCsvEOL(trkName);
+    m_csvMatBudget->addCsvEOL(trkName);
 
     //
     // Detailed tracker material overview
-    myContent = new RootWContent("Material overview by category", true);
-    myPage->addContent(myContent);
+    RootWContent& myContentCateg = myPage.addContent("Material overview by category", true);
 
     // Set variables and book histograms
-    THStack* radContainer = new THStack("rstack", "Radiation Length by Category");
-    THStack* intContainer = new THStack("istack", "Interaction Length by Category");
+    std::unique_ptr<THStack> radContainer(new THStack("rstack", "Radiation Length by Category"));
+    std::unique_ptr<THStack> intContainer(new THStack("istack", "Interaction Length by Category"));
 
     // Radiation length in tracking volume by active, serving or passive
     m_radMB["Beampipe"]["Total"].SetFillColor(kGreen);
@@ -641,41 +638,40 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMB[trkName]["Services"].SetXTitle("#eta");
 
     // Write all material information into web page table
-    myTable = new RootWTable();
+    RootWTable& myTableAllMat = myContentCateg.addTable();
 
     // Average values by active, service and passive
     sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
-    myTable->setContent(0, 0, titleString);
-    myTable->setContent(1, 0, "Beam pipe (green)");
-    myTable->setContent(2, 0, "Barrel modules (yellow)");
-    myTable->setContent(3, 0, "Endcap modules (red)");
-    myTable->setContent(4, 0, "Supports (brown)");
-    myTable->setContent(5, 0, "Services (blue)");
-    myTable->setContent(6, 0, "Total");
-    myTable->setContent(0, 1, "Radiation length [%]");
-    myTable->setContent(0, 2, "Interaction length [%]");
-    myTable->setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTable->setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTable->setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTable->setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTable->setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTable->setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
-    myTable->setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
-    myContent->addItem(myTable);
+    myTableAllMat.setContent(0, 0, titleString);
+    myTableAllMat.setContent(1, 0, "Beam pipe (green)");
+    myTableAllMat.setContent(2, 0, "Barrel modules (yellow)");
+    myTableAllMat.setContent(3, 0, "Endcap modules (red)");
+    myTableAllMat.setContent(4, 0, "Supports (brown)");
+    myTableAllMat.setContent(5, 0, "Services (blue)");
+    myTableAllMat.setContent(6, 0, "Total");
+    myTableAllMat.setContent(0, 1, "Radiation length [%]");
+    myTableAllMat.setContent(0, 2, "Interaction length [%]");
+    myTableAllMat.setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
 
     // Rebin histograms, draw them to a canvas and write the canvas to the web page
-    myCanvas = new TCanvas(std::string("MaterialByCategoryIn"+trkName).c_str());
-    myCanvas->SetFillColor(Palette::color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
+    TCanvas myCanvasMatCat(std::string("MaterialByCategoryIn"+trkName).c_str());
+    myCanvasMatCat.SetFillColor(Palette::color_plot_background);
+    myCanvasMatCat.Divide(2, 1);
+    myPad = dynamic_cast<TPad*>(myCanvasMatCat.GetPad(0));
     myPad->SetFillColor(Palette::color_pad_background);
 
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
+    myPad = dynamic_cast<TPad*>(myCanvasMatCat.GetPad(1));
     myPad->cd();
     radContainer->Add(&m_radMB["Beampipe"]["Total"]);
     radContainer->Add(&m_radMB[trkName]["Barrel"]);
@@ -685,7 +681,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     radContainer->Draw();
     radContainer->GetXaxis()->SetTitle("#eta");
 
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
+    myPad = dynamic_cast<TPad*>(myCanvasMatCat.GetPad(2));
     myPad->cd();
     intContainer->Add(&m_intMB["Beampipe"]["Total"]);
     intContainer->Add(&m_intMB[trkName]["Barrel"]);
@@ -695,21 +691,19 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     intContainer->Draw();
     intContainer->GetXaxis()->SetTitle("#eta");
 
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Material overview by category in tracking volume: "+trkName);
-    myImage->setName("riDistrCateg");
-    myContent->addItem(myImage);
+    RootWImage& myImageMatCat = myContentCateg.addImage(myCanvasMatCat, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImageMatCat.setComment("Material overview by category in tracking volume: "+trkName);
+    myImageMatCat.setName("riDistrCateg");
 
     //
     // Detailed material overview by component
-    myContent = new RootWContent("Material overview by component", false);
-    myPage->addContent(myContent);
+    RootWContent& myContentComp = myPage.addContent("Material overview by component", false);
 
-    myTable = new RootWTable();
+    RootWTable myTableComp = myContentComp.addTable();
     sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
-    myTable->setContent(0, 0, titleString);
-    myTable->setContent(0, 1, "Radiation length [%]");
-    myTable->setContent(0, 2, "Interaction length [%]");
+    myTableComp.setContent(0, 0, titleString);
+    myTableComp.setContent(0, 1, "Radiation length [%]");
+    myTableComp.setContent(0, 2, "Interaction length [%]");
 
     // Set variables & book histograms
     THStack* radCompStack = new THStack("rcompstack", "Radiation Length by Component");
@@ -717,14 +711,14 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    myCanvas = new TCanvas(std::string("MaterialByComponentIn"+trkName).c_str());
-    myCanvas->SetFillColor(Palette::color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
+    TCanvas myCanvasMatComp(std::string("MaterialByComponentIn"+trkName).c_str());
+    myCanvasMatComp.SetFillColor(Palette::color_plot_background);
+    myCanvasMatComp.Divide(2, 1);
+    myPad = dynamic_cast<TPad*>(myCanvasMatComp.GetPad(0));
     myPad->SetFillColor(Palette::color_pad_background);
 
     // Radiation length for components
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
+    myPad = dynamic_cast<TPad*>(myCanvasMatComp.GetPad(1));
     myPad->cd();
     int    compIndex      = 1;
     double totalRadLength = 0;
@@ -736,8 +730,8 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     compLegend->AddEntry(&m_radMB["Beampipe"]["Total"], "Beampipe");
     compIndex++;
     double avgValue = averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage);
-    myTable->setContent(compIndex, 0, "Beampipe");
-    myTable->setContent(compIndex++, 1, avgValue*100, 2);
+    myTableComp.setContent(compIndex, 0, "Beampipe");
+    myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
     totalRadLength += avgValue;
 
     for (auto& iComp : m_radMBComp[trkName]) {
@@ -748,18 +742,18 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       radCompStack->Add(&(iComp.second));
       compLegend->AddEntry(&(iComp.second), iComp.first.c_str());
       avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
-      myTable->setContent(compIndex, 0, iComp.first);
-      myTable->setContent(compIndex++, 1, avgValue*100, 2);
+      myTableComp.setContent(compIndex, 0, iComp.first);
+      myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
       totalRadLength += avgValue;
     }
-    myTable->setContent(compIndex, 0, "Total");
-    myTable->setContent(compIndex, 1, totalRadLength*100, 2);
+    myTableComp.setContent(compIndex, 0, "Total");
+    myTableComp.setContent(compIndex, 1, totalRadLength*100, 2);
     radCompStack->Draw();
     radCompStack->GetXaxis()->SetTitle("#eta");
     compLegend->Draw();
 
     // Interaction length for components
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
+    myPad = dynamic_cast<TPad*>(myCanvasMatComp.GetPad(2));
     myPad->cd();
     compIndex             = 1;
     double totalIntLength = 0;
@@ -770,7 +764,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     intCompStack->Add(&m_intMB["Beampipe"]["Total"]);
     compIndex++;
     avgValue = averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage);
-    myTable->setContent(compIndex++, 2, avgValue*100, 2);
+    myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
     totalIntLength += avgValue;
 
     for (auto& iComp : m_intMBComp[trkName]) {
@@ -780,29 +774,21 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       iComp.second.SetXTitle("#eta");
       intCompStack->Add(&(iComp.second));
       avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
-      myTable->setContent(compIndex++, 2, avgValue*100, 2);
+      myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
       totalIntLength += avgValue;
     }
-    myTable->setContent(compIndex, 2, totalIntLength*100, 2);
+    myTableComp.setContent(compIndex, 2, totalIntLength*100, 2);
     intCompStack->Draw();
     intCompStack->GetXaxis()->SetTitle("#eta");
     compLegend->Draw();
 
-    myContent->addItem(myTable);
-
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment(std::string("Material overview by component in tracking volume: "+trkName));
-    myImage->setName("riDistrComp");
-    myContent->addItem(myImage);
+    RootWImage& myImageMatComp = myContentComp.addImage(myCanvasMatComp, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImageMatComp.setComment(std::string("Material overview by component in tracking volume: "+trkName));
+    myImageMatComp.setName("riDistrComp");
 
     //
     // Material map
-    myContent = new RootWContent("Material map", true);
-    myPage->addContent(myContent);
-
-
-    // Set variables & book histograms
-    TH2D *mapRad = nullptr, *mapInt = nullptr;
+    RootWContent& myContentMap = myPage.addContent("Material map", true);
 
     // Calculate final plot range, increase by safety factor
     double maxZ = 0;
@@ -823,9 +809,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     }
 
     // Radiation length plot
-    myCanvas = new TCanvas(std::string("RadMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(Palette::color_plot_background);
-    myCanvas->cd();
+    TCanvas myCanvasMapRad(std::string("RadMaterialMapIn"+trkName).c_str());
+    myCanvasMapRad.SetFillColor(Palette::color_plot_background);
+    myCanvasMapRad.cd();
 
     m_radMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
     m_radMap[trkName].GetYaxis()->SetRangeUser(0, maxR);
@@ -834,15 +820,14 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_radMap[trkName].SetStats(kFALSE);
     m_radMap[trkName].Draw("COLZ");
 
-    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Radiation length material map");
-    myImage->setName("matMapRad");
-    myContent->addItem(myImage);
+    RootWImage& myImageMapRad = myContentMap.addImage(myCanvasMapRad, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImageMapRad.setComment("Radiation length material map");
+    myImageMapRad.setName("matMapRad");
 
     // Interaction length plot
-    myCanvas = new TCanvas(std::string("IntMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(Palette::color_plot_background);
-    myCanvas->cd();
+    TCanvas myCanvasMapInt(std::string("IntMaterialMapIn"+trkName).c_str());
+    myCanvasMapInt.SetFillColor(Palette::color_plot_background);
+    myCanvasMapInt.cd();
 
     m_intMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
     m_intMap[trkName].GetYaxis()->SetRangeUser(0, maxR);
@@ -851,27 +836,25 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMap[trkName].SetStats(kFALSE);
     m_intMap[trkName].Draw("COLZ");
 
-    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Interaction length material map");
-    myImage->setName("matMapInt");
-    myContent->addItem(myImage);
+    RootWImage& myImageMapInt = myContentMap.addImage(myCanvasMapInt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImageMapInt.setComment("Interaction length material map");
+    myImageMapInt.setName("matMapInt");
 
     //
     // Hits occupancy: TODO Fix for full tracker
     if (trkName!="Tracker") {
-      myContent = new RootWContent("Hits occupancy & track efficiency", false);
-      myPage->addContent(myContent);
+      RootWContent& myContentOccup = myPage.addContent("Hits occupancy & track efficiency", false);
 
       // Set variables
       std::map<int, std::vector<double> > averages;
 
       // Number of hits
-      myCanvas = new TCanvas(std::string("HadronsHitsNumberIn"+trkName).c_str());
-      myCanvas->SetFillColor(Palette::color_plot_background);
-      myCanvas->Divide(2, 1);
-      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
+      TCanvas myCanvasOccup(std::string("HadronsHitsNumberIn"+trkName).c_str());
+      myCanvasOccup.SetFillColor(Palette::color_plot_background);
+      myCanvasOccup.Divide(2, 1);
+      myPad = dynamic_cast<TPad*>(myCanvasOccup.GetPad(0));
       myPad->SetFillColor(Palette::color_pad_background);
-      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
+      myPad = dynamic_cast<TPad*>(myCanvasOccup.GetPad(1));
       myPad->cd();
 
       m_hadronTotalHitsGraph[trkName].SetTitle("Maximum (black) & average (red) number of hits");
@@ -886,13 +869,13 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       m_hadronAverageHitsGraph[trkName].Draw("same lp");
 
       // Track fraction
-      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
+      myPad = dynamic_cast<TPad*>(myCanvasOccup.GetPad(2));
       myPad->cd();
-      TLegend* myLegend = new TLegend(0.65, 0.16, .85, .40);
+      std::unique_ptr<TLegend> myLegend(new TLegend(0.65, 0.16, .85, .40));
       // Old-style palette by Stefano, with custom-generated colors
       // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
       // Replaced by the libreOffice-like palette
-      TH1D* ranger = new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage);
+      std::unique_ptr<TH1D> ranger(new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage));
       ranger->SetMaximum(1.);
       ranger->SetStats(kFALSE);
       ranger->GetXaxis()->SetTitle("#eta");
@@ -927,15 +910,14 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       ranger->Draw("sameaxis");
       myLegend->Draw();
 
-      myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Hits occupancy & track efficiency for hadrons");
-      myImage->setName("hadHitsTracks");
-      myContent->addItem(myImage);
+      RootWImage& myImageOccup = myContentOccup.addImage(myCanvasOccup, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageOccup.setComment("Hits occupancy & track efficiency for hadrons");
+      myImageOccup.setName("hadHitsTracks");
     }
 
     //
     // Summary table
-    RootWContent& summaryContent = myPage->addContent("Summary", true);
+    RootWContent& summaryContent = myPage.addContent("Summary", true);
 
     // Define variables
     ostringstream label;
@@ -946,7 +928,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     cutsSummaryTable.setContent(1,0,"Min "+web_etaLetter+":");
     cutsSummaryTable.setContent(2,0,"Max "+web_etaLetter+":");
 
-    myTable = &cutsSummaryTable;
+    RootWTable* myTable = &cutsSummaryTable;
     for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
       myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
       label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
@@ -961,11 +943,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     //}
 
     // Material summary table
-    summaryContent.addItem(materialSummaryTable);
+    summaryContent.addItem(std::move(materialSummaryTable));
 
   } // Trackers
-
-
 
   return true;
 }

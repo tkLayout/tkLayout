@@ -165,7 +165,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     m_ringIndexMap[i] = ring;
 
     // Keep for next calculation
-    lastRho        = ring->maxR();
+    lastRho        = ring->ringOuterRadius();
     lastSmallDelta = ring->smallDelta();
 
   } // For
@@ -222,7 +222,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     m_ringIndexMap[i] = ring;
 
     // Keep for next calculation
-    lastRho        = ring->minR();
+    lastRho        = ring->ringInnerRadius();
     lastSmallDelta = ring->smallDelta();
   } // For
 }

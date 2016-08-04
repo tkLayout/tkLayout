@@ -1,6 +1,7 @@
 #ifndef _MAINCONFIGHANDLER_H__
 #define _MAINCONFIGHANDLER_H__
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <set>
@@ -45,6 +46,8 @@ class MainConfigHandler {
   std::string getStandardIncludeDirectory();
   std::string getGeometriesDirectory();
   std::string getConfigFileName();
+  std::string getProjectName();
+  std::string getResultsAuthor();
 
   //bool getConfiguration(std::string& layoutDirectory, std::string& xmlDirectory);
 
@@ -94,22 +97,26 @@ class MainConfigHandler {
   bool readConfigurationFile(std::string& configFileName);
 
   // Private getter methods returning required configuration quantity
-  std::string getBinDirectory_();
-  std::string getLayoutDirectory_();
-  std::string getStandardDirectory_();
-  std::string getStyleDirectory_();
-  std::string getXmlDirectory_();
-  std::string getMattabDirectory_();
-  std::string getIrradiationDirectory_();
-  std::string getDefaultMaterialsDirectory_();
-  std::string getStandardIncludeDirectory_();
-  std::string getGeometriesDirectory_();
+  std::string getBinDirectory_P();
+  std::string getLayoutDirectory_P();
+  std::string getStandardDirectory_P();
+  std::string getStyleDirectory_P();
+  std::string getXmlDirectory_P();
+  std::string getMattabDirectory_P();
+  std::string getIrradiationDirectory_P();
+  std::string getDefaultMaterialsDirectory_P();
+  std::string getStandardIncludeDirectory_P();
+  std::string getGeometriesDirectory_P();
+
+  static MainConfigHandler* s_instance;  //!< An instance of MainConfigHandler class - singleton pattern
 
   bool m_goodConfigurationRead;          //!< Returns true if configuration read-in correctly
 
   std::string m_binDirectory;            //!< bin directory, where to place executables
   std::string m_layoutDirectory;         //!< layout directory, where to place the www output
   std::string m_standardDirectory;       //!< xml files and other various output will be put here.
+  std::string m_projectName;             //!< software project used to produce tkLayout results
+  std::string m_resultsAuthor;           //!< name of author producing tkLayout results
   //std::string m_styleDirectory;
   //std::string m_xmlDirectory;
 
@@ -124,6 +131,8 @@ class MainConfigHandler {
   const char* c_LAYOUTDIRECTORYDEFINITION       = "TKG_LAYOUTDIRECTORY";
   const char* c_STANDARDDIRECTORYDEFINITION     = "TKG_STANDARDDIRECTORY";
   const char* c_MOMENTADEFINITION               = "TKG_MOMENTA";
+  const char* c_PROJECTNAME                     = "TKG_PROJECT";
+  const char* c_RESULTSAUTHOR                   = "TKG_AUTHOR";
   const char* c_TRIGGERMOMENTADEFINITION        = "TKG_TRIGGERMOMENTA";
   const char* c_THRESHOLDPROBABILITIESDEFINITION= "TKG_THRESHOLD_PROB";
 };

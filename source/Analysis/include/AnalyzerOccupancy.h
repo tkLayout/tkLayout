@@ -7,16 +7,16 @@
 #ifndef INCLUDE_ANALYZEROCCUPANCY_H_
 #define INCLUDE_ANALYZEROCCUPANCY_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <AnalyzerUnit.h>
 
-class BeamPipe;
 class BFieldMap;
+class Detector;
 class IrradiationMap;
 class RootWSite;
-class Tracker;
 class TH2D;
 class TCanvas;
 
@@ -30,7 +30,7 @@ class AnalyzerOccupancy : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerOccupancy();
@@ -67,7 +67,7 @@ class AnalyzerOccupancy : public AnalyzerUnit {
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);
 
   //! Draw histogram
-  bool drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
+  bool drawHistogram(TCanvas& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
 
   // Analyzed geometry
   //std::vector<Tracker*> m_trackers;

@@ -9,6 +9,7 @@
 // Include files
 #include <Barrel.h>
 #include <BeamPipe.h>
+#include "Detector.h"
 #include <DetectorModule.h>
 #include <Disk.h>
 #include <global_constants.h>
@@ -16,7 +17,11 @@
 #include <Layer.h>
 #include <Math/Vector3D.h>
 #include <PlotDrawer.h>
-#include <rootweb.h>
+#include "RootWContent.h"
+#include "RootWImage.h"
+#include "RootWPage.h"
+#include "RootWSite.h"
+#include "RootWTable.h"
 #include <ostream>
 #include <TagMaker.h>
 #include <TColor.h>
@@ -33,15 +38,13 @@
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerGeometry", trackers, beamPipe),
+AnalyzerGeometry::AnalyzerGeometry(const Detector& detector) : AnalyzerUnit("AnalyzerGeometry", detector),
  m_nTracks(0),
- m_layerNamesVisitor(nullptr),
+ m_layerNamesVisitor(new LayerNameVisitor(m_trackers)),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
  m_etaMax(+1*geom_max_eta_coverage)
 {
-  m_layerNamesVisitor = new LayerNameVisitor(trackers);
-
 };
 
 //
@@ -49,7 +52,7 @@ AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const B
 //
 AnalyzerGeometry::~AnalyzerGeometry()
 {
-  if (m_layerNamesVisitor!=nullptr) delete m_layerNamesVisitor;
+  m_layerNamesVisitor.reset(nullptr);
 }
 
 //
@@ -236,7 +239,7 @@ bool AnalyzerGeometry::analyze()
 
       ROOT::Math::XYZVector direction = ROOT::Math::XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
 
-      double zError = SimParms::getInstance()->zErrorCollider();
+      double zError = SimParms::getInstance().zErrorCollider();
       double zPos   = myDice.Rndm()*2 - 1;
 
       ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
@@ -371,13 +374,11 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
   // Go through all trackers & prepare web content
   int webPriority         = web_priority_Geom;
-  RootWPage*    myPage    = nullptr;
-  RootWContent* myContent = nullptr;
 
   // List of tracker RZ, BRL XY, ECAP XY canvases
-  std::map<std::string, RootWImage*> trackerRZImg;
-  std::map<std::string, RootWImage*> trackerXYImgBRL;
-  std::map<std::string, RootWImage*> trackerXYImgEC;
+  std::map<std::string, std::unique_ptr<RootWImage>> trackerRZImg;
+  std::map<std::string, std::unique_ptr<RootWImage>> trackerXYImgBRL;
+  std::map<std::string, std::unique_ptr<RootWImage>> trackerXYImgEC;
   PlotDrawer<RZFull, Type>           fullRZDrawer;
 
   for (auto iTracker : m_trackers) {
@@ -388,19 +389,17 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // Create dedicated web-page & its content
     std::string        pageTitle  = "Geometry";
     if (trkName != "") pageTitle +=" (" + trkName + ")";
-    myPage = new RootWPage(pageTitle);
 
     // Page address
     std::string pageAddress = "index"+trkName+".html";
-    myPage->setAddress(pageAddress);
 
-    webSite.addPage(myPage, webPriority);
+    RootWPage& myPage = webSite.addPage(pageTitle, webPriority);
+    myPage.setAddress(pageAddress);
     webPriority--;
 
     //
     // Layer & disk layout
-    myContent = new RootWContent("Layer & disk layout");
-    myPage->addContent(myContent);
+    RootWContent& myContentLayout = myPage.addContent("Layer & disk layout");
 
     // Fill in all information directly from Tracker geometry object
     LayerDiskSummaryVisitor geometryVisitor;
@@ -409,20 +408,18 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     geometryVisitor.postVisit();
 
     // Print out layer & disk table
-    myContent->addItem(geometryVisitor.m_layerTable);
-    myContent->addItem(geometryVisitor.m_diskTable);
-    myContent->addItem(geometryVisitor.m_ringTable);
+    myContentLayout.addItem(std::move(geometryVisitor.m_layerTable));
+    myContentLayout.addItem(std::move(geometryVisitor.m_diskTable));
+    myContentLayout.addItem(std::move(geometryVisitor.m_ringTable));
 
     //
     // Modules
-    myContent = new RootWContent("Modules info", false);
-    myContent->addItem(geometryVisitor.m_moduleTable);
-    myPage->addContent(myContent);
+    RootWContent& myContentMods = myPage.addContent("Modules info", false);
+    myContentMods.addItem(std::move(geometryVisitor.m_moduleTable));
 
     //
     // Plots
-    myContent = new RootWContent("Layout plots");
-    myPage->addContent(myContent);
+    RootWContent& myContentPlots = myPage.addContent("Layout plots");
 
     RootWImage* myImage;
 
@@ -432,17 +429,20 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (foundModules) {
 
       // View
-      TCanvas RZCanvas("RZCanvas", "RZView Canvas", vis_max_canvas_sizeX, vis_min_canvas_sizeY );
+      TCanvas RZCanvas(std::string("RZCanvas_"+trkName).c_str(), "RZView Canvas", vis_max_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(RZCanvas);
       rzDrawer.drawFrame<TicksFrameStyle>(RZCanvas, iTracker->isPixelType());
       rzDrawer.drawModules<ContourStyle>(RZCanvas);
       fullRZDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end());
       drawBeamPipeRZ(RZCanvas, iTracker->maxZ());
 
-      myImage = new RootWImage(RZCanvas, RZCanvas.GetWindowWidth(), RZCanvas.GetWindowHeight() );
-      myImage->setComment("RZ plot of the tracker");
-      trackerRZImg[trkName] = myImage;
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(RZCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("RZ (envelope Radius versus Z) plot of the tracker");
+
+      // Clone image view to have an exact copy
+      std::unique_ptr<RootWImage> myImageClone(new RootWImage(RZCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY));
+      myImageClone->setComment("RZ (envelope Radius versus Z) plot of the tracker");
+      trackerRZImg[trkName] = std::move(myImageClone);
     }
 
     // Projections - avoid drawing canvas if barrel or endcap missing
@@ -450,32 +450,38 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     foundModules = xyBarrelDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), BARREL);
     if (foundModules) {
 
-      TCanvas XYCanvasBRL("XYCanvasBRL", "XYView Barrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      TCanvas XYCanvasBRL(std::string("XYCanvasBRL_"+trkName).c_str(), "XYView Barrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(XYCanvasBRL);
       xyBarrelDrawer.drawFrame<TicksFrameStyle>(XYCanvasBRL);
       xyBarrelDrawer.drawModules<ContourStyle>(XYCanvasBRL);
       drawBeamPipeXY(XYCanvasBRL);
 
-      myImage = new RootWImage(XYCanvasBRL, XYCanvasBRL.GetWindowWidth(), XYCanvasBRL.GetWindowHeight() );
-      myImage->setComment("XY cross section of barrel modules");
-      trackerXYImgBRL[trkName] = myImage;
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(XYCanvasBRL, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("XY cross section of barrel modules");
+
+      // Clone image view to have an exact copy
+      std::unique_ptr<RootWImage> myImageClone(new RootWImage(XYCanvasBRL, vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+      myImageClone->setComment("XY cross section of barrel modules");
+      trackerXYImgBRL[trkName] = std::move(myImageClone);
     }
 
     PlotDrawer<XY, Type> xyEndcapDrawer;
     foundModules = xyEndcapDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), ENDCAP);
     if (foundModules) {
 
-      TCanvas XYCanvasEC("XYCanvasEC", "XYView Endcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      TCanvas XYCanvasEC(std::string("XYCanvasEC_"+trkName).c_str(), "XYView Endcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(XYCanvasEC);
       xyEndcapDrawer.drawFrame<TicksFrameStyle>(XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(XYCanvasEC);
       drawBeamPipeXY(XYCanvasEC);
 
-      myImage = new RootWImage(XYCanvasEC, XYCanvasEC.GetWindowWidth(), XYCanvasEC.GetWindowHeight() );
-      myImage->setComment("XY projection of endcap(s) modules");
-      trackerXYImgEC[trkName] = myImage;
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("XY projection of endcap(s) modules");
+
+      // Clone image view to have an exact copy
+      std::unique_ptr<RootWImage> myImageClone(new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+      myImageClone->setComment("XY projection of endcap(s) modules");
+      trackerXYImgEC[trkName] = std::move(myImageClone);
     }
 
     //
@@ -484,46 +490,42 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // Sensor hit map
     if (m_sensorHitEtaProfile.find(trkName)!=m_sensorHitEtaProfile.end()) {
 
-      TCanvas etaCanvasHitSensors("NumberOfHitSensorEtaProfile", "Number of hit sensors versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      TCanvas etaCanvasHitSensors(std::string("NumberOfHitSensorEtaProfile_"+trkName).c_str(), "Number of hit sensors versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(etaCanvasHitSensors);
       m_sensorHitEtaProfile[trkName].Draw();
 
-      myImage = new RootWImage(etaCanvasHitSensors, etaCanvasHitSensors.GetWindowWidth(), etaCanvasHitSensors.GetWindowHeight());
-      myImage->setComment("Number of hit sensors versus "+web_etaLetter);
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(etaCanvasHitSensors, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("Number of hit sensors versus "+web_etaLetter);
     }
 
     // Module hit map
     if (m_moduleHitEtaProfile.find(trkName)!=m_moduleHitEtaProfile.end()) {
 
-      TCanvas etaCanvasHitModules("NumberOfHitModulesEtaProfile", "Number of hit modules versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      TCanvas etaCanvasHitModules(std::string("NumberOfHitModulesEtaProfile_"+trkName).c_str(), "Number of hit modules versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(etaCanvasHitModules);
       m_moduleHitEtaProfile[trkName].Draw();
 
       if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Draw("same");
 
-      myImage = new RootWImage(etaCanvasHitModules, etaCanvasHitModules.GetWindowWidth(), etaCanvasHitModules.GetWindowHeight());
-      myImage->setComment("Number of hit modules versus "+web_etaLetter);
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(etaCanvasHitModules, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("Number of hit modules versus "+web_etaLetter);
     }
 
     // 2D hit map
     if (m_hitMapPhiEta.find(trkName)!=m_hitMapPhiEta.end()) {
 
-      TCanvas etaCanvasHitMap("HitMap2D", "Hit map - #eta versus #phi", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      TCanvas etaCanvasHitMap(std::string("HitMap2D_"+trkName).c_str(), "Hit map - #eta versus #phi", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       setCanvasProperties(etaCanvasHitMap);
       m_hitMapPhiEta[trkName].Draw("colz");
 
-      myImage = new RootWImage(etaCanvasHitMap, etaCanvasHitMap.GetWindowWidth(), etaCanvasHitMap.GetWindowHeight());
-      myImage->setComment("Hit coverage in "+web_etaLetter+", "+web_phiLetter);
-      myContent->addItem(myImage);
+      RootWImage& myImage = myContentPlots.addImage(etaCanvasHitMap, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage.setComment("Hit coverage in "+web_etaLetter+", "+web_phiLetter);
     }
 
     // Layer coverage plots
     if ((m_layerEtaCoverProfile.find(trkName)!=m_layerEtaCoverProfile.end()) && m_layerEtaCoverProfile[trkName].size()>0) {
 
-      RootWContent* myContent = new RootWContent("Layer coverage (Hits)", false);
-      myPage->addContent(myContent);
+      RootWContent& myContentHits = myPage.addContent("Layer coverage (Hits)", false);
 
       int layerCount = 0;
       for (auto& iter : m_layerEtaCoverProfile[trkName]) {
@@ -531,7 +533,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
         TProfile& plot = iter.second;
         layerCount++;
 
-        TCanvas coverageCanvas(Form("LayerCoverage%s%s", iter.first.c_str(), "Hits"), "Layer eta coverage (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+        TCanvas coverageCanvas(std::string(Form("LayerCoverage%s%s_", iter.first.c_str(), "Hits")+trkName).c_str(), "Layer eta coverage (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
         setCanvasProperties(coverageCanvas);
 
         std::string upperName = std::string(coverageCanvas.GetName())+"_upper";
@@ -556,33 +558,27 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
         lowerPad.cd();
         zoomedPlot->Draw();
 
-        RootWImage* myImage = new RootWImage(coverageCanvas, coverageCanvas.GetWindowWidth(), coverageCanvas.GetWindowHeight());
-        myImage->setComment("Layer coverage in "+web_etaLetter+" (efficiency)");
-        myContent->addItem(myImage);
+        RootWImage& myImage = myContentHits.addImage(coverageCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+        myImage.setComment("Layer coverage in "+web_etaLetter+" (efficiency)");
       }
     }
   } // Trackers
 
   //
   // Create introductory geometry web page
-  myPage = new RootWPage("Overview");
-
-  // Page address
   std::string pageAddress = "index.html";
-  myPage->setAddress(pageAddress);
-  webSite.addPage(myPage, web_priority_Geom+1);
+  RootWPage& myPage = webSite.addPage("Overview", web_priority_Geom+1);
+  myPage.setAddress(pageAddress);
 
   // Full tracker layout
-  myContent = new RootWContent("Tracker layout: ");
-  myPage->addContent(myContent);
+  RootWContent& myContentFullLayout = myPage.addContent("Tracker layout: ");
 
-  TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", vis_max_canvas_sizeX, vis_min_canvas_sizeY );
+  TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", vis_max_canvas_sizeX, vis_min_canvas_sizeY);
   setCanvasProperties(fullRZCanvas);
   fullRZDrawer.drawFrame<TicksFrameStyle>(fullRZCanvas);
   fullRZDrawer.drawModules<ContourStyle>(fullRZCanvas);
 
-  RootWImage* myImage = new RootWImage(fullRZCanvas, fullRZCanvas.GetWindowWidth(), fullRZCanvas.GetWindowHeight());
-  myContent->addItem(myImage);
+  myContentFullLayout.addImage(fullRZCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
 
   // Hits
   TCanvas hitCanvas("HitCanvas", "Number of modules with at least one hit;#eta;Number of hit modules", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -609,19 +605,17 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Draw("same");
   }
 
-  myImage = new RootWImage(hitCanvas, hitCanvas.GetWindowWidth(), hitCanvas.GetWindowHeight());
-  myContent->addItem(myImage);
+  myContentFullLayout.addImage(hitCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 
   // All subdetectors
-  for (auto iter : trackerRZImg) {
+  for (auto& iter : trackerRZImg) {
 
     std::string trkName = iter.first;
 
-    myContent = new RootWContent("Geometry(" + trkName + "): ");
-    myPage->addContent(myContent);
-    myContent->addItem(iter.second);
-    if (trackerXYImgBRL.find(trkName)!=trackerXYImgBRL.end()) myContent->addItem(trackerXYImgBRL[trkName]);
-    if (trackerXYImgEC.find(trkName) !=trackerXYImgEC.end())  myContent->addItem(trackerXYImgEC[trkName]);
+    RootWContent& myContentSubDet = myPage.addContent("Geometry(" + trkName + "): ");
+    myContentSubDet.addItem(std::move(iter.second));
+    if (trackerXYImgBRL.find(trkName)!=trackerXYImgBRL.end()) myContentSubDet.addItem(std::move(trackerXYImgBRL[trkName]));
+    if (trackerXYImgEC.find(trkName) !=trackerXYImgEC.end())  myContentSubDet.addItem(std::move(trackerXYImgEC[trkName]));
   }
 
   return true;
@@ -637,13 +631,13 @@ void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
     double bpThick  = m_beamPipe->thickness();
 
     // Beam-pipe in RZ
-    TPolyLine* beamPipeRZ = new TPolyLine();
-    beamPipeRZ->SetPoint(0, 0                     , bpRadius + bpThick/2.);
-    beamPipeRZ->SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
-    beamPipeRZ->SetLineColor(14);
-    beamPipeRZ->SetLineWidth(2);
+    TPolyLine beamPipeRZ;
+    beamPipeRZ.SetPoint(0, 0                     , bpRadius + bpThick/2.);
+    beamPipeRZ.SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
+    beamPipeRZ.SetLineColor(14);
+    beamPipeRZ.SetLineWidth(2);
     canvas.cd();
-    beamPipeRZ->Draw("same");
+    beamPipeRZ.DrawClone("same");
   }
   else {
     logWARNING("DrawBeamPipeRZ failed: no beam pipe defined!");
@@ -660,11 +654,11 @@ void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
     double bpThick  = m_beamPipe->thickness();
 
     // Beam-pipe in XY
-    TEllipse* beamPipeXY = new TEllipse(0, 0, bpRadius + bpThick/2.);
-    beamPipeXY->SetFillColor(18); // "grey18"
-    beamPipeXY->SetFillStyle(1001);
+    TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
+    beamPipeXY.SetFillColor(18); // "grey18"
+    beamPipeXY.SetFillStyle(1001);
     canvas.cd();
-    beamPipeXY->Draw("same");
+    beamPipeXY.DrawClone("same");
   }
   else {
     logWARNING("DrawBeamPipeXY failed: no beam pipe defined!");
@@ -717,6 +711,11 @@ void LayerNameVisitor::visit(const Layer& l)  { m_data[m_idTRK].insert(m_idBRLor
 void LayerNameVisitor::visit(const Disk& d)   { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(d.myid())); }
 
 //
+// LayerNameVisitor destructor
+//
+LayerDiskSummaryVisitor::~LayerDiskSummaryVisitor() {};
+
+//
 // LayerDiskSummaryVisitor preVisit method - initialize
 //
 void LayerDiskSummaryVisitor::preVisit() {
@@ -733,10 +732,10 @@ void LayerDiskSummaryVisitor::preVisit() {
   m_totalChannels   = 0;
   m_totalSensorPower= 0;
 
-  m_layerTable = new RootWTable();
-  m_diskTable  = new RootWTable();
-  m_ringTable  = new RootWTable();
-  m_moduleTable= new RootWTable();
+  m_layerTable = std::unique_ptr<RootWTable>(new RootWTable());
+  m_diskTable  = std::unique_ptr<RootWTable>(new RootWTable());
+  m_ringTable  = std::unique_ptr<RootWTable>(new RootWTable());
+  m_moduleTable= std::unique_ptr<RootWTable>(new RootWTable());
 
   m_layerTable->setContent(0, 0, "Layer no                    : ");
   m_layerTable->setContent(1, 0, "Radius-min [mm]             : ");
@@ -849,7 +848,7 @@ void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
   m_moduleTagToPositionsMap[tag].insert(moduleTagMaker.posTag);
 
   // Get number of minimum bias events
-  int nMinBiasEvents = SimParms::getInstance()->numMinBiasEvents();
+  int nMinBiasEvents = SimParms::getInstance().numMinBiasEvents();
 
   //Update sensor counters
   m_moduleCount[tag]++;

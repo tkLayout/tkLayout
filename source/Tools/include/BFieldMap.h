@@ -65,14 +65,14 @@ public:
    * @param TCanvas - new histogram will be created and drawn to an existing canvas
    * @return - if canvas doesn't exist False will be returned
    */
-  bool drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ);
+  bool drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ);
 
   /**
    * Draw YZ projection of B field
    * @param TCanvas - new histogram will be created and drawn to an existing canvas
    * @return - if canvas doesn't exist False will be returned
    */
-  bool drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ);
+  bool drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ);
 
   inline double getXMin()       const {return m_xMin;};
   inline double getXMax()       const {return m_xMax;};

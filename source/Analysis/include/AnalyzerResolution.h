@@ -18,13 +18,12 @@
 #include <Visitor.h>
 
 class BarrelModule;
-class BeamPipe;
 class CsvTextBuilder;
+class Detector;
 class EndcapModule;
 class RootWContent;
 class RootWPage;
 class TProfile;
-class Tracker;
 
 /*
  * @class AnalyzerResolution
@@ -38,7 +37,7 @@ class AnalyzerResolution : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerResolution(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerResolution(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerResolution() {};
@@ -79,9 +78,8 @@ class AnalyzerResolution : public AnalyzerUnit {
   double m_etaMin;  //!< Minimum eta value;
   double m_etaMax;  //!< Maximum eta value
 
-  // Csv containers -> keep final pT/p resolution in csv file
-  std::unique_ptr<CsvTextBuilder> m_csvResPt;
-  std::unique_ptr<CsvTextBuilder> m_csvResP;
+  std::unique_ptr<CsvTextBuilder> m_csvResPt; //!< Csv containers -> keep final resolution for given pt in csv format
+  std::unique_ptr<CsvTextBuilder> m_csvResP;  //!< Csv containers -> keep final resolution for given p in csv format
 
   std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPtCollectionMap;      //!< For given track tag -> map of track collection for given pT (full material)
   std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPtCollectionMapIdeal; //!< For given track tag -> map of track collection for given pT (ideal - no material)

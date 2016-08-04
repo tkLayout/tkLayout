@@ -26,12 +26,8 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
   this->store(treeProperty);
 }
 
-//
-// Destructor
-//
 BeamPipe::~BeamPipe()
 {
-  // Clear memory - not necessary
   m_tube.reset();
 }
 

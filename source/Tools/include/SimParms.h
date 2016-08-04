@@ -28,7 +28,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
  public:
 
   //! SimParms access method -> get instance of singleton class SimParms
-  static SimParms* getInstance();
+  static SimParms& getInstance();
   
   //! Destructor
   ~SimParms();
@@ -147,8 +147,6 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! Singleton private constructor -> initialize all variables to be read-out from configuration file & define if checker should be called after parsing
   SimParms();
 
-  static SimParms*       s_instance;     //!< An instance of SimParms class - singleton pattern
-
   std::string            m_commandLine;  //!< Command line options passed over to program to analyze data
   std::string            m_geomFile;     //!< Name of main geometry config file
   std::string            m_baseDir;      //!< Base tkLayout run directory
@@ -156,7 +154,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   std::string            m_layoutName;   //!< Geometry layout name
   std::set<std::string>  m_includeSet;   //!< List of all configuration files obtained from the base geometry file using @include command
 
-  IrradiationMapsManager* m_irradiationMapsManager; //!< Irradiation maps manager
+  std::unique_ptr<IrradiationMapsManager> m_irradiationMapsManager; //!< Irradiation maps manager
 
 
 

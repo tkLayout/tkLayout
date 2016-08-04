@@ -112,11 +112,6 @@ static const std::string type_stereo = "stereo";
 /*
  *  Web variables: software name, site, branch, author, ...
  */
-static const std::string web_program_name          = "tkLayout";
-static const std::string web_program_site          = "https://github.com/drasal/tkLayout/tree/fcc"; // "https://github.com/alkemyst/tkLayout"
-static const std::string web_program_branch_name   = "FCC-hh";
-static const std::string web_program_branch_author = "Z.Drasal";
-
 static const std::string web_subStart   = "<sub>";      // These only should be needed
 static const std::string web_subEnd     = "</sub>";
 static const std::string web_superStart = "<sup>";

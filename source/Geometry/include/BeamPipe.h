@@ -32,7 +32,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   BeamPipe(const PropertyTree& treeProperty);
 
   //! Destructor
-  virtual ~BeamPipe();
+  ~BeamPipe();
 
   //! Build method - setting all parameters
   void build();
@@ -58,9 +58,6 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   ReadonlyProperty<double, Default>   intLength;        //!< Beam pipe int. lenght @ 90 deg
 
  private:
-
-  //! Copy constructor
-  BeamPipe(const BeamPipe&) = default;
 
   std::unique_ptr<insur::InactiveTube> m_tube; //!< Beam pipe as inactive tube;
 

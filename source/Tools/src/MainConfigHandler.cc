@@ -40,6 +40,8 @@ MainConfigHandler::MainConfigHandler() {
   m_binDirectory      = "";
   m_layoutDirectory   = "";
   m_standardDirectory = "";
+  m_projectName       = "CMS";
+  m_resultsAuthor     = "Unknown author";
 }
 
 //
@@ -331,8 +333,8 @@ bool MainConfigHandler::readConfiguration( bool checkDirExists ) {
           return false;
         }
         // Check the mandatory subdirectories in the main
-        if (!checkDirectory(getXmlDirectory_())) return false;
-        if (!checkDirectory(getMattabDirectory_())) return false;
+        if (!checkDirectory(getXmlDirectory_P())) return false;
+        if (!checkDirectory(getMattabDirectory_P())) return false;
       }
     }
     else { // not good config read
@@ -401,6 +403,12 @@ bool MainConfigHandler::readConfigurationFile(string& configFileName) {
       else if (parameter==c_THRESHOLDPROBABILITIESDEFINITION) {
         m_thresholdProbabilities = parseDoubleList(value);
         thresholdProbabilitiesFound = true;
+      }
+      else if (parameter==c_PROJECTNAME) {
+        m_projectName = value;
+      }
+      else if (parameter==c_RESULTSAUTHOR) {
+        m_resultsAuthor = value;
       }
       else {
         cerr << "Unknown parameter " << parameter << " in the configuration file " << c_CONFIGURATIONFILENAME << endl;
@@ -473,64 +481,73 @@ vector<double>& MainConfigHandler::getThresholdProbabilities() {
 
 string MainConfigHandler::getBinDirectory() {
   getConfiguration();
-  return getBinDirectory_();
+  return getBinDirectory_P();
 }
 
 string MainConfigHandler::getLayoutDirectory() {
   getConfiguration();
-  return getLayoutDirectory_();
+  return getLayoutDirectory_P();
 }
 
 string MainConfigHandler::getStandardDirectory() {
   getConfiguration();
-  return getStandardDirectory_();
+  return getStandardDirectory_P();
 }
 
 string MainConfigHandler::getStyleDirectory() {
   getConfiguration();
-  return getStyleDirectory_();
+  return getStyleDirectory_P();
 }
 
 string MainConfigHandler::getXmlDirectory() {
   getConfiguration();
-  return getXmlDirectory_();
+  return getXmlDirectory_P();
 }
 
 string MainConfigHandler::getMattabDirectory() {
   getConfiguration();
-  return getMattabDirectory_();
+  return getMattabDirectory_P();
 }
 
 string MainConfigHandler::getIrradiationDirectory() {
   getConfiguration();
-  return getIrradiationDirectory_();
+  return getIrradiationDirectory_P();
 }
 
 string MainConfigHandler::getDefaultMaterialsDirectory() {
   getConfiguration();
-  return getDefaultMaterialsDirectory_();
+  return getDefaultMaterialsDirectory_P();
 }
 
 string MainConfigHandler::getStandardIncludeDirectory() {
   getConfiguration();
-  return getStandardIncludeDirectory_();
+  return getStandardIncludeDirectory_P();
 }
 
 string MainConfigHandler::getGeometriesDirectory() {
   getConfiguration();
-  return getGeometriesDirectory_();
+  return getGeometriesDirectory_P();
 }
 
-string MainConfigHandler::getBinDirectory_()              { return m_binDirectory; }
-string MainConfigHandler::getLayoutDirectory_()           { return m_layoutDirectory; }
-string MainConfigHandler::getStandardDirectory_()         { return m_standardDirectory; }
-string MainConfigHandler::getStyleDirectory_()            { return m_layoutDirectory  +"/"+default_styledir; }
-string MainConfigHandler::getXmlDirectory_()              { return m_standardDirectory+"/"+default_xmlpath; }
-string MainConfigHandler::getMattabDirectory_()           { return m_standardDirectory+"/"+default_mattabdir; }
-string MainConfigHandler::getIrradiationDirectory_()      { return m_standardDirectory+"/"+default_irradiationdir; }
-string MainConfigHandler::getDefaultMaterialsDirectory_() { return m_standardDirectory+"/"+default_materialsdir; }
-string MainConfigHandler::getStandardIncludeDirectory_()  { return m_standardDirectory+"/"+default_configdir+"/"+default_stdincludedir; }
-string MainConfigHandler::getGeometriesDirectory_()       { return m_standardDirectory+"/"+default_geometriesdir; }
+std::string MainConfigHandler::getProjectName() {
+  getConfiguration();
+  return m_projectName;
+}
+std::string MainConfigHandler::getResultsAuthor() {
+  getConfiguration();
+  return m_resultsAuthor;
+}
+
+string MainConfigHandler::getBinDirectory_P()              { return m_binDirectory; }
+string MainConfigHandler::getLayoutDirectory_P()           { return m_layoutDirectory; }
+string MainConfigHandler::getStandardDirectory_P()         { return m_standardDirectory; }
+string MainConfigHandler::getStyleDirectory_P()            { return m_layoutDirectory  +"/"+default_styledir; }
+string MainConfigHandler::getXmlDirectory_P()              { return m_standardDirectory+"/"+default_xmlpath; }
+string MainConfigHandler::getMattabDirectory_P()           { return m_standardDirectory+"/"+default_mattabdir; }
+string MainConfigHandler::getIrradiationDirectory_P()      { return m_standardDirectory+"/"+default_irradiationdir; }
+string MainConfigHandler::getDefaultMaterialsDirectory_P() { return m_standardDirectory+"/"+default_materialsdir; }
+string MainConfigHandler::getStandardIncludeDirectory_P()  { return m_standardDirectory+"/"+default_configdir+"/"+default_stdincludedir; }
+string MainConfigHandler::getGeometriesDirectory_P()       { return m_standardDirectory+"/"+default_geometriesdir; }
 
 
 

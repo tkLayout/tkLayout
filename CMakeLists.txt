@@ -170,17 +170,20 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include
                      ${PROJECT_SOURCE_DIR}/source/Analysis/include
                      ${PROJECT_SOURCE_DIR}/source/Tools/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
+                     ${PROJECT_SOURCE_DIR}/source/Web/include
                      ${BOOST_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
 FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cc )
 FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc 
                        ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc 
-                       ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc )
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc
+                       ${PROJECT_SOURCE_DIR}/source/Web/src/*.cc )
 FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h
                        ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h  
-                       ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h ) 
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h 
+                       ${PROJECT_SOURCE_DIR}/source/Web/include/*.h ) 
 
 # Get source files with main function defined
 SET ( sources "" )
@@ -237,8 +240,8 @@ TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
-#INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
-#INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
+INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
+INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     

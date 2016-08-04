@@ -190,6 +190,10 @@ void Ring::buildBottomUp(double radius) {
   emod->build();
   emod->translate(XYZVector(startRadius + modLength/2, 0, 0));
 
+  // Update ring inner/outer radius
+  ringInnerRadius(radius);
+  ringOuterRadius(radius + modLength);
+
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
   buildModules(emod, numMods, smallDelta());
@@ -222,6 +226,10 @@ void Ring::buildTopDown(double radius) {
   EndcapModule* emod = GeometryFactory::make<EndcapModule>(1, rmod, propertyTree());
   emod->build();
   emod->translate(XYZVector(startRadius - rmod->length()/2, 0, 0));
+
+  // Update ring inner/outer radius
+  ringOuterRadius(radius);
+  ringInnerRadius(radius + rmod->length());
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);

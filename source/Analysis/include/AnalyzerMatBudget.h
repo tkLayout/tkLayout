@@ -20,8 +20,8 @@
 
 // Forward declaration
 class BarrelModule;
-class BeamPipe;
 class ConstGeometryVisitor;
+class Detector;
 class Disk;
 class EndcapModule;
 class ModuleCap;
@@ -31,7 +31,6 @@ class TGraph;
 class TH1D;
 class TH2D;
 class Track;
-class Tracker;
 class RootWTable;
 
 /*
@@ -44,7 +43,7 @@ class AnalyzerMatBudget : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerMatBudget(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerMatBudget(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerMatBudget();
@@ -63,6 +62,9 @@ class AnalyzerMatBudget : public AnalyzerUnit {
 
   //! Get number of used material tracks
   int getNMatTracks() const { return m_nTracks;}
+
+  //! Get Csv text output for material budget -> exception thrown if doesn't exist
+  const CsvTextBuilder& getCsvMatBudget() const;
 
  private:
 
@@ -109,7 +111,7 @@ class AnalyzerMatBudget : public AnalyzerUnit {
   std::map<std::string, std::vector<TGraph>> m_hadronGoodTracksFraction;
 
   // Csv output
-  CsvTextBuilder       m_materialCsv;
+  std::unique_ptr<CsvTextBuilder> m_csvMatBudget;
 
 }; // Class
 

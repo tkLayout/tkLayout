@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 #include <set>
 
 #include <Visitor.h>
@@ -21,6 +22,7 @@
 class Barrel;
 class BeamPipe;
 class ConstGeometryVisitor;
+class Detector;
 class Disk;
 class Endcap;
 class EndcapModule;
@@ -45,7 +47,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerGeometry(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerGeometry();
@@ -80,7 +82,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
   const float c_etaSafetyMargin = 0.01;
   const int   c_nBinsProfile    = 100;
 
-  LayerNameVisitor* m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
+  std::unique_ptr<LayerNameVisitor> m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
 
   // Histogram output
   std::map<std::string,TH2D>      m_hitMapPhiEta;            //!< Number of hits - map in phi & eta for each tracker with given name
@@ -131,7 +133,7 @@ class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
 
  public:
 
-  virtual ~LayerDiskSummaryVisitor() {};
+  virtual ~LayerDiskSummaryVisitor();
 
   void preVisit();
   void visit(const Layer& l) override;
@@ -141,10 +143,10 @@ class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
   void visit(const EndcapModule& m) override;
   void postVisit();
 
-  RootWTable* m_layerTable; //!< Web table containing info about layers
-  RootWTable* m_diskTable;  //!< Web table containing info about disks
-  RootWTable* m_ringTable;  //!< Web table containing info about rings
-  RootWTable* m_moduleTable;//!< Web table containing info about modules
+  std::unique_ptr<RootWTable> m_layerTable; //!< Web table containing info about layers
+  std::unique_ptr<RootWTable> m_diskTable;  //!< Web table containing info about disks
+  std::unique_ptr<RootWTable> m_ringTable;  //!< Web table containing info about rings
+  std::unique_ptr<RootWTable> m_moduleTable;//!< Web table containing info about modules
 
   // Counters
   int m_nBarrelLayers      = 0; //!< Number of barrel layers
