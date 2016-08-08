@@ -5596,8 +5596,8 @@ namespace insur {
       int layerId_;
     public:
       void preVisit() {
-        output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:phi_rad/D:sensorSpacing_mm/D" <<  std::endl;
-        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_rad/D, sensorSpacing_mm/D" << std::endl;
+        output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D" << std::endl;
+        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -5605,14 +5605,18 @@ namespace insur {
       void visit(const Disk& d)  { layerId_ = d.myid(); }
       void visit(const Module& m) {
         output_ << sectionName_ << ", "
-          << layerId_ << ", "
-          << m.moduleRing() << ", "
-          << std::fixed << std::setprecision(6)
-          << m.center().Rho() << ", "
-          << m.center().Z() << ", "
-          << m.center().Phi() << ", "
-          << m.dsDistance()
-          << std::endl;
+		<< layerId_ << ", "
+		<< m.moduleRing() << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.center().Rho() << ", "
+		<< m.center().Z() << ", "
+		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< m.center().Phi() * 180. / M_PI << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.dsDistance() << ", "
+		<< m.sensorThickness()
+		<< std::endl;
       }
 
       std::string output() const { return output_.str(); }
@@ -5632,7 +5636,7 @@ namespace insur {
       int numRods_;
     public:
       void preVisit() {
-        output_ << "Barrel-Layer name, r(mm), z(mm), ss(mm), num mods" << std::endl;
+        output_ << "Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
       }
       void visit(const Barrel& b) {
         barName_ = b.myid();
@@ -5643,7 +5647,17 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_/2. << std::endl;
+        output_ << barName_ << "-L" << layId_ << ", " 
+		<< std::fixed << std::setprecision(6)
+		<< m.center().Rho() << ", "
+		<< m.center().Z() << ", "
+		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< numRods_/2. << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.dsDistance() << ", "
+		<< m.sensorThickness()
+		<< std::endl;
       }
 
       std::string output() const { return output_.str(); }
@@ -5657,30 +5671,42 @@ namespace insur {
   
   std::string Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string endcapName_;
+      int diskId_;
     public:
-      std::stringstream output;
       void preVisit() {
-        output << "Ring, r(mm), phi(deg), z(mm), base_inner(mm), base_outer(mm), height(mm)" <<std::endl;
+        output_ << "Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+      }
+      void visit(const Endcap& e) {
+	endcapName_ = e.myid();
+      }
+      void visit(const Disk& d)  {
+	diskId_ = d.myid();
       }
       void visit(const EndcapModule& m) {
-        if (m.disk() != 1 || m.minZ() < 0.) return;
+        if (m.minZ() < 0.) return;
 
-        // Print the data in fixed-precision
-        // Limit the precision to one micron for lengths and 1/1000 degree for angles
-        output << std::fixed;
-        output << m.ring() << ", " 
-               << std::fixed << std::setprecision(3) << m.center().Rho() << ", "
-               << std::fixed << std::setprecision(3) << m.center().Phi()/M_PI*180. << ", "
-               << std::fixed << std::setprecision(3) << m.center().Z() << ", "
-               << std::fixed << std::setprecision(3) << m.minWidth() << ", "
-               << std::fixed << std::setprecision(3) << m.maxWidth() << ", "
-               << std::fixed << std::setprecision(3) << m.length() << std::endl;
+	output_ << endcapName_ << "-D" << diskId_ << ", " 	
+		<< m.ring() << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.center().Rho() << ", "
+		<< m.center().Z() << ", "
+		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< m.center().Phi() * 180. / M_PI << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.dsDistance() << ", "
+		<< m.sensorThickness()
+		<< std::endl;
       }
+
+      std::string output() const { return output_.str(); }
     };
     EndcapVisitor v;
     v.preVisit(); 
     t.accept(v);
-    return v.output.str();
+    return v.output();
   }
 
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
