@@ -1804,32 +1804,10 @@ namespace insur {
         shape.rmin = rmin - 2 * xml_epsilon;
         shape.rmax = rmax + 2 * xml_epsilon;
         shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
-	// TO DO : IMPLEMENT AN AUTOMATIC MORE OPTIMIZED CONTAINER SHAPE FOR DISCS COLLIDING WITH BEAM PIPE !!
-	if (dname.str() == "Disc11" && ridx.count(2) != 0) { shape.name_tag = dname.str() + "Full"; }
         s.push_back(shape);
-
-	// TO DO : IMPLEMENT AN AUTOMATIC MORE OPTIMIZED CONTAINER SHAPE FOR DISCS COLLIDING WITH BEAM PIPE !!
-	if (dname.str() == "Disc11" && ridx.count(2) != 0) {
-	  shape.name_tag = dname.str() + "Air";
-	  shape.rmin = rmin - 2 * xml_epsilon;
-	  shape.rmax = rminStepInForwadestDisc;
-	  shape.dz = diskThickness / 4.0 + xml_epsilon;
-	  s.push_back(shape);
-
-	  // Subtraction of an air part from the disc container volume, to avoid collision with beam pipe
-	  shapeOp.name_tag = dname.str();
-	  shapeOp.type = substract;
-	  shapeOp.rSolid1 = dname.str() + "Full";
-	  shapeOp.rSolid2 = dname.str() + "Air";
-	  shapeOp.trans.dx = 0.;
-	  shapeOp.trans.dy = 0.;
-	  shapeOp.trans.dz = diskThickness / 4.0 + xml_epsilon;
-	  so.push_back(shapeOp);
-	}
 
 	shape.name_tag = dname.str();
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
-        //logic.extra = xml_plus;
         logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
         logic.material_tag = xml_material_air;
         l.push_back(logic);
@@ -2011,8 +1989,6 @@ namespace insur {
 	      shape.dz = iter->getZLength() / 2.0;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
-	      // TO DO : IMPLEMENT AN AUTOMATIC CUT + WARNING FOR SERVICES COLLIDING WITH BEAM PIPE !!
-	      if (shape.name_tag == "serviceR63Z2661") { shape.rmin = shape.rmin + 0.5; std::cout << " cut serviceR63Z2661" << std::endl; }   
 	      s.push_back(shape);
 	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;

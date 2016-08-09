@@ -2,8 +2,7 @@
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
   <ConstantsSection label="pixbar.xml" eval="true">
     <Constant name="zero" value="0.0*fm"/>
-    <Constant name="Rin1" value="2.563*cm"/>
-    <!--<Constant name="Rin1" value="2.18*cm"/>-->
+    <Constant name="Rin1" value="2.6*cm"/>
     <Constant name="Rin2" value="18.00*cm"/>
     <Constant name="Rin3" value="18.6*cm"/>
     <Constant name="RinSupTubCab"      value="15.00*cm"/>
