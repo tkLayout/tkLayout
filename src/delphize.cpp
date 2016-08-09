@@ -78,6 +78,32 @@ const std::string currentDateTime() {
     return buf;
 }
 
+std::map<double, TProfile*> ptProfiles;
+
+void addProfile(TObject* anObject) {
+  char buffer[1024];
+  char buffer2[1024];
+
+  std::string aClassName = anObject->ClassName();
+  if (aClassName=="TProfile") {
+    TProfile* myProfile = (TProfile*)anObject;;
+    // std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
+    double aMomentum;
+    if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+      std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
+      ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
+    }
+    else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+      std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
+      ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
+    }
+    else if (sscanf(myProfile->GetName(), "Resolution_(%[^)]).ptres_tracker_MS_Pt.pt_vs_eta%lftracker_profile", buffer, &aMomentum)==2) {
+      std::cerr << "Momentum [GeV]: " << aMomentum << " buffer: " << buffer << " (" << myProfile->GetName() << ")" << std::endl;
+      ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
+    }
+  }
+}
+
 int main(int argc, char* argv[]) {
 
   //
@@ -153,49 +179,31 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  std::map<double, TProfile*> ptProfiles;
 
   // Read pt profiles > browse;
+  // This works if the user passes a TCanvas root file
   TKey* key = (TKey*)inputFile->GetListOfKeys()->At(0);
   if (key) {
-
     // Object
     TObject* myObject = key->ReadObj();
     if (myObject) {
-
       // Canvas
       std::string aClass=myObject->ClassName();
       if (aClass=="TCanvas") {
 
         TCanvas* aCanvas = (TCanvas*) myObject;
         TList* aList=aCanvas->GetListOfPrimitives();
-        char buffer[1024];
-        char buffer2[1024];
         for (int i=0; i<aList->GetSize(); ++i) {
-
-          // TProfile
-          std::string aClassName = aList->At(i)->ClassName();
-          if (aClassName=="TProfile") {
-
-            TProfile* myProfile = (TProfile*)aList->At(i);
-            //std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
-            double aMomentum;
-            if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
-              //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
-              ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
-            }
-            else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
-              //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
-              ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
-            }
-            else if (sscanf(myProfile->GetName(), "Resolution_(%[^)]).ptres_tracker_%[^_]_Pt.pt_vs_eta%lftracker_profile", buffer, buffer2, &aMomentum)==3) {
-              std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
-              ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
-            }
-          }
+	  // Add the graph (if it's an appropriate TProfile)
+	  addProfile(aList->At(i));
         }
       }
     }
+  }
+  // Now try to get the correct file from the summary.root file (instead)
+  TIter nextItem(inputFile->GetListOfKeys());
+  while ((key = (TKey*)nextItem())) {
+    addProfile(key->ReadObj());
   }
   //inputFile->Close();
 
