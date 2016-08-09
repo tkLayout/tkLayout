@@ -1215,11 +1215,11 @@ namespace insur {
         layerTable->setContent(0, 0, "Layer");
         layerTable->setContent(1, 0, "r");
         layerTable->setContent(2, 0, "z_max");
-        layerTable->setContent(3, 0, "# mod");
+        layerTable->setContent(3, 0, "# mods");
         layerTable->setContent(4, 0, "# rods");
         diskTable->setContent(0, 0, "Disk");
         diskTable->setContent(1, 0, "z");
-        diskTable->setContent(2, 0, "# mod");
+        diskTable->setContent(2, 0, "# mods");
         ringTable->setContent(0, 0, "Ring");
         ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
         ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
