@@ -1456,6 +1456,9 @@ namespace insur {
 	    flatPartTable->setContent(6, i+1, m.center().Z(), coordPrecision);
 	    flatPartTable->setContent(7, 0, "phiOverlap");
 	    flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    // In case beamSpotCover == false, zOverlap is the only parameter used as a Z-coverage constraint in the geometry construction process.
+	    // (There is then no zError taken into account).
+	    // As a result, it is interesting to display zOverlap !
 	    int extraLine = 0;
 	    if (!l.flatPartRods().front()->beamSpotCover()) {
 	      extraLine = 1;

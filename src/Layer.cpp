@@ -23,20 +23,25 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
       zStartInner_REAL = m.planarMinZ();
 
       if (rStartInner != rEndInner) {
+	double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
+	
 	if (zStartInner_REAL != zEndInner_REAL) {
+	  // Let's call (H1pUP, H1ppDOWN) the line that binds H1pUP of the previous module, with H1ppDOWN of the next module.
+	  // Standard Case : (H1pUP, H1ppDOWN) is secant with (Z).
+	  // Let's call P the intersection point.
+	  // zError is defined as the Z of point P.
 	  double zErrorInnerAngle = atan( (rStartInner - rEndInner) / (zStartInner_REAL - zEndInner_REAL) );
-	  double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
 	  zErrorInner_[i] = fact * (zStartInner_REAL - rStartInner / tan(zErrorInnerAngle));
-	}
-	else {
-	  zErrorInner_[i] = zEndInner_REAL;
+	}	
+	else { // Case where (H1pUP, H1ppDOWN) is orthogonal to (Z).
+	  zErrorInner_[i] = fact * zStartInner_REAL;
 	}
       }
-      else {
-	if (zStartInner_REAL != zEndInner_REAL) {
+      else { // Case where consecutive modules are placed at the same r within a rod, for the Pixel for example.
+	if (zStartInner_REAL != zEndInner_REAL) { // If consecutive modules (along a rod) are not touching, zError is undefined.
 	  zErrorInner_[i] = std::numeric_limits<double>::quiet_NaN();
 	}
-	else {
+	else { // If consecutive modules (along a rod) are touching, zError is infinity.
 	  zErrorInner_[i] = std::numeric_limits<double>::infinity();
 	}
       }
@@ -59,13 +64,13 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
       zStartOuter_REAL = m.planarMinZ();
 
       if (rStartOuter != rEndOuter) {
+	double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
 	if (zStartOuter_REAL != zEndOuter_REAL) {
 	  double zErrorOuterAngle = atan( (rStartOuter - rEndOuter) / (zStartOuter_REAL - zEndOuter_REAL) );
-	  double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
 	  zErrorOuter_[i] = fact * (zStartOuter_REAL - rStartOuter / tan(zErrorOuterAngle));
 	}
 	else {
-	  zErrorOuter_[i] = zEndOuter_REAL;
+	  zErrorOuter_[i] = fact * zStartOuter_REAL;
 	}
       }
       else {
