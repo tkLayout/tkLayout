@@ -217,15 +217,7 @@ struct YZ : public std::pair<int, int>, private Rounder {
 
     vProjected = v - v.Dot(normal) * normal;
     
-    this->second = round(vProjected.Rho());
-    /*if (vProjected.Rho() > 1000. && v.Z() > 500. && v.Z() < 650.) {
-      //std::cout << "v.Rho() = " << v.Rho() << std::endl;
-      std::cout << " basePolyCenter.X() = " << basePolyCenter.X() <<  "basePolyCenter.Y() = " << basePolyCenter.Y() <<  "basePolyCenter.Z() = " << basePolyCenter.Z() << std::endl;
-      //std::cout << "v.Dot(normal) = " << v.Dot(normal) << std::endl;
-      //std::cout << "vProjected.Rho() = " << vProjected.Rho() << "v.Z() = " << v.Z() << "vProjected.Z() = " << vProjected.Z() << std::endl;
-      std::cout << "(m.basePolyCenter().Rho() - m.length() / 2.) = " << (m.basePolyCenter().Rho() - m.length() / 2.) << std::endl;
-      }*/
-    
+    this->second = round(vProjected.Rho());    
   }
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
