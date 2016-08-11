@@ -192,8 +192,11 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
+  // XY coordinates of the centre of module m.
  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  // XY coordinates of vector v.
  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+  // XY coordinates of vector v, in a (XY) plane passing by the center of module m.
  XY(const XYZVector& v, const Module& m) : XY(v) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
@@ -203,21 +206,24 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
+  // RZ coordinates of the centre of module m, in the plane (RZ) defined by ((Z axis), moduleCenter).
  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+  // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), v).
  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
+  // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), moduleCenter).
  YZ(const XYZVector& v, const Module& m) : valid(v.Z() >= 0) {
     this->first = round(v.Z());
 
+    // This calculates the projection of vector v into plane ((Z axis), moduleCenter).
     XYZVector vProjected;
     XYZVector z(0., 0., 1.);
 
     XYZVector basePolyCenter = m.basePoly().getCenter();
-    XYZVector normal = crossProduct(z, basePolyCenter);
-    normal = normal.Unit();
+    XYZVector normal = crossProduct(z, basePolyCenter); // normal of plane ((Z axis), moduleCenter).
+    normal = normal.Unit(); // normalize.
 
-    vProjected = v - v.Dot(normal) * normal;
-    
-    this->second = round(vProjected.Rho());    
+    vProjected = v - v.Dot(normal) * normal; // Calculate projected vector. TO DO : Introduce this as a method !!   
+    this->second = round(vProjected.Rho()); // Take the Rho() of the projected vector.    
   }
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
