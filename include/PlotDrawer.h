@@ -192,8 +192,9 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
-  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+ XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+ XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+ XY(const XYZVector& v, const Module& m) : XY(v) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
   int y() const { return this->second; }
@@ -202,8 +203,30 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
-  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
-  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
+ YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+ YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
+ YZ(const XYZVector& v, const Module& m) : valid(v.Z() >= 0) {
+    this->first = round(v.Z());
+
+    XYZVector vProjected;
+    XYZVector z(0., 0., 1.);
+
+    XYZVector basePolyCenter = m.basePoly().getCenter();
+    XYZVector normal = crossProduct(z, basePolyCenter);
+    normal = normal.Unit();
+
+    vProjected = v - v.Dot(normal) * normal;
+    
+    this->second = round(vProjected.Rho());
+    /*if (vProjected.Rho() > 1000. && v.Z() > 500. && v.Z() < 650.) {
+      //std::cout << "v.Rho() = " << v.Rho() << std::endl;
+      std::cout << " basePolyCenter.X() = " << basePolyCenter.X() <<  "basePolyCenter.Y() = " << basePolyCenter.Y() <<  "basePolyCenter.Z() = " << basePolyCenter.Z() << std::endl;
+      //std::cout << "v.Dot(normal) = " << v.Dot(normal) << std::endl;
+      //std::cout << "vProjected.Rho() = " << vProjected.Rho() << "v.Z() = " << v.Z() << "vProjected.Z() = " << vProjected.Z() << std::endl;
+      std::cout << "(m.basePolyCenter().Rho() - m.length() / 2.) = " << (m.basePolyCenter().Rho() - m.length() / 2.) << std::endl;
+      }*/
+    
+  }
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
   int z() const { return this->first; }
@@ -211,8 +234,9 @@ struct YZ : public std::pair<int, int>, private Rounder {
 
 struct YZFull : public YZ {
   const bool valid;
-  YZFull(const Module& m) : YZ(m), valid(true) {}
-  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
+ YZFull(const Module& m) : YZ(m), valid(true) {}
+ YZFull(const XYZVector& v) : YZ(v), valid(true) {}
+ YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
 
 TPolyLine* drawMod();
@@ -233,7 +257,7 @@ public:
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
     int j=0;
     for (int i=0; i<4; i++) {
-      CoordType c(m.basePoly().getVertex(i));
+      CoordType c(m.basePoly().getVertex(i), m);
       if (xy.insert(c).second == true) {
         x[j] = double(c.first)/Rounder::mmFraction;
         y[j++] = double(c.second)/Rounder::mmFraction;
