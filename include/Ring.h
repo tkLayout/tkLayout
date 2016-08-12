@@ -151,7 +151,6 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   Property<int   , Default> smallParity;
 
   double minRadius_, maxRadius_;
-  double averageZ_ = 0;
 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
@@ -219,7 +218,12 @@ public:
 
   void translateZ(double z);
   void mirrorZ();
-  double averageZ() const { return averageZ_; }
+  double averageZ() const {
+    double averageZ = 0;
+    for (const auto& m : modules_) { averageZ = averageZ + m.center().Z(); } 
+    averageZ /= numModules(); return averageZ;
+  }
+
   void cutAtEta(double eta);
 
   void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); numModules(modules_.size()); }
