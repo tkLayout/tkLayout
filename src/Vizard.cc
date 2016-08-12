@@ -1270,13 +1270,13 @@ namespace insur {
         totalEndcapModules += d.totalModules();
         diskTable->setContent(1, nDisks, d.myid());
         diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
-        diskTable->setContent(3, nDisks, d.numRings());
 	diskTable->setContent(4, nDisks, d.totalModules());
       }
 
       void visit(const Ring& r) override {
 	if (r.averageZ() < 0. || r.numModules() == 0) return;
 	++nRings;
+	diskTable->setContent(3, nDisks, nRings);
 	ringTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
 	ringTables.at(nEndcaps-1)->setContent(6, nRings, r.numModules());
       }
