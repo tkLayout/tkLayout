@@ -1417,11 +1417,17 @@ namespace insur {
 	    tiltedPartTable->setContent(15, 0, "deltaZ" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
 	    tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
 	    tiltedPartTable->setContent(16, 0, "phiOverlap");
-	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);	    
-	    tiltedPartTable->setContent(17, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
-	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber], coordPrecision);
-	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
-	    tiltedPartTable->setContent(18, i+1, l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);
+	    tiltedPartTable->setContent(17, 0, "zOverlap" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->zOverlap(), coordPrecision);
+	    double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];	    
+	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner, coordPrecision);
+	    else tiltedPartTable->setContent(18, i+1, "n/a");
+	    double zErrorOuter = l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber];
+	    tiltedPartTable->setContent(19, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter, coordPrecision);
+	    else tiltedPartTable->setContent(19, i+1, "n/a");	    
 	  }
 	  tiltedPartTables.push_back(tiltedPartTable);
 
@@ -1450,11 +1456,25 @@ namespace insur {
 	    flatPartTable->setContent(6, i+1, m.center().Z(), coordPrecision);
 	    flatPartTable->setContent(7, 0, "phiOverlap");
 	    flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    // In case beamSpotCover == false, zOverlap is the only parameter used as a Z-coverage constraint in the geometry construction process.
+	    // (There is then no zError taken into account).
+	    // As a result, it is interesting to display zOverlap !
+	    int extraLine = 0;
+	    if (!l.flatPartRods().front()->beamSpotCover()) {
+	      extraLine = 1;
+	      flatPartTable->setContent(8, 0, "zOverlap");
+	      flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap(), coordPrecision);
+	      // WARNING : zOverlap, in the geometry construction process, is one value common for all flat part (or straight rod)
+	    }
 	    if (i > 0) {
-	      flatPartTable->setContent(8, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
-	      flatPartTable->setContent(8, i+1, l.flatRingsGeometryInfo().zErrorInner()[i], coordPrecision);
-	      flatPartTable->setContent(9, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
-	      flatPartTable->setContent(9, i+1, l.flatRingsGeometryInfo().zErrorOuter()[i], coordPrecision);
+	      double zErrorInner = l.flatRingsGeometryInfo().zErrorInner()[i];
+	      flatPartTable->setContent(8 + extraLine, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	      if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner, coordPrecision);
+	      else flatPartTable->setContent(8 + extraLine, i+1, "n/a");
+	      double zErrorOuter = l.flatRingsGeometryInfo().zErrorOuter()[i];
+	      flatPartTable->setContent(9 + extraLine, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	      if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter, coordPrecision);
+	      else flatPartTable->setContent(9 + extraLine, i+1, "n/a");
 	    }
 	    i++;
 	  }

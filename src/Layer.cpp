@@ -22,9 +22,30 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
       rStartInner = m.center().Rho() - 0.5 * m.dsDistance();
       zStartInner_REAL = m.planarMinZ();
 
-      double zErrorInnerAngle = atan( (rStartInner - rEndInner) / (zStartInner_REAL - zEndInner_REAL) );
-      double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
-      zErrorInner_[i] = fact * (zStartInner_REAL - rStartInner / tan(zErrorInnerAngle));
+      if (rStartInner != rEndInner) {
+	double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
+	
+	if (zStartInner_REAL != zEndInner_REAL) {
+	  // Let's call (H1pUP, H1ppDOWN) the line that binds H1pUP of the previous module, with H1ppDOWN of the next module.
+	  // Standard Case : (H1pUP, H1ppDOWN) is secant with (Z).
+	  // Let's call P the intersection point.
+	  // zError is defined as the Z of point P.
+	  double zErrorInnerAngle = atan( (rStartInner - rEndInner) / (zStartInner_REAL - zEndInner_REAL) );
+	  zErrorInner_[i] = fact * (zStartInner_REAL - rStartInner / tan(zErrorInnerAngle));
+	}	
+	else { // Case where (H1pUP, H1ppDOWN) is orthogonal to (Z).
+	  zErrorInner_[i] = fact * zStartInner_REAL;
+	}
+      }
+      else { // Case where consecutive modules are placed at the same r within a rod, for the Pixel for example.
+	if (zStartInner_REAL != zEndInner_REAL) { // If consecutive modules (along a rod) are not touching, zError is undefined.
+	  zErrorInner_[i] = std::numeric_limits<double>::quiet_NaN();
+	}
+	else { // If consecutive modules (along a rod) are touching, zError is infinity.
+	  zErrorInner_[i] = std::numeric_limits<double>::infinity();
+	}
+      }
+
     }
 
     rEndInner = m.center().Rho() + 0.5 * m.dsDistance();
@@ -42,9 +63,25 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
       rStartOuter = m.center().Rho() - 0.5 * m.dsDistance();
       zStartOuter_REAL = m.planarMinZ();
 
-      double zErrorOuterAngle = atan( (rStartOuter - rEndOuter) / (zStartOuter_REAL - zEndOuter_REAL) );
-      double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
-      zErrorOuter_[i] = fact * (zStartOuter_REAL - rStartOuter / tan(zErrorOuterAngle));
+      if (rStartOuter != rEndOuter) {
+	double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
+	if (zStartOuter_REAL != zEndOuter_REAL) {
+	  double zErrorOuterAngle = atan( (rStartOuter - rEndOuter) / (zStartOuter_REAL - zEndOuter_REAL) );
+	  zErrorOuter_[i] = fact * (zStartOuter_REAL - rStartOuter / tan(zErrorOuterAngle));
+	}
+	else {
+	  zErrorOuter_[i] = fact * zStartOuter_REAL;
+	}
+      }
+      else {
+	if (zStartOuter_REAL != zEndOuter_REAL) {
+	  zErrorOuter_[i] = std::numeric_limits<double>::quiet_NaN();
+	}
+	else {
+	  zErrorOuter_[i] = std::numeric_limits<double>::infinity();
+	}
+      }
+
     }
 
     rEndOuter = m.center().Rho() + 0.5 * m.dsDistance();
@@ -340,7 +377,6 @@ void Layer::buildTilted() {
     double flatPartrOuterSmall = std::numeric_limits<double>::max();
     double flatPartrInnerBig = 0;
     double flatPartrOuterBig = 0;
-    double flatPartAverageR = 0.;
 
     if (buildNumModulesFlat() != 0) {
 
@@ -356,7 +392,6 @@ void Layer::buildTilted() {
 	  if (t1.valid()) (bigParity() > 0 ? tmspecso.push_back(t1) : tmspecsi.push_back(t1));
 	  (bigParity() > 0 ? flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()));
 	  (bigParity() > 0 ? flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()));
-	  flatPartAverageR += m.center().Rho();
 	}
 
 	StraightRodPair* flatPartRod2 = flatPartRods_.at(1);
@@ -366,7 +401,6 @@ void Layer::buildTilted() {
 	  if (t2.valid()) (bigParity() > 0 ? tmspecsi.push_back(t2) : tmspecso.push_back(t2));
 	  (bigParity() > 0 ? flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()));
 	  (bigParity() > 0 ? flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()));
-	  flatPartAverageR += m.center().Rho();
 	}
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
@@ -380,8 +414,10 @@ void Layer::buildTilted() {
 
 	RectangularModule* flatPartrmod = GeometryFactory::make<RectangularModule>();
 	flatPartrmod->store(propertyTree());
+	if (ringNode.count(1) > 0) flatPartrmod->store(ringNode.at(1));
 	flatPartrmod->build();
 	double width = flatPartrmod->width();
+	double dsDistance = flatPartrmod->dsDistance();
 	double T = tan(2.*M_PI / numRods());
 	double A = 1. / (2. * flatPartrInnerSmall);
 	double B = 1. / (2. * flatPartrOuterSmall);
@@ -398,7 +434,7 @@ void Layer::buildTilted() {
 	s = (-b - sqrt(b*b - 4*a*c))/(2*a);
 	flatPartPhiOverlapSmallDeltaPlus_ = width + s;
 
-	flatPartAverageR_ = flatPartAverageR / (flatPartRod1->modules().first.size() + flatPartRod2->modules().first.size());
+	flatPartAverageR_ = (flatPartrInnerSmall + flatPartrInnerBig + flatPartrOuterSmall + flatPartrOuterBig) / 4. - 0.5 * dsDistance;
 
 	flatRingsGeometryInfo_.calculateFlatRingsGeometryInfo(flatPartRods_, bigParity());
 
