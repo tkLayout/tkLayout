@@ -44,14 +44,24 @@ TPolyLine* drawMod() {
   return new TPolyLine(6, x, y);
 }
 
-template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
-                                                                          Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {
+template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, 
+									  double tickDistanceRRatio, double tickLengthRRatio, double textDistanceRRatio,
+									  double tickDistanceLRatio, double tickLengthLRatio, double textDistanceLRatio, 
+									  Style_t labelFont, Float_t labelSize, 
+									  double etaStep, double etaMax, double etaLongLine) const {
   // Add the eta ticks
   double theta;
-  double startR = maxR + tickDistance;
-  double startL = maxL + tickDistance;
-  double endR = maxR + tickLength + tickDistance;
-  double endL = maxL + tickLength + tickDistance;
+  double tickDistanceR = tickDistanceRRatio * maxR;
+  double tickDistanceL = tickDistanceLRatio * maxL;
+  double tickLengthR = tickLengthRRatio * maxR;
+  double tickLengthL = tickLengthLRatio * maxL;
+  double textDistanceR = textDistanceRRatio * maxR;
+  double textDistanceL = textDistanceLRatio * maxL;
+
+  double startR = maxR + tickDistanceR;
+  double startL = maxL + tickDistanceL;
+  double endR = maxR + tickLengthR + tickDistanceR;
+  double endL = maxL + tickLengthL + tickDistanceL;
   TLine* aTick = new TLine();
   double textX = 0, textY = 0;
 
@@ -83,10 +93,10 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
     }
 
     if (labelSize!=0) {
-      textX = (endR+textDistance) / tan(theta);
-      textY = (endL + textDistance) * tan(theta);
-      if (textX>endL+textDistance) textX = endL+textDistance;
-      if (textY>endR+textDistance) textY = endR+textDistance;
+      textX = (endR + textDistanceR) / tan(theta);
+      textY = (endL + textDistanceL) * tan(theta);
+      if (textX > (endL + textDistanceL)) textX = endL + textDistanceL;
+      if (textY > (endR + textDistanceR)) textY = endR + textDistanceR;
 
       sprintf(labelChar, "%.01f", eta);
       aLabel = new TText(textX, textY, labelChar);
@@ -98,7 +108,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   }
 
   if (labelSize>0) {
-    textY-=3*tickLength;
+    textY -= 3*tickLengthR;
     aLabel = new TLatex(textX, textY, "#eta");
     aLabel->SetTextFont(labelFont);
     aLabel->SetTextSize(labelSize);
@@ -109,7 +119,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
 
 template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();
-  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
 template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {

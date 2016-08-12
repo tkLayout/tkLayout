@@ -196,7 +196,7 @@ struct XY : public std::pair<int, int>, private Rounder {
  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   // XY coordinates of vector v.
  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
-  // XY coordinates of vector v, in a (XY) plane passing by the center of module m.
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
  XY(const XYZVector& v, const Module& m) : XY(v) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
@@ -306,7 +306,9 @@ public:
 
 
 template<class CoordType> class SummaryFrameStyle {
-  void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+  void drawEtaTicks(double maxL, double maxR, 
+		    double tickDistanceRRatio, double tickLengthRRatio, double textDistanceRRatio,
+		    double tickDistanceLRatio, double tickLengthLRatio, double textDistanceLRatio,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
 public:
   void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette&) const;
@@ -442,26 +444,11 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class InputIterator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
+  template<class InputIterator>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
   for (InputIterator it = begin; it != end; ++it) {
     int subDet = (*it)->subdet();
     if (subDet & moduleTypes) {
-      /*if ((*it)->center().Rho() == 33) {
-	std::cout << "Rho = " << (*it)->center().Rho() << std::endl; 
-
-
-for (int i=0; i<4; i++) {
-        std::cout << "i = " << i << std::endl;
-        std::cout << " (*it)->basePoly().getVertex(i).Z() = " <<  (*it)->basePoly().getVertex(i).Z() << std::endl;
-/*std::cout << " (*it)->basePoly().getVertex(i).X() = " <<  (*it)->basePoly().getVertex(i).X() << std::endl;
-       std::cout << " (*it)->basePoly().getVertex(i).Y() = " <<  (*it)->basePoly().getVertex(i).Y() << std::endl;
-        std::cout << " sqrt = " <<  sqrt(pow((*it)->basePoly().getVertex(i).X(),2.) + pow((*it)->basePoly().getVertex(i).Y(),2.)) << std::endl;
-        std::cout << " (*it)->basePoly().getVertex(i).Rho() = " <<  (*it)->basePoly().getVertex(i).Rho() << std::endl;
-      }
-      }*/
-
-
       add(**it); 
     }
   }
