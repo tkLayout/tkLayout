@@ -16,6 +16,7 @@ class DetectorModule;
 class RectangularModule;
 class WedgeModule;
 class GeometricModule;
+class Sensor;
 class SimParms;
 
 class GeometryVisitor { 
@@ -54,6 +55,26 @@ public:
   virtual void visit(const WedgeModule&) {}
   virtual void visit(const GeometricModule&) {}
   virtual void visit(const SimParms&) {}
+};
+
+class SensorGeometryVisitor { 
+public:
+  virtual void visit(Tracker&) {}
+  virtual void visit(Barrel&) {}
+  virtual void visit(Endcap&) {}
+  virtual void visit(Layer&) {}
+  virtual void visit(Disk&) {}
+  virtual void visit(Ring&) {}
+  virtual void visit(TiltedRing&) {}
+  virtual void visit(RodPair&) {}
+  virtual void visit(BarrelModule&) {}
+  virtual void visit(EndcapModule&) {}
+  virtual void visit(DetectorModule&) {}
+  // virtual void visit(RectangularModule&) {}
+  // virtual void visit(WedgeModule&) {}
+  //virtual void visit(GeometricModule&) {}
+  virtual void visit(Sensor&) {}
+  //virtual void visit(SimParms&) {}
 };
 
 #endif

@@ -236,6 +236,10 @@ public:
     v.visit(*this); 
     for (const auto& m : modules_) { m.accept(v); }
   }
+  void accept(SensorGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& m : modules_) { m.accept(v); }
+  }
   const MaterialObject& materialObject() const;
 };
 

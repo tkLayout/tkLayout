@@ -100,6 +100,11 @@ public:
     for (const auto& m : zPlusModules_) { m.accept(v); }
     for (const auto& m : zMinusModules_) { m.accept(v); }
   }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& m : zPlusModules_) { m.accept(v); }
+    for (auto& m : zMinusModules_) { m.accept(v); }
+  }
 
   const MaterialObject& materialObject() const;
 };

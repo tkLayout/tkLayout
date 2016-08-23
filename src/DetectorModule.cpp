@@ -39,6 +39,12 @@ void DetectorModule::build() {
       s->myid(i+1);
       s->store(propertyTree());
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
+      if (numSensors() == 1) s->innerOuter(SensorPosition::NO);
+      else {
+	if (i == 0) s->innerOuter(SensorPosition::LOWER);
+	else if (i == 1) s->innerOuter(SensorPosition::UPPER);
+	else s->innerOuter(SensorPosition::NO);
+      }
       s->build();
       sensors_.push_back(s);
       materialObject_.sensorChannels[i+1]=s->numChannels();
@@ -47,6 +53,7 @@ void DetectorModule::build() {
     Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
     s->parent(this);
     s->myid(1);
+    s->innerOuter(SensorPosition::NO);
     s->build();
     sensors_.push_back(s);
   }
@@ -467,6 +474,7 @@ void BarrelModule::build() {
     rAxis_ = normal();
     tiltAngle_ = 0.;
     skewAngle_ = 0.;
+    for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();
@@ -497,6 +505,7 @@ void EndcapModule::build() {
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
     tiltAngle_ = M_PI/2.;
     skewAngle_ = 0.;
+    for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();

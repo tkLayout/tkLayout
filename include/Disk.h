@@ -33,6 +33,7 @@ private:
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
+  int diskNumber_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -104,6 +105,10 @@ public:
   const Container& rings() const { return rings_; }
   const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
+  void diskNumber(int num) { diskNumber_ = num; }
+  int diskNumber() const { return diskNumber_; }
+  int numEmptyRings() const { return count_if(rings_.begin(), rings_.end(), [](const Ring& r) { return r.numModules() == 0; }); }
+
   void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }
@@ -111,6 +116,10 @@ public:
   void accept(ConstGeometryVisitor& v) const { 
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& r : rings_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;

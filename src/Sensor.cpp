@@ -63,4 +63,17 @@ double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStrips
 double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcrossEstimate(); }
 double Sensor::stripLength() const { return parent_->length() / numSegmentsEstimate(); }
 
+void Sensor::buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts) {
+  detIdRef_ = refs;
+  for (int i = 0; i < schemeShifts.size(); i++) {
+    uint32_t ref = refs.at(i);
+    int shift = schemeShifts.at(i);
+    if (ref <= pow(2, shift) ) {
+      myDetId_ << shift;
+      myDetId_ |= ref;
+    }
+    else logWARNING("Sensor::buildDetId : At rank " + any2str(i) + ", ref number " + any2str(ref) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
+  }
+}
+
 define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };

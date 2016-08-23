@@ -68,6 +68,10 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
     v.visit(*this);
     for (const auto& d : disks_) { d.accept(v); }
   }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    for (auto& d : disks_) { d.accept(v); }
+  }
 
   const Container& disks() const         { return disks_; }
   SupportStructures& supportStructures() { return supportStructures_; }

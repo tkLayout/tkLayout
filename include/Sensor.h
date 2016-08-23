@@ -8,16 +8,24 @@
 #include "Polygon3d.h"
 #include "Property.h"
 #include "CoordinateOperations.h"
+#include "Visitor.h"
+
+
+enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
+enum SensorPosition { NO, LOWER, UPPER };
+enum class SensorType { Pixel, Largepix, Strip, None };
 
 class DetectorModule;
 
-enum class SensorType { Pixel, Largepix, Strip, None };
-
 class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
   const DetectorModule* parent_;
+  ModuleSubdetector subdet_;
+  SensorPosition innerOuter_ = SensorPosition::NO;
   mutable const Polygon3d<4>* hitPoly_ = 0; 
   mutable const Polygon3d<4>* envPoly_ = 0; 
   Polygon3d<4>* buildOwnPoly(double polyOffset) const;
+  uint32_t myDetId_ = 0;
+  std::map<int, uint32_t> detIdRef_;
 public:
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;
@@ -41,6 +49,11 @@ public:
       {}
 
   void parent(const DetectorModule* m) { parent_ = m; }
+
+  ModuleSubdetector subdet(ModuleSubdetector s) { subdet_ = s; }
+  ModuleSubdetector subdet() const { return subdet_; }
+  SensorPosition innerOuter(SensorPosition pos) { innerOuter_ = pos; }
+  SensorPosition innerOuter() const { return innerOuter_; }
 
   int numStripsAcrossEstimate() const;
   int numSegmentsEstimate() const;
@@ -82,6 +95,14 @@ public:
   void clearPolys();
   const Polygon3d<4>& hitPoly() const;
   const Polygon3d<4>& envelopePoly() const;
+
+  void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts);
+  uint32_t myDetId() const { return myDetId_; }
+  std::map<int, uint32_t> detIdRef() const { return detIdRef_; }
+
+  void accept(SensorGeometryVisitor& v) { 
+    v.visit(*this);
+  }
 };
 
 #endif

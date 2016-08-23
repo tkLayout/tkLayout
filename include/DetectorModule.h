@@ -28,8 +28,6 @@ using material::MaterialObject;
 // ======================================================= DETECTOR MODULES ===============================================================
 //
 
-
-enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
 enum SensorLayout { NOSENSORS, MONO, PT, STEREO };
 enum ZCorrelation { SAMESEGMENT, MULTISEGMENT }; 
 enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
@@ -361,6 +359,11 @@ public:
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v);
   }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
+  }
 
   void setup() override {
     DetectorModule::setup();
@@ -640,6 +643,11 @@ public:
     v.visit(*this); 
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
   }
 
   //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
