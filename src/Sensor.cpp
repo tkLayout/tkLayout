@@ -69,8 +69,10 @@ void Sensor::buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShi
     uint32_t ref = refs.at(i);
     int shift = schemeShifts.at(i);
     if (ref <= pow(2, shift) ) {
-      myDetId_ << shift;
+      myDetId_ <<= shift;
       myDetId_ |= ref;
+      //std::bitset<32> test(myDetId_);
+      //std::cout << "detid_ = " << test << std::endl;
     }
     else logWARNING("Sensor::buildDetId : At rank " + any2str(i) + ", ref number " + any2str(ref) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
   }

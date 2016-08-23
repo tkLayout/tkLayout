@@ -116,6 +116,7 @@ void Tracker::build() {
     std::map<int, uint32_t> detIdRefs;
 
     std::string barrelName;
+    bool isTiltedLayer;
     int numRods;
     int numFlatRings;
     int numRings;
@@ -126,11 +127,13 @@ void Tracker::build() {
     void visit(Barrel& b) {
       barrelName = b.myid();
 
-      detIdRefs.insert(std::make_pair(0, 1));
+      detIdRefs[0] = 1;
 
-      detIdRefs.insert(std::make_pair(1, 205 % 100));
+      detIdRefs[1] = 205 % 100;
 			   
-      detIdRefs.insert(std::make_pair(2, 0));
+      detIdRefs[2] = 0;
+
+      std::cout << barrelName << std::endl;
     }
 
     void visit(Layer& l) {
@@ -138,42 +141,61 @@ void Tracker::build() {
       layerId = std::make_pair(barrelName, l.myid());
       l.layerNumber(sortedLayersIds.at(layerId));
 
-      detIdRefs.insert(std::make_pair(3, l.layerNumber()));
+      detIdRefs[3] = l.layerNumber();
 
+      isTiltedLayer = l.isTilted();
       numRods = l.numRods();
       numFlatRings = l.buildNumModulesFlat();
       numRings = l.buildNumModules();
     }
 
     void visit(RodPair& r) {
-      uint32_t phiRef = 1 + (uint32_t)(femod(r.Phi(), 2*M_PI) / (2*M_PI)) * numRods;
-      detIdRefs.insert(std::make_pair(5, phiRef));
+      double startAngle = femod( fmod(r.Phi(), (2*M_PI) / numRods), 2*M_PI);
+      uint32_t phiRef = (uint32_t)( 1 + femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
+      std::cout << "startAngle = " << startAngle << std::endl;
+      std::cout << "femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods = " << femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods << std::endl;
+      std::cout << " (uint32_t)(before) = " << (uint32_t)(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods) << std::endl;
+      detIdRefs[5] = phiRef;
+      std::cout << "rodPhi = " << femod(r.Phi(), 2*M_PI) * 180. / M_PI << std::endl;
     }
 
     void visit(BarrelModule& m) {
-      bool side = (m.minZ() > 0 ? 1 : 0);
+      int side = m.uniRef().side;
       uint32_t ringRef;
 
       if (!m.isTilted()) {
-	detIdRefs.insert(std::make_pair(4, 3));
+	detIdRefs[4] = 3;
 
-	ringRef = (side ? m.uniRef().ring : 1 + m.uniRef().ring - numFlatRings);
+	if (isTiltedLayer) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
+	else ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings) : (1 + numFlatRings - m.uniRef().ring));
       }
 
       else {
 	uint32_t category = (side == 1 ? 2 : 1);
-	detIdRefs.insert(std::make_pair(4, category));
+	detIdRefs[4] = category;
 
-	ringRef = (side ? m.uniRef().ring : 1 + m.uniRef().ring - numRings);
+	ringRef = (side ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
       }
-      detIdRefs.insert(std::make_pair(6, ringRef));
+      detIdRefs[6] = ringRef;
+
+      std::cout << "layer = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
     void visit(Sensor& s) {
       uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
       if (s.subdet() == ModuleSubdetector::BARREL) {
-	detIdRefs.insert(std::make_pair(7, sensorRef));
+	detIdRefs[7] = sensorRef;
+
+	for (int a = 0; a < detIdRefs.size(); a++) {
+	  std::cout << "values = " << std::endl;
+	  std::cout << detIdRefs.at(a) << std::endl;
+	  std::cout << "scheme = " << std::endl;
+	  std::cout << schemeShifts.at(a) << std::endl;
+	}
+
 	s.buildDetId(detIdRefs, schemeShifts);
+	std::bitset<32> test(s.myDetId());
+	std::cout << "detid_ = " << test << std::endl;
       }  
     }
 
@@ -196,9 +218,9 @@ void Tracker::build() {
     EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
 
     void visit(Endcap& e) {
-      detIdRefs.insert(std::make_pair(0, 1));
+      detIdRefs[0] = 1;
 
-      detIdRefs.insert(std::make_pair(1, 204 % 100));
+      detIdRefs[1] = 204 % 100;
     }
 
     void visit(Disk& d) {
@@ -209,34 +231,35 @@ void Tracker::build() {
       bool side = (d.minZ() > 0);
 
       uint32_t sideRef = (side ? 2 : 1);
-      detIdRefs.insert(std::make_pair(2, sideRef));
+      detIdRefs[2] = sideRef;
 
-      detIdRefs.insert(std::make_pair(3, 0));
+      detIdRefs[3] = 0;
 
       uint32_t diskRef = d.diskNumber();
-      detIdRefs.insert(std::make_pair(4, diskRef));
+      detIdRefs[4] = diskRef;
 
       numEmptyRings = d.numEmptyRings();
     }
    
     void visit(Ring& r) {
       uint32_t ringRef = r.myid() - numEmptyRings;
-      detIdRefs.insert(std::make_pair(5, ringRef));
+      detIdRefs[5] = ringRef;
 
-      detIdRefs.insert(std::make_pair(6, 1));
+      detIdRefs[6] = 1;
 
       numModules = r.numModules();
     }
  
     void visit(EndcapModule& m) {
-      uint32_t phiRef = 1 + (uint32_t)(femod(m.center().Phi(), 2*M_PI) / (2*M_PI)) * numModules;
-      detIdRefs.insert(std::make_pair(7, phiRef));
+      double startAngle = femod( fmod(m.center().Phi(), (2*M_PI) / numModules), 2*M_PI);
+      uint32_t phiRef = 1 + (uint32_t)(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*M_PI) * numModules);
+      detIdRefs[7] = phiRef;
     }
 
     void visit(Sensor& s) {
       uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
       if (s.subdet() == ModuleSubdetector::ENDCAP) {
-	detIdRefs.insert(std::make_pair(8, sensorRef));
+	detIdRefs[8] = sensorRef;
 	s.buildDetId(detIdRefs, schemeShifts);
       }
     }
