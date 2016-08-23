@@ -177,6 +177,7 @@ public:
 
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
+  bool isTilted() const { return tiltAngle_ != 0.; }
 
   double alpha (double trackPhi) const {
     double deltaPhi = center().Phi() + skewAngle() - trackPhi;

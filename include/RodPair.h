@@ -84,6 +84,14 @@ public:
   void translateR(double radius);
   void rotateZ(double angle);
 
+  double Phi() const {
+    double phi;
+    if (zPlusModules_.size() != 0) phi = zPlusModules_.front().center().Phi();
+    else if (zMinusModules_.size() != 0) phi = zMinusModules_.front().center().Phi();
+    else phi = std::numeric_limits<double>::quiet_NaN();
+    return phi;
+  }
+
   void cutAtEta(double eta);
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }

@@ -17,8 +17,8 @@
 #include "Endcap.h"
 #include "SupportStructure.h"
 #include "Visitor.h"
-
 #include "Visitable.h"
+#include "mainConfigHandler.h"
 
 using std::set;
 using material::SupportStructure;

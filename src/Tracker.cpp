@@ -193,7 +193,7 @@ void Tracker::build() {
     int numModules;
 
   public:
-    EndcapDetIdBuilder(std::string barrelScheme, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
+    EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
 
     void visit(Endcap& e) {
       detIdRefs.insert(std::make_pair(0, 1));
@@ -229,7 +229,7 @@ void Tracker::build() {
     }
  
     void visit(EndcapModule& m) {
-      uint32_t phiRef = 1 + (uint32_t)(femod(m.Phi(), 2*M_PI) / (2*M_PI)) * numModules;
+      uint32_t phiRef = 1 + (uint32_t)(femod(m.center().Phi(), 2*M_PI) / (2*M_PI)) * numModules;
       detIdRefs.insert(std::make_pair(7, phiRef));
     }
 
@@ -264,7 +264,7 @@ void Tracker::build() {
 }
 
 
-std::map<std::string, std::vector<int> > Layer::detIdSchemes() {
+std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
   std::map<std::string, std::vector<int> > schemes;
 
   std::ifstream schemesStream(mainConfigHandler::instance().getDetIdSchemesDirectory() + "/" + insur::default_detidschemesfile);
