@@ -81,6 +81,7 @@ void Tracker::build() {
   accept(cntNameVisitor);
 
 
+  // THis is uglyy, need to be worked on
   std::vector< std::pair<const Layer*, std::string> > sortedLayers;
   std::string barrelId;
   for (auto& b : barrels_) {
@@ -109,7 +110,7 @@ void Tracker::build() {
   for (const auto& d : sortedZPlusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
   i = 1;
   for (const auto& d : sortedZMinusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-
+  // End of the ugly part ;p
 
 
 
@@ -127,6 +128,8 @@ void Tracker::build() {
     int numFlatRings;
     int numRings;
     uint32_t phiRef;
+
+    std::ostringstream out;
 
   public:
     BarrelDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
@@ -182,6 +185,8 @@ void Tracker::build() {
 	detIdRefs[6] = phiRef;
       }
       
+      //out.str("");
+      //out << "rho = " <<  m.center().Rho() << " z = " << m.center().Z() << " phi = " << (m.center().Phi() * 180. / M_PI);
       //std::cout << "layer = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
@@ -198,8 +203,9 @@ void Tracker::build() {
 	  }*/
 
 	s.buildDetId(detIdRefs, schemeShifts);
-	//std::bitset<32> test(s.myDetId());
-	//std::cout << "detid_ = " << test << std::endl;
+	std::bitset<32> test(s.myDetId());
+	//std::cout << s.myDetId() << " " << test << " " << out.str() << std::endl;
+	std::cout << s.myDetId() << " " << test << " " << out.str() << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
       }  
     }
 
@@ -217,6 +223,8 @@ void Tracker::build() {
     std::string endcapName;
     int numEmptyRings;
     int numModules;
+
+    std::ostringstream out;
 
   public:
     EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
@@ -279,8 +287,8 @@ void Tracker::build() {
 
 	s.buildDetId(detIdRefs, schemeShifts);
 
-	//std::bitset<32> test(s.myDetId());
-	//std::cout << "detid_ = " << test << std::endl;
+	std::bitset<32> test(s.myDetId());
+	std::cout << s.myDetId() << " " << test << " " << out.str() << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
       }
     }
 

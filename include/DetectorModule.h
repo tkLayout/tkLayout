@@ -232,9 +232,15 @@ public:
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
   bool flipped() const { return decorated().flipped(); } 
-  bool flipped(bool newFlip) { return decorated().flipped(newFlip); } 
+  bool flipped(bool newFlip) {
+    if (newFlip && numSensors() > 1) {
+      sensors_.front().innerOuter(SensorPosition::UPPER);
+      sensors_.back().innerOuter(SensorPosition::LOWER);
+    }
+    return decorated().flipped(newFlip);
+  } 
   ModuleShape shape() const { return decorated().shape(); }
-////////
+  ////////
 
   double maxZ() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxZ); }
   double minZ() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minZ); }
