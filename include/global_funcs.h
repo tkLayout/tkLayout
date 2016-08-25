@@ -111,10 +111,11 @@ std::string ctrim(std::string str, const std::string& chars);
 // In C++11, the default modulo operator fmod is the truncated modulo.
 // Here, femod is the Euclidian modulo operator.
 // Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
-template<typename ArgType> inline ArgType femod(const ArgType& Phi, const ArgType& base) {
-  ArgType femodPhi = fmod(Phi, base);
-  if (femodPhi < -1e-10) femodPhi = femodPhi + base;
-  return femodPhi;
+template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgType& base) {
+  ArgType result = fmod(phi, base);
+  if (fabs(result - base) < 1.e-5) result -= base;
+  if (result < -1.e-5) result += base;
+  return result;
 }
 
 template<typename ArgType> inline int signum(const ArgType& x) {

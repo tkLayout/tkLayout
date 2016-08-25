@@ -92,17 +92,23 @@ void Tracker::build() {
   int i = 1;
   for (const auto& l : sortedLayers) { sortedLayersIds.insert(std::make_pair(std::make_pair(l.second, l.first->myid()), i)); i++; }
 
-  std::vector< std::pair<const Disk*, std::string> > sortedDisks;
+  std::vector< std::pair<const Disk*, std::string> > sortedZPlusDisks;
+  std::vector< std::pair<const Disk*, std::string> > sortedZMinusDisks;
   std::string endcapId;
   for (auto& e : endcaps_) {
     endcapId = e.myid();
-    for (const auto& d : e.disks()) { sortedDisks.push_back(std::make_pair(&d, endcapId)); }
+    for (const auto& d : e.disks()) {
+      if (d.side()) sortedZPlusDisks.push_back(std::make_pair(&d, endcapId));
+      else sortedZMinusDisks.push_back(std::make_pair(&d, endcapId));
+    }
   }
-  std::sort(sortedDisks.begin(), sortedDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return d1.first->averageZ() < d2.first->averageZ(); });
-  std::map< std::pair<std::string, int>, int > sortedDisksIds;
+  std::sort(sortedZPlusDisks.begin(), sortedZPlusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return d1.first->averageZ() < d2.first->averageZ(); });
+  std::sort(sortedZMinusDisks.begin(), sortedZMinusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return fabs(d1.first->averageZ()) < fabs(d2.first->averageZ()); });
+  std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
   i = 1;
-  for (const auto& d : sortedDisks) { sortedDisksIds.insert(std::make_pair(std::make_pair(d.second, d.first->myid()), i)); i++; }
-
+  for (const auto& d : sortedZPlusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
+  i = 1;
+  for (const auto& d : sortedZMinusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
 
 
 
@@ -120,6 +126,7 @@ void Tracker::build() {
     int numRods;
     int numFlatRings;
     int numRings;
+    uint32_t phiRef;
 
   public:
     BarrelDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
@@ -132,8 +139,6 @@ void Tracker::build() {
       detIdRefs[1] = 205 % 100;
 			   
       detIdRefs[2] = 0;
-
-      std::cout << barrelName << std::endl;
     }
 
     void visit(Layer& l) {
@@ -150,13 +155,8 @@ void Tracker::build() {
     }
 
     void visit(RodPair& r) {
-      double startAngle = femod( fmod(r.Phi(), (2*M_PI) / numRods), 2*M_PI);
-      uint32_t phiRef = (uint32_t)( 1 + femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
-      std::cout << "startAngle = " << startAngle << std::endl;
-      std::cout << "femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods = " << femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods << std::endl;
-      std::cout << " (uint32_t)(before) = " << (uint32_t)(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods) << std::endl;
-      detIdRefs[5] = phiRef;
-      std::cout << "rodPhi = " << femod(r.Phi(), 2*M_PI) * 180. / M_PI << std::endl;
+      double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
+      phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
     }
 
     void visit(BarrelModule& m) {
@@ -165,20 +165,24 @@ void Tracker::build() {
 
       if (!m.isTilted()) {
 	detIdRefs[4] = 3;
+	detIdRefs[5] = phiRef;
 
 	if (isTiltedLayer) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
 	else ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings) : (1 + numFlatRings - m.uniRef().ring));
+	detIdRefs[6] = ringRef;
       }
 
       else {
-	uint32_t category = (side == 1 ? 2 : 1);
+	uint32_t category = (side > 0 ? 2 : 1);
 	detIdRefs[4] = category;
 
-	ringRef = (side ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
-      }
-      detIdRefs[6] = ringRef;
+	ringRef = (side > 0 ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
+	detIdRefs[5] = ringRef;
 
-      std::cout << "layer = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
+	detIdRefs[6] = phiRef;
+      }
+      
+      //std::cout << "layer = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
     void visit(Sensor& s) {
@@ -186,16 +190,16 @@ void Tracker::build() {
       if (s.subdet() == ModuleSubdetector::BARREL) {
 	detIdRefs[7] = sensorRef;
 
-	for (int a = 0; a < detIdRefs.size(); a++) {
+	/*for (int a = 0; a < detIdRefs.size(); a++) {
 	  std::cout << "values = " << std::endl;
 	  std::cout << detIdRefs.at(a) << std::endl;
 	  std::cout << "scheme = " << std::endl;
 	  std::cout << schemeShifts.at(a) << std::endl;
-	}
+	  }*/
 
 	s.buildDetId(detIdRefs, schemeShifts);
-	std::bitset<32> test(s.myDetId());
-	std::cout << "detid_ = " << test << std::endl;
+	//std::bitset<32> test(s.myDetId());
+	//std::cout << "detid_ = " << test << std::endl;
       }  
     }
 
@@ -206,7 +210,7 @@ void Tracker::build() {
   private:
     std::string schemeName;
     std::vector<int> schemeShifts;
-    std::map< std::pair<std::string, int>, int > sortedDisksIds;
+    std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
 
     std::map<int, uint32_t> detIdRefs;
 
@@ -215,20 +219,22 @@ void Tracker::build() {
     int numModules;
 
   public:
-    EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
+    EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
 
     void visit(Endcap& e) {
+      endcapName = e.myid();
+
       detIdRefs[0] = 1;
 
       detIdRefs[1] = 204 % 100;
     }
 
     void visit(Disk& d) {
-      std::pair<std::string, int> diskId;
-      diskId = std::make_pair(endcapName, d.myid());
-      d.diskNumber(sortedDisksIds.at(diskId));
+      bool side = d.side();
 
-      bool side = (d.minZ() > 0);
+      std::tuple<std::string, int, bool> diskId;
+      diskId = std::make_tuple(endcapName, d.myid(), side);
+      d.diskNumber(sortedDisksIds.at(diskId));  
 
       uint32_t sideRef = (side ? 2 : 1);
       detIdRefs[2] = sideRef;
@@ -251,16 +257,30 @@ void Tracker::build() {
     }
  
     void visit(EndcapModule& m) {
-      double startAngle = femod( fmod(m.center().Phi(), (2*M_PI) / numModules), 2*M_PI);
-      uint32_t phiRef = 1 + (uint32_t)(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*M_PI) * numModules);
+      double startAngle = femod( m.center().Phi(), (2 * M_PI / numModules));
+      uint32_t phiRef = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*M_PI) * numModules);
       detIdRefs[7] = phiRef;
+
+      //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
     void visit(Sensor& s) {
       uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
       if (s.subdet() == ModuleSubdetector::ENDCAP) {
 	detIdRefs[8] = sensorRef;
+
+
+	/*for (int a = 0; a < detIdRefs.size(); a++) {
+	  std::cout << "values = " << std::endl;
+	  std::cout << detIdRefs.at(a) << std::endl;
+	  std::cout << "scheme = " << std::endl;
+	  std::cout << schemeShifts.at(a) << std::endl;
+	  }*/
+
 	s.buildDetId(detIdRefs, schemeShifts);
+
+	//std::bitset<32> test(s.myDetId());
+	//std::cout << "detid_ = " << test << std::endl;
       }
     }
 
@@ -301,7 +321,7 @@ std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
       if (schemeData.size() < 2) logWARNING("DetId scheme " + schemeName + " : no data was entered." );
       else {
 	std::vector<int> detIdShifts;
-	int sum;
+	int sum = 0;
 	for (int i = 1; i < schemeData.size(); i++) {
 	  int shift = str2any<int>(schemeData.at(i));
 	  detIdShifts.push_back(shift);

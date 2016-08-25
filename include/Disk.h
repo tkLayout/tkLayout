@@ -100,6 +100,7 @@ public:
   void cutAtEta(double eta);
 
   double averageZ() const { return averageZ_; }
+  bool side() const { return averageZ_ > 0.; }
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
