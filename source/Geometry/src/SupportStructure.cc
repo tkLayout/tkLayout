@@ -20,7 +20,6 @@
 using insur::InactiveTube;
 using insur::InactiveRing;
 
-namespace material {
   //=============== begin class SupportStructure
   const std::map<std::string, SupportStructure::Type> SupportStructure::typeStringMap = {
     {"custom", CUSTOM},
@@ -45,7 +44,7 @@ namespace material {
   {}
   
   void SupportStructure::buildInTracker() {
-    InactiveElement* inactiveElement;
+    //InactiveElement* inactiveElement;
 
     buildBase();
 
@@ -150,7 +149,7 @@ namespace material {
                                MAX(0, barrel.minZ()),
                                barrel.maxR() + autoLayerMarginLower,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Top barrel support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      std::cout << ">>Top barrel support>> " << "maxR: " << barrel.maxR() + autoLayerMarginLower << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel top support structure horizontally oriented");
       break;
     case BOTTOM :
@@ -159,7 +158,7 @@ namespace material {
                                MAX(0, barrel.minZ()),
                                barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Bottom barrel support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      std::cout << ">>Bottom barrel support>> " << "minR: " << barrel.minR() - inactiveElementWidth - autoLayerMarginUpper << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel bottom support structure horizontally oriented");
       break;
     default :
@@ -209,11 +208,26 @@ namespace material {
     cleanup();
   }
 
-  void SupportStructure::updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces) {
-    for(InactiveElement* inactiveElement : inactiveElements) {
-      inactiveSurfaces.addSupportPart(*inactiveElement);
-    }
+  //
+  // GeometryVisitor pattern -> support structure visitable
+  //
+  void SupportStructure::accept(GeometryVisitor& v)
+  {
+    v.visit(*this);
   }
+
+  //
+  // GeometryVisitor pattern -> support structure visitable (const. option)
+  //
+  void SupportStructure::accept(ConstGeometryVisitor& v) const {
+    v.visit(*this);
+  }
+
+//  void SupportStructure::updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces) {
+//    for(auto& inactiveElement : inactiveElements) {
+//      inactiveSurfaces.addSupportPart(inactiveElement);
+//    }
+//  }
 
   void SupportStructure::buildBase() {
     for (auto& currentComponentNode : componentsNode) {
@@ -330,7 +344,7 @@ namespace material {
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
-    materialTab_ (MaterialTab::instance()) {}
+    materialTab_ (material::MaterialTab::instance()) {}
     
   const std::string SupportStructure::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -375,5 +389,3 @@ namespace material {
   }
   
   //=============== end class SupportStructure::Element
-}
-

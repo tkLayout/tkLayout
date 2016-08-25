@@ -2,8 +2,6 @@
 #include "MessageLogger.h"
 #include "SupportStructure.h"
 
-using material::SupportStructure;
-
 //
 // Constructor - parse geometry config file using boost property tree & read-in Disk, Support nodes
 //
@@ -118,6 +116,7 @@ void Endcap::setup()
 void Endcap::accept(GeometryVisitor& v) {
   v.visit(*this);
   for (auto& d : m_disks) { d.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -126,6 +125,7 @@ void Endcap::accept(GeometryVisitor& v) {
 void Endcap::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   for (const auto& d : m_disks) { d.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //

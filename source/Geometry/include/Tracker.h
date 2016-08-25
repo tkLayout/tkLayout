@@ -23,7 +23,7 @@ class HierarchicalNameVisitor;
 class ModulesSetVisitor;
 
 // Typedefs
-typedef PtrVector<material::SupportStructure> SupportStructures;
+typedef PtrVector<SupportStructure> SupportStructures;
 
 /*
  * @class Tracker

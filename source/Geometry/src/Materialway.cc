@@ -1124,22 +1124,34 @@ namespace material {
     bool retValue = false;
 
     int startTime = time(0);
+    std::cout << "1" << std::endl;
     startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
       stopTaskClock();
+      std::cout << "2" << std::endl;
       startTaskClock("Building external sections");  buildExternalSections(tracker); stopTaskClock();
+      std::cout << "3" << std::endl;
       startTaskClock("Building internal sections");  buildInternalSections(tracker); stopTaskClock();
     } else stopTaskClock();
-
+    std::cout << "4" << std::endl;
     startTaskClock("Building inactive elements");    buildInactiveElements(); stopTaskClock();
+    std::cout << "5" << std::endl;
     startTaskClock("Routing services");              routeServices(tracker); stopTaskClock();
+    std::cout << "6" << std::endl;
     startTaskClock("First step conversions");        firstStepConversions(); stopTaskClock();
+    std::cout << "7" << std::endl;
     startTaskClock("Second step conversions");       secondStepConversions(); stopTaskClock();
+    std::cout << "8" << std::endl;
     startTaskClock("Creating ModuleCaps");           createModuleCaps(tracker); stopTaskClock();
+    std::cout << "9" << std::endl;
     startTaskClock("Duplicating sections");          duplicateSections(); stopTaskClock();
+    std::cout << "10" << std::endl;
     startTaskClock("Populating MaterialProperties"); populateAllMaterialProperties(tracker); stopTaskClock(); //, weightDistribution); stopTaskClock();
+    std::cout << "11" << std::endl;
     startTaskClock("Building inactive surfaces");    buildInactiveSurface(tracker, inactiveSurface); stopTaskClock();
+    std::cout << "12" << std::endl;
     startTaskClock("Computing material amounts");    calculateMaterialValues(inactiveSurface, tracker); stopTaskClock();
+    std::cout << "13" << std::endl;
     return retValue;
   }
 
@@ -1671,31 +1683,35 @@ namespace material {
   */
 
   void Materialway::buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
-    class SupportVisitor : public GeometryVisitor {
-    private:
-      InactiveSurfaces& inactiveSurface_;
-    public:
-      SupportVisitor(InactiveSurfaces& inactiveSurface) : inactiveSurface_(inactiveSurface) {}
-    
-      void visit (Tracker& tracker) {
-        for (auto& supportStructure : tracker.supportStructures()) {
-          supportStructure.updateInactiveSurfaces(inactiveSurface_);
-        }
-      }
-      void visit (Barrel& barrel) {
-        for (auto& supportStructure : barrel.supportStructures()) {
-          supportStructure.updateInactiveSurfaces(inactiveSurface_);
-        }
-      }
-      void visit (Endcap& endcap) {
-        for (auto& supportStructure : endcap.supportStructures()) {
-          supportStructure.updateInactiveSurfaces(inactiveSurface_);
-        }
-      }
-    };
 
-    SupportVisitor supportVisitor(inactiveSurface);
-    tracker.accept(supportVisitor);
+//
+// Deprecated: support structure as inactive material directly accessible from Tracker
+//
+//    class SupportVisitor : public GeometryVisitor {
+//    private:
+//      InactiveSurfaces& inactiveSurface_;
+//    public:
+//      SupportVisitor(InactiveSurfaces& inactiveSurface) : inactiveSurface_(inactiveSurface) {}
+//
+//      void visit (Tracker& tracker) {
+//        for (auto& supportStructure : tracker.supportStructures()) {
+//          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+//        }
+//      }
+//      void visit (Barrel& barrel) {
+//        for (auto& supportStructure : barrel.supportStructures()) {
+//          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+//        }
+//      }
+//      void visit (Endcap& endcap) {
+//        for (auto& supportStructure : endcap.supportStructures()) {
+//          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+//        }
+//      }
+//    };
+//
+//    SupportVisitor supportVisitor(inactiveSurface);
+//    tracker.accept(supportVisitor);
     
     
     for(Section* section : sectionsList_) {
@@ -1728,12 +1744,35 @@ namespace material {
   }
 
   void Materialway::calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker) {
-    //supports
-    for (InactiveElement& currElem : inactiveSurface.getSupports()) {
-      currElem.calculateTotalMass();
-      currElem.calculateRadiationLength();
-      currElem.calculateInteractionLength();
-    }
+
+    // Supports
+    class SupportVisitor : public GeometryVisitor {
+    public:
+      SupportVisitor() {}
+      virtual ~SupportVisitor() {}
+
+      void visit(SupportStructure& support) {
+
+        for (auto& curElem : support.getInactiveElements()) {
+
+          curElem.calculateTotalMass();
+          curElem.calculateRadiationLength();
+          curElem.calculateInteractionLength();
+        }
+      }
+    };
+
+    SupportVisitor supportVisitor;
+    tracker.accept(supportVisitor);
+
+// Deprecated: used Visitor pattern instead
+//    for (InactiveElement& currElem : inactiveSurface.getSupports()) {
+//      currElem.calculateTotalMass();
+//      currElem.calculateRadiationLength();
+//      currElem.calculateInteractionLength();
+//
+//      std::cout << ">> " << currElem.getTotalMass() << std::endl;
+//    }
 
     //sections
     for (InactiveElement& currElem : inactiveSurface.getBarrelServices()) {
@@ -1756,8 +1795,8 @@ namespace material {
       }
     };
 
-    ModuleVisitor visitor;
-    tracker.accept(visitor);
+    ModuleVisitor modVisitor;
+    tracker.accept(modVisitor);
   }
 
   /*

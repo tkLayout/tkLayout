@@ -22,6 +22,7 @@
 #include "RootWPage.h"
 #include "RootWSite.h"
 #include "RootWTable.h"
+#include "SupportStructure.h"
 #include <TCanvas.h>
 #include <TColor.h>
 #include <TGraph.h>
@@ -44,7 +45,8 @@ AnalyzerMatBudget::AnalyzerMatBudget(const Detector& detector) : AnalyzerUnit("A
  m_nTracks(0),
  m_etaSpan(2*SimParms::getInstance().getMaxEtaCoverage()),
  m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
- m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage())
+ m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_nBins(100)
 {};
 
 //
@@ -61,13 +63,16 @@ bool AnalyzerMatBudget::init(int nMatTracks)
   // Set nTracks
   m_nTracks = nMatTracks;
 
+  // Set n bins
+  m_nBins = m_nTracks;
+
   // Compute shooting intervals to analyze geometry
   double etaMin = -1*SimParms::getInstance().getMaxEtaCoverage();
   double etaMax = +1*SimParms::getInstance().getMaxEtaCoverage();
 
   float  safeMargin = c_etaSafetyMargin;
-  m_etaSpan         = (etaMax - etaMin)*(1. + safeMargin);
-  m_etaMax          = etaMax * (1 + safeMargin);
+  m_etaSpan         = (etaMax - etaMin);//*(1. + safeMargin);
+  m_etaMax          = etaMax;// * (1 + safeMargin);
 
   if (m_nTracks<=0 || m_trackers.size()==0) {
 
@@ -124,42 +129,42 @@ bool AnalyzerMatBudget::init(int nMatTracks)
       // Material distribution in barrels
       m_radMB[trkName]["Barrel"].Reset();
       m_radMB[trkName]["Barrel"].SetNameTitle(std::string("radMBBarrel"+trkName).c_str(), std::string(trkName +" Barrel Modules Radiation Length").c_str());
-      m_radMB[trkName]["Barrel"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Barrel"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Barrel"].Reset();
       m_intMB[trkName]["Barrel"].SetNameTitle(std::string("intMBBarrel"+trkName).c_str(), std::string(trkName +" Barrel Modules Interaction Length").c_str());
-      m_intMB[trkName]["Barrel"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Barrel"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in endcaps
       m_radMB[trkName]["Endcap"].Reset();
       m_radMB[trkName]["Endcap"].SetNameTitle(std::string("radMBEndcap"+trkName).c_str(), std::string(trkName +" Endcap Modules Radiation Length").c_str());
-      m_radMB[trkName]["Endcap"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Endcap"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Endcap"].Reset();
       m_intMB[trkName]["Endcap"].SetNameTitle(std::string("intMBEndcap"+trkName).c_str(), std::string(trkName +" Endcap Modules Interaction Length").c_str());
-      m_intMB[trkName]["Endcap"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Endcap"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in services
       m_radMB[trkName]["Services"].Reset();
       m_radMB[trkName]["Services"].SetNameTitle(std::string("radMBServices"+trkName).c_str(), std::string(trkName +" Services Radiation Length").c_str());
-      m_radMB[trkName]["Services"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Services"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Services"].Reset();
       m_intMB[trkName]["Services"].SetNameTitle(std::string("intMBServices"+trkName).c_str(), std::string(trkName +" Services Interaction Length").c_str());
-      m_intMB[trkName]["Services"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Services"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in supports
       m_radMB[trkName]["Supports"].Reset();
       m_radMB[trkName]["Supports"].SetNameTitle(std::string("radMBSupports"+trkName).c_str(), std::string(trkName +" Supports Radiation Length").c_str());
-      m_radMB[trkName]["Supports"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Supports"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Supports"].Reset();
       m_intMB[trkName]["Supports"].SetNameTitle(std::string("intMBSupports"+trkName).c_str(), std::string(trkName +" Supports Interaction Length").c_str());
-      m_intMB[trkName]["Supports"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Supports"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in total
       m_radMB[trkName]["Total"].Reset();
       m_radMB[trkName]["Total"].SetNameTitle(std::string("radMBTotal"+trkName).c_str(), "Total Radiation Length");
-      m_radMB[trkName]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Total"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Total"].Reset();
       m_intMB[trkName]["Total"].SetNameTitle(std::string("intMBTotal"+trkName).c_str(), "Total Interaction Length");
-      m_intMB[trkName]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Total"].SetBins(m_nBins, 0, m_etaMax);
 
       // Nuclear interactions
       m_hadronTotalHitsGraph[trkName].SetName(std::string("HadronTotalHitsGraphIn"+trkName).c_str());
@@ -192,10 +197,10 @@ bool AnalyzerMatBudget::init(int nMatTracks)
     // Material distribution in beam-pipe
     m_radMB["Beampipe"]["Total"].Reset();
     m_radMB["Beampipe"]["Total"].SetNameTitle("radMBPipe", "BeamPipe Radiation Length");
-    m_radMB["Beampipe"]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+    m_radMB["Beampipe"]["Total"].SetBins(m_nBins, 0, m_etaMax);
     m_intMB["Beampipe"]["Total"].Reset();
     m_intMB["Beampipe"]["Total"].SetNameTitle("intMBPipe", "BeamPipe Interaction Length");
-    m_intMB["Beampipe"]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+    m_intMB["Beampipe"]["Total"].SetBins(m_nBins, 0, m_etaMax);
 
 //    // Nuclear interactions
 //    m_hadronTotalHitsGraph["Tracker"].SetName(std::string("HadronTotalHitsGraphInTracker").c_str());
@@ -279,6 +284,7 @@ bool AnalyzerMatBudget::analyze()
       iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
       m_beamPipe->accept(matVisitor);// Assign to material track hit corresponding to beam-pipe
 
+
       // Given sub-tracker
       m_radMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].radiation);
       m_intMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].interaction);
@@ -338,21 +344,21 @@ bool AnalyzerMatBudget::analyze()
 
             m_radMBComp[trkName][compName].Reset();
             m_radMBComp[trkName][compName].SetNameTitle(std::string("radMB"+compName).c_str(), std::string(trkName +" "+compName+" Radiation Length").c_str());
-            m_radMBComp[trkName][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_radMBComp[trkName][compName].SetBins(m_nBins, 0, m_etaMax);
 
             m_intMBComp[trkName][compName].Reset();
             m_intMBComp[trkName][compName].SetNameTitle(std::string("intMB"+compName).c_str(), std::string(trkName +" "+compName+" Interaction Length").c_str());
-            m_intMBComp[trkName][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_intMBComp[trkName][compName].SetBins(m_nBins, 0, m_etaMax);
           }
           if (m_radMBComp["Tracker"].find(compName)==m_radMBComp["Tracker"].end()) {
 
             m_radMBComp["Tracker"][compName].Reset();
             m_radMBComp["Tracker"][compName].SetNameTitle(std::string("radMB"+compName).c_str(), std::string("Tracker "+compName+" Radiation Length").c_str());
-            m_radMBComp["Tracker"][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_radMBComp["Tracker"][compName].SetBins(m_nBins, 0, m_etaMax);
 
             m_intMBComp["Tracker"][compName].Reset();
             m_intMBComp["Tracker"][compName].SetNameTitle(std::string("intMB"+compName).c_str(), std::string("Tracker "+compName+" Interaction Length").c_str());
-            m_intMBComp["Tracker"][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_intMBComp["Tracker"][compName].SetBins(m_nBins, 0, m_etaMax);
           }
 
           // Fill
@@ -1130,6 +1136,17 @@ void MatBudgetVisitor::visit(const EndcapModule& m)
 }
 
 //
+// Visit Support strucutre
+//
+void MatBudgetVisitor::visit(const SupportStructure& s)
+{
+  for (auto& elem : s.getInactiveElements()) {
+
+    analyzeSupportMB(elem);
+  }
+}
+
+//
 // Post visit method called after the whole visit-accept pattern done to recalibrate histograms, etc.
 //
 void MatBudgetVisitor::postvisit()
@@ -1215,4 +1232,149 @@ void MatBudgetVisitor::analyzeModuleMB(const DetectorModule& m)
       m_matTrack.addHit(std::move(hit));
     }
   } // Z>0
+}
+
+//
+// Analyze if any support structure inactive element crossed by given track & how much material is on the way
+//
+void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
+{
+  // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
+  // only volumes of the requested category, or those without one (which should not exist) are examined
+  if ((e.getZOffset() + e.getZLength()) > 0) {
+
+    // collision detection: check eta range
+    auto etaMinMax = e.getEtaMinMax();
+
+    // Volume hit
+    double eta   = m_matTrack.getEta();
+    double theta = m_matTrack.getTheta();
+
+    if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
+
+      /*
+      if (eta<0.01) {
+        std::cout << "Hitting an inactive surface at z=("
+                  << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
+                  << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
+        const std::map<std::string, double>& localMasses = iter->getLocalMasses();
+        const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
+        for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+        for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+      }
+      */
+
+      // Initialize
+      Material material;
+      material.radiation   = 0.0;
+      material.interaction = 0.0;
+
+      double rho = 0.0;
+      double z   = 0.0;
+
+      // Radiation and interaction lenth scaling for vertical volumes
+      if (e.isVertical()) {
+
+        z   = e.getZOffset() + e.getZLength() / 2.0;
+        rho = z * tan(theta);
+
+        material.radiation   = e.getRadiationLength();
+        material.interaction = e.getInteractionLength();
+
+        // 2D maps for vertical surfaces
+        if (material.radiation>0){
+
+          m_radMap.Fill(z,rho,material.radiation);
+          m_radMapCount.Fill(z,rho);
+        }
+        if (material.interaction>0) {
+
+          m_intMap.Fill(z,rho,material.interaction);
+          m_intMapCount.Fill(z,rho);
+        }
+
+        // Special treatment for user-defined supports as they can be very close to z=0
+        if (e.getCategory() == MaterialProperties::u_sup) {
+
+          double s = e.getZLength() / cos(theta);
+          if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
+
+          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+          //if (e.track()) {}
+
+          material.radiation  *= s / e.getZLength();
+          material.interaction*= s / e.getZLength();
+
+          m_matBudget["Supports"].radiation   += material.radiation;
+          m_matBudget["Supports"].interaction += material.interaction;
+
+        }
+        else {
+
+          material.radiation   /= cos(theta);
+          material.interaction /= cos(theta);
+
+          m_matBudget["Supports"].radiation   += material.radiation;
+          m_matBudget["Supports"].interaction += material.interaction;
+        }
+      }
+      // Radiation and interaction length scaling for horizontal volumes
+      else {
+
+        rho = e.getInnerRadius() + e.getRWidth() / 2.0;
+        z   = rho/tan(theta);
+
+        material.radiation   = e.getRadiationLength();
+        material.interaction = e.getInteractionLength();
+
+        // 2D maps for vertical surfaces
+        if (material.radiation>0){
+
+          m_radMap.Fill(z,rho,material.radiation);
+           m_radMapCount.Fill(z,rho);
+         }
+         if (material.interaction>0) {
+
+           m_intMap.Fill(z,rho,material.interaction);
+           m_intMapCount.Fill(z,rho);
+         }
+
+        // Special treatment for user-defined supports; should not be necessary for now
+        // as all user-defined supports are vertical, but just in case...
+        if (e.getCategory() == MaterialProperties::u_sup) {
+
+          double s = e.getZLength() / sin(theta);
+
+          if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
+
+          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+          //if (e.track()) {}
+
+          material.radiation  *= s / e.getZLength();
+          material.interaction*= s / e.getZLength();
+
+          m_matBudget["Supports"].radiation   += material.radiation;
+          m_matBudget["Supports"].interaction += material.interaction;
+
+        }
+        else {
+
+          material.radiation   /= sin(theta);
+          material.interaction /= sin(theta);
+
+          m_matBudget["Supports"].radiation   += material.radiation;
+          m_matBudget["Supports"].interaction += material.interaction;
+        }
+      }
+
+      // Create Hit object with appropriate parameters, add to Track t
+      HitPtr hit(new Hit((theta == 0) ? rho : (rho / sin(theta))) );
+      if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
+      else                hit->setOrientation(HitOrientation::Horizontal);
+      hit->setObjectKind(HitKind::Inactive);
+      hit->setCorrectedMaterial(material);
+      m_matTrack.addHit(std::move(hit));
+
+    } // Eta min max
+  } // +Z check
 }

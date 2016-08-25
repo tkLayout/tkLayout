@@ -94,40 +94,40 @@ Color_t Palette::color_int(const unsigned int& plotIndex) {
     int nColor=(plotIndex-1) % 12;
     switch (nColor) {
     case 0 :
-      colorCode="#004586";
+      colorCode="#004586"; // Blue
       break;
     case 1 :
-      colorCode="#FF420E";
+      colorCode="#FF420E"; // Dark Orange
       break;
     case 2 :
-      colorCode="#FFD320";
+      colorCode="#FFD320"; // Yellow
       break;
     case 3 :
-      colorCode="#579D1C";
+      colorCode="#579D1C"; // Green
       break;
     case 4 :
-      colorCode="#7E0021";
+      colorCode="#7E0021"; // brown-red
       break;
     case 5 :
-      colorCode="#83CAFF";
+      colorCode="#83CAFF"; // Light blue
       break;
     case 6 :
-      colorCode="#314004";
+      colorCode="#314004"; // Dark green
       break;
     case 7 :
-      colorCode="#AECF00";
+      colorCode="#AECF00"; // Light green
       break;
     case 8 :
-      colorCode="#4B1F6F";
+      colorCode="#4B1F6F"; // Violet
       break;
     case 9 :
-      colorCode="#FF950E";
+      colorCode="#FF950E"; // Ligth orange
       break;
     case 10 :
-      colorCode="#C5000B";
+      colorCode="#C5000B"; // Light brown-red
       break;
     case 11 :
-      colorCode="#0084D1";
+      colorCode="#0084D1"; // Azure blue
       break;
     default :
       std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;

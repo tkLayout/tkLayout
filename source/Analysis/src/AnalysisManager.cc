@@ -26,6 +26,7 @@
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
 #include "RootWTextFile.h"
+#include "Units.h"
 
 //
 // Constructor - create instances of all available analyzer units & prepare web container
@@ -199,6 +200,9 @@ bool AnalysisManager::makeWebInfoPage()
     myInfo.setValue(unit->getNSimTracks());
   }
 
+  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T]: ");
+  myInfoBField.setValue(SimParms::getInstance().magneticField()/Units::T);
+
   // Summary of geometry config files
   auto& simParms  = SimParms::getInstance();
   auto includeSet = simParms.getListOfConfFiles();
@@ -221,7 +225,16 @@ bool AnalysisManager::makeWebInfoPage()
   }
 
   // Summary of Csv files
-  RootWContent& myContentCsv = myPage.addContent("Summary list of csv files");
+  RootWContent& myContentCsv = myPage.addContent("Summary list of other csv files");
+
+  // Csv files - geometry
+  if (m_units.find("AnalyzerGeometry")!=m_units.end() && m_units["AnalyzerGeometry"]->isAnalysisOK()) {
+
+    const AnalyzerGeometry* unit = dynamic_cast<const AnalyzerGeometry*>(m_units["AnalyzerGeometry"].get());
+
+    std::string fileName    = "";
+    std::string webFileName = "";
+  }
 
   // Csv files - resolution files
   if (m_units.find("AnalyzerResolution")!=m_units.end() && m_units["AnalyzerResolution"]->isAnalysisOK()) {

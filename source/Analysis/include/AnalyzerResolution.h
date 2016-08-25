@@ -25,6 +25,10 @@ class RootWContent;
 class RootWPage;
 class TProfile;
 
+namespace insur {
+  class InactiveElement;
+}
+
 /*
  * @class AnalyzerResolution
  * Analyze tracker resolution for various combination of tracker layers/discs, tagged with given name: pixel (pixel only),
@@ -122,10 +126,16 @@ public:
   //! Visit EndcapModule (no limits on Rings, Discs or Endcaps)
   void visit(const EndcapModule& m) override;
 
+  //! Visit Support structure
+  void visit(const SupportStructure& s) override;
+
 private:
 
   //! Analyze if module crossed by given track & how much material is on the way
   void analyzeModuleMB(const DetectorModule& m);
+
+  //! Analyze if any support structure inactive element crossed by given track & how much material is on the way
+  void analyzeSupportMB(const insur::InactiveElement& e);
 
   Track& m_matTrack;   //!< Shooting direction + origin encapsulated in a track class -> update track with hits once found
 

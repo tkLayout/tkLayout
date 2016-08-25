@@ -16,6 +16,7 @@ class Ring;
 class RodPair;
 class WedgeModule;
 class SimParms;
+class SupportStructure;
 class Tracker;
 
 /*
@@ -30,6 +31,7 @@ public:
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
   virtual void visit(Endcap&) {}
+  virtual void visit(SupportStructure&) {}
   virtual void visit(Layer&) {}
   virtual void visit(Disk&) {}
   virtual void visit(Ring&) {}
@@ -55,6 +57,7 @@ public:
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
   virtual void visit(const Endcap&) {}
+  virtual void visit(const SupportStructure&) {}
   virtual void visit(const Layer&) {}
   virtual void visit(const Disk&) {}
   virtual void visit(const Ring&) {}

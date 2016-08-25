@@ -66,10 +66,10 @@ public:
   void setModuleCap(ModuleCap* newCap);
 
   //! Get materials, i.e. module-cap to be modified
-  ModuleCap* getModuleCap() { return m_myModuleCap;}
+  ModuleCap* getModuleCap() { return m_moduleCap;}
 
   //! Get materials, i.e. module-cap to be read-only
-  const ModuleCap& getModuleCap() const { return *m_myModuleCap; }
+  const ModuleCap& getModuleCap() const { return *m_moduleCap; }
 
   //! Geometric module interface -> return reference to a geometrical representation of a module
   const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
@@ -227,7 +227,7 @@ public:
   MaterialObject m_materialObject;
   Sensors        m_sensors;           //!< Detector sensors
 
-  ModuleCap* m_myModuleCap = nullptr; //!< Module materials assigned to its active part
+  ModuleCap* m_moduleCap = nullptr; //!< Module materials assigned to its active part
 
   XYZVector m_rAxis;
   double    m_tiltAngle = 0.; //!< Module tilt, i.e. rotation in RZ plane

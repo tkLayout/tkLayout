@@ -129,7 +129,7 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree&
 //
 DetectorModule::~DetectorModule()
 {
-  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
+  if (m_moduleCap!=nullptr) delete m_moduleCap;
 }
 
 //
@@ -263,8 +263,8 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 
 void DetectorModule::setModuleCap(ModuleCap* newCap)
 {
-  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
-  m_myModuleCap = newCap ;
+  if (m_moduleCap!=nullptr) delete m_moduleCap;
+  m_moduleCap = newCap ;
 }
 
 void DetectorModule::mirrorZ() {

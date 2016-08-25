@@ -9,13 +9,12 @@
 #include "Property.h"
 #include "Visitable.h"
 
-namespace material {
-  class SupportStructure;
-}
+// Forward declaration
+class SupportStructure;
 
 // Typedefs
-typedef PtrVector<Endcap>                     Endcaps;
-typedef PtrVector<material::SupportStructure> EndcapSupportStructures;
+typedef PtrVector<Endcap>           Endcaps;
+typedef PtrVector<SupportStructure> EndcapSupportStructures;
 
 /*
  * @class Endcap

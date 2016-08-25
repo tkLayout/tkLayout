@@ -12,9 +12,6 @@
 #include "SimParms.h"
 #include <SupportStructure.h>
 
-// Using namespaces
-using material::SupportStructure;
-
 //
 // Helper class: Name visitor - methods
 //
@@ -170,6 +167,7 @@ void Tracker::accept(GeometryVisitor& v)
   v.visit(*this);
   for (auto& b : m_barrels) { b.accept(v); }
   for (auto& e : m_endcaps) { e.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -179,6 +177,7 @@ void Tracker::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   for (const auto& b : m_barrels) { b.accept(v); }
   for (const auto& e : m_endcaps) { e.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //

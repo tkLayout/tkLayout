@@ -10,13 +10,11 @@
 #include "Visitable.h"
 
 // Forward declaration
-namespace material {
-  class SupportStructure;
-}
+class SupportStructure;
 
 // Typedefs
-typedef PtrVector<Barrel>                     Barrels;
-typedef PtrVector<material::SupportStructure> BarrelSupportStructures;
+typedef PtrVector<Barrel>           Barrels;
+typedef PtrVector<SupportStructure> BarrelSupportStructures;
 
 /*
  * @class Barrel

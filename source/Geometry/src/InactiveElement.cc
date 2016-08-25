@@ -45,7 +45,7 @@ namespace insur {
      * Check if the content of this element travels out of the tracking volume after this.
      * @return True if the element is not a neighbour to anything, false otherwise
      */
-    bool InactiveElement::isFinal() { return is_final; }
+    bool InactiveElement::isFinal() const { return is_final; }
     
     /**
      * Set if the content of this element travels out of the tracking volume after this.
@@ -117,7 +117,7 @@ namespace insur {
      * Get the index of the element's feeder volume.
      * @return The index within the tracker object's layer or disc vector, or of the service volume; -1 if there is none
      */
-    int InactiveElement::getFeederIndex() { return feeder_index; }
+    int InactiveElement::getFeederIndex() const { return feeder_index; }
     
     /**
      * Set the index of the element's feeder volume.
@@ -129,7 +129,7 @@ namespace insur {
      * Get the type of the element's feeder volume.
      * @return The type of feeder as listed in the enumeration <i>InType</i>
      */
-    InactiveElement::InType InactiveElement::getFeederType() { return feeder_type; }
+    InactiveElement::InType InactiveElement::getFeederType() const { return feeder_type; }
     
     /**
      * Set the type of the element's feeder volume.
@@ -141,7 +141,7 @@ namespace insur {
      * Get the index of the element's neighbour volume.
      * @return The index of the previous service volume
      */
-    int InactiveElement::getNeighbourIndex() { return neighbour_index; }
+    int InactiveElement::getNeighbourIndex() const { return neighbour_index; }
     
     /**
      * Set the index of the element's neighbour volume.
@@ -153,7 +153,7 @@ namespace insur {
      * Get the type of the element's neighbour volume.
      * @return The type of neighbour as listed in the enumeration <i>InType</i>
      */
-    InactiveElement::InType InactiveElement::getNeighbourType() { return neighbour_type; }
+    InactiveElement::InType InactiveElement::getNeighbourType() const { return neighbour_type; }
     
     /**
      * Set the type of the element-s neighbour volume.
@@ -195,7 +195,7 @@ namespace insur {
      * Calculate and return the Eta range of the element
      * @return The pair <i>(Eta_min, Eta_max)</i>
      */
-    std::pair<double, double> InactiveElement::getEtaMinMax() {
+    std::pair<double, double> InactiveElement::getEtaMinMax() const {
         std::pair<double, double> res;
         double theta0, theta1;
         // volumes crossing z=0
