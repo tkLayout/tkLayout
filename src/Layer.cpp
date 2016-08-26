@@ -319,7 +319,7 @@ void Layer::buildStraight(bool isFlatPart) {
   bool isPlusBigDeltaRod = (bigParity() > 0);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  if (!isFlatPart) { rods_.push_back(first); }
+  if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
   // SECOND ROD : assign other properties, build and store 
@@ -352,6 +352,8 @@ void Layer::buildTilted() {
     if (ifs.fail()) throw PathfulException("Cannot open tilted modules spec file \"" + tiltedLayerSpecFile() + "\"");
 
     string line;
+    int numModulesFlat = 0;
+    int numModulesTilted = 0;
     while(getline(ifs, line).good()) {
       if (line.empty()) continue;
       auto tokens = split<double>(line, " ", false);
@@ -360,8 +362,15 @@ void Layer::buildTilted() {
       TiltedModuleSpecs to{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
       if (ti.valid()) tmspecsi.push_back(ti);
       if (to.valid()) tmspecso.push_back(to);
+      if (ti.valid() || to.valid()) {
+	if (tokens[2] == 0. && tokens[5] == 0.) numModulesFlat++;
+	else numModulesTilted++;
+      }
       numRods(tokens[6]); // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
     }
+    buildNumModulesFlat(numModulesFlat);
+    buildNumModulesTilted(numModulesTilted);
+    buildNumModules(numModulesFlat + numModulesTilted);
     ifs.close();
   }
 
@@ -547,8 +556,11 @@ void Layer::build() {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
-    //if (tiltedLayerSpecFile().empty()) buildStraight();
-    if (!isTilted()) buildStraight(false);
+    if (!isTilted()) {
+      buildStraight(false);
+      if (buildNumModules() > 0 ) buildNumModulesFlat(buildNumModules());
+      buildNumModulesTilted(0);
+    }
     else buildTilted();
 
     for (auto& currentStationNode : stationsNode) {

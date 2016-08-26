@@ -28,8 +28,6 @@ using material::MaterialObject;
 // ======================================================= DETECTOR MODULES ===============================================================
 //
 
-
-enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
 enum SensorLayout { NOSENSORS, MONO, PT, STEREO };
 enum ZCorrelation { SAMESEGMENT, MULTISEGMENT }; 
 enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
@@ -48,7 +46,7 @@ namespace insur {
 using insur::ModuleCap;
 using material::ElementsVector;
 
-class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
+class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
 
   typedef PtrVector<Sensor> Sensors;
@@ -179,6 +177,7 @@ public:
 
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
+  bool isTilted() const { return tiltAngle_ != 0.; }
 
   double alpha (double trackPhi) const {
     double deltaPhi = center().Phi() + skewAngle() - trackPhi;
@@ -233,9 +232,15 @@ public:
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
   bool flipped() const { return decorated().flipped(); } 
-  bool flipped(bool newFlip) { return decorated().flipped(newFlip); } 
+  bool flipped(bool newFlip) {
+    if (newFlip && numSensors() > 1) {
+      sensors_.front().innerOuter(SensorPosition::UPPER);
+      sensors_.back().innerOuter(SensorPosition::LOWER);
+    }
+    return decorated().flipped(newFlip);
+  } 
   ModuleShape shape() const { return decorated().shape(); }
-////////
+  ////////
 
   double maxZ() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxZ); }
   double minZ() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minZ); }
@@ -360,6 +365,11 @@ public:
     v.visit(*this);
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v);
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
   }
 
   void setup() override {
@@ -640,6 +650,11 @@ public:
     v.visit(*this); 
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
   }
 
   //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement

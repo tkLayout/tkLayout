@@ -61,6 +61,7 @@ public:
   string getMattabDirectory();
   string getIrradiationDirectory();
   string getDefaultMaterialsDirectory();
+  string getDetIdSchemesDirectory();
   string getStandardIncludeDirectory();
   string getGeometriesDirectory();
   string getConfigFileName();
@@ -98,6 +99,7 @@ private:
   string getMattabDirectory_();
   string getIrradiationDirectory_();
   string getDefaultMaterialsDirectory_();
+  string getDetIdSchemesDirectory_();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();
 

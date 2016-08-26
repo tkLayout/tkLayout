@@ -73,6 +73,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   FlatRingsGeometryInfo flatRingsGeometryInfo_;
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
+  int layerNumber_;
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
@@ -174,6 +175,20 @@ public:
   TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
+  void layerNumber(int num) { layerNumber_ = num; }
+  int layerNumber() const { return layerNumber_; }
+  /*int calculateTotalNumRings(int numModulesSide) const { 
+    int num = 0;
+    if (rods_.size() !=0) {
+      if (rods_.front().startZMode() != StartZMode::MODULECENTER) num = 2 * numModulesSide;
+      else num = 2 * numModulesSide - 1;
+    }
+  }
+  int numRings() const { return calculateTotalNumRings(buildNumModules()); }
+  int numFlatRings() const { return calculateTotalNumRings(buildNumModulesFlat()); }
+  int numTiltedRings() const { return calculateTotalNumRings(buildNumModulesTilted()); }*/
+
+
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
 
@@ -184,6 +199,10 @@ public:
   void accept(ConstGeometryVisitor& v) const { 
     v.visit(*this);
     for (const auto& r : rods_) { r.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    for (auto& r : rods_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
 

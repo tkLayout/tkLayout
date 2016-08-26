@@ -149,6 +149,8 @@ namespace insur {
   static const std::string suffix_pixel_material_file            = "_Materials.cfg.pix";
   static const std::string suffix_geometry_file                  = ".cfg";
   static const std::string suffix_types_file                     = "_Types.cfg";
+  static const std::string default_detidschemesdir               = "config";
+  static const std::string default_detidschemesfile              = "det_id_schemes.list";
   static const std::string default_rootfiledir                   = "rootfiles";
   static const std::string default_rootfile                      = "trackergeometry.root";
   static const std::string default_graphdir                      = "graphs";

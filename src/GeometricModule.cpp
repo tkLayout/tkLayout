@@ -144,7 +144,7 @@ void RectangularModule::build() {
     check();
 
     float l = length(), w = width();
-    basePoly_ << XYZVector( l/2, w/2, 0) 
+    basePoly_ << XYZVector( l/2, w/2, 0)
               << XYZVector(-l/2, w/2, 0)
               << XYZVector(-l/2,-w/2, 0)
               << XYZVector( l/2,-w/2, 0);

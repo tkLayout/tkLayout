@@ -42,12 +42,11 @@ protected:
 public:
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
-protected:
-  Property<StartZMode, Default> startZMode;
 
 private:
   void clearComputables();
 public:
+  Property<StartZMode, Default> startZMode;
   //Property<double, NoDefault> maxZ;
   Property<double, Computable> maxZ;
   Property<double, Computable> minZ, maxR, minR;
@@ -84,6 +83,14 @@ public:
   void translateR(double radius);
   void rotateZ(double angle);
 
+  double Phi() const {
+    double phi;
+    if (zPlusModules_.size() != 0) phi = zPlusModules_.front().center().Phi();
+    else if (zMinusModules_.size() != 0) phi = zMinusModules_.front().center().Phi();
+    else phi = std::numeric_limits<double>::quiet_NaN();
+    return phi;
+  }
+
   void cutAtEta(double eta);
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
@@ -99,6 +106,11 @@ public:
     v.visit(*this); 
     for (const auto& m : zPlusModules_) { m.accept(v); }
     for (const auto& m : zMinusModules_) { m.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& m : zPlusModules_) { m.accept(v); }
+    for (auto& m : zMinusModules_) { m.accept(v); }
   }
 
   const MaterialObject& materialObject() const;
