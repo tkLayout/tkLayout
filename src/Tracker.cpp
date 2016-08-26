@@ -81,7 +81,7 @@ void Tracker::build() {
   accept(cntNameVisitor);
 
 
-  // THis is uglyy, need to be worked on
+  // THis is uglyy, sorry i will completely rewrite this
   std::vector< std::pair<const Layer*, std::string> > sortedLayers;
   std::string barrelId;
   for (auto& b : barrels_) {
@@ -110,7 +110,9 @@ void Tracker::build() {
   for (const auto& d : sortedZPlusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
   i = 1;
   for (const auto& d : sortedZMinusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-  // End of the ugly part ;p
+  // END OF THE UGLY PART
+
+
 
 
 
@@ -189,16 +191,8 @@ void Tracker::build() {
 
       uint32_t sensorRef = 0;
       detIdRefs[7] = sensorRef;
+
       m.buildDetId(detIdRefs, schemeShifts);
-
-      //std::bitset<32> test(m.myDetId());
-      //std::cout << m.myDetId() << " " << test << " " << "rho = " << m.center().Rho() << " z = " <<  m.center().Z() << " phi = " <<  (m.center().Phi() * 180. / M_PI) << std::endl;
-
-
-      
-      //out.str("");
-      //out << "rho = " <<  m.center().Rho() << " z = " << m.center().Z() << " phi = " << (m.center().Phi() * 180. / M_PI);
-      //std::cout << "layer = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
     void visit(Sensor& s) {
@@ -206,16 +200,7 @@ void Tracker::build() {
       if (s.subdet() == ModuleSubdetector::BARREL) {
 	detIdRefs[7] = sensorRef;
 
-	/*for (int a = 0; a < detIdRefs.size(); a++) {
-	  std::cout << "values = " << std::endl;
-	  std::cout << detIdRefs.at(a) << std::endl;
-	  std::cout << "scheme = " << std::endl;
-	  std::cout << schemeShifts.at(a) << std::endl;
-	  }*/
-
 	s.buildDetId(detIdRefs, schemeShifts);
-	//std::bitset<32> test(s.myDetId());
-	//std::cout << s.myDetId() << " " << test << " " << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
       }  
     }
 
@@ -280,10 +265,6 @@ void Tracker::build() {
       uint32_t sensorRef = 0;
       detIdRefs[8] = sensorRef;
       m.buildDetId(detIdRefs, schemeShifts);
-
-      //std::bitset<32> test(m.myDetId());
-      //std::cout << m.myDetId() << " " << test << " " << "rho = " << m.center().Rho() << " z = " <<  m.center().Z() << " phi = " <<  (m.center().Phi() * 180. / M_PI) << std::endl;
-
 
       //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }

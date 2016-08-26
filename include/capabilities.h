@@ -68,8 +68,6 @@ class DetIdentifiable {
       if (ref <= pow(2, shift) ) {
 	myDetId_ <<= shift;
 	myDetId_ |= ref;
-	//std::bitset<32> test(myDetId_);
-	//std::cout << "detid_ = " << test << std::endl;
       }
       else logWARNING("buildDetId : At rank " + any2str(i) + ", ref number " + any2str(ref) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
     }
