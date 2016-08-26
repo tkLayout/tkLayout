@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 
+#include "InactiveElement.h"
 #include "Layer.h"
 #include "Property.h"
 #include "Visitable.h"
@@ -12,9 +13,12 @@
 // Forward declaration
 class SupportStructure;
 
+using insur::InactiveElement;
+
 // Typedefs
 typedef PtrVector<Barrel>           Barrels;
 typedef PtrVector<SupportStructure> BarrelSupportStructures;
+typedef PtrVector<InactiveElement>  BarrelServices;
 
 /*
  * @class Barrel
@@ -44,8 +48,17 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   //! Return barrel layers
   const Layers& layers() const { return m_layers; }
 
-  //! Return barrel supports which can be updated
-  BarrelSupportStructures& supportStructures() { return m_supportStructures; }
+  //! Return barrel supports
+  const BarrelSupportStructures& supports() const { return m_supportStructures; }
+
+  //! Add barrel service line
+  void addServiceLine(InactiveElement* service);
+
+  //! Return barrel services
+  const BarrelServices& services() const { return m_services; }
+
+  //! Update barrel services
+  BarrelServices& updateServices() { return m_services; }
 
   //! GeometryVisitor pattern -> barrel visitable
   void accept(GeometryVisitor& v);
@@ -64,6 +77,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
 
   Layers                  m_layers;                 //!< Layers of given barrel
   BarrelSupportStructures m_supportStructures;      //!< Barrel supports
+  BarrelServices          m_services;               //!< Barrel services
 
   Property<double, NoDefault> m_innerRadius;        //!< Starting barrel inner radius (algorithm may optimize its value)
   Property<double, NoDefault> m_outerRadius;        //!< Starting barrel outer radius (algorithm may optimize its value)

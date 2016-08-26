@@ -18,7 +18,7 @@
 // Constructor - set active trackers only
 //
 AnalyzerUnit::AnalyzerUnit(std::string name, const Detector& detector) :
- m_trackers(detector.getActiveTrackers()),
+ m_trackers(detector.getTrackers()),
  m_beamPipe(detector.getBeamPipe())
 {
   // Initialization by default false

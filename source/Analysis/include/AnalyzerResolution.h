@@ -120,6 +120,9 @@ public:
   //! Visit BeamPipe
   void visit(const BeamPipe& bp) override;
 
+  //! Visit Barrel
+  void visit(const Barrel& b) override;
+
   //! Visit BarrelModule (no limits on Rods, Layers or Barrels)
   void visit(const BarrelModule& m) override;
 
@@ -134,8 +137,8 @@ private:
   //! Analyze if module crossed by given track & how much material is on the way
   void analyzeModuleMB(const DetectorModule& m);
 
-  //! Analyze if any support structure inactive element crossed by given track & how much material is on the way
-  void analyzeSupportMB(const insur::InactiveElement& e);
+  //! Helper method - analyse inactive element & estimate how much material is in the way
+  void analyzeInactiveElement(const insur::InactiveElement& e);
 
   Track& m_matTrack;   //!< Shooting direction + origin encapsulated in a track class -> update track with hits once found
 

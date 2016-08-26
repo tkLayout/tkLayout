@@ -19,11 +19,9 @@
 
 namespace insur {
   class MaterialProperties;
-  class InactiveSurfaces;
 }
 using insur::MaterialProperties;
 using insur::InactiveElement;
-using insur::InactiveSurfaces;
 
 class Barrel;
 class Endcap;
@@ -68,10 +66,10 @@ class SupportStructure : public PropertyObject, Visitable {
   void accept(ConstGeometryVisitor& v) const;
 
   //! Get materials (inactive elements) & update their values
-  PtrVector<InactiveElement>& getInactiveElements() { return inactiveElements; }
+  PtrVector<InactiveElement>& updateInactiveElements() { return m_inactiveElements; }
 
   //! Get materials (inactive elements)
-  const PtrVector<InactiveElement>& getInactiveElements() const { return inactiveElements; }
+  const PtrVector<InactiveElement>& inactiveElements() const { return m_inactiveElements; }
 
   // Directly accessible through inactive elements - no need to create inactive surface anymore
   //void updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces);
@@ -85,7 +83,7 @@ class SupportStructure : public PropertyObject, Visitable {
 
   ComponentsVector components_;
 
-  PtrVector<InactiveElement> inactiveElements;
+  PtrVector<InactiveElement> m_inactiveElements;
 
   //std::vector<InactiveElement*> inactiveElements;
   Type supportType_;

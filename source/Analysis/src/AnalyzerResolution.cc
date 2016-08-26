@@ -870,6 +870,16 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
 }
 
 //
+// Visit Barrel
+//
+void MatTrackVisitor::visit(const Barrel& b)
+{
+  for (auto& element : b.services()) {
+      analyzeInactiveElement(element);
+    }
+}
+
+//
 // Visit BarrelModule (no limits on Rods, Layers or Barrels)
 //
 void MatTrackVisitor::visit(const BarrelModule& m)
@@ -890,9 +900,8 @@ void MatTrackVisitor::visit(const EndcapModule& m)
 //
 void MatTrackVisitor::visit(const SupportStructure& s)
 {
-  for (auto& elem : s.getInactiveElements()) {
-
-    analyzeSupportMB(elem);
+  for (auto& elem : s.inactiveElements()) {
+    analyzeInactiveElement(elem);
   }
 }
 
@@ -949,9 +958,9 @@ void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
 }
 
 //
-// Analyze if any support structure inactive element crossed by given track & how much material is on the way
+// Helper method - analyse inactive element & estimate how much material is in the way
 //
-void MatTrackVisitor::analyzeSupportMB(const insur::InactiveElement& e)
+void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
 {
   // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
   // only volumes of the requested category, or those without one (which should not exist) are examined

@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
   StopWatch::getInstance().setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build full detector: tracker + beam pipe
+  // Build full detector: tracker (active + passive parts) + beam pipe
   GeometryManager gManager(geomFile);
   bool activeDetOK  = gManager.buildActiveDetector();
   bool passiveDetOK = gManager.buildPassiveDetector();

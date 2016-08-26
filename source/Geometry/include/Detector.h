@@ -17,9 +17,6 @@
 // Forward declaration
 class BeamPipe;
 class Tracker;
-namespace insur {
-  class InactiveSurfaces;
-}
 
 /*
  * @class Detector
@@ -43,8 +40,7 @@ class Detector : public Visitable {
   //! @return True if there were no errors during processing, false otherwise
   bool buildActiveTracker(boost::property_tree::ptree& geomTree);
 
-  //! Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
-  //! memory managment), if such an object existed.
+  //! Build & route all passive components (as related to individual active sub-trackers) & calculate material assigned to them.
   //! @return True if there were no errors during processing, false otherwise
   bool buildPassiveTracker();
 
@@ -58,13 +54,9 @@ class Detector : public Visitable {
   //! GeometryVisitor pattern -> detector visitable (const. option)
   void accept(ConstGeometryVisitor& v) const;
 
-  //! Get references to active sub-trackers
+  //! Get references to all sub-trackers
   //! @return vector of pointers to active trackers
-  std::vector<const Tracker*> getActiveTrackers() const;
-
-  //! Get references to passive components related to active sub-trackers
-  //! @return vector of pointers to passive parts of trackers
-  std::vector<const insur::InactiveSurfaces*> getPassiveTrackers() const;
+  std::vector<const Tracker*> getTrackers() const;
 
   //! Get reference to beam pipe
   //! @return InactiveTube
@@ -74,9 +66,8 @@ class Detector : public Visitable {
 
   std::string m_name; //!< Detector configuration name
 
-  std::vector<std::unique_ptr<Tracker>>                 m_activeTrackers; //!< Vector of active sub-trackers
-  std::vector<std::unique_ptr<insur::InactiveSurfaces>> m_passiveTrackers;//!< Vector of passive sub-trackers
-  std::unique_ptr<BeamPipe>                             m_beamPipe;       //!< Passive surface (tube) simulating beam pipe
+  std::vector<std::unique_ptr<Tracker>> m_trackers; //!< Vector of sub-trackers
+  std::unique_ptr<BeamPipe>             m_beamPipe; //!< Passive surface (tube) simulating beam pipe
 
 }; // Class
 

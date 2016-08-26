@@ -98,6 +98,14 @@ void Barrel::check() {
 }
 
 //
+// Add barrel service line
+//
+void Barrel::addServiceLine(InactiveElement* service)
+{
+  m_services.push_back(service);
+}
+
+//
 // GeometryVisitor pattern -> barrel visitable
 //
 void Barrel::accept(GeometryVisitor& v)

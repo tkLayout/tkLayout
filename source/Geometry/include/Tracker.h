@@ -51,11 +51,14 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
   //! Return tracker barrels
   const Barrels& barrels() const { return m_barrels; }
 
+  //! Update tracker barrels (with services etc.)
+  Barrels& updateBarrels() { return m_barrels; }
+
   //! Return tracker endcaps
   const Endcaps& endcaps() const { return m_endcaps; }
 
-  //! Return tracker supports which can be updated
-  SupportStructures& supportStructures() {return m_supportStructures;}
+  //! Return tracker supports
+  const SupportStructures& supports() const {return m_supportStructures;}
 
   //! Return all tracker modules
   const set<DetectorModule*>& modules() const;

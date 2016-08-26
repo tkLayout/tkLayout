@@ -150,7 +150,7 @@ void DetectorModule::build() {
       s->build();
 
       m_sensors.push_back(s);
-      m_materialObject.sensorChannels[iSensor+1]=s->numChannels();
+      m_materialObject.sensorChannels[iSensor]=s->numChannels();
     }
   } else {
 

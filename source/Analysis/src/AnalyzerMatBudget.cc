@@ -1120,6 +1120,16 @@ void MatBudgetVisitor::visit(const BeamPipe& bp)
 }
 
 //
+// Visit Barrel
+//
+void MatBudgetVisitor::visit(const Barrel& b)
+{
+  for (auto& element : b.services()) {
+      analyzeInactiveElement("Services",element);
+    }
+}
+
+//
 // Visit BarrelModule (no limits on Rods, Layers or Barrels)
 //
 void MatBudgetVisitor::visit(const BarrelModule& m)
@@ -1140,10 +1150,9 @@ void MatBudgetVisitor::visit(const EndcapModule& m)
 //
 void MatBudgetVisitor::visit(const SupportStructure& s)
 {
-  for (auto& elem : s.getInactiveElements()) {
-
-    analyzeSupportMB(elem);
-  }
+  for (auto& element : s.inactiveElements()) {
+     analyzeInactiveElement("Supports",element);
+   }
 }
 
 //
@@ -1235,9 +1244,9 @@ void MatBudgetVisitor::analyzeModuleMB(const DetectorModule& m)
 }
 
 //
-// Analyze if any support structure inactive element crossed by given track & how much material is on the way
+// Helper method - analyse inactive element & estimate how much material is in the way for tag="Supports" or "Services"
 //
-void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
+void MatBudgetVisitor::analyzeInactiveElement(std::string tag, const insur::InactiveElement& e)
 {
   // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
   // only volumes of the requested category, or those without one (which should not exist) are examined
@@ -1305,8 +1314,8 @@ void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
           material.radiation  *= s / e.getZLength();
           material.interaction*= s / e.getZLength();
 
-          m_matBudget["Supports"].radiation   += material.radiation;
-          m_matBudget["Supports"].interaction += material.interaction;
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
 
         }
         else {
@@ -1314,8 +1323,8 @@ void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
           material.radiation   /= cos(theta);
           material.interaction /= cos(theta);
 
-          m_matBudget["Supports"].radiation   += material.radiation;
-          m_matBudget["Supports"].interaction += material.interaction;
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
         }
       }
       // Radiation and interaction length scaling for horizontal volumes
@@ -1353,8 +1362,8 @@ void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
           material.radiation  *= s / e.getZLength();
           material.interaction*= s / e.getZLength();
 
-          m_matBudget["Supports"].radiation   += material.radiation;
-          m_matBudget["Supports"].interaction += material.interaction;
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
 
         }
         else {
@@ -1362,8 +1371,8 @@ void MatBudgetVisitor::analyzeSupportMB(const insur::InactiveElement& e)
           material.radiation   /= sin(theta);
           material.interaction /= sin(theta);
 
-          m_matBudget["Supports"].radiation   += material.radiation;
-          m_matBudget["Supports"].interaction += material.interaction;
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
         }
       }
 

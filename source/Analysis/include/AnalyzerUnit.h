@@ -80,7 +80,7 @@ class AnalyzerUnit
   //! Unique name
   std::string m_name;
 
-  //! Vector of active trackers -> const references, one can't and shouldn't change its content, nor delete the pointers
+  //! Vector of sub-trackers -> const references, one can't and shouldn't change its content, nor delete the pointers
   std::vector<const Tracker*> m_trackers;
 
   //! Beam pipe -> const reference, one can't and shouldn't change its content, nor delete the pointers

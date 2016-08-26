@@ -7,13 +7,13 @@
 
 #include <set>
 #include "SupportStructure.h"
+
 #include "MaterialTab.h"
 #include "MessageLogger.h"
 #include "MaterialProperties.h"
 #include "InactiveElement.h"
 #include "InactiveTube.h"
 #include "InactiveRing.h"
-#include "InactiveSurfaces.h"
 #include "Barrel.h"
 #include "Endcap.h"
 
@@ -149,7 +149,7 @@ using insur::InactiveRing;
                                MAX(0, barrel.minZ()),
                                barrel.maxR() + autoLayerMarginLower,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      std::cout << ">>Top barrel support>> " << "maxR: " << barrel.maxR() + autoLayerMarginLower << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
+      //std::cout << ">>Top barrel support>> " << "maxR: " << barrel.maxR() + autoLayerMarginLower << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel top support structure horizontally oriented");
       break;
     case BOTTOM :
@@ -158,7 +158,7 @@ using insur::InactiveRing;
                                MAX(0, barrel.minZ()),
                                barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      std::cout << ">>Bottom barrel support>> " << "minR: " << barrel.minR() - inactiveElementWidth - autoLayerMarginUpper << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
+      //std::cout << ">>Bottom barrel support>> " << "minR: " << barrel.minR() - inactiveElementWidth - autoLayerMarginUpper << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel bottom support structure horizontally oriented");
       break;
     default :
@@ -291,8 +291,8 @@ using insur::InactiveRing;
 
       populateMaterialProperties(*zPositiveElement);
       populateMaterialProperties(*zNegativeElement);
-      inactiveElements.push_back(zPositiveElement);
-      inactiveElements.push_back(zNegativeElement);
+      m_inactiveElements.push_back(zPositiveElement);
+      m_inactiveElements.push_back(zNegativeElement);
   }
 
 

@@ -139,6 +139,9 @@ public:
   //! Visit BeamPipe
   void visit(const BeamPipe& bp) override;
 
+  //! Visit Barrel
+  void visit(const Barrel& b) override;
+
   //! Visit BarrelModule (no limits on Rods, Layers or Barrels)
   void visit(const BarrelModule& m) override;
 
@@ -156,8 +159,8 @@ private:
   //! Analyze if module crossed by given track & how much material is on the way
   void analyzeModuleMB(const DetectorModule& m);
 
-  //! Analyze if any support structure inactive element crossed by given track & how much material is on the way
-  void analyzeSupportMB(const insur::InactiveElement& e);
+  //! Helper method - analyse inactive element & estimate how much material is in the way for tag="Supports" or "Services"
+  void analyzeInactiveElement(std::string tag, const insur::InactiveElement& e);
 
   std::map<std::string, RILength>& m_matBudget;  //!< Material container for given subdetectors or components defined by name (Barrel, Endcap, ...)
   TH2D&                            m_radMap;     //!< Material map in terms of radiation length

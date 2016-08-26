@@ -9,7 +9,6 @@
 #include "DetectorModule.h"
 #include "Tracker.h"
 #include "Visitable.h"
-#include "InactiveSurfaces.h"
 #include "InactiveTube.h"
 #include "InactiveRing.h"
 #include "InactiveElement.h"
@@ -24,6 +23,7 @@
 #include "StopWatch.h"
 
 #include <ctime>
+
 #include "../../../include/WeightDistributionGrid.h"
 
 
@@ -1062,7 +1062,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface) {//, WeightDistributionGrid& weightDistribution) {
+  bool Materialway::build(Tracker& tracker) {//, InactiveSurfaces& inactiveSurface) {//, WeightDistributionGrid& weightDistribution) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
@@ -1124,34 +1124,21 @@ namespace material {
     bool retValue = false;
 
     int startTime = time(0);
-    std::cout << "1" << std::endl;
     startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
       stopTaskClock();
-      std::cout << "2" << std::endl;
       startTaskClock("Building external sections");  buildExternalSections(tracker); stopTaskClock();
-      std::cout << "3" << std::endl;
       startTaskClock("Building internal sections");  buildInternalSections(tracker); stopTaskClock();
     } else stopTaskClock();
-    std::cout << "4" << std::endl;
     startTaskClock("Building inactive elements");    buildInactiveElements(); stopTaskClock();
-    std::cout << "5" << std::endl;
     startTaskClock("Routing services");              routeServices(tracker); stopTaskClock();
-    std::cout << "6" << std::endl;
     startTaskClock("First step conversions");        firstStepConversions(); stopTaskClock();
-    std::cout << "7" << std::endl;
     startTaskClock("Second step conversions");       secondStepConversions(); stopTaskClock();
-    std::cout << "8" << std::endl;
     startTaskClock("Creating ModuleCaps");           createModuleCaps(tracker); stopTaskClock();
-    std::cout << "9" << std::endl;
     startTaskClock("Duplicating sections");          duplicateSections(); stopTaskClock();
-    std::cout << "10" << std::endl;
     startTaskClock("Populating MaterialProperties"); populateAllMaterialProperties(tracker); stopTaskClock(); //, weightDistribution); stopTaskClock();
-    std::cout << "11" << std::endl;
-    startTaskClock("Building inactive surfaces");    buildInactiveSurface(tracker, inactiveSurface); stopTaskClock();
-    std::cout << "12" << std::endl;
-    startTaskClock("Computing material amounts");    calculateMaterialValues(inactiveSurface, tracker); stopTaskClock();
-    std::cout << "13" << std::endl;
+    startTaskClock("Assigning services to tracker"); assignServices(tracker); stopTaskClock(); //, inactiveSurface); stopTaskClock();
+    startTaskClock("Computing material amounts");    calculateMaterialValues(tracker); stopTaskClock(); //inactiveSurface, tracker); stopTaskClock();
     return retValue;
   }
 
@@ -1682,7 +1669,7 @@ namespace material {
   }
   */
 
-  void Materialway::buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
+  void Materialway::assignServices(Tracker& tracker) {//, InactiveSurfaces& inactiveSurface) {
 
 //
 // Deprecated: support structure as inactive material directly accessible from Tracker
@@ -1721,7 +1708,11 @@ namespace material {
           std::cout<<"ERRORE INT LEN"<<std::endl;
         }
         */
-	inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+	//inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+
+	// Associate service with a tracker - TODO: Do it properly with barrel (currently assigned to the first barrel, not a big deal - one barrel usually built for each tracker)
+	if (tracker.barrels().size()>0) tracker.updateBarrels()[0].addServiceLine(section->inactiveElement());
+
         if((section->inactiveElement()->localMassCount() == 0)) {
           logWARNING(std::string(Form("Empty inactive element at r=%f, dr=%f, z=%f, dz=%f",
 				      section->inactiveElement()->getInnerRadius(),
@@ -1743,27 +1734,27 @@ namespace material {
     */
   }
 
-  void Materialway::calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker) {
+  void Materialway::calculateMaterialValues(Tracker& tracker) { //InactiveSurfaces& inactiveSurface, Tracker& tracker) {
 
-    // Supports
-    class SupportVisitor : public GeometryVisitor {
-    public:
-      SupportVisitor() {}
-      virtual ~SupportVisitor() {}
-
-      void visit(SupportStructure& support) {
-
-        for (auto& curElem : support.getInactiveElements()) {
-
-          curElem.calculateTotalMass();
-          curElem.calculateRadiationLength();
-          curElem.calculateInteractionLength();
-        }
-      }
-    };
-
-    SupportVisitor supportVisitor;
-    tracker.accept(supportVisitor);
+//    // Supports
+//    class SupportVisitor : public GeometryVisitor {
+//    public:
+//      SupportVisitor() {}
+//      virtual ~SupportVisitor() {}
+//
+//      void visit(SupportStructure& support) {
+//
+//        for (auto& curElem : support.getInactiveElements()) {
+//
+//          curElem.calculateTotalMass();
+//          curElem.calculateRadiationLength();
+//          curElem.calculateInteractionLength();
+//        }
+//      }
+//    };
+//
+//    SupportVisitor supportVisitor;
+//    tracker.accept(supportVisitor);
 
 // Deprecated: used Visitor pattern instead
 //    for (InactiveElement& currElem : inactiveSurface.getSupports()) {
@@ -1774,18 +1765,37 @@ namespace material {
 //      std::cout << ">> " << currElem.getTotalMass() << std::endl;
 //    }
 
-    //sections
-    for (InactiveElement& currElem : inactiveSurface.getBarrelServices()) {
-      currElem.calculateTotalMass();
-      currElem.calculateRadiationLength();
-      currElem.calculateInteractionLength();
-    }
+// Deprecated: used Visitor pattern instead for sections
+//    for (InactiveElement& currElem : inactiveSurface.getBarrelServices()) {
+//      currElem.calculateTotalMass();
+//      currElem.calculateRadiationLength();
+//      currElem.calculateInteractionLength();
+//
+//      std::cout << "> " << currElem.getTotalMass() << std::endl;
+//
+//    }
 
-    //modules
-    class ModuleVisitor : public GeometryVisitor {
+    // Update material trough visitor pattern: modules, supports
+    class MaterialVisitor : public GeometryVisitor {
     public:
-      ModuleVisitor() {}
-      virtual ~ModuleVisitor() {}
+      MaterialVisitor() {}
+      virtual ~MaterialVisitor() {}
+
+      void visit(SupportStructure& support) {
+        for (auto& element : support.updateInactiveElements()) {
+          element.calculateTotalMass();
+          element.calculateRadiationLength();
+          element.calculateInteractionLength();
+        }
+      }
+
+      void visit(Barrel& barrel) {
+        for (auto& element : barrel.updateServices()) {
+          element.calculateTotalMass();
+          element.calculateRadiationLength();
+          element.calculateInteractionLength();
+        }
+      }
 
       void visit(DetectorModule& module) {
         ModuleCap* moduleCap = module.getModuleCap();
@@ -1795,8 +1805,8 @@ namespace material {
       }
     };
 
-    ModuleVisitor modVisitor;
-    tracker.accept(modVisitor);
+    MaterialVisitor matVisitor;
+    tracker.accept(matVisitor);
   }
 
   /*

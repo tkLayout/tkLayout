@@ -41,8 +41,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   //! Return endcap disks
   const Disks& disks() const { return m_disks; }
 
-  //! Return endcap supports which can be updated
-  EndcapSupportStructures& supportStructures() { return m_supportStructures; }
+  //! Return endcap supports
+  const EndcapSupportStructures& supports() const { return m_supportStructures; }
 
   //! GeometryVisitor pattern -> endcap visitable
   void accept(GeometryVisitor& v);
