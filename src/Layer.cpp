@@ -319,7 +319,7 @@ void Layer::buildStraight(bool isFlatPart) {
   bool isPlusBigDeltaRod = (bigParity() > 0);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  if (!isFlatPart) { rods_.push_back(first); }
+  if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
   // SECOND ROD : assign other properties, build and store 
@@ -558,7 +558,7 @@ void Layer::build() {
 
     if (!isTilted()) {
       buildStraight(false);
-      buildNumModulesFlat(buildNumModules());
+      if (buildNumModules() > 0 ) buildNumModulesFlat(buildNumModules());
       buildNumModulesTilted(0);
     }
     else buildTilted();

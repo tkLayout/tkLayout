@@ -127,9 +127,8 @@ void Tracker::build() {
     int numRods;
     int numFlatRings;
     int numRings;
+    bool isCentered;
     uint32_t phiRef;
-
-    std::ostringstream out;
 
   public:
     BarrelDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
@@ -155,11 +154,14 @@ void Tracker::build() {
       numRods = l.numRods();
       numFlatRings = l.buildNumModulesFlat();
       numRings = l.buildNumModules();
+      if (!isTiltedLayer) numRings = numFlatRings;
     }
 
     void visit(RodPair& r) {
       double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
       phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
+
+      isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
     }
 
     void visit(BarrelModule& m) {
@@ -170,7 +172,7 @@ void Tracker::build() {
 	detIdRefs[4] = 3;
 	detIdRefs[5] = phiRef;
 
-	if (isTiltedLayer) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
+	if (isCentered) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
 	else ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings) : (1 + numFlatRings - m.uniRef().ring));
 	detIdRefs[6] = ringRef;
       }
@@ -184,6 +186,15 @@ void Tracker::build() {
 
 	detIdRefs[6] = phiRef;
       }
+
+      uint32_t sensorRef = 0;
+      detIdRefs[7] = sensorRef;
+      m.buildDetId(detIdRefs, schemeShifts);
+
+      //std::bitset<32> test(m.myDetId());
+      //std::cout << m.myDetId() << " " << test << " " << "rho = " << m.center().Rho() << " z = " <<  m.center().Z() << " phi = " <<  (m.center().Phi() * 180. / M_PI) << std::endl;
+
+
       
       //out.str("");
       //out << "rho = " <<  m.center().Rho() << " z = " << m.center().Z() << " phi = " << (m.center().Phi() * 180. / M_PI);
@@ -203,9 +214,8 @@ void Tracker::build() {
 	  }*/
 
 	s.buildDetId(detIdRefs, schemeShifts);
-	std::bitset<32> test(s.myDetId());
-	//std::cout << s.myDetId() << " " << test << " " << out.str() << std::endl;
-	std::cout << s.myDetId() << " " << test << " " << out.str() << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
+	//std::bitset<32> test(s.myDetId());
+	//std::cout << s.myDetId() << " " << test << " " << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
       }  
     }
 
@@ -223,8 +233,6 @@ void Tracker::build() {
     std::string endcapName;
     int numEmptyRings;
     int numModules;
-
-    std::ostringstream out;
 
   public:
     EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
@@ -269,6 +277,14 @@ void Tracker::build() {
       uint32_t phiRef = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*M_PI) * numModules);
       detIdRefs[7] = phiRef;
 
+      uint32_t sensorRef = 0;
+      detIdRefs[8] = sensorRef;
+      m.buildDetId(detIdRefs, schemeShifts);
+
+      //std::bitset<32> test(m.myDetId());
+      //std::cout << m.myDetId() << " " << test << " " << "rho = " << m.center().Rho() << " z = " <<  m.center().Z() << " phi = " <<  (m.center().Phi() * 180. / M_PI) << std::endl;
+
+
       //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
@@ -287,8 +303,8 @@ void Tracker::build() {
 
 	s.buildDetId(detIdRefs, schemeShifts);
 
-	std::bitset<32> test(s.myDetId());
-	std::cout << s.myDetId() << " " << test << " " << out.str() << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
+	//std::bitset<32> test(s.myDetId());
+	//std::cout << s.myDetId() << " " << test << " " << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
       }
     }
 

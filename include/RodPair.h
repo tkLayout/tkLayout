@@ -42,12 +42,11 @@ protected:
 public:
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
-protected:
-  Property<StartZMode, Default> startZMode;
 
 private:
   void clearComputables();
 public:
+  Property<StartZMode, Default> startZMode;
   //Property<double, NoDefault> maxZ;
   Property<double, Computable> maxZ;
   Property<double, Computable> minZ, maxR, minR;

@@ -18,15 +18,15 @@ enum class SensorType { Pixel, Largepix, Strip, None };
 
 class DetectorModule;
 
-class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
+class Sensor : public PropertyObject, public Buildable, public Identifiable<int>, public DetIdentifiable {
   const DetectorModule* parent_;
   ModuleSubdetector subdet_;
   SensorPosition innerOuter_ = SensorPosition::NO;
   mutable const Polygon3d<4>* hitPoly_ = 0; 
   mutable const Polygon3d<4>* envPoly_ = 0; 
   Polygon3d<4>* buildOwnPoly(double polyOffset) const;
-  uint32_t myDetId_ = 0;
-  std::map<int, uint32_t> detIdRef_;
+  //uint32_t myDetId_ = 0;
+  //std::map<int, uint32_t> detIdRef_;
 public:
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;
@@ -97,9 +97,9 @@ public:
   const Polygon3d<4>& hitPoly() const;
   const Polygon3d<4>& envelopePoly() const;
 
-  void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts);
-  uint32_t myDetId() const { return myDetId_; }
-  std::map<int, uint32_t> detIdRef() const { return detIdRef_; }
+  //void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts);
+  //uint32_t myDetId() const { return myDetId_; }
+  //std::map<int, uint32_t> detIdRef() const { return detIdRef_; }
 
   void accept(SensorGeometryVisitor& v) { 
     v.visit(*this);
