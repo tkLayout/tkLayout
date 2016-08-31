@@ -66,10 +66,10 @@ public:
   void setModuleCap(ModuleCap* newCap);
 
   //! Get materials, i.e. module-cap to be modified
-  ModuleCap* getModuleCap() { return m_myModuleCap;}
+  ModuleCap* getModuleCap() { return m_moduleCap;}
 
   //! Get materials, i.e. module-cap to be read-only
-  const ModuleCap& getModuleCap() const { return *m_myModuleCap; }
+  const ModuleCap& getModuleCap() const { return *m_moduleCap; }
 
   //! Geometric module interface -> return reference to a geometrical representation of a module
   const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
@@ -207,13 +207,13 @@ public:
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
 
-  int16_t cntId() const { return cntId_; }
-  const std::string& cntName() const { return cntName_; }
-  void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
+  int16_t cntId() const              { return m_cntId; }
+  const std::string& cntName() const { return m_cntName; }
+  void cntNameId(const std::string& name, int id) { m_cntName = name; m_cntId = id; }
 
-  virtual PosRef   posRef()   const = 0;
-  virtual TableRef tableRef() const = 0;
-  virtual UniRef   uniRef()   const = 0;
+  virtual PosRef   posRef()     const = 0;
+  virtual TableRef tableRef()   const = 0;
+  virtual UniRef   uniRef()     const = 0;
   virtual int16_t  moduleRing() const { return -1; }
 
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
@@ -227,15 +227,15 @@ public:
   MaterialObject m_materialObject;
   Sensors        m_sensors;           //!< Detector sensors
 
-  ModuleCap* m_myModuleCap = nullptr; //!< Module materials assigned to its active part
+  ModuleCap* m_moduleCap = nullptr; //!< Module materials assigned to its active part
 
   XYZVector m_rAxis;
   double    m_tiltAngle = 0.; //!< Module tilt, i.e. rotation in RZ plane
   double    m_skewAngle = 0.; //!< Module skew, i.e. rotation in XY plane
   int       m_numHits   = 0;
 
-  std::string cntName_;
-  int16_t     cntId_;
+  std::string m_cntName;
+  int16_t     m_cntId;
   mutable double cachedZError_ = -1.;
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
 
@@ -281,7 +281,7 @@ class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 
   PosRef   posRef()   const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }
-  UniRef   uniRef()   const { return UniRef{ cntName(), layer(), ring(), rod(), side() }; }
+  UniRef   uniRef()   const { return  UniRef{ cntName(), layer(), ring(), rod(), side() }; }
 }; // Class
 
 /*

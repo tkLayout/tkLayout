@@ -43,7 +43,7 @@ namespace insur {
      * Get the category of this element.
      * @return The category identifier as defined in the enumeration <i>Category</i>
      */
-    MaterialProperties::Category MaterialProperties::getCategory() { return cat; }
+    MaterialProperties::Category MaterialProperties::getCategory() const { return cat; }
     
     /**
      * Set the category of this element.

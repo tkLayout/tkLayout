@@ -41,9 +41,9 @@
 AnalyzerGeometry::AnalyzerGeometry(const Detector& detector) : AnalyzerUnit("AnalyzerGeometry", detector),
  m_nTracks(0),
  m_layerNamesVisitor(new LayerNameVisitor(m_trackers)),
- m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
- m_etaMin(-1*geom_max_eta_coverage),
- m_etaMax(+1*geom_max_eta_coverage)
+ m_etaSpan(2*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage())
 {
 };
 
@@ -79,8 +79,8 @@ bool AnalyzerGeometry::init(int nGeomTracks)
     m_nTracks        = sqrtNTracks*sqrtNTracks;
 
     // Compute shooting intervals to analyze geometry
-    double etaMin = -1*geom_max_eta_coverage;
-    double etaMax = +1*geom_max_eta_coverage;
+    double etaMin = -1*SimParms::getInstance().getMaxEtaCoverage();
+    double etaMax = +1*SimParms::getInstance().getMaxEtaCoverage();
 
     float  safeMargin = c_etaSafetyMargin;
     m_etaSpan         = (etaMax - etaMin)*(1. + safeMargin);
@@ -357,7 +357,6 @@ bool AnalyzerGeometry::analyze()
         }
       }
     }
-
   } // For trackers
 
   m_isAnalysisOK = true;
@@ -564,7 +563,6 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     }
   } // Trackers
 
-  //
   // Create introductory geometry web page
   std::string pageAddress = "index.html";
   RootWPage& myPage = webSite.addPage("Overview", web_priority_Geom+1);
@@ -618,7 +616,8 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (trackerXYImgEC.find(trkName) !=trackerXYImgEC.end())  myContentSubDet.addItem(std::move(trackerXYImgEC[trkName]));
   }
 
-  return true;
+  m_isVisOK = true;
+  return m_isVisOK;
 }
 
 //

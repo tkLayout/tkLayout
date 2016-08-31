@@ -31,7 +31,13 @@ class TGraph;
 class TH1D;
 class TH2D;
 class Track;
+class SupportStructure;
+
 class RootWTable;
+
+namespace insur {
+  class InactiveElement;
+}
 
 /*
  * @class AnalyzerMatBudget
@@ -84,6 +90,7 @@ class AnalyzerMatBudget : public AnalyzerUnit {
   double averageHistogramValues(const TH1D& his, double cutoffStart, double cutoffEnd) const;
 
   int    m_nTracks;     //!< Number of geometry tracks to be used in material analysis
+  int    m_nBins;       //!< Number of bins in MB histograms
   double m_etaSpan;     //!< Eta interval to be analyzed
   double m_etaMin;      //!< Minimum eta value;
   double m_etaMax;      //!< Maximum eta value
@@ -132,11 +139,17 @@ public:
   //! Visit BeamPipe
   void visit(const BeamPipe& bp) override;
 
+  //! Visit Barrel
+  void visit(const Barrel& b) override;
+
   //! Visit BarrelModule (no limits on Rods, Layers or Barrels)
   void visit(const BarrelModule& m) override;
 
   //! Visit EndcapModule (no limits on Rings, Discs or Endcaps)
   void visit(const EndcapModule& m) override;
+
+  //! Visit Support strucutre
+  void visit(const SupportStructure& s) override;
 
   //! Post visit method called after the whole visit-accept pattern done to recalibrate histograms, etc.
   void postvisit();
@@ -145,6 +158,9 @@ private:
 
   //! Analyze if module crossed by given track & how much material is on the way
   void analyzeModuleMB(const DetectorModule& m);
+
+  //! Helper method - analyse inactive element & estimate how much material is in the way for tag="Supports" or "Services"
+  void analyzeInactiveElement(std::string tag, const insur::InactiveElement& e);
 
   std::map<std::string, RILength>& m_matBudget;  //!< Material container for given subdetectors or components defined by name (Barrel, Endcap, ...)
   TH2D&                            m_radMap;     //!< Material map in terms of radiation length

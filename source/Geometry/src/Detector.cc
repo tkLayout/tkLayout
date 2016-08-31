@@ -12,7 +12,7 @@
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
-#include "InactiveSurfaces.h"
+
 #include "Materialway.h"
 #include "MessageLogger.h"
 #include "StopWatch.h"
@@ -29,8 +29,7 @@ Detector::Detector(std::string name) : m_name(name)
 //
 Detector::~Detector()
 {
-  m_activeTrackers.clear();
-  m_passiveTrackers.clear();
+  m_trackers.clear();
   m_beamPipe.reset();
 }
 
@@ -43,7 +42,7 @@ Detector::~Detector()
 bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
 {
   // Clear out content of trackers container
-  m_activeTrackers.clear();
+  m_trackers.clear();
 
   // Build active tracker -> look for tag "Tracker"
   startTaskClock("Building active trackers");
@@ -60,7 +59,7 @@ bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
       std::unique_ptr<Tracker> trk(GeometryFactory::make<Tracker>(it->second));
       trk->build();
 
-      m_activeTrackers.push_back(std::move(trk));
+      m_trackers.push_back(std::move(trk));
 
     } // Trackers
 
@@ -89,25 +88,19 @@ bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
 }
 
 //
-// Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
-// memory managment), if such an object existed.
+// Build & route all passive components (as related to individual active sub-trackers) & calculate material assigned to them.
 //
 bool Detector::buildPassiveTracker()
 {
-  if (m_activeTrackers.size()>0) {
+  if (m_trackers.size()>0) {
 
     startTaskClock("Building passive materials of active trackers");
 
-    for (auto& iTracker : m_activeTrackers) {
-
-      // Build new inactive surface
-      std:unique_ptr<insur::InactiveSurfaces> iPassive(new insur::InactiveSurfaces());
+    for (auto& iTracker : m_trackers) {
 
       // Get all materials in the way for given tracker
       material::Materialway materialway;
-      materialway.build(*iTracker, *iPassive);
-
-      m_passiveTrackers.push_back(std::move(iPassive));
+      materialway.build(*iTracker);
     }
 
     stopTaskClock();
@@ -140,7 +133,7 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
       }
       else {
 
-        std::cout << "Building new beam pipe" << std::endl;
+        // std::cout << "Building new beam pipe" << std::endl;
         m_beamPipe = std::unique_ptr<BeamPipe>(GeometryFactory::make<BeamPipe>(it->second));
         m_beamPipe->build();
       }
@@ -176,7 +169,7 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
 void Detector::accept(GeometryVisitor& v)
 {
   v.visit(*this);
-  for (auto& iTrk : m_activeTrackers) iTrk->accept(v);
+  for (auto& iTrk : m_trackers) iTrk->accept(v);
   m_beamPipe->accept(v);
 }
 
@@ -186,40 +179,24 @@ void Detector::accept(GeometryVisitor& v)
 void Detector::accept(ConstGeometryVisitor& v) const
 {
   v.visit(*this);
-  for (auto& iTrk : m_activeTrackers) iTrk->accept(v);
+  for (auto& iTrk : m_trackers) iTrk->accept(v);
   m_beamPipe->accept(v);
 }
 
 //
-// Get active sub-trackers as references
+// Get all sub-trackers as references
 //
-std::vector<const Tracker*> Detector::getActiveTrackers() const
+std::vector<const Tracker*> Detector::getTrackers() const
 {
   std::vector<const Tracker*> activeTrackers;
 
-  for (auto& iTracker : m_activeTrackers) {
+  for (auto& iTracker : m_trackers) {
 
     const Tracker* trk = iTracker.get();
     activeTrackers.push_back(trk);
   }
 
   return activeTrackers;
-}
-
-//
-// Get passive components related to active sub-trackers as references
-//
-std::vector<const insur::InactiveSurfaces*> Detector::getPassiveTrackers() const
-{
-  std::vector<const insur::InactiveSurfaces*> passiveTrackers;
-
-  for (auto& iPassive : m_passiveTrackers) {
-
-    const insur::InactiveSurfaces* passive = iPassive.get();
-    passiveTrackers.push_back(passive);
-  }
-
-  return passiveTrackers;
 }
 
 //

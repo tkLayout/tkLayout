@@ -90,6 +90,12 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! @return set of all include files (strings)
   std::set<std::string> getListOfConfFiles() const {return m_includeSet;}
 
+  //! Get number of defined eta regions
+  size_t getNEtaRegions() const { return etaRegionRanges.size(); }
+
+  //! Get eta max value as defined by user in definition of various tracker eta regions
+  double getMaxEtaCoverage() const { if (etaRegionRanges.size()>0) return etaRegionRanges[etaRegionRanges.size()-1]; else return 0.0; }
+
   //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return *m_irradiationMapsManager;}
 
@@ -123,7 +129,11 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyProperty<double, Default>   dipoleXToX0;        //  [%]
 
   PropertyVector<std::string, ','>    irradiationMapFiles;
-  //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
+
+  // Define eta regions & region names to be plotted when drawing geometry.
+  // The last value of region ranges represents the maximum tracker eta coverage -> used by analysis modules
+  PropertyVector<double     , ','>    etaRegionRanges;    //!< Set ordered eta regions, the last one being maximum tracker eta coverage (e.g. 0, 2.5, 4.0)
+  PropertyVector<std::string, ','>    etaRegionNames;     //!< Set names for ordered eta borders (e.g TRK-0, TRK-BRL, TRK-MAX)
 
   Property<std::string, Default> bFieldMapFile;           // Map of b field - not currently currently for tracking
   Property<std::string, Default> chargedMapFile;          // Map of charged hadron fluxes, segmented in R x Z

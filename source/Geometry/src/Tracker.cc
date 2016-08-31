@@ -9,10 +9,8 @@
 #include <Layer.h>
 #include <Ring.h>
 #include <RodPair.h>
+#include "SimParms.h"
 #include <SupportStructure.h>
-
-// Using namespaces
-using material::SupportStructure;
 
 //
 // Helper class: Name visitor - methods
@@ -36,7 +34,7 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
  maxZ(     string("maxZ")           ),
  minEta(   string("minEta")         ),
  maxEta(   string("maxEta")         ),
- etaCut(          "etaCut"          , parsedOnly(), geom_max_eta_coverage),
+ etaCut(          "etaCut"          , parsedOnly(), SimParms::getInstance().getMaxEtaCoverage()),
  isPixelType(     "isPixelType"     , parsedOnly(), true),
  servicesForcedUp("servicesForcedUp", parsedOnly(), true),
  skipAllServices( "skipAllServices" , parsedOnly(), false),
@@ -169,6 +167,7 @@ void Tracker::accept(GeometryVisitor& v)
   v.visit(*this);
   for (auto& b : m_barrels) { b.accept(v); }
   for (auto& e : m_endcaps) { e.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -178,6 +177,7 @@ void Tracker::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   for (const auto& b : m_barrels) { b.accept(v); }
   for (const auto& e : m_endcaps) { e.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //

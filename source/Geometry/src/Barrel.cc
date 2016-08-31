@@ -4,8 +4,6 @@
 #include "MessageLogger.h"
 #include "SupportStructure.h"
 
-using material::SupportStructure;
-
 //
 // Constructor - parse geometry config file using boost property tree & read-in Layer, Support nodes
 //
@@ -100,12 +98,21 @@ void Barrel::check() {
 }
 
 //
+// Add barrel service line
+//
+void Barrel::addServiceLine(InactiveElement* service)
+{
+  m_services.push_back(service);
+}
+
+//
 // GeometryVisitor pattern -> barrel visitable
 //
 void Barrel::accept(GeometryVisitor& v)
 {
   v.visit(*this);
   for (auto& l : m_layers) { l.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -115,4 +122,5 @@ void Barrel::accept(ConstGeometryVisitor& v) const
 {
   v.visit(*this);
   for (const auto& l : m_layers) { l.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }

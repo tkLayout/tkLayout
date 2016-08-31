@@ -60,7 +60,7 @@ namespace insur {
         MaterialProperties();
         //virtual ~MaterialProperties() {} 
         // bureaucracy
-        Category getCategory();
+        Category getCategory() const;
         void setCategory(Category c);
         // to be used by the subclasses
         virtual double getSurface() const;

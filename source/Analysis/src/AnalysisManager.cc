@@ -26,6 +26,7 @@
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
 #include "RootWTextFile.h"
+#include "Units.h"
 
 //
 // Constructor - create instances of all available analyzer units & prepare web container
@@ -186,18 +187,21 @@ bool AnalysisManager::makeWebInfoPage()
   myInfo.setValue(SimParms::getInstance().getCommandLine());
 
   // Summary of used geometry & simulation tracks
-  if (m_units.find("AnalyzerGeometry")!=m_units.end()) {
+  if (m_units.find("AnalyzerGeometry")!=m_units.end() && m_units["AnalyzerGeometry"]->isInitOK()) {
 
     const AnalyzerGeometry* unit = dynamic_cast<const AnalyzerGeometry*>(m_units["AnalyzerGeometry"].get());
     RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - geometry studies: ");
     myInfo.setValue(unit->getNGeomTracks());
   }
-  if (m_units.find("AnalyzerResolution")!=m_units.end()) {
+  if (m_units.find("AnalyzerResolution")!=m_units.end() && m_units["AnalyzerResolution"]->isInitOK()) {
 
     const AnalyzerResolution* unit = dynamic_cast<const AnalyzerResolution*>(m_units["AnalyzerResolution"].get());
     RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - resolution studies: ");
     myInfo.setValue(unit->getNSimTracks());
   }
+
+  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T]: ");
+  myInfoBField.setValue(SimParms::getInstance().magneticField()/Units::T);
 
   // Summary of geometry config files
   auto& simParms  = SimParms::getInstance();
@@ -221,10 +225,19 @@ bool AnalysisManager::makeWebInfoPage()
   }
 
   // Summary of Csv files
-  RootWContent& myContentCsv = myPage.addContent("Summary list of csv files");
+  RootWContent& myContentCsv = myPage.addContent("Summary list of other csv files");
+
+  // Csv files - geometry
+  if (m_units.find("AnalyzerGeometry")!=m_units.end() && m_units["AnalyzerGeometry"]->isAnalysisOK()) {
+
+    const AnalyzerGeometry* unit = dynamic_cast<const AnalyzerGeometry*>(m_units["AnalyzerGeometry"].get());
+
+    std::string fileName    = "";
+    std::string webFileName = "";
+  }
 
   // Csv files - resolution files
-  if (m_units.find("AnalyzerResolution")!=m_units.end()) {
+  if (m_units.find("AnalyzerResolution")!=m_units.end() && m_units["AnalyzerResolution"]->isAnalysisOK()) {
 
     const AnalyzerResolution* unit = dynamic_cast<const AnalyzerResolution*>(m_units["AnalyzerResolution"].get());
 

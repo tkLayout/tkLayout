@@ -22,6 +22,7 @@
 #include "RootWPage.h"
 #include "RootWSite.h"
 #include "RootWTable.h"
+#include "SupportStructure.h"
 #include <TCanvas.h>
 #include <TColor.h>
 #include <TGraph.h>
@@ -42,9 +43,10 @@
 //
 AnalyzerMatBudget::AnalyzerMatBudget(const Detector& detector) : AnalyzerUnit("AnalyzerMatBudget", detector),
  m_nTracks(0),
- m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
- m_etaMin(-1*geom_max_eta_coverage),
- m_etaMax(+1*geom_max_eta_coverage)
+ m_etaSpan(2*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_nBins(100)
 {};
 
 //
@@ -61,13 +63,16 @@ bool AnalyzerMatBudget::init(int nMatTracks)
   // Set nTracks
   m_nTracks = nMatTracks;
 
+  // Set n bins
+  m_nBins = m_nTracks;
+
   // Compute shooting intervals to analyze geometry
-  double etaMin = -1*geom_max_eta_coverage;
-  double etaMax = +1*geom_max_eta_coverage;
+  double etaMin = -1*SimParms::getInstance().getMaxEtaCoverage();
+  double etaMax = +1*SimParms::getInstance().getMaxEtaCoverage();
 
   float  safeMargin = c_etaSafetyMargin;
-  m_etaSpan         = (etaMax - etaMin)*(1. + safeMargin);
-  m_etaMax          = etaMax * (1 + safeMargin);
+  m_etaSpan         = (etaMax - etaMin);//*(1. + safeMargin);
+  m_etaMax          = etaMax;// * (1 + safeMargin);
 
   if (m_nTracks<=0 || m_trackers.size()==0) {
 
@@ -124,42 +129,42 @@ bool AnalyzerMatBudget::init(int nMatTracks)
       // Material distribution in barrels
       m_radMB[trkName]["Barrel"].Reset();
       m_radMB[trkName]["Barrel"].SetNameTitle(std::string("radMBBarrel"+trkName).c_str(), std::string(trkName +" Barrel Modules Radiation Length").c_str());
-      m_radMB[trkName]["Barrel"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Barrel"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Barrel"].Reset();
       m_intMB[trkName]["Barrel"].SetNameTitle(std::string("intMBBarrel"+trkName).c_str(), std::string(trkName +" Barrel Modules Interaction Length").c_str());
-      m_intMB[trkName]["Barrel"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Barrel"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in endcaps
       m_radMB[trkName]["Endcap"].Reset();
       m_radMB[trkName]["Endcap"].SetNameTitle(std::string("radMBEndcap"+trkName).c_str(), std::string(trkName +" Endcap Modules Radiation Length").c_str());
-      m_radMB[trkName]["Endcap"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Endcap"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Endcap"].Reset();
       m_intMB[trkName]["Endcap"].SetNameTitle(std::string("intMBEndcap"+trkName).c_str(), std::string(trkName +" Endcap Modules Interaction Length").c_str());
-      m_intMB[trkName]["Endcap"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Endcap"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in services
       m_radMB[trkName]["Services"].Reset();
       m_radMB[trkName]["Services"].SetNameTitle(std::string("radMBServices"+trkName).c_str(), std::string(trkName +" Services Radiation Length").c_str());
-      m_radMB[trkName]["Services"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Services"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Services"].Reset();
       m_intMB[trkName]["Services"].SetNameTitle(std::string("intMBServices"+trkName).c_str(), std::string(trkName +" Services Interaction Length").c_str());
-      m_intMB[trkName]["Services"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Services"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in supports
       m_radMB[trkName]["Supports"].Reset();
       m_radMB[trkName]["Supports"].SetNameTitle(std::string("radMBSupports"+trkName).c_str(), std::string(trkName +" Supports Radiation Length").c_str());
-      m_radMB[trkName]["Supports"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Supports"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Supports"].Reset();
       m_intMB[trkName]["Supports"].SetNameTitle(std::string("intMBSupports"+trkName).c_str(), std::string(trkName +" Supports Interaction Length").c_str());
-      m_intMB[trkName]["Supports"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Supports"].SetBins(m_nBins, 0, m_etaMax);
 
       // Material distribution in total
       m_radMB[trkName]["Total"].Reset();
       m_radMB[trkName]["Total"].SetNameTitle(std::string("radMBTotal"+trkName).c_str(), "Total Radiation Length");
-      m_radMB[trkName]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+      m_radMB[trkName]["Total"].SetBins(m_nBins, 0, m_etaMax);
       m_intMB[trkName]["Total"].Reset();
       m_intMB[trkName]["Total"].SetNameTitle(std::string("intMBTotal"+trkName).c_str(), "Total Interaction Length");
-      m_intMB[trkName]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+      m_intMB[trkName]["Total"].SetBins(m_nBins, 0, m_etaMax);
 
       // Nuclear interactions
       m_hadronTotalHitsGraph[trkName].SetName(std::string("HadronTotalHitsGraphIn"+trkName).c_str());
@@ -192,10 +197,10 @@ bool AnalyzerMatBudget::init(int nMatTracks)
     // Material distribution in beam-pipe
     m_radMB["Beampipe"]["Total"].Reset();
     m_radMB["Beampipe"]["Total"].SetNameTitle("radMBPipe", "BeamPipe Radiation Length");
-    m_radMB["Beampipe"]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+    m_radMB["Beampipe"]["Total"].SetBins(m_nBins, 0, m_etaMax);
     m_intMB["Beampipe"]["Total"].Reset();
     m_intMB["Beampipe"]["Total"].SetNameTitle("intMBPipe", "BeamPipe Interaction Length");
-    m_intMB["Beampipe"]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+    m_intMB["Beampipe"]["Total"].SetBins(m_nBins, 0, m_etaMax);
 
 //    // Nuclear interactions
 //    m_hadronTotalHitsGraph["Tracker"].SetName(std::string("HadronTotalHitsGraphInTracker").c_str());
@@ -279,6 +284,7 @@ bool AnalyzerMatBudget::analyze()
       iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
       m_beamPipe->accept(matVisitor);// Assign to material track hit corresponding to beam-pipe
 
+
       // Given sub-tracker
       m_radMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].radiation);
       m_intMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].interaction);
@@ -338,21 +344,21 @@ bool AnalyzerMatBudget::analyze()
 
             m_radMBComp[trkName][compName].Reset();
             m_radMBComp[trkName][compName].SetNameTitle(std::string("radMB"+compName).c_str(), std::string(trkName +" "+compName+" Radiation Length").c_str());
-            m_radMBComp[trkName][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_radMBComp[trkName][compName].SetBins(m_nBins, 0, m_etaMax);
 
             m_intMBComp[trkName][compName].Reset();
             m_intMBComp[trkName][compName].SetNameTitle(std::string("intMB"+compName).c_str(), std::string(trkName +" "+compName+" Interaction Length").c_str());
-            m_intMBComp[trkName][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_intMBComp[trkName][compName].SetBins(m_nBins, 0, m_etaMax);
           }
           if (m_radMBComp["Tracker"].find(compName)==m_radMBComp["Tracker"].end()) {
 
             m_radMBComp["Tracker"][compName].Reset();
             m_radMBComp["Tracker"][compName].SetNameTitle(std::string("radMB"+compName).c_str(), std::string("Tracker "+compName+" Radiation Length").c_str());
-            m_radMBComp["Tracker"][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_radMBComp["Tracker"][compName].SetBins(m_nBins, 0, m_etaMax);
 
             m_intMBComp["Tracker"][compName].Reset();
             m_intMBComp["Tracker"][compName].SetNameTitle(std::string("intMB"+compName).c_str(), std::string("Tracker "+compName+" Interaction Length").c_str());
-            m_intMBComp["Tracker"][compName].SetBins(m_nTracks, 0, m_etaMax);
+            m_intMBComp["Tracker"][compName].SetBins(m_nBins, 0, m_etaMax);
           }
 
           // Fill
@@ -530,12 +536,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     RootWTable& myTableOverview = myContentOverview.addTable();
     char titleString[256];
-    sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableOverview.setContent(1, 1, titleString);
-    sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableOverview.setContent(2, 1, titleString);
-    myTableOverview.setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableOverview.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
+    myTableOverview.setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableOverview.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
 
     // Calculate summary table
     std::unique_ptr<RootWTable> materialSummaryTable(new RootWTable());
@@ -551,10 +557,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
       m_csvMatBudget->addCsvElement("Label", "Tracker/Component name");
       m_csvMatBudget->addCsvElement("Label", "Type");
-      for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+      for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
 
         ostringstream label;
-        label << "eta(" << std::fixed << std::setprecision(1) << geom_range_eta_regions[j-1] << "-" <<geom_range_eta_regions[j] << ")";
+        label << "eta(" << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[j-1] << "-" << SimParms::getInstance().etaRegionRanges[j] << ")";
         m_csvMatBudget->addCsvElement("Label", label.str());
       }
       m_csvMatBudget->addCsvEOL("Label");
@@ -562,12 +568,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, trkName);
     m_csvMatBudget->addCsvElement(trkName, "Rad. length [%]");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // First row: the cut name
-      materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
+      materialSummaryTable->setContent(0,j, SimParms::getInstance().etaRegionNames[j]);
 
       // Second row: the radiation length
-      averageValue = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue = averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       materialSummaryTable->setContent(1,j, averageValue*100 ,2);
       m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
@@ -575,9 +581,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, "");
     m_csvMatBudget->addCsvElement(trkName, "Int. length [%]");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // Third row: the interaction length
-      averageValue = averageHistogramValues(m_intMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue = averageHistogramValues(m_intMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       materialSummaryTable->setContent(2,j, averageValue*100 ,2);
       m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
@@ -585,9 +591,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, "");
     m_csvMatBudget->addCsvElement(trkName, "Photon conv. prob.");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // Fourth row: the photon conversion probability
-      averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       averageValue *= -7./9.;
       averageValue  = 1 - exp(averageValue);
       materialSummaryTable->setContent(3,j, averageValue ,4);
@@ -641,7 +647,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     RootWTable& myTableAllMat = myContentCateg.addTable();
 
     // Average values by active, service and passive
-    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableAllMat.setContent(0, 0, titleString);
     myTableAllMat.setContent(1, 0, "Beam pipe (green)");
     myTableAllMat.setContent(2, 0, "Barrel modules (yellow)");
@@ -651,18 +657,18 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myTableAllMat.setContent(6, 0, "Total");
     myTableAllMat.setContent(0, 1, "Radiation length [%]");
     myTableAllMat.setContent(0, 2, "Interaction length [%]");
-    myTableAllMat.setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
 
     // Rebin histograms, draw them to a canvas and write the canvas to the web page
     TCanvas myCanvasMatCat(std::string("MaterialByCategoryIn"+trkName).c_str());
@@ -700,7 +706,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     RootWContent& myContentComp = myPage.addContent("Material overview by component", false);
 
     RootWTable myTableComp = myContentComp.addTable();
-    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(0, 0, titleString);
     myTableComp.setContent(0, 1, "Radiation length [%]");
     myTableComp.setContent(0, 2, "Interaction length [%]");
@@ -729,7 +735,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     radCompStack->Add(&m_radMB["Beampipe"]["Total"]);
     compLegend->AddEntry(&m_radMB["Beampipe"]["Total"], "Beampipe");
     compIndex++;
-    double avgValue = averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage);
+    double avgValue = averageHistogramValues(m_radMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(compIndex, 0, "Beampipe");
     myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
     totalRadLength += avgValue;
@@ -741,7 +747,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       iComp.second.SetXTitle("#eta");
       radCompStack->Add(&(iComp.second));
       compLegend->AddEntry(&(iComp.second), iComp.first.c_str());
-      avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
+      avgValue = averageHistogramValues(iComp.second, SimParms::getInstance().getMaxEtaCoverage());
       myTableComp.setContent(compIndex, 0, iComp.first);
       myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
       totalRadLength += avgValue;
@@ -763,7 +769,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMB["Beampipe"]["Total"].SetXTitle("#eta");
     intCompStack->Add(&m_intMB["Beampipe"]["Total"]);
     compIndex++;
-    avgValue = averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage);
+    avgValue = averageHistogramValues(m_intMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
     totalIntLength += avgValue;
 
@@ -773,7 +779,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       iComp.second.SetFillColor(Palette::color(compIndex));
       iComp.second.SetXTitle("#eta");
       intCompStack->Add(&(iComp.second));
-      avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
+      avgValue = averageHistogramValues(iComp.second, SimParms::getInstance().getMaxEtaCoverage());
       myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
       totalIntLength += avgValue;
     }
@@ -875,7 +881,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       // Old-style palette by Stefano, with custom-generated colors
       // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
       // Replaced by the libreOffice-like palette
-      std::unique_ptr<TH1D> ranger(new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage));
+      std::unique_ptr<TH1D> ranger(new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, SimParms::getInstance().getMaxEtaCoverage()));
       ranger->SetMaximum(1.);
       ranger->SetStats(kFALSE);
       ranger->GetXaxis()->SetTitle("#eta");
@@ -885,6 +891,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       ostringstream tempSS;
       std::map<int, std::string> fractionTitles;
 
+      // Prepare eta regions to vector
+      std::vector<double> etaCuts;
+      for (auto& iCut : SimParms::getInstance().etaRegionRanges) {
+        etaCuts.push_back(iCut);
+      }
+
       for (auto i=0; i<m_hadronGoodTracksFraction[trkName].size(); ++i) {
 
         TGraph& myGraph = m_hadronGoodTracksFraction[trkName].at(i);
@@ -892,7 +904,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
         //double xx, yy;
         //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
         //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-        averages[i] = average(myGraph, geom_range_eta_regions);
+        averages[i] = average(myGraph, etaCuts);
         closeGraph(myGraph);
         myGraph.SetFillColor(Palette::color(i+1));
         myGraph.Draw("same F");
@@ -929,11 +941,11 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     cutsSummaryTable.setContent(2,0,"Max "+web_etaLetter+":");
 
     RootWTable* myTable = &cutsSummaryTable;
-    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
-      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
+    for (unsigned int iBorder=0; iBorder<SimParms::getInstance().getNEtaRegions()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,SimParms::getInstance().etaRegionNames[iBorder+1]);
+      label.str(""); label << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
+      label.str(""); label << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -947,7 +959,8 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
   } // Trackers
 
-  return true;
+  m_isVisOK = true;
+  return m_isVisOK;
 }
 
 //
@@ -1107,6 +1120,16 @@ void MatBudgetVisitor::visit(const BeamPipe& bp)
 }
 
 //
+// Visit Barrel
+//
+void MatBudgetVisitor::visit(const Barrel& b)
+{
+  for (auto& element : b.services()) {
+      analyzeInactiveElement("Services",element);
+    }
+}
+
+//
 // Visit BarrelModule (no limits on Rods, Layers or Barrels)
 //
 void MatBudgetVisitor::visit(const BarrelModule& m)
@@ -1120,6 +1143,16 @@ void MatBudgetVisitor::visit(const BarrelModule& m)
 void MatBudgetVisitor::visit(const EndcapModule& m)
 {
   analyzeModuleMB(m);
+}
+
+//
+// Visit Support strucutre
+//
+void MatBudgetVisitor::visit(const SupportStructure& s)
+{
+  for (auto& element : s.inactiveElements()) {
+     analyzeInactiveElement("Supports",element);
+   }
 }
 
 //
@@ -1208,4 +1241,149 @@ void MatBudgetVisitor::analyzeModuleMB(const DetectorModule& m)
       m_matTrack.addHit(std::move(hit));
     }
   } // Z>0
+}
+
+//
+// Helper method - analyse inactive element & estimate how much material is in the way for tag="Supports" or "Services"
+//
+void MatBudgetVisitor::analyzeInactiveElement(std::string tag, const insur::InactiveElement& e)
+{
+  // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
+  // only volumes of the requested category, or those without one (which should not exist) are examined
+  if ((e.getZOffset() + e.getZLength()) > 0) {
+
+    // collision detection: check eta range
+    auto etaMinMax = e.getEtaMinMax();
+
+    // Volume hit
+    double eta   = m_matTrack.getEta();
+    double theta = m_matTrack.getTheta();
+
+    if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
+
+      /*
+      if (eta<0.01) {
+        std::cout << "Hitting an inactive surface at z=("
+                  << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
+                  << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
+        const std::map<std::string, double>& localMasses = iter->getLocalMasses();
+        const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
+        for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+        for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+      }
+      */
+
+      // Initialize
+      Material material;
+      material.radiation   = 0.0;
+      material.interaction = 0.0;
+
+      double rho = 0.0;
+      double z   = 0.0;
+
+      // Radiation and interaction lenth scaling for vertical volumes
+      if (e.isVertical()) {
+
+        z   = e.getZOffset() + e.getZLength() / 2.0;
+        rho = z * tan(theta);
+
+        material.radiation   = e.getRadiationLength();
+        material.interaction = e.getInteractionLength();
+
+        // 2D maps for vertical surfaces
+        if (material.radiation>0){
+
+          m_radMap.Fill(z,rho,material.radiation);
+          m_radMapCount.Fill(z,rho);
+        }
+        if (material.interaction>0) {
+
+          m_intMap.Fill(z,rho,material.interaction);
+          m_intMapCount.Fill(z,rho);
+        }
+
+        // Special treatment for user-defined supports as they can be very close to z=0
+        if (e.getCategory() == MaterialProperties::u_sup) {
+
+          double s = e.getZLength() / cos(theta);
+          if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
+
+          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+          //if (e.track()) {}
+
+          material.radiation  *= s / e.getZLength();
+          material.interaction*= s / e.getZLength();
+
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
+
+        }
+        else {
+
+          material.radiation   /= cos(theta);
+          material.interaction /= cos(theta);
+
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
+        }
+      }
+      // Radiation and interaction length scaling for horizontal volumes
+      else {
+
+        rho = e.getInnerRadius() + e.getRWidth() / 2.0;
+        z   = rho/tan(theta);
+
+        material.radiation   = e.getRadiationLength();
+        material.interaction = e.getInteractionLength();
+
+        // 2D maps for vertical surfaces
+        if (material.radiation>0){
+
+          m_radMap.Fill(z,rho,material.radiation);
+           m_radMapCount.Fill(z,rho);
+         }
+         if (material.interaction>0) {
+
+           m_intMap.Fill(z,rho,material.interaction);
+           m_intMapCount.Fill(z,rho);
+         }
+
+        // Special treatment for user-defined supports; should not be necessary for now
+        // as all user-defined supports are vertical, but just in case...
+        if (e.getCategory() == MaterialProperties::u_sup) {
+
+          double s = e.getZLength() / sin(theta);
+
+          if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
+
+          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+          //if (e.track()) {}
+
+          material.radiation  *= s / e.getZLength();
+          material.interaction*= s / e.getZLength();
+
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
+
+        }
+        else {
+
+          material.radiation   /= sin(theta);
+          material.interaction /= sin(theta);
+
+          m_matBudget[tag].radiation   += material.radiation;
+          m_matBudget[tag].interaction += material.interaction;
+        }
+      }
+
+      // Create Hit object with appropriate parameters, add to Track t
+      HitPtr hit(new Hit((theta == 0) ? rho : (rho / sin(theta))) );
+      if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
+      else                hit->setOrientation(HitOrientation::Horizontal);
+      hit->setObjectKind(HitKind::Inactive);
+      hit->setCorrectedMaterial(material);
+      m_matTrack.addHit(std::move(hit));
+
+    } // Eta min max
+  } // +Z check
 }
