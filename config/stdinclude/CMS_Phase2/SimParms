@@ -11,7 +11,7 @@ SimParms {
     operatingTemp -20
     referenceTemp 20
     chargeDepletionVoltage 600
-    alphaParam 5.3e-17
+    alphaParam 4.28e-17
     pixelEfficiency 1
 
     numTriggerTowersEta 6
