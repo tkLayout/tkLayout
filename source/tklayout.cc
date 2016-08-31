@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
   if (activeDetOK) {
 
     // Geometry layout study
-    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
+    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution") || progOptions.count("occupancy")) {
 
       startTaskClock("Analyzing tracker geometry");
       aManager.initUnit(geomTracks, "AnalyzerGeometry");
@@ -175,6 +175,18 @@ int main(int argc, char* argv[]) {
       stopTaskClock();
       if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
       if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
+    }
+
+    // Occupancy study
+    if ((progOptions.count("all") || progOptions.count("occupancy"))) {
+
+      startTaskClock("Analyzing occupancy");
+      aManager.initUnit(matTracks, "AnalyzerOccupancy");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerOccupancy");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerOccupancy");
+      stopTaskClock();
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerOccupancy -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerOccupancy -> visualization failed!");
     }
   }
 

@@ -30,13 +30,13 @@ class AnalyzerOccupancy : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, const Detector& detector);
+  AnalyzerOccupancy(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerOccupancy();
 
   //! Init variables
-  bool init(int nTracks) {m_isInitOK=true; return m_isInitOK;};
+  bool init(int nTracks);
 
   //! Calculate occupancy & ideal pitch size
   bool analyze();
@@ -44,24 +44,14 @@ class AnalyzerOccupancy : public AnalyzerUnit {
   //! Visualize - add html page with all calculations & results
   bool visualize(RootWSite& webSite);
 
-  //! Read magnetic field map - just to display
-  bool readMagFieldMap(std::string directory, std::string bFieldFileName);
-  //! Read no magnetic field irradiation map
-  bool readNoMagFieldIrradMap(std::string directory, std::string chargedFileName, std::string photonsFileName);
-  //! Read no material irradiation map
-  bool readNoMaterialIrradMap(std::string directory, std::string chargedFileName, std::string photonsFileName);
-  //! Read no magnetic field & no material irradiation map
-  bool readNoMagFieldNoMaterialIrradMap(std::string directory, std::string chargedFileName, std::string photonsFileName);
-  //! Read no magnetic field & no tracker irradiation map
-  bool readNoMagFieldNoTrackerIrradMap(std::string directory, std::string chargedFileName, std::string photonsFileName);
-  //! Read low threshold irradiation map
-  bool readLowThresholdIrradMap(std::string directory, std::string chargedFileName, std::string photonsFileName);
-
  private:
 
   // Constants
   double c_fluxMin = 0.5E-5;
   double c_fluxMax = 10;
+
+  //! Check that a file can be opened
+  bool checkFile(const std::string& fileName, const std::string& filePath);
 
   //! Fill histogram
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);

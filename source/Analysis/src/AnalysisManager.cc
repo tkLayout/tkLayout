@@ -10,6 +10,7 @@
 #include <AnalyzerUnit.h>
 #include <AnalyzerGeometry.h>
 #include <AnalyzerMatBudget.h>
+#include <AnalyzerOccupancy.h>
 #include <AnalyzerResolution.h>
 
 // Other include files
@@ -46,6 +47,10 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
 
   // Create AnalyzerMatBudget
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create AnalyzerOccupancy
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerOccupancy(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site

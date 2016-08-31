@@ -12,6 +12,7 @@
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TArrow.h"
+#include "TList.h"
 
 BFieldMap::BFieldMap(std::string bFieldMapFile) :
       m_fileName(bFieldMapFile),
@@ -502,6 +503,7 @@ std::vector<double> BFieldMap::calculateBField(double xPos, double yPos, double 
 
 bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ)
 {
+
   if (m_bFieldOK) {
 
     xzCanvas.cd();
@@ -543,8 +545,9 @@ bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double min
     int yBin = (Y - m_yMin)/m_yBinWidth;
 
     // Draw histogram
-    TH2D his(name.c_str(), std::string("XZ view of B field ["+m_dataUnit+"] (Y=0)").c_str(), nBinsZ, 0, maxZ, nBinsX, 0, maxX);
-    his.Draw("COLZ");
+    TH2D* his = new TH2D(name.c_str(), std::string("XZ view of B field ["+m_dataUnit+"] (Y=0)").c_str(), nBinsZ, 0, maxZ, nBinsX, 0, maxX);
+    his->SetStats(kFALSE);
+    his->Draw("COLZ");
 
     // Get min & max values
     double minBFieldXZ = +std::numeric_limits<double>::max();
@@ -568,7 +571,7 @@ bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double min
         for (int i=0; i<3; i++) bFieldMag   += m_bField[xBin+nBinsXOffset][yBin][zBin+nBinsZOffset][i]*m_bField[xBin+nBinsXOffset][yBin][zBin+nBinsZOffset][i];
         bFieldMag   = sqrt(bFieldMag);
 
-        his.SetBinContent(zBin+1, xBin+1, bFieldMag);
+        his->SetBinContent(zBin+1, xBin+1, bFieldMag);
 
         // Draw B field direction
         double XBField = m_bField[xBin+nBinsXOffset][yBin][zBin+nBinsZOffset][0];
@@ -580,33 +583,34 @@ bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double min
         double xStart  = (xBin+0.5)*m_xBinWidth + minX - XBField/2.;
         double zStart  = (zBin+0.5)*m_zBinWidth + minZ - ZBField/2.;
 
-        TArrow direction(zStart, xStart, zStart+ZBField, xStart+XBField);
-        direction.Draw("|>");
-        direction.SetArrowSize((c_arrowMaxSize-c_arrowMinSize)*(vecMag-minBFieldXZ)/(maxBFieldXZ-minBFieldXZ) + c_arrowMinSize);
-        direction.SetAngle(45);
+        TArrow* direction = new TArrow(zStart, xStart, zStart+ZBField, xStart+XBField);
+        direction->Draw("|>");
+        direction->SetArrowSize((c_arrowMaxSize-c_arrowMinSize)*(vecMag-minBFieldXZ)/(maxBFieldXZ-minBFieldXZ) + c_arrowMinSize);
+        direction->SetAngle(45);
 
         if ((vecMag-minBFieldXZ)/(maxBFieldXZ-minBFieldXZ)>0.75) {
-          direction.SetLineColor(kBlack);
-          direction.SetFillColor(kBlack);
+          direction->SetLineColor(kBlack);
+          direction->SetFillColor(kBlack);
         }
         else if ((vecMag-minBFieldXZ)/(maxBFieldXZ-minBFieldXZ)>0.5) {
-          direction.SetLineColor(kGray+3);
-          direction.SetFillColor(kGray+3);
+          direction->SetLineColor(kGray+3);
+          direction->SetFillColor(kGray+3);
         }
         else if ((vecMag-minBFieldXZ)/(maxBFieldXZ-minBFieldXZ)>0.25) {
-          direction.SetLineColor(kGray+2);
-          direction.SetFillColor(kGray+2);
+          direction->SetLineColor(kGray+2);
+          direction->SetFillColor(kGray+2);
         }
         else {
-          direction.SetLineColor(kGray+1);
-          direction.SetFillColor(kGray+1);
+          direction->SetLineColor(kGray+1);
+          direction->SetFillColor(kGray+1);
         }
       }
     }
-    his.GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
-    his.GetXaxis()->SetTitleOffset(1.2);
-    his.GetYaxis()->SetTitle(std::string("X ["+m_xUnit+"]").c_str());
-    his.GetYaxis()->SetTitleOffset(1.2);
+    his->GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
+    his->GetXaxis()->SetTitleOffset(1.2);
+    his->GetYaxis()->SetTitle(std::string("X ["+m_xUnit+"]").c_str());
+    his->GetYaxis()->SetTitleOffset(1.2);
+
     return true;
   }
   else return false;
@@ -651,8 +655,9 @@ bool BFieldMap::drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double min
     int xBin = (X - m_xMin)/m_xBinWidth;
 
     // Draw histogram
-    TH2D his(name.c_str(), std::string("YZ view of B field ["+m_dataUnit+"] (X=0)").c_str(), nBinsZ, 0, maxZ, nBinsY, 0, maxY);
-    his.Draw("COLZ");
+    TH2D* his = new TH2D(name.c_str(), std::string("YZ view of B field ["+m_dataUnit+"] (X=0)").c_str(), nBinsZ, 0, maxZ, nBinsY, 0, maxY);
+    his->SetStats(kFALSE);
+    his->Draw("COLZ");
 
     // Get min & max values
     double minBFieldYZ = +std::numeric_limits<double>::max();
@@ -676,7 +681,7 @@ bool BFieldMap::drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double min
         for (int i=0; i<3; i++) bFieldMag   += m_bField[xBin][yBin+nBinsYOffset][zBin+nBinsZOffset][i]*m_bField[xBin][yBin+nBinsYOffset][zBin+nBinsZOffset][i];
         bFieldMag   = sqrt(bFieldMag);
 
-        his.SetBinContent(zBin+1, yBin+1, bFieldMag);
+        his->SetBinContent(zBin+1, yBin+1, bFieldMag);
 
         // Draw B field direction
         double YBField = m_bField[xBin][yBin+nBinsYOffset][zBin+nBinsZOffset][1];
@@ -688,33 +693,33 @@ bool BFieldMap::drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double min
         double yStart  = (yBin+0.5)*m_yBinWidth + minY - YBField/2.;
         double zStart  = (zBin+0.5)*m_zBinWidth + minZ - ZBField/2.;
 
-        TArrow direction(zStart, yStart, zStart+ZBField, yStart+YBField);
-        direction.Draw("|>");
-        direction.SetArrowSize((c_arrowMaxSize-c_arrowMinSize)*(vecMag-minBFieldYZ)/(maxBFieldYZ-minBFieldYZ) + c_arrowMinSize);
-        direction.SetAngle(45);
+        TArrow* direction = new TArrow(zStart, yStart, zStart+ZBField, yStart+YBField);
+        direction->Draw("|>");
+        direction->SetArrowSize((c_arrowMaxSize-c_arrowMinSize)*(vecMag-minBFieldYZ)/(maxBFieldYZ-minBFieldYZ) + c_arrowMinSize);
+        direction->SetAngle(45);
 
         if ((vecMag-minBFieldYZ)/(maxBFieldYZ-minBFieldYZ)>0.75) {
-          direction.SetLineColor(kBlack);
-          direction.SetFillColor(kBlack);
+          direction->SetLineColor(kBlack);
+          direction->SetFillColor(kBlack);
         }
         else if ((vecMag-minBFieldYZ)/(maxBFieldYZ-minBFieldYZ)>0.5) {
-          direction.SetLineColor(kGray+3);
-          direction.SetFillColor(kGray+3);
+          direction->SetLineColor(kGray+3);
+          direction->SetFillColor(kGray+3);
         }
         else if ((vecMag-minBFieldYZ)/(maxBFieldYZ-minBFieldYZ)>0.25) {
-          direction.SetLineColor(kGray+2);
-          direction.SetFillColor(kGray+2);
+          direction->SetLineColor(kGray+2);
+          direction->SetFillColor(kGray+2);
         }
         else {
-          direction.SetLineColor(kGray+1);
-          direction.SetFillColor(kGray+1);
+          direction->SetLineColor(kGray+1);
+          direction->SetFillColor(kGray+1);
         }
       }
     }
-    his.GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
-    his.GetXaxis()->SetTitleOffset(1.2);
-    his.GetYaxis()->SetTitle(std::string("Y ["+m_xUnit+"]").c_str());
-    his.GetYaxis()->SetTitleOffset(1.2);
+    his->GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
+    his->GetXaxis()->SetTitleOffset(1.2);
+    his->GetYaxis()->SetTitle(std::string("Y ["+m_xUnit+"]").c_str());
+    his->GetYaxis()->SetTitleOffset(1.2);
     return true;
   }
   else return false;
