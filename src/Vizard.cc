@@ -2355,6 +2355,7 @@ namespace insur {
     myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
     myBinaryFile->setNoCopy(true);
     summaryContent->addItem(myBinaryFile);
+
     RootWTextFile* myTextFile;
 
     // Summary of layout and performance
