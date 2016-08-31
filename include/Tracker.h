@@ -17,8 +17,8 @@
 #include "Endcap.h"
 #include "SupportStructure.h"
 #include "Visitor.h"
-
 #include "Visitable.h"
+#include "mainConfigHandler.h"
 
 using std::set;
 using material::SupportStructure;
@@ -54,6 +54,8 @@ public:
   ReadonlyProperty<bool, Default> skipAllServices;
   ReadonlyProperty<bool, Default> skipAllSupports;
 
+  std::map<std::string, std::vector<int> > detIdSchemes_;
+
 private:
   Barrels barrels_;
   Endcaps endcaps_;
@@ -67,6 +69,11 @@ private:
 
   MultiProperty<set<string>, ','> containsOnly;
 
+  Property<std::string, AutoDefault> barrelDetIdScheme;
+  Property<std::string, AutoDefault> endcapDetIdScheme;
+
+  //std::map<std::string, std::vector<int> > detIdSchemes_;
+
   Tracker(const Tracker&) = default;
 public:
 
@@ -78,7 +85,9 @@ public:
       servicesForcedUp("servicesForcedUp", parsedOnly(), true),
       skipAllServices("skipAllServices", parsedOnly(), false),
       skipAllSupports("skipAllSupports", parsedOnly(), false),
-      containsOnly("containsOnly", parsedOnly())
+      containsOnly("containsOnly", parsedOnly()),
+      barrelDetIdScheme("barrelDetIdScheme", parsedOnly()),
+      endcapDetIdScheme("endcapDetIdScheme", parsedOnly())
   {}
 
   void setup() {
@@ -134,8 +143,7 @@ public:
 	  return hasStep;
 	});
 
-
-
+      detIdSchemes_ = detIdSchemes();
   }
 
   void build();
@@ -148,6 +156,8 @@ public:
 
   bool isPixelTracker() const { return myid() == "Pixels"; }
 
+  std::map<std::string, std::vector<int> > detIdSchemes();
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& b : barrels_) { b.accept(v); }
@@ -157,6 +167,11 @@ public:
     v.visit(*this); 
     for (const auto& b : barrels_) { b.accept(v); }
     for (const auto& e : endcaps_) { e.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& b : barrels_) { b.accept(v); }
+    for (auto& e : endcaps_) { e.accept(v); }
   }
 
   std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)

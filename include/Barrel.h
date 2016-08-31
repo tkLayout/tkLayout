@@ -74,6 +74,10 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
     v.visit(*this); 
     for (const auto& l : layers_) { l.accept(v); }
   }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& l : layers_) { l.accept(v); }
+  }
 
   const Container& layers() const        { return layers_; }
   SupportStructures& supportStructures() { return supportStructures_; }

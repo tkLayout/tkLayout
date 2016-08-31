@@ -1171,7 +1171,8 @@ namespace insur {
     public:
       RootWTable* layerTable = new RootWTable();
       RootWTable* diskTable = new RootWTable();
-      RootWTable* ringTable = new RootWTable();
+      std::vector<RootWTable*> diskNames;
+      std::vector<RootWTable*> ringTables;
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
       std::map<std::string, long> tagMapCountChan;
@@ -1196,10 +1197,11 @@ namespace insur {
       std::map<std::string, double> tagMapSensorPowerAvg;
       std::map<std::string, double> tagMapSensorPowerMax;
       std::map<std::string, const DetectorModule*> tagMap;
-      std::map<int, const EndcapModule*> ringTypeMap;
 
       int nBarrelLayers=0;
+      int nEndcaps=0;
       int nDisks=0;
+      int nRings=0;
       int totalBarrelModules = 0;
       int totalEndcapModules = 0;
 
@@ -1212,43 +1214,71 @@ namespace insur {
       double nMB;
 
       void preVisit() {
-        layerTable->setContent(0, 0, "Layer");
-        layerTable->setContent(1, 0, "r");
-        layerTable->setContent(2, 0, "z_max");
-        layerTable->setContent(3, 0, "# mods");
+	layerTable->setContent(0, 0, "Barrel :");
+        layerTable->setContent(1, 0, "Layer");
+        layerTable->setContent(2, 0, "r");
+        layerTable->setContent(3, 0, "z_max");
         layerTable->setContent(4, 0, "# rods");
-        diskTable->setContent(0, 0, "Disk");
-        diskTable->setContent(1, 0, "z");
-        diskTable->setContent(2, 0, "# mods");
-        ringTable->setContent(0, 0, "Ring");
-        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
-        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
-        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
+        layerTable->setContent(5, 0, "# mods");
+	diskTable->setContent(0, 0, "Endcap :");
+        diskTable->setContent(1, 0, "Disk");
+        diskTable->setContent(2, 0, "z");
+        diskTable->setContent(3, 0, "# rings");
+	diskTable->setContent(4, 0, "# mods");
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
 
+      void visit(const Barrel& b) override {
+	layerTable->setContent(0, 1 + nBarrelLayers, b.myid());
+      }
+
       void visit(const Layer& l) override {
         if (l.maxZ() < 0.) return;
         ++nBarrelLayers;
-        int nModules = l.totalModules();
-        totalBarrelModules += nModules;
-        layerTable->setContent(0, nBarrelLayers, l.myid());
-        layerTable->setContent(1, nBarrelLayers, l.placeRadius(), coordPrecision);
-        layerTable->setContent(2, nBarrelLayers, l.maxZ(), coordPrecision);
-        layerTable->setContent(3, nBarrelLayers, nModules);
+        totalBarrelModules += l.totalModules();
+        layerTable->setContent(1, nBarrelLayers, l.myid());
+        layerTable->setContent(2, nBarrelLayers, l.placeRadius(), coordPrecision);
+        layerTable->setContent(3, nBarrelLayers, l.maxZ(), coordPrecision);
         layerTable->setContent(4, nBarrelLayers, l.numRods());
+        layerTable->setContent(5, nBarrelLayers, l.totalModules());
+      }
+
+      void visit(const Endcap& e) override {
+	nEndcaps++;
+	diskTable->setContent(0, 1 + nDisks, e.myid());
+
+	RootWTable* diskName = new RootWTable();
+	diskName->setContent(0, 0, e.myid() + ",  Disc 1 :");
+	diskNames.push_back(diskName);
+
+	RootWTable* ringTable = new RootWTable();
+	ringTable->setContent(0, 0, "Ring :");
+        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+	ringTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
+        ringTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
+        ringTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
+	ringTable->setContent(6, 0, "# mods");
+	ringTables.push_back(ringTable);
       }
 
       void visit(const Disk& d) override {
+	nRings = 0;
         if (d.averageZ() < 0.) return;
         ++nDisks;
-        int nModules = d.totalModules();
-        totalEndcapModules += nModules;
-        diskTable->setContent(0, nDisks, d.myid());
-        diskTable->setContent(1, nDisks, d.averageZ(), coordPrecision);
-        diskTable->setContent(2, nDisks, nModules);
+        totalEndcapModules += d.totalModules();
+        diskTable->setContent(1, nDisks, d.myid());
+        diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
+	diskTable->setContent(4, nDisks, d.totalModules());
+      }
+
+      void visit(const Ring& r) override {
+	if (r.averageZ() < 0. || r.numModules() == 0) return;
+	++nRings;
+	diskTable->setContent(3, nDisks, nRings);
+	ringTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
+	ringTables.at(nEndcaps-1)->setContent(6, nRings, r.numModules());
       }
 
       void visit(const Module& m) override {
@@ -1308,31 +1338,20 @@ namespace insur {
       }
 
       void visit(const EndcapModule& m) override {
-        if (m.disk() != 1 && m.side() != 1) return;
-        if (ringTypeMap.find(m.ring())==ringTypeMap.end()){
-          // We have a new sensor geometry
-          ringTypeMap[m.ring()] = &m;
-        }
+        if (m.side() != 1 || m.disk() != 1) return;
 
+	ringTables.at(nEndcaps-1)->setContent(1, nRings, m.minR(), coordPrecision);
+	ringTables.at(nEndcaps-1)->setContent(2, nRings, sqrt(pow(m.minR(),2)+pow(m.minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+	ringTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
+	ringTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
+	ringTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
       }
 
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
-        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
+	layerTable->setContent(5, nBarrelLayers+1, totalBarrelModules);
         diskTable->setContent(0, nDisks+1, "Total");
-        diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
-
-        std::ostringstream myName;
-        for (auto typeIt = ringTypeMap.begin();
-             typeIt!=ringTypeMap.end(); typeIt++) {
-          auto* anEC = (*typeIt).second;
-          int aRing=(*typeIt).first;
-          ringTable->setContent(0, aRing, aRing);
-          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
-          ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
-          ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
-	}  
+        diskTable->setContent(4, nDisks+1, totalEndcapModules*2);
       }
     };
 
@@ -1342,9 +1361,24 @@ namespace insur {
     tracker.accept(v);
     v.postVisit();
 
+    RootWTable* spacer = new RootWTable();
+    spacer->setContent(0, 0, " ");
+    spacer->setContent(1, 0, " ");
+    spacer->setContent(2, 0, " ");
+    spacer->setContent(3, 0, " ");
+
     myContent->addItem(v.layerTable);
+    myContent->addItem(spacer);
     myContent->addItem(v.diskTable);
-    myContent->addItem(v.ringTable);
+
+
+    myContent = new RootWContent("Endcaps : additional info", false);
+    myPage->addContent(myContent);
+    for (int i = 0; i < v.nEndcaps; i++) {
+      if (i > 0) myContent->addItem(spacer);
+      myContent->addItem(v.diskNames.at(i));
+      myContent->addItem(v.ringTables.at(i));
+    }
 
 
     //***************************************//
@@ -1417,11 +1451,17 @@ namespace insur {
 	    tiltedPartTable->setContent(15, 0, "deltaZ" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
 	    tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
 	    tiltedPartTable->setContent(16, 0, "phiOverlap");
-	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);	    
-	    tiltedPartTable->setContent(17, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
-	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber], coordPrecision);
-	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
-	    tiltedPartTable->setContent(18, i+1, l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);
+	    tiltedPartTable->setContent(17, 0, "zOverlap" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->zOverlap(), coordPrecision);
+	    double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];	    
+	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner, coordPrecision);
+	    else tiltedPartTable->setContent(18, i+1, "n/a");
+	    double zErrorOuter = l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber];
+	    tiltedPartTable->setContent(19, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter, coordPrecision);
+	    else tiltedPartTable->setContent(19, i+1, "n/a");	    
 	  }
 	  tiltedPartTables.push_back(tiltedPartTable);
 
@@ -1450,11 +1490,25 @@ namespace insur {
 	    flatPartTable->setContent(6, i+1, m.center().Z(), coordPrecision);
 	    flatPartTable->setContent(7, 0, "phiOverlap");
 	    flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    // In case beamSpotCover == false, zOverlap is the only parameter used as a Z-coverage constraint in the geometry construction process.
+	    // (There is then no zError taken into account).
+	    // As a result, it is interesting to display zOverlap !
+	    int extraLine = 0;
+	    if (!l.flatPartRods().front()->beamSpotCover()) {
+	      extraLine = 1;
+	      flatPartTable->setContent(8, 0, "zOverlap");
+	      flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap(), coordPrecision);
+	      // WARNING : zOverlap, in the geometry construction process, is one value common for all flat part (or straight rod)
+	    }
 	    if (i > 0) {
-	      flatPartTable->setContent(8, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
-	      flatPartTable->setContent(8, i+1, l.flatRingsGeometryInfo().zErrorInner()[i], coordPrecision);
-	      flatPartTable->setContent(9, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
-	      flatPartTable->setContent(9, i+1, l.flatRingsGeometryInfo().zErrorOuter()[i], coordPrecision);
+	      double zErrorInner = l.flatRingsGeometryInfo().zErrorInner()[i];
+	      flatPartTable->setContent(8 + extraLine, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	      if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner, coordPrecision);
+	      else flatPartTable->setContent(8 + extraLine, i+1, "n/a");
+	      double zErrorOuter = l.flatRingsGeometryInfo().zErrorOuter()[i];
+	      flatPartTable->setContent(9 + extraLine, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	      if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter, coordPrecision);
+	      else flatPartTable->setContent(9 + extraLine, i+1, "n/a");
 	    }
 	    i++;
 	  }

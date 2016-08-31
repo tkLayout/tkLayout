@@ -192,8 +192,12 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
-  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+  // XY coordinates of the centre of module m.
+ XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  // XY coordinates of vector v.
+ XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
+ XY(const XYZVector& v, const Module& m) : XY(v) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
   int y() const { return this->second; }
@@ -202,8 +206,25 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
-  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
-  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
+  // RZ coordinates of the centre of module m, in the plane (RZ) defined by ((Z axis), moduleCenter).
+ YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+  // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), v).
+ YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
+  // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), moduleCenter).
+ YZ(const XYZVector& v, const Module& m) : valid(v.Z() >= 0) {
+    this->first = round(v.Z());
+
+    // This calculates the projection of vector v into plane ((Z axis), moduleCenter).
+    XYZVector vProjected;
+    XYZVector z(0., 0., 1.);
+
+    XYZVector basePolyCenter = m.basePoly().getCenter();
+    XYZVector normal = crossProduct(z, basePolyCenter); // normal of plane ((Z axis), moduleCenter).
+    normal = normal.Unit(); // normalize.
+
+    vProjected = v - v.Dot(normal) * normal; // Calculate projected vector. TO DO : Introduce this as a method !!   
+    this->second = round(vProjected.Rho()); // Take the Rho() of the projected vector.    
+  }
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
   int z() const { return this->first; }
@@ -211,8 +232,9 @@ struct YZ : public std::pair<int, int>, private Rounder {
 
 struct YZFull : public YZ {
   const bool valid;
-  YZFull(const Module& m) : YZ(m), valid(true) {}
-  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
+ YZFull(const Module& m) : YZ(m), valid(true) {}
+ YZFull(const XYZVector& v) : YZ(v), valid(true) {}
+ YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
 
 TPolyLine* drawMod();
@@ -233,7 +255,7 @@ public:
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
     int j=0;
     for (int i=0; i<4; i++) {
-      CoordType c(m.basePoly().getVertex(i));
+      CoordType c(m.basePoly().getVertex(i), m);
       if (xy.insert(c).second == true) {
         x[j] = double(c.first)/Rounder::mmFraction;
         y[j++] = double(c.second)/Rounder::mmFraction;
@@ -284,7 +306,9 @@ public:
 
 
 template<class CoordType> class SummaryFrameStyle {
-  void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+  void drawEtaTicks(double maxL, double maxR, 
+		    double tickDistanceRRatio, double tickLengthRRatio, double textDistanceRRatio,
+		    double tickDistanceLRatio, double tickLengthLRatio, double textDistanceLRatio,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
 public:
   void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette&) const;
@@ -420,26 +444,11 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class InputIterator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
+  template<class InputIterator>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
   for (InputIterator it = begin; it != end; ++it) {
     int subDet = (*it)->subdet();
     if (subDet & moduleTypes) {
-      /*if ((*it)->center().Rho() == 33) {
-	std::cout << "Rho = " << (*it)->center().Rho() << std::endl; 
-
-
-for (int i=0; i<4; i++) {
-        std::cout << "i = " << i << std::endl;
-        std::cout << " (*it)->basePoly().getVertex(i).Z() = " <<  (*it)->basePoly().getVertex(i).Z() << std::endl;
-/*std::cout << " (*it)->basePoly().getVertex(i).X() = " <<  (*it)->basePoly().getVertex(i).X() << std::endl;
-       std::cout << " (*it)->basePoly().getVertex(i).Y() = " <<  (*it)->basePoly().getVertex(i).Y() << std::endl;
-        std::cout << " sqrt = " <<  sqrt(pow((*it)->basePoly().getVertex(i).X(),2.) + pow((*it)->basePoly().getVertex(i).Y(),2.)) << std::endl;
-        std::cout << " (*it)->basePoly().getVertex(i).Rho() = " <<  (*it)->basePoly().getVertex(i).Rho() << std::endl;
-      }
-      }*/
-
-
       add(**it); 
     }
   }
