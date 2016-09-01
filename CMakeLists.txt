@@ -168,6 +168,7 @@ SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprec
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include 
                      ${PROJECT_SOURCE_DIR}/source/Analysis/include
+                     ${PROJECT_SOURCE_DIR}/source/Extractors/include
                      ${PROJECT_SOURCE_DIR}/source/Tools/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${PROJECT_SOURCE_DIR}/source/Web/include
@@ -176,11 +177,13 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include
 FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cc )
 FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc 
+                       ${PROJECT_SOURCE_DIR}/source/Extractors/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc 
                        ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Web/src/*.cc )
 FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h
-                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h 
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h
+                       ${PROJECT_SOURCE_DIR}/source/Extractors/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h  
                        ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Web/include/*.h ) 

@@ -7,11 +7,13 @@
 #include <AnalysisManager.h>
 
 // List of units
-#include <AnalyzerUnit.h>
-#include <AnalyzerGeometry.h>
-#include <AnalyzerMatBudget.h>
-#include <AnalyzerOccupancy.h>
-#include <AnalyzerResolution.h>
+#include "AnalyzerUnit.h"
+#include "AnalyzerGeometry.h"
+#include "AnalyzerMatBudget.h"
+#include "AnalyzerOccupancy.h"
+#include "AnalyzerResolution.h"
+#include "ExtractorCMSSW.h"
+#include "ExtractorFCCSW.h"
 
 // Other include files
 #include "Detector.h"
@@ -51,6 +53,14 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
 
   // Create AnalyzerOccupancy
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerOccupancy(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create CMSSW extractor
+  unit = std::unique_ptr<AnalyzerUnit>(new ExtractorCMSSW(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create FCCSW extractor
+  unit = std::unique_ptr<AnalyzerUnit>(new ExtractorFCCSW(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site
