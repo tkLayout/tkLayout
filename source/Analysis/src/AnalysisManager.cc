@@ -183,6 +183,7 @@ bool AnalysisManager::makeWebInfoPage()
 {
   // Create web page: Log info
   RootWPage& myPage       = m_webSite->addPage("Info");
+  myPage.setAddress("indexInfo.html");
 
   // Summary of tkLayout parameters
   RootWContent& myContentParms = myPage.addContent("Summary of tkLayout parameters");
@@ -278,6 +279,7 @@ bool AnalysisManager::makeWebLogPage()
 
   // Create web page: Log info
   RootWPage& myPage = m_webSite->addPage("Log");
+  myPage.setAddress("indexLog.html");
 
   // Check logs
   if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))        myPage.setAlert(1);
