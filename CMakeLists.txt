@@ -169,6 +169,7 @@ SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprec
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include 
                      ${PROJECT_SOURCE_DIR}/source/Analysis/include
                      ${PROJECT_SOURCE_DIR}/source/Extractors/include
+                     ${PROJECT_SOURCE_DIR}/source/TinyXML/include
                      ${PROJECT_SOURCE_DIR}/source/Tools/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${PROJECT_SOURCE_DIR}/source/Web/include
@@ -187,6 +188,7 @@ FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h
                        ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h  
                        ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Web/include/*.h ) 
+FILE( GLOB tinyxml_sources ${PROJECT_SOURCE_DIR}/source/TinyXML/src/*.cc )
 
 # Get source files with main function defined
 SET ( sources "" )
@@ -231,11 +233,12 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynami
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${obj_sources} ${obj_headers} )
 ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${obj_headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
+ADD_LIBRARY(tinyXML SHARED ${tinyxml_sources})
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
-TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} )
+TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} tinyXML)
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
 TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 
