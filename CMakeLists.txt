@@ -228,17 +228,19 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 # add the executable, and link it to the geant4 libraries
 #
 #SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynamic linking of internal/external libraries
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)            # Set automatically rpath for dynamic linking of external libraries
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # Set automatically rpath for dynamic linking of internally created & installed libraries
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${obj_sources} ${obj_headers} )
 ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${obj_headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
+
 ADD_LIBRARY(tinyXML SHARED ${tinyxml_sources})
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
-TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} tinyXML)
+TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} tinyXML )
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
 TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 
@@ -248,6 +250,9 @@ TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
 INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
+INSTALL(TARGETS tinyXML   ARCHIVE DESTINATION lib
+                          LIBRARY DESTINATION lib
+                          RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     

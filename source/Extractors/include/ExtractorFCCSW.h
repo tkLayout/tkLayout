@@ -17,6 +17,13 @@
 #include <Visitor.h>
 #include <AnalyzerUnit.h>
 
+// Forward declaration
+namespace tinyxml2
+{
+  class XMLDocument;
+  class XMLNode;
+}
+
 /*
  * @class ExtractorFCCSW
  * @brief A specialized analysis module extracting full tkLayout geometry description to an XML file, for use in FCCSW.
@@ -48,6 +55,9 @@ class ExtractorFCCSW : public AnalyzerUnit {
   bool visualize(RootWSite& webSite) {m_isVisOK=true; return m_isVisOK;}
 
  private:
+
+  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDoc;      //!< An XML base container (pointing to XML file created on disc)
+  tinyxml2::XMLNode*                     m_xmlNodeRoot; //!< XML root node
 
 }; // Class
 
