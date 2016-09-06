@@ -5,8 +5,8 @@
  * @author Stefano Martina
  */
 
-#ifndef MATERIALTAB_H_
-#define MATERIALTAB_H_
+#ifndef INCLUDE_MATERIALTAB_H_
+#define INCLUDE_MATERIALTAB_H_
 
 #include <map>
 #include <tuple>
@@ -48,4 +48,4 @@ class MaterialTab : public MaterialTabType {
 
 }; // Class
 
-#endif /* MATERIALTAB_H_ */
+#endif /* INCLUDE_MATERIALTAB_H_ */
