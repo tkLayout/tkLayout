@@ -56,8 +56,16 @@ class ExtractorFCCSW : public AnalyzerUnit {
 
  private:
 
+  //! Helper method printing out number with unit & given precision
+  std::string printWithUnit(double value, int precision, std::string unit);
+
   std::unique_ptr<tinyxml2::XMLDocument> m_xmlDoc;      //!< An XML base container (pointing to XML file created on disc)
   tinyxml2::XMLNode*                     m_xmlNodeRoot; //!< XML root node
+
+  const char* c_defaultBrlGeoCreator = "TkLayoutBrlTracker";
+  const char* c_defaultEcapGeoCreator= "TkLayoutEcapTracker";
+
+  const int c_precision = 3;
 
 }; // Class
 

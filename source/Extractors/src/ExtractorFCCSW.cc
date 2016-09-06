@@ -6,11 +6,20 @@
  */
 #include "ExtractorFCCSW.h"
 
-// Include files
-#include "tinyxml2.h"
+// System include files
+#include <boost/range/adaptor/reversed.hpp>
+
+// Project include files
+#include "Barrel.h"
+#include "Endcap.h"
+#include "global_funcs.h"
 #include "MainConfigHandler.h"
+#include "MaterialTab.h"
 #include "MessageLogger.h"
 #include "SimParms.h"
+#include "tinyxml2.h"
+#include "Tracker.h"
+#include "Units.h"
 
 // Used namespaces
 using namespace tinyxml2;
@@ -19,7 +28,8 @@ using namespace tinyxml2;
 // Constructor
 //
 ExtractorFCCSW::ExtractorFCCSW(const Detector& detector) :
- AnalyzerUnit("ExtractorFCCSW", detector)
+ AnalyzerUnit("ExtractorFCCSW", detector),
+ m_xmlNodeRoot(nullptr)
 {}
 
 //
@@ -41,7 +51,7 @@ bool ExtractorFCCSW::init(int nGeomTracks)
   m_xmlDoc->InsertFirstChild(xmlDeclare);
 
   // Create DD4Hep standard Root node: lcdd
-  XMLNode* m_xmlNodeRoot = m_xmlDoc->NewElement("lcdd");
+  m_xmlNodeRoot = m_xmlDoc->NewElement("lcdd");
   m_xmlNodeRoot->ToElement()->SetAttribute("xmlns:compact","http://www.lcsim.org/schemas/compact/1.0");
   m_xmlNodeRoot->ToElement()->SetAttribute("xmlns:xs","http://www.w3.org/2001/XMLSchema");
   m_xmlNodeRoot->ToElement()->SetAttribute("xs:noNamespaceSchemaLocation","http://www.lcsim.org/schemas/compact/1.0/compact.xsd");
@@ -73,6 +83,386 @@ bool ExtractorFCCSW::init(int nGeomTracks)
 // @return True if OK
 bool ExtractorFCCSW::analyze()
 {
+  // Access all geometry parameters through visitor pattern
+  //GeomExtractVisitor geomExtractVisitor(m_xmlDoc);
+
+  // Access material database
+  auto materialTab = MaterialTab::getInstance();
+
+  // Initialize detector id
+  short detId = 1;
+
+  // Go through the whole geometry hierarchy & build corresponding XML node
+  auto xmlDetectors = m_xmlDoc->NewElement("detectors");
+  m_xmlNodeRoot->InsertEndChild(xmlDetectors);
+
+  auto xmlDetComment = m_xmlDoc->NewElement("comment");
+  std::string text   = "The tracker geometry as described here follows the concept of CMS tracker design. Each sub-tracker (inner, outer, etc. tracker) is either of barrel type or end-cape type. ";
+  text              += "In case of barrel-type, individual modules are arranged in layers, layers consist of individual rods (ladders) and each rod contains several silicon modules. ";
+  text              += "Within a layer, even/odd rods are offset by +/-bigDelta parameter with respect to the layer average radius (rods are arranged in so-called staggered structure). ";
+  text              += "Further on, within each rod the modules are positioned in Z in a way, that they hermetically cover the primary vertex (taking also into account the Gaussian shape of p-p beam-spot). ";
+  text              += "Similar concept is hence used in positioning in Z, even/odd modules are offset by +-smallDelta parameter with respect to the rod average radius. ";
+  text              += "In case of end-cap type, individual modules are arranged in discs, discs consist of individual rings and each ring contains several silicon modules. ";
+  text              += "The modules hermetically cover the primary vertex up-to required eta. ";
+  text              += "In the same manner as for the rods, the rings are offset by +-/bigDelta parameter and as for the modules within a rod, the modules are offset by +/-smallDelta parameter. ";
+  text              += "Each sub-tracker is assumed to have a phi-symmetry, therefore the data are saved in the XML file in a way to avoid their duplication. ";
+  text              += "Each layer is described only by first two rods: an even and odd rod. ";
+  text              += "Similarly, each ring is described by first two modules: an even and odd module. ";
+  text              += "The symmetry considerations are also applied in a description of individual end-cap sub-trackers, where +/-Z symmetry is naturally assumed. ";
+  text              += "Therefore, only information about discs placed at positive Z are written out. ";
+  text              += "The end-cap tracker is designed in a way that the geometry of individual discs is replicated accross the whole end-cap sub-detector. ";
+  text              += "The XML file describes only one disc for each end-cap detector. ";
+
+  xmlDetComment->SetText(text.c_str());
+  xmlDetectors->InsertEndChild(xmlDetComment);
+
+
+
+  for (auto iTrk : m_trackers) {
+    for (const auto& iBrl : iTrk->barrels()) {
+
+      // Create detector element assigned to given barrel
+      auto xmlBrlDet = m_xmlDoc->NewElement("detector");
+      xmlBrlDet->SetAttribute("id", detId++);
+      xmlBrlDet->SetAttribute("name", std::string(iTrk->myid()+iBrl.myid()).c_str());
+      xmlBrlDet->SetAttribute("type", c_defaultBrlGeoCreator);
+      xmlDetectors->InsertEndChild(xmlBrlDet);
+
+      // Add detailed info about given barrel
+      auto xmlBrlDim = m_xmlDoc->NewElement("dimensions");
+
+      xmlBrlDim->SetAttribute("rmin", printWithUnit(iBrl.minR(), c_precision, "mm").c_str());
+      xmlBrlDim->SetAttribute("rmax", printWithUnit(iBrl.maxR(), c_precision, "mm").c_str());
+      xmlBrlDim->SetAttribute("zmin", printWithUnit(iBrl.minZ(), c_precision, "mm").c_str());
+      xmlBrlDim->SetAttribute("zmax", printWithUnit(iBrl.maxZ(), c_precision, "mm").c_str());
+      xmlBrlDet->InsertEndChild(xmlBrlDim);
+
+      // Add detailed info about layers
+      auto xmlBrlLayers = m_xmlDoc->NewElement("layers");
+      xmlBrlLayers->SetAttribute("repeat" , iBrl.numLayers());
+      for (const auto& iLayer : iBrl.layers()) {
+
+        if (iLayer.myid()==1) {
+          xmlBrlDet->InsertEndChild(xmlBrlLayers);
+        }
+
+        // Add detailed info about individual layer
+        auto xmlBrlIthLayer = m_xmlDoc->NewElement("layer");
+        xmlBrlIthLayer->SetAttribute("id",            iLayer.myid());
+        xmlBrlIthLayer->SetAttribute("radius",        printWithUnit(iLayer.avgBuildRadius(), c_precision, "mm").c_str());
+        xmlBrlIthLayer->SetAttribute("bigDelta",      printWithUnit(iLayer.bigDelta(),       c_precision, "mm").c_str());
+        xmlBrlIthLayer->SetAttribute("phi0",          printWithUnit(iLayer.layerRotation(),2*c_precision, "rad").c_str());
+        xmlBrlLayers->InsertEndChild(xmlBrlIthLayer);
+
+        // Rods general info
+        auto xmlBrlRods = m_xmlDoc->NewElement("rods");
+
+        // Add detailed info about rods
+        for (const auto& iRod : iLayer.rods()) {
+
+          // Odd rods
+          if (iRod.myid()==1) {
+
+            // Fill general info
+            xmlBrlRods->SetAttribute("repeat",        iLayer.numRods());
+            xmlBrlRods->SetAttribute("smallDelta",    printWithUnit(iLayer.smallDelta(), c_precision, "mm").c_str());
+            xmlBrlRods->SetAttribute("rPhiOverlap",   printWithUnit(iLayer.phiOverlap(), c_precision, "mm").c_str());
+            xmlBrlRods->SetAttribute("nRPhiSegments", iLayer.phiSegments());
+            try {
+              xmlBrlRods->SetAttribute("zOverlap", printWithUnit((dynamic_cast<const RodPairStraight&>(iRod)).zOverlap(), c_precision, "mm").c_str());
+            }
+            catch(std::bad_cast& e) {}
+            xmlBrlRods->SetAttribute("nModules", iRod.numModules());
+
+            xmlBrlIthLayer->InsertEndChild(xmlBrlRods);
+
+            // Odd rod
+            auto xmlBrlRodOdd = m_xmlDoc->NewElement("rodOdd");
+            xmlBrlRodOdd->SetAttribute("id", iRod.myid());
+            xmlBrlRods->InsertEndChild(xmlBrlRodOdd);
+
+            // Add all modules info (negative Z modules first, then positive)
+            auto xmlBrlModules = m_xmlDoc->NewElement("modules");
+            xmlBrlRodOdd->InsertEndChild(xmlBrlModules);
+
+            auto xmlBrlModProperties = m_xmlDoc->NewElement("moduleProperties");
+            xmlBrlRodOdd->InsertEndChild(xmlBrlModProperties);
+
+            auto xmlBrlSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+            xmlBrlRodOdd->InsertEndChild(xmlBrlSensorProperties);
+
+            int idMod = 1;
+
+            for (const auto& iMod : boost::adaptors::reverse(iRod.modules().second)) {
+
+              // Module properties
+              if (iMod.myid()==1) {
+                xmlBrlModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
+                xmlBrlModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
+                xmlBrlModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
+
+                xmlBrlSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("sensorWidth"    , printWithUnit(iMod.meanWidth(),c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("sensorThickness", printWithUnit(iMod.thickness(),c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
+                xmlBrlSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
+
+                auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
+                xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
+
+                for (auto& elem : iMod.materialObject().getLocalElements()) {
+
+                  auto xmlBrlModComponent = m_xmlDoc->NewElement("component");
+                  xmlBrlModComponent->SetAttribute("name",      elem->componentName().c_str());
+                  xmlBrlModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
+                  xmlBrlModComponent->SetAttribute("material",  elem->elementName().c_str());
+                  // TODO: Density, rad & length have fixed units in tkLayout -> don't apply unit coef.
+                  xmlBrlModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
+                  xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
+                  xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                  xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
+                }
+              }
+
+              // negative Z position & rotation
+              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              xmlBrlMod->SetAttribute("id",       idMod++);
+              xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlModules->InsertEndChild(xmlBrlMod);
+            }
+            for (const auto& iMod : iRod.modules().first) {
+
+              // positive Z position & rotation
+              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              xmlBrlMod->SetAttribute("id",       idMod++);
+              xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlModules->InsertEndChild(xmlBrlMod);
+            }
+          }
+          // Even rods
+          else if (iRod.myid()==2) {
+
+            auto xmlBrlRodEven = m_xmlDoc->NewElement("rodEven");
+            xmlBrlRodEven->SetAttribute("id", iRod.myid());
+            xmlBrlRods->InsertEndChild(xmlBrlRodEven);
+
+            // Add all modules info (negative Z modules first, then positive)
+            auto xmlBrlModules = m_xmlDoc->NewElement("modules");
+            xmlBrlRodEven->InsertEndChild(xmlBrlModules);
+
+            auto xmlBrlModProperties = m_xmlDoc->NewElement("moduleProperties");
+            xmlBrlRodEven->InsertEndChild(xmlBrlModProperties);
+
+            auto xmlBrlSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+            xmlBrlRodEven->InsertEndChild(xmlBrlSensorProperties);
+
+            int idMod = 1;
+
+            for (const auto& iMod : boost::adaptors::reverse(iRod.modules().second)) {
+
+              // Module properties
+              if (iMod.myid()==1) {
+                xmlBrlModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
+                xmlBrlModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
+                xmlBrlModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
+
+                xmlBrlSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("sensorWidth"    , printWithUnit(iMod.meanWidth(),c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("sensorThickness", printWithUnit(iMod.thickness(),c_precision, "mm").c_str());
+                xmlBrlSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
+                xmlBrlSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
+
+                auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
+                xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
+
+                for (auto& elem : iMod.materialObject().getLocalElements()) {
+
+                  auto xmlBrlModComponent = m_xmlDoc->NewElement("component");
+                  xmlBrlModComponent->SetAttribute("name",      elem->componentName().c_str());
+                  xmlBrlModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
+                  xmlBrlModComponent->SetAttribute("material",  elem->elementName().c_str());
+                  // TODO: Density, rad & length have fixed units in tkLayout -> don't apply unit coef.
+                  xmlBrlModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
+                  xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
+                  xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                  xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
+                }
+              }
+
+              // negative Z position & rotation
+              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              xmlBrlMod->SetAttribute("id",       idMod++);
+              xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlModules->InsertEndChild(xmlBrlMod);
+            }
+            for (const auto& iMod : iRod.modules().first) {
+
+              // positive Z position & rotation
+              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              xmlBrlMod->SetAttribute("id",       idMod++);
+              xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+              xmlBrlMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+              xmlBrlModules->InsertEndChild(xmlBrlMod);
+            }
+
+          }
+          else {
+            break;
+          } // Only first odd & even rod read-in
+        } // Rods
+      } // Layers
+    } // Barrels
+    for (const auto& iEcap : iTrk->endcaps()) {
+
+      // Create detector element assigned to given endcap
+      auto xmlEcapDet = m_xmlDoc->NewElement("det");
+      xmlEcapDet->SetAttribute("id", detId++);
+      xmlEcapDet->SetAttribute("name", std::string(iTrk->myid()+iEcap.myid()).c_str());
+      xmlEcapDet->SetAttribute("type", c_defaultEcapGeoCreator);
+      m_xmlNodeRoot->InsertEndChild(xmlEcapDet);
+
+      // Add detailed info about given endcap
+      auto xmlEcapDim = m_xmlDoc->NewElement("dimensions");
+
+      xmlEcapDim->SetAttribute("rmin", printWithUnit(iEcap.minR(), c_precision, "mm").c_str());
+      xmlEcapDim->SetAttribute("rmax", printWithUnit(iEcap.maxR(), c_precision, "mm").c_str());
+      xmlEcapDim->SetAttribute("zmin", printWithUnit(iEcap.minZ(), c_precision, "mm").c_str());
+      xmlEcapDim->SetAttribute("zmax", printWithUnit(iEcap.maxZ(), c_precision, "mm").c_str());
+      xmlEcapDet->InsertEndChild(xmlEcapDim);
+
+
+      // Add detailed info about discs
+      auto xmlEcapDiscs = m_xmlDoc->NewElement("discs");
+      xmlEcapDiscs->SetAttribute("repeat" , iEcap.numDisks());
+      xmlEcapDet->InsertEndChild(xmlEcapDiscs);
+
+      for (const auto& iDisc : iEcap.disks()) {
+
+        //// Print out only pos. Z
+        if (iDisc.averageZ()>0) {
+
+          // Add detailed info about individual disc
+          auto xmlEcapIthDisc = m_xmlDoc->NewElement("discZPls");
+          xmlEcapIthDisc->SetAttribute("id",       iDisc.myid());
+          xmlEcapIthDisc->SetAttribute("z",        printWithUnit(iDisc.averageZ(), c_precision, "mm").c_str());
+          xmlEcapIthDisc->SetAttribute("bigDelta", printWithUnit(iDisc.bigDelta(), c_precision, "mm").c_str());
+          xmlEcapDiscs->InsertEndChild(xmlEcapIthDisc);
+
+          // Rods general info
+          auto xmlEcapRings = m_xmlDoc->NewElement("rings");
+
+          // Add detailed info about rods
+          for (const auto& iRing : iDisc.rings()) {
+
+            if (iRing.myid()==1) {
+
+              // Fill general info
+              xmlEcapRings->SetAttribute("repeat",        iDisc.numRings());
+              xmlEcapRings->SetAttribute("smallDelta",    printWithUnit(iRing.smallDelta(), c_precision, "mm").c_str());
+              xmlEcapRings->SetAttribute("rPhiOverlap",   printWithUnit(iRing.phiOverlap(), c_precision, "mm").c_str());
+              xmlEcapRings->SetAttribute("nRPhiSegments", iRing.phiSegments());
+              xmlEcapRings->SetAttribute("rOverlap",      printWithUnit(iDisc.rOverlap(), c_precision, "mm" ).c_str());
+
+              xmlEcapIthDisc->InsertEndChild(xmlEcapRings);
+            }
+
+            // Discs are symmetrically shifted - fill only the first disc
+            if (iDisc.myid()==1) {
+              auto xmlEcapRing = m_xmlDoc->NewElement("ring");
+              xmlEcapRing->SetAttribute("id",       iRing.myid());
+              xmlEcapRing->SetAttribute("nModules", iRing.numModules());
+              xmlEcapRings->InsertEndChild(xmlEcapRing);
+
+              // Add all modules info (negative Z modules first, then positive)
+              auto xmlEcapModules = m_xmlDoc->NewElement("modules");
+              xmlEcapRing->InsertEndChild(xmlEcapModules);
+
+              auto xmlEcapModProperties = m_xmlDoc->NewElement("moduleProperties");
+              xmlEcapRing->InsertEndChild(xmlEcapModProperties);
+
+              auto xmlEcapSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+              xmlEcapRing->InsertEndChild(xmlEcapSensorProperties);
+
+              for (const auto& iMod : iRing.modules()) {
+
+                // Odd module -> use symmetry to build the ring
+                if (iMod.myid()==1) {
+
+                  auto xmlOddMod = m_xmlDoc->NewElement("moduleOdd");
+                  xmlOddMod->SetAttribute("id",       iMod.myid());
+                  xmlOddMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+                  xmlOddMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+                  xmlOddMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+                  xmlOddMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+                  xmlOddMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+                  xmlEcapModules->InsertEndChild(xmlOddMod);
+
+                  xmlEcapModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
+
+                  xmlEcapSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
+                  xmlEcapSensorProperties->SetAttribute("sensorWidthMin" , printWithUnit(iMod.minWidth(), c_precision, "mm").c_str());
+                  xmlEcapSensorProperties->SetAttribute("sensorWidthMax" , printWithUnit(iMod.maxWidth(), c_precision, "mm").c_str());
+                  xmlEcapSensorProperties->SetAttribute("sensorThickness", printWithUnit(iMod.thickness(),c_precision, "mm").c_str());
+                  xmlEcapSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
+                  xmlEcapSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
+
+                  auto xmlEcapModComponents = m_xmlDoc->NewElement("components");
+                  xmlEcapModProperties->InsertEndChild(xmlEcapModComponents);
+
+                  for (auto& elem : iMod.materialObject().getLocalElements()) {
+
+                    auto xmlEcapModComponent = m_xmlDoc->NewElement("component");
+                    xmlEcapModComponent->SetAttribute("name",      elem->componentName().c_str());
+                    xmlEcapModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
+                    xmlEcapModComponent->SetAttribute("material",  elem->elementName().c_str());
+                    // TODO: Density, rad & length have fixed units in tkLayout -> don't apply unit coef.
+                    xmlEcapModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
+                    xmlEcapModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
+                    xmlEcapModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                    xmlEcapModComponents->InsertEndChild(xmlEcapModComponent);
+                  }
+                }
+                // Even module -> use symmetry to build the ring
+                else if (iMod.myid()==2) {
+
+                  auto xmlEvenMod = m_xmlDoc->NewElement("moduleEven");
+                  xmlEvenMod->SetAttribute("id",       iMod.myid());
+                  xmlEvenMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
+                  xmlEvenMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
+                  xmlEvenMod->SetAttribute("Z",        printWithUnit(iMod.center().Z(), c_precision, "mm").c_str());
+                  xmlEvenMod->SetAttribute("phiTilt",  printWithUnit(iMod.skewAngle(), 2*c_precision, "rad").c_str());
+                  xmlEvenMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
+                  xmlEcapModules->InsertEndChild(xmlEvenMod);
+
+                }
+                else {
+                  break;
+                }
+              } // Modules
+            } // If pos. disk
+          } // Rings
+        }
+      } // Discs
+    } // Endcaps
+
+  } // Trackers
 
   // Save XML file
   std::string xmlDocName = SimParms::getInstance().getWebDir()+"/"+SimParms::getInstance().getLayoutName()+".xml";
@@ -91,3 +481,62 @@ bool ExtractorFCCSW::analyze()
 
   return m_isAnalysisOK;
 }
+
+//
+// Helper method printing out number with unit & given precision
+//
+std::string ExtractorFCCSW::printWithUnit(double value, int precision, std::string unit)
+{
+  float unitCoef = 1;
+
+  if      (unit=="mm")   unitCoef = Units::mm;
+  else if (unit=="cm")   unitCoef = Units::cm;
+  else if (unit=="m")    unitCoef = Units::m;
+  else if (unit=="um")   unitCoef = Units::um;
+  else if (unit=="rad")  unitCoef = 1;
+  else if (unit=="g/cm3")unitCoef = Units::g/Units::cm3;
+  else if (unit=="g/cm2")unitCoef = Units::g/Units::cm2;
+  else if (unit=="g/cm") unitCoef = Units::g/Units::cm;
+  else if (unit=="g/mm3")unitCoef = Units::g/Units::mm3;
+  else if (unit=="g/mm2")unitCoef = Units::g/Units::mm2;
+  else if (unit=="g/mm") unitCoef = Units::g/Units::mm;
+  else {
+
+    logERROR(std::string("Extractor::printWithUnit - Unsupported unit: ")+unit);
+  }
+
+  // Avoid minus zero values for the required precision
+  if (fabs(value/unitCoef*pow(10,precision))<0.1) value = 0;
+
+  std::stringstream myNum;
+  myNum.clear();
+  myNum << std::dec << std::fixed << std::setprecision(precision) << value/unitCoef;
+
+  std::string numWithUnit = myNum.str()+"*"+unit;
+
+  return numWithUnit;
+
+
+}
+
+////
+//// Helper class constructer
+////
+//GeomExtractVisitor::GeomExtractVisitor(tinyxml2::XMLDocument& xmlDoc) :
+// m_xmlDoc(xmlDoc),
+// m_trkID(0),
+//{}
+//
+//void GeomExtractVisitor::visit(const Tracker& t)
+//{
+//
+//
+//}
+////  void visit(const Barrel& b) override;
+////  void visit(const Endcap& e) override;
+////  void visit(const Layer& l) override;
+////  void visit(const Disk& d) override;
+////  void visit(const Ring& r) override;
+////  void visit(const DetectorModule& m) override;
+////  void visit(const EndcapModule& m) override;
+////  void postVisit();
