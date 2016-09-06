@@ -25,10 +25,7 @@ using insur::InactiveElement;
 
 class Barrel;
 class Endcap;
-
-namespace material {
-  class MaterialTab;
-}
+class MaterialTab;
 
 class SupportStructure : public PropertyObject, Visitable {
 
@@ -124,7 +121,7 @@ class SupportStructure : public PropertyObject, Visitable {
    double quantityInGrams(double length, double surface) const;
    void populateMaterialProperties(MaterialProperties& materialPropertie) const;
  private:
-   const material::MaterialTab& materialTab_;
+   const MaterialTab& m_materialTab;
    static const std::string msg_no_valid_unit;
  };
 }; // Class
