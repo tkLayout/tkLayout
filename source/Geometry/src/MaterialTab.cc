@@ -51,8 +51,6 @@ MaterialTab::MaterialTab()
         radLength *= Units::g/Units::cm2; // Quantities expected in g/cm2 on the input
         intLength *= Units::g/Units::cm2; // Quantities expected in g/cm2 on the input
 
-        std::cout << "Material: " << material << " "<< density << " " << radLength << " " << intLength << std::endl;
-
         insert(make_pair(material, make_tuple(density, radLength, intLength)));
       }
 
