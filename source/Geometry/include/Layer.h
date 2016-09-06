@@ -97,12 +97,17 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! A stands for an automatic mode, i.e. the closer configuration is chosen, either E or S. That's the implicit build mode.
   //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zErrorCollider), are always passing through edges of layer modules.
   //! The positioning algorithm starts at Z=0 and takes then into consideration the extreme cases, taking into account all parameters: bigDelta, smallDelta, zError, z/phiOverlap
-  Property<RadiusMode, Default>            radiusMode;
-  Property<double    , NoDefault>          requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
-  Property<double    , Computable>         avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
-  Property<bool      , Default>            sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
-  Property<double    , Default>            layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
-  Property<string    , AutoDefault>        tiltedLayerSpecFile; //!< Configuration file for tilted option
+  Property<RadiusMode, Default>     radiusMode;
+  Property<double    , NoDefault>   requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
+  Property<double    , Computable>  avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
+  Property<bool      , Default>     sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
+  Property<double    , Default>     layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
+  Property<string    , AutoDefault> tiltedLayerSpecFile; //!< Configuration file for tilted option
+
+  Property<double    , Default>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
+  Property<int       , Default>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+  Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
+  Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
 
  private:
 
@@ -123,12 +128,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   ConversionStation* m_flangeConversionStation;   //!< First order layer conversion unit
   ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
 
-  Property<double, NoDefault> m_smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
   Property<int   , Default>   m_smallParity;      //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
-  Property<double, NoDefault> m_bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
-  Property<double, Default>   m_phiOverlap;       //!< Required module overlap in R-Phi (in length units)
-  Property<int   , Default>   m_phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
   Property<bool  , Default>   m_useMinMaxRCorrect;//!< Apply smallDelta, bigDelta, detThickness, etc. when calculating minR/maxR for first/last layer? For backwards compatibility of lite version (on) versus older version (off)
 
   bool   m_sameRods;                              //! Build same geometrical rods across the whole barrel
