@@ -79,7 +79,7 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   double averageZ()  const { return m_averageZ; }
 
   //! Return disc thickness
-  double thickness() const { return m_bigDelta()*2 + maxRingThickness(); }
+  double thickness() const { return bigDelta()*2 + maxRingThickness(); }
 
   Property<int   , NoDefault> numRings; //!< Required number of rings in the disk -> TODO: Compression as for barrel rods
   Property<double, NoDefault> zError;   //!< When positioning modules take into account beam spot spread in Z
@@ -90,6 +90,9 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   ReadonlyProperty<double, Computable> maxR; //!< Disk maximum radius
   ReadonlyProperty<int   , Computable> totalModules;     //!< Total number of modules
   ReadonlyProperty<double, Computable> maxRingThickness; //!< Maximum ring thickness
+
+  Property<double, NoDefault> bigDelta;    //!< Ring versus another ring are positioned by +-bigDelta from the central Z pos.
+  Property<double, Default>   rOverlap;    //!< Required ring overlap in radius
 
  private:
 
@@ -114,8 +117,6 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
 
   Property<double, NoDefault> m_innerRadius; //!< Disc innermost radius
   Property<double, NoDefault> m_outerRadius; //!< Disc outermost radius
-  Property<double, NoDefault> m_bigDelta;    //!< Ring versus another ring are positioned by +-bigDelta from the central Z pos.
-  Property<double, Default>   m_rOverlap;    //!< Required ring overlap in radius
   Property<int   , Default>   m_bigParity;   //!< Use +bigDelta or -bigDelta as starting value in the positioning algorithm
 
   double m_zEndcapHalfLength; //!< Z halflength of endcap in which the disc is to bebuilt

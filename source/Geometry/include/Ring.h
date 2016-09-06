@@ -84,6 +84,9 @@ public:
   Property<        double, Default>     ringOuterRadius; //!< Define outer ring radius -> if not defined set optimally from disk level
   Property<        double, Default>     ringInnerRadius; //!< Define inner ring radius -> if not defined set optimally from disk level
 
+  Property<        double, Default>     phiOverlap;      //!< Required modules overlap in R-Phi direction (overlap in mm)
+  Property<        int   , Default>     phiSegments;     //!< Ring symmetry - number of symmetric segments, e.g 4 -> 90deg symmetry
+
 private:
 
    EndcapModules  m_modules;        //!< Modules built within a ring
@@ -114,9 +117,7 @@ private:
 
    Property<   ModuleShape, NoDefault> m_moduleShape;            //!< Use wedge or rectangular-shaped modules
    Property<BuildDirection, Default>   m_buildDirection;         //!< Use bottom-up or top-down approach -> initialized from disk level if not set by user
-   Property<        double, Default>   m_phiOverlap;             //!< Required modules overlap in R-Phi direction (overlap in mm)
    Property<        bool  , Default>   m_requireOddModsPerSlice; //!< Require odd number of modules per segment?
-   Property<        int   , Default>   m_phiSegments;            //!< Ring symmetry - number of symmetric segments, e.g 4 -> 90deg symmetry
    Property<        int   , Default>   m_additionalModules;      //!< Automatically calculates number of modules and adds this number to it
    Property<        bool  , Default>   m_alignEdges;             //!< Start building modules in the ring with its edge or centre
    Property<        double, Default>   m_ringGap;                //!< Required gap in-between rings
