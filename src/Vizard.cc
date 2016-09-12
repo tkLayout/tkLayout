@@ -5631,10 +5631,10 @@ namespace insur {
 
   void Vizard::createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections) {
     std::stringstream ss;
-    ss << "cnt, z, rho, phi, sebid, tt_list" << csv_eol;
+    ss << "cnt, z, rho, phi, detId, tt_list" << csv_eol;
     for (const auto& mapel : moduleConnections) {
       auto pos = mapel.first->posRef();
-      ss << pos.cnt << csv_separator << pos.z << csv_separator << pos.rho << csv_separator << pos.phi << csv_separator << mapel.second.sebCoords;
+      ss << pos.cnt << csv_separator << pos.z << csv_separator << pos.rho << csv_separator << pos.phi << csv_separator << mapel.second.detId();
       for (const auto& conn : mapel.second.connectedProcessors) {
         ss << csv_separator << 't' << conn.first << '_' << conn.second;
       }

@@ -229,20 +229,13 @@ void TriggerProcessorBandwidthVisitor::visit(const Tracker& t) {
 
 }
 
-void TriggerProcessorBandwidthVisitor::visit(const Barrel& b) {
-  seb_.layoffsets[++cntId_] = accumulatedLayerOffset_;
-  accumulatedLayerOffset_ += b.numLayers();
-}
-
-void TriggerProcessorBandwidthVisitor::visit(const Layer& l) { seb_.numModsZMinus[std::make_pair(cntId_,l.myid())] = l.numModulesPerRodSide(-1); }
-
 void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
   TableRef p = m.tableRef();
 
+  uint32_t detId = m.myDetId();
+  moduleConnections[&m].detId(detId);
+
   int etaConnections = 0, totalConnections = 0;
-
-  int sebCoords = dynamic_cast<const BarrelModule*>(&m) ? seb_.sebifyBarrelCoords((const BarrelModule&)m) : seb_.sebifyEndcapCoords((const EndcapModule&)m);
-
   for (int i=0; i < numProcEta; i++) {
     if (AnalyzerHelpers::isModuleInEtaSector(*simParms_, *tracker_, m, i)) {
       etaConnections++;
@@ -261,29 +254,14 @@ void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
           processorInboundStubsPerEvent_[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][std::make_pair(p.row, p.col)];
           processorInboundStubPerEventSummary.setCell(j+1, i+1, processorInboundStubsPerEvent_[std::make_pair(j,i)]);
 
-          sectorMap[make_pair(i+1, j+1)].insert(sebCoords);
+          sectorMap[make_pair(i+1, j+1)].insert(moduleConnections[&m].detId());
         } 
       }
     }
   }
   moduleConnections[&m].etaCpuConnections(etaConnections);
   moduleConnections[&m].phiCpuConnections(totalConnections > 0 ? totalConnections/etaConnections : 0);
-  moduleConnections[&m].sebCoords = sebCoords;
 }
-
-int TriggerProcessorBandwidthVisitor::Sebifier::sebifyBarrelCoords(const BarrelModule& m) const {
-  int layer = 4 + m.layer() + layoffsets.at(m.cntId()); 
-  int ladder = m.rod()-1;
-  int module = (m.ring()*m.side() + numModsZMinus.at(std::make_pair(m.cntId(),m.layer())) - (m.side()>0));
-  return layer*10000 + ladder*100 + module;
-}
-
-int TriggerProcessorBandwidthVisitor::Sebifier::sebifyEndcapCoords(const EndcapModule& m) const {
-  int disk = 10 + m.disk() + 7 * (m.side()<0);
-  int ring = m.ring()-1;
-  int module = m.blade()-1;
-  return disk*10000 + ring*100 + module;
-} 
 
 void TriggerProcessorBandwidthVisitor::postVisit() {
 
@@ -299,7 +277,6 @@ void TriggerProcessorBandwidthVisitor::postVisit() {
   for (auto mvp : moduleConnections) {
     moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
     std::set<pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
-    int sebCoords = (dynamic_cast<const BarrelModule*>(mvp.first)) ? seb_.sebifyBarrelCoords(*(BarrelModule*)mvp.first) : seb_.sebifyEndcapCoords(*(EndcapModule*)mvp.first);
     if (connectedProcessors.size() == 1) {
       int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
       processorCommonConnectionMatrix[std::make_pair(ref, ref)] += 1;
