@@ -5650,8 +5650,8 @@ namespace insur {
       int layerId_;
     public:
       void preVisit() {
-        output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D" << std::endl;
-        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+        //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
+        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D, DetId/I" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -5669,7 +5669,8 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
-		<< m.sensorThickness()
+		<< m.sensorThickness() << ","
+		<< m.myDetId()
 		<< std::endl;
       }
 
@@ -5690,7 +5691,7 @@ namespace insur {
       int numRods_;
     public:
       void preVisit() {
-        output_ << "Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+        output_ << "Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm), DetId" << std::endl;
       }
       void visit(const Barrel& b) {
         barName_ = b.myid();
@@ -5701,7 +5702,7 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " 
+	output_ << barName_ << "-L" << layId_ << ", " 
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
 		<< m.center().Z() << ", "
@@ -5710,7 +5711,8 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
-		<< m.sensorThickness()
+		<< m.sensorThickness() << ", "
+		<< m.myDetId()
 		<< std::endl;
       }
 
@@ -5730,7 +5732,7 @@ namespace insur {
       int diskId_;
     public:
       void preVisit() {
-        output_ << "Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+        output_ << "Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm), DetId" << std::endl;
       }
       void visit(const Endcap& e) {
 	endcapName_ = e.myid();
@@ -5741,7 +5743,7 @@ namespace insur {
       void visit(const EndcapModule& m) {
         if (m.minZ() < 0.) return;
 
-	output_ << endcapName_ << "-D" << diskId_ << ", " 	
+	output_	<< endcapName_ << "-D" << diskId_ << ", " 	
 		<< m.ring() << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
@@ -5751,7 +5753,8 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
-		<< m.sensorThickness()
+		<< m.sensorThickness() << ", "
+		<< m.myDetId()
 		<< std::endl;
       }
 
