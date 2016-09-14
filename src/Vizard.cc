@@ -2226,6 +2226,7 @@ namespace insur {
 	}
       }
     } // debugResolution
+    gStyle->SetOptStat(0);
 
 
     //********************************//
