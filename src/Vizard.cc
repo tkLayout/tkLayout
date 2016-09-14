@@ -2384,7 +2384,8 @@ namespace insur {
     filesContent->addItem(myTextFile);
     // All coordinates
     myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
-    myTextFile->addText(createAllModulesCsv(tracker));
+    bool withHeader = true;
+    myTextFile->addText(createAllModulesCsv(tracker, withHeader));
     filesContent->addItem(myTextFile);
 
     return true;
@@ -2697,6 +2698,11 @@ namespace insur {
     myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
     myTextFile->addText(getSummaryLabelString()+"\n");
     myTextFile->addText(getSummaryString());
+    summaryContent->addItem(myTextFile);
+
+    // DetId list with associated geometry info
+    myTextFile = new RootWTextFile("DetId_list.csv", "DetId list with associated geometry info");
+    myTextFile->addText(createDetIdListCsv());
     summaryContent->addItem(myTextFile);
 
     // Occupancy vs. radius
@@ -5714,22 +5720,23 @@ namespace insur {
     moduleConnectionsCsv_ = ss.str();
   }
 
-  std::string Vizard::createAllModulesCsv(const Tracker& t) {
+  std::string Vizard::createAllModulesCsv(const Tracker& t, bool& withHeader) {
     class TrackerVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
       string sectionName_;
       int layerId_;
     public:
       void preVisit() {
-        output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D" << std::endl;
-        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+        //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
+        output_ << "DetId/U, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
       void visit(const Layer& l)  { layerId_ = l.myid(); }
       void visit(const Disk& d)  { layerId_ = d.myid(); }
       void visit(const Module& m) {
-        output_ << sectionName_ << ", "
+        output_ << m.myDetId() << ","
+		<< sectionName_ << ", "
 		<< layerId_ << ", "
 		<< m.moduleRing() << ", "
 		<< std::fixed << std::setprecision(6)
@@ -5748,7 +5755,7 @@ namespace insur {
     };
 
     TrackerVisitor v;
-    v.preVisit();
+    if (withHeader) v.preVisit();
     t.accept(v);
     return v.output();
   }
@@ -5761,7 +5768,7 @@ namespace insur {
       int numRods_;
     public:
       void preVisit() {
-        output_ << "Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+        output_ << "DetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
       }
       void visit(const Barrel& b) {
         barName_ = b.myid();
@@ -5772,7 +5779,8 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " 
+	output_ << m.myDetId() << ", "
+		<< barName_ << "-L" << layId_ << ", " 
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
 		<< m.center().Z() << ", "
@@ -5801,7 +5809,7 @@ namespace insur {
       int diskId_;
     public:
       void preVisit() {
-        output_ << "Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+        output_ << "DetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
       }
       void visit(const Endcap& e) {
 	endcapName_ = e.myid();
@@ -5812,7 +5820,8 @@ namespace insur {
       void visit(const EndcapModule& m) {
         if (m.minZ() < 0.) return;
 
-	output_ << endcapName_ << "-D" << diskId_ << ", " 	
+	output_	<< m.myDetId() << ", "
+		<< endcapName_ << "-D" << diskId_ << ", " 	
 		<< m.ring() << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
@@ -5822,7 +5831,7 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
-		<< m.sensorThickness()
+		<< m.sensorThickness()	
 		<< std::endl;
       }
 
@@ -5833,6 +5842,21 @@ namespace insur {
     t.accept(v);
     return v.output();
   }
+
+  std::string Vizard::createDetIdListCsv() {
+    std::stringstream header;
+    header << "DetId/U, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    std::string detIdsListCsv = header.str();
+
+    for (unsigned int i=0; i< trackers_.size(); ++i) {
+      Tracker& tracker = *(trackers_.at(i));
+      bool withHeader = false;
+      detIdsListCsv += createAllModulesCsv(tracker, withHeader);
+    }
+
+    return detIdsListCsv;
+  }
+
 
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
     TEllipse* myEllipse = new TEllipse(0,0,radius);

@@ -3,6 +3,7 @@
 
 #include <typeinfo>
 #include <string>
+#include <bitset>
 
 #include "GeometryFactory.h"
 #include "messageLogger.h"
@@ -58,6 +59,7 @@ class DetIdentifiable {
 
  public:
   uint32_t myDetId() const { return myDetId_; }
+  std::bitset<32> myBinaryDetId() const { std::bitset<32> myBinaryDetId(myDetId_); return myBinaryDetId; }
   std::map<int, uint32_t> detIdRef() const { return detIdRef_; }
   // i will create a capabilities.cc and put that in it, sorry in the meantime ;p
   void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts) {
