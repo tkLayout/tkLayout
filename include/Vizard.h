@@ -285,6 +285,7 @@ namespace insur {
     std::string createBarrelModulesCsv(const Tracker& t);
     std::string createEndcapModulesCsv(const Tracker& t);
     std::string createAllModulesCsv(const Tracker& t);
+    std::string createDetIdListCsv();
 
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);

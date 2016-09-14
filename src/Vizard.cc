@@ -2628,6 +2628,11 @@ namespace insur {
     myTextFile->addText(getSummaryString());
     summaryContent->addItem(myTextFile);
 
+    // DetId list with associated geometry info
+    myTextFile = new RootWTextFile("DetId_list.csv", "DetId list with associated geometry info");
+    myTextFile->addText(createDetIdListCsv());
+    summaryContent->addItem(myTextFile);
+
     // Occupancy vs. radius
     myTextFile = new RootWTextFile("occupancy.csv", "Occupancy vs. radius");
     myTextFile->addText(occupancyCsv_);
@@ -5651,7 +5656,7 @@ namespace insur {
     public:
       void preVisit() {
         //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
-        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D, DetId/I" << std::endl;
+        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D, DetId/U" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -5765,6 +5770,52 @@ namespace insur {
     t.accept(v);
     return v.output();
   }
+
+  std::string Vizard::createDetIdListCsv() {
+    class TrackerVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string sectionName_;
+      int layerId_;
+    public:
+      void visit(const Barrel& b) { sectionName_ = b.myid(); }
+      void visit(const Endcap& e) { sectionName_ = e.myid(); }
+      void visit(const Layer& l)  { layerId_ = l.myid(); }
+      void visit(const Disk& d)  { layerId_ = d.myid(); }
+      void visit(const Module& m) {
+        output_ << m.myDetId() << ","
+		<< m.myBinaryDetId() << ","
+		<< sectionName_ << ", "
+		<< layerId_ << ", "
+		<< m.moduleRing() << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.center().Rho() << ", "
+		<< m.center().Z() << ", "
+		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< m.center().Phi() * 180. / M_PI << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.dsDistance() << ", "
+		<< m.sensorThickness()
+		<< std::endl;
+      }
+
+      std::string output() const { return output_.str(); }
+    };
+
+    std::stringstream output;
+    output << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    std::string detIdsListCsv = output.str();
+
+    for (unsigned int i=0; i< trackers_.size(); ++i) {
+      Tracker& tracker = *(trackers_.at(i));
+      TrackerVisitor v;
+      tracker.accept(v);
+      detIdsListCsv += v.output();
+    }
+
+    return detIdsListCsv;
+  }
+
 
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
     TEllipse* myEllipse = new TEllipse(0,0,radius);
