@@ -90,7 +90,7 @@ bool ExtractorFCCSW::analyze()
   auto materialTab = MaterialTab::getInstance();
 
   // Initialize detector id
-  short detId = 1;
+  short detId = c_defaultTrackerId;
 
   // Go through the whole geometry hierarchy & build corresponding XML node
   auto xmlDetectors = m_xmlDoc->NewElement("detectors");
@@ -112,11 +112,24 @@ bool ExtractorFCCSW::analyze()
   text              += "Therefore, only information about discs placed at positive Z are written out. ";
   text              += "The end-cap tracker is designed in a way that the geometry of individual discs is replicated accross the whole end-cap sub-detector. ";
   text              += "The XML file describes only one disc for each end-cap detector. ";
+  text              += "Additionally, the modules material budget as described by moduleProperties tag (as a sequence of material components) is assumed to be for simplicity uniformaly distributed across the module surface. ";
+  text              += "Individual material properties are specified as defined within tkLayout, i.e. by their density, radiation and interaction lengths. ";
+  text              += "Finally, positioning of individual modules have been optimized in the tkLayout software. Hence, the relevant geometry parameters are directly the X, Y, Z coordinates of modules ";
+  text              += "centre position plus modules rotation: in phi (phiTilt) and theta (thetaTilt=0*deg for barrel modules, thetaTilt=90*deg for end-cap modules. ";
+  text              += "Other parameters, based on which tkLayout algorithms have found the optimial positions of tracker modules are given just for completeness. ";
 
   xmlDetComment->SetText(text.c_str());
   xmlDetectors->InsertEndChild(xmlDetComment);
 
+  auto xmlDetComment2 = m_xmlDoc->NewElement("comment");
+  text                = "The tracker numbering scheme applied in the XML is designed as follows: all sub-trackers, barrels/discs, layers/rings etc. are numbered by increasing ID from inside, i.e. IP, out. ";
+  text               += "Individual subtrackers' ID start with 10, subtracker components' ID with 1. In addition, no global numbering scheme accross the overall tracker is applied. Instead, ";
+  text               += "the hierarchical scheme is used, e.g. individual rings numbering starts with ID=1 for each disc, modules numbering with ID=1 for each ring etc. ";
+  text               += "As for the sub-components arranged in R-Phi, ID increases along the increasing phi angle (rotation along Z-axis in right-handed coordinate scheme), starting with ID=1 ";
+  text               += "for a component positioned at phi0. As for the sub-components arranged in Z (e.g. modules in a rod), ID increases from -Z to +Z.";
 
+  xmlDetComment2->SetText(text.c_str());
+  xmlDetectors->InsertEndChild(xmlDetComment2);
 
   for (auto iTrk : m_trackers) {
     for (const auto& iBrl : iTrk->barrels()) {
@@ -199,7 +212,6 @@ bool ExtractorFCCSW::analyze()
               if (iMod.myid()==1) {
                 xmlBrlModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
                 xmlBrlModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
-                xmlBrlModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
 
                 xmlBrlSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
                 xmlBrlSensorProperties->SetAttribute("sensorWidth"    , printWithUnit(iMod.meanWidth(),c_precision, "mm").c_str());
@@ -209,6 +221,8 @@ bool ExtractorFCCSW::analyze()
 
                 auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
                 xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
+
+                double modThick = 0;
 
                 for (auto& elem : iMod.materialObject().getLocalElements()) {
 
@@ -221,7 +235,10 @@ bool ExtractorFCCSW::analyze()
                   xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                   xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
                   xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
+
+                  modThick += elem->quantity();
                 }
+                xmlBrlModProperties->SetAttribute("modThickness", printWithUnit(modThick, c_precision, "mm").c_str());
               }
 
               // negative Z position & rotation
@@ -272,7 +289,6 @@ bool ExtractorFCCSW::analyze()
               if (iMod.myid()==1) {
                 xmlBrlModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
                 xmlBrlModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
-                xmlBrlModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
 
                 xmlBrlSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
                 xmlBrlSensorProperties->SetAttribute("sensorWidth"    , printWithUnit(iMod.meanWidth(),c_precision, "mm").c_str());
@@ -282,6 +298,8 @@ bool ExtractorFCCSW::analyze()
 
                 auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
                 xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
+
+                double modThick = 0;
 
                 for (auto& elem : iMod.materialObject().getLocalElements()) {
 
@@ -294,7 +312,10 @@ bool ExtractorFCCSW::analyze()
                   xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                   xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
                   xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
+
+                  modThick += elem->quantity();
                 }
+                xmlBrlModProperties->SetAttribute("modThickness", printWithUnit(modThick, c_precision, "mm").c_str());
               }
 
               // negative Z position & rotation
@@ -385,6 +406,7 @@ bool ExtractorFCCSW::analyze()
             if (iDisc.myid()==1) {
               auto xmlEcapRing = m_xmlDoc->NewElement("ring");
               xmlEcapRing->SetAttribute("id",       iRing.myid());
+              xmlEcapRing->SetAttribute("phi0",     printWithUnit(iRing.zRotation(),2*c_precision, "rad").c_str());
               xmlEcapRing->SetAttribute("nModules", iRing.numModules());
               xmlEcapRings->InsertEndChild(xmlEcapRing);
 
@@ -413,8 +435,8 @@ bool ExtractorFCCSW::analyze()
                   xmlEcapModules->InsertEndChild(xmlOddMod);
 
                   xmlEcapModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
-                  xmlEcapModProperties->SetAttribute("modWidth"       , printWithUnit(iMod.meanWidth(),      c_precision, "mm").c_str());
-                  xmlEcapModProperties->SetAttribute("modThickness"   , printWithUnit(0,                     c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modWidthMin"    , printWithUnit(iMod.minWidth(),       c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modWidthMax"    , printWithUnit(iMod.maxWidth(),       c_precision, "mm").c_str());
 
                   xmlEcapSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
                   xmlEcapSensorProperties->SetAttribute("sensorWidthMin" , printWithUnit(iMod.minWidth(), c_precision, "mm").c_str());
@@ -425,6 +447,8 @@ bool ExtractorFCCSW::analyze()
 
                   auto xmlEcapModComponents = m_xmlDoc->NewElement("components");
                   xmlEcapModProperties->InsertEndChild(xmlEcapModComponents);
+
+                  double modThick = 0;
 
                   for (auto& elem : iMod.materialObject().getLocalElements()) {
 
@@ -437,7 +461,10 @@ bool ExtractorFCCSW::analyze()
                     xmlEcapModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                     xmlEcapModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
                     xmlEcapModComponents->InsertEndChild(xmlEcapModComponent);
+
+                    modThick += elem->quantity();
                   }
+                  xmlEcapModProperties->SetAttribute("modThickness", printWithUnit(modThick, c_precision, "mm").c_str());
                 }
                 // Even module -> use symmetry to build the ring
                 else if (iMod.myid()==2) {

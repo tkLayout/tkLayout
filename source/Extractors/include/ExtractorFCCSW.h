@@ -65,6 +65,7 @@ class ExtractorFCCSW : public AnalyzerUnit {
   const char* c_defaultBrlGeoCreator = "TkLayoutBrlTracker";
   const char* c_defaultEcapGeoCreator= "TkLayoutEcapTracker";
 
+  const int c_defaultTrackerId = 10;
   const int c_precision = 3;
 
 }; // Class
