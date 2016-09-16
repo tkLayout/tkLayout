@@ -5665,6 +5665,7 @@ namespace insur {
       void visit(const Disk& d)  { layerId_ = d.myid(); }
       void visit(const Module& m) {
         output_ << m.myDetId() << ","
+		<< m.myBinaryDetId() << ","
 		<< sectionName_ << ", "
 		<< layerId_ << ", "
 		<< m.moduleRing() << ", "
@@ -5709,6 +5710,7 @@ namespace insur {
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
 	output_ << m.myDetId() << ", "
+		<< m.myBinaryDetId() << ","
 		<< barName_ << "-L" << layId_ << ", " 
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
@@ -5750,6 +5752,7 @@ namespace insur {
         if (m.minZ() < 0.) return;
 
 	output_	<< m.myDetId() << ", "
+		<< m.myBinaryDetId() << ","
 		<< endcapName_ << "-D" << diskId_ << ", " 	
 		<< m.ring() << ", "
 		<< std::fixed << std::setprecision(6)
