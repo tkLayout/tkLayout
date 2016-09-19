@@ -3,7 +3,7 @@
 alias errecho='>&2 echo'
 
 if [ -d '.git' ]; then
-  myVersion="`git rev-parse --abbrev-ref HEAD`-`git rev-list HEAD | wc -l` on `git config --get remote.origin.url`"
+  myVersion="`git rev-parse --abbrev-ref HEAD`-`git rev-list HEAD | wc -l`-`git rev-parse --short HEAD` on `git config --get remote.origin.url`"
 #  echo "-DREVISIONNUMBER=\"\\\"$myVersion\\\"\""
 elif [ -d '.svn' ] ; then
   if which svnversion >/dev/null; then
