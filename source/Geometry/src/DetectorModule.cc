@@ -257,6 +257,16 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
   double resolution = sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
 
+  // Used in special studies
+  //double tilt     =  M_PI/2. - atan(1./trackCotgTheta);
+  //double localRes = resolutionLocalY();
+  //
+  //double eta = -log(tan(0.5*atan(1./trackCotgTheta)));
+  //
+  //if (eta>1.0 && eta<3.5) localRes = localRes* pow(10,-0.31*(eta-1));
+  //
+  //double resolution = sqrt(pow(((D*cos(tilt) + sin(tilt))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tilt) + cos(tilt)) * localRes,2));
+
   // Return calculated resolution (resolutionLocalY is intrinsic resolution along Z for barrel module)
   return resolution; //resolutionLocalY();
 }

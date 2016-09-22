@@ -772,7 +772,7 @@ void LayerDiskSummaryVisitor::preVisit() {
 //  m_moduleTable->setContent(12, 0, "Number of channels (Z 1.side):               ");
 //  m_moduleTable->setContent(13, 0, "Number of channels (Z 2.side):               ");
   m_moduleTable->setContent( 8, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m):    ");
-  m_moduleTable->setContent( 9, 0, "Min-Max Z resolution ("+web_muLetter+"m):        ");
+  m_moduleTable->setContent( 9, 0, "Min-Max Z(R) resolution ("+web_muLetter+"m):        ");
 }
 
 //
