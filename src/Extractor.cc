@@ -178,6 +178,87 @@ namespace insur {
     std::cout << "Analysis done." << std::endl;
   }
 
+
+
+
+  double Extractor::compute_X0(int pZ, double pA) {
+    double Z = pZ;
+    const double alpha = 1/137.035999139;
+    double a = alpha*Z;
+    double a_2 = a*a;
+    double a_3 = a*a*a;
+    double a_4 = a_2*a_2;
+    double a_6 = a_3*a_3;
+    double f_Z = a_2*(1/(1+a_2)+0.20206-0.0369*a_3+0.0083*a_4-0.002*a_6);
+    double L_Z, L_prime_Z;
+    switch (pZ) {
+    case 1:
+      // H
+      L_Z       = 5.31;
+      L_prime_Z = 6.144;
+      break;
+    case 2:
+      // He
+      L_Z       = 4.79;
+      L_prime_Z = 5.621;
+      break;
+    case 3:
+      // Li
+      L_Z       = 4.74;
+      L_prime_Z = 5.805;
+      break;
+    case 4:
+      // Be:
+      L_Z       = 4.71;
+      L_prime_Z = 5.924;
+      break;
+    default:
+      // Z >4
+      L_Z = log(184.15) - 1/3. * log(Z);
+      L_prime_Z = log(1194) - 2/3. * log(Z);
+    }
+    
+    // X_0
+    return 716.408 * pA / (Z*Z*(L_Z-f_Z) + Z*L_prime_Z);
+  }
+
+  int Extractor::findClosest_Z(double pA, double radiationLength) {
+    double distance = fabs(radiationLength - compute_X0(1, pA));
+    int closest_Z = 1;
+    for (int i=2; i<85; ++i) {
+      double aDistance = fabs(radiationLength-compute_X0(i, pA));
+      if (aDistance<distance) distance = aDistance , closest_Z=i;
+    }
+    return closest_Z;
+  }
+
+  std::pair<double, int> Extractor::getAZ(double radiationLength, double interactionLength) {
+    const double A_a = 31.645;
+    const double A_b = 11.57238;
+    double A_estimate = pow((interactionLength-A_b)/A_a,3);
+    int Z = findClosest_Z(A_estimate, radiationLength);
+    double radEstimate = compute_X0(Z, A_estimate);
+    // correct A to obtain the right radLength, but leave 1/3 of the
+    // correction aside, given the relative dependencies
+    A_estimate /= pow(radEstimate/radiationLength, 2/3.);
+
+    radEstimate = compute_X0(Z, A_estimate);  
+    double intEstimate = pow(A_estimate, 1./3.)*A_a+A_b;
+
+    /*cout << radiationLength << "\t"
+	 << interactionLength << "\t"
+	 << A_estimate << "\t"
+	 << Z << "\t"
+	 << radEstimate << "\t"
+	 << intEstimate << "\t"
+	 << (radEstimate-radiationLength)/radiationLength << "\t"
+	 << (intEstimate-interactionLength)/interactionLength << endl;*/
+
+    std::pair<double, int> AZ = std::make_pair(A_estimate, Z);
+    return AZ;
+  }
+
+
   //protected
   /**
    * This is one of the smaller analysis functions that provide the core functionality of this class. It goes through
@@ -193,8 +274,9 @@ namespace insur {
       MaterialRow& r = mattab.getMaterial(i);
       e.tag = r.tag;
       e.density = r.density;
-      e.atomic_weight = pow((r.ilength / 35.), 3); // magic!
-      e.atomic_number = Z(r.rlength, e.atomic_weight);
+      std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
+      e.atomic_weight = AZ.first;
+      e.atomic_number = AZ.second;
       elems.push_back(e);
     }
   }
@@ -2481,6 +2563,7 @@ namespace insur {
       d = 1000 * m / d;
     }
     else d = 1000 * mc.getTotalMass() / d;
+    std::cout << "composite d = " << std::endl;
     return d;
   }
 
@@ -2515,13 +2598,13 @@ namespace insur {
    * @param A The atomic weight
    * @return The atomic number
    */
-  int Extractor::Z(double x0, double A) {
+  /*int Extractor::Z(double x0, double A) {
     // TODO: understand this: why do we need to
     // get an integer value as output?
     double d = 4 - 4 * (1.0 - 181.0 * A / x0);
     if (d > 0) return int(floor((sqrt(d) - 2.0) / 2.0 + 0.5));
     else return -1;
-  }
+    }*/
 
 
   const double ModuleComplex::kmm3Tocm3 = 1e-3;

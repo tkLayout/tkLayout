@@ -111,7 +111,10 @@ namespace insur {
     double compositeDensity(ModuleCap& mc, bool nosensors = false);
     double compositeDensity(InactiveElement& ie);
     double fromRim(double r, double w);
-    int Z(double x0, double A);
+    //int Z(double x0, double A);
+    double compute_X0(int pZ, double pA);
+    int findClosest_Z(double pA, double radiationLength);
+    std::pair<double, int> getAZ(double radiationLength, double interactionLength);
   };
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
