@@ -51,7 +51,7 @@ bool ExtractorFCCSW::init(int nGeomTracks)
   m_xmlDoc->InsertFirstChild(xmlDeclare);
 
   // Create DD4Hep standard Root node: lcdd
-  m_xmlNodeRoot = m_xmlDoc->NewElement("lcdd");
+  m_xmlNodeRoot = m_xmlDoc->NewElement("lccdd");
   m_xmlNodeRoot->ToElement()->SetAttribute("xmlns:compact","http://www.lcsim.org/schemas/compact/1.0");
   m_xmlNodeRoot->ToElement()->SetAttribute("xmlns:xs","http://www.w3.org/2001/XMLSchema");
   m_xmlNodeRoot->ToElement()->SetAttribute("xs:noNamespaceSchemaLocation","http://www.lcsim.org/schemas/compact/1.0/compact.xsd");
@@ -88,6 +88,41 @@ bool ExtractorFCCSW::analyze()
 
   // Access material database
   auto materialTab = MaterialTab::getInstance();
+
+  // Readouts
+  auto xmlDetReadouts = m_xmlDoc->NewElement("readouts");
+  m_xmlNodeRoot->InsertEndChild(xmlDetReadouts);
+
+  // Brl read-out
+  auto xmlDetBrlReadout = m_xmlDoc->NewElement("readout");
+  xmlDetBrlReadout->SetAttribute("name", c_defaultBrlReadout);
+  xmlDetReadouts->InsertEndChild(xmlDetBrlReadout);
+
+  auto xmlDetBrlSeg = m_xmlDoc->NewElement("segmentation");
+  xmlDetBrlSeg->SetAttribute("type","CartesianGridXY");
+  xmlDetBrlSeg->SetAttribute("grid_size_x", printWithUnit(c_readoutGridX, c_precision, "mm").c_str());
+  xmlDetBrlSeg->SetAttribute("grid_size_y", printWithUnit(c_readoutGridY, c_precision, "mm").c_str());
+  xmlDetBrlReadout->InsertEndChild(xmlDetBrlSeg);
+
+  auto xmlDetBrlId = m_xmlDoc->NewElement("id");
+  xmlDetBrlId->SetText("system:4,layer:5,rod:8,module:8,module_component:4,x:40:-8,y:-8");
+  xmlDetBrlReadout->InsertEndChild(xmlDetBrlId);
+
+  // Ecap read-out
+  auto xmlDetEcapReadout = m_xmlDoc->NewElement("readout");
+  xmlDetEcapReadout->SetAttribute("name", c_defaultEcapReadout);
+  xmlDetReadouts->InsertEndChild(xmlDetEcapReadout);
+
+  auto xmlDetEcapSeg = m_xmlDoc->NewElement("segmentation");
+  xmlDetEcapSeg->SetAttribute("type","CartesianGridXY");
+  xmlDetEcapSeg->SetAttribute("grid_size_x", printWithUnit(c_readoutGridX, c_precision, "mm").c_str());
+  xmlDetEcapSeg->SetAttribute("grid_size_y", printWithUnit(c_readoutGridY, c_precision, "mm").c_str());
+  xmlDetEcapReadout->InsertEndChild(xmlDetEcapSeg);
+
+  auto xmlDetEcapId = m_xmlDoc->NewElement("id");
+  xmlDetEcapId->SetText("system:4,posneg:1,disc:5,ring:8,module:8,module_component:4,x:40:-8,y:-8");
+  xmlDetEcapReadout->InsertEndChild(xmlDetEcapId);
+
 
   // Initialize detector id
   short detId = c_defaultTrackerId;
@@ -139,6 +174,7 @@ bool ExtractorFCCSW::analyze()
       xmlBrlDet->SetAttribute("id", detId++);
       xmlBrlDet->SetAttribute("name", std::string(iTrk->myid()+iBrl.myid()).c_str());
       xmlBrlDet->SetAttribute("type", c_defaultBrlGeoCreator);
+      xmlBrlDet->SetAttribute("readout", c_defaultBrlReadout);
       xmlDetectors->InsertEndChild(xmlBrlDet);
 
       // Add detailed info about given barrel
@@ -149,6 +185,11 @@ bool ExtractorFCCSW::analyze()
       xmlBrlDim->SetAttribute("zmin", printWithUnit(iBrl.minZ(), c_precision, "mm").c_str());
       xmlBrlDim->SetAttribute("zmax", printWithUnit(iBrl.maxZ(), c_precision, "mm").c_str());
       xmlBrlDet->InsertEndChild(xmlBrlDim);
+
+      // Add sensitive type
+      auto xmlBrlSens = m_xmlDoc->NewElement("sensitive");
+      xmlBrlSens->SetAttribute("type", c_defaultSensDet);
+      xmlBrlDet->InsertEndChild(xmlBrlSens);
 
       // Add detailed info about layers
       auto xmlBrlLayers = m_xmlDoc->NewElement("layers");
@@ -234,6 +275,8 @@ bool ExtractorFCCSW::analyze()
                   xmlBrlModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
                   xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                   xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                  if (elem->quantity()==iMod.thickness()) xmlBrlModComponent->SetAttribute("sensitive", "true");
+                  else                                    xmlBrlModComponent->SetAttribute("sensitive", "false");
                   xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
 
                   modThick += elem->quantity();
@@ -311,6 +354,8 @@ bool ExtractorFCCSW::analyze()
                   xmlBrlModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
                   xmlBrlModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                   xmlBrlModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                  if (elem->quantity()==iMod.thickness()) xmlBrlModComponent->SetAttribute("sensitive", "true");
+                  else                                    xmlBrlModComponent->SetAttribute("sensitive", "false");
                   xmlBrlModComponents->InsertEndChild(xmlBrlModComponent);
 
                   modThick += elem->quantity();
@@ -351,11 +396,12 @@ bool ExtractorFCCSW::analyze()
     for (const auto& iEcap : iTrk->endcaps()) {
 
       // Create detector element assigned to given endcap
-      auto xmlEcapDet = m_xmlDoc->NewElement("det");
+      auto xmlEcapDet = m_xmlDoc->NewElement("detector");
       xmlEcapDet->SetAttribute("id", detId++);
       xmlEcapDet->SetAttribute("name", std::string(iTrk->myid()+iEcap.myid()).c_str());
       xmlEcapDet->SetAttribute("type", c_defaultEcapGeoCreator);
-      m_xmlNodeRoot->InsertEndChild(xmlEcapDet);
+      xmlEcapDet->SetAttribute("readout", c_defaultEcapReadout);
+      xmlDetectors->InsertEndChild(xmlEcapDet);
 
       // Add detailed info about given endcap
       auto xmlEcapDim = m_xmlDoc->NewElement("dimensions");
@@ -366,6 +412,10 @@ bool ExtractorFCCSW::analyze()
       xmlEcapDim->SetAttribute("zmax", printWithUnit(iEcap.maxZ(), c_precision, "mm").c_str());
       xmlEcapDet->InsertEndChild(xmlEcapDim);
 
+      // Add sensitive type
+      auto xmlEcapSens = m_xmlDoc->NewElement("sensitive");
+      xmlEcapSens->SetAttribute("type", c_defaultSensDet);
+      xmlEcapDet->InsertEndChild(xmlEcapSens);
 
       // Add detailed info about discs
       auto xmlEcapDiscs = m_xmlDoc->NewElement("discs");
@@ -434,9 +484,11 @@ bool ExtractorFCCSW::analyze()
                   xmlOddMod->SetAttribute("thetaTilt",printWithUnit(iMod.tiltAngle(), 2*c_precision, "rad").c_str());
                   xmlEcapModules->InsertEndChild(xmlOddMod);
 
-                  xmlEcapModProperties->SetAttribute("modLength"      , printWithUnit(iMod.physicalLength(), c_precision, "mm").c_str());
-                  xmlEcapModProperties->SetAttribute("modWidthMin"    , printWithUnit(iMod.minWidth(),       c_precision, "mm").c_str());
-                  xmlEcapModProperties->SetAttribute("modWidthMax"    , printWithUnit(iMod.maxWidth(),       c_precision, "mm").c_str());
+                  double modLength = iMod.physicalLength();
+                  if (modLength==0.0) modLength = iMod.length(); // Parameter not specified, to build module wafer the radius was used instead -> hence use direcly length parameter
+                  xmlEcapModProperties->SetAttribute("modLength"      , printWithUnit(modLength,       c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modWidthMin"    , printWithUnit(iMod.minWidth(), c_precision, "mm").c_str());
+                  xmlEcapModProperties->SetAttribute("modWidthMax"    , printWithUnit(iMod.maxWidth(), c_precision, "mm").c_str());
 
                   xmlEcapSensorProperties->SetAttribute("sensorLength"   , printWithUnit(iMod.length(),   c_precision, "mm").c_str());
                   xmlEcapSensorProperties->SetAttribute("sensorWidthMin" , printWithUnit(iMod.minWidth(), c_precision, "mm").c_str());
@@ -460,6 +512,8 @@ bool ExtractorFCCSW::analyze()
                     xmlEcapModComponent->SetAttribute("density",   printWithUnit(materialTab.density(elem->elementName()),          c_precision, "g/cm3").c_str());
                     xmlEcapModComponent->SetAttribute("radLength", printWithUnit(materialTab.radiationLength(elem->elementName()),  c_precision, "g/cm2").c_str());
                     xmlEcapModComponent->SetAttribute("intLength", printWithUnit(materialTab.interactionLength(elem->elementName()),c_precision, "g/cm2").c_str());
+                    if (elem->quantity()==iMod.thickness()) xmlEcapModComponent->SetAttribute("sensitive", "true");
+                    else                                    xmlEcapModComponent->SetAttribute("sensitive", "false");
                     xmlEcapModComponents->InsertEndChild(xmlEcapModComponent);
 
                     modThick += elem->quantity();
