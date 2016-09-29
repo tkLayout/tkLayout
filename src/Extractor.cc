@@ -196,6 +196,10 @@ namespace insur {
       std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
       e.atomic_weight = AZ.first;
       e.atomic_number = AZ.second;
+      // Z and A are calculated from radiation length and nuclear interaction lengths.
+      // THIS IS BECAUSE RADIATION LENGTH AND NUCLEAR INTERACTION LENGTH CANNOT BE TRANSMITED DIRECTLY TO CMSSW.
+      // Hence, Z and A (and density) only are transmitted to CMSSW.
+      // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from this Z, A, and density info.
       elems.push_back(e);
     }
   }
@@ -2519,24 +2523,22 @@ namespace insur {
   std::pair<double, int> Extractor::getAZ(double radiationLength, double interactionLength) {
     const double A_a = 31.645;
     const double A_b = 11.57238;
-    double A_estimate = pow((interactionLength-A_b)/A_a,3);
-    int Z = findClosest_Z(A_estimate, radiationLength);
-    double radEstimate = compute_X0(Z, A_estimate);
-    // correct A to obtain the right radLength, but leave 1/3 of the
-    // correction aside, given the relative dependencies
-    A_estimate /= pow(radEstimate/radiationLength, 2/3.);
+    double A_estimate = pow((interactionLength-A_b)/A_a,3); // Wait, A value will be corrected in a few lines.
+    int Z = findClosest_Z(A_estimate, radiationLength); // Now, we have Z !
 
+    // Correct A to obtain the right radLength, but leave 1/3 of the
+    // correction aside, given the relative dependencies
+    double radEstimate = compute_X0(Z, A_estimate);   
+    A_estimate /= pow(radEstimate/radiationLength, 2/3.); // Now, we have A !
+
+    // Bonus : calculate estimated radiation length and interaction lengths that one can get from the provided Z and A values.
     radEstimate = compute_X0(Z, A_estimate);  
     double intEstimate = pow(A_estimate, 1./3.)*A_a+A_b;
-
-    /*cout << radiationLength << "\t"
-      << interactionLength << "\t"
-      << A_estimate << "\t"
-      << Z << "\t"
-      << radEstimate << "\t"
-      << intEstimate << "\t"
-      << (radEstimate-radiationLength)/radiationLength << "\t"
-      << (intEstimate-interactionLength)/interactionLength << endl;*/
+    // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from Z, A and density.
+    // Now, a question is whether the computed radiation and interaction lengths on CMMSW side (similar to radEstimate and intEstimate) are closed to the values we initially had at hand (double radiationLength and interactionLength) !
+    // The estimated errors can be calculated by :
+    // Error on radiation length : (radEstimate-radiationLength)/radiationLength
+    // Error on nuclear interaction length : (intEstimate-interactionLength)/interactionLength
 
     std::pair<double, int> AZ = std::make_pair(A_estimate, Z);
     return AZ;
