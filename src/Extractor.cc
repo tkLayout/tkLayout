@@ -2482,7 +2482,6 @@ namespace insur {
       d = 1000 * m / d;
     }
     else d = 1000 * mc.getTotalMass() / d;
-    std::cout << "composite d = " << std::endl;
     return d;
   }
 
