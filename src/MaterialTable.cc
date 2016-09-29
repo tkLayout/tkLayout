@@ -94,7 +94,7 @@ namespace insur {
 
   double ElementaryMaterial::getRadiationLength() {
     if (rlength_ <= 0) {
-      rlength_ = 716.4*a_/(z_*(z_+1)+log(287/sqrt(z_)));
+      rlength_ = 716.4*a_/(z_*(z_+1)*log(287/sqrt(z_)));
     }
     return rlength_;
   }
