@@ -841,7 +841,7 @@ void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
 
   // Get unique sensor tag
   TagMaker moduleTagMaker(m);
-  std::string tag = moduleTagMaker.sensorGeoTag;
+  std::string tag = moduleTagMaker.sensorResTag;
 
   // Relate tags to positions
   m_moduleTagToPositionsMap[tag].insert(moduleTagMaker.posTag);

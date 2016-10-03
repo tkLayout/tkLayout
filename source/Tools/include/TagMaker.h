@@ -12,20 +12,22 @@ using std::stringstream;
 
 class TagMaker : public ConstGeometryVisitor {
 public:
-  string sensorTag, sensorGeoTag, posTag;
+  string sensorTag, sensorGeoTag, sensorResTag, posTag;
 
   TagMaker(const DetectorModule& m) { m.accept(*this); }
 
   void visit(const BarrelModule& m) {
-    sensorTag = makeSensorTag(m);
+    sensorTag    = makeSensorTag(m);
     sensorGeoTag = makeSensorGeoTag(m);
-    posTag = makePosTag(m);
+    sensorResTag = makeSensorResolTag(m);
+    posTag       = makePosTag(m);
   }
 
   void visit(const EndcapModule& m) {
-    sensorTag = makeSensorTag(m);
+    sensorTag    = makeSensorTag(m);
     sensorGeoTag = makeSensorGeoTag(m);
-    posTag = makePosTag(m);
+    sensorResTag = makeSensorResolTag(m);
+    posTag       = makePosTag(m);
   }
 
 
@@ -65,7 +67,7 @@ public:
 
     return ss.str();
   }
-                          
+
   static string makeSensorGeoTag(const EndcapModule& m) {
     stringstream ss;
     ss << "Endcap"
@@ -79,7 +81,37 @@ public:
     for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegments();
 
     return ss.str();
-  }    
+  }
+
+  static string makeSensorResolTag(const BarrelModule& m) {
+    stringstream ss;
+    ss << "Barrel"
+       << "/Width=" << int(m.maxWidth()*1000)/1000.
+       << "/Height=" << int(m.length()*1000)/1000.
+       << "/Thickness=" << int(m.thickness()*1000)/1000.
+       << "/Type=" << m.moduleType()
+       << "/ResolutionX=" << m.resolutionLocalX()
+       << "/ResolutionY=" << m.resolutionLocalY()
+       << "/Faces=" << m.numSensors();
+    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegments();
+
+    return ss.str();
+  }
+
+  static string makeSensorResolTag(const EndcapModule& m) {
+    stringstream ss;
+    ss << "Barrel"
+       << "/Width=" << int(m.maxWidth()*1000)/1000.
+       << "/Height=" << int(m.length()*1000)/1000.
+       << "/Thickness=" << int(m.thickness()*1000)/1000.
+       << "/Type=" << m.moduleType()
+       << "/ResolutionX=" << m.resolutionLocalX()
+       << "/ResolutionY=" << m.resolutionLocalY()
+       << "/Faces=" << m.numSensors();
+    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegments();
+
+    return ss.str();
+  }
 
   static string makePosTag(const BarrelModule& m) {
     stringstream ss;
@@ -89,8 +121,7 @@ public:
 
   static string makePosTag(const EndcapModule& m) {
     stringstream ss;
-    ss << m.cntName() << "_R" << setfill('0') << setw(2) << m.ring();
-    //<< "D" << m.disk();
+    ss << m.cntName() << "_R" << setfill('0') << setw(2) << m.ring() << "D" << m.disk();
     return ss.str();
   }
 
