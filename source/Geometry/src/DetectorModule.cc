@@ -10,8 +10,8 @@ define_enum_strings(ReadoutMode)  = { "binary", "cluster" };
 //
 // Constructor - specify unique id, geometry module defining shape & parse geometry config file using boost property tree & read-in module parameters
 //
-DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
- Decorator<GeometricModule>(decorated),
+DetectorModule::DetectorModule(int id, GeometricModule* moduleGeom, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
+ BaseModule(moduleGeom),
  m_materialObject(MaterialObject::MODULE),
  minZ                     (string("minZ")             ),
  maxZ                     (string("maxZ")             ),
@@ -69,8 +69,8 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<
 //
 // Constructor - specify unique id, geometry module defining shape & parse geometry config file using boost property tree & read-in module parameters
 //
-DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree& treeProperty) :
- Decorator<GeometricModule>(decorated),
+DetectorModule::DetectorModule(int id, GeometricModule* moduleGeom, const PropertyTree& treeProperty) :
+ BaseModule(moduleGeom),
  m_materialObject(MaterialObject::MODULE),
  minZ                     (string("minZ")             ),
  maxZ                     (string("maxZ")             ),
@@ -130,6 +130,7 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree&
 DetectorModule::~DetectorModule()
 {
   if (m_moduleCap!=nullptr) delete m_moduleCap;
+  if (m_moduleGeom!=nullptr) delete m_moduleGeom;
 }
 
 //
@@ -138,10 +139,10 @@ DetectorModule::~DetectorModule()
 void DetectorModule::build() {
 
   check();
-  if (!decorated().builtok()) {
+  if (!m_moduleGeom->builtok()) {
 
-    decorated().store(propertyTree());
-    decorated().build();
+    m_moduleGeom->store(propertyTree());
+    m_moduleGeom->build();
   }
   if (numSensors() > 0) {
 
@@ -350,6 +351,9 @@ double DetectorModule::effectiveDsDistance() const {
   else return dsDistance()*sin(center().Theta())/sin(center().Theta()+tiltAngle());
 }
 
+//
+// Check if track hit the module. If yes, return the intersection point of 2D plane & track as a hit + its type (which module sensor(s) was/were hit)
+//
 std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const {
 
   HitType ht = HitType::NONE;
@@ -377,8 +381,8 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   return std::make_pair(gc, ht);
 };
 
-BarrelModule::BarrelModule(int id, Decorated* decorated, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
- DetectorModule(id, decorated, nodeProperty, treeProperty)
+BarrelModule::BarrelModule(int id, GeometricModule* moduleGeom, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
+ DetectorModule(id, moduleGeom, nodeProperty, treeProperty)
 {}
 
 //
@@ -392,10 +396,10 @@ void BarrelModule::build()
     DetectorModule::build();
 
     // Initialize module: rotations & translations called at higher level for the whole set of modules
-    decorated().rotateY(M_PI/2);
+    m_moduleGeom->rotateY(M_PI/2);
     m_rAxis = normal();
-    m_tiltAngle = 0.;
-    m_skewAngle = 0.;
+    m_moduleGeom->tiltAngle(0.);
+    m_moduleGeom->skewAngle(0.);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
 
@@ -477,7 +481,7 @@ void BarrelModule::setup()
 void BarrelModule::accept(GeometryVisitor& v) {
   v.visit(*this);
   v.visit(*(DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
@@ -486,14 +490,14 @@ void BarrelModule::accept(GeometryVisitor& v) {
 void BarrelModule::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   v.visit(*(const DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
 // Constructor - parse geometry config file using boost property tree & read-in module parameters, specify unique id
 //
-EndcapModule::EndcapModule(int id, Decorated* decorated, const PropertyTree& treeProperty) :
- DetectorModule(id, decorated, treeProperty)
+EndcapModule::EndcapModule(int id, GeometricModule* moduleGeom, const PropertyTree& treeProperty) :
+ DetectorModule(id, moduleGeom, treeProperty)
 {}
 
 //
@@ -508,8 +512,8 @@ void EndcapModule::build()
 
     // Initialize module: rotations & translations called at higher level for the whole set of modules
     m_rAxis = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
-    m_tiltAngle = M_PI/2.;
-    m_skewAngle = 0.;
+    m_moduleGeom->tiltAngle(M_PI/2.);
+    m_moduleGeom->skewAngle(0.);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();
@@ -646,7 +650,7 @@ void EndcapModule::setup()
 void EndcapModule::accept(GeometryVisitor& v) {
   v.visit(*this);
   v.visit(*(DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
@@ -655,6 +659,6 @@ void EndcapModule::accept(GeometryVisitor& v) {
 void EndcapModule::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   v.visit(*(const DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 

@@ -1,172 +1,210 @@
 #include "GeometricModule.h"
 
+define_enum_strings(ModuleShape) = { "rectangular", "wedge" };
+
 double ModuleHelpers::polygonAperture(const Polygon3d<4>& poly) { 
   auto minmax = std::minmax_element(poly.begin(), poly.end(), [](const XYZVector& v1, const XYZVector& v2) { return v1.Phi() < v2.Phi(); }); 
   return minmax.second->Phi() - minmax.first->Phi(); 
 }
 
+//
+// Constructor base class
+//
+GeometricModule::GeometricModule() :
+    dsDistance("dsDistance", parsedAndChecked(), 0.),
+    physicalLength("physicalLength", parsedOnly(), 0.)
+{}
 
-// Distance between origin and module if hits
+// ??? method -> Distance between origin and module if hits
 // Otherwise -1
-double GeometricModule::trackCross(const XYZVector& PL, // Base line point
-                                   const XYZVector& PU) // Line direction
-{
-  double distance;
+//double GeometricModule::trackCross(const XYZVector& PL, // Base line point
+//                                   const XYZVector& PU) // Line direction
+//{
+//  double distance;
+//
+//  distance = triangleCross(basePoly().getVertex(0),
+//                           basePoly().getVertex(1),
+//                           basePoly().getVertex(2),
+//                           PL, PU);
+//
+//  if (distance<0) {
+//    distance = triangleCross(basePoly().getVertex(0),
+//                             basePoly().getVertex(2),
+//                             basePoly().getVertex(3),
+//                             PL, PU);
+//  }
+//
+//  if (distance>=0) {
+//    m_numHits++;
+//    distance /= PU.r();
+//  } else {
+//    return -1;
+//  }
+//
+//  return distance;
+//
+//}
 
-  distance = triangleCross(basePoly().getVertex(0),
-                           basePoly().getVertex(1),
-                           basePoly().getVertex(2),
-                           PL, PU);
+// ???
+//double GeometricModule::triangleCross(const XYZVector& P1, // Triangle points
+//                                      const XYZVector& P2,
+//                                      const XYZVector& P3,
+//                                      const XYZVector& PL, // Base line point
+//                                      const XYZVector& PU) // Line direction
+//{
+//  bool moduleHit = false;
+//
+//  // Triangle coordinates
+//  // t - P1 = alpha * (P2-P1) + beta * (P3-P1)
+//
+//  // Line coordinates:
+//  // r = PL + gamma * PU
+//
+//
+//  // How to solve the generic problem:
+//
+//  // d = PL - P1
+//  // A = (P2-P1, P3-P1, -PU)
+//  // v = intersection point
+//  TVectorD d = TVectorD(3);
+//  TMatrixD A = TMatrixD(3, 3);
+//  TVectorD v = TVectorD(3);
+//
+//  d(0)=PL.x()-P1.x();
+//  d(1)=PL.y()-P1.y();
+//  d(2)=PL.z()-P1.z();
+//
+//  A(0, 0)=P2.x()-P1.x();
+//  A(0, 1)=P3.x()-P1.x();
+//  A(0, 2)=-1*PU.x();
+//  A(1, 0)=P2.y()-P1.y();
+//  A(1, 1)=P3.y()-P1.y();
+//  A(1, 2)=-1*PU.y();
+//  A(2, 0)=P2.z()-P1.z();
+//  A(2, 1)=P3.z()-P1.z();
+//  A(2, 2)=-1*PU.z();
+//
+//  Double_t determ;
+//  A.InvertFast(&determ);
+//
+//  // The matrix is invertible
+//  if (determ!=0) {
+//    // v = A^{-1} * d
+//    v = A * d;
+//    // v(0) = alpha : triangle local coordinate
+//    // v(1) = beta  : triangle local coordinate
+//    // v(2) = gamma : line coordinate
+//
+//    //     std::cout << "Alpha: " << v(0) << std::endl;
+//    //     std::cout << "Beta:  " << v(1) << std::endl;
+//    //     std::cout << "Gamma: " << v(2) << std::endl;
+//
+//    if (
+//      (v(0)>=0)&&
+//      (v(1)>=0)&&
+//      ((v(0)+v(1))<=1)
+//      ) {
+//      moduleHit = true;
+//    } else {
+//      moduleHit = false;
+//    }
+//
+//  } else {
+//    // It does not cross the triangle
+//    moduleHit=false;
+//    std::cout << "Matrix is not invertible" << std::endl; // debug
+//  }
+//
+//
+//  if (moduleHit) {
+//    return v(2);
+//  } else {
+//    return -1.;
+//  }
+//
+//}
 
-  if (distance<0) {
-    distance = triangleCross(basePoly().getVertex(0),
-                             basePoly().getVertex(2),
-                             basePoly().getVertex(3),
-                             PL, PU);
-  }
+//
+// Constructor - derived class
+//
+RectangularModule::RectangularModule() :
+    m_length(     "length"       , parsedOnly()), // not checked because a custom checker is defined for RectangularModules
+    width(        "width"        , parsedOnly()), // same here
+    aspectRatio(  "aspectRatio"  , parsedOnly()), // same here
+    waferDiameter("waferDiameter", parsedAndChecked(), 131.)
+{}
 
-  if (distance>=0) {
-    numHits_++;
-    distance /= PU.r();
-  } else {
-    return -1;
-  }
-
-  return distance;
-
-}
-
-
-
-double GeometricModule::triangleCross(const XYZVector& P1, // Triangle points
-                                      const XYZVector& P2,
-                                      const XYZVector& P3,
-                                      const XYZVector& PL, // Base line point
-                                      const XYZVector& PU) // Line direction
-{
-  bool moduleHit = false;
-
-  // Triangle coordinates
-  // t - P1 = alpha * (P2-P1) + beta * (P3-P1)
-
-  // Line coordinates:
-  // r = PL + gamma * PU
-
-
-  // How to solve the generic problem:
-
-  // d = PL - P1
-  // A = (P2-P1, P3-P1, -PU)
-  // v = intersection point
-  TVectorD d = TVectorD(3);
-  TMatrixD A = TMatrixD(3, 3);
-  TVectorD v = TVectorD(3);
-
-  d(0)=PL.x()-P1.x();
-  d(1)=PL.y()-P1.y();
-  d(2)=PL.z()-P1.z();
-
-  A(0, 0)=P2.x()-P1.x();
-  A(0, 1)=P3.x()-P1.x();
-  A(0, 2)=-1*PU.x();
-  A(1, 0)=P2.y()-P1.y();
-  A(1, 1)=P3.y()-P1.y();
-  A(1, 2)=-1*PU.y();
-  A(2, 0)=P2.z()-P1.z();
-  A(2, 1)=P3.z()-P1.z();
-  A(2, 2)=-1*PU.z();
-
-  Double_t determ;
-  A.InvertFast(&determ);
-
-  // The matrix is invertible
-  if (determ!=0) {
-    // v = A^{-1} * d
-    v = A * d;
-    // v(0) = alpha : triangle local coordinate
-    // v(1) = beta  : triangle local coordinate
-    // v(2) = gamma : line coordinate
-
-    //     std::cout << "Alpha: " << v(0) << std::endl;
-    //     std::cout << "Beta:  " << v(1) << std::endl;
-    //     std::cout << "Gamma: " << v(2) << std::endl;
-
-    if (
-      (v(0)>=0)&&
-      (v(1)>=0)&&
-      ((v(0)+v(1))<=1)
-      ) {
-      moduleHit = true;
-    } else {
-      moduleHit = false;
-    }
-
-  } else {
-    // It does not cross the triangle
-    moduleHit=false;
-    std::cout << "Matrix is not invertible" << std::endl; // debug
-  }
-
-
-  if (moduleHit) {
-    return v(2);
-  } else {
-    return -1.;
-  }
-
-}
-
-
-
-
-
-
+//
+// Cross-check that parameters set correctly
+//
 void RectangularModule::check() {
+
   GeometricModule::check();
 
-  if (length_.state() && width.state()) {
-    aspectRatio(length_()/width());
-  } else if (!length_.state() && width.state() && aspectRatio.state()) { 
-    length_(width() * aspectRatio());
-  } else if (length_.state() && !width.state() && aspectRatio.state()) {
-    width(length_() / aspectRatio());
-  } else if (!length_.state() && !width.state() && aspectRatio.state()) {
-    length_(waferDiameter() * sin(atan(aspectRatio())));
+  if (m_length.state() && width.state()) {
+    aspectRatio(length()/width());
+  } else if (!m_length.state() && width.state() && aspectRatio.state()) {
+    m_length(width() * aspectRatio());
+  } else if (m_length.state() && !width.state() && aspectRatio.state()) {
+    width(length() / aspectRatio());
+  } else if (!m_length.state() && !width.state() && aspectRatio.state()) {
+    m_length(waferDiameter() * sin(atan(aspectRatio())));
     width(waferDiameter() * cos(atan(aspectRatio())));
   } else {
     throw PathfulException("Module geometry is inconsistently specified");
   }
 }
 
-
+//
+// Build rectangular shape
+//
 void RectangularModule::build() {
   try { 
     check();
 
     float l = length(), w = width();
-    basePoly_ << XYZVector( l/2, w/2, 0) 
-              << XYZVector(-l/2, w/2, 0)
-              << XYZVector(-l/2,-w/2, 0)
-              << XYZVector( l/2,-w/2, 0);
+    m_basePoly << XYZVector( l/2, w/2, 0)
+               << XYZVector(-l/2, w/2, 0)
+               << XYZVector(-l/2,-w/2, 0)
+               << XYZVector( l/2,-w/2, 0);
     cleanup();
     builtok(true);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
 }
 
+//
+// Constructor - derived class
+//
+WedgeModule::WedgeModule() :
+    buildAperture(    "buildAperture",     parsedAndChecked()),
+    buildDistance(    "buildDistance",     parsedAndChecked()),
+    buildCropDistance("buildCropDistance", parsedAndChecked()),
+    waferDiameter(    "waferDiameter",     parsedAndChecked(), c_defaultWaferDiam)
+{
+  // Initialize values -> calculated when build() called
+  m_length        = 0;
+  m_minWidth      = 0;
+  m_maxWidth      = 0;
+  m_area          = 0;
+  m_cropped       = false;
+  m_amountCropped = 0;;
 
+}
 
-
+//
+// Build wedge shape
+//
 void WedgeModule::build() {
   try {
     check();
 
     //////// BEGIN COPY-PASTE WITH MINIMAL ADJUSTMENTS ////////
-    cropped_ = false;
+    m_cropped = false;
 
-    double r = waferDiameter()/2.;
+    double r   = waferDiameter()/2.;
     double phi = buildAperture()/2.;// We need the half angle covered by the module
-    double d = buildDistance();
+    double d   = buildDistance();
 
     //double gamma1; // alternate
     double gamma2;
@@ -207,19 +245,19 @@ void WedgeModule::build() {
     //}
 
     // Some member variable computing:
-    area_     = fabs((b1+b2) * (h2+h1));
-    length_   = (b1 + b2);
-    //phiWidth_ = 2*phi;
-    minWidth_  = 2 * h1;
-    maxWidth_  = 2 * h2;
-  //dist_     = d;
-  //aspectRatio_ = length_/(h1+h2);
+    m_area     = fabs((b1+b2) * (h2+h1));
+    m_length   = (b1 + b2);
+    //m_phiWidth = 2*phi;
+    m_minWidth = 2 * h1;
+    m_maxWidth = 2 * h2;
+    //m_dist     = d;
+    //m_aspectRatio = length_/(h1+h2);
 
     // Right-handed drawing, (not left-handed as previously)
-    basePoly_ << (XYZVector( length_/2., maxWidth_/2., 0))
-              << (XYZVector(-length_/2., minWidth_/2., 0))
-              << (XYZVector(-length_/2.,-minWidth_/2., 0))
-              << (XYZVector( length_/2.,-maxWidth_/2., 0));
+    m_basePoly << (XYZVector( m_length/2., m_maxWidth/2., 0))
+               << (XYZVector(-m_length/2., m_minWidth/2., 0))
+               << (XYZVector(-m_length/2.,-m_minWidth/2., 0))
+               << (XYZVector( m_length/2.,-m_maxWidth/2., 0));
 
     cleanup();
     builtok(true);
@@ -227,4 +265,4 @@ void WedgeModule::build() {
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
 }
 
-define_enum_strings(ModuleShape) = { "rectangular", "wedge" };
+
