@@ -204,6 +204,8 @@ bool ExtractorFCCSW::analyze()
         auto xmlBrlIthLayer = m_xmlDoc->NewElement("layer");
         xmlBrlIthLayer->SetAttribute("id",            iLayer.myid());
         xmlBrlIthLayer->SetAttribute("radius",        printWithUnit(iLayer.avgBuildRadius(), c_precision, "mm").c_str());
+        xmlBrlIthLayer->SetAttribute("rmin",          printWithUnit(iLayer.minRAllMat()    , c_precision, "mm").c_str());
+        xmlBrlIthLayer->SetAttribute("rmax",          printWithUnit(iLayer.maxRAllMat()    , c_precision, "mm").c_str());
         xmlBrlIthLayer->SetAttribute("bigDelta",      printWithUnit(iLayer.bigDelta(),       c_precision, "mm").c_str());
         xmlBrlIthLayer->SetAttribute("phi0",          printWithUnit(iLayer.layerRotation(),2*c_precision, "rad").c_str());
         xmlBrlLayers->InsertEndChild(xmlBrlIthLayer);
@@ -430,8 +432,10 @@ bool ExtractorFCCSW::analyze()
           // Add detailed info about individual disc
           auto xmlEcapIthDisc = m_xmlDoc->NewElement("discZPls");
           xmlEcapIthDisc->SetAttribute("id",       iDisc.myid());
-          xmlEcapIthDisc->SetAttribute("z",        printWithUnit(iDisc.averageZ(), c_precision, "mm").c_str());
-          xmlEcapIthDisc->SetAttribute("bigDelta", printWithUnit(iDisc.bigDelta(), c_precision, "mm").c_str());
+          xmlEcapIthDisc->SetAttribute("z",        printWithUnit(iDisc.averageZ(),   c_precision, "mm").c_str());
+          xmlEcapIthDisc->SetAttribute("zmin",     printWithUnit(iDisc.minZAllMat(), c_precision, "mm").c_str());
+          xmlEcapIthDisc->SetAttribute("zmax",     printWithUnit(iDisc.maxZAllMat(), c_precision, "mm").c_str());
+          xmlEcapIthDisc->SetAttribute("bigDelta", printWithUnit(iDisc.bigDelta(),   c_precision, "mm").c_str());
           xmlEcapDiscs->InsertEndChild(xmlEcapIthDisc);
 
           // Rods general info
