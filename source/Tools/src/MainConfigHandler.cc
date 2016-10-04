@@ -20,6 +20,8 @@
 
 #include <sys/types.h>
 
+#include "GraphVizCreator.h"
+#include "MessageLogger.h"
 #include "Units.h"
 
 using namespace std;
@@ -53,51 +55,117 @@ MainConfigHandler& MainConfigHandler::getInstance() {
   return s_instance;
 }
 
+//
+// MainConfigHandler method to access GraphVizCreator member method
+//
+GraphVizCreator& MainConfigHandler::getGraphVizCreator() {
+
+  static GraphVizCreator s_graphCreator;
+  return s_graphCreator;
+}
+
 // Helper method to preprocess any input configuration file (is) (its full address specified by istreamid) ->
 // recursively pass through all included files specified by @include & @includestd/@include-std pragma and
 // include its content to one big configuration file (defined as os)
-std::set<string> MainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
+std::set<string> MainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid, bool standardIncl) {
+
+  using namespace std;
+
+  // Create instance of configuration input/output helper class
+  ConfigInputOutput cfgInOut(is, os, istreamid);
+
+  bool& standardInclude = standardIncl;
+
+  const string& absFileName = cfgInOut.absFileName;
+  string absFileNameDirectory = boost::filesystem::canonical(absFileName).parent_path().string();
+
+  // For the first run and if it's not a standardInclude I have to att
+  // ths file's path to the list of visited include paths
+  if (cfgInOut.includePathList.size()==0) {
+    string firstFileName = boost::filesystem::canonical(cfgInOut.absFileName).string();
+    getGraphVizCreator().addNodeUrl(firstFileName, "file://"+cfgInOut.absFileName);
+    getGraphVizCreator().setNodeLocal(firstFileName, true);
+  }
+  if ((cfgInOut.includePathList.size()==0)||(!standardInclude)) cfgInOut.includePathList.insert(absFileNameDirectory);
+
+  // Assign the file id to this file name
+  int thisFileId = getGraphVizCreator().getFileId(cfgInOut.absFileName);
+  getGraphVizCreator().setNodeLocal(cfgInOut.absFileName, ! cfgInOut.standardInclude);
+  getGraphVizCreator().prepareNodeOutput(cfgInOut.absFileName, cfgInOut.relFileName, cfgInOut.webOutput);
+
+  // Avoid double-counting: files included from this one should be
+  // counted only once
+  getGraphVizCreator().clearGraphLinks(thisFileId);
+  std::string full_path = boost::filesystem::system_complete(cfgInOut.absFileName).string();
 
   string line;
   int numLine = 1;
   std::set<string> includeSet;
-  includeSet.insert(istreamid);
+  includeSet.insert(cfgInOut.absFileName);
 
   while(getline(is, line).good()) {
+
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
     int includeStart;
 
-    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std @include-weak @include-std-weak
+    // Merging a spec file (adding the latest includepath to the filename)
+    if ((includeStart  = trimmed.find("tiltedLayerSpecFile")) != string::npos) {
+      string rightPart = trimmed.substr(includeStart + strlen("tiltedLayerSpecFile"));
+      string leftPart  = trimmed.substr(0, includeStart + strlen("tiltedLayerSpecFile"));
+      int lastSpace;
+      for (lastSpace=0; (rightPart[lastSpace]==' ')&&(lastSpace<rightPart.size()); lastSpace++);
+      rightPart = rightPart.substr(lastSpace);
+      line = leftPart + " " + absFileNameDirectory + "/" + rightPart;
+    }
+
+    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
       trimmed = trimmed.substr(includeStart);
       int quoteStart, quoteEnd;
-      string filename;
-
+      string nextIncludeFileName;
       if ((quoteStart = trimmed.find_first_of("\"")) != string::npos && (quoteEnd = trimmed.find_last_of("\"")) != string::npos) {
-        filename = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
+        nextIncludeFileName = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
       } else {
         auto tokens = split(trimmed, " ");
-        filename = tokens.size() > 1 ? tokens[1] : "";
+        nextIncludeFileName = tokens.size() > 1 ? tokens[1] : "";
       }
 
-      bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported
+      bool includeStdOld = trimmed.find("@includestd")  != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported
       bool includeStdNew = trimmed.find("@include-std") != string::npos;
-     // bool includeWeak = trimmed.find("@include-weak") != string::npos || trimmed.find("@include-std-weak") != string::npos || trimmed.find("@includestd-weak") != string::npos; // include weak command not supported for the moment
-      string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : std::string("");
-      filename = prefix + filename;
-      ifstream ifs(filename);
-      //std::cout << "INFO: " << filename << std::endl;
 
+      string fullIncludedFileName;
+      int includedFileId;
+      if (includeStdOld || includeStdNew) {
+        fullIncludedFileName = getStandardIncludeDirectory()+ "/" + nextIncludeFileName;
+      } else {
+        fullIncludedFileName = cfgInOut.getIncludedFile(nextIncludeFileName);
+      }
+      includedFileId = getGraphVizCreator().getFileId(fullIncludedFileName);
+
+      ifstream ifs(fullIncludedFileName);
       if (ifs) {
+
         stringstream ss;
-        auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
+        auto&& moreIncludes = preprocessConfiguration(ifs, ss, fullIncludedFileName, includeStdOld || includeStdNew);
+
+        // Graph node links
+        getGraphVizCreator().addGraphLink(thisFileId, includedFileId);
         includeSet.insert(moreIncludes.begin(), moreIncludes.end());
         string indent = line.substr(0, line.find_first_not_of(" \t"));
+
         while (getline(ss, line).good()) {
           os << indent << line << endl;
         }
       } else {
-        cerr << "WARNING: " << istreamid << ":" << numLine << ": Ignoring malformed @include or @includestd directive" << endl;
+        std::ostringstream message;
+        message << "ERROR: ignoring "
+                << ( (includeStdOld||includeStdNew) ? "@include-std" : "@include" )
+                << " directive in "
+                << absFileName << ":"
+                << numLine
+                << " : could not open included file : "
+                << nextIncludeFileName << endl;
+        logERROR(message);
       }
     } else {
       os << line << endl;
@@ -549,5 +617,32 @@ string MainConfigHandler::getDefaultMaterialsDirectory_P() { return m_standardDi
 string MainConfigHandler::getStandardIncludeDirectory_P()  { return m_standardDirectory+"/"+default_configdir+"/"+default_stdincludedir; }
 string MainConfigHandler::getGeometriesDirectory_P()       { return m_standardDirectory+"/"+default_geometriesdir; }
 
+string ConfigInputOutput::getIncludedFile(string fileName) {
 
+  vector<string> result;
+  string testPath;
+
+  for (const auto& aPath : includePathList) {
+    testPath = aPath+"/"+fileName;
+    testPath = boost::filesystem::system_complete(testPath).string();
+    if ( boost::filesystem::exists(testPath) ) {
+      result.push_back(testPath);
+    }
+  }
+  if (result.size()==1) return result.at(0);
+  else if (result.size()==0) {
+    std::ostringstream message;
+    message << "ConfigInputOutput::getIncludedFile: Cannot find file " << fileName << " in any of the include path directories: " << endl;
+    for (const auto& aPath : includePathList)  message << "   * " << aPath << endl;
+    logERROR(message);
+    return "";
+  }
+  else {
+    std::ostringstream message;
+    message << "ConfigInputOutput::getIncludedFile: File " << fileName << " found multiple times in the include path directories: " << endl;
+    for (const auto& aFile : result)  message << "   * " << aFile << endl;
+    logERROR(message);
+    return "";
+  }
+}
 
