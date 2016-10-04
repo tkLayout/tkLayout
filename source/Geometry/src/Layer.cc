@@ -16,6 +16,8 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  maxZ           (string("maxZ")              ),
  minR           (string("minR")              ),
  maxR           (string("maxR")              ),
+ minRAllMat     (string("minRAllMat")        ),
+ maxRAllMat     (string("maxRAllMat")        ),
  buildNumModules(       "numModules"         , parsedOnly()),
  outerZ         (       "outerZ"             , parsedOnly()),
  radiusMode     (       "radiusMode"         , parsedAndChecked(), RadiusMode::AUTO),
@@ -322,10 +324,12 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 //
 void Layer::setup()
 {
-  maxZ.setup([&]() { if (m_rods.size()>0) return m_rods.front().maxZ(); else return 0.0; });
-  minZ.setup([&]() { if (m_rods.size()>0) return m_rods.front().minZ(); else return 0.0; });
-  maxR.setup([&]() { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxR()); } return max; });
-  minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minR()); } return min; });
+  maxZ.setup([&]()       { if (m_rods.size()>0) return m_rods.front().maxZ(); else return 0.0; });
+  minZ.setup([&]()       { if (m_rods.size()>0) return m_rods.front().minZ(); else return 0.0; });
+  maxR.setup([&]()       { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxR()); } return max; });
+  minR.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minR()); } return min; });
+  maxRAllMat.setup([&]() { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxRAllMat()); } return max; });
+  minRAllMat.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minRAllMat()); } return min; });
 }
 
 //

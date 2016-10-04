@@ -87,6 +87,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   ReadonlyProperty<double    , Computable>  maxZ;               //!< Maximum layer Z
   ReadonlyProperty<double    , Computable>  minR;               //!< Minimum layer radius (given by different positions of layer modules - big & smallDelta)
   ReadonlyProperty<double    , Computable>  maxR;               //!< Maximum layer radius (given by different positions of layer modules - big & smallDelta)
+  ReadonlyProperty<double    , Computable>  minRAllMat;         //!< Minimum layer radius taking into account all material structures
+  ReadonlyProperty<double    , Computable>  maxRAllMat;         //!< Maximum layer radius taking into account all material structures
   Property<        double    , NoDefault>   outerZ;             //!< Outer Z position (maximum Z), if buildNumModules not defined, this variable used instead to define layer halfLength
   Property<        int       , AutoDefault> buildNumModules;    //!< Number of modules to be built in each layer, if not defined outerZ variable used instead
 

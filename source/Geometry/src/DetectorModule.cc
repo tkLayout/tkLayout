@@ -189,6 +189,11 @@ void DetectorModule::setup() {
   maxR.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxR); });
   minR.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minR); });
 
+  maxZAllMat.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxZAllMat); });
+  minZAllMat.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minZAllMat); });
+  maxRAllMat.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxRAllMat); });
+  minRAllMat.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minRAllMat); });
+
   planarMaxZ.setup([&]() { return CoordinateOperations::computeMaxZ(basePoly()); });
   planarMinZ.setup([&]() { return CoordinateOperations::computeMinZ(basePoly()); });
   planarMaxR.setup([&]() { return CoordinateOperations::computeMaxR(basePoly()); });

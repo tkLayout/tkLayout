@@ -73,6 +73,8 @@ public:
   ReadonlyProperty<double, Computable>  maxModuleThickness;
   Property<        double, Computable>  minZ;            //!< Minimum rod Z pos
   Property<        double, Computable>  maxZ;            //!< Maximum rod Z pos
+  Property<        double, Computable>  minZAllMat;      //!< Minimum rod Z position taking into account all material structures
+  Property<        double, Computable>  maxZAllMat;      //!< Maximum rod Z position taking into account all material structures
   Property<        double, Computable>  minR;            //!< Minimum rod radius
   Property<        double, Computable>  maxR;            //!< Maximum rod radius
   Property<        int   , AutoDefault> disk;

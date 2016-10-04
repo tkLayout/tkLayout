@@ -136,6 +136,7 @@ public:
   double dsDistance()       const { return m_moduleGeom->dsDistance(); }
 
   double thickness()        const { return dsDistance() + sensorThickness(); }
+  double thicknessAllMat()  const { double modThick = 0; for (auto& elem : m_materialObject.getLocalElements()) modThick += elem->quantity(); return modThick; }
   double length()           const { return m_moduleGeom->length(); }
   double maxWidth()         const { return m_moduleGeom->maxWidth(); }
   double minWidth()         const { return m_moduleGeom->minWidth(); }
@@ -184,8 +185,12 @@ public:
   // Properties
   ReadonlyProperty<double    , UncachedComputable> minZ;       //!< Minimum module Z (use uncached -> calculate its value anytime when needed -> need to be uncached recursively, i.e. also for Sensors)
   ReadonlyProperty<double    , UncachedComputable> maxZ;       //!< Maximum module Z
+  ReadonlyProperty<double    , UncachedComputable> minZAllMat; //!< Minimum module Z taking into account all material structures
+  ReadonlyProperty<double    , UncachedComputable> maxZAllMat; //!< Maximum module Z taking into account all material structures
   ReadonlyProperty<double    , UncachedComputable> minR;       //!< Minimum module radius
   ReadonlyProperty<double    , UncachedComputable> maxR;       //!< Maximum module radius
+  ReadonlyProperty<double    , UncachedComputable> minRAllMat; //!< Minimum module radius taking into account all material structures
+  ReadonlyProperty<double    , UncachedComputable> maxRAllMat; //!< Maximum module radius taking into account all material structures
   ReadonlyProperty<double    , UncachedComputable> planarMinZ; //!< Minimum module Z, if module approximated as of zero thickness
   ReadonlyProperty<double    , UncachedComputable> planarMaxZ; //!< Maximum module Z, if module approximated as of zero thickness
   ReadonlyProperty<double    , UncachedComputable> planarMinR; //!< Minimum module R, if module approximated as of zero thickness

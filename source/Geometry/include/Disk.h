@@ -84,10 +84,12 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   Property<int   , NoDefault> numRings; //!< Required number of rings in the disk -> TODO: Compression as for barrel rods
   Property<double, NoDefault> zError;   //!< When positioning modules take into account beam spot spread in Z
 
-  ReadonlyProperty<double, Computable> minZ; //!< Disk minimum Z position
-  ReadonlyProperty<double, Computable> maxZ; //!< Disk maximum Z position
-  ReadonlyProperty<double, Computable> minR; //!< Disk minimum radius
-  ReadonlyProperty<double, Computable> maxR; //!< Disk maximum radius
+  ReadonlyProperty<double, Computable> minZ;       //!< Disk minimum Z position
+  ReadonlyProperty<double, Computable> maxZ;       //!< Disk maximum Z position
+  ReadonlyProperty<double, Computable> minZAllMat; //!< Disk minimum Z position taking into account all material structures
+  ReadonlyProperty<double, Computable> maxZAllMat; //!< Disk maximum Z position taking into account all material structures
+  ReadonlyProperty<double, Computable> minR;       //!< Disk minimum radius
+  ReadonlyProperty<double, Computable> maxR;       //!< Disk maximum radius
   ReadonlyProperty<int   , Computable> totalModules;     //!< Total number of modules
   ReadonlyProperty<double, Computable> maxRingThickness; //!< Maximum ring thickness
 

@@ -64,10 +64,12 @@ void Ring::build(double ringRadius, double ringOffset) {
 //
 void Ring::setup() {
 
-  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZ()); return min; });
-  maxZ.setup([this]() { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZ()); return max; });
-  minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minR()); return min; });
-  maxR.setup([this]() { double max = 0;                                  for (const auto& m : m_modules) max = MAX(max, m.maxR()); return max; });
+  minZ.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZ()); return min; });
+  maxZ.setup([this]()       { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZ()); return max; });
+  minZAllMat.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZAllMat()); return min; });
+  maxZAllMat.setup([this]() { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZAllMat()); return max; });
+  minR.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minR()); return min; });
+  maxR.setup([this]()       { double max = 0;                                  for (const auto& m : m_modules) max = MAX(max, m.maxR()); return max; });
 
   maxModuleThickness.setup([this]() {
     double max = 0;

@@ -30,10 +30,12 @@ Disk::Disk(int id, double zOffset, double zECCentre, double zECHalfLength, const
 //
 void Disk::setup()
 {
-  minZ.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZ()); } return min; });
-  maxZ.setup([&]() { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
-  minR.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minR()); } return min; });
-  maxR.setup([&]() { double max = 0;                                   for (const Ring& r : m_rings) { max = MAX(max, r.maxR()); } return max; });
+  minZ.setup([&]()       { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZ()); } return min; });
+  maxZ.setup([&]()       { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
+  minZAllMat.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZAllMat()); } return min; });
+  maxZAllMat.setup([&]() { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZAllMat()); } return max; });
+  minR.setup([&]()       { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minR()); } return min; });
+  maxR.setup([&]()       { double max = 0;                                   for (const Ring& r : m_rings) { max = MAX(max, r.maxR()); } return max; });
   maxRingThickness.setup([&]() { double max = 0; for (const Ring& r : m_rings) { max = MAX(max, r.thickness()); } return max; });
   totalModules.setup([&]()     { int cnt = 0;    for (const Ring& r : m_rings) { cnt += r.numModules(); } return cnt; });
 }

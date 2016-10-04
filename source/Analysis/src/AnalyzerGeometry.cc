@@ -737,20 +737,23 @@ void LayerDiskSummaryVisitor::preVisit() {
   m_moduleTable= std::unique_ptr<RootWTable>(new RootWTable());
 
   m_layerTable->setContent(0, 0, "Layer no                    : ");
-  m_layerTable->setContent(1, 0, "Radius-min [mm]             : ");
-  m_layerTable->setContent(2, 0, "Radius-max [mm]             : ");
-  m_layerTable->setContent(3, 0, "Z-min [mm]                  : ");
-  m_layerTable->setContent(4, 0, "Z-max [mm]                  : ");
-  m_layerTable->setContent(5, 0, "Number of rods              : ");
-  m_layerTable->setContent(6, 0, "Number of modules per rod   : ");
-  m_layerTable->setContent(7, 0, "Number of modules           : ");
+  m_layerTable->setContent(1, 0, "Average radius [mm]         : ");
+  m_layerTable->setContent(2, 0, "Radius-min [mm]             : ");
+  m_layerTable->setContent(3, 0, "Radius-max [mm]             : ");
+  m_layerTable->setContent(4, 0, "Z-min [mm]                  : ");
+  m_layerTable->setContent(5, 0, "Z-max [mm]                  : ");
+  m_layerTable->setContent(6, 0, "Number of rods              : ");
+  m_layerTable->setContent(7, 0, "Number of modules per rod   : ");
+  m_layerTable->setContent(8, 0, "Number of modules           : ");
 
   m_diskTable->setContent(0, 0, "Disk no                      : ");
   m_diskTable->setContent(1, 0, "Radius-min [mm]              : ");
   m_diskTable->setContent(2, 0, "Radius-max [mm]              : ");
   m_diskTable->setContent(3, 0, "Average Z pos. [mm]          : ");
-  m_diskTable->setContent(4, 0, "Number of rings              : ");
-  m_diskTable->setContent(5, 0, "Number of modules per disk   : ");
+  m_diskTable->setContent(4, 0, "Z-min [mm]                   : ");
+  m_diskTable->setContent(5, 0, "Z-max [mm]                   : ");
+  m_diskTable->setContent(6, 0, "Number of rings              : ");
+  m_diskTable->setContent(7, 0, "Number of modules per disk   : ");
 
   m_ringTable->setContent(0, 0, "Ring no                      : ");
   m_ringTable->setContent(1, 0, "R-min [mm]                   : ");
@@ -791,13 +794,14 @@ void LayerDiskSummaryVisitor::visit(const Layer& l) {
 
   // Set table
   m_layerTable->setContent(0, m_nBarrelLayers, m_nBarrelLayers);
-  m_layerTable->setContent(1, m_nBarrelLayers, l.minR(), c_coordPrecision+1);
-  m_layerTable->setContent(2, m_nBarrelLayers, l.maxR(), c_coordPrecision+1);
-  m_layerTable->setContent(3, m_nBarrelLayers, l.minZ(), c_coordPrecision);
-  m_layerTable->setContent(4, m_nBarrelLayers, l.maxZ(), c_coordPrecision);
-  m_layerTable->setContent(5, m_nBarrelLayers, l.numRods());
-  m_layerTable->setContent(6, m_nBarrelLayers, l.numModulesPerRod());
-  m_layerTable->setContent(7, m_nBarrelLayers, l.totalModules());
+  m_layerTable->setContent(1, m_nBarrelLayers, l.avgBuildRadius(), c_coordPrecision+1);
+  m_layerTable->setContent(2, m_nBarrelLayers, l.minRAllMat(), c_coordPrecision+1);
+  m_layerTable->setContent(3, m_nBarrelLayers, l.maxRAllMat(), c_coordPrecision+1);
+  m_layerTable->setContent(4, m_nBarrelLayers, l.minZ(), c_coordPrecision);
+  m_layerTable->setContent(5, m_nBarrelLayers, l.maxZ(), c_coordPrecision);
+  m_layerTable->setContent(6, m_nBarrelLayers, l.numRods());
+  m_layerTable->setContent(7, m_nBarrelLayers, l.numModulesPerRod());
+  m_layerTable->setContent(8, m_nBarrelLayers, l.totalModules());
 }
 
 //
@@ -817,11 +821,13 @@ void LayerDiskSummaryVisitor::visit(const Disk& d) {
 
   // Set table
   m_diskTable->setContent(0, m_nDisks, d.myid());
-  m_diskTable->setContent(1, m_nDisks, d.minR(),     c_coordPrecision);
-  m_diskTable->setContent(2, m_nDisks, d.maxR(),     c_coordPrecision);
-  m_diskTable->setContent(3, m_nDisks, d.averageZ(), c_coordPrecision);
-  m_diskTable->setContent(4, m_nDisks, d.numRings());
-  m_diskTable->setContent(5, m_nDisks, nModules);
+  m_diskTable->setContent(1, m_nDisks, d.minR(),       c_coordPrecision);
+  m_diskTable->setContent(2, m_nDisks, d.maxR(),       c_coordPrecision);
+  m_diskTable->setContent(3, m_nDisks, d.averageZ(),   c_coordPrecision);
+  m_diskTable->setContent(4, m_nDisks, d.minZAllMat(), c_coordPrecision);
+  m_diskTable->setContent(5, m_nDisks, d.maxZAllMat(), c_coordPrecision);
+  m_diskTable->setContent(6, m_nDisks, d.numRings());
+  m_diskTable->setContent(7, m_nDisks, nModules);
 }
 
 //
