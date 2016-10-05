@@ -122,8 +122,8 @@ bool AnalyzerHelpers::isModuleInEtaSector(const SimParms& simParms, const Tracke
   double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
   double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
 
-  double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
-  double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
+  double etaDist1 =  modMaxZ - ((etaSliceZ1 >= -zError ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
+  double etaDist2 = -modMinZ + ((etaSliceZ2 >= zError ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
 
   return etaDist1 > 0 && etaDist2 > 0;
 }
