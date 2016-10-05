@@ -39,11 +39,11 @@ RootWBinaryFile::RootWBinaryFile(std::string newFileName, std::string newDescrip
 RootWBinaryFile::~RootWBinaryFile() {};
 
 //
-// Dump method - create copy of original binary file & create a link on the web page to this file
+// Dump method - create copy of original binary file (if dontCopyFile not specified) & create a link on the web page to this file
 //
 ostream& RootWBinaryFile::dump(ostream& output) {
 
-  if (m_originalFileName=="") {
+  if ((m_originalFileName=="") && (!m_dontCopyFile)) {
     logERROR("RootWBinaryFile::dump() was called without prior setting the original file name");
     return output;
   }
@@ -54,7 +54,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
 
   string destinationFileName = m_targetDirectory +"/" + m_fileName;
 
-  if (boost::filesystem::exists(m_originalFileName) && m_originalFileName!= destinationFileName) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
+  if ((!m_dontCopyFile)&&(boost::filesystem::exists(m_originalFileName) && m_originalFileName != destinationFileName)) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
 
     try {
       if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);

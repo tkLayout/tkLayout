@@ -17,6 +17,8 @@
 
 // Other include files
 #include "Detector.h"
+#include "GraphVizCreator.h"
+#include "MainConfigHandler.h"
 #include <TH2D.h>
 #include <TProfile.h>
 #include <TH2I.h>
@@ -25,6 +27,7 @@
 #include <StopWatch.h>
 #include <GitRevision.h>
 #include "RootWContent.h"
+#include "RootWGraphVizFile.h"
 #include "RootWInfo.h"
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
@@ -239,6 +242,11 @@ bool AnalysisManager::makeWebInfoPage()
                                                                                   iterInclBegin, iterInclEnd));
     myContentParms.addItem(std::move(myBinaryFileList));
   }
+
+  // Include complexity graph
+  std::unique_ptr<RootWGraphVizFile> myGv(new RootWGraphVizFile("include_graph.gv", "Graph description of the overall Include structure"));
+  myGv->addText(MainConfigHandler::getGraphVizCreator().createGraphVizFile());
+  myContentParms.addItem(std::move(myGv));
 
   // Summary of Csv files
   RootWContent& myContentCsv = myPage.addContent("Summary list of other csv files");

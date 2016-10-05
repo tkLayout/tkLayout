@@ -18,9 +18,9 @@
 
 /*
  * @class RootWBinaryFile
- * Copy a defined binary file to a target directory and then print a reference to the file
- * with some text description (in html format) on the required web page. Use dump()
- * method to make it.
+ * Copy a defined binary file to a target directory (if not dontCopyFile variable specified)
+ * and then print a reference to the file with some text description (in html format) on
+ * the required web page. Use dump() method to make it.
  */
 class RootWBinaryFile : public RootWFile {
 
@@ -36,12 +36,14 @@ class RootWBinaryFile : public RootWFile {
   ~RootWBinaryFile();
 
   void setOriginalFile(std::string newFile) {m_originalFileName = newFile ; };
+  void setDontCopyFile(bool noCopy) { m_dontCopyFile = noCopy;}
 
   //! Dump method - create copy of original binary file & create a link on the web page to this file
   std::ostream& dump(std::ostream& output);
 
  private:
   std::string m_originalFileName;
+  bool        m_dontCopyFile = false; //! Don't copy the given file to the target directory? (Implicitely copied)
 
 }; // Class
 
