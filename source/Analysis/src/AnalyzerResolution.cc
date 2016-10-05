@@ -704,32 +704,32 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
       if      (plotName==std::string(web_deltaLetter+"pt/pt [%]:           ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("linptres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("linptres_"+tag+"_noMS_"+scenario));
-        profileName= "pT_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "pT_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"p/p [%]:             ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("pres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("pres_"+tag+"_noMS_"+scenario));
-        profileName= "p_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "p_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"d0 ["+web_muLetter+"m]:  ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("d0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("d0res_"+tag+"_noMS_"+scenario));
-        profileName= "d0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "d0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"z0 ["+web_muLetter+"m]:  ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("z0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("z0res_"+tag+"_noMS_"+scenario));
-        profileName= "z0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "z0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+web_phiLetter+"0:          ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("phi0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("phi0res_"+tag+"_noMS_"+scenario));
-        profileName= "phi0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "phi0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"ctg("+web_thetaLetter+"):")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("cotgThres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("cotgThres_"+tag+"_noMS_"+scenario));
-        profileName= "cotgTh_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "cotgTh_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
 
       // Prepare eta cuts
@@ -864,6 +864,7 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
   material.interaction = bp.intLength()/sin(theta);
+
   hit->setCorrectedMaterial(material);
   hit->setBeamPipe(true);
   m_matTrack.addHit(std::move(hit));
