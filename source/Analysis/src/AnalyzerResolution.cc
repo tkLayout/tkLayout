@@ -519,27 +519,27 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
     std::string name("");
     if (varType=="pT") {
       name  = "pT_vs_eta"+any2str(momentum/Units::GeV);
-      title = "p_{T} resolution versus #eta - const "+scenario+" across #eta;#eta;#delta p_{T}/p_{T} [%]";
+      title = "p_{T} resolution versus #eta - "+scenario+" across #eta;#eta;#delta p_{T}/p_{T} [%]";
     }
     else if (varType=="p") {
       name  = "p_vs_eta"+any2str(momentum/Units::GeV);
-      title = "p resolution versus #eta - const "+scenario+" across #eta;#eta;#delta p/p [%]";
+      title = "p resolution versus #eta - "+scenario+" across #eta;#eta;#delta p/p [%]";
     }
     else if (varType=="d0") {
       name  = "d0_vs_eta"+any2str(momentum/Units::GeV);
-      title = "Transverse impact parameter error - const "+scenario+" across #eta;#eta;#delta d_{0} [#mum]";
+      title = "Transverse impact parameter error - "+scenario+" across #eta;#eta;#delta d_{0} [#mum]";
     }
     else if (varType=="z0") {
       name  = "z0_vs_eta"+any2str(momentum/Units::GeV);
-      title = "Longitudinal impact parameter error - const "+scenario+" across #eta;#eta;#delta z_{0} [#mum]";
+      title = "Longitudinal impact parameter error - "+scenario+" across #eta;#eta;#delta z_{0} [#mum]";
     }
     else if (varType=="phi0") {
       name  = "phi0_vs_eta"+any2str(momentum/Units::GeV);
-      title = "Track azimuthal angle error - const "+scenario+" across #eta;#eta;#delta #phi [deg]";
+      title = "Track azimuthal angle error - "+scenario+" across #eta;#eta;#delta #phi [deg]";
     }
     else if (varType=="cotgTheta") {
       name  = "cotgTh_vs_eta"+any2str(momentum/Units::GeV);
-      title = "Track polar angle error - const "+scenario+" across #eta;#eta;#delta ctg(#theta)";
+      title = "Track polar angle error - "+scenario+" across #eta;#eta;#delta ctg(#theta)";
     }
     std::unique_ptr<TProfile> profHis(new TProfile(name.c_str(), title.c_str(), c_nBins, 0, SimParms::getInstance().getMaxEtaCoverage()));
 
