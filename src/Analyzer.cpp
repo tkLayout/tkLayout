@@ -750,6 +750,67 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
         }
       }
     }
+
+
+
+
+    track.assignTrackingVolumesToHits();
+
+    std::map<std::string, Material> sumComponentsRITotalTrackingVolume;
+    for (const auto& hit : track.getHitV()) {
+      if (hit->isTotalTrackingVolume()) {
+
+
+	if (hit->getObjectKind() == Hit::Active) {		
+	  Module* hitModule = hit->getHitModule();
+	  ModuleCap* hitModuleCap = hitModule->getModuleCap();
+	  double tiltAngle = hitModule->tiltAngle();
+
+	  std::map<std::string, Material> moduleComponentsRI = hitModuleCap->getComponentsRI();
+	  for (const auto& cit : moduleComponentsRI) {
+            sumComponentsRITotalTrackingVolume[cit.first].radiation += cit.second.radiation / (hitModule->subdet() == BARREL ? sin(track.getTheta() + tiltAngle) : cos(track.getTheta() + tiltAngle - M_PI/2));
+           
+            sumComponentsRITotalTrackingVolume[cit.first].interaction += cit.second.interaction / (hitModule->subdet() == BARREL ? sin(track.getTheta() + tiltAngle) : cos(track.getTheta() + tiltAngle - M_PI/2));      
+          }
+	}
+
+	else if (hit->getObjectKind() == Hit::Inactive) {
+	  if (rComponentsTotalTrackingVolume["Services"]==NULL) { 
+	    rComponentsTotalTrackingVolume["Services"] = new TH1D();
+	    rComponentsTotalTrackingVolume["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  sumComponentsRITotalTrackingVolume["Services"].radiation += hit->getCorrectedMaterial().radiation;
+	  if (iComponentsTotalTrackingVolume["Services"]==NULL) { 
+	    iComponentsTotalTrackingVolume["Services"] = new TH1D();
+	    iComponentsTotalTrackingVolume["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  sumComponentsRITotalTrackingVolume["Services"].interaction += hit->getCorrectedMaterial().interaction;
+	}
+
+	else { std::cout << "Unknown hit type : hit->getObjectKind() = " << hit->getObjectKind() << std::endl; }
+      }
+    }
+
+
+
+    for (const auto& it : sumComponentsRITotalTrackingVolume) {
+      if (rComponentsTotalTrackingVolume[it.first]==NULL) { 
+        rComponentsTotalTrackingVolume[it.first] = new TH1D();
+        rComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      }
+      rComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+      if (iComponentsTotalTrackingVolume[it.first]==NULL) {
+        iComponentsTotalTrackingVolume[it.first] = new TH1D();
+        iComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      }
+      iComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+    }
+
+
+
+
+
+
   }
 
 #ifdef MATERIAL_SHADOW       

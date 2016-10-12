@@ -57,6 +57,9 @@ protected:
   RILength correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
+  bool isPixelTrackingVolume_;
+  bool isOuterTrackingVolume_;
+  bool isTotalTrackingVolume_;
   bool isTrigger_;
   bool isIP_;
   HitType activeHitType_;
@@ -97,9 +100,15 @@ public:
   RILength getCorrectedMaterial();
   void setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
+  bool isPixelTrackingVolume() { return isPixelTrackingVolume_; };
+  bool isOuterTrackingVolume() { return isOuterTrackingVolume_; };
+  bool isTotalTrackingVolume() { return isTotalTrackingVolume_; };
   bool isTrigger() { return isTrigger_; };
   bool isIP() { return isIP_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
+  void setPixelTrackingVolume(bool isPixelTrackingVolume) { isPixelTrackingVolume_ = isPixelTrackingVolume; }
+  void setOuterTrackingVolume(bool isOuterTrackingVolume) { isOuterTrackingVolume_ = isOuterTrackingVolume; }
+  void setTotalTrackingVolume(bool isTotalTrackingVolume) { isTotalTrackingVolume_ = isTotalTrackingVolume; }
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
   double getResolutionLocalX() { return resolutionLocalX_; }
   double getResolutionLocalY() { return resolutionLocalY_; }
@@ -178,6 +187,7 @@ public:
   Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
+  void assignTrackingVolumesToHits();
   void computeErrors();
   void printErrors();
   void print();

@@ -46,6 +46,9 @@ Hit::Hit() {
     orientation_ = Undefined;
     myTrack_ = NULL;
     isPixel_ = false;
+    isPixelTrackingVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isTrigger_ = false;
     isIP_ = false;
     resolutionLocalX_ = 0;
@@ -68,6 +71,9 @@ Hit::Hit(const Hit& h) {
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
+    isPixelTrackingVolume_ = h.isPixelTrackingVolume_;
+    isOuterTrackingVolume_ = h.isOuterTrackingVolume_;
+    isTotalTrackingVolume_ = h.isTotalTrackingVolume_;
     isTrigger_ = h.isTrigger_;
     isIP_ = h.isIP_;
     resolutionLocalX_ = h.resolutionLocalX_;
@@ -88,6 +94,9 @@ Hit::Hit(double myDistance) {
     orientation_ = Undefined;
     isTrigger_ = false;
     isPixel_ = false;
+    isPixelTrackingVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isIP_ = false;
     myTrack_ = NULL;
     activeHitType_ = HitType::NONE;
@@ -104,6 +113,9 @@ Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
     orientation_ = Undefined; 
     isTrigger_ = false;
     isPixel_ = false;
+    isPixelTrackingVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isIP_ = false;
     setHitModule(myModule);
     myTrack_ = NULL;
@@ -497,6 +509,38 @@ Hit* Track::addHit(Hit* newHit) {
 void Track::sort() {
     std::stable_sort(hitV_.begin(), hitV_.end(), sortSmallerR);
 }
+
+void Track::assignTrackingVolumesToHits() {
+  sort();
+  /*std::vector<Hit*>::iterator firstActiveHitPixel = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  std::vector<Hit*>::iterator firstActiveHitOuter = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (!hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+
+  std::vector<Hit*>::iterator lastActiveHitPixel = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  std::vector<Hit*>::iterator lastActiveHitOuter = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (!hit->isPixel() && hit->getObjectKind()==Hit::Active); } );*/
+
+  std::vector<Hit*>::reverse_iterator lastActiveHitTotal = std::find_if(hitV_.rbegin(), hitV_.rend(), 
+									[&](Hit* hit) { return (hit->getObjectKind()==Hit::Active); }
+									);
+  for (auto it = lastActiveHitTotal; it != hitV_.rend(); ++it) {
+    (*it)->setTotalTrackingVolume(true);
+  }
+  //for (auto it = firstActiveHitPixel, it != firstActiveHitOuter + 1, i++)
+ 
+
+}
+
+
+
+/*bool Track::isHitInTrackingVolume(double distance) {
+  sort();
+
+std::vector<Hit*>::reverse_iterator lastActiveHitTotal = std::find_if(hitV_.rbegin(), hitV_.rend(), 
+									[&](Hit* hit) { return (hit->getObjectKind()==Hit::Active); }
+									);
+
+									}*/
+
+
 
 /**
  * Compute the correlation matrices of the track hits for a series of different energies.

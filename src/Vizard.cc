@@ -679,6 +679,76 @@ namespace insur {
 
 
 
+
+
+    myContent = new RootWContent("TEST", false);
+    myPage->addContent(myContent);
+
+    myTable = new RootWTable();
+    sprintf(titleString, "Average (eta = [0, %.1f", a.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
+    myTable->setContent(0, 1, "Radiation length");
+    myTable->setContent(0, 2, "Interaction length");
+
+
+    THStack* rCompTrackingVolumeStack = new THStack("rcomptrackingvolumestack", "Radiation Length by Component in total tracking volume");
+    THStack* iCompTrackingVolumeStack = new THStack("icomptrackingvolumestack", "Interaction Length by Component in total tracking volume");
+
+    TLegend* compLegendTrackingVolume = new TLegend(0.1,0.6,0.35,0.9);
+
+    myCanvas = new TCanvas(("moduleComponentsTrackingVolumeRI"+name).c_str());
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+    std::map<std::string, TH1D*>& rCompsTrackingVolume = a.getHistoTotalTrackingVolumeR();
+    int compIndexTrackingVolume = 1;
+    for (std::map<std::string, TH1D*>::iterator it = rCompsTrackingVolume.begin(); it != rCompsTrackingVolume.end(); ++it) {
+      it->second->SetLineColor(Palette::color(compIndexTrackingVolume));
+      it->second->SetFillColor(Palette::color(compIndexTrackingVolume));
+      it->second->SetXTitle("#eta");
+      it->second->SetTitle(it->first.c_str());
+      compLegendTrackingVolume->AddEntry(it->second, it->first.c_str());
+      rCompTrackingVolumeStack->Add(it->second);
+      myTable->setContent(compIndexTrackingVolume, 0, it->first);
+      myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    }
+    rCompTrackingVolumeStack->Draw();
+    compLegendTrackingVolume->Draw();
+
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    std::map<std::string, TH1D*>& iCompsTrackingVolume = a.getHistoTotalTrackingVolumeI();
+    compIndexTrackingVolume = 1;
+    for (std::map<std::string, TH1D*>::iterator it = iCompsTrackingVolume.begin(); it != iCompsTrackingVolume.end(); ++it) {
+      it->second->SetLineColor(Palette::color(compIndexTrackingVolume));
+      it->second->SetFillColor(Palette::color(compIndexTrackingVolume));
+      it->second->SetXTitle("#eta");
+      it->second->SetTitle(it->first.c_str());
+      iCompTrackingVolumeStack->Add(it->second);
+      myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    }
+    iCompTrackingVolumeStack->Draw();
+    compLegendTrackingVolume->Draw();
+
+    myContent->addItem(myTable);
+
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
+    myImage->setName("riCompTrackingVolume");
+    myContent->addItem(myImage);
+
+
+
+
+
+
+
+
+
     myContent = new RootWContent("Module components detail", false);
     myPage->addContent(myContent);
 

@@ -92,9 +92,11 @@ namespace insur {
     virtual ~Analyzer() {}
     std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
+    std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
     TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
     TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
-    TH1D& getHistoModulesEndcapsR() {return ractiveendcap; }
+    TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
     TH1D& getHistoModulesEndcapsI() { return iactiveendcap; }
     TH1D& getHistoServicesBarrelsR() { return rserfbarrel; }
     TH1D& getHistoServicesBarrelsI() { return iserfbarrel; }
@@ -283,6 +285,7 @@ namespace insur {
     TH1D rglobal, iglobal;
 
     std::map<std::string, TH1D*> rComponents, iComponents;
+    std::map<std::string, TH1D*> rComponentsTotalTrackingVolume, iComponentsTotalTrackingVolume;
 
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
