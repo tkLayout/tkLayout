@@ -42,6 +42,7 @@ Hit::Hit() {
     distance_ = 0;
     radius_ = 0;
     objectKind_ = Undefined;
+    objectCategory_ = Unknown;
     hitModule_ = NULL;
     orientation_ = Undefined;
     myTrack_ = NULL;
@@ -67,6 +68,7 @@ Hit::Hit(const Hit& h) {
     radius_ = h.radius_;
     orientation_ = h.orientation_;
     objectKind_ = h.objectKind_;
+    objectCategory_ = h.objectCategory_;
     hitModule_ = h.hitModule_;
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
@@ -90,6 +92,7 @@ Hit::Hit(const Hit& h) {
 Hit::Hit(double myDistance) {
     distance_ = myDistance;
     objectKind_ = Undefined;
+    objectCategory_ = Unknown;
     hitModule_ = NULL;
     orientation_ = Undefined;
     isTrigger_ = false;
@@ -110,6 +113,7 @@ Hit::Hit(double myDistance) {
 Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
     distance_ = myDistance;
     objectKind_ = Active;
+    objectCategory_ = Act;
     orientation_ = Undefined; 
     isTrigger_ = false;
     isPixel_ = false;

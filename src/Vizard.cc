@@ -679,7 +679,7 @@ namespace insur {
 
 
 
-
+    if (name == "outer") {
 
     myContent = new RootWContent("TEST", false);
     myPage->addContent(myContent);
@@ -741,7 +741,7 @@ namespace insur {
     myImage->setName("riCompTrackingVolume");
     myContent->addItem(myImage);
 
-
+    }
 
 
 

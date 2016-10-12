@@ -50,6 +50,7 @@ protected:
   double radius_; // distance of hit from origin in the x/y plane
   int orientation_;   // orientation of the surface
   int objectKind_;    // kind of hit object
+  int objectCategory_;
   Module* hitModule_; // Pointer to the hit module
   //double trackTheta_; // Theta angle of the track
   //Material material_;
@@ -86,6 +87,7 @@ public:
    */
   enum { Undefined, Horizontal, Vertical,  // Hit object orientation 
     Active, Inactive };               // Hit object type
+  enum {Unknown, Act, BeamPipe, Service, Support };
 
   double getDistance() {return distance_;};
   void setDistance(double newDistance) { if (newDistance>0) distance_ = newDistance; updateRadius(); };
@@ -94,7 +96,9 @@ public:
   int getOrientation() { return orientation_;};
   void setOrientation(int newOrientation) { orientation_ = newOrientation; };
   int getObjectKind() { return objectKind_;};
+  int getObjectCategory() { return objectCategory_;};
   void setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
+  void setObjectCategory(int newObjectCategory) { objectCategory_ = newObjectCategory;};
   void setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
   double getTrackTheta();
   RILength getCorrectedMaterial();
