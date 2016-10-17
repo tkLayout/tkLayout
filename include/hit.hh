@@ -58,7 +58,9 @@ protected:
   RILength correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
+  bool isPixelIntersticeVolume_;
   bool isPixelTrackingVolume_;
+  bool isIntersticeVolume_;
   bool isOuterTrackingVolume_;
   bool isTotalTrackingVolume_;
   bool isTrigger_;
@@ -104,13 +106,17 @@ public:
   RILength getCorrectedMaterial();
   void setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
+  bool isPixelIntersticeVolume() { return isPixelIntersticeVolume_; };
   bool isPixelTrackingVolume() { return isPixelTrackingVolume_; };
+  bool isIntersticeVolume() { return isIntersticeVolume_; };
   bool isOuterTrackingVolume() { return isOuterTrackingVolume_; };
   bool isTotalTrackingVolume() { return isTotalTrackingVolume_; };
   bool isTrigger() { return isTrigger_; };
   bool isIP() { return isIP_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
+  void setPixelIntersticeVolume(bool isPixelIntersticeVolume) { isPixelIntersticeVolume_ = isPixelIntersticeVolume; }
   void setPixelTrackingVolume(bool isPixelTrackingVolume) { isPixelTrackingVolume_ = isPixelTrackingVolume; }
+  void setIntersticeVolume(bool isIntersticeVolume) { isIntersticeVolume_ = isIntersticeVolume; }
   void setOuterTrackingVolume(bool isOuterTrackingVolume) { isOuterTrackingVolume_ = isOuterTrackingVolume; }
   void setTotalTrackingVolume(bool isTotalTrackingVolume) { isTotalTrackingVolume_ = isTotalTrackingVolume; }
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}

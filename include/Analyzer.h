@@ -94,6 +94,7 @@ namespace insur {
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
     std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
     std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
+    std::vector<std::string>& getComponentsTrackingVolume() { return componentsTotalTrackingVolumeOrder; }
     TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
     TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
     TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
@@ -286,6 +287,7 @@ namespace insur {
 
     std::map<std::string, TH1D*> rComponents, iComponents;
     std::map<std::string, TH1D*> rComponentsTotalTrackingVolume, iComponentsTotalTrackingVolume;
+    std::vector<std::string> componentsTotalTrackingVolumeOrder;
 
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;

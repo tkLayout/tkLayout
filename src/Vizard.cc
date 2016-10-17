@@ -706,15 +706,16 @@ namespace insur {
     myPad->cd();
     std::map<std::string, TH1D*>& rCompsTrackingVolume = a.getHistoTotalTrackingVolumeR();
     int compIndexTrackingVolume = 1;
-    for (std::map<std::string, TH1D*>::iterator it = rCompsTrackingVolume.begin(); it != rCompsTrackingVolume.end(); ++it) {
-      it->second->SetLineColor(Palette::color(compIndexTrackingVolume));
-      it->second->SetFillColor(Palette::color(compIndexTrackingVolume));
-      it->second->SetXTitle("#eta");
-      it->second->SetTitle(it->first.c_str());
-      compLegendTrackingVolume->AddEntry(it->second, it->first.c_str());
-      rCompTrackingVolumeStack->Add(it->second);
-      myTable->setContent(compIndexTrackingVolume, 0, it->first);
-      myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    //for (std::map<std::string, TH1D*>::iterator it = rCompsTrackingVolume.begin(); it != rCompsTrackingVolume.end(); ++it) {
+    for (const auto& it : a.getComponentsTrackingVolume()) {
+      rCompsTrackingVolume[it]->SetLineColor(Palette::color(compIndexTrackingVolume));
+      rCompsTrackingVolume[it]->SetFillColor(Palette::color(compIndexTrackingVolume));
+      rCompsTrackingVolume[it]->SetXTitle("#eta");
+      rCompsTrackingVolume[it]->SetTitle(it.c_str());
+      compLegendTrackingVolume->AddEntry(rCompsTrackingVolume[it], it.c_str());
+      rCompTrackingVolumeStack->Add(rCompsTrackingVolume[it]);
+      myTable->setContent(compIndexTrackingVolume, 0, it);
+      myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*rCompsTrackingVolume[it], a.getEtaMaxMaterial()), 5);
     }
     rCompTrackingVolumeStack->Draw();
     compLegendTrackingVolume->Draw();
@@ -723,13 +724,14 @@ namespace insur {
     myPad->cd();
     std::map<std::string, TH1D*>& iCompsTrackingVolume = a.getHistoTotalTrackingVolumeI();
     compIndexTrackingVolume = 1;
-    for (std::map<std::string, TH1D*>::iterator it = iCompsTrackingVolume.begin(); it != iCompsTrackingVolume.end(); ++it) {
-      it->second->SetLineColor(Palette::color(compIndexTrackingVolume));
-      it->second->SetFillColor(Palette::color(compIndexTrackingVolume));
-      it->second->SetXTitle("#eta");
-      it->second->SetTitle(it->first.c_str());
-      iCompTrackingVolumeStack->Add(it->second);
-      myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    //for (std::map<std::string, TH1D*>::iterator it = iCompsTrackingVolume.begin(); it != iCompsTrackingVolume.end(); ++it) {
+    for (const auto& it : a.getComponentsTrackingVolume()) {
+      iCompsTrackingVolume[it]->SetLineColor(Palette::color(compIndexTrackingVolume));
+      iCompsTrackingVolume[it]->SetFillColor(Palette::color(compIndexTrackingVolume));
+      iCompsTrackingVolume[it]->SetXTitle("#eta");
+      iCompsTrackingVolume[it]->SetTitle(it.c_str());
+      iCompTrackingVolumeStack->Add(iCompsTrackingVolume[it]);
+      myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*iCompsTrackingVolume[it], a.getEtaMaxMaterial()), 5);
     }
     iCompTrackingVolumeStack->Draw();
     compLegendTrackingVolume->Draw();
