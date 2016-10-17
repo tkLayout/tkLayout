@@ -751,140 +751,140 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       track.assignTrackingVolumesToHits();
 
 
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Beam Pipe") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Beam Pipe");
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services under Pixel Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services under Pixel Tracking Volume");
+      /*if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Beam Pipe") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Beam Pipe");
+	if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services under Pixel Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services under Pixel Tracking Volume");*/
 
       for (const auto& hit : track.getHitV()) {
 	if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
-	  if (rComponentsTotalTrackingVolume["Beam Pipe"]==NULL) {
-	    rComponentsTotalTrackingVolume["Beam Pipe"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsBeamPipe["Beam Pipe"]==NULL) {
+	    rComponentsBeamPipe["Beam Pipe"] = new TH1D();
+	    rComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Beam Pipe"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Beam Pipe"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsBeamPipe["Beam Pipe"]==NULL) { 
+	    iComponentsBeamPipe["Beam Pipe"] = new TH1D();
+	    iComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
 
 	if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
-	  if (rComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]==NULL) {
-	    rComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) {
+	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
       }
     
 
       for (const auto& it : ignoredPixelSumComponentsRI) {
-	if (rComponentsTotalTrackingVolume[it.first]==NULL) {
-	  componentsTotalTrackingVolumeOrder.push_back(it.first);
-	  rComponentsTotalTrackingVolume[it.first] = new TH1D();
-	  rComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
+	  //componentsPixelTrackingVolumeOrder.push_back(it.first);
+	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
-	rComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsTotalTrackingVolume[it.first]==NULL) {
-	  iComponentsTotalTrackingVolume[it.first] = new TH1D();
-	  iComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	rComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsPixelTrackingVolume[it.first]==NULL) {
+	  iComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
-	iComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
       }
 
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services in Pixel Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services in Pixel Tracking Volume");
+      /*if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services in Pixel Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services in Pixel Tracking Volume");
       if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Supports in Pixel Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Supports in Pixel Tracking Volume");
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services and supports in interstice") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services and supports in interstice");
+      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services and supports in interstice") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services and supports in interstice");*/
 
 
       for (const auto& hit : track.getHitV()) {
       
 	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  if (rComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]==NULL) {
-	    rComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) {
+	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
 
 	else if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  if (rComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) {
-	    rComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) {
+	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
 
 	if (hit->isIntersticeVolume()) {
-	  if (rComponentsTotalTrackingVolume["Services and supports in interstice"]==NULL) {
-	    rComponentsTotalTrackingVolume["Services and supports in interstice"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsInterstice["Services and supports in interstice"]==NULL) {
+	    rComponentsInterstice["Services and supports in interstice"] = new TH1D();
+	    rComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Services and supports in interstice"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Services and supports in interstice"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsInterstice["Services and supports in interstice"]==NULL) { 
+	    iComponentsInterstice["Services and supports in interstice"] = new TH1D();
+	    iComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
       }
 
 
       for (const auto& it : sumComponentsRI) {
-	if (rComponentsTotalTrackingVolume[it.first]==NULL) {
-	  componentsTotalTrackingVolumeOrder.push_back(it.first);
-	  rComponentsTotalTrackingVolume[it.first] = new TH1D();
-	  rComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
+	  //componentsOuterTrackingVolumeOrder.push_back(it.first);
+	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
-	rComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsTotalTrackingVolume[it.first]==NULL) {
-	  iComponentsTotalTrackingVolume[it.first] = new TH1D();
-	  iComponentsTotalTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	rComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsOuterTrackingVolume[it.first]==NULL) {
+	  iComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
-	iComponentsTotalTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
       }
  
 
       for (const auto& hit : track.getHitV()) {
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  if (rComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]==NULL) {	   
-	    rComponentsTotalTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) {	   
+	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
+	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) { 
+	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
+	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
 
 	else if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  if (rComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]==NULL) {	    
-	    rComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
-	    rComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  if (rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) {	    
+	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
+	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]==NULL) { 
-	    iComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
-	    iComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) { 
+	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
+	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsTotalTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	}
       }
 
@@ -892,8 +892,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services in Outer Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services in Outer Tracking Volume");
-      if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Supports in Outer Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Supports in Outer Tracking Volume");
+      /*if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Services in Outer Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Services in Outer Tracking Volume");
+	if (std::find(componentsTotalTrackingVolumeOrder.begin(), componentsTotalTrackingVolumeOrder.end(), "Supports in Outer Tracking Volume") == componentsTotalTrackingVolumeOrder.end()) componentsTotalTrackingVolumeOrder.push_back("Supports in Outer Tracking Volume");*/
 
 
 

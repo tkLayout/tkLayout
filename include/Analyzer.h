@@ -92,9 +92,19 @@ namespace insur {
     virtual ~Analyzer() {}
     std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
-    std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
-    std::vector<std::string>& getComponentsTrackingVolume() { return componentsTotalTrackingVolumeOrder; }
+    std::map<std::string, TH1D*>& getHistoBeamPipeR() { return rComponentsBeamPipe; }
+    std::map<std::string, TH1D*>& getHistoBeamPipeI() { return iComponentsBeamPipe; }
+    std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
+    std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
+    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
+    std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
+    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
+    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
+    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
+    //std::vector<std::string>& getComponentsTrackingVolume() { return componentsTotalTrackingVolumeOrder; }
     TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
     TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
     TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
@@ -158,7 +168,7 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-			       bool isPixel,
+			       bool isOuterPixel,
 			       bool& debugResolution,
                                int etaSteps = 50,
                                MaterialBudget* pm = NULL);
@@ -286,8 +296,13 @@ namespace insur {
     TH1D rglobal, iglobal;
 
     std::map<std::string, TH1D*> rComponents, iComponents;
-    std::map<std::string, TH1D*> rComponentsTotalTrackingVolume, iComponentsTotalTrackingVolume;
-    std::vector<std::string> componentsTotalTrackingVolumeOrder;
+    std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
+    std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
+    std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
+    std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
+    std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
+    //std::map<std::string, TH1D*> rComponentsTotalTrackingVolume, iComponentsTotalTrackingVolume;
+    //std::vector<std::string> componentsTotalTrackingVolumeOrder;
 
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
