@@ -1659,7 +1659,6 @@ namespace material {
         //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
 
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
-
         /*
         double sectionMinZ = undiscretize(section->minZ());
         double sectionMinR = undiscretize(section->minR());

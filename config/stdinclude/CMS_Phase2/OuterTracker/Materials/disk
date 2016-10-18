@@ -24,7 +24,7 @@ Materials disk {
 
   // fake numbers for calculating conversion with a factor of 1000
   Component {
-    componentName Cooling
+    componentName "Services Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -68,7 +68,7 @@ Materials disk {
 
   // fake numbers for calculating conversion with a factor of 1000
   Component {
-    componentName "Twisted pairs"
+    componentName "Services Twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain

@@ -7,7 +7,7 @@
 // 2 wires
 // Diameter 0.19 Al, 0.20 Cu
 Component {
-  componentName "Hybrid Power lines"
+  componentName "Services Hybrid Power lines"
   service true
   scaleOnSensor 1
   Element {
@@ -30,7 +30,7 @@ Component {
 // HV: 1 wire
 // PP0-SEH-HV (700067231 Rev 01)
 Component {
-  componentName "Sensor HV line"
+  componentName "Services Sensor HV line"
   service true
   scaleOnSensor 0
   Element {

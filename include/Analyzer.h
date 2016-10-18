@@ -301,9 +301,6 @@ namespace insur {
     std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
     std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
     std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
-    //std::map<std::string, TH1D*> rComponentsTotalTrackingVolume, iComponentsTotalTrackingVolume;
-    //std::vector<std::string> componentsTotalTrackingVolumeOrder;
-
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
     TH2I mapRadiationCount, mapInteractionCount;
@@ -410,7 +407,7 @@ namespace insur {
     virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
     virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
-                                             Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+                                             Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
