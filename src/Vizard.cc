@@ -584,33 +584,31 @@ namespace insur {
     // radiation length in tracking volume by active, serving or passive
     sur = (TH1D*)a.getHistoSupportsAllR().Clone();
     sur->SetFillColor(kOrange + 4);
-    sur->SetXTitle("#eta");
     rcontainer->Add(sur);
     ser = (TH1D*)a.getHistoServicesAllR().Clone();
     ser->SetFillColor(kBlue);
-    ser->SetXTitle("#eta");
     rcontainer->Add(ser);
     acr = (TH1D*)a.getHistoModulesAllR().Clone();
     acr->SetFillColor(kRed);
-    acr->SetXTitle("#eta");
-    rcontainer->Add(acr);
+    rcontainer->Add(acr);   
     rcontainer->Draw();
+    rcontainer->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
     // interaction length in tracking volume by active, serving or passive
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     sui = (TH1D*)a.getHistoSupportsAllI().Clone();
     sui->SetFillColor(kOrange + 2);
-    sui->SetXTitle("#eta");
     icontainer->Add(sui);
     sei = (TH1D*)a.getHistoServicesAllI().Clone();
     sei->SetFillColor(kAzure - 2);
-    sei->SetXTitle("#eta");
     icontainer->Add(sei);
     aci = (TH1D*)a.getHistoModulesAllI().Clone();
     aci->SetFillColor(kRed - 3);
-    aci->SetXTitle("#eta");
     icontainer->Add(aci);
     icontainer->Draw();
+    icontainer->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
 
     // Write asl category plots to web page
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -642,7 +640,7 @@ namespace insur {
     myPage->addContent(myContent);
 
     myTable = new RootWTable();
-    sprintf(titleString, "Average (eta = [0, %.1f", a.getEtaMaxMaterial());
+    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
@@ -699,14 +697,11 @@ namespace insur {
     myContent->addItem(myImage);
 
 
-
-    if (name == "outer") {
-
       // COMPONENTS DETAILS (TRACKING VOLUME)
       myContentDetails = new RootWContent("Components details (Tracking volume)", false);
 
       myTable = new RootWTable();
-      sprintf(titleString, "Average (eta = [0, %.1f", a.getEtaMaxMaterial());
+      sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
       myTable->setContent(0, 0, titleString);
       myTable->setContent(0, 1, "Radiation length");
       myTable->setContent(0, 2, "Interaction length");
@@ -725,7 +720,12 @@ namespace insur {
 
       myPad = myCanvas->GetPad(1);
       myPad->cd();
-      std::map<std::string, TH1D*>& rCompsTrackingVolume = a.getHistoOuterTrackingVolumeR();
+      std::map<std::string, TH1D*> rCompsTrackingVolume;
+      if (name == "outer") {
+	rCompsTrackingVolume = a.getHistoOuterTrackingVolumeR();
+	rCompsPixelTrackingVolume_ = a.getHistoPixelTrackingVolumeR();
+      }
+      else rCompsTrackingVolume = rCompsPixelTrackingVolume_;
       int compIndexTrackingVolume = 1;
 
       for (const auto& it : rCompsTrackingVolume) {
@@ -743,7 +743,12 @@ namespace insur {
 
       myPad = myCanvas->GetPad(2);
       myPad->cd();
-      std::map<std::string, TH1D*>& iCompsTrackingVolume = a.getHistoOuterTrackingVolumeI();
+      std::map<std::string, TH1D*> iCompsTrackingVolume;
+      if (name == "outer") {
+	iCompsTrackingVolume = a.getHistoOuterTrackingVolumeI();
+	iCompsPixelTrackingVolume_ = a.getHistoPixelTrackingVolumeI();
+      }
+      else iCompsTrackingVolume = iCompsPixelTrackingVolume_;
       compIndexTrackingVolume = 1;
 
       for (const auto& it : iCompsTrackingVolume) {
@@ -811,7 +816,6 @@ namespace insur {
       myContent->addItem(myImage);
 
       myPage->addContent(myContentDetails);
-    }
 
 
 
@@ -2618,6 +2622,23 @@ namespace insur {
   
 
 
+  void Vizard::stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
+
+    for (const auto& it : histoMap) {
+      it.second->SetLineColor(Palette::color(index));
+      it.second->SetFillColor(Palette::color(index));
+      it.second->SetXTitle("#eta");
+      it.second->SetTitle(it.first.c_str());
+      if (isRadiation) legend->AddEntry(it.second, it.first.c_str());
+      myStack->Add(it.second);
+      totalStack->Add(it.second);
+      myTable->setContent(index, 0, it.first);
+      int column = (isRadiation ? 1 : 2);
+      myTable->setContent(index++, column, averageHistogramValues(*it.second, 4.0), 5);
+    }
+  }
+
+
   void Vizard::stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
 
     for (const auto& it : histoMap) {
@@ -2727,7 +2748,7 @@ namespace insur {
     // COMPONENTS DETAILS (TRACKING VOLUME)
     RootWTable* myTable = new RootWTable();
     char titleString[256];
-    sprintf(titleString, "Average (eta = [0, %.1f", analyzer.getEtaMaxMaterial());
+    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
@@ -2792,25 +2813,26 @@ namespace insur {
 
     // CATEGORIES DETAILS (TRACKING VOLUME)
     myTable = new RootWTable();
-    sprintf(titleString, "Average (eta = [0, %.1f", analyzer.getEtaMaxMaterial());
+    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
     compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    std::map<std::string, TH1D*> histoPerCategoryR, histoPerCategoryI;
-    histoPerCategoryR.insert(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
-    histoPerCategoryI.insert(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
-    histoPerCategoryR.insert(std::make_pair("Services under Pixel tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.insert(std::make_pair("Pixel Interstice", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
-    histoPerCategoryR.insert(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryI.insert(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryR.insert(std::make_pair("Interstice", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.insert(std::make_pair("Interstice", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
-    histoPerCategoryR.insert(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryI.insert(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
+    std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
+    histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Services under Pixel tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Pixel Interstice", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Interstice", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Interstice", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
     THStack* rCompCategoryTrackingVolumeStack = new THStack("rcompcategorytrackingvolumestack", "Radiation Length by Category in tracking volume");
     THStack* iCompCategoryTrackingVolumeStack = new THStack("icompcategorytrackingvolumestack", "Interaction Length by Category in tracking volume");
+    THStack* dummy = new THStack("dummy", "dummy");
 
     myCanvas = new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI");
     myCanvas->SetFillColor(color_plot_background);
@@ -2822,7 +2844,7 @@ namespace insur {
     myPad->cd();
     isRadiation = true;
     index = 1;
-    stackHistos(histoPerCategoryR, myTable, index, rCompCategoryTrackingVolumeStack, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
+    stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     rCompCategoryTrackingVolumeStack->Draw();
     compLegend->Draw();
 
@@ -2830,7 +2852,7 @@ namespace insur {
     myPad->cd();
     isRadiation = false;
     index = 1;
-    stackHistos(histoPerCategoryI, myTable, index, iCompCategoryTrackingVolumeStack, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
+    stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     iCompCategoryTrackingVolumeStack->Draw();
     compLegend->Draw();
 
