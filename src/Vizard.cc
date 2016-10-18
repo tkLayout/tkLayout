@@ -2822,8 +2822,8 @@ namespace insur {
     std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
     histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
     histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Services under Pixel tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Pixel Interstice", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
     histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
     histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
     histoPerCategoryR.push_back(std::make_pair("Interstice", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
