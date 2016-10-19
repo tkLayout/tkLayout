@@ -44,6 +44,7 @@ Hit::Hit() {
     objectKind_ = Undefined;
     objectCategory_ = Unknown;
     hitModule_ = NULL;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined;
     myTrack_ = NULL;
     isPixel_ = false;
@@ -72,6 +73,7 @@ Hit::Hit(const Hit& h) {
     objectKind_ = h.objectKind_;
     objectCategory_ = h.objectCategory_;
     hitModule_ = h.hitModule_;
+    hitInactiveElement_ = h.hitInactiveElement_;
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
@@ -98,6 +100,7 @@ Hit::Hit(double myDistance) {
     objectKind_ = Undefined;
     objectCategory_ = Unknown;
     hitModule_ = NULL;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined;
     isTrigger_ = false;
     isPixel_ = false;
@@ -120,6 +123,7 @@ Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
     distance_ = myDistance;
     objectKind_ = Active;
     objectCategory_ = Act;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined; 
     isTrigger_ = false;
     isPixel_ = false;
@@ -146,6 +150,21 @@ void Hit::setHitModule(Module* myModule) {
             orientation_ = Horizontal;
         } else {
             orientation_ = Vertical;
+        }
+    }
+}
+
+/*
+ * Setter for the pointer to the inactive surface that caused the hit.
+ * @param myInactiveElement A pointer to an inactive element (service or support structure); may be <i>NULL</i>
+ */
+void Hit::setHitInactiveElement(InactiveElement* myInactiveElement) {
+    if (myInactiveElement) {
+        hitInactiveElement_ = myInactiveElement;
+        if (myInactiveElement->isVertical()) {
+            orientation_ = Vertical;
+        } else {
+            orientation_ = Horizontal;
         }
     }
 }

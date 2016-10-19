@@ -10,6 +10,7 @@
 #include "Module.h"
 #include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
+#include <InactiveElement.h>
 #include <cmath>
 #include <vector>
 #include <TMatrixT.h>
@@ -27,6 +28,10 @@
 using namespace std;
 
 class Track;
+namespace insur {
+  class InactiveElement;
+}
+using insur::InactiveElement;
 
 // TODO: why this?
 typedef double momentum;  // Track momentum in MeV
@@ -52,6 +57,7 @@ protected:
   int objectKind_;    // kind of hit object
   int objectCategory_;
   Module* hitModule_; // Pointer to the hit module
+  InactiveElement* hitInactiveElement_; // Pointer to the hit inactive element
   //double trackTheta_; // Theta angle of the track
   //Material material_;
   // "Thickness" in terms of radiation_length and interaction_length
@@ -80,10 +86,12 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
+  InactiveElement* getHitInactiveElement() { return hitInactiveElement_; };
   void computeLocalResolution();
   double getResolutionRphi(double trackR);
   double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
+  void setHitInactiveElement(InactiveElement* myInactiveElement);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
    */

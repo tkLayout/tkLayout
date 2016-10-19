@@ -1,7 +1,7 @@
 // Cooling for the pixel module on the rod
 
 Component {
-  componentName Cooling
+  componentName "Services Cooling"
   service true
   scaleOnSensor 0
   Element {

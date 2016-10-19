@@ -25,7 +25,7 @@ Materials FPIX_2_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 16 pipes per disk
   Component {
-    componentName Cooling
+    componentName "Services Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -66,7 +66,7 @@ Materials FPIX_2_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 24 chains per disk
   Component {
-    componentName "Power wires"
+    componentName "Services Power wires"
     service true
     scaleOnSensor 0
     Element {
@@ -112,7 +112,7 @@ Materials FPIX_2_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 24 chains per disk
   Component {
-    componentName "HV Power wires"
+    componentName "Services HV Power wires"
     service true
     scaleOnSensor 0
     Element {

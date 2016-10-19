@@ -568,14 +568,14 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     }
 
 
-    /*if (rComponents["Services"]==NULL) { 
+    if (rComponents["Services"]==NULL) { 
       rComponents["Services"] = new TH1D();
       rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
     }
     if (iComponents["Services"]==NULL) { 
       iComponents["Services"] = new TH1D();
       iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }*/
+      }
     if (rComponents["Supports"]==NULL) { 
       rComponents["Supports"] = new TH1D();
       rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -597,8 +597,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iserfall.Fill(eta, tmp.interaction);
     rglobal.Fill(eta, tmp.radiation);
     iglobal.Fill(eta, tmp.interaction);
-    //rComponents["Services"]->Fill(eta, tmp.radiation);
-    //iComponents["Services"]->Fill(eta, tmp.interaction);
+    rComponents["Services"]->Fill(eta, tmp.radiation);
+    iComponents["Services"]->Fill(eta, tmp.interaction);
     //      services, endcap
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::no_cat);
     rserfendcap.Fill(eta, tmp.radiation);
@@ -609,11 +609,11 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iserfall.Fill(eta, tmp.interaction);
     rglobal.Fill(eta, tmp.radiation);
     iglobal.Fill(eta, tmp.interaction);
-    //rComponents["Services"]->Fill(eta, tmp.radiation);
-    //iComponents["Services"]->Fill(eta, tmp.interaction);
+    rComponents["Services"]->Fill(eta, tmp.radiation);
+    iComponents["Services"]->Fill(eta, tmp.interaction);
 
 
-    for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
+    /* for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
       if (rComponents[it->first]==NULL) { 
         rComponents[it->first] = new TH1D();
         rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -624,7 +624,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
         iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
       }
       iComponents[it->first]->Fill(eta, it->second.interaction);
-    }
+      }*/
 
 
 
@@ -691,7 +691,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::b_sup, true);
-    }
+      }
 
     // Add the hit on the beam pipe
     Hit* hit = new Hit(23./sin(theta));
@@ -816,7 +816,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       }
 
       // NEW
-      for (const auto& it : ignoredPixelSumServicesComponentsRI) {
+      /*for (const auto& it : ignoredPixelSumServicesComponentsRI) {
 	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
 	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
 	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -827,24 +827,67 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
 	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-      }
+	}*/
 
 
 
       for (const auto& hit : track.getHitV()) {
-      
-	/*if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  if (rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) {
-	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+
+	// DEBUG EXTRA
+	/*if (hit->isPixel() && !hit->isPixelTrackingVolume()) {
+	  if (rComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]==NULL) {
+	    rComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"] = new TH1D();
+	    rComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) { 
-	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  rComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]==NULL) { 
+	    iComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"] = new TH1D();
+	    iComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
-	  iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  iComponentsPixelTrackingVolume["Pixel Material out of pixel tracking volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
 	  }*/
+
+	// DEBUG
+	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+
+	  InactiveElement* inactive = hit->getHitInactiveElement();
+	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+          for (const auto& it : servicesComponentsRI) {
+	    Material res;
+            res.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
+            res.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+	    if (rComponentsPixelTrackingVolume[it.first]==NULL) {
+	      rComponentsPixelTrackingVolume[it.first] = new TH1D();
+	      rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    rComponentsPixelTrackingVolume[it.first]->Fill(eta, res.radiation);
+	    if (iComponentsPixelTrackingVolume[it.first]==NULL) { 
+	      iComponentsPixelTrackingVolume[it.first] = new TH1D();
+	      iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    rComponentsPixelTrackingVolume[it.first]->Fill(eta, res.interaction);
+	  }
+	  if (servicesComponentsRI.size() == 0) {
+	    if (rComponentsPixelTrackingVolume["Services : others"]==NULL) {
+	      rComponentsPixelTrackingVolume["Services : others"] = new TH1D();
+	      rComponentsPixelTrackingVolume["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    rComponentsPixelTrackingVolume["Services : others"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	    if (iComponentsPixelTrackingVolume["Services : others"]==NULL) {
+	      iComponentsPixelTrackingVolume["Services : others"] = new TH1D();
+	      iComponentsPixelTrackingVolume["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    iComponentsPixelTrackingVolume["Services : others"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  }
+	}
+
+
+
+
+
+
+
+	  
 
 	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
 	  if (rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) {
@@ -888,7 +931,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       }
 
       // NEW
-      for (const auto& it : sumServicesComponentsRI) {
+      /*for (const auto& it : sumServicesComponentsRI) {
 	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
 	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
 	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -899,11 +942,28 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	}
 	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-      }
+	}*/
  
 
       for (const auto& hit : track.getHitV()) {
-	/*if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+
+
+	// DEBUG EXTRA
+	/*if (!hit->isPixel() && !hit->isOuterTrackingVolume() && !(hit->getObjectCategory() == Hit::BeamPipe)) {
+	  if (rComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]==NULL) {	   
+	    rComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"] = new TH1D();
+	    rComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]==NULL) { 
+	    iComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"] = new TH1D();
+	    iComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsOuterTrackingVolume["Outer Material out of outer tracking volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  }*/
+
+	// DEBUG
+	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  if (rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) {	   
 	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
 	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -914,7 +974,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	  }
 	  iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	  }*/
+	  }
 
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
 	  if (rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) {	    
@@ -1534,60 +1594,17 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           z = iter->getZOffset() + iter->getZLength() / 2.0;
           r = z * tan(theta);
           // 2D maps for vertical surfaces
-          fillMapRZ(r,z,iter->getMaterialLengths());
-          // special treatment for user-defined supports as they can be very close to z=0
-          if (cat == MaterialProperties::u_sup) {
-            s = iter->getZLength() / cos(theta);
-            if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() * s / iter->getZLength();
-              corr.interaction = iter->getInteractionLength() * s / iter->getZLength();
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() * s / iter->getZLength();
-                thisLength.interaction = iter->getInteractionLength() * s / iter->getZLength(); 
-                fillCell(r, eta, theta, thisLength); 
-              }
-            }
-            else {
-              if (!isPixel) {
-                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
-                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
-              }
-            }
-          }
-          else {
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() / cos(theta);
-              corr.interaction = iter->getInteractionLength() / cos(theta);
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() / cos(theta); 
-                thisLength.interaction = iter->getInteractionLength() / cos(theta);
-                fillCell(r, eta, theta, thisLength);
-              }
-            }
-            else {
-              if (!isPixel) {
-                if ((iter->getCategory() == MaterialProperties::b_ser)
-                    || (iter->getCategory() == MaterialProperties::e_ser)) {
-                  rextraservices.Fill(eta, iter->getRadiationLength() / cos(theta));
-                  iextraservices.Fill(eta, iter->getInteractionLength() / cos(theta));
-                }
-                else if ((iter->getCategory() == MaterialProperties::b_sup)
-                         || (iter->getCategory() == MaterialProperties::e_sup)
-                         || (iter->getCategory() == MaterialProperties::o_sup)
-                         || (iter->getCategory() == MaterialProperties::t_sup)) {
-                  rextrasupports.Fill(eta, iter->getRadiationLength() / cos(theta));
-                  iextrasupports.Fill(eta, iter->getInteractionLength() / cos(theta));
-                }
-              }
-            }
-          }
+          fillMapRZ(r,z,iter->getMaterialLengths());        
+         
+	  corr.radiation = iter->getRadiationLength() / cos(theta);
+	  corr.interaction = iter->getInteractionLength() / cos(theta);
+	  res += corr;
+	  if (!isPixel) {
+	    Material thisLength;
+	    thisLength.radiation = corr.radiation;
+	    thisLength.interaction = corr.interaction;
+	    fillCell(r, eta, theta, thisLength);
+	  }        
         }
         // radiation and interaction length scaling for horizontal volumes
         else {
@@ -1596,61 +1613,21 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           fillMapRT(r,theta,iter->getMaterialLengths());
           // special treatment for user-defined supports; should not be necessary for now
           // as all user-defined supports are vertical, but just in case...
-          if (cat == MaterialProperties::u_sup) {
-            s = iter->getZLength() / sin(theta);
-            if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() * s / iter->getZLength();
-              corr.interaction = iter->getInteractionLength() * s / iter->getZLength();
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() * s / iter->getZLength(); 
-                thisLength.interaction = iter->getInteractionLength() * s / iter->getZLength();
-                fillCell(r, eta, theta, thisLength);
-              }
-            }
-            else {
-              if (!isPixel) {
-                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
-                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
-              }
-            }
-          }
-          else {
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() / sin(theta);
-              corr.interaction = iter->getInteractionLength() / sin(theta);
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() / sin(theta);
-                thisLength.interaction =  iter->getInteractionLength() / sin(theta);
-                fillCell(r, eta, theta, thisLength); 
-              }
-            }
-            else {
-              if (!isPixel) {
-                if ((iter->getCategory() == MaterialProperties::b_ser)
-                    || (iter->getCategory() == MaterialProperties::e_ser)) {
-                  rextraservices.Fill(eta, iter->getRadiationLength() / sin(theta));
-                  iextraservices.Fill(eta, iter->getInteractionLength() / sin(theta));
-                }
-                else if ((iter->getCategory() == MaterialProperties::b_sup)
-                         || (iter->getCategory() == MaterialProperties::e_sup)
-                         || (iter->getCategory() == MaterialProperties::o_sup)
-                         || (iter->getCategory() == MaterialProperties::t_sup)) {
-                  rextrasupports.Fill(eta, iter->getRadiationLength() / sin(theta));
-                  iextrasupports.Fill(eta, iter->getInteractionLength() / sin(theta));
-                }
-              }
-            }
-          }
+
+	  corr.radiation = iter->getRadiationLength() / sin(theta);
+	  corr.interaction = iter->getInteractionLength() / sin(theta);
+	  res += corr;
+	  if (!isPixel) {
+	    Material thisLength;
+	    thisLength.radiation = corr.radiation;
+	    thisLength.interaction =  corr.interaction;
+	    fillCell(r, eta, theta, thisLength); 
+	  }             
         }
+
         // create Hit object with appropriate parameters, add to Track t
         Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+	hit->setHitInactiveElement(&(*iter));
         if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
         else hit->setOrientation(Hit::Horizontal);
         hit->setObjectKind(Hit::Inactive);
@@ -1658,22 +1635,20 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
         hit->setPixel(isPixel);
 
 
-	//std::cout << "iter->getComponentsRI().size() = " << iter->getComponentsRI().size() << std::endl;
-
 	if ((iter->getCategory() != MaterialProperties::b_sup)
 	    && (iter->getCategory() != MaterialProperties::e_sup)
 	    && (iter->getCategory() != MaterialProperties::o_sup)
 	    && (iter->getCategory() != MaterialProperties::u_sup)
 	    && (iter->getCategory() != MaterialProperties::t_sup)) {
-	  std::map<std::string, Material> servicesComponentsRI = iter->getComponentsRI();
-          for (std::map<std::string, Material>::iterator cit = servicesComponentsRI.begin(); cit != servicesComponentsRI.end(); ++cit) {
-            sumServicesComponentsRI[cit->first].radiation += cit->second.radiation / (iter->isVertical() ? cos(theta) : sin(theta));  
-            sumServicesComponentsRI[cit->first].interaction += cit->second.interaction / (iter->isVertical() ? cos(theta) : sin(theta));
-          }
-	  if (servicesComponentsRI.size() == 0) {
-	    sumServicesComponentsRI["Services : other"].radiation += corr.radiation;
-	    sumServicesComponentsRI["Services : other"].interaction += corr.interaction;
-	  }
+	  /*std::map<std::string, Material> servicesComponentsRI = iter->getComponentsRI();
+          for (const auto& it : servicesComponentsRI) {
+            sumServicesComponentsRI[it.first].radiation += it.second.radiation / (iter->isVertical() ? cos(theta) : sin(theta));  
+            sumServicesComponentsRI[it.first].interaction += it.second.interaction / (iter->isVertical() ? cos(theta) : sin(theta));
+	    }*/
+	  //if (servicesComponentsRI.size() == 0) {
+	    sumServicesComponentsRI["Services : others"].radiation += corr.radiation;
+	    sumServicesComponentsRI["Services : others"].interaction += corr.interaction;
+	    //}
 	}
 
 
@@ -1785,6 +1760,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
         hit->setCorrectedMaterial(corr);
         hit->setPixel(isPixel);
         t.addHit(hit);
+	std::cout << "OLD USED" << std::endl;
       }
     }
     iter++;
