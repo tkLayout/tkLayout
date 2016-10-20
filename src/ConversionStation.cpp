@@ -50,6 +50,12 @@ namespace material {
           
             for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+
+	      // To do : Put this in a new MaterialObject::Element constructor
+	      if (currElement->componentName.state()) {
+		newElement->componentName(currElement->componentName());
+	      }
+
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
