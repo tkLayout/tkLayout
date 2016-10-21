@@ -59,52 +59,14 @@ class AnalyzerOccupancy : public AnalyzerUnit {
   //! Draw histogram
   bool drawHistogram(TCanvas& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
 
-  // Analyzed geometry
-  //std::vector<Tracker*> m_trackers;
+  IrradiationMap* m_photonsMap;   //!< Photons fluxes
+  IrradiationMap* m_chargedMap;   //!< Charged particles fluxes
 
-  IrradiationMap* m_photonsMapBOnMatOn;   //!< Photons fluxes
-  IrradiationMap* m_photonsMapBOnMatOnLTh;//!< Photons low threshold
-  IrradiationMap* m_photonsMapBOffMatOn;  //!< Photons fluxes in a detector without magnetic field
-  IrradiationMap* m_photonsMapBOnMatOff;  //!< Photons fluxes in a space without detector and with magnetic field
-  IrradiationMap* m_photonsMapBOffMatOff; //!< Photons fluxes in a space without detector and without magnetic field
-  IrradiationMap* m_photonsMapBOffTrkOff; //!< Photons fluxes in a space without tracker (calorimeter is there) and without magnetic field
-  IrradiationMap* m_chargedMapBOnMatOn;   //!< Charged particles fluxes
-  IrradiationMap* m_chargedMapBOnMatOnLTh;//!< Photons low threshold
-  IrradiationMap* m_chargedMapBOffMatOn;  //!< Charged particles fluxes in a detector without magnetic field
-  IrradiationMap* m_chargedMapBOnMatOff;  //!< Charged particles fluxes in a space without detector and with magnetic field
-  IrradiationMap* m_chargedMapBOffMatOff; //!< Charged particles fluxes in a space without detector and without magnetic field
-  IrradiationMap* m_chargedMapBOffTrkOff; //!< Charged particles fluxes in a space without tracker (calorimeter is there) and without magnetic field
-
-  BFieldMap*      m_bFieldMap;            //!< 3D map of b field inside a detector
+  BFieldMap*      m_bFieldMap;     //!< 3D map of b field inside a detector
 
   // Visualisation
-  TH2D* m_hisChargedFluxBOnMatOn;
-  TH2D* m_hisChargedFluxBOnMatOnLTh;
-  TH2D* m_hisChargedFluxBOffMatOn;
-  TH2D* m_hisChargedFluxBOnMatOff;
-  TH2D* m_hisChargedFluxBOffMatOff;
-  TH2D* m_hisChargedFluxBOffTrkOff;
-
-  TH2D* m_hisChargedRatioLTh;
-  TH2D* m_hisChargedRatioECalMat;
-  TH2D* m_hisChargedRatioMat;
-  TH2D* m_hisChargedRatioB;
-  TH2D* m_hisChargedRatioTrkB;
-  TH2D* m_hisChargedRatioMatB;
-
-  TH2D* m_hisPhotonsFluxBOnMatOn;
-  TH2D* m_hisPhotonsFluxBOnMatOnLTh;
-  TH2D* m_hisPhotonsFluxBOffMatOn;
-  TH2D* m_hisPhotonsFluxBOnMatOff;
-  TH2D* m_hisPhotonsFluxBOffMatOff;
-  TH2D* m_hisPhotonsFluxBOffTrkOff;
-
-  TH2D* m_hisPhotonsRatioLTh;
-  TH2D* m_hisPhotonsRatioECalMat;
-  TH2D* m_hisPhotonsRatioMat;
-  TH2D* m_hisPhotonsRatioB;
-  TH2D* m_hisPhotonsRatioTrkB;
-  TH2D* m_hisPhotonsRatioMatB;
+  TH2D* m_hisChargedFlux;
+  TH2D* m_hisPhotonsFlux;
 };
 
 #endif /* INCLUDE_ANALYZEROCCUPANCY_H_ */
