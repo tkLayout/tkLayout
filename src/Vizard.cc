@@ -697,6 +697,72 @@ namespace insur {
     myContent->addItem(myImage);
 
 
+
+
+    // SERVICES DETAILS (FULL VOLUME)
+    myContent = new RootWContent("Services details (Full volume)", false);
+    myPage->addContent(myContent);
+
+    myTable = new RootWTable();
+    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
+    myTable->setContent(0, 1, "Radiation length");
+    myTable->setContent(0, 2, "Interaction length");
+
+
+
+    THStack* rServicesCompStack = new THStack("rservicescompstack", "Radiation Length by Component");
+    THStack* iServicesCompStack = new THStack("iservicescompstack", "Interaction Length by Component");
+
+    TLegend* servicesCompLegend = new TLegend(0.1,0.6,0.35,0.9);
+
+    myCanvas = new TCanvas(("ServicesComponentsRI"+name).c_str());
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+    std::map<std::string, TH1D*>& rServicesComps = a.getHistoServicesDetailsR();
+    int servicesCompIndex = 1;
+    for (std::map<std::string, TH1D*>::iterator it = rServicesComps.begin(); it != rServicesComps.end(); ++it) {
+      it->second->SetLineColor(Palette::color(servicesCompIndex));
+      it->second->SetFillColor(Palette::color(servicesCompIndex));
+      it->second->SetXTitle("#eta");
+      it->second->SetTitle(it->first.c_str());
+      servicesCompLegend->AddEntry(it->second, it->first.c_str());
+      rServicesCompStack->Add(it->second);
+      myTable->setContent(servicesCompIndex, 0, it->first);
+      myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    }
+    rServicesCompStack->Draw();
+    servicesCompLegend->Draw();
+
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    std::map<std::string, TH1D*>& iServicesComps = a.getHistoServicesDetailsI();
+    servicesCompIndex = 1;
+    for (std::map<std::string, TH1D*>::iterator it = iServicesComps.begin(); it != iServicesComps.end(); ++it) {
+      it->second->SetLineColor(Palette::color(servicesCompIndex));
+      it->second->SetFillColor(Palette::color(servicesCompIndex));
+      it->second->SetXTitle("#eta");
+      it->second->SetTitle(it->first.c_str());
+      iServicesCompStack->Add(it->second);
+      myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+    }
+    iServicesCompStack->Draw();
+    servicesCompLegend->Draw();
+
+    myContent->addItem(myTable);
+
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Radiation and interaction length distribution in eta by component type in services");
+    myImage->setName("matServicesComponentsFull");
+    myContent->addItem(myImage);
+
+
+
       // COMPONENTS DETAILS (TRACKING VOLUME)
       myContentDetails = new RootWContent("Components details (Tracking volume)", false);
 

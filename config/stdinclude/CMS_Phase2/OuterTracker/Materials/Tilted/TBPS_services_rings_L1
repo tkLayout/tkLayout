@@ -2,7 +2,7 @@
 
   // Cooling for the module
   Component {
-    componentName "Services Cooling"
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -20,7 +20,7 @@
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Services Twisted pairs"
+    componentName "Twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain

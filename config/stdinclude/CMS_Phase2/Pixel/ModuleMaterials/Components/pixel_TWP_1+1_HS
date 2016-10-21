@@ -1,7 +1,7 @@
 // (1+1) High-Speed TWP / module
 
 Component {
-  componentName "Services Twisted pairs"
+  componentName "Twisted pairs"
   service true
   scaleOnSensor 0
   // Two conductors

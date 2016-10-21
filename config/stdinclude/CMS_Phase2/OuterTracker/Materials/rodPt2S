@@ -9,7 +9,7 @@ Materials rodPt2S {
 
   // Cooling for the module
   Component {
-    componentName "Services Cooling"
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -28,7 +28,7 @@ Materials rodPt2S {
   // (This is a bus line: service does not accumulate)
   // Not transfered on flange for now.
   Component {
-    componentName "Services Twisted pairs"
+    componentName "Twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain

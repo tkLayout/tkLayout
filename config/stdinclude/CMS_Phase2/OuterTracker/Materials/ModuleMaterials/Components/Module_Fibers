@@ -1,7 +1,7 @@
 // 2 Optical fibers
 
 Component {
-  componentName "Services 2S Fibers"
+  componentName "2S Fibers"
   service true
   scaleOnSensor 0
   Element {
