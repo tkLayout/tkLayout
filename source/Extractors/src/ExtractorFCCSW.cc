@@ -180,8 +180,8 @@ bool ExtractorFCCSW::analyze()
       // Add detailed info about given barrel
       auto xmlBrlDim = m_xmlDoc->NewElement("dimensions");
 
-      xmlBrlDim->SetAttribute("rmin", printWithUnit(iBrl.minR(), c_precision, "mm").c_str());
-      xmlBrlDim->SetAttribute("rmax", printWithUnit(iBrl.maxR(), c_precision, "mm").c_str());
+      xmlBrlDim->SetAttribute("rmin", printWithUnit(iBrl.minRAllMat(), c_precision, "mm").c_str());
+      xmlBrlDim->SetAttribute("rmax", printWithUnit(iBrl.maxRAllMat(), c_precision, "mm").c_str());
       xmlBrlDim->SetAttribute("zmin", printWithUnit(iBrl.minZ(), c_precision, "mm").c_str());
       xmlBrlDim->SetAttribute("zmax", printWithUnit(iBrl.maxZ(), c_precision, "mm").c_str());
       xmlBrlDet->InsertEndChild(xmlBrlDim);
@@ -410,8 +410,8 @@ bool ExtractorFCCSW::analyze()
 
       xmlEcapDim->SetAttribute("rmin", printWithUnit(iEcap.minR(), c_precision, "mm").c_str());
       xmlEcapDim->SetAttribute("rmax", printWithUnit(iEcap.maxR(), c_precision, "mm").c_str());
-      xmlEcapDim->SetAttribute("zmin", printWithUnit(iEcap.minZ(), c_precision, "mm").c_str());
-      xmlEcapDim->SetAttribute("zmax", printWithUnit(iEcap.maxZ(), c_precision, "mm").c_str());
+      xmlEcapDim->SetAttribute("zmin", printWithUnit(iEcap.minZAllMat(), c_precision, "mm").c_str());
+      xmlEcapDim->SetAttribute("zmax", printWithUnit(iEcap.maxZAllMat(), c_precision, "mm").c_str());
       xmlEcapDet->InsertEndChild(xmlEcapDim);
 
       // Add sensitive type
