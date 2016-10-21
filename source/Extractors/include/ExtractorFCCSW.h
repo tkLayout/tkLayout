@@ -69,7 +69,7 @@ class ExtractorFCCSW : public AnalyzerUnit {
   const char* c_defaultEcapReadout   = "TrackerEndcapReadout";
 
   const double c_readoutGridX  = 0.005;
-  const double c_readoutGridY  = 0.010;
+  const double c_readoutGridZ  = 0.010;
   const int c_defaultTrackerId = 10;
   const int c_precision = 3;
 

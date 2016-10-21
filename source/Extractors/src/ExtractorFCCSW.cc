@@ -99,13 +99,13 @@ bool ExtractorFCCSW::analyze()
   xmlDetReadouts->InsertEndChild(xmlDetBrlReadout);
 
   auto xmlDetBrlSeg = m_xmlDoc->NewElement("segmentation");
-  xmlDetBrlSeg->SetAttribute("type","CartesianGridXY");
+  xmlDetBrlSeg->SetAttribute("type","CartesianGridXZ");
   xmlDetBrlSeg->SetAttribute("grid_size_x", printWithUnit(c_readoutGridX, c_precision, "mm").c_str());
-  xmlDetBrlSeg->SetAttribute("grid_size_y", printWithUnit(c_readoutGridY, c_precision, "mm").c_str());
+  xmlDetBrlSeg->SetAttribute("grid_size_z", printWithUnit(c_readoutGridZ, c_precision, "mm").c_str());
   xmlDetBrlReadout->InsertEndChild(xmlDetBrlSeg);
 
   auto xmlDetBrlId = m_xmlDoc->NewElement("id");
-  xmlDetBrlId->SetText("system:4,layer:5,rod:8,module:8,module_component:4,x:40:-8,y:-8");
+  xmlDetBrlId->SetText("system:4,layer:5,rod:8,module:8,module_component:4,x:40:-8,z:-8");
   xmlDetBrlReadout->InsertEndChild(xmlDetBrlId);
 
   // Ecap read-out
@@ -114,13 +114,13 @@ bool ExtractorFCCSW::analyze()
   xmlDetReadouts->InsertEndChild(xmlDetEcapReadout);
 
   auto xmlDetEcapSeg = m_xmlDoc->NewElement("segmentation");
-  xmlDetEcapSeg->SetAttribute("type","CartesianGridXY");
+  xmlDetEcapSeg->SetAttribute("type","CartesianGridXZ");
   xmlDetEcapSeg->SetAttribute("grid_size_x", printWithUnit(c_readoutGridX, c_precision, "mm").c_str());
-  xmlDetEcapSeg->SetAttribute("grid_size_y", printWithUnit(c_readoutGridY, c_precision, "mm").c_str());
+  xmlDetEcapSeg->SetAttribute("grid_size_z", printWithUnit(c_readoutGridZ, c_precision, "mm").c_str());
   xmlDetEcapReadout->InsertEndChild(xmlDetEcapSeg);
 
   auto xmlDetEcapId = m_xmlDoc->NewElement("id");
-  xmlDetEcapId->SetText("system:4,posneg:1,disc:5,ring:8,module:8,module_component:4,x:40:-8,y:-8");
+  xmlDetEcapId->SetText("system:4,posneg:1,disc:5,ring:8,module:8,module_component:4,x:40:-8,z:-8");
   xmlDetEcapReadout->InsertEndChild(xmlDetEcapId);
 
 
