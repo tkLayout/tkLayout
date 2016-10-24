@@ -464,8 +464,6 @@ namespace insur {
     std::map<int, std::vector<double> > averages;
 
     // Book histograms
-    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
-    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
     TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
     TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
 #ifdef MATERIAL_SHADOW
@@ -483,35 +481,41 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // Full volume rlength
+    THStack* rOverviewFull = new THStack("rfullvolume", "Radiation Length Over Full Tracker Volume");
     cr = (TH1D*)a.getHistoGlobalR().Clone();
-    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-    cr->Add(fr1);
-    cr->Add(fr2);
     cr->SetFillColor(kGray + 2);
-    crProf = newProfile(cr);
-    crProf->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-    crProf->SetXTitle("#eta");
-    crProf->Rebin(materialRebin);
-    crProf->Draw("hist");
+    cr->SetLineColor(kGray + 2);
+    rOverviewFull->Add(cr);
+    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+    fr1->SetFillColor(kGray + 2);
+    fr1->SetLineColor(kGray + 2);
+    rOverviewFull->Add(fr1);
+    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+    fr2->SetLineColor(kGray + 2);
+    fr2->SetFillColor(kGray + 2); 
+    rOverviewFull->Add(fr2);
+    rOverviewFull->Draw();
+    rOverviewFull->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // Full volume ilength
+    THStack* iOverviewFull = new THStack("ifullvolume", "Radiation Length Over Full Tracker Volume");
     ci = (TH1D*)a.getHistoGlobalI().Clone();
+    ci->SetFillColor(kGray + 2);
+    ci->SetLineColor(kGray + 2);
+    iOverviewFull->Add(ci);
     fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+    fi1->SetFillColor(kGray + 2);
+    fi1->SetLineColor(kGray + 2);
+    iOverviewFull->Add(fi1);
     fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-    fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-    fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-    ci->Add(fi1);
-    ci->Add(fi2);
-    ci->SetFillColor(kGray + 1);
-    ciProf = newProfile(ci);
-    ciProf->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-    ciProf->SetXTitle("#eta");
-    ciProf->Rebin(materialRebin);
-    ciProf->Draw("hist");
+    fi2->SetLineColor(kGray + 2);
+    fi2->SetFillColor(kGray + 2); 
+    iOverviewFull->Add(fi2);
+    iOverviewFull->Draw();
+    iOverviewFull->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     // Put the full volume materials plots to the site
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in full volume");
@@ -582,28 +586,36 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // radiation length in tracking volume by active, serving or passive
+    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
     sur = (TH1D*)a.getHistoSupportsAllR().Clone();
+    sur->SetLineColor(kOrange + 4);
     sur->SetFillColor(kOrange + 4);
     rcontainer->Add(sur);
     ser = (TH1D*)a.getHistoServicesAllR().Clone();
+    ser->SetLineColor(kBlue);
     ser->SetFillColor(kBlue);
     rcontainer->Add(ser);
     acr = (TH1D*)a.getHistoModulesAllR().Clone();
+    acr->SetLineColor(kRed);
     acr->SetFillColor(kRed);
     rcontainer->Add(acr);   
     rcontainer->Draw();
     rcontainer->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
     // interaction length in tracking volume by active, serving or passive
+    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     sui = (TH1D*)a.getHistoSupportsAllI().Clone();
+    sui->SetLineColor(kOrange + 2);
     sui->SetFillColor(kOrange + 2);
     icontainer->Add(sui);
     sei = (TH1D*)a.getHistoServicesAllI().Clone();
+    sei->SetLineColor(kAzure - 2);
     sei->SetFillColor(kAzure - 2);
     icontainer->Add(sei);
     aci = (TH1D*)a.getHistoModulesAllI().Clone();
+    aci->SetLineColor(kRed - 3);
     aci->SetFillColor(kRed - 3);
     icontainer->Add(aci);
     icontainer->Draw();
@@ -664,7 +676,6 @@ namespace insur {
     for (std::map<std::string, TH1D*>::iterator it = rActiveComps.begin(); it != rActiveComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(compIndex));
       it->second->SetFillColor(Palette::color(compIndex));
-      it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       compLegend->AddEntry(it->second, it->first.c_str());
       rCompStack->Add(it->second);
@@ -672,6 +683,8 @@ namespace insur {
       myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     rCompStack->Draw();
+    rCompStack->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -681,12 +694,13 @@ namespace insur {
     for (std::map<std::string, TH1D*>::iterator it = iActiveComps.begin(); it != iActiveComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(compIndex));
       it->second->SetFillColor(Palette::color(compIndex));
-      it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       iCompStack->Add(it->second);
       myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     iCompStack->Draw();
+    iCompStack->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
     compLegend->Draw();
 
     myContent->addItem(myTable);
@@ -709,8 +723,6 @@ namespace insur {
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
 
-
-
     THStack* rServicesCompStack = new THStack("rservicescompstack", "Radiation Length by Component");
     THStack* iServicesCompStack = new THStack("iservicescompstack", "Interaction Length by Component");
 
@@ -729,14 +741,15 @@ namespace insur {
     for (std::map<std::string, TH1D*>::iterator it = rServicesComps.begin(); it != rServicesComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(servicesCompIndex));
       it->second->SetFillColor(Palette::color(servicesCompIndex));
-      it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       servicesCompLegend->AddEntry(it->second, it->first.c_str());
       rServicesCompStack->Add(it->second);
       myTable->setContent(servicesCompIndex, 0, it->first);
       myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
-    rServicesCompStack->Draw();
+    rServicesCompStack->Draw();  
+    rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
     servicesCompLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -746,16 +759,16 @@ namespace insur {
     for (std::map<std::string, TH1D*>::iterator it = iServicesComps.begin(); it != iServicesComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(servicesCompIndex));
       it->second->SetFillColor(Palette::color(servicesCompIndex));
-      it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       iServicesCompStack->Add(it->second);
       myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     iServicesCompStack->Draw();
+    rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
+    myCanvas->Modified();
     servicesCompLegend->Draw();
 
     myContent->addItem(myTable);
-
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in services");
     myImage->setName("matServicesComponentsFull");
@@ -797,7 +810,6 @@ namespace insur {
       for (const auto& it : rCompsTrackingVolume) {
 	it.second->SetLineColor(Palette::color(compIndexTrackingVolume));
 	it.second->SetFillColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetXTitle("#eta");
 	it.second->SetTitle(it.first.c_str());
 	compLegendTrackingVolume->AddEntry(it.second, it.first.c_str());
 	rCompTrackingVolumeStack->Add(it.second);
@@ -805,6 +817,8 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
       rCompTrackingVolumeStack->Draw();
+      rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
+      myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myPad = myCanvas->GetPad(2);
@@ -820,12 +834,13 @@ namespace insur {
       for (const auto& it : iCompsTrackingVolume) {
 	it.second->SetLineColor(Palette::color(compIndexTrackingVolume));
 	it.second->SetFillColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetXTitle("#eta");
 	it.second->SetTitle(it.first.c_str());
 	iCompTrackingVolumeStack->Add(it.second);
 	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
       iCompTrackingVolumeStack->Draw();
+      iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
+      myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myContentDetails->addItem(myTable);
@@ -850,23 +865,25 @@ namespace insur {
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       // global plots in tracking volume: radiation length
+      THStack* rOverviewTrackingVolume = new THStack("rglobal", "Overall Radiation Length");
       cr = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
+      cr->SetLineColor(kGray + 2);
       cr->SetFillColor(kGray + 2);
-      crProf = newProfile(cr);
-      crProf->SetNameTitle("rglobal", "Overall Radiation Length");
-      crProf->SetXTitle("#eta");
-      crProf->Rebin(materialRebin);
-      crProf->Draw("hist");
+      rOverviewTrackingVolume->Add(cr);
+      rOverviewTrackingVolume->Draw();
+      rOverviewTrackingVolume->GetXaxis()->SetTitle("#eta");
+      myCanvas->Modified();
       myPad = myCanvas->GetPad(2);
       myPad->cd();
       // global plots in tracking volume: interaction length
+      THStack* iOverviewTrackingVolume = new THStack("iglobal", "Overall Interaction Length");
       ci = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
-      ci->SetFillColor(kGray + 1);
-      ciProf = newProfile(ci);
-      ciProf->SetNameTitle("iglobal", "Overall Interaction Length");
-      ciProf->SetXTitle("#eta");
-      ciProf->Rebin(materialRebin);
-      ciProf->Draw("hist");
+      ci->SetLineColor(kGray + 2);
+      ci->SetFillColor(kGray + 2);
+      iOverviewTrackingVolume->Add(ci);
+      iOverviewTrackingVolume->Draw();
+      iOverviewTrackingVolume->GetXaxis()->SetTitle("#eta");
+      myCanvas->Modified();
       // Write global tracking volume plots to web pag
       myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Material in tracking volume");
@@ -2693,7 +2710,6 @@ namespace insur {
     for (const auto& it : histoMap) {
       it.second->SetLineColor(Palette::color(index));
       it.second->SetFillColor(Palette::color(index));
-      it.second->SetXTitle("#eta");
       it.second->SetTitle(it.first.c_str());
       if (isRadiation) legend->AddEntry(it.second, it.first.c_str());
       myStack->Add(it.second);
@@ -2710,7 +2726,6 @@ namespace insur {
     for (const auto& it : histoMap) {
       it.second->SetLineColor(Palette::color(index));
       it.second->SetFillColor(Palette::color(index));
-      it.second->SetXTitle("#eta");
       it.second->SetTitle(it.first.c_str());
       if (isRadiation) legend->AddEntry(it.second, it.first.c_str());
       myStack->Add(it.second);
@@ -2755,9 +2770,9 @@ namespace insur {
     if (aLayout) myPage->addContent(geometryContent);
     materialOverviewContent = new RootWContent("Full layout Material : 1d overview (tracking volume)");
     myPage->addContent(materialOverviewContent);
-    materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)");
+    materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)", false);
     myPage->addContent(materialCategoriesContent);
-    materialComponentsContent = new RootWContent("Full layout Material : Components details (tracking volume)");
+    materialComponentsContent = new RootWContent("Full layout Material : Components details (tracking volume)", false);
     myPage->addContent(materialComponentsContent);
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
@@ -2851,6 +2866,8 @@ namespace insur {
     stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
     rCompTotalTrackingVolumeStack->Draw();
+    rCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -2863,6 +2880,8 @@ namespace insur {
     stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
     iCompTotalTrackingVolumeStack->Draw();
+    iCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     compLegend->Draw();
 
     materialComponentsContent->addItem(myTable);
@@ -2892,8 +2911,8 @@ namespace insur {
     histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
     histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
     histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Interstice", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Interstice", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
+    histoPerCategoryR.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
+    histoPerCategoryI.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
     histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
     histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
     THStack* rCompCategoryTrackingVolumeStack = new THStack("rcompcategorytrackingvolumestack", "Radiation Length by Category in tracking volume");
@@ -2912,6 +2931,8 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     rCompCategoryTrackingVolumeStack->Draw();
+    rCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -2920,6 +2941,8 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     iCompCategoryTrackingVolumeStack->Draw();
+    iCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     compLegend->Draw();
 
     materialCategoriesContent->addItem(myTable);
@@ -2944,23 +2967,25 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // global plots in tracking volume: radiation length
+    THStack* rOverviewTotalTrackingVolume = new THStack("rtotalglobal", "Overall Radiation Length");
     cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
+    cr->SetLineColor(kGray + 2);
     cr->SetFillColor(kGray + 2);
-    crProf = newProfile(cr);
-    crProf->SetNameTitle("rglobal", "Overall Radiation Length");
-    crProf->SetXTitle("#eta");
-    crProf->Rebin(materialRebin);
-    crProf->Draw("hist");
+    rOverviewTotalTrackingVolume->Add(cr);
+    rOverviewTotalTrackingVolume->Draw();
+    rOverviewTotalTrackingVolume->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // global plots in tracking volume: interaction length
+    THStack* iOverviewTotalTrackingVolume = new THStack("itotalglobal", "Overall Interaction Length");
     ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    ci->SetFillColor(kGray + 1);
-    ciProf = newProfile(ci);
-    ciProf->SetNameTitle("iglobal", "Overall Interaction Length");
-    ciProf->SetXTitle("#eta");
-    ciProf->Rebin(materialRebin);
-    ciProf->Draw("hist");
+    ci->SetLineColor(kGray + 2);
+    ci->SetFillColor(kGray + 2);
+    iOverviewTotalTrackingVolume->Add(ci);
+    iOverviewTotalTrackingVolume->Draw();
+    iOverviewTotalTrackingVolume->GetXaxis()->SetTitle("#eta");
+    myCanvas->Modified();
     // Write global tracking volume plots to web pag
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in total tracking volume");

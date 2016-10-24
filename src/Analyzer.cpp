@@ -797,7 +797,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	    iComponentsServicesDetails[it.first]->Fill(eta, res.interaction);
 	  }
 
-	  if (servicesComponentsRI.size() == 0) {
+	  /*if (servicesComponentsRI.size() == 0) {
 	    if (rComponentsServicesDetails["Services : others"]==NULL) {
 	      rComponentsServicesDetails["Services : others"] = new TH1D();
 	      rComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -808,7 +808,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	      iComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
 	    }
 	    iComponentsServicesDetails["Services : others"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	  }
+	    }*/
 	}
       }
 
