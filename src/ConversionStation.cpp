@@ -52,7 +52,7 @@ namespace material {
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
 
 	      // To do : Put this in a new MaterialObject::Element constructor
-	      if (currElement->componentName.state()) {
+	      if (currElement->componentName.state() && !outputElement->componentName.state()) {
 		newElement->componentName(currElement->componentName());
 	      }
 
