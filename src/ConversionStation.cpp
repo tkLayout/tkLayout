@@ -55,6 +55,9 @@ namespace material {
 	      if (currElement->componentName.state() && !outputElement->componentName.state()) {
 		newElement->componentName(currElement->componentName());
 	      }
+	      if (!newElement->componentName.state()) {
+		logWARNING("Element " + newElement->elementName() + "which is at output of station" + stationName_() + "has no assigned componentName.");
+	      }
 
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
