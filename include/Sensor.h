@@ -9,7 +9,6 @@
 #include "Property.h"
 #include "CoordinateOperations.h"
 #include "Visitor.h"
-#include <bitset>
 
 
 enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
