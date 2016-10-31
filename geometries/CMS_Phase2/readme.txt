@@ -39,6 +39,27 @@ OT_Tilted_362_200_Pixel_4021.cfg     OT Version 3.6.2
 
 OT_Tilted_362_200_Pixel_4022.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.2 <- like 4.0.2.1 but with lower radii for BPIX L3 and L4 (less modules)
+
+OT_Tilted_363_200_Pixel_4021.cfg     OT Version 3.6.3 !! Work in progress !!
+                                     This is just an intermediary version towards an optimized TBPS. Main optimization point
+                                     should be the reduction of TBPS planks δ and Δ, by 5 mm and 1 mm respectively
+                                     Position of first ring (by changing zOverlap) was moved in such a way to keep the distance between the centre of the last flat module and the centre of the first
+                                     tilted module (in z)
+                          (3.6.2)    z_last_flat z_inner_first_tilted zOverlap zError_outer
+                                     121.212     170.363              1.0      3.572 
+                                     213.069     265.499              1.0      6.262
+                                     305.080     355.757              1.5      13.725
+                          (.....)    z_last_flat z_inner_first_tilted zOverlap zError_outer
+                                     124.029     166.827              18       57.977
+                                     216.018     262.683              16       89.562
+                                     307.947     352.500              17       138.486
+
+                                     Radii and zOverlap of first rings were then changed so as to obtain zError_outer ~50mm, ~70mm, ~70mm for layers 1, 2, 3 at the transition
+                                     Layer  Radius [mm]        zOverlap [mm]  zError_outer
+                                     1      227.5   -> 228.0   18 -> 16       57.977   -> 52.231
+                                     2      355.175 -> 356.7   16 -> 12.5     89.562   -> 73.053
+                                     3      508     -> 511     17 ->  8.5     138.486  -> 75.649
+
                                      
 OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-style
                                      Pixel version 4.0.2.1
