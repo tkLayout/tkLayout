@@ -3,15 +3,16 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "Sensor.h"
+#include "CoordinateOperations.h"
 #include "GeometricModule.h"
 #include "GeometryFactory.h"
-#include "CoordinateOperations.h"
+#include "MaterialObject.h"
+#include "math_functions.h"
+#include "MessageLogger.h"
 #include "Property.h"
+#include "Sensor.h"
 #include "Visitable.h"
 #include "Visitor.h"
-#include "MaterialObject.h"
-#include "MessageLogger.h"
 
 using material::MaterialObject;
 

@@ -12,7 +12,6 @@
 #include <TVector.h>
 #include <TMatrixD.h>
 
-#include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
 #include "Visitor.h"

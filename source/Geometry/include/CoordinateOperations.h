@@ -10,8 +10,9 @@
 
 #include <Math/Vector3Dfwd.h>
 #include <vector>
+
+#include "math_functions.h"
 #include "Polygon3d.h"
-#include "global_funcs.h"
 
 using ROOT::Math::XYZVector;
 

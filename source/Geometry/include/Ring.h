@@ -8,7 +8,6 @@
 using std::vector;
 using std::string;
 
-#include "global_funcs.h"
 #include "Property.h"
 #include "DetectorModule.h"
 #include "Visitable.h"

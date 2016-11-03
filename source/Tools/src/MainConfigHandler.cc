@@ -16,12 +16,12 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <global_constants.h>
-#include <global_funcs.h>
 
 #include <sys/types.h>
 
 #include "GraphVizCreator.h"
 #include "MessageLogger.h"
+#include "string_functions.h"
 #include "Units.h"
 
 using namespace std;

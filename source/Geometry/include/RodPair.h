@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "global_funcs.h"
 #include "GeometryFactory.h"
 #include "Property.h"
 #include "DetectorModule.h"

@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 
-#include "global_funcs.h"
 #include "ConversionStation.h"
 #include "Property.h"
 #include "RodPair.h"

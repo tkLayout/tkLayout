@@ -215,8 +215,11 @@ FOREACH( file ${obj_sources} )
  IF( ${file} MATCHES "MessageLogger.cc" )
   SET( source_messagelogger ${file} )
  ENDIF()
- IF( ${file} MATCHES "global_funcs.cc" )
-  SET( source_globalfunctions ${file} )
+ IF( ${file} MATCHES "string_functions.cc" )
+  SET( source_stringfunctions ${file} )
+ ENDIF()
+  IF( ${file} MATCHES "StringConverter.cc" )
+  SET( source_stringconverter ${file} )
  ENDIF()
 ENDFOREACH()
 
@@ -238,7 +241,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)            # Set automatically rpath
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # Set automatically rpath for dynamic linking of internally created & installed libraries
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${obj_sources} ${obj_headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_vizgraphcreator} ${source_messagelogger} ${source_mainhandler} ${source_globalfunctions} ${obj_headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_vizgraphcreator} ${source_messagelogger} ${source_mainhandler} ${source_stringfunctions} ${source_stringconverter} ${obj_headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
 
 ADD_LIBRARY(tinyXML SHARED ${tinyxml_sources})

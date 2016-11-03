@@ -121,19 +121,19 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyProperty<double, Default>   alphaParm;
   ReadonlyProperty<double, Default>   referenceTemp;
 
-  ReadonlyProperty<double, Default>   magneticField;      //!< Central magnetic field in Tesla
+  ReadonlyProperty<double, Default>   magneticField;        //!< Central magnetic field in Tesla
 
   // To include dipole region in a quick way
-  ReadonlyProperty<double, Default>   dipoleMagneticField;//!< Dipole integral magnetic field in [Tm]
-  ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;//!< Dipole deltaPl/Pl resolution of dipole tracker at 10 TeV
-  ReadonlyProperty<double, Default>   dipoleXToX0;        //  [%]
+  ReadonlyProperty<double, Default>   dipoleMagneticField;  //!< Dipole integral magnetic field in [Tm]
+  ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;  //!< Dipole deltaPl/Pl resolution of dipole tracker at 10 TeV
+  ReadonlyProperty<double, Default>   dipoleXToX0;          //  [%]
 
   PropertyVector<std::string, ','>    irradiationMapFiles;
 
   // Define eta regions & region names to be plotted when drawing geometry.
   // The last value of region ranges represents the maximum tracker eta coverage -> used by analysis modules
-  PropertyVector<double     , ','>    etaRegionRanges;    //!< Set ordered eta regions, the last one being maximum tracker eta coverage (e.g. 0, 2.5, 4.0)
-  PropertyVector<std::string, ','>    etaRegionNames;     //!< Set names for ordered eta borders (e.g TRK-0, TRK-BRL, TRK-MAX)
+  ReadonlyPropertyVector<double     , ','> etaRegionRanges; //!< Set ordered eta regions, the last one being maximum tracker eta coverage (e.g. 0, 2.5, 4.0)
+  ReadonlyPropertyVector<std::string, ','> etaRegionNames;  //!< Set names for ordered eta borders (e.g TRK-0, TRK-BRL, TRK-MAX)
 
   Property<std::string, Default> bFieldMapFile;           // Map of b field - not currently currently for tracking
   Property<std::string, Default> chargedMapFile;          // Map of charged hadron fluxes, segmented in R x Z

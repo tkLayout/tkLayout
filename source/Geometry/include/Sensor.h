@@ -6,7 +6,6 @@
 
 #include "CoordinateOperations.h"
 #include "GeometryFactory.h"
-#include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
 

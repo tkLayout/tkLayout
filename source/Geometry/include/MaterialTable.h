@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <math.h>
 
-#include <global_funcs.h>
+#include <string_functions.h>
 
 namespace insur {
     /**

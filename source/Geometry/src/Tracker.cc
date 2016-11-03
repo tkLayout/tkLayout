@@ -1,6 +1,5 @@
 #include "Tracker.h"
 #include "global_constants.h"
-#include "global_funcs.h"
 
 #include <Barrel.h>
 #include <DetectorModule.h>

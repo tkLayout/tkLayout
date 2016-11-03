@@ -12,7 +12,6 @@
 // Project include files
 #include "Barrel.h"
 #include "Endcap.h"
-#include "global_funcs.h"
 #include "MainConfigHandler.h"
 #include "MaterialTab.h"
 #include "MessageLogger.h"
