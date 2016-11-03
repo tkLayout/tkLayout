@@ -55,6 +55,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   Property<        double, NoDefault>  outerZ;       //!< End building disks at outerZ
   ReadonlyProperty<double, Computable> minZ;         //!< Minimum Z position of an endcap
   ReadonlyProperty<double, Computable> maxZ;         //!< Maximum Z position of an endcap
+  ReadonlyProperty<double, Computable> minZAllMat;   //!< Minimum Z position of an endcap taking into account all material structures
+  ReadonlyProperty<double, Computable> maxZAllMat;   //!< Maximum Z position of an endcap taking into account all material structures
   ReadonlyProperty<double, Computable> minR;         //!< Minimum radius of an endcap
   ReadonlyProperty<double, Computable> maxR;         //!< Maximum radius of an endcap
   ReadonlyProperty<bool  , Default>    skipServices; // TODO: Comment

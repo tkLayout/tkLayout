@@ -11,6 +11,8 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
  maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
  beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
@@ -35,6 +37,8 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
  maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
  beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
@@ -92,10 +96,12 @@ void RodPair::accept(ConstGeometryVisitor& v) const
 //! Setup: link lambda functions to various rod related properties (use setup functions for ReadOnly Computable properties)
 void RodPair::setup() {
 
-  minZ.setup([&]() { return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
-  maxZ.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
-  minR.setup([&]() { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
-  maxR.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR); });
+  minZ.setup([&]()       { return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
+  maxZ.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
+  minR.setup([&]()       { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
+  maxR.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR);  });
+  minRAllMat.setup([&]() { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minRAllMat); });
+  maxRAllMat.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxRAllMat); });
   maxModuleThickness.setup([&]() { return maxget2(m_zPlusModules.begin(), m_zPlusModules.end(), &DetectorModule::thickness); });
 }
 

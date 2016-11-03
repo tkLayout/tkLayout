@@ -120,6 +120,7 @@ Hit::Hit(double myDistance, const DetectorModule* myModule, HitType activeHitTyp
     m_isTrigger        = false;
     m_isPixel          = false;
     m_isIP             = false;
+    m_isBeamPipe       = false;
     m_resolutionRphi   = 0;
     m_resolutionY      = 0;
     m_activeHitType    = activeHitType;

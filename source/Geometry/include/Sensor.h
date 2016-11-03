@@ -6,7 +6,6 @@
 
 #include "CoordinateOperations.h"
 #include "GeometryFactory.h"
-#include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
 
@@ -53,11 +52,11 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   // Get geometry properties
   const Polygon3d<4>& hitPoly() const;
 
-  //! Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
-  const Polygon3d<4>& upperEnvelopePoly() const;
+  //! Get upper envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+  const Polygon3d<4>& upperEnvelopePoly(bool applyAllMaterial=false) const;
 
-  //! Get lower envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
-  const Polygon3d<4>& lowerEnvelopePoly() const;
+  //! Get lower envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+  const Polygon3d<4>& lowerEnvelopePoly(bool applyAllMaterial=false) const;
 
   //! Get standard offset wrt module average position -> +-dsDistance if dsDistance defined
   double normalOffset() const;
@@ -81,8 +80,12 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   ReadonlyProperty<double, Default           > sensorThickness;  //!< Sensor thickness
   ReadonlyProperty<double, UncachedComputable> minR;             //!< Minimum sensor radius
   ReadonlyProperty<double, UncachedComputable> maxR;             //!< Maximum sensor radius
+  ReadonlyProperty<double, UncachedComputable> minRAllMat;       //!< Minimum sensor radius taking into account all module material structures
+  ReadonlyProperty<double, UncachedComputable> maxRAllMat;       //!< Maximum sensor radius taking into account all module material structures
   ReadonlyProperty<double, UncachedComputable> minZ;             //!< Minimum sensor Z position
   ReadonlyProperty<double, UncachedComputable> maxZ;             //!< Maximum sensor Z position
+  ReadonlyProperty<double, UncachedComputable> minZAllMat;       //!< Minimum sensor Z position taking into account all module material structures
+  ReadonlyProperty<double, UncachedComputable> maxZAllMat;       //!< Maximum sensor Z position taking into account all module material structures
 
   ReadonlyProperty<SensorType, Default> type;                    //!< Default sensor type: pixel, strip, ...
 
@@ -93,9 +96,11 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   //! Build sensor geometrical representation based on detector module geometrical representation shifted by offset (i.e. by +-thickness/2. to get outer/inner envelope etc.)
   Polygon3d<4>* buildOwnPoly(double polyOffset) const;
 
-  mutable const Polygon3d<4>* m_hitPoly      = nullptr;
-  mutable const Polygon3d<4>* m_lowerEnvPoly = nullptr; //! Lower envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
-  mutable const Polygon3d<4>* m_upperEnvPoly = nullptr; //! Upper envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3d<4>* m_hitPoly            = nullptr;
+  mutable const Polygon3d<4>* m_lowerEnvPoly       = nullptr; //! Lower envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3d<4>* m_upperEnvPoly       = nullptr; //! Upper envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3d<4>* m_lowerEnvPolyAllMat = nullptr; //! Lower envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3d<4>* m_upperEnvPolyAllMat = nullptr; //! Upper envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
 
 };
 

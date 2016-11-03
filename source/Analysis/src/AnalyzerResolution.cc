@@ -518,28 +518,28 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
     std::string title("");
     std::string name("");
     if (varType=="pT") {
-      name  = "pT_vs_eta"+any2str(momentum);
-      title = "p_{T} resolution versus #eta - const "+scenario+" across #eta;#eta;#delta p_{T}/p_{T} [%]";
+      name  = "pT_vs_eta"+any2str(momentum/Units::GeV);
+      title = "p_{T} resolution versus #eta - "+scenario+" across #eta;#eta;#delta p_{T}/p_{T} [%]";
     }
     else if (varType=="p") {
-      name  = "p_vs_eta"+any2str(momentum);
-      title = "p resolution versus #eta - const "+scenario+" across #eta;#eta;#delta p/p [%]";
+      name  = "p_vs_eta"+any2str(momentum/Units::GeV);
+      title = "p resolution versus #eta - "+scenario+" across #eta;#eta;#delta p/p [%]";
     }
     else if (varType=="d0") {
-      name  = "d0_vs_eta"+any2str(momentum);
-      title = "Transverse impact parameter error - const "+scenario+" across #eta;#eta;#delta d_{0} [#mum]";
+      name  = "d0_vs_eta"+any2str(momentum/Units::GeV);
+      title = "Transverse impact parameter error - "+scenario+" across #eta;#eta;#delta d_{0} [#mum]";
     }
     else if (varType=="z0") {
-      name  = "z0_vs_eta"+any2str(momentum);
-      title = "Longitudinal impact parameter error - const "+scenario+" across #eta;#eta;#delta z_{0} [#mum]";
+      name  = "z0_vs_eta"+any2str(momentum/Units::GeV);
+      title = "Longitudinal impact parameter error - "+scenario+" across #eta;#eta;#delta z_{0} [#mum]";
     }
     else if (varType=="phi0") {
-      name  = "phi0_vs_eta"+any2str(momentum);
-      title = "Track azimuthal angle error - const "+scenario+" across #eta;#eta;#delta #phi [deg]";
+      name  = "phi0_vs_eta"+any2str(momentum/Units::GeV);
+      title = "Track azimuthal angle error - "+scenario+" across #eta;#eta;#delta #phi [deg]";
     }
     else if (varType=="cotgTheta") {
-      name  = "cotgTh_vs_eta"+any2str(momentum);
-      title = "Track polar angle error - const "+scenario+" across #eta;#eta;#delta ctg(#theta)";
+      name  = "cotgTh_vs_eta"+any2str(momentum/Units::GeV);
+      title = "Track polar angle error - "+scenario+" across #eta;#eta;#delta ctg(#theta)";
     }
     std::unique_ptr<TProfile> profHis(new TProfile(name.c_str(), title.c_str(), c_nBins, 0, SimParms::getInstance().getMaxEtaCoverage()));
 
@@ -704,32 +704,32 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
       if      (plotName==std::string(web_deltaLetter+"pt/pt [%]:           ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("linptres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("linptres_"+tag+"_noMS_"+scenario));
-        profileName= "pT_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "pT_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"p/p [%]:             ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("pres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("pres_"+tag+"_noMS_"+scenario));
-        profileName= "p_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "p_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"d0 ["+web_muLetter+"m]:  ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("d0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("d0res_"+tag+"_noMS_"+scenario));
-        profileName= "d0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "d0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"z0 ["+web_muLetter+"m]:  ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("z0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("z0res_"+tag+"_noMS_"+scenario));
-        profileName= "z0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "z0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+web_phiLetter+"0:          ")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("phi0res_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("phi0res_"+tag+"_noMS_"+scenario));
-        profileName= "phi0_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "phi0_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
       else if (plotName==std::string(web_deltaLetter+"ctg("+web_thetaLetter+"):")) {
         canvasReal = &(webPage.findContent(scenarioNameReal).findImage("cotgThres_"+tag+"_withMS_"+scenario));
         canvasIdeal= &(webPage.findContent(scenarioNameIdeal).findImage("cotgThres_"+tag+"_noMS_"+scenario));
-        profileName= "cotgTh_vs_eta"+any2str(momenta[iMom],0);
+        profileName= "cotgTh_vs_eta"+any2str(momenta[iMom]/Units::GeV,0);
       }
 
       // Prepare eta cuts
@@ -856,7 +856,7 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
 {
   // Add hit corresponding with beam-pipe
   double theta    = m_matTrack.getTheta();
-  double distance = (bp.radius()+bp.thickness())/2./sin(theta);
+  double distance = (bp.radius()+bp.thickness()/2.)/sin(theta);
   HitPtr hit(new Hit(distance));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);
@@ -864,6 +864,7 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
   material.interaction = bp.intLength()/sin(theta);
+
   hit->setCorrectedMaterial(material);
   hit->setBeamPipe(true);
   m_matTrack.addHit(std::move(hit));

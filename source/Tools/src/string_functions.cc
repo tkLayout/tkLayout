@@ -1,15 +1,9 @@
-#include <global_funcs.h>
-
-template<typename T> const std::vector<std::string> EnumTraits<T>::data = {};
-
-template<> std::string StringConverter<_NOT_STRING_ENUM>::str2any<std::string>(const std::string& from) { return from; };
-
-template<> bool StringConverter<_NOT_STRING_ENUM>::str2any<bool>(const std::string& from) {
-  static std::map<std::string, bool> boolstr = { {"true", true}, {"TRUE", true}, {"True", true}, {"T", true}, {"1", true},
-                                                 {"false", false}, {"FALSE", false}, {"False", false}, {"F", false}, {"0", false} };
-  return boolstr.at(from); 
-}
-
+/*
+ * string_functions.cc
+ *
+ *  Created on: 3. 11. 2016
+ */
+#include "string_functions.h"
 
 std::vector<std::string> split(const std::string& str, const std::string& seps, bool keepEmpty) {
   std::vector<std::string> tokens;
@@ -49,3 +43,6 @@ std::string rctrim(std::string str, const std::string& chars) {
 std::string ctrim(std::string str, const std::string& chars) {
   return lctrim(rctrim(str, chars), chars);
 }
+
+
+

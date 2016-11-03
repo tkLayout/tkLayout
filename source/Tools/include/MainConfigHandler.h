@@ -6,6 +6,8 @@
 #include <vector>
 #include <set>
 
+class GraphVizCreator;
+
 /*
  * @class MainConfigHandler
  * @brief Singleton class reading-in the tkLayout configuration (only once) from .tkgeometryrc file and
@@ -27,10 +29,13 @@ class MainConfigHandler {
   //! MainConfigHandler access method -> get instance of singleton class MainConfigHandler
   static MainConfigHandler& getInstance();
 
+  //! MainConfigHandler method to access GraphVizCreator member (Used to create a graph description file illustrating recursive @include complexity)
+  static GraphVizCreator& getGraphVizCreator();
+
   //! Helper method to preprocess any input configuration file (is) (its full address specified by istreamid) ->
   //! recursively pass through all included files specified by @include & @includestd/@include-std pragma and
   //! include its content to one big configuration file (defined as os)
-  std::set<std::string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);
+  std::set<std::string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid, bool standardIncl=false);
 
   // Getter methods - checking that configuration file read-in first by this singleton class
   bool        getConfiguration(bool checkDirExists = true);
@@ -108,8 +113,6 @@ class MainConfigHandler {
   std::string getStandardIncludeDirectory_P();
   std::string getGeometriesDirectory_P();
 
-  static MainConfigHandler* s_instance;  //!< An instance of MainConfigHandler class - singleton pattern
-
   bool m_goodConfigurationRead;          //!< Returns true if configuration read-in correctly
 
   std::string m_binDirectory;            //!< bin directory, where to place executables
@@ -135,6 +138,32 @@ class MainConfigHandler {
   const char* c_RESULTSAUTHOR                   = "TKG_AUTHOR";
   const char* c_TRIGGERMOMENTADEFINITION        = "TKG_TRIGGERMOMENTA";
   const char* c_THRESHOLDPROBABILITIESDEFINITION= "TKG_THRESHOLD_PROB";
-};
+
+}; // Class
+
+/*
+ * Configuration input/output helper class
+ */
+class ConfigInputOutput {
+
+public:
+
+  ConfigInputOutput(std::istream& newIs, std::ostream& newOs, const std::string& name) :
+    is(newIs) ,
+    os(newOs),
+    absFileName(name),
+    relFileName(name) {}
+
+  std::string getIncludedFile(std::string fileName);
+  std::string getAbsFileNameDir() const;
+
+  std::istream& is;
+  std::ostream& os;
+  std::string absFileName;
+  std::string relFileName;
+  bool standardInclude = false;
+  std::set<std::string> includePathList;
+  bool webOutput = false;
+}; // Class
 
 #endif

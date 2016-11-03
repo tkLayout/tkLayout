@@ -71,6 +71,8 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   ReadonlyProperty<double, Computable> maxZ;        //!< Maximum Z position of a barrel
   ReadonlyProperty<double, Computable> minR;        //!< Minimum radius of a barrel
   ReadonlyProperty<double, Computable> maxR;        //!< Maximum radius of a barrel
+  ReadonlyProperty<double, Computable> minRAllMat;  //!< Minimum radius of a barrel taking into account all material structures
+  ReadonlyProperty<double, Computable> maxRAllMat;  //!< Maximum radius of a barrel taking into account all material structures
   ReadonlyProperty<bool  , Default>    skipServices;// TODO: Comment
 
  private:

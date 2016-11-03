@@ -168,6 +168,8 @@ SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprec
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include 
                      ${PROJECT_SOURCE_DIR}/source/Analysis/include
+                     ${PROJECT_SOURCE_DIR}/source/Extractors/include
+                     ${PROJECT_SOURCE_DIR}/source/TinyXML/include
                      ${PROJECT_SOURCE_DIR}/source/Tools/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${PROJECT_SOURCE_DIR}/source/Web/include
@@ -176,14 +178,17 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include
 FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cc )
 FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc 
+                       ${PROJECT_SOURCE_DIR}/source/Extractors/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc 
                        ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc
                        ${PROJECT_SOURCE_DIR}/source/Web/src/*.cc )
 FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h
-                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h 
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h
+                       ${PROJECT_SOURCE_DIR}/source/Extractors/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h  
                        ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h 
                        ${PROJECT_SOURCE_DIR}/source/Web/include/*.h ) 
+FILE( GLOB tinyxml_sources ${PROJECT_SOURCE_DIR}/source/TinyXML/src/*.cc )
 
 # Get source files with main function defined
 SET ( sources "" )
@@ -204,8 +209,17 @@ FOREACH( file ${obj_sources} )
  IF( ${file} MATCHES "MainConfigHandler.cc" )
   SET( source_mainhandler ${file} )
  ENDIF()
- IF( ${file} MATCHES "global_funcs.cc" )
-  SET( source_globalfunctions ${file} )
+ IF( ${file} MATCHES "GraphVizCreator.cc" )
+  SET( source_vizgraphcreator ${file} )
+ ENDIF()
+ IF( ${file} MATCHES "MessageLogger.cc" )
+  SET( source_messagelogger ${file} )
+ ENDIF()
+ IF( ${file} MATCHES "string_functions.cc" )
+  SET( source_stringfunctions ${file} )
+ ENDIF()
+  IF( ${file} MATCHES "StringConverter.cc" )
+  SET( source_stringconverter ${file} )
  ENDIF()
 ENDFOREACH()
 
@@ -223,16 +237,19 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 # add the executable, and link it to the geant4 libraries
 #
 #SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynamic linking of internal/external libraries
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)            # Set automatically rpath for dynamic linking of external libraries
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # Set automatically rpath for dynamic linking of internally created & installed libraries
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${obj_sources} ${obj_headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${obj_headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_vizgraphcreator} ${source_messagelogger} ${source_mainhandler} ${source_stringfunctions} ${source_stringconverter} ${obj_headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
+
+ADD_LIBRARY(tinyXML SHARED ${tinyxml_sources})
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
-TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} )
+TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} tinyXML )
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
 TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 
@@ -242,6 +259,9 @@ TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
 INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
+INSTALL(TARGETS tinyXML   ARCHIVE DESTINATION lib
+                          LIBRARY DESTINATION lib
+                          RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     

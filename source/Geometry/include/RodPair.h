@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "global_funcs.h"
 #include "GeometryFactory.h"
 #include "Property.h"
 #include "DetectorModule.h"
@@ -76,6 +75,8 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   ReadonlyProperty<double, Computable> minZ;               //!< Minimum rod Z
   ReadonlyProperty<double, Computable> minR;               //!< Minimum rod radius
   ReadonlyProperty<double, Computable> maxR;               //!< Maximum rod radius
+  ReadonlyProperty<double, Computable> minRAllMat;         //!< Minimum rod radius taking into account all material structures
+  ReadonlyProperty<double, Computable> maxRAllMat;         //!< Maximum rod radius taking into account all material structures
   ReadonlyProperty<double, Computable> maxModuleThickness; //!< Calculated maximum module thickness in a rod
   Property<        bool  , Default>    beamSpotCover;      //!< Take into account beam spot size when positioning modules
 

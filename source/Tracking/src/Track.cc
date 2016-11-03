@@ -676,8 +676,24 @@ void Track::computeCorrelationMatrixRZ() {
     double XtoX0 = m_hits.at(i)->getCorrectedMaterial().radiation;
 
     if (XtoX0>0) {
-      // Equivalent to p=transverseMomentum_/sin(theta_); and then computing th/sin(theta)/sin(theta) using p in place of p_T
+      // Equivalent to using p=transverseMomentum_/sin(theta_) and then computing projection of msTheta to horizontal plane msTheta/sin(theta)/sin(theta) -> hence using directly pt instead of p
       msTheta = (13.6*Units::MeV * 13.6*Units::MeV) / (m_pt/Units::MeV * m_pt/Units::MeV) * XtoX0 * (1 + 0.038 * log(XtoX0)) * (1 + 0.038 * log(XtoX0));
+
+// Use MS for particular layers only - for debugging purposes
+//      if (!m_hits[i]->isBeamPipe()) {
+//
+//        //msTheta = 0.0;
+//
+//        if (m_hits[i]->getRadius()>80) msTheta = 0;
+//        else if (m_hits[i]->getHitModule()!=nullptr && (m_hits[i]->getHitModule()->subdet()==ENDCAP)) msTheta = 0.0;
+//        else {
+//          std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius() <<" "<< m_hits[i]->getRadius()*m_cotgTheta << std::endl;
+//        }
+//      }
+//      else {
+//        std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius() <<" "<< m_hits[i]->getRadius()*m_cotgTheta << std::endl;
+//      }
+
     }
     else {
       msTheta = 0;

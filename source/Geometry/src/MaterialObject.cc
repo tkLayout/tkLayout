@@ -316,7 +316,7 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
-    materialTab_ (MaterialTab::instance()),
+    materialTab_ (MaterialTab::getInstance()),
     materialType_(newMaterialType) {};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {

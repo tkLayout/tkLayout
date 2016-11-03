@@ -16,8 +16,9 @@
 
 #include <boost/property_tree/ptree.hpp>
 
-#include "global_funcs.h"
 #include "GeometryCapability.h"
+#include "string_functions.h"
+#include "StringConverter.h"
 #include "StringSet.h"
 
 // Used namespaces
@@ -266,6 +267,39 @@ public:
 
   void appendString(const string& s) { m_values.push_back(trim(s));}
 }; 
+
+//! Vector of property variables, which are read-only - property can be read-in (or computed) using data from boost property_tree, can't be (re)set further on
+template<typename T, const char Sep = ','>
+class ReadonlyPropertyVector : public Parsable {  // CUIDADO DEPRECATED
+  std::vector<T> m_values;
+  const string&  m_name;
+
+  void operator()(size_t i, const T& value) {}
+public:
+  ReadonlyPropertyVector(const string& name, PropertyMap& registrar, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) { registrar[name] = this; }
+  ReadonlyPropertyVector(const string& name, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) {}
+  ReadonlyPropertyVector(const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref("unnamed")) {}
+
+  const T& operator()(size_t i) const       { return m_values[i]; }
+  const T& operator[](size_t i) const       { return m_values[i]; }
+  size_t size() const                       { return m_values.size(); }
+
+  typename std::vector<T>::const_iterator begin() const { return m_values.begin(); }
+  typename std::vector<T>::const_iterator end()   const { return m_values.end(); }
+
+  bool state() const  { return !m_values.empty(); }
+  void clear()        { m_values.clear(); }
+  string name() const { return m_name; }
+
+  void fromPtree(const ptree& pt)    { fromString(pt.data()); }
+  void fromString(const string& s)   {
+
+    string seq = trim(s);
+    if (seq.front() != Sep) m_values.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
+    std::vector<T> values = split<T>(seq, string(1, Sep));
+    for (const auto& v : values) m_values.push_back(v);
+  }
+};
 
 //! Map of property variables
 template<typename T, const char Sep = ','>

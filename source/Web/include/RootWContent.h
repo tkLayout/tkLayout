@@ -17,6 +17,7 @@
 class TCanvas;
 class RootWBinaryFile;
 class RootWBinaryFileList;
+class RootWGraphVizFile;
 class RootWImage;
 class RootWInfo;
 class RootWItem;
@@ -56,6 +57,7 @@ class RootWContent {
   void addItem(std::unique_ptr<RootWTextFile> newTextFile);
   void addItem(std::unique_ptr<RootWBinaryFile> newBinaryFile);
   void addItem(std::unique_ptr<RootWBinaryFileList> newBinaryFileList);
+  void addItem(std::unique_ptr<RootWGraphVizFile> newGraphVizFile);
 
   //! Add RootWText in form of paragraph - define text to be given on the output
   void addParagraph(std::string parText) ;

@@ -7,13 +7,18 @@
 #include <AnalysisManager.h>
 
 // List of units
-#include <AnalyzerUnit.h>
-#include <AnalyzerGeometry.h>
-#include <AnalyzerMatBudget.h>
-#include <AnalyzerResolution.h>
+#include "AnalyzerUnit.h"
+#include "AnalyzerGeometry.h"
+#include "AnalyzerMatBudget.h"
+#include "AnalyzerOccupancy.h"
+#include "AnalyzerResolution.h"
+#include "ExtractorCMSSW.h"
+#include "ExtractorFCCSW.h"
 
 // Other include files
 #include "Detector.h"
+#include "GraphVizCreator.h"
+#include "MainConfigHandler.h"
 #include <TH2D.h>
 #include <TProfile.h>
 #include <TH2I.h>
@@ -22,6 +27,7 @@
 #include <StopWatch.h>
 #include <GitRevision.h>
 #include "RootWContent.h"
+#include "RootWGraphVizFile.h"
 #include "RootWInfo.h"
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
@@ -46,6 +52,18 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
 
   // Create AnalyzerMatBudget
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create AnalyzerOccupancy
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerOccupancy(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create CMSSW extractor
+  unit = std::unique_ptr<AnalyzerUnit>(new ExtractorCMSSW(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create FCCSW extractor
+  unit = std::unique_ptr<AnalyzerUnit>(new ExtractorFCCSW(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site
@@ -178,6 +196,7 @@ bool AnalysisManager::makeWebInfoPage()
 {
   // Create web page: Log info
   RootWPage& myPage       = m_webSite->addPage("Info");
+  myPage.setAddress("indexInfo.html");
 
   // Summary of tkLayout parameters
   RootWContent& myContentParms = myPage.addContent("Summary of tkLayout parameters");
@@ -223,6 +242,11 @@ bool AnalysisManager::makeWebInfoPage()
                                                                                   iterInclBegin, iterInclEnd));
     myContentParms.addItem(std::move(myBinaryFileList));
   }
+
+  // Include complexity graph
+  std::unique_ptr<RootWGraphVizFile> myGv(new RootWGraphVizFile("include_graph.gv", "Graph description of the overall Include structure"));
+  myGv->addText(MainConfigHandler::getGraphVizCreator().createGraphVizFile());
+  myContentParms.addItem(std::move(myGv));
 
   // Summary of Csv files
   RootWContent& myContentCsv = myPage.addContent("Summary list of other csv files");
@@ -273,6 +297,7 @@ bool AnalysisManager::makeWebLogPage()
 
   // Create web page: Log info
   RootWPage& myPage = m_webSite->addPage("Log");
+  myPage.setAddress("indexLog.html");
 
   // Check logs
   if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))        myPage.setAlert(1);

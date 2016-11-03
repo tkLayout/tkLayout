@@ -8,6 +8,7 @@
 
 #include "RootWBinaryFile.h"
 #include "RootWBinaryFileList.h"
+#include "RootWGraphVizFile.h"
 #include "RootWInfo.h"
 #include "RootWImage.h"
 #include "RootWItem.h"
@@ -79,6 +80,11 @@ void RootWContent::addItem(std::unique_ptr<RootWBinaryFile> newBinaryFile)
 void RootWContent::addItem(std::unique_ptr<RootWBinaryFileList> newBinaryFileList)
 {
   std::unique_ptr<RootWItem> newItem(std::move(newBinaryFileList));
+  m_itemList.push_back(std::move(newItem));
+}
+void RootWContent::addItem(std::unique_ptr<RootWGraphVizFile> newGraphVizFile)
+{
+  std::unique_ptr<RootWItem> newItem(std::move(newGraphVizFile));
   m_itemList.push_back(std::move(newItem));
 }
 

@@ -16,6 +16,7 @@
 #include "InactiveRing.h"
 #include "Barrel.h"
 #include "Endcap.h"
+#include "Units.h"
 
 using insur::InactiveTube;
 using insur::InactiveRing;
@@ -344,7 +345,7 @@ using insur::InactiveRing;
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
-    materialTab_ (material::MaterialTab::instance()) {}
+    m_materialTab (MaterialTab::getInstance()) {}
     
   const std::string SupportStructure::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -363,12 +364,12 @@ using insur::InactiveRing;
         break;
 
       case Element::GRAMS_METER:
-        returnVal = length * quantity() / 1000.0;
+        returnVal = length * quantity() * Units::g/Units::m;
         break;
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
-        double elementDensity = materialTab_.density(elementNameString);
+        double elementDensity = m_materialTab.density(elementNameString);
         returnVal = elementDensity * surface * quantity();
         break;
       }

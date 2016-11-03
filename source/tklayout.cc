@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
   int verbosity;
 
   std::string geomFile, optFile;
+  std::string expOption;
 
   // Program options - analysis
   po::options_description shown("Analysis options");
@@ -41,6 +42,7 @@ int main(int argc, char* argv[]) {
     ("material,m"       , "Report material buget.")
     ("resolution,r"     , "Report resolution studies.")
     ("all,a"            , "Report all studies.")
+    ("extraction,e"     , po::value<std::string>(&expOption)->implicit_value("CMS"), "Extract tkLayout geometry to an XML file to be used in CMS/FCC SW frameworks. Supported values: CMS or FCC.")
     ("verbosity"        , po::value<int>(&verbosity)->default_value(1), "Verbosity level (Overridden by the option 'quiet').")
     ("quiet"            , "No output produced (Equivalent to verbosity 0, overrides the 'verbosity' option).")
     ("performance"      , "Outputs the CPU time needed for each computing step (Overrides the option 'quiet').")
@@ -81,6 +83,9 @@ int main(int argc, char* argv[]) {
     if (geomTracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (matTracks < 1)  throw po::invalid_option_value("material-tracks");
     if (!progOptions.count("geom-file") && !progOptions.count("help") && !progOptions.count("version")) throw po::error("Missing configuration/geometry file");
+
+    // Check supported experimental option for full geometry extraction
+    if (progOptions.count("extraction") && expOption!="CMS" && expOption!="FCC") throw po::invalid_option_value("extraction");
 
   } catch(po::error& e) {
 
@@ -142,7 +147,7 @@ int main(int argc, char* argv[]) {
   if (activeDetOK) {
 
     // Geometry layout study
-    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
+    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution") || progOptions.count("occupancy")) {
 
       startTaskClock("Analyzing tracker geometry");
       aManager.initUnit(geomTracks, "AnalyzerGeometry");
@@ -175,6 +180,38 @@ int main(int argc, char* argv[]) {
       stopTaskClock();
       if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
       if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
+    }
+
+    // Occupancy study
+    if (progOptions.count("all") || progOptions.count("occupancy")) {
+
+      startTaskClock("Analyzing occupancy");
+      aManager.initUnit(matTracks, "AnalyzerOccupancy");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerOccupancy");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerOccupancy");
+      stopTaskClock();
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerOccupancy -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerOccupancy -> visualization failed!");
+    }
+
+    // Geometry extractor to CMSSW
+    if (progOptions.count("extraction") && expOption=="CMS") {
+
+      startTaskClock("Extracting geometry for use in CMSSW");
+      aManager.initUnit(matTracks, "ExtractorCMSSW");
+      isAnalysisOK      = aManager.analyzeUnit("ExtractorCMSSW");
+      stopTaskClock();
+      if (!isAnalysisOK) logERROR("Error in ExtractorCMSSW -> extraction failed!");
+    }
+
+    // Geometry extractor to FCCSW
+    if (progOptions.count("extraction") && expOption=="FCC") {
+
+      startTaskClock("Extracting geometry for use in FCCSW");
+      aManager.initUnit(matTracks, "ExtractorFCCSW");
+      isAnalysisOK      = aManager.analyzeUnit("ExtractorFCCSW");
+      stopTaskClock();
+      if (!isAnalysisOK) logERROR("Error in ExtractorFCCSW -> extraction failed!");
     }
   }
 

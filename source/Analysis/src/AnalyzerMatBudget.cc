@@ -1106,7 +1106,7 @@ void MatBudgetVisitor::visit(const BeamPipe& bp)
 {
   // Add hit corresponding with beam-pipe
   double theta    = m_matTrack.getTheta();
-  double distance = (bp.radius()+bp.thickness())/2./sin(theta);
+  double distance = (bp.radius()+bp.thickness()/2.)/sin(theta);
   HitPtr hit(new Hit(distance));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);

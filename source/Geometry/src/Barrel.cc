@@ -82,10 +82,12 @@ void Barrel::build()
 //
 void Barrel::setup()
 {
-  maxR.setup([&]() { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxR()); } return max; });
-  minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); } return min; });
-  maxZ.setup([&]() { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); } return max; });
-  minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); } return min; });
+  maxR.setup([&]()       { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxR()); }       return max; });
+  minR.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); }       return min; });
+  maxRAllMat.setup([&]() { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxRAllMat()); } return max; });
+  minRAllMat.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minRAllMat()); } return min; });
+  maxZ.setup([&]()       { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); }       return max; });
+  minZ.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); }       return min; });
 }
 
 //
