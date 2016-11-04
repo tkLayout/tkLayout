@@ -30,8 +30,9 @@ typedef std::vector<TrackPtr>  TrackCollection;
 /**
  * @class Track
  * @details The Track class is essentially a collection of consecutive hits used to calculate track parameters
- * with correlations among them. These hits can bet set as active (used in tracking) or inactive (unused in tracking).
- * The track model assumes parabolic approximation (a la Karimaki + Multiple Coulomb scattering is taken into
+ * with correlations among them. These hits can bet set as active (used in tracking) or inactive (unused in
+ * tracking). The track model assumes mag. field to be variable only in z: B = B(z).e_z + 0.e_x + 0.e_y, further
+ * the parabolic approximation for track is considered (a la Karimaki + Multiple Coulomb scattering is taken into
  * account), disentangling the problem to fit 5 track parameters simultaneously into a problem of fitting track
  * independenly in R-Phi and s-Z plane. The covariance matrix is then 3x3 + 2x2. Parametrization used is the
  * following, one fits: phi, 1/R, impact parameter in R-Phi plane D0 & cotg(theta), impact parameter in s-Z
@@ -86,11 +87,13 @@ public:
   void printHits();
 
   //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
-  //! (magnetic field obtained automatically from SimParms singleton class)
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
   //! Set track origin
   const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
+
+  //! Re-set transverse momentum, pT
+  void resetPt(double newPt) {m_pt = newPt;}
 
   // Getter methods
   double getTheta() const              { return m_theta;}
@@ -99,10 +102,14 @@ public:
   double getPhi() const                { return m_phi;}
   double getTransverseMomentum() const { return m_pt; }
   double getPt() const                 { return m_pt; }
-  double getMagField() const           { return m_magField; }
-  double getRho() const                { return (m_radius>0 ? 1/m_radius : 0);}
-  double getRadius() const             { return m_radius; }
   
+  // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
+  double getMagField(double z) const;
+
+  // Calculate radius or 1/R at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
+  double getRho(double z) const        { return (getRadius(z)>0 ? 1/getRadius(z) : 0);}
+  double getRadius(double z) const     { return m_pt / (0.3 * getMagField(z)); }
+
   const Polar3DVector& getDirection() const { return m_direction; }
   const XYZVector& getOrigin() const        { return m_origin; }
 
@@ -159,13 +166,11 @@ protected:
   //! Compute the covariance matrix of the track parameters in R-Phi projection
   void computeCovarianceMatrixRPhi();
 
-  double m_theta;              //!< Track shot at given theta & phi
-  double m_phi;                //!< Track shot at given theta & phi
-  double m_cotgTheta;          //!< Automatically calculated from theta
-  double m_eta;                //!< Automatically calculated from eta
-  double m_pt;                 //!< Particle transverse momentum
-  double m_magField;           //!< Particle in given magnetic field
-  double m_radius;             //!< Radius of track in the given mag. field
+  double m_theta;              //!< Track shot at given theta & phi, i.e. theta at primary vertex
+  double m_phi;                //!< Track shot at given theta & phi, i.e. phi at primary vertex
+  double m_cotgTheta;          //!< Automatically calculated from theta at [0,0]
+  double m_eta;                //!< Automatically calculated from eta at [0,0]
+  double m_pt;                 //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes)
 
   Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
   XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z

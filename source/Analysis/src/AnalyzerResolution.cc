@@ -105,7 +105,7 @@ bool AnalyzerResolution::analyze()
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when calculating Material budget
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
 
     // Assign material to the track
     MatTrackVisitor matVisitor(matTrack);
@@ -142,7 +142,7 @@ bool AnalyzerResolution::analyze()
 
           // Active+passive material
           TrackPtr trackPt(new Track(matTrack));
-          trackPt->setThetaPhiPt(theta, phi, pT);
+          trackPt->resetPt(pT);
 
           // Remove tracks with less than 3 hits
           bool pruned = trackPt->pruneHits();
@@ -158,7 +158,7 @@ bool AnalyzerResolution::analyze()
 
           // Ideal (no material)
           TrackPtr idealTrackPt(new Track(matTrack));
-          idealTrackPt->setThetaPhiPt(theta, phi, pT);
+          idealTrackPt->resetPt(pT);
 
           // Remove tracks with less than 3 hits
           pruned = idealTrackPt->pruneHits();
@@ -179,7 +179,7 @@ bool AnalyzerResolution::analyze()
 
           // Active+passive material
           TrackPtr trackP(new Track(matTrack));
-          trackP->setThetaPhiPt(theta, phi, pT);
+          trackP->resetPt(pT);
 
           // Remove tracks with less than 3 hits
           pruned = trackP->pruneHits();
@@ -195,7 +195,7 @@ bool AnalyzerResolution::analyze()
 
           // Ideal (no material)
           TrackPtr idealTrackP(new Track(matTrack));
-          idealTrackP->setThetaPhiPt(theta, phi, pT);
+          idealTrackP->resetPt(pT);
 
           // Remove tracks with less than 3 hits
           pruned = idealTrackP->pruneHits();
@@ -855,9 +855,11 @@ MatTrackVisitor::~MatTrackVisitor()
 void MatTrackVisitor::visit(const BeamPipe& bp)
 {
   // Add hit corresponding with beam-pipe
-  double theta    = m_matTrack.getTheta();
-  double distance = (bp.radius()+bp.thickness()/2.)/sin(theta);
-  HitPtr hit(new Hit(distance));
+  double theta = m_matTrack.getTheta();
+  double eta   = m_matTrack.getEta();
+  double rPos  = (bp.radius()+bp.thickness()/2.);
+  double zPos  = rPos/sin(theta);
+  HitPtr hit(new Hit(rPos, zPos));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);
 
@@ -917,7 +919,9 @@ void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
     XYZVector direction(m_matTrack.getDirection());
 
     auto pair    = m.checkTrackHits(m_matTrack.getOrigin(), direction);
-    auto hitRho  = pair.first.rho();
+    //auto hitDistance = pair.first.R();
+    auto hitRPos = pair.first.rho();
+    auto hitZPos = pair.first.z();
     auto hitType = pair.second;
 
     if (hitType!=HitType::NONE) {
@@ -928,8 +932,6 @@ void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
 
       // Fill material map
       double theta = m_matTrack.getTheta();
-      double rho   = hitRho;
-      double z     = rho/tan(theta);
 
       // Treat barrel & endcap modules separately
       double tiltAngle = m.tiltAngle();
@@ -951,7 +953,7 @@ void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
       }
 
       // Create Hit object with appropriate parameters, add to Track t
-      HitPtr hit(new Hit(pair.first.R(), &m, hitType));
+      HitPtr hit(new Hit(hitRPos, hitZPos, &m, hitType));
       hit->setCorrectedMaterial(material);
       m_matTrack.addHit(std::move(hit));
     }
@@ -993,14 +995,14 @@ void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
       material.radiation   = 0.0;
       material.interaction = 0.0;
 
-      double rho = 0.0;
-      double z   = 0.0;
+      double rPos = 0.0;
+      double zPos = 0.0;
 
       // Radiation and interaction lenth scaling for vertical volumes
       if (e.isVertical()) {
 
-        z   = e.getZOffset() + e.getZLength() / 2.0;
-        rho = z * tan(theta);
+        zPos = e.getZOffset() + e.getZLength() / 2.0;
+        rPos = zPos * tan(theta);
 
         material.radiation   = e.getRadiationLength();
         material.interaction = e.getInteractionLength();
@@ -1026,8 +1028,8 @@ void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
       // Radiation and interaction length scaling for horizontal volumes
       else {
 
-        rho = e.getInnerRadius() + e.getRWidth() / 2.0;
-        z   = rho/tan(theta);
+        rPos = e.getInnerRadius() + e.getRWidth() / 2.0;
+        zPos = rPos/tan(theta);
 
         material.radiation   = e.getRadiationLength();
         material.interaction = e.getInteractionLength();
@@ -1054,7 +1056,7 @@ void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
       }
 
       // Create Hit object with appropriate parameters, add to Track t
-      HitPtr hit(new Hit((theta == 0) ? rho : (rho / sin(theta))) );
+      HitPtr hit(new Hit(rPos, zPos));
       if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
       else                hit->setOrientation(HitOrientation::Horizontal);
       hit->setObjectKind(HitKind::Inactive);

@@ -28,8 +28,6 @@ Track::Track() :
   m_cotgTheta(0),
   m_eta(0),
   m_pt(0),
-  m_magField(0),
-  m_radius(0),
   m_deltaRho(0),
   m_deltaPhi(0),
   m_deltaD0(0),
@@ -49,8 +47,6 @@ Track::Track(const Track& track) {
   m_cotgTheta    = track.m_cotgTheta;
   m_eta          = track.m_eta;
   m_pt           = track.m_pt;
-  m_magField     = track.m_magField;
-  m_radius       = track.m_radius;
   m_deltaRho     = track.m_deltaRho;
   m_deltaPhi     = track.m_deltaPhi;
   m_deltaD0      = track.m_deltaD0;
@@ -93,8 +89,6 @@ Track& Track::operator= (const Track& track) {
   m_cotgTheta    = track.m_cotgTheta;
   m_eta          = track.m_eta;
   m_pt           = track.m_pt;
-  m_radius       = track.m_radius;
-  m_magField     = track.m_magField;
   m_deltaRho     = track.m_deltaRho;
   m_deltaPhi     = track.m_deltaPhi;
   m_deltaD0      = track.m_deltaD0;
@@ -135,6 +129,23 @@ Track::~Track() {
 }
 
 //
+// Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
+//
+double Track::getMagField(double z) const {
+
+  // Option 1: const mag. field across the detector: Bz = const
+  double magField = SimParms::getInstance().magneticField();
+
+  if (magField<=0) {
+
+    logERROR("Track::getMagField -> Magnetic field not defined!!!");
+    EXIT_FAILURE;
+  }
+
+  return magField;
+}
+
+//
 // Main method calculating track parameters using Karimaki approach & parabolic approximation in R-Phi plane: 1/R, D0, phi parameters
 // and using linear fit in s-Z plane: cotg(theta), Z0 parameters
 //
@@ -168,11 +179,11 @@ void Track::computeErrors() {
   computeCorrelationMatrixRPhi();
   computeCovarianceMatrixRPhi();
 
-  // delta(1/R) & delta(pT)
+  // delta(1/R) & delta(pT) -> estimated at point [r,z] = [0,0] (important for use case, when B != const -> B = B(z))
   if (m_covariancesRPhi(0, 0)>=0) err = sqrt(m_covariancesRPhi(0, 0));
   else err = -1;
   m_deltaRho = err;
-  if (m_deltaRho!=-1) m_deltaPt  = m_deltaRho * m_radius; // dpT/pT = dRho / Rho = dRho * R
+  if (m_deltaRho!=-1) m_deltaPt  = m_deltaRho * getRadius(0.); // dpT(z=0)/pT(z=0) = dRho(z=0) / Rho(z=0) = dRho(z=0) * R(z=0)
   else                m_deltaPt  = -1;
 
   // delta(phi)
@@ -214,7 +225,7 @@ void Track::addIPConstraint(double dr, double dz) {
   // This modeling of the IP constraint was validated:
   // By placing dr = 0.5 mm and dz = 1 mm one obtains
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
-  HitPtr newHit(new Hit(dr));
+  HitPtr newHit(new Hit(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
   newHit->setIP(true);
 
   RILength emptyMaterial;
@@ -241,13 +252,12 @@ void Track::sortHits(bool bySmallerR) { bySmallerR ? std::stable_sort(m_hits.beg
 //
 bool Track::pruneHits() {
 
-  double helixRadius = getRadius();
-  bool   isPruned    = false;
+  bool isPruned = false;
 
   HitCollection newHits;
   for (auto& iHit : m_hits) {
 
-    if (iHit->getRadius()<2*helixRadius) newHits.push_back(std::move(iHit));
+    if ( iHit->getRPos()<2*getRadius(iHit->getZPos()) ) newHits.push_back(std::move(iHit));
     else {
 
       // Clear memory
@@ -317,7 +327,8 @@ void Track::printHits() {
 
   for (const auto& it : m_hits) {
     std::cout << "    Hit"
-              << " r="  << it->getRadius()
+              << " r="  << it->getRPos()
+              << " z="  << it->getZPos()
               << " d="  << it->getDistance()
               << " rl=" << it->getCorrectedMaterial().radiation
               << " il=" << it->getCorrectedMaterial().interaction
@@ -340,17 +351,8 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
   m_eta       = -log(tan(m_theta/2));
   m_phi       = newPhi;
   m_pt        = newPt;
-  m_magField  = SimParms::getInstance().magneticField();
-  m_radius    = m_pt / (0.3 * m_magField);
 
   m_direction.SetCoordinates(1, m_theta, m_phi);
-
-  if (m_magField<=0) {
-    logERROR("Track::setThetaPhiPt -> Magnetic field not defined!!!");
-    EXIT_FAILURE;
-  }
-
-  for (auto& iHit : m_hits) iHit->updateRadius();
 
   return m_direction;
 };
@@ -515,11 +517,8 @@ void Track::computeCorrelationMatrixRPhi() {
   // Pre-fetch the error on ctg(theta) -> will use zero value, if not known
   double deltaCtgT = m_deltaCtgTheta;
 
-  // Precompute the curvature
-  double rho = getRho();
-
   // Get contributions from Multiple Couloumb scattering
-  std::vector<double> msThetaSq;
+  std::vector<double> msThetaOverSinSq;
 
   for (int i = 0; i < n - 1; i++) {
 
@@ -528,15 +527,22 @@ void Track::computeCorrelationMatrixRPhi() {
 
     // Material in terms of rad. lengths
     double XtoX0 = m_hits.at(i)->getCorrectedMaterial().radiation;
-    //std::cout << std::fixed << std::setprecision(4) << "Material (" << i << ") = " << XtoX0 << "\t at r=" << m_hits.at(i)->getRadius() << "\t of type=" << m_hits.at(i)->getObjectKind() << std::endl;
+    //std::cout << std::fixed << std::setprecision(4) << "Material (" << i << ") = " << XtoX0 << "\t at r=" << m_hits.at(i)->getRadius(m_hits.at(i)->getZPos()) << "\t of type=" << m_hits.at(i)->getObjectKind() << std::endl;
 
     if (XtoX0>0) {
       msTheta = (13.6*Units::MeV * 13.6*Units::MeV) / (m_pt/Units::MeV * m_pt/Units::MeV) * XtoX0 * (1 + 0.038 * log(XtoX0)) * (1 + 0.038 * log(XtoX0));
+
+      // Take into account a very small correction factor coming from the circular shape of particle track (similar approach as for local resolutions)
+      double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());     // r_i/2R
+      //     A = 0; // For testing purposes only -> don't apply helix correction
+      double corrFactor = 1 + A*A*cos(m_theta)*cos(m_theta)/(1-A*A);
+
+      msTheta *= corrFactor;
     }
     else {
       msTheta = 0;
     }
-    msThetaSq.push_back(msTheta);
+    msThetaOverSinSq.push_back(msTheta);
   }
 
   // Correlations: c is column, r is row
@@ -560,15 +566,17 @@ void Track::computeCorrelationMatrixRPhi() {
 
           for (int i = 0; i < r; i++) {
 
-            sum = sum + (m_hits.at(c)->getRadius() - m_hits.at(i)->getRadius()) * (m_hits.at(r)->getRadius() - m_hits.at(i)->getRadius()) * msThetaSq.at(i);
-          //std::cout << ">> " << std::fixed << std::setprecision(4) << i << " " << c << " : " << m_hits.at(c)->getRadius()
-          //            << " " << m_hist.at(i)->getRadius() << " " << msThetaSq.at(i) << " " << sum << std::endl;
+            sum += msThetaOverSinSq.at(i)
+                   * (m_hits.at(c)->getRPos() - m_hits.at(i)->getRPos())
+                   * (m_hits.at(r)->getRPos() - m_hits.at(i)->getRPos());
+
           }
           if (r == c) {
 
-            double prec = m_hits.at(r)->getResolutionRphi(m_radius); // if Bmod = getResoX natural
+            double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
+            //std::cout << ">>> " << sqrt(sum) << " " << prec << std::endl;
             sum = sum + prec * prec;
-            //std::cout << ">>> " << sum << std::endl;
+
           }
           m_correlationsRPhi(r, c) = sum;
           if (r != c) m_correlationsRPhi(c, r) = sum;
@@ -637,8 +645,8 @@ void Track::computeCovarianceMatrixRPhi() {
   for (auto i = 0; i < nHits; i++) {
 
     if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
-      diffs(i - offset, 0) = 0.5 * m_hits.at(i)->getRadius() * m_hits.at(i)->getRadius();
-      diffs(i - offset, 1) = - m_hits.at(i)->getRadius();
+      diffs(i - offset, 0) = 0.5 * m_hits.at(i)->getRPos() * m_hits.at(i)->getRPos();
+      diffs(i - offset, 1) = - m_hits.at(i)->getRPos();
       diffs(i - offset, 2) = 1;
     }
     else offset++;
@@ -679,6 +687,13 @@ void Track::computeCorrelationMatrixRZ() {
       // Equivalent to using p=transverseMomentum_/sin(theta_) and then computing projection of msTheta to horizontal plane msTheta/sin(theta)/sin(theta) -> hence using directly pt instead of p
       msTheta = (13.6*Units::MeV * 13.6*Units::MeV) / (m_pt/Units::MeV * m_pt/Units::MeV) * XtoX0 * (1 + 0.038 * log(XtoX0)) * (1 + 0.038 * log(XtoX0));
 
+      // Take into account a very small correction factor coming from the circular shape of particle track (similar approach as for local resolutions)
+      double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());  // r_i/2R
+      //     A = 0; // For testing purposes only -> don't apply helix correction
+      double corrFactor = pow( cos(m_theta)*cos(m_theta)/sin(m_theta)/sqrt(1-A*A) + sin(m_theta) ,2); // Without correction it would be 1/sin(theta)^2
+
+      msTheta *=corrFactor;
+
 // Use MS for particular layers only - for debugging purposes
 //      if (!m_hits[i]->isBeamPipe()) {
 //
@@ -687,11 +702,11 @@ void Track::computeCorrelationMatrixRZ() {
 //        if (m_hits[i]->getRadius()>80) msTheta = 0;
 //        else if (m_hits[i]->getHitModule()!=nullptr && (m_hits[i]->getHitModule()->subdet()==ENDCAP)) msTheta = 0.0;
 //        else {
-//          std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius() <<" "<< m_hits[i]->getRadius()*m_cotgTheta << std::endl;
+//          std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius(m_hits[i]->getZPos()) <<" "<< m_hits[i]->getRadius(m_hits[i]->getZPos())*m_cotgTheta << std::endl;
 //        }
 //      }
 //      else {
-//        std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius() <<" "<< m_hits[i]->getRadius()*m_cotgTheta << std::endl;
+//        std::cout << i << " " << m_hits[i]->isBeamPipe() << " " << m_hits[i]->getRadius(m_hits[i]->getZPos()) <<" "<< m_hits[i]->getRadius(m_hits[i]->getZPos())*m_cotgTheta << std::endl;
 //      }
 
     }
@@ -721,11 +736,11 @@ void Track::computeCorrelationMatrixRZ() {
           double sum = 0.0;
 
           for (int i = 0; i < r; i++) sum += msThetaOverSinSq.at(i)
-                                            * (m_hits.at(c)->getDistance() - m_hits.at(i)->getDistance())
-                                            * (m_hits.at(r)->getDistance() - m_hits.at(i)->getDistance());
+                                            * (m_hits.at(c)->getRPos() - m_hits.at(i)->getRPos())
+                                            * (m_hits.at(r)->getRPos() - m_hits.at(i)->getRPos());
 
           if (r == c) {
-            double prec = m_hits.at(r)->getResolutionZ(m_radius);
+            double prec = m_hits.at(r)->getResolutionZ(getRadius(m_hits.at(r)->getZPos()));
             sum = sum + prec * prec;
           }
 
@@ -796,7 +811,7 @@ void Track::computeCovarianceMatrixRZ() {
     if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
 
       // Partial derivatives for x = p[0] * y + p[1]
-      diffs(i - offset, 0) = m_hits.at(i)->getRadius();
+      diffs(i - offset, 0) = m_hits.at(i)->getRPos();
       diffs(i - offset, 1) = 1;
     }
     else offset++;
@@ -845,7 +860,7 @@ void Track::computeCovarianceMatrixRZ() {
 //  for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
 //    // if (debugRemoval) std::cerr << "Hit number "
 //    //	                           << iRemove++ << ": ";
-//    // if (debugRemoval) std::cerr << "r = " << (*it)->getRadius() << ", ";
+//    // if (debugRemoval) std::cerr << "r = " << (*it)->getRadius((*it)->getZPos()) << ", ";
 //    // if (debugRemoval) std::cerr << "d = " << (*it)->getDistance() << ", ";
 //    if ((*it)->getObjectKind() == Hit::Active) {
 //      // if (debugRemoval) std::cerr << "active ";
