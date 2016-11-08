@@ -2256,10 +2256,14 @@ namespace insur {
     moduleTypeTable->setContent(0, 2, "Endcap");
     moduleTypeTable->setContent(0, 3, "Total");
     const auto& moduleTypeCountMap = aModuleTypesVisitor.moduleTypeCount;
+    int totalBarrelCount = 0;
+    int totalEndcapCount = 0;
     for (const auto& aTypeCount : moduleTypeCountMap) {
       int barCount = aTypeCount.second.barrel;
       int endCount = aTypeCount.second.endcap;
       int totalCount = barCount+endCount;
+      totalBarrelCount += barCount;
+      totalEndcapCount += endCount;
       moduleTypeTable->setContent(i, 0, aTypeCount.first.toString());
       moduleTypeTable->setContent(i, 1, barCount);
       moduleTypeTable->setContent(i, 2, endCount);
@@ -2267,6 +2271,8 @@ namespace insur {
       i++;
     }
     moduleTypeTable->setContent(i, 0, "Total");
+    moduleTypeTable->setContent(i, 1, totalBarrelCount);
+    moduleTypeTable->setContent(i, 2, totalEndcapCount);
     moduleTypeTable->setContent(i, 3, aModuleTypesVisitor.totalCount);
     
 
