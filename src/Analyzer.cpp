@@ -842,8 +842,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-
-	if (pm != NULL && eta >= 0.) {
+    
+    if (mb.getTracker().myid() == "Outer" && eta >= 0.) {
       track.assignTrackingVolumesToHits();
 
 

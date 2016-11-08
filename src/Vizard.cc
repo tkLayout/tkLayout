@@ -944,6 +944,7 @@ namespace insur {
     myCanvas->cd();
     mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
     mapRad->SetContour(vis_temperature_levels, NULL);
+    mapRad->GetZaxis()->SetLabelSize(0.02);  // palette font size
     //myCanvas->SetLogz();
     mapRad->Draw("COLZ");
     myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -957,6 +958,7 @@ namespace insur {
     myCanvas->cd();
     mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
     mapInt->SetContour(vis_temperature_levels, NULL);
+    mapInt->GetZaxis()->SetLabelSize(0.02); // palette font size
     mapInt->Draw("COLZ");
     myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Interaction length material map");
