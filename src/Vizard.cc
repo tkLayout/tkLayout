@@ -7,6 +7,8 @@
 #include <TPolyLine.h>
 #include <Units.h>
 
+#include <boost/filesystem.hpp>
+
 #include "mainConfigHandler.h"
 
 namespace insur {
