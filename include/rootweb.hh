@@ -118,8 +118,8 @@ public:
   void setName(string newName);
   std::string getName();
   void setZoomedSize(int witdh, int height);
-  void setRelativeHtmlDirectory(string newDirectory); 
-  void setTargetDirectory(string newDirectory); 
+  void setRelativeHtmlDirectory(string newDirectory);
+  void setTargetDirectory(string newDirectory);
   string saveFiles(int smallWidth, int smallHeight);
   string saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight);
   ostream& dump(ostream& output);
@@ -222,8 +222,8 @@ public:
   ~RootWBinaryFileList() {};
   template<class I> RootWBinaryFileList(I begin, I end) : RootWFileList(begin, end) {}
   template<class I> RootWBinaryFileList(I begin, I end, string newDescription) : RootWFileList(begin, end, newDescription) {}
-  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) { 
-    setOriginalFiles(beginOrigNames, endOrigNames); 
+  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) {
+    setOriginalFiles(beginOrigNames, endOrigNames);
   }
   template<class I> void setOriginalFiles(I begin, I end) { originalFileNames_.insert(originalFileNames_.end(), begin, end); }
   ostream& dump(ostream& output);
@@ -362,5 +362,5 @@ public:
 
 
 
-  
+
 #endif

@@ -248,7 +248,7 @@ namespace insur {
     std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
     std::ofstream outstream(filename.c_str());
     writeNeighbourGraph(is, outstream);
-    outstream.close();    
+    outstream.close();
     std::cout << "Neighbour graph written to " << filename << "." << std::endl;
   }
   /**
@@ -372,8 +372,8 @@ namespace insur {
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
-   */ 
- 
+   */
+
   // TODO: if weightGrid is actually unused, then remove it
   void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
     RootWContent* myContent;
@@ -753,7 +753,7 @@ namespace insur {
     myContent = new RootWContent("Material distribution", true);
     myPage->addContent(myContent);
 
-#ifdef MATERIAL_SHADOW        
+#ifdef MATERIAL_SHADOW
     // radiation length in isolines
     ir = (TH2D*)a.getHistoIsoR().Clone();
     ir->SetNameTitle("isor", "Radiation Length Contours");
@@ -873,7 +873,7 @@ namespace insur {
     myImage->setName("hadHitsTracks");
     myContent->addItem(myImage);
 
-    //if (name=="outer") {    
+    //if (name=="outer") {
     // Summary table
     RootWContent& summaryContent = myPage->addContent("Summary", false);
     RootWTable& cutsTable = summaryContent.addTable();
@@ -1121,11 +1121,11 @@ namespace insur {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
-    
+
 
     std::string pageTitle = "Geometry";
     if (name!="") pageTitle+=" (" +name+")";
-    
+
     RootWPage* myPage = new RootWPage(pageTitle);
     // TODO: the web site should decide which page to call index.html
 
@@ -1295,30 +1295,30 @@ namespace insur {
 	// modules' spatial resolution along the local X axis is not parametrized
 	if (!m.hasAnyResolutionLocalXParam()) {
 	  tagMapIsParametrizedXResolution[aSensorTag] = false;
-	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
-	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
+	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX();
+	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.;
 	}
 	// modules' spatial resolution along the local X axis is parametrized
 	else {
 	  tagMapIsParametrizedXResolution[aSensorTag] = true;
 	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalX) > 0) { // calculation only on hit modules
 	    tagMapSumXResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalX);
-	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * boost::accumulators::count(m.rollingParametrizedResolutionLocalX);	  
+	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * boost::accumulators::count(m.rollingParametrizedResolutionLocalX);
 	    tagMapCountXResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalX));
 	  }
 	}
 	// modules' spatial resolution along the local Y axis is not parametrized
-        if (!m.hasAnyResolutionLocalYParam()) { 
+        if (!m.hasAnyResolutionLocalYParam()) {
 	  tagMapIsParametrizedYResolution[aSensorTag] = false;
-	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); 
-	  tagMapAveYResolutionRmse[aSensorTag] += 0.; 
+	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY();
+	  tagMapAveYResolutionRmse[aSensorTag] += 0.;
 	}
 	// modules' spatial resolution along the local Y axis is parametrized
 	else {
 	  tagMapIsParametrizedYResolution[aSensorTag] = true;
 	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalY) > 0) { // calculation only on hit modules
 	    tagMapSumYResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalY);
-	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * boost::accumulators::count(m.rollingParametrizedResolutionLocalY);	  													     
+	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * boost::accumulators::count(m.rollingParametrizedResolutionLocalY);
 	    tagMapCountYResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalY));
 	  }
 	}
@@ -1398,7 +1398,7 @@ namespace insur {
       std::vector<RootWTable*> tiltedPartTables;
       int nTiltedLayers = 0;
 
-      
+
 
       void visit(const Layer& l) override {
 	if (l.isTilted() && l.isTiltedAuto()) {
@@ -1406,14 +1406,14 @@ namespace insur {
 
 	  RootWTable* tiltedLayerName = new RootWTable();
 	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
-	  tiltedLayerNames.push_back(tiltedLayerName);	 
+	  tiltedLayerNames.push_back(tiltedLayerName);
 
 	  RootWTable* flatPartName = new RootWTable();
 	  flatPartName->setContent(0, 0, "Flat part :");
-	  flatPartNames.push_back(flatPartName);	 
+	  flatPartNames.push_back(flatPartName);
 	  RootWTable* tiltedPartName = new RootWTable();
 	  tiltedPartName->setContent(0, 0, "Tilted part :");
-	  tiltedPartNames.push_back(tiltedPartName);	
+	  tiltedPartNames.push_back(tiltedPartName);
 
 	  RootWTable* tiltedPartTable = new RootWTable();
 	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
@@ -1433,7 +1433,7 @@ namespace insur {
 	    tiltedPartTable->setContent(6, 0, "theta_g (°)");
 	    tiltedPartTable->setContent(6, i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g(), anglePrecision);
 	    tiltedPartTable->setContent(7, 0, "r" + subStart + "Inner" + subEnd);
-	    tiltedPartTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), coordPrecision);	    
+	    tiltedPartTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), coordPrecision);
 	    tiltedPartTable->setContent(8, 0, "r" + subStart + "Outer" + subEnd);
 	    tiltedPartTable->setContent(8, i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius(), coordPrecision);
 	    tiltedPartTable->setContent(9, 0, "averageR (on Ring)");
@@ -1443,7 +1443,7 @@ namespace insur {
 	    tiltedPartTable->setContent(11, 0, "z" + subStart + "Inner" + subEnd);
 	    tiltedPartTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner(), coordPrecision);
 	    tiltedPartTable->setContent(12, 0, "z" + subStart + "Outer" + subEnd);
-	    tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), coordPrecision);	   	    
+	    tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), coordPrecision);
 	    tiltedPartTable->setContent(13, 0, "averageZ (on Ring)");
 	    tiltedPartTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), coordPrecision);
 	    tiltedPartTable->setContent(14, 0, "deltaZ" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
@@ -1454,14 +1454,14 @@ namespace insur {
 	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);
 	    tiltedPartTable->setContent(17, 0, "zOverlap" + subStart + "Outer" + subEnd);
 	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->zOverlap(), coordPrecision);
-	    double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];	    
+	    double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];
 	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
 	    if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner, coordPrecision);
 	    else tiltedPartTable->setContent(18, i+1, "n/a");
 	    double zErrorOuter = l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber];
 	    tiltedPartTable->setContent(19, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
 	    if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter, coordPrecision);
-	    else tiltedPartTable->setContent(19, i+1, "n/a");	    
+	    else tiltedPartTable->setContent(19, i+1, "n/a");
 	  }
 	  tiltedPartTables.push_back(tiltedPartTable);
 
@@ -1472,7 +1472,7 @@ namespace insur {
 	  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
 	  StraightRodPair* plusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
 	  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
-	  
+
 	  int i = 0;
 	  for (const auto& m : minusBigDeltaModules) {
 	    int ringNumber = i + 1;
@@ -1513,9 +1513,9 @@ namespace insur {
 	    i++;
 	  }
 	  i = 0;
-	  for (const auto& m : plusBigDeltaModules) {	    
+	  for (const auto& m : plusBigDeltaModules) {
 	    flatPartTable->setContent(2, 0, "r" + subStart + "Outer" + subEnd);
-	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision); 
+	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision);
 	    i++;
 	  }
 	  flatPartTables.push_back(flatPartTable);
@@ -1523,7 +1523,7 @@ namespace insur {
       }
     };
 
-    TiltedLayersVisitor tv;  
+    TiltedLayersVisitor tv;
     tracker.accept(tv);
 
     if (tv.nTiltedLayers > 0) {
@@ -1551,7 +1551,7 @@ namespace insur {
     //*       Modules                *//
     //*                              *//
     //********************************//
-    double totalPower=0; 
+    double totalPower=0;
     double totalCost=0;
     double moduleTotalWeight=0;
 
@@ -1684,7 +1684,7 @@ namespace insur {
       //aTag << smallStart << aModule->getTag() << smallEnd;
       aTag << smallStart;
       for (std::set<std::string>::iterator strIt = v.tagMapPositions[(*tagMapIt).first].begin();
-           strIt!=v.tagMapPositions[(*tagMapIt).first].end(); ++strIt) 
+           strIt!=v.tagMapPositions[(*tagMapIt).first].end(); ++strIt)
         aTag << (*strIt) << "<br/> ";
       aTag << smallEnd;
       // Type
@@ -1857,7 +1857,7 @@ namespace insur {
       // Power (per module and total)
       aPower.str("");
       double powerPerModule =  tagMapIt->second->totalPower(); // power [mW] of a module with this # strips // CUIDADO needs to take into account numChannels
-      aPower << std::fixed << std::setprecision(totalPowerPrecision) << powerPerModule * v.tagMapCount[tagMapIt->first] * 1e-6; // converted from mW to kW 
+      aPower << std::fixed << std::setprecision(totalPowerPrecision) << powerPerModule * v.tagMapCount[tagMapIt->first] * 1e-6; // converted from mW to kW
       // number of modules of this type
 
       aPowerPerModule.str("");
@@ -2054,7 +2054,7 @@ namespace insur {
          std::string toString() const {
            std::string result;
            result+=moduleType;
-           if (dsDistance!=0) result+=" "+any2str(dsDistance, 1)+" mm"; 
+           if (dsDistance!=0) result+=" "+any2str(dsDistance, 1)+" mm";
            return result;
          }
     };
@@ -2083,7 +2083,7 @@ namespace insur {
         ModuleSummaryType aType(m);
         moduleTypeCount[aType].add(m);
         totalCount++;
-      } 
+      }
     };
 
     ModuleTypesVisitor aModuleTypesVisitor;
@@ -2113,7 +2113,7 @@ namespace insur {
     moduleTypeTable->setContent(i, 1, totalBarrelCount);
     moduleTypeTable->setContent(i, 2, totalEndcapCount);
     moduleTypeTable->setContent(i, 3, aModuleTypesVisitor.totalCount);
-    
+
 
     //********************************//
     //*                              *//
@@ -2547,7 +2547,7 @@ namespace insur {
 
     return result;
   }
-  
+
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
@@ -2566,7 +2566,7 @@ namespace insur {
     //*  Simulation and files        *//
     //*                              *//
     //********************************//
-    
+
     // Detector full layout
     TCanvas* aLayout = drawFullLayout();
     if (aLayout) {
@@ -2595,7 +2595,7 @@ namespace insur {
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalEtaStack->GetStack()->Last()->Draw();
-    // add profile for types here...##### 
+    // add profile for types here...#####
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
     totalEtaStack->GetStack()->Last()->Draw("same");
@@ -2846,7 +2846,7 @@ namespace insur {
     for (std::map<std::string, SummaryTable>::iterator it = hitOccupancySummaries.begin(); it != hitOccupancySummaries.end(); ++it) {
       myPage->addContent(std::string("Hit occupancy (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
-   
+
 
     myContent = &myPage->addContent("Trigger bandwidth and frequency maps", true);
 
@@ -2911,7 +2911,7 @@ namespace insur {
     myPage->setAddress("trigger_cpus.html");
     site.addPage(myPage);
 
-    SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
+    SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary();
     SummaryTable& processorCommonSummary = analyzer.getProcessorCommonConnectionSummary();
     //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
@@ -2931,14 +2931,14 @@ namespace insur {
     sharedConnContent.addTable().setContent(processorCommonSummary.getContent());
     sharedConnContent.addText("Columns and rows both report trigger towers, in the format 't Eta# , Phi#'. Each table cell contains the number of connections the TT on the column shares with the TT on the corresponding row. On the diagonal the number of unshared (i.e. belonging to a single TT) connections for each TT is reported.");
 
-    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
-    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
+    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary();
+    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary();
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 
     // Some helper string objects
     ostringstream tempSS;
-    std::string tempString;    
+    std::string tempString;
 
     RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
 
@@ -2994,14 +2994,14 @@ namespace insur {
 
     moduleConnectionEtaCanvas.cd();
     moduleConnectionEtaMap.Draw("colz");
-    */  
+    */
     RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
     /*
        moduleConnectionPhiCanvas.cd();
        moduleConnectionPhiMap.Draw("colz");
-       */  
+       */
     RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
     moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
@@ -3038,14 +3038,14 @@ namespace insur {
 
     // Some helper string objects
     ostringstream tempSS;
-    std::string tempString;    
+    std::string tempString;
 
     // mapBag myMapBag = a.getMapBag();
     //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
     // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
     //
     //
-    
+
     struct IrradiationPower {
       double operator()(const Module& m) { return m.irradiationPower(); }
     };
@@ -3168,7 +3168,7 @@ namespace insur {
             momentumProfile.SetMinimum(vis_min_dPtOverPt);//4E-3*100);
             momentumProfile.SetMaximum(vis_max_dPtOverPt);//.5*100*verticalScale);
           }
-          linearMomentumCanvas.SetLogy(0);        
+          linearMomentumCanvas.SetLogy(0);
           momentumCanvas.SetLogy(1);
           momentumProfile.SetLineColor(momentumColor(myColor));
           momentumProfile.SetMarkerColor(momentumColor(myColor));
@@ -3336,7 +3336,7 @@ namespace insur {
         distanceImage.setName(Form("dxyres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& angleImage = myContent->addImage(angleCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         angleImage.setComment("Angle resolution vs. eta");
-        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str())); 
+        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage.setComment("CtgTheta resolution vs. eta");
         ctgThetaImage.setName(Form("cotThetares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
@@ -3373,7 +3373,7 @@ namespace insur {
 
       // Prepare the cuts for the averages
       ostringstream label;
-      std::string name;      
+      std::string name;
       RootWTable* myTable;
 
       // Table explaining the cuts
@@ -3468,7 +3468,7 @@ namespace insur {
             }
             myLabel.str("");
             myLabel << myIndex.name
-              << std::dec << std::fixed << std::setprecision(0) 
+              << std::dec << std::fixed << std::setprecision(0)
               << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
@@ -3493,7 +3493,7 @@ namespace insur {
     GraphBag& gb = analyzer.getGraphBag();
 
     for (auto tag : gb.getTagSet()) {
-    
+
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
       double verticalScale=1;
@@ -3512,13 +3512,13 @@ namespace insur {
       RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "  +etaLetter+" (no material)", false);
       RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P across "   +etaLetter+" (material)"   , false);
       RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across "   +etaLetter+" (no material)", false);
-  
+
       // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
       std::string scenarioStr="";
       for (int scenario=0; scenario<2; ++scenario) {
         int idealMaterial;
         RootWContent* myContent;
-  
+
         // Draw case I with const Pt across eta
         if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_Pt     , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph_Pt       , tag).empty() &&
@@ -3529,7 +3529,7 @@ namespace insur {
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::BetaGraph_Pt    , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::OmegaGraph_Pt   , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_Pt       , tag).empty()) {
-  
+
           // Set link to myContent
           if (scenario==0) {
             idealMaterial=GraphBag::RealGraph;
@@ -3540,7 +3540,7 @@ namespace insur {
             myContent = &idealResolutionContent_Pt;
             scenarioStr = "noMS_Pt";
           }
-  
+
           TCanvas linMomCanvas_Pt;
           TCanvas logMomCanvas_Pt;
           TCanvas d0Canvas_Pt;
@@ -3552,7 +3552,7 @@ namespace insur {
           TCanvas lCanvas_Pt;
           TCanvas betaCanvas_Pt;
           TCanvas omegaCanvas_Pt;
-  
+
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
@@ -3560,7 +3560,7 @@ namespace insur {
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
-  
+
           linMomCanvas_Pt.SetGrid(1,1);
           logMomCanvas_Pt.SetGrid(1,1);
           d0Canvas_Pt.SetGrid(1,1);
@@ -3572,18 +3572,18 @@ namespace insur {
           lCanvas_Pt.SetGrid(1,1);
           betaCanvas_Pt.SetGrid(1,1);
           omegaCanvas_Pt.SetGrid(1,1);
-  
+
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
-  
+
           // Draw pt
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& momentumGraph = mapel.second;
             TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
@@ -3595,14 +3595,14 @@ namespace insur {
             logMomCanvas_Pt.SetLogy(1);
             linMomCanvas_Pt.SetFillColor(color_plot_background);
             logMomCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
             momentumProfile.SetLineWidth(lineWidth);
             myColor++;
             momentumProfile.SetMarkerStyle(markerStyle);
             momentumProfile.SetMarkerSize(markerSize);
-  
+
             if (momentumGraph.GetN()>0) {
               linMomCanvas_Pt.cd();
               momentumProfile.Draw(plotOption.c_str());
@@ -3615,10 +3615,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& pGraph = mapel.second;
             TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
@@ -3628,14 +3628,14 @@ namespace insur {
             }
             pCanvas_Pt.SetLogy();
             pCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
             pProfile.SetLineWidth(lineWidth);
             myColor++;
             pProfile.SetMarkerStyle(markerStyle);
             pProfile.SetMarkerSize(markerSize);
-  
+
             if (pGraph.GetN() > 0) {
               pCanvas_Pt.cd();
               pProfile.Draw(plotOption.c_str());
@@ -3646,10 +3646,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& distanceGraph = mapel.second;
             TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               distanceProfile.SetMinimum(vis_min_dD0);
               distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
@@ -3659,14 +3659,14 @@ namespace insur {
             }
             d0Canvas_Pt.SetLogy();
             d0Canvas_Pt.SetFillColor(color_plot_background);
-  
+
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
             distanceProfile.SetLineWidth(lineWidth);
             myColor++;
             distanceProfile.SetMarkerStyle(markerStyle);
             distanceProfile.SetMarkerSize(markerSize);
-  
+
             if (distanceGraph.GetN()>0) {
               d0Canvas_Pt.cd();
               distanceProfile.Draw(plotOption.c_str());
@@ -3677,10 +3677,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& angleGraph = mapel.second;
             TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
             angleProfile.SetMinimum(vis_min_dPhi);
             angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
@@ -3690,14 +3690,14 @@ namespace insur {
             }
             phiCanvas_Pt.SetLogy();
             phiCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
             angleProfile.SetLineWidth(lineWidth);
             myColor++;
             angleProfile.SetMarkerStyle(markerStyle);
             angleProfile.SetMarkerSize(markerSize);
-  
+
             if (angleGraph.GetN() > 0) {
               phiCanvas_Pt.cd();
               angleProfile.Draw(plotOption.c_str());
@@ -3708,7 +3708,7 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 	    TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
@@ -3722,7 +3722,7 @@ namespace insur {
             etaProfile.SetMaximum(vis_max_dCtgTheta);
             etaCanvas_Pt.SetLogy();
             etaCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
@@ -3734,7 +3734,7 @@ namespace insur {
             ctgThetaProfile.SetMarkerSize(markerSize);
             etaProfile.SetMarkerStyle(markerStyle);
             etaProfile.SetMarkerSize(markerSize);
-  
+
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_Pt.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
@@ -3747,15 +3747,15 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& z0Graph = mapel.second;
             TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
             z0Canvas_Pt.SetLogy();
             z0Canvas_Pt.SetFillColor(color_plot_background);
-  
+
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
             z0Profile.SetLineWidth(lineWidth);
@@ -3763,27 +3763,27 @@ namespace insur {
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
             z0Canvas_Pt.SetFillColor(color_plot_background);
-  
+
             if (z0Graph.GetN() > 0) {
               z0Canvas_Pt.cd();
               z0Profile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
- 
+
           // Draw l0
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::LGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& LGraph = mapel.second;
             TProfile& lProfile   = newProfile(LGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
             lCanvas_Pt.SetLogy();
             lCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
             lProfile.SetLineWidth(lineWidth);
@@ -3791,7 +3791,7 @@ namespace insur {
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
             lCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             if (LGraph.GetN() > 0) {
               lCanvas_Pt.cd();
               lProfile.Draw(plotOption.c_str());
@@ -3803,15 +3803,15 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::BetaGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& BetaGraph = mapel.second;
             TProfile& betaProfile   = newProfile(BetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
             betaCanvas_Pt.SetLogy(0);
             betaCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
             betaProfile.SetLineWidth(lineWidth);
@@ -3819,27 +3819,27 @@ namespace insur {
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
             betaCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             if (BetaGraph.GetN() > 0) {
               betaCanvas_Pt.cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
-  
+
           // Draw omega
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::OmegaGraph_Pt | idealMaterial, tag)) {
-  
+
             const TGraph& OmegaGraph = mapel.second;
             TProfile& omegaProfile   = newProfile(OmegaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
             omegaCanvas_Pt.SetLogy(0);
             omegaCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
             omegaProfile.SetLineWidth(lineWidth);
@@ -3847,34 +3847,34 @@ namespace insur {
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
             omegaCanvas_Pt.SetFillColor(color_plot_background);
-  
+
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_Pt.cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
- 
+
           RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const Pt across "+etaLetter);
           linMomImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& logMomImage_Pt = myContent->addImage(logMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           logMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
           logMomImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& pImage_Pt = myContent->addImage(pCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           pImage_Pt.setComment("Momentum resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           pImage_Pt.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& d0Image_Pt = myContent->addImage(d0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           d0Image_Pt.setComment("d0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           d0Image_Pt.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           z0Image_Pt.setComment("z0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& lImage_Pt = myContent->addImage(lCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           lImage_Pt.setComment("L resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           lImage_Pt.setName(Form("lres_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -3890,7 +3890,7 @@ namespace insur {
           RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_Pt.setComment("Angle resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           phiImage_Pt.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -3910,7 +3910,7 @@ namespace insur {
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::LGraph_P       , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::BetaGraph_P    , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::OmegaGraph_P   , tag).empty()) {
-  
+
           // Set link to myContent
           if (scenario==0) {
             idealMaterial=GraphBag::RealGraph;
@@ -3921,7 +3921,7 @@ namespace insur {
             myContent = &idealResolutionContent_P;
             scenarioStr = "noMS_P";
           }
-  
+
           TCanvas linMomCanvas_P;
           TCanvas logMomCanvas_P;
           TCanvas d0Canvas_P;
@@ -3933,7 +3933,7 @@ namespace insur {
           TCanvas lCanvas_P;
           TCanvas betaCanvas_P;
           TCanvas omegaCanvas_P;
-  
+
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
@@ -3941,7 +3941,7 @@ namespace insur {
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
-  
+
           linMomCanvas_P.SetGrid(1,1);
           logMomCanvas_P.SetGrid(1,1);
           d0Canvas_P.SetGrid(1,1);
@@ -3953,18 +3953,18 @@ namespace insur {
           lCanvas_P.SetGrid(1,1);
           betaCanvas_P.SetGrid(1,1);
           omegaCanvas_P.SetGrid(1,1);
-  
+
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
-  
+
           // Draw pt
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& momentumGraph = mapel.second;
             TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
@@ -3976,14 +3976,14 @@ namespace insur {
             logMomCanvas_P.SetLogy(1);
             linMomCanvas_P.SetFillColor(color_plot_background);
             logMomCanvas_P.SetFillColor(color_plot_background);
-  
+
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
             momentumProfile.SetLineWidth(lineWidth);
             myColor++;
             momentumProfile.SetMarkerStyle(markerStyle);
             momentumProfile.SetMarkerSize(markerSize);
-  
+
             if (momentumGraph.GetN()>0) {
               linMomCanvas_P.cd();
               momentumProfile.Draw(plotOption.c_str());
@@ -3996,10 +3996,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& pGraph = mapel.second;
             TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
@@ -4009,14 +4009,14 @@ namespace insur {
             }
             pCanvas_P.SetLogy();
             pCanvas_P.SetFillColor(color_plot_background);
-  
+
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
             pProfile.SetLineWidth(lineWidth);
             myColor++;
             pProfile.SetMarkerStyle(markerStyle);
             pProfile.SetMarkerSize(markerSize);
-  
+
             if (pGraph.GetN() > 0) {
               pCanvas_P.cd();
               pProfile.Draw(plotOption.c_str());
@@ -4027,10 +4027,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& distanceGraph = mapel.second;
             TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               distanceProfile.SetMinimum(vis_min_dD0);
               distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
@@ -4040,14 +4040,14 @@ namespace insur {
             }
             d0Canvas_P.SetLogy();
             d0Canvas_P.SetFillColor(color_plot_background);
-  
+
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
             distanceProfile.SetLineWidth(lineWidth);
             myColor++;
             distanceProfile.SetMarkerStyle(markerStyle);
             distanceProfile.SetMarkerSize(markerSize);
-  
+
             if (distanceGraph.GetN()>0) {
               d0Canvas_P.cd();
               distanceProfile.Draw(plotOption.c_str());
@@ -4058,10 +4058,10 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& angleGraph = mapel.second;
             TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             if (idealMaterial == GraphBag::IdealGraph) {
               angleProfile.SetMinimum(vis_min_dPhi);
               angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
@@ -4071,14 +4071,14 @@ namespace insur {
             }
             phiCanvas_P.SetLogy();
             phiCanvas_P.SetFillColor(color_plot_background);
-  
+
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
             angleProfile.SetLineWidth(lineWidth);
             myColor++;
             angleProfile.SetMarkerStyle(markerStyle);
             angleProfile.SetMarkerSize(markerSize);
-  
+
             if (angleGraph.GetN() > 0) {
               phiCanvas_P.cd();
               angleProfile.Draw(plotOption.c_str());
@@ -4089,7 +4089,7 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
             TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
@@ -4103,7 +4103,7 @@ namespace insur {
             etaProfile.SetMaximum(vis_max_dCtgTheta);
             etaCanvas_P.SetLogy();
             etaCanvas_P.SetFillColor(color_plot_background);
-  
+
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
@@ -4115,7 +4115,7 @@ namespace insur {
             ctgThetaProfile.SetMarkerSize(markerSize);
             etaProfile.SetMarkerStyle(markerStyle);
             etaProfile.SetMarkerSize(markerSize);
-  
+
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_P.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
@@ -4128,15 +4128,15 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_P | idealMaterial, tag)) {
-  
+
             const TGraph& z0Graph = mapel.second;
             TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
             z0Canvas_P.SetLogy();
             z0Canvas_P.SetFillColor(color_plot_background);
-  
+
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
             z0Profile.SetLineWidth(lineWidth);
@@ -4144,7 +4144,7 @@ namespace insur {
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
             z0Canvas_P.SetFillColor(color_plot_background);
-  
+
             if (z0Graph.GetN() > 0) {
               z0Canvas_P.cd();
               z0Profile.Draw(plotOption.c_str());
@@ -4158,15 +4158,15 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::LGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& LGraph = mapel.second;
             TProfile& lProfile   = newProfile(LGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
             lCanvas_P.SetLogy();
             lCanvas_P.SetFillColor(color_plot_background);
-  
+
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
             lProfile.SetLineWidth(lineWidth);
@@ -4174,7 +4174,7 @@ namespace insur {
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
             lCanvas_P.SetFillColor(color_plot_background);
-  
+
             if (LGraph.GetN() > 0) {
               lCanvas_P.cd();
               lProfile.Draw(plotOption.c_str());
@@ -4186,15 +4186,15 @@ namespace insur {
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::BetaGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& BetaGraph = mapel.second;
             TProfile& betaProfile   = newProfile(BetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
             betaCanvas_P.SetLogy(0);
             betaCanvas_P.SetFillColor(color_plot_background);
-  
+
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
             betaProfile.SetLineWidth(lineWidth);
@@ -4202,27 +4202,27 @@ namespace insur {
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
             betaCanvas_P.SetFillColor(color_plot_background);
-  
+
             if (BetaGraph.GetN() > 0) {
               betaCanvas_P.cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
-  
+
           // Draw omega
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::OmegaGraph_P | idealMaterial, tag)) {
-  
+
             const TGraph& OmegaGraph = mapel.second;
             TProfile& omegaProfile   = newProfile(OmegaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
             omegaCanvas_P.SetLogy(0);
             omegaCanvas_P.SetFillColor(color_plot_background);
-  
+
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
             omegaProfile.SetLineWidth(lineWidth);
@@ -4230,30 +4230,30 @@ namespace insur {
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
             omegaCanvas_P.SetFillColor(color_plot_background);
-  
+
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_P.cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
-            
+
           RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const P across "+etaLetter);
           linMomImage_P.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& logMomImage_P = myContent->addImage(logMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           logMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const P across "+etaLetter);
           logMomImage_P.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& pImage_P = myContent->addImage(pCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           pImage_P.setComment("Momentum resolution vs. "+etaLetter+" - const P across "+etaLetter);
           pImage_P.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& d0Image_P = myContent->addImage(d0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           d0Image_P.setComment("d0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
           d0Image_P.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           z0Image_P.setComment("z0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
           z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -4273,7 +4273,7 @@ namespace insur {
           RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_P.setComment("Angle resolution vs. "+etaLetter+" - const P across "+etaLetter);
           phiImage_P.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
           RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
           ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -4283,17 +4283,17 @@ namespace insur {
           etaImage_P.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
       } // Scenarios
- 
+
       // Set Summary content - case I
       //  check that the ideal and real have the same pts
       //  otherwise the table cannot be prepared
       RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+etaLetter);
       RootWTable&   cutsSummaryTable  = summaryContent_Pt.addTable();
       RootWTable&   momSummaryTable   = summaryContent_Pt.addTable();
-  
+
       std::map<std::string, RootWTable*>           tableMap_Pt;
       std::map<std::string, RootWTable*>::iterator tableMapIt;
-  
+
       std::vector<std::string> plotNames;
       plotNames.push_back(deltaLetter+"pt/pt [%]:           ");
       plotNames.push_back(deltaLetter+"p/p [%]:             ");
@@ -4302,13 +4302,13 @@ namespace insur {
       plotNames.push_back(deltaLetter+phiLetter+":          ");
       plotNames.push_back(deltaLetter+"ctg("+thetaLetter+"):");
       plotNames.push_back(deltaLetter+"c"+tauLetter+" ["+muLetter+"m]:");
-  
+
       for (std::vector<std::string>::iterator it=plotNames.begin();
            it!=plotNames.end(); ++it) {
         tableMap_Pt[(*it)] = &(summaryContent_Pt.addTable());
         tableMap_Pt[(*it)]->setContent(0,0,(*it));
       }
-        
+
       // Prepare the cuts for the averages
       ostringstream label;
       std::string name;
@@ -4318,20 +4318,20 @@ namespace insur {
       cutsSummaryTable.setContent(0,0,"Region: ");
       cutsSummaryTable.setContent(1,0,"Min "+etaLetter+":");
       cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
-  
+
       myTable = &cutsSummaryTable;
       for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
         myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
         label.str(""); label << geom_range_eta_regions[iBorder];
         myTable->setContent(1,iBorder+1,label.str());
         label.str(""); label << geom_range_eta_regions[iBorder+1];
-        myTable->setContent(2,iBorder+1,label.str());     
+        myTable->setContent(2,iBorder+1,label.str());
       }
 
       // Table explaining momenta
       std::vector<double> momentum;
       std::map<graphIndex, TGraph*> myPlotMap_Pt;
-          
+
       fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph_Pt     , tag, myPlotMap_Pt);
       fillTaggedPlotMap(gb, plotNames[1], GraphBag::PGraph_Pt       , tag, myPlotMap_Pt);
       fillTaggedPlotMap(gb, plotNames[2], GraphBag::DGraph_Pt       , tag, myPlotMap_Pt);
@@ -4340,11 +4340,11 @@ namespace insur {
       fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_Pt, tag, myPlotMap_Pt);
       fillTaggedPlotMap(gb, plotNames[6], GraphBag::LGraph_Pt, tag, myPlotMap_Pt);
 
-                
+
       std::vector<std::string>::iterator plotNameIt = plotNames.begin();
       std::vector<double>::iterator      momentumIt;
       graphIndex myIndex;
-  
+
       for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap_Pt.begin();
            myPlotMapIt!=myPlotMap_Pt.end(); ++myPlotMapIt) {
         myIndex =  (*myPlotMapIt).first;
@@ -4353,28 +4353,28 @@ namespace insur {
         if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
         }
       }
-  
+
       std::sort(momentum.begin(), momentum.end());
       momSummaryTable.setContent(0,0,"Particle momenta in GeV:  " );
       myTable = &momSummaryTable;
       for (unsigned int iMom=0; iMom<momentum.size(); ++iMom) {
         label.str("");
-  
+
         std::string color = "Unknow";
         if (iMom<insur::color_names.size()) color = color_names[iMom];
-  
+
         if (iMom!=momentum.size()-1) label << momentum[iMom]/Units::GeV << " (" << color << "),";
         else                         label << momentum[iMom]/Units::GeV << " (" << color << ").";
         myTable->setContent(0,iMom+1,label.str());
       }
-  
+
       // Cycle over the different measurements
       for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
            plotNameIt!=plotNames.end(); ++plotNameIt) {
-  
+
         myTable = tableMap_Pt[*plotNameIt];
         if (!myTable) continue;
-  
+
         // Fill the table with the values, first the heading of momentum
         int baseColumn;
         std::vector<double> averagesReal;
@@ -4383,7 +4383,7 @@ namespace insur {
         int myColor = kBlack;
         myIndex.name=(*plotNameIt);
         std::ostringstream myLabel;
-  
+
         // Put units & better formatting
         for (unsigned int i=0; i<momentum.size(); ++i) {
           baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
@@ -4402,13 +4402,13 @@ namespace insur {
           myIndex.ideal = true;
           myGraph = myPlotMap_Pt[myIndex];
           if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
-  
+
          // Fill resolution for different eta regions
           for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
             myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
-  
+
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
               if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
@@ -4416,7 +4416,7 @@ namespace insur {
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
-  
+
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
               if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
@@ -4426,7 +4426,7 @@ namespace insur {
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
               myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],2);
               myTable->setColor(4, baseColumn+j, myColor);
-  
+
             }
           }
         }
@@ -4435,12 +4435,12 @@ namespace insur {
       //
       // Set Summary content - case II
       RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+etaLetter, false);
-  
+
       std::map<std::string, RootWTable*> tableMap_P;
-  
+
       // Table explaining momenta
       std::map<graphIndex, TGraph*> myPlotMap_P;
-  
+
       fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph_P     , tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[1], GraphBag::PGraph_P       , tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[2], GraphBag::DGraph_P       , tag, myPlotMap_P);
@@ -4448,21 +4448,21 @@ namespace insur {
       fillTaggedPlotMap(gb, plotNames[4], GraphBag::PhiGraph_P     , tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_P, tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[6], GraphBag::LGraph_P       , tag, myPlotMap_P);
-  
-  
+
+
       for (std::vector<std::string>::iterator it=plotNames.begin();
            it!=plotNames.end(); ++it) {
         tableMap_P[(*it)] = &(summaryContent_P.addTable());
         tableMap_P[(*it)]->setContent(0,0,(*it));
       }
-  
+
       // Cycle over the different measurements
       for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
            plotNameIt!=plotNames.end(); ++plotNameIt) {
-  
+
         myTable = tableMap_P[*plotNameIt];
         if (!myTable) continue;
-  
+
         // Fill the table with the values, first the heading of momentum
         int baseColumn;
         std::vector<double> averagesReal;
@@ -4471,7 +4471,7 @@ namespace insur {
         int myColor = kBlack;
         myIndex.name=(*plotNameIt);
         std::ostringstream myLabel;
-  
+
         // Put units & better formatting
         for (unsigned int i=0; i<momentum.size(); ++i) {
           baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
@@ -4490,12 +4490,12 @@ namespace insur {
           myIndex.ideal = true;
           myGraph = myPlotMap_P[myIndex];
           if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
-   
+
           for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
             myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
-  
+
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
               if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
@@ -4503,7 +4503,7 @@ namespace insur {
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
-  
+
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
               if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
@@ -4513,7 +4513,7 @@ namespace insur {
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
               myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],2);
               myTable->setColor(4, baseColumn+j, myColor);
-  
+
             }
           }
         }
@@ -4535,11 +4535,11 @@ namespace insur {
     std::string pageTitle = "Trigger";
     std::string pageAddress = "triggerPerf.html";
     RootWPage& myPage = site.addPage(pageTitle);
-    myPage.setAddress(pageAddress);  
+    myPage.setAddress(pageAddress);
 
     // Some helper string objects
     ostringstream tempSS;
-    std::string tempString;    
+    std::string tempString;
 
     //********************************//
     //*                              *//
@@ -5202,11 +5202,11 @@ namespace insur {
     RootWContent& newContent = myPage.addContent("Neighbour graph", true);
     newContent.addText("<pre>"+ss.str()+"</pre>");
 
-    return true; 
+    return true;
   }
 
 
-  
+
   void Vizard::fillTaggedPlotMap(GraphBag& gb,
                                  const string& plotName,
                                  int graphType,
@@ -5240,7 +5240,7 @@ namespace insur {
 
 
   // TODO: describe this here, if it ever worked
-  void Vizard::fillPlotMap(std::string& plotName, 
+  void Vizard::fillPlotMap(std::string& plotName,
                            std::map<graphIndex, TGraph*>& myPlotMap,
                            Analyzer *a,
                            std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
@@ -5588,7 +5588,7 @@ namespace insur {
     }
 
     //return summaryCanvas;
-  }    
+  }
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
@@ -5623,7 +5623,7 @@ namespace insur {
 
     XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvasEC->cd();
-    PlotDrawer<XY, Type> xyEndcapDrawer; 
+    PlotDrawer<XY, Type> xyEndcapDrawer;
     xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
     xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
     xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
@@ -5640,8 +5640,8 @@ namespace insur {
   int Vizard::momentumColor(int iMomentum) {
     if (iMomentum==0) return kBlack;
     if (iMomentum==1) return kBlue;
-    if (iMomentum==2) return kRed;   
-    if (iMomentum==3) return kGreen;   
+    if (iMomentum==2) return kRed;
+    if (iMomentum==3) return kGreen;
     return iMomentum+1;
   }
 
@@ -5649,7 +5649,7 @@ namespace insur {
    * Modifies a TGraph, so that it looks like a
    * histogram (can be filled)
    * @param myGraph a reference to the TGraph to be modified
-   */  
+   */
   void Vizard::closeGraph(TGraph& myGraph) {
     double x, y, x0, y0;
     myGraph.GetPoint(myGraph.GetN()-1, x, y);
@@ -5668,7 +5668,7 @@ namespace insur {
                                  sourceHistogram->GetXaxis()->GetXmax());
     for (int i=1; i<=sourceHistogram->GetNbinsX(); ++i) {
       resultProfile->Fill(sourceHistogram->GetBinCenter(i), sourceHistogram->GetBinContent(i));
-    } 
+    }
     resultProfile->SetLineColor(sourceHistogram->GetLineColor());
     resultProfile->SetLineWidth(sourceHistogram->GetLineWidth());
     resultProfile->SetLineStyle(sourceHistogram->GetLineStyle());
@@ -5714,7 +5714,7 @@ namespace insur {
 
   void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
     triggerSectorMapCsv_.clear();
-    triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol; 
+    triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol;
     for (TriggerSectorMap::const_iterator it = tsm.begin(); it != tsm.end(); ++it) {
       triggerSectorMapCsv_ += any2str(it->first.first) + csv_separator + any2str(it->first.second);
       for (std::set<int>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
@@ -5800,7 +5800,7 @@ namespace insur {
         if (m.posRef().phi > 2) return;
 	output_ << m.myDetId() << ", "
 		<< m.myBinaryDetId() << ","
-		<< barName_ << "-L" << layId_ << ", " 
+		<< barName_ << "-L" << layId_ << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
 		<< m.center().Z() << ", "
@@ -5821,7 +5821,7 @@ namespace insur {
     t.accept(v);
     return v.output();
   }
-  
+
   std::string Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
@@ -5842,7 +5842,7 @@ namespace insur {
 
 	output_	<< m.myDetId() << ", "
 		<< m.myBinaryDetId() << ","
-		<< endcapName_ << "-D" << diskId_ << ", " 	
+		<< endcapName_ << "-D" << diskId_ << ", "
 		<< m.ring() << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.center().Rho() << ", "
@@ -5852,14 +5852,14 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
-		<< m.sensorThickness()	
+		<< m.sensorThickness()
 		<< std::endl;
       }
 
       std::string output() const { return output_.str(); }
     };
     EndcapVisitor v;
-    v.preVisit(); 
+    v.preVisit();
     t.accept(v);
     return v.output();
   }
@@ -5932,7 +5932,7 @@ namespace insur {
     myEllipse->Draw();
   }
 
-  
+
   void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
@@ -6002,7 +6002,7 @@ namespace insur {
 		       << mass << ","
 		       << mass/length << ","
                        << rl << ","
-                       << il << "," 
+                       << il << ","
                        << "1" << std::endl;
       }
 
@@ -6012,17 +6012,17 @@ namespace insur {
       if (isEmpty) myBox->SetFillColor(kRed);
       else myBox->SetFillColor(kGray);
       myBox->Draw("l");
-	
+
       myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       if (isEmpty) myText->SetTextColor(kRed);
       else myText->SetTextColor(kBlack);
       myText->Draw();
-    
+
       serviceId++;
     }
-    
+
     aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
     aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
 
@@ -6045,14 +6045,14 @@ namespace insur {
 
     std::vector<std::string> origMetadataXmlFiles, origPixelXmlFiles, origOuterTrackerXmlFiles;
     std::vector<std::string> metadataXmlFileNames, pixelXmlFileNames, outerTrackerXmlFileNames;
-    
+
     try {
       boost::filesystem::directory_iterator end_iter;
       for (boost::filesystem::directory_iterator dir_iter(xmlDir); dir_iter != end_iter; dir_iter++) {
 	if (boost::filesystem::is_regular_file(dir_iter->path())) {
 	  std::string origFile = dir_iter->path().string();
 	  std::string fileName = dir_iter->path().filename().string();
-	 
+
 	  if (fileName.find(".cfg") != std::string::npos ) {
 	    origMetadataXmlFiles.push_back(origFile);
 	    metadataXmlFileNames.push_back(fileName);

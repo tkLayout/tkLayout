@@ -65,16 +65,16 @@ ostream& RootWTable::dump(ostream& output) {
   int myColorIndex;
 
   output << "<table>";
-  for (int iRow = minRow; iRow<=maxRow; ++iRow) { 
+  for (int iRow = minRow; iRow<=maxRow; ++iRow) {
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
       if ((iRow==minRow)&&(iRow==0)) myCellCode = "th";
       else myCellCode = "td";
       output << "<" << myCellCode;
       myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
-      if (myColorIndex!=0) { 
-	myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();        
-	output << " style=\"color:" << myColorCode << ";\" " << std::endl;
+      if (myColorIndex!=0) {
+	      myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();
+	      output << " style=\"color:" << myColorCode << ";\" " << std::endl;
       }
       output << ">";
       output << myTableContent[make_pair(iRow, iCol)];
@@ -83,7 +83,7 @@ ostream& RootWTable::dump(ostream& output) {
     output << "</tr>";
   }
   output << "</table>" << endl;
-  
+
   return output;
 }
 
@@ -288,7 +288,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
     return myText_[myImageSize];
   }
 
-  stringstream thisText;  
+  stringstream thisText;
   thisText.clear();
   if (relativeHtmlDirectory_ == "") relativeHtmlDirectory_ = ".";
   if (targetDirectory_ == "" ) targetDirectory_ = ".";
@@ -308,7 +308,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   int imgH = int (zoomedHeight_ * myScale);
   int canW = int(imgW * thumb_compression_);
   int canH = int(imgH * thumb_compression_);
-  
+
   string smallCanvasCompleteFileName = targetDirectory_+"/"+smallCanvasFileName;
   string largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + ".png";
 
@@ -327,9 +327,9 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
     if (it!=fileTypeV_.begin()) fileTypeList+="|";
     fileTypeList+=(*it);
   }
-  
+
   thisText << "<img class='wleftzoom' width='"<< imgW<<"' height='"<<imgH<<"' src='"<< relativeHtmlDirectory_ << "/" << smallCanvasFileName <<"' alt='"<< comment_ <<"' onclick=\"popupDiv('" << relativeHtmlDirectory_ << "/" << largeCanvasFileBaseName << "', "<< zoomedWidth_<<", "<< zoomedHeight_ << " , '"<< comment_ << "','"<<fileTypeList << "');\" />";
-  
+
   myText_[myImageSize] = thisText.str();
   fileSaved_[myImageSize] = true;
   lastSize_ = myImageSize;
@@ -406,7 +406,7 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TH2I") ||
 	       (myClass=="TH2F") ||
 	       (myClass=="TH2D") ||
-	       (myClass=="THStack") 
+	       (myClass=="THStack")
 	       ) {
       aNamed = (TNamed*) anObject;
       myTargetFile->cd();
@@ -423,8 +423,8 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
 	       (myClass=="TText") ||
-	       (myClass=="TArc") || 
-	       (myClass=="TBox") 
+	       (myClass=="TArc") ||
+	       (myClass=="TBox")
 	       ) {
     } else {
       std::cerr << Form("Unhandled class %s", myClass.c_str()) << std::endl;
@@ -481,8 +481,8 @@ void RootWContent::addParagraph(string parText) {
   newText->addText(parText);
   newText->addText("<br/>\n");
   //newText->addText("</p>\n");
-  
-  
+
+
   addItem(newText);
 }
 
@@ -604,7 +604,7 @@ ostream& RootWContent::dump(ostream& output) {
   std::string baseName="";
   if (page_ != nullptr) baseName = page_->getTitle() + ".";
 
-  //std::cerr << "Content: " << title_ <<endl; //debug 
+  //std::cerr << "Content: " << title_ <<endl; //debug
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
   if (visible_) {
     output << "<div class=\"hideable\"> ";
@@ -726,11 +726,11 @@ ostream& RootWPage::dump(ostream& output) {
     site_ = new RootWSite();
     site_->addPage(this);
   }
-  
+
   // Header standard part, with the menu list, etc...
   // up to opening the primaryContent div
   site_->dumpHeader(output, this);
-  
+
   vector<RootWContent*>::iterator it;
   RootWContent* myContent;
   for (it = contentList_.begin(); it != contentList_.end(); ++it) {
@@ -739,18 +739,18 @@ ostream& RootWPage::dump(ostream& output) {
     myContent->setPage(this);
     myContent->dump(output);
   }
-  
+
   // Header standard part, with copyright, etc...
   // starting from closing the primaryContent div
   site_->dumpFooter(output);
-  
+
   if (fakeSite) {
     delete site_;
     site_=NULL;
   }
-  
+
   return output;
-  
+
 }
 
 
@@ -959,7 +959,7 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
     if ((*it)->getAlert()>0) {
       ostringstream anAlarmColor;
       anAlarmColor.str("");
-      anAlarmColor << "rgb(255, " 
+      anAlarmColor << "rgb(255, "
 		   << int(255 * (*it)->getAlert())
 		   << ", 0)";
       output << " style = 'background:"
@@ -975,9 +975,9 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "      <div id=\"content\">" << endl
 	 << "        <div id=\"primaryContentContainer\">" << endl
 	 << "          <div id=\"primaryContent\">" << endl;
-  
+
   return output;
-  
+
 }
 
 bool RootWSite::makeSite(bool verbose) {
@@ -1000,13 +1000,13 @@ bool RootWSite::makeSite(bool verbose) {
       return false;
     }
   }
-  
+
   // Recreate the style symlink
   //if (boost::filesystem::exists( targetStyleDirectory )) {
   //boost::filesystem::remove_all( targetStyleDirectory );
   //}
   //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
-  
+
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
     summaryFile_ = new TFile(Form("%s/%s",
@@ -1108,7 +1108,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
   if ((originalFileName_=="")&&(!noCopy_)) {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
     return output;
-  } 
+  }
   if (fileName_=="") {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the destination file name" << endl;
     return output;
@@ -1141,7 +1141,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
   if (originalFileNames_.empty()) {
     cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the original file names" << endl;
     return output;
-  } 
+  }
   if (fileNames_.empty()) {
     cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the destination file names" << endl;
     return output;
@@ -1167,7 +1167,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
     catch (boost::filesystem::filesystem_error e) {
       cerr << e.what() << endl;
       return output;
-    }   
+    }
   }
 
   std::vector<std::string> cleanedUpFileNames;
@@ -1195,7 +1195,7 @@ string RootWInfo::setValue(string newText) {
   return newText;
 }
 
-string RootWInfo::setValue(int number) {  
+string RootWInfo::setValue(int number) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
