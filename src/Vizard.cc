@@ -1127,9 +1127,8 @@ namespace insur {
     if (name!="") pageTitle+=" (" +name+")";
 
     RootWPage* myPage = new RootWPage(pageTitle);
-    // TODO: the web site should decide which page to call index.html
 
-    std::string pageAddress="index"+name+".html";
+    std::string pageAddress="layout"+name+".html";
     myPage->setAddress(pageAddress);
 
     site.addPage(myPage, 100);
@@ -2571,7 +2570,7 @@ namespace insur {
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
-    site.addPage(myPage);
+    site.addPage(myPage, RootWeb::most_relevant);
     RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();

@@ -4,23 +4,15 @@
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #define BOOST_NO_CXX11_SCOPED_ENUM
 
-#include <boost/filesystem/exception.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
+// standard includes
 #include <map>
 #include <sstream>
 #include <string>
+#include <list>
+// ROOT includes
 #include <TCanvas.h>
-#include <TError.h>
-#include <time.h>
-#include <TView.h>
 #include <TFile.h>
 #include <vector>
-#include <TColor.h>
-#include <TROOT.h>
-#include "global_funcs.h"
 
 using namespace std;
 
@@ -33,7 +25,11 @@ using namespace std;
 
 namespace RootWeb {
   std::string cleanUpObjectName(const std::string&);
+  static const int least_relevant = std::numeric_limits<int>::min();
+  static const int most_relevant = std::numeric_limits<int>::max();
 };
+
+using namespace RootWeb;
 
 class RootWItem {
 public:
@@ -285,7 +281,6 @@ private:
   string revision_;
   string targetDirectory_;
   TFile* summaryFile_;
-  static const int least_relevant = -1000;
   bool createSummaryFile_;
   string summaryFileName_;
 public:

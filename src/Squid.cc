@@ -768,8 +768,3 @@ namespace insur {
     v.createXmlSite(site, xmlPath, layoutPath);
   }
 }
-
-
-
-
-

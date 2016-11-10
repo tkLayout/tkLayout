@@ -1,7 +1,36 @@
+// Project includes
 #include <rootweb.hh>
+#include "global_funcs.h"
+
+// standard includes
+#include <limits>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+
+// ROOT includes
+#include <TCanvas.h>
+#include <TError.h>
+#include <time.h>
+#include <TView.h>
+#include <TFile.h>
+#include <vector>
+#include <TColor.h>
+#include <TROOT.h>
+
+// boost includes
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
+
+
 
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
+
+using namespace RootWeb;
 
 //*******************************************//
 // RootWeb                                   //
@@ -231,7 +260,6 @@ void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   std::ostringstream canvasName("");
-  //int myNumber = imageNameCounter_[name_]++; //##########
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
   TView* myView = myCanvas->GetView();
@@ -849,10 +877,12 @@ void RootWSite::setRevision(string newRevision) {
   revision_ = newRevision;
 }
 
-void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */ ) {
+void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */) {
   newPage->setRelevance(relevance);
   if (relevance == least_relevant) {
     pageList_.push_back(newPage);
+  } else if (relevance == most_relevant) {
+    pageList_.insert(pageList_.begin(), newPage);
   } else {
     // Go through the vector to find the first element which has a
     // lower relevance than 'relevance'
@@ -1001,12 +1031,6 @@ bool RootWSite::makeSite(bool verbose) {
     }
   }
 
-  // Recreate the style symlink
-  //if (boost::filesystem::exists( targetStyleDirectory )) {
-  //boost::filesystem::remove_all( targetStyleDirectory );
-  //}
-  //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
-
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
     summaryFile_ = new TFile(Form("%s/%s",
@@ -1021,6 +1045,12 @@ bool RootWSite::makeSite(bool verbose) {
     myPage->setTargetDirectory(targetDirectory_);
     myPage->dump(myPageFile);
     myPageFile.close();
+    if (it==pageList_.begin()) {
+      namespace fs = boost::filesystem;
+      fs::path const from_path = myPageFileName;
+      fs::path const to_path = targetDirectory_+"/index.html";
+      fs::copy_file(from_path, to_path, fs::copy_option::overwrite_if_exists);
+    }
   }
   if (verbose) std::cout << " ";
   if (summaryFile_) summaryFile_->Close();
