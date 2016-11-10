@@ -293,7 +293,8 @@ namespace insur {
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
-    TCanvas* drawFullLayout();
+    TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
   };
@@ -302,4 +303,3 @@ namespace insur {
 
 }
 #endif	/* _VIZARD_H */
-

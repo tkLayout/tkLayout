@@ -2524,8 +2524,7 @@ namespace insur {
     return true;
   }
 
-  TCanvas* Vizard::drawFullLayout() {
-
+  TCanvas* Vizard::drawFullLayoutRZ() {
     TCanvas* result = nullptr;
     std::string aClass;
     PlotDrawer<YZ, Type> yzDrawer;
@@ -2548,6 +2547,25 @@ namespace insur {
     return result;
   }
 
+  TCanvas* Vizard::drawFullLayoutBarrelXY() {
+    TCanvas* result = nullptr;
+    std::string aClass;
+    PlotDrawer<XY, Type> xyDrawer;
+
+    for (unsigned int i=0; i< trackers_.size(); ++i) {
+      Tracker& tracker = *(trackers_[i]);
+      xyDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    }
+
+    int xyCanvasX = vis_min_canvas_sizeX;
+    int xyCanvasY = vis_min_canvas_sizeY;
+    result = new TCanvas("FullXYCanvas", "XYView Canvas (full layout)", xyCanvasX, xyCanvasY );
+    result->cd();
+    xyDrawer.drawFrame<SummaryFrameStyle>(*result);
+    xyDrawer.drawModules<ContourStyle>(*result);
+
+    return result;
+  }
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
@@ -2568,17 +2586,24 @@ namespace insur {
     //********************************//
 
     // Detector full layout
-    TCanvas* aLayout = drawFullLayout();
+    TCanvas* aLayout = drawFullLayoutRZ();
+    TCanvas* aLayoutXY = drawFullLayoutBarrelXY();
+    if (aLayout||aLayoutXY) fullLayoutContent = new RootWContent("Full layout", true);
     if (aLayout) {
-      fullLayoutContent = new RootWContent("Full layout", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
       anImage->setComment("RZ position of the modules (full layout)");
       anImage->setName("fullLayout");
       fullLayoutContent->addItem(anImage);
     }
+    if (aLayoutXY) {
+      RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
+      anImage->setComment("XY position of the barrel modules (full layout)");
+      anImage->setName("fullLayoutBarrelXY");
+      fullLayoutContent->addItem(anImage);
+    }
+    if (aLayout||aLayoutXY) myPage->addContent(fullLayoutContent);
 
-    // Define web-page sections
-    if (aLayout) myPage->addContent(fullLayoutContent);
+    // Other web-page sections
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
     summaryContent = new RootWContent("Summary");
