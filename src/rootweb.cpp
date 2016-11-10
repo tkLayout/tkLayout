@@ -892,8 +892,8 @@ void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */
     for (; it!=pageList_.end(); ++it) {
       aPage = *it;
       if (aPage->getRelevance()<relevance) {
-	beforeThis = it;
-	break;
+        beforeThis = it;
+        break;
       }
     }
     pageList_.insert(beforeThis, newPage);
