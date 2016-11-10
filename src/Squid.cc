@@ -44,7 +44,7 @@ namespace insur {
     if (pm) delete pm;
     if (pi) delete pi;
     if (px) delete px;
-    //if (pixelAnalyzer) delete pixelAnalyzer;    
+    //if (pixelAnalyzer) delete pixelAnalyzer;
     StopWatch::destroy();
   }
 
@@ -97,9 +97,9 @@ namespace insur {
       ModuleDataVisitor(std::string ofname) : of(ofname + "_mods.txt") {
          of << "cntName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
             << "centerZ" << sep << "centerRho" << sep << "centerPhi" << sep
-            << "dsDist" << sep << "thickn" << sep 
+            << "dsDist" << sep << "thickn" << sep
             << "minW" << sep << "maxW" << sep << "len" << sep
-            << "type" << sep 
+            << "type" << sep
             << "resolRPhi" << sep << "resolY" << sep
             << "nStripA" << sep << "nSegmI" << sep << "nSegmO" << std::endl;
       }
@@ -107,16 +107,16 @@ namespace insur {
         if (m.minZ() < 0.) return; // || m.posRef().phi != 1) return;
         of << m.cntName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
            << m.center().Z() << sep << m.center().Rho() << sep << m.center().Phi() << sep
-           << m.dsDistance() << sep << m.thickness() << sep 
+           << m.dsDistance() << sep << m.thickness() << sep
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
            << m.moduleType() << sep
-           << m.nominalResolutionLocalX() << sep << m.nominalResolutionLocalY() << sep 
+           << m.nominalResolutionLocalX() << sep << m.nominalResolutionLocalY() << sep
            << m.numStripsAcrossEstimate() << sep << m.innerSensor().numSegmentsEstimate() << sep << m.outerSensor().numSegmentsEstimate() << std::endl;
       }
     };
     */
 
-    try { 
+    try {
       auto childRange = getChildRange(pt, "Tracker");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
         Tracker* t = new Tracker();
@@ -175,8 +175,8 @@ namespace insur {
         supports_.push_back(s);
       });
     }
-    catch (PathfulException& e) { 
-      std::cerr << e.path() << " : " << e.what() << std::endl; 
+    catch (PathfulException& e) {
+      std::cerr << e.path() << " : " << e.what() << std::endl;
       stopTaskClock();
       return false;
     }
@@ -203,7 +203,7 @@ namespace insur {
    */
 /*  bool Squid::dressTracker() {
     if (tr) {
-      startTaskClock("Assigning module types to tracker and pixel"); 
+      startTaskClock("Assigning module types to tracker and pixel");
       cp.dressTracker(tr, getSettingsFile());
       if (px) cp.dressPixels(px, getSettingsFile());
       stopTaskClock();
@@ -295,7 +295,7 @@ namespace insur {
       if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
       if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
         if (verbose) mb->print();
-	
+
         if (px) {
 	  if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
 	    if (!pi) pi = new InactiveSurfaces();
@@ -359,7 +359,7 @@ namespace insur {
    * @param xmlout The name - without path - of the designated output subdirectory
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::translateFullSystemToXML(std::string xmlout) {    
+  bool Squid::translateFullSystemToXML(std::string xmlout) {
 
     std::string xmlDirectoryPath = mainConfiguration.getXmlDirectory();
 
@@ -370,8 +370,8 @@ namespace insur {
 
     std::string temporaryPath = xmlDirectoryPath + "/" + xml_tmppath + "/";
     if (bfs::exists(xmlOutputPath)) bfs::rename(xmlOutputPath, temporaryPath);
-    bfs::create_directory(xmlOutputPath);  
-    
+    bfs::create_directory(xmlOutputPath);
+
     try {
       if (mb) {
 	XmlTags outerTrackerXmlTags = XmlTags(false);
@@ -384,7 +384,7 @@ namespace insur {
       else {
 	std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
 	return false;
-      } 
+      }
       bfs::remove_all(temporaryPath);
     }
 
@@ -394,7 +394,7 @@ namespace insur {
       if (bfs::exists(temporaryPath)) bfs::rename(temporaryPath, xmlOutputPath);
       std::cerr << "No files were changed." <<std::endl;
     }
-    
+
     return true;
   }
 
@@ -709,7 +709,7 @@ namespace insur {
 
   void Squid::setBasename(std::string newBasename) {
     baseName_ = newBasename;
-  }    
+  }
 
   void Squid::setGeometryFile(std::string geomFile) {
     myGeometryFile_ = geomFile;
@@ -722,14 +722,14 @@ namespace insur {
   }
 
 
-  std::string Squid::getGeometryFile() { 
+  std::string Squid::getGeometryFile() {
     if (myGeometryFile_ == "") {
       myGeometryFile_ = baseName_ + suffix_geometry_file;
     }
     return myGeometryFile_;
   }
 
-  std::string Squid::getSettingsFile() { 
+  std::string Squid::getSettingsFile() {
     if (mySettingsFile_ == "") {
       mySettingsFile_ = baseName_ + suffix_types_file;
     }
@@ -761,15 +761,10 @@ namespace insur {
     g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
     v.setCommandLine(cmdLine);
   }
-   
+
   void Squid::createAdditionalXmlSite(std::string xmlout) {
     std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
     std::string layoutPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
     v.createXmlSite(site, xmlPath, layoutPath);
   }
 }
-
-
-
-
-
