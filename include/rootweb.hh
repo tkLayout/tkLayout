@@ -69,6 +69,8 @@ public:
   string setValue(string newText);
   string setValue(int number);
   string setValue(double number, int precision);
+  string setValueSci(double number, int precision);
+  string appendValue(string);
   string addValueText(string newText) {value_+=newText; return value_;};
   ostream& dump(ostream& output);
 protected:

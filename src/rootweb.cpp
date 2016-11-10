@@ -8,12 +8,14 @@ std::map <std::string, int> RootWImage::imageNameCounter_;
 //*******************************************//
 std::string RootWeb::cleanUpObjectName(const std::string& source) {
   std::string dest = "";
-  const std::string allowedChars = "abcdefghijklmnopqrstuvwxyz"   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"   "0123456789._-()";
+  const std::string allowedChars  = "abcdefghijklmnopqrstuvwxyz"
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const std::string convertedChars = "0123456789._-() "; // including space here
   auto N=source.size();
   auto i=N;
   for (i=0; i<N; ++i) {
-    if (source[i]==' ') dest+="_";
     if (allowedChars.find(source[i])<allowedChars.size()) dest+=source[i];
+    else if (allowedChars.find(source[i])<allowedChars.size()) dest+="_";
   }
   return dest;
 }
@@ -1207,6 +1209,21 @@ string RootWInfo::setValue(double number, int precision) {
   return(setValue(myNum_.str()));
 }
 
+string RootWInfo::setValueSci(double number, int precision) {
+  stringstream myNum_;
+  myNum_.clear();
+  int nearestLog = floor(log10(number));
+  double mantissa = number/pow(10, nearestLog);
+  myNum_ << dec << defaultfloat << setprecision(precision) << mantissa;
+  myNum_ << "&times;10<sup>" << nearestLog << "</sup>";
+  return(setValue(myNum_.str()));
+}
+
+string RootWInfo::appendValue(string aString) {
+  stringstream myNum_;
+  return setValue(value_ + aString);
+}
+
 ostream& RootWInfo::dump(ostream& output) {
   std::ofstream outputFile;
 
@@ -1236,4 +1253,3 @@ ostream& RootWGraphViz::dump(ostream& output) {
   }
   return output;
 }
-

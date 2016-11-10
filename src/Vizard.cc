@@ -2554,7 +2554,7 @@ namespace insur {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
-    RootWContent *simulationContent, *summaryContent, *fullLayoutContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
 
@@ -2583,6 +2583,8 @@ namespace insur {
     myPage->addContent(simulationContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
+    configFilesContent = new RootWContent("Configuration files", false);
+    myPage->addContent(configFilesContent);
 
     THStack* totalEtaStack = new THStack();
     if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
@@ -2640,7 +2642,7 @@ namespace insur {
     std::vector<std::string> destSet;
     mainConfig.createEncodedFileList(origSet, destSet);
     RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", origSet.begin(), origSet.end());
-    simulationContent->addItem(myBinaryFileList);
+    configFilesContent->addItem(myBinaryFileList);
 
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
@@ -2651,6 +2653,10 @@ namespace insur {
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for geometry");
     myInfo->setValue(geometryTracksUsed);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Irradiation &alpha; parameter");
+    myInfo->setValueSci(simparms.alphaParm(),4);
+    myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 
     // TODO: make an object that handles this properly:
