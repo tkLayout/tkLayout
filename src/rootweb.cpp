@@ -42,9 +42,17 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
   const std::string convertedChars = "0123456789._-() "; // including space here
   auto N=source.size();
   auto i=N;
+  bool pleaseConvert = false;
   for (i=0; i<N; ++i) {
-    if (allowedChars.find(source[i])<allowedChars.size()) dest+=source[i];
-    else if (allowedChars.find(source[i])<allowedChars.size()) dest+="_";
+    if (allowedChars.find(source[i])<allowedChars.size()) {
+      dest+=source[i];
+      pleaseConvert = true;
+    }
+    else if (convertedChars.find(source[i])<allowedChars.size() && pleaseConvert) {
+      dest+="_";
+      // avoid converting many charachters in a row
+      pleaseConvert = false;
+    }
   }
   return dest;
 }
