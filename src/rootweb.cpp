@@ -1252,7 +1252,9 @@ string RootWInfo::setValueSci(double number, int precision) {
   myNum_.clear();
   int nearestLog = floor(log10(number));
   double mantissa = number/pow(10, nearestLog);
-  myNum_ << dec << defaultfloat << setprecision(precision) << mantissa;
+  myNum_.unsetf(ios_base::floatfield);
+  myNum_.precision(5);
+  myNum_ << dec << mantissa;
   myNum_ << "&times;10<sup>" << nearestLog << "</sup>";
   return(setValue(myNum_.str()));
 }

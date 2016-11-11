@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <list>
+#include <limits>
 // ROOT includes
 #include <TCanvas.h>
 #include <TFile.h>
