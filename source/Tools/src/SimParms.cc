@@ -2,6 +2,7 @@
 
 #include <MainConfigHandler.h>
 #include "global_constants.h"
+#include "Units.h"
 #include "Visitor.h"
 #include "IrradiationMapsManager.h"
 
@@ -36,10 +37,8 @@ SimParms::SimParms() :
  chargeDepletionVoltage(  "chargeDepletionVoltage"  , parsedOnly(), 600),
  alphaParm(               "alphaParm"               , parsedOnly(), 4e-17),
  referenceTemp(           "referenceTemp"           , parsedOnly(), 20),
- magneticField(           "magneticField"           , parsedOnly(), magnetic_field),
- dipoleMagneticField(     "dipoleMagneticField"     , parsedOnly(), 0.0),
- dipoleDPlResAt10TeV(     "dipoleDPlResAt10TeV"     , parsedOnly(), 0.1),
- dipoleXToX0(             "dipoleXToX0"             , parsedOnly(), 0.1),
+ magField(                "magField"                , parsedOnly()),
+ magFieldZRegions(        "magFieldZRegions"        , parsedOnly()),
  irradiationMapFiles(     "irradiationMapFiles"     , parsedAndChecked()),
  etaRegionRanges(         "etaRegionRanges"         , parsedAndChecked()),
  etaRegionNames(          "etaRegionNames"          , parsedAndChecked()),
@@ -84,7 +83,7 @@ SimParms::~SimParms()
 }
 
 //
-// Check that sim parameters read-in correctly
+// Check that sim parameters read-in correctly & set units
 //
 void SimParms::crosscheck() {
   try {
@@ -95,6 +94,20 @@ void SimParms::crosscheck() {
 
   // Check that sizes of eta vectors: names & ranges are the same
   if (etaRegionNames.size()!=etaRegionRanges.size()) throw PathfulException("Number of names assigned to individual eta regions don't correspond to number of defined eta regions, check the config file!" , "SimParms");
+
+  // Check that number of magnetic field values correspond to number of magnetic field intervals
+  if (magField.size()!=magFieldZRegions.size()) throw PathfulException("Number of magnetic field values doesn't correspond to number of intervals!" , "SimParms");
+
+  // Check that magnetic field non-zero in at least one interval
+  bool nonZero = false;
+  for (auto i=0; i<magFieldZRegions.size(); i++) {
+    if (magField[i]>0) nonZero = true;
+  }
+  if (nonZero!=true) throw PathfulException("Magnetic field needs to be defined non-zero in at least one Z interval!" , "SimParms");
+
+  // Set expected default units
+  magField.scaleByUnit(Units::T);
+  magFieldZRegions.scaleByUnit(Units::m);
 }
 
 //

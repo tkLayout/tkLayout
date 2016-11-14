@@ -219,8 +219,11 @@ bool AnalysisManager::makeWebInfoPage()
     myInfo.setValue(unit->getNSimTracks());
   }
 
-  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T]: ");
-  myInfoBField.setValue(SimParms::getInstance().magneticField()/Units::T);
+  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T] averaged along Z: ");
+  double avgMagField = 0;
+  for (auto i=0; i<SimParms::getInstance().getNMagFieldRegions(); i++) avgMagField += SimParms::getInstance().magField[i]*Units::T;
+  avgMagField /= SimParms::getInstance().getNMagFieldRegions();
+  myInfoBField.setValue(avgMagField/Units::T);
 
   // Summary of geometry config files
   auto& simParms  = SimParms::getInstance();

@@ -133,13 +133,26 @@ Track::~Track() {
 //
 double Track::getMagField(double z) const {
 
-  // Option 1: const mag. field across the detector: Bz = const
-  double magField = SimParms::getInstance().magneticField();
+  double magField = 0;
 
-  if (magField<=0) {
+  // Option 1: Const mag. field across the detector: Bz = const
+  if (SimParms::getInstance().isMagFieldConst()) {
 
-    logERROR("Track::getMagField -> Magnetic field not defined!!!");
-    EXIT_FAILURE;
+    magField = SimParms::getInstance().magField[0];
+  }
+  // Option 2: Mag. field is a function in Z: B = B(z)
+  else {
+
+    for (unsigned int i=0; i<SimParms::getInstance().getNMagFieldRegions(); i++) {
+
+      // Magnetic field regions are considered to be defined in metres
+      if (z<SimParms::getInstance().magFieldZRegions[i]) {
+
+        // Magnetic field is considered to be in Tesla
+        magField = SimParms::getInstance().magField[i];
+        break;
+      }
+    }
   }
 
   return magField;
@@ -497,7 +510,7 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
       if (myModule) result.push_back(std::make_pair(myModule, iHit->getActiveHitType()));
       else {
         // Whoops: problem here: an active hit is not linked to any module
-        std::cerr << "ERROR: this SHOULD NOT happen. in expectedTriggerPoints() an active hit does not correspond to any module!" << std::endl;
+        logERROR("Track::getHitModules: This SHOULD NOT happen. In expectedTriggerPoints() an active hit does not correspond to any module!");
       }
     }
   }
@@ -534,7 +547,7 @@ void Track::computeCorrelationMatrixRPhi() {
 
       // Take into account a very small correction factor coming from the circular shape of particle track (similar approach as for local resolutions)
       double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());     // r_i/2R
-      //     A = 0; // For testing purposes only -> don't apply helix correction
+           A = 0; // For testing purposes only -> don't apply helix correction
       double corrFactor = 1 + A*A*cos(m_theta)*cos(m_theta)/(1-A*A);
 
       msTheta *= corrFactor;
@@ -626,6 +639,76 @@ void Track::computeCorrelationMatrixRPhi() {
 }
 
 //
+// Helper fce returning derivative: df(rho, d0, phi0)/drho, where f approximates
+// a helix by set of parabolas. In general, N connected parabolas used, for const B
+// field only one parabola applied.
+//
+double Track::computeDfOverDRho(double rPos, double zPos) {
+
+  double DfOverDRho = 0;
+
+  // Option 1: Const mag. field across the detector: Bz = const
+  if (SimParms::getInstance().isMagFieldConst()) {
+
+    DfOverDRho = 0.5 * rPos*rPos;
+  }
+  // Option 2: Mag. field is a function in Z: B = B(z)
+  else {
+
+    int nRegions = SimParms::getInstance().getNMagFieldRegions();
+
+    // Find i-th region corresponding to the current zPos
+    int iRegion = 0;
+    for (iRegion=0; iRegion < nRegions; iRegion++) {
+
+      if (zPos<(SimParms::getInstance().magFieldZRegions[iRegion])) break;
+    }
+
+    // Check that zPos not beyond Z-range, in which B field has been defined
+    if (iRegion==nRegions) {
+
+      std::ostringstream message;
+      message << "Track::computeDfOverDRho(): Hit z-position: " << zPos/Units::mm << " beyond defined B field Z-range: [0," << SimParms::getInstance().magFieldZRegions[nRegions-1]/Units::mm << "]!";
+      logERROR(message.str());
+      exit(1);
+    }
+
+    // Z pos. in the first region or only 1 region defined (const mag. field)
+    if (iRegion==0) {
+      DfOverDRho = 0.5 * rPos*rPos;
+    }
+    // Z pos in i-th region (generally N regions defined)
+    else {
+
+      // Get reference magnetic field B0 (at [r,z] = [0,0]
+      double B0   = SimParms::getInstance().magField[0];
+
+      double Bi   = 0.; // B-field in ith z-region
+      double Bi_1 = 0.; // B-field in (i-1)th z-region
+      double xi   = 0.; // x-position corresponding to the ith z-region
+
+      // Sum-up all contributions across the regions: 0th - ith
+      for (int i=1; i<=iRegion; i++) {
+
+        // Get current value of magnetic field B_i & B_i-1
+        Bi   = SimParms::getInstance().magField[i];
+        Bi_1 = SimParms::getInstance().magField[i-1];
+        xi   = SimParms::getInstance().magFieldZRegions[i-1] * tan(m_theta); // (z0,z1,z2...) -> intervals defined as 0-z0, z0-z1, z1-z2
+
+        // Add dB/dz terms
+        DfOverDRho+= -1.0*(Bi-Bi_1)/B0 * xi*rPos;
+        DfOverDRho+= +0.5*(Bi-Bi_1)/B0 * xi*xi;
+
+        // Add Bi/B0 term
+        if (i==iRegion) DfOverDRho += +0.5*Bi/B0 * rPos*rPos;
+      }
+    }
+  }
+
+  return DfOverDRho;
+}
+
+//
 // Compute the covariance matrix of the track parameters in R-Phi projection
 //
 void Track::computeCovarianceMatrixRPhi() {
@@ -645,7 +728,7 @@ void Track::computeCovarianceMatrixRPhi() {
   for (auto i = 0; i < nHits; i++) {
 
     if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
-      diffs(i - offset, 0) = 0.5 * m_hits.at(i)->getRPos() * m_hits.at(i)->getRPos();
+      diffs(i - offset, 0) = computeDfOverDRho(m_hits.at(i)->getRPos(),m_hits.at(i)->getZPos());
       diffs(i - offset, 1) = - m_hits.at(i)->getRPos();
       diffs(i - offset, 2) = 1;
     }
@@ -689,7 +772,7 @@ void Track::computeCorrelationMatrixRZ() {
 
       // Take into account a very small correction factor coming from the circular shape of particle track (similar approach as for local resolutions)
       double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());  // r_i/2R
-      //     A = 0; // For testing purposes only -> don't apply helix correction
+           A = 0; // For testing purposes only -> don't apply helix correction
       double corrFactor = pow( cos(m_theta)*cos(m_theta)/sin(m_theta)/sqrt(1-A*A) + sin(m_theta) ,2); // Without correction it would be 1/sin(theta)^2
 
       msTheta *=corrFactor;

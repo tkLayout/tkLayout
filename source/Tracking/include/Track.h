@@ -166,6 +166,11 @@ protected:
   //! Compute the covariance matrix of the track parameters in R-Phi projection
   void computeCovarianceMatrixRPhi();
 
+  //! Helper fce returning derivative: df(rho, d0, phi0)/drho, where f approximates
+  //! a helix by set of parabolas. In general, N connected parabolas used, for const B
+  //! field only one parabola applied.
+  double computeDfOverDRho(double rPos, double zPos);
+
   double m_theta;              //!< Track shot at given theta & phi, i.e. theta at primary vertex
   double m_phi;                //!< Track shot at given theta & phi, i.e. phi at primary vertex
   double m_cotgTheta;          //!< Automatically calculated from theta at [0,0]
