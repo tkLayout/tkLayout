@@ -284,22 +284,22 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       if (i==0) {
         taggedTrackCollectionMap = &m_taggedTrackPtCollectionMap[tag];
         scenario                 = "withMS_Pt";
-        scenarioName             = "const P_{T}";
+        scenarioName             = "const p_{T}";
       }
       if (i==1) {
         taggedTrackCollectionMap = &m_taggedTrackPtCollectionMapIdeal[tag];
         scenario                 = "noMS_Pt";
-        scenarioName             = "const P_{T}";
+        scenarioName             = "const p_{T}";
       }
       if (i==2) {
         taggedTrackCollectionMap = &m_taggedTrackPCollectionMap[tag];
         scenario                 = "withMS_P";
-        scenarioName             = "const P";
+        scenarioName             = "const p";
       }
       if (i==3) {
         taggedTrackCollectionMap = &m_taggedTrackPCollectionMapIdeal[tag];
         scenario                 = "noMS_P";
-        scenarioName             = "const P";
+        scenarioName             = "const p";
       }
 
       // Histogram arrays[momenta] - array of profile histograms for different momenta
