@@ -27,14 +27,7 @@ Track::Track() :
   m_phi(0),
   m_cotgTheta(0),
   m_eta(0),
-  m_pt(0),
-  m_deltaRho(0),
-  m_deltaPhi(0),
-  m_deltaD0(0),
-  m_deltaCtgTheta(0),
-  m_deltaZ0(0),
-  m_deltaPt(0),
-  m_deltaP(0)
+  m_pt(0)
 {}
 
 //
@@ -47,25 +40,19 @@ Track::Track(const Track& track) {
   m_cotgTheta    = track.m_cotgTheta;
   m_eta          = track.m_eta;
   m_pt           = track.m_pt;
-  m_deltaRho     = track.m_deltaRho;
-  m_deltaPhi     = track.m_deltaPhi;
-  m_deltaD0      = track.m_deltaD0;
-  m_deltaCtgTheta= track.m_deltaCtgTheta;
-  m_deltaZ0      = track.m_deltaZ0;
-  m_deltaPt      = track.m_deltaPt;
-  m_deltaP       = track.m_deltaP;
 
   m_origin       = track.m_origin;
   m_direction    = track.m_direction;
 
-  m_correlationsRPhi.ResizeTo(track.m_correlationsRPhi);
-  m_correlationsRPhi = track.m_correlationsRPhi;
-  m_covariancesRPhi.ResizeTo(track.m_covariancesRPhi);
-  m_covariancesRPhi  = track.m_covariancesRPhi;
-  m_correlationsRZ.ResizeTo(track.m_correlationsRZ);
-  m_correlationsRZ   = track.m_correlationsRZ;
-  m_covariancesRZ.ResizeTo(track.m_covariancesRZ);
-  m_covariancesRZ    = track.m_covariancesRZ;
+  m_varMatrixRPhi.ResizeTo(track.m_varMatrixRPhi);
+  m_varMatrixRPhi = track.m_varMatrixRPhi;
+  m_covMatrixRPhi.ResizeTo(track.m_covMatrixRPhi);
+  m_covMatrixRPhi = track.m_covMatrixRPhi;
+
+  m_varMatrixRZ.ResizeTo(track.m_varMatrixRZ);
+  m_varMatrixRZ = track.m_varMatrixRZ;
+  m_covMatrixRZ.ResizeTo(track.m_covMatrixRZ);
+  m_covMatrixRZ = track.m_covMatrixRZ;
 
   for (auto& iHit : track.m_hits) {
     HitPtr hit(new Hit(*iHit));
@@ -89,25 +76,19 @@ Track& Track::operator= (const Track& track) {
   m_cotgTheta    = track.m_cotgTheta;
   m_eta          = track.m_eta;
   m_pt           = track.m_pt;
-  m_deltaRho     = track.m_deltaRho;
-  m_deltaPhi     = track.m_deltaPhi;
-  m_deltaD0      = track.m_deltaD0;
-  m_deltaCtgTheta= track.m_deltaCtgTheta;
-  m_deltaZ0      = track.m_deltaZ0;
-  m_deltaPt      = track.m_deltaPt;
-  m_deltaP       = track.m_deltaP;
 
   m_origin       = track.m_origin;
   m_direction    = track.m_direction;
 
-  m_correlationsRPhi.ResizeTo(track.m_correlationsRPhi);
-  m_correlationsRPhi = track.m_correlationsRPhi;
-  m_covariancesRPhi.ResizeTo(track.m_covariancesRPhi);
-  m_covariancesRPhi  = track.m_covariancesRPhi;
-  m_correlationsRZ.ResizeTo(track.m_correlationsRZ);
-  m_correlationsRZ   = track.m_correlationsRZ;
-  m_covariancesRZ.ResizeTo(track.m_covariancesRZ);
-  m_covariancesRZ    = track.m_covariancesRZ;
+  m_varMatrixRPhi.ResizeTo(track.m_varMatrixRPhi);
+  m_varMatrixRPhi = track.m_varMatrixRPhi;
+  m_covMatrixRPhi.ResizeTo(track.m_covMatrixRPhi);
+  m_covMatrixRPhi = track.m_covMatrixRPhi;
+
+  m_varMatrixRZ.ResizeTo(track.m_varMatrixRZ);
+  m_varMatrixRZ = track.m_varMatrixRZ;
+  m_covMatrixRZ.ResizeTo(track.m_covMatrixRZ);
+  m_covMatrixRZ = track.m_covMatrixRZ;
 
   for (auto& iHit : track.m_hits) {
     HitPtr hit(new Hit(*iHit));
@@ -164,55 +145,109 @@ double Track::getMagField(double z) const {
 //
 void Track::computeErrors() {
 
-  // Initialize first
-  m_deltaRho      = 0;
-  m_deltaPhi      = 0;
-  m_deltaD0       = 0;
-  m_deltaCtgTheta = 0;
-  m_deltaZ0       = 0;
-  m_deltaPt       = 0;
-  m_deltaP        = 0;
+  // Compute the relevant 2x2 covariance matrix in RZ plane first (check that V matrix can be inverted)
+  if (computeVarianceMatrixRZ()) computeCovarianceMatrixRZ();
 
-  // Compute the relevant matrices in RZ plane first
-  computeCorrelationMatrixRZ();
-  computeCovarianceMatrixRZ();
-  double err;
+  // Compute the relevant 3x3 covariance matrix in R-Phi plane (check that V matrix can be inverted)
+  if (computeVarianceMatrixRPhi()) computeCovarianceMatrixRPhi();
+}
 
-  // delta(cotgTheta)
-  if (m_covariancesRZ(0, 0)>=0) err = sqrt(m_covariancesRZ(0, 0));
-  else err = -1;
-  m_deltaCtgTheta = err;
+//
+// Get DeltaRho (error on 1/R) at point [r,z] (using 3x3 covariance propagator in case [r,z]!=[0,0])
+//
+double Track::getDeltaRho() const {
 
-  // delta(Z0)
-  if (m_covariancesRZ(1, 1)>=0) err = sqrt(m_covariancesRZ(1, 1));
-  else err = -1;
-  m_deltaZ0 = err;
+  double deltaRho = -1.;
+  if (m_covMatrixRPhi(0, 0)>=0) deltaRho = sqrt(m_covMatrixRPhi(0, 0));
 
-  // Compute the relevant matrices in R-Phi plane
-  computeCorrelationMatrixRPhi();
-  computeCovarianceMatrixRPhi();
+  return deltaRho;
+}
+
+//
+// Get DeltaPtOvePt at point [r,z] utilizing the calculated deltaRho quantity
+//
+double Track::getDeltaPtOverPt() const {
+
+  double deltaPtOverPt = -1.;
 
   // delta(1/R) & delta(pT) -> estimated at point [r,z] = [0,0] (important for use case, when B != const -> B = B(z))
-  if (m_covariancesRPhi(0, 0)>=0) err = sqrt(m_covariancesRPhi(0, 0));
-  else err = -1;
-  m_deltaRho = err;
-  if (m_deltaRho!=-1) m_deltaPt  = m_deltaRho * getRadius(0.); // dpT(z=0)/pT(z=0) = dRho(z=0) / Rho(z=0) = dRho(z=0) * R(z=0)
-  else                m_deltaPt  = -1;
+  double deltaRho = getDeltaRho();
+  if (deltaRho!=-1) deltaPtOverPt = deltaRho * getRadius(0.); // dpT(z=0)/pT(z=0) = dRho(z=0) / Rho(z=0) = dRho(z=0) * R(z=0)
 
-  // delta(phi)
-  if (m_covariancesRPhi(1, 1) >= 0) err = sqrt(m_covariancesRPhi(1, 1));
-  else err = -1;
-  m_deltaPhi = err;
+  return deltaPtOverPt;
+}
 
-  // delta(D0)
-  if (m_covariancesRPhi(2, 2)) err = sqrt(m_covariancesRPhi(2, 2));
-  else err = -1;
-  m_deltaD0 = err;
+//
+// Get DeltaPOverP at point [r,z] utilizing deltaRho & deltaCotgTheta quantities
+//
+double Track::getDeltaPOverP() const {
+
+  double deltaPOverP = -1.;
 
   // Combining into p measurement
   // dp/p = dp_t/p_t + A / (1+A^2) * dA // with A = ctg(theta)
   // dp/p = dp_t/p_t + sin(theta)*cos(theta)
-  if (m_deltaPt!=-1 && m_deltaCtgTheta!=-1) m_deltaP = sqrt(m_deltaPt*m_deltaPt + sin(m_theta)*sin(m_theta) * cos(m_theta)*cos(m_theta) * m_deltaCtgTheta*m_deltaCtgTheta);
+  double deltaPtOverPt = getDeltaPtOverPt();
+  double deltaCtgTheta = getDeltaCtgTheta();
+  if (deltaPtOverPt!=-1 && deltaCtgTheta!=-1) deltaPOverP = sqrt(deltaPtOverPt*deltaPtOverPt + sin(m_theta)*sin(m_theta) * cos(m_theta)*cos(m_theta) * deltaCtgTheta*deltaCtgTheta);
+
+  return deltaPOverP;
+}
+
+//
+// Get DeltaPhi at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
+//
+double Track::getDeltaPhi() const {
+
+  double deltaPhi = -1.;
+  if (m_covMatrixRPhi(1, 1) >= 0) deltaPhi = sqrt(m_covMatrixRPhi(1, 1));
+
+  return deltaPhi;
+}
+
+//
+// Get DeltaD0 at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
+//
+double Track::getDeltaD0() const {
+
+  double deltaD0 = -1.;
+  if (m_covMatrixRPhi(2, 2)) deltaD0 = sqrt(m_covMatrixRPhi(2, 2));
+
+  return deltaD0;
+}
+
+//
+// Get DeltaCtgTheta at arbitrary path length s (independent on s)
+//
+double Track::getDeltaCtgTheta() const {
+
+  double deltaCtgTheta = -1.;
+  if (m_covMatrixRZ(0, 0)>=0) deltaCtgTheta = sqrt(m_covMatrixRZ(0, 0));
+
+  return deltaCtgTheta;
+}
+
+//
+// Get DeltaZ0 at path length s (point [r,z]), using 2x2 covariance propagator if s!=0
+//
+double Track::getDeltaZ0(double s) const {
+
+  double deltaZ0 = -1.;
+  if (m_covMatrixRZ(1, 1)>=0) deltaZ0 = sqrt(m_covMatrixRZ(1, 1));
+
+  // No covariance propagation necessary at [0,0,0] point
+  if (s==0.) return deltaZ0;
+  else {
+
+    double covZ0Z0       = m_covMatrixRZ(1,1);
+    double covZ0CtgTheta = m_covMatrixRZ(0,1);
+    double covCtgThCtgTh = m_covMatrixRZ(0,0);
+
+    double deltaZ0Sq = covZ0Z0 + 2*s*covZ0CtgTheta + s*s*covCtgThCtgTh;
+    if (deltaZ0Sq>=0) return sqrt(deltaZ0Sq);
+    else              return -1.;
+  }
+
 }
 
 //
@@ -319,15 +354,15 @@ void Track::removeMaterial() {
 void Track::printErrors() {
 
   std::cout << "Overview of track errors:" << std::endl;
-  std::cout << "Hit correlation matrix: "  << std::endl;
-  m_correlationsRPhi.Print();
+  std::cout << "Hit variance matrix: "  << std::endl;
+  m_varMatrixRPhi.Print();
 
   std::cout << "Covariance matrix: " << std::endl;
-  m_covariancesRPhi.Print();
+  m_covMatrixRPhi.Print();
 
-  std::cout << "Rho errors by momentum: " << m_deltaRho << std::endl;
-  std::cout << "Phi errors by momentum: " << m_deltaPhi << std::endl;
-  std::cout << "D errors by momentum: "   << m_deltaD0  << std::endl;
+  std::cout << "Rho errors by momentum: " << getDeltaRho() << std::endl;
+  std::cout << "Phi errors by momentum: " << getDeltaPhi() << std::endl;
+  std::cout << "D0 errors by momentum: "  << getDeltaD0()  << std::endl;
 }
 
 //
@@ -517,18 +552,14 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
   return result;
 }
 
-
 //
-// Compute the correlation matrix of the track parameters in R-Phi projection
+// Compute the variance matrix in R-Phi: NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
 //
-void Track::computeCorrelationMatrixRPhi() {
+bool Track::computeVarianceMatrixRPhi() {
 
-  // Matrix size
+  // Variance matrix size
   int n = m_hits.size();
-  m_correlationsRPhi.ResizeTo(n,n);
-
-  // Pre-fetch the error on ctg(theta) -> will use zero value, if not known
-  double deltaCtgT = m_deltaCtgTheta;
+  m_varMatrixRPhi.ResizeTo(n,n);
 
   // Get contributions from Multiple Couloumb scattering
   std::vector<double> msThetaOverSinSq;
@@ -558,19 +589,19 @@ void Track::computeCorrelationMatrixRPhi() {
     msThetaOverSinSq.push_back(msTheta);
   }
 
-  // Correlations: c is column, r is row
+  // Calculate correlation terms: c is column, r is row
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
     if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
-      for (int r = 0; r <= c; r++) m_correlationsRPhi(r, c) = 0.0;
+      for (int r = 0; r <= c; r++) m_varMatrixRPhi(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
     else {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_correlationsRPhi(r, c) = 0.0;
+        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_varMatrixRPhi(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -591,12 +622,12 @@ void Track::computeCorrelationMatrixRPhi() {
             sum = sum + prec * prec;
 
           }
-          m_correlationsRPhi(r, c) = sum;
-          if (r != c) m_correlationsRPhi(c, r) = sum;
+          m_varMatrixRPhi(r, c) = sum;
+          if (r != c) m_varMatrixRPhi(c, r) = sum;
         }
       }
     }
-  } // Correlations: c is column, r is row
+  } // Correlation terms: c is column, r is row
 
   // Remove zero rows and columns
   int  nResized        = -1;
@@ -611,16 +642,16 @@ void Track::computeCorrelationMatrixRPhi() {
     else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
-        m_correlationsRPhi(nResized, j) = m_correlationsRPhi(i, j);
-        m_correlationsRPhi(j, nResized) = m_correlationsRPhi(j, i);
+        m_varMatrixRPhi(nResized, j) = m_varMatrixRPhi(i, j);
+        m_varMatrixRPhi(j, nResized) = m_varMatrixRPhi(j, i);
       }
-      m_correlationsRPhi(nResized, nResized) = m_correlationsRPhi(i, i);
+      m_varMatrixRPhi(nResized, nResized) = m_varMatrixRPhi(i, i);
       nResized++;
     }
   }
 
   // Resize matrix if necessary
-  if (nResized != -1) m_correlationsRPhi.ResizeTo(nResized, nResized);
+  if (nResized != -1) m_varMatrixRPhi.ResizeTo(nResized, nResized);
 //  std::cout << std::endl;
 //  for (int i = 0; i<nResized; i++) {
 //    std::cout << "(";
@@ -633,9 +664,11 @@ void Track::computeCorrelationMatrixRPhi() {
 //  std::cout << std::endl;
 
   // Check if matrix is sane and worth keeping
-  if (!((m_correlationsRPhi.GetNoElements() > 0) && (m_correlationsRPhi.Determinant() != 0.0))) {
-    logWARNING("Correlation matrix in R-Phi -> zero determinat or zero number of elements");
+  if (!((m_varMatrixRPhi.GetNoElements() > 0) && (m_varMatrixRPhi.Determinant() != 0.0))) {
+    logWARNING("Variance matrix V(NxN) in R-Phi -> zero determinat or zero number of elements");
+    return false;
   }
+  else return true;
 }
 
 //
@@ -709,20 +742,20 @@ double Track::computeDfOverDRho(double rPos, double zPos) {
 }
 
 //
-// Compute the covariance matrix of the track parameters in R-Phi projection
+// Compute 3x3 covariance matrix of the track parameters in R-Phi projection
 //
 void Track::computeCovarianceMatrixRPhi() {
 
   unsigned int offset = 0;
   unsigned int nHits  = m_hits.size();
 
-  int n = m_correlationsRPhi.GetNrows();
+  int n = m_varMatrixRPhi.GetNrows();
 
-  TMatrixT<double> C(m_correlationsRPhi); // Local copy to be inverted
-  TMatrixT<double> diffsT(3, n);          // Derivatives of track parameters transposed (in R-Phi -> 3 track parameters)
-  TMatrixT<double> diffs(n, 3);           // Derivatives of track parameters (in R-Phi -> 3 track parameters)
+  TMatrixT<double> V(m_varMatrixRPhi); // Local copy to be inverted
+  TMatrixT<double> diffsT(3, n);       // Derivatives of track parameters transposed (in R-Phi -> 3 track parameters)
+  TMatrixT<double> diffs(n, 3);        // Derivatives of track parameters (in R-Phi -> 3 track parameters)
 
-  m_covariancesRPhi.ResizeTo(3, 3);
+  m_covMatrixRPhi.ResizeTo(3, 3);
 
   // Set up partial derivative matrices diffs and diffsT -> using Karimaki approach & parabolic aproximations to define these matrices
   for (auto i = 0; i < nHits; i++) {
@@ -738,19 +771,19 @@ void Track::computeCovarianceMatrixRPhi() {
   // Transpose
   diffsT.Transpose(diffs);
 
-  // Get covariance matrix using global chi2 fit: cov(i,j) = (D^T * C^-1 * D)^-1
-  m_covariancesRPhi = diffsT * C.Invert() * diffs;
-  m_covariancesRPhi.Invert();
+  // Get covariance matrix using global chi2 fit: C = cov(i,j) = (D^T * V^-1 * D)^-1
+  m_covMatrixRPhi = diffsT * V.Invert() * diffs;
+  m_covMatrixRPhi.Invert();
 }
 
 //
-// Compute the correlation matrix of the track parameters in R-Z projection
+// Compute the variance matrix in R-Z (s-Z): NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
 //
-void Track::computeCorrelationMatrixRZ() {
+bool Track::computeVarianceMatrixRZ() {
 
   // Matrix size
   int n = m_hits.size();
-  m_correlationsRZ.ResizeTo(n,n);
+  m_varMatrixRZ.ResizeTo(n,n);
 
   // Pre-compute the squares of the scattering angles
   // already divided by sin^2 (that is : we should use p instead of p_T here
@@ -799,19 +832,19 @@ void Track::computeCorrelationMatrixRZ() {
     msThetaOverSinSq.push_back(msTheta);
   }
 
-  // Correlations: c is column, r is row
+  // Calculate correlation terms: c is column, r is row
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
     if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
-      for (int r = 0; r <= c; r++) m_correlationsRZ(r, c) = 0.0;
+      for (int r = 0; r <= c; r++) m_varMatrixRZ(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
     else {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_correlationsRZ(r, c) = 0.0;
+        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_varMatrixRZ(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -827,19 +860,19 @@ void Track::computeCorrelationMatrixRZ() {
             sum = sum + prec * prec;
           }
 
-          m_correlationsRZ(r, c) = sum;
-          if (r != c) m_correlationsRZ(c, r) = sum;
+          m_varMatrixRZ(r, c) = sum;
+          if (r != c) m_varMatrixRZ(c, r) = sum;
 #undef CORRELATIONS_OFF_DEBUG
 #ifdef CORRELATIONS_OFF_DEBUG
           if (r!=c) {
-            m_correlationsRZ(c, r)=0;
-            m_correlationsRZ(r, c)=0;
+            m_varMatrixRZ(c, r)=0;
+            m_varMatrixRZ(r, c)=0;
           }
 #endif
         }
       }
     }
-  } // Correlations: c is column, r is row
+  } // Calculate correlation terms: c is column, r is row
 
   // Remove zero rows and columns
   int  nResized        = -1;
@@ -854,39 +887,41 @@ void Track::computeCorrelationMatrixRZ() {
     else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
-        m_correlationsRZ(nResized, j) = m_correlationsRZ(i, j);
-        m_correlationsRZ(j, nResized) = m_correlationsRZ(j, i);
+        m_varMatrixRZ(nResized, j) = m_varMatrixRZ(i, j);
+        m_varMatrixRZ(j, nResized) = m_varMatrixRZ(j, i);
       }
 
-      m_correlationsRZ(nResized, nResized) = m_correlationsRZ(i, i);
+      m_varMatrixRZ(nResized, nResized) = m_varMatrixRZ(i, i);
       nResized++;
     }
   }
   
   // Resize matrix if necessary
-  if (nResized!=-1) m_correlationsRZ.ResizeTo(nResized, nResized);
+  if (nResized!=-1) m_varMatrixRZ.ResizeTo(nResized, nResized);
 
   // Check if matrix is sane and worth keeping
-  if (!((m_correlationsRZ.GetNoElements() > 0) && (m_correlationsRZ.Determinant() != 0.0))) {
-    logWARNING("Correlation matrix in s-Z -> zero determinat or zero number of elements");
+  if (!((m_varMatrixRZ.GetNoElements() > 0) && (m_varMatrixRZ.Determinant() != 0.0))) {
+    logWARNING("Variance matrix V(NxN) in R-Z (s-Z) -> zero determinat or zero number of elements");
+    return false;
   }
+  else return true;
 }
 
 //
-// Compute the covariance matrix of the track parameters in R-Z projection
+// Compute 2x2 covariance matrix of the track parameters in R-Z (s-Z) projection
 //
 void Track::computeCovarianceMatrixRZ() {
 
   unsigned int offset = 0;
   unsigned int nHits  = m_hits.size();
 
-  int n = m_correlationsRZ.GetNrows();
+  int n = m_varMatrixRZ.GetNrows();
 
-  TMatrixT<double> C(m_correlationsRZ); // Local copy to be inverted
-  TMatrixT<double> diffsT(2, n);        // Derivatives of track parameters transposed (in R-Z -> 2 track parameters)
-  TMatrixT<double> diffs(n, 2);         // Derivatives of track parameters (in R-Phi -> 3 track parameters)
+  TMatrixT<double> V(m_varMatrixRZ); // Local copy to be inverted
+  TMatrixT<double> diffsT(2, n);     // Derivatives of track parameters transposed (in R-Z -> 2 track parameters)
+  TMatrixT<double> diffs(n, 2);      // Derivatives of track parameters (in R-Z -> 2 track parameters)
 
-  m_covariancesRZ.ResizeTo(2,2);
+  m_covMatrixRZ.ResizeTo(2,2);
   
   // Set up partial derivative matrices diffs and diffsT -> line fit in s-Z to define these matrices
   for (auto i = 0; i < nHits; i++) {
@@ -903,10 +938,9 @@ void Track::computeCovarianceMatrixRZ() {
   // Transpose
   diffsT.Transpose(diffs);
 
-  // Get covariance matrix using global chi2 fit: cov(i,j) = (D^T * C^-1 * D)^-1
-  // TODO: check if this matrix can be inverted
-  m_covariancesRZ = diffsT * C.Invert() * diffs;
-  m_covariancesRZ.Invert();
+  // Get covariance matrix using global chi2 fit: C = cov(i,j) = (D^T * V^-1 * D)^-1
+  m_covMatrixRZ = diffsT * V.Invert() * diffs;
+  m_covMatrixRZ.Invert();
 }
 
 

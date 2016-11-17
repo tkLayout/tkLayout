@@ -557,7 +557,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       if (varType=="pT")        yVal = track->getDeltaPtOverPt()*100; // In percent
       if (varType=="p")         yVal = track->getDeltaPOverP()*100;   // In percent
       if (varType=="d0")        yVal = track->getDeltaD0()/Units::um;
-      if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
+      if (varType=="z0")        yVal = track->getDeltaZ0(0)/Units::um; // Estimate @ [r.z] = [0,0], hence @ s=0
       if (varType=="phi0")      yVal = track->getDeltaPhi()/M_PI*180.; // In degerees
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta();
 

@@ -30,14 +30,16 @@ typedef std::vector<TrackPtr>  TrackCollection;
 /**
  * @class Track
  * @details The Track class is essentially a collection of consecutive hits used to calculate track parameters
- * with correlations among them. These hits can bet set as active (used in tracking) or inactive (unused in
+ * together with their correlation matrix. These hits can bet set as active (used in tracking) or inactive (unused in
  * tracking). The track model assumes mag. field to be variable only in z: B = B(z).e_z + 0.e_x + 0.e_y, further
- * the parabolic approximation for track is considered (a la Karimaki + Multiple Coulomb scattering is taken into
- * account), disentangling the problem to fit 5 track parameters simultaneously into a problem of fitting track
- * independenly in R-Phi and s-Z plane. The covariance matrix is then 3x3 + 2x2. Parametrization used is the
- * following, one fits: phi, 1/R, impact parameter in R-Phi plane D0 & cotg(theta), impact parameter in s-Z
- * plane Z0. To provide tracking independently on tracker geometry, each track is assigned a tag, all sub-trackers
- * with the same tag are used then to find resolution of such a geometry.
+ * the parabolic approximation for track is considered (a la Karimaki parametrization + Multiple Coulomb scattering
+ * is taken into account), disentangling the problem to fit 5 track parameters simultaneously into a problem of
+ * fitting track independenly in R-Phi and s-Z plane. The covariance matrix is then 3x3 (rho, phi0, d0) +
+ * 2x2 (cotg(theta), z0). Parametrization used is the following, one fits: phi0, 1/R, impact parameter in R-Phi plane
+ * d0 & cotg(theta), impact parameter in s-Z plane z0. To provide tracking independently on complexity of defined tracker
+ * geometry, each track is assigned a tag, all sub-trackers being assigned the same tag are then used in the track for
+ * tracking. In order to extract individual track parameters at arbitrary reference point (not only at [0,0,0]), the
+ * standard technique of covariance propagator is applied (for details see getDelta***() methods).
  */
 class Track {
 
@@ -55,8 +57,8 @@ public:
   //! Destructor
   ~Track();
 
-  //! Main method calculating track parameters using Karimaki approach & parabolic approximation in R-Phi plane: 1/R, D0, phi parameters
-  //! and using linear fit in s-Z plane: cotg(theta), Z0 parameters
+  //! Main method calculating track parameters using Karimaki parametrization & parabolic track approximation in R-Phi plane: 1/R, d0, phi parameters
+  //! and using linear fit in s-Z plane: cotg(theta), z0 parameters -> call this method before calling getDelta***() methods.
   void computeErrors();
 
   //! Add new hit to track and return a pointer to that hit
@@ -103,6 +105,27 @@ public:
   double getTransverseMomentum() const { return m_pt; }
   double getPt() const                 { return m_pt; }
   
+  //! Get DeltaRho (error on 1/R) at point [r,z] (using 3x3 covariance propagator in case [r,z]!=[0,0])
+  double getDeltaRho() const;
+
+  //! Get DeltaPtOvePt at point [r,z] utilizing the calculated deltaRho quantity
+  double getDeltaPtOverPt() const;
+
+  //! Get DeltaPOverP at point [r,z] utilizing deltaRho & deltaCotgTheta quantities
+  double getDeltaPOverP() const;
+
+  //! Get DeltaPhi at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
+  double getDeltaPhi() const;
+
+  //! Get DeltaD0 at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
+  double getDeltaD0() const;
+
+  //! Get DeltaCtgTheta at arbitrary path length s (independent on s)
+  double getDeltaCtgTheta() const;
+
+  //! Get DeltaZ0 at path length s (point [r,z]), using 2x2 covariance propagator if s!=0
+  double getDeltaZ0(double s) const;
+
   // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
   double getMagField(double z) const;
 
@@ -135,14 +158,6 @@ public:
   //! Get a vector of pairs: Detector module & hit type for Trigger hits
   std::vector<std::pair<const DetectorModule*, HitType>> getHitModules() const;
 
-  const double& getDeltaRho() const      { return m_deltaRho; }
-  const double& getDeltaPhi() const      { return m_deltaPhi; }
-  const double& getDeltaD0() const       { return m_deltaD0; }
-  const double& getDeltaCtgTheta() const { return m_deltaCtgTheta; }
-  const double& getDeltaZ0() const       { return m_deltaZ0; }
-  const double& getDeltaPtOverPt() const { return m_deltaPt; }
-  const double& getDeltaPOverP()  const  { return m_deltaP; }
-
 //  void addEfficiency(double efficiency, bool alsoPixel = false);
 //  void keepTriggerOnly();
 //  void setTriggerResolution(bool isTrigger);
@@ -156,19 +171,21 @@ public:
 
 protected:
 
-  //! Compute the correlation matrix of the track parameters in R-Z projection
-  void computeCorrelationMatrixRZ();
-  //! Compute the covariance matrix of the track parameters in R-Z projection
+  //! Compute the variance matrix in R-Z (s-Z): NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  //! Return true if V invertable
+  bool computeVarianceMatrixRZ();
+  //! Compute 2x2 covariance matrix of the track parameters in R-Z (s-Z) projection
   void computeCovarianceMatrixRZ();
 
-  //! Compute the correlation matrix of the track parameters in R-Phi projection
-  void computeCorrelationMatrixRPhi();
-  //! Compute the covariance matrix of the track parameters in R-Phi projection
+  //! Compute the variance matrix in R-Phi: NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  //! Return true if V invertable
+  bool computeVarianceMatrixRPhi();
+  //! Compute 3x3 covariance matrix of the track parameters in R-Phi projection
   void computeCovarianceMatrixRPhi();
 
-  //! Helper fce returning derivative: df(rho, d0, phi0)/drho, where f approximates
+  //! Helper fce returning derivative: d[f(rho, d0, phi0)]/d[rho], where f approximates
   //! a helix by set of parabolas. In general, N connected parabolas used, for const B
-  //! field only one parabola applied.
+  //! field only one parabola assumed.
   double computeDfOverDRho(double rPos, double zPos);
 
   double m_theta;              //!< Track shot at given theta & phi, i.e. theta at primary vertex
@@ -178,24 +195,16 @@ protected:
   double m_pt;                 //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes)
 
   Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
-  XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z
+  XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
 
-  HitCollection         m_hits;//!< Track assigned hits
-  std::set<std::string> m_tags;//!< Which subdetectors to be used in the track (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
+  HitCollection         m_hits;//!< Hits assigned to track
+  std::set<std::string> m_tags;//!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
-  // Track resolution as a function of momentum
-  TMatrixTSym<double>  m_correlationsRPhi; //!< Correlation matrix in R-Phi: pT (1/R), phi, D0
-  TMatrixT<double>     m_covariancesRPhi;  //!< Covariance matrix in R-Phi: pT (1/R), phi, D0
-  TMatrixTSym<double>  m_correlationsRZ;   //!< Correlation matrix in R-Phi: Z0, cotg(theta)
-  TMatrixT<double>     m_covariancesRZ;    //!< Covariance matrix in R-Phi: Z0, cotg(theta)
-
-  double m_deltaRho;       //!< Tracking error on 1/R
-  double m_deltaPhi;       //!< Tracking error on Phi angle
-  double m_deltaD0;        //!< Tracking error on impact parameter in R-Phi plane: d0
-  double m_deltaCtgTheta;  //!< Tracking error on cotg(theta)
-  double m_deltaZ0;        //!< Tracking error on impact parameter in s-z plane: Z0
-  double m_deltaPt;        //!< Tracking error on transverse momentum
-  double m_deltaP;         //!< Tracking error on total momentum
+  // Track parameters covariance matrices
+  TMatrixTSym<double>   m_varMatrixRPhi; //!< NxN (hits) Variance matrix in R-Phi: V(NxN) (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  TMatrixT<double>      m_covMatrixRPhi; //!< 3x3 Covariance matrix in R-Phi: pT (1/R), phi, d0 at ref. point [r,z] = [0,0]: C(3x3)
+  TMatrixTSym<double>   m_varMatrixRZ;   //!< NxN (hits) Variance matrix in R-Z V(NxN) (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  TMatrixT<double>      m_covMatrixRZ;   //!< 2x2 Covariance matrix in R-Phi: z0, cotg(theta) at ref. point [r,z] = [0,0]: C(2x2)
 
 }; // Class
 
