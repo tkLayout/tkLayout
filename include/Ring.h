@@ -59,8 +59,8 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
     zOverlap              ("zOverlap"              , parsedAndChecked())
       {}
 
-  void build(double lastThetaEnd);
-  void buildLeftRight(double lastThetaEnd);
+  void build(double lastThetaEnd, bool zOverlapAveraged);
+  void buildLeftRight(double lastThetaEnd, bool zOverlapAveraged);
   void check() override;
 
   void accept(GeometryVisitor& v) {
@@ -79,7 +79,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double zInner() const { return zInner_; }
   double thetaOuter() const { return thetaOuter_; }
   double thetaInner() const { return thetaInner_; }
-  //double thetaEnd() const { return thetaEnd_; }
+  double thetaEnd() const { return thetaEnd_; }
 
 
   double tiltAngleIdealOuter() const { return tiltAngleIdealOuter_; }

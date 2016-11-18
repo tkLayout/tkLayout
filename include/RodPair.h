@@ -183,7 +183,7 @@ public:
       
       double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
 
-      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ()));
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ() - zOverlap()));
     
       /*std::cout << "lastMod.center().Rho() = " << lastMod.center().Rho() << std::endl;
       std::cout << "lastMod.dsDistance() = " << lastMod.dsDistance() << std::endl;
@@ -199,7 +199,30 @@ public:
     return thetaEnd;
   }
 
+
+  double thetaEnd_REAL() const {
+    double thetaEnd;
+
+    if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
+    else {
+      // findMaxZModule as a function
+      auto lastMod = zPlusModules_.back();
+
+      double dsDistance = lastMod.dsDistance();
+      double lastR = lastMod.center().Rho();
+      
+      double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
+
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ()));
+    }
+    return thetaEnd;
+  }
+
+
 };
+
+
+
 
 
 

@@ -111,6 +111,7 @@ public:
   Property<double, Default> layerRotation;
 
   Property<int, NoDefault> numRods;
+  Property<bool, Default> zOverlapAveraged;
 
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
@@ -137,6 +138,7 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), true),
+	    zOverlapAveraged("zOverlapAveraged", parsedOnly(), true),
 	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
