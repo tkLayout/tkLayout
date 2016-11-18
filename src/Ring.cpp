@@ -254,8 +254,6 @@ void TiltedRing::check() {
 
 
 void TiltedRing::buildLeftRight(double lastThetaEnd) {
-  
-  std::cout << "ringZOverlap.state() = " << ringZOverlap.state() << std::endl;
 
   thetaStart_ = lastThetaEnd;
   double tilt = tiltAngle() * M_PI / 180.;
