@@ -327,7 +327,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
   
 
 
-  thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+  thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));   // THIS MAKES SENSE AND IS ONLY USED IF zOverlapAveraged = TRUE
   //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
 
 
@@ -348,22 +348,22 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
 
   double zH1p = zInner_ - 0.5 * lengthEff * cos(tilt);
   double rH1p = innerRadius() + 0.5 * lengthEff * sin(tilt);
-  double zH1pp = zInner_ + 0.5 * lengthEff * cos(tilt);
-  double rH1pp = innerRadius() - 0.5 * lengthEff * sin(tilt);
+  //double zH1pp = zInner_ + 0.5 * lengthEff * cos(tilt);
+  //double rH1pp = innerRadius() - 0.5 * lengthEff * sin(tilt);
 
   double zH1UP = zInner_ + 0.5 * dsDistance * sin(tilt);
   double rH1UP = innerRadius() + 0.5 * dsDistance * cos(tilt);
   double zH1pUP = zH1UP - 0.5 * lengthEff * cos(tilt);
   double rH1pUP = rH1UP + 0.5 * lengthEff * sin(tilt);
-  double zH1ppUP = zH1UP + 0.5 * lengthEff * cos(tilt);
-  double rH1ppUP = rH1UP - 0.5 * lengthEff * sin(tilt);
+  //double zH1ppUP = zH1UP + 0.5 * lengthEff * cos(tilt);
+  //double rH1ppUP = rH1UP - 0.5 * lengthEff * sin(tilt);
 
   double zH1DOWN = zInner_ - 0.5 * dsDistance * sin(tilt);
   double rH1DOWN = innerRadius() - 0.5 * dsDistance * cos(tilt);
   double zH1pDOWN = zH1DOWN - 0.5 * lengthEff * cos(tilt);
   double rH1pDOWN = rH1DOWN + 0.5 * lengthEff * sin(tilt);
-  double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
-  double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
+  //double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
+  //double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
 
   //thetaStartInner_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
   //thetaEndInner_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
