@@ -1454,7 +1454,7 @@ namespace insur {
 	    tiltedPartTable->setContent(16, 0, "phiOverlap");
 	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);
 	    tiltedPartTable->setContent(17, 0, "zOverlap" + subStart + "Outer" + subEnd);
-	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->ringZOverlap(), 5);
+	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->ringZOverlap(), zOverlapPrecision);
 	    double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];
 	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
 	    if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner, coordPrecision);
