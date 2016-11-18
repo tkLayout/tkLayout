@@ -79,7 +79,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double zInner() const { return zInner_; }
   double thetaOuter() const { return thetaOuter_; }
   double thetaInner() const { return thetaInner_; }
-  double thetaEnd() const { return thetaEnd_; }
+  //double thetaEnd() const { return thetaEnd_; }
 
 
   double tiltAngleIdealOuter() const { return tiltAngleIdealOuter_; }
@@ -88,8 +88,8 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
   double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
 
-  double thetaStartInner() const { return thetaStartInner_; }
-  double thetaEndInner() const { return thetaEndInner_; }
+  //double thetaStartInner() const { return thetaStartInner_; }
+  //double thetaEndInner() const { return thetaEndInner_; }
 
   double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
   double averageZ() const { return (zInner_ + zOuter_) / 2.; }

@@ -183,7 +183,7 @@ public:
       
       double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
 
-      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ() - zOverlap()));
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ()));
     
       /*std::cout << "lastMod.center().Rho() = " << lastMod.center().Rho() << std::endl;
       std::cout << "lastMod.dsDistance() = " << lastMod.dsDistance() << std::endl;

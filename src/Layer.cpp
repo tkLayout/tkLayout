@@ -267,7 +267,7 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
 
     double lastThetaEnd;
     if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
-    else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEnd();
+    else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
  
     tiltedRing->build(lastThetaEnd); 
     tiltedRingsGeometry[i] = tiltedRing;

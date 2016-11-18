@@ -257,7 +257,6 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   rmod->build();
   double dsDistance = rmod->dsDistance();
   double length = rmod->length();
-  double lengthEff = length - zOverlap();
   double width = rmod->width();
   
 
@@ -271,9 +270,9 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   }
 
   else {
-    thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tilt) + lengthEff/2.0*cos(tilt) ));
+    thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + (length/2.-zOverlap())*sin(tilt)/tan(thetaStart_) - dsDistance/2.*sin(tilt) + (length/2.-zOverlap())*cos(tilt) ));
 
-    thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) + dsDistance/2.*sin(tilt) + lengthEff/2.0*cos(tilt) ));
+    thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + (length/2.-zOverlap())*sin(tilt)/tan(thetaStart_) + dsDistance/2.*sin(tilt) + (length/2.-zOverlap())*cos(tilt) ));
 
     thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
 
@@ -298,35 +297,35 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   //std::cout << "zInner_ = " << zInner_ << std::endl;
 
 
-  double zH2p = zOuter_ - 0.5 * lengthEff * cos(tilt);
-  double rH2p = outerRadius() + 0.5 * lengthEff * sin(tilt);
-  double zH2pp = zOuter_ + 0.5 * lengthEff * cos(tilt);
-  double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tilt);
+  double zH2p = zOuter_ - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH2p = outerRadius() + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH2pp = zOuter_ + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH2pp = outerRadius() - (0.5 * length - zOverlap()) * sin(tilt);
 
   double zH2UP = zOuter_ + 0.5 * dsDistance * sin(tilt);
   double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tilt);
-  double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tilt);
-  double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tilt);
-  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
-  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
+  double zH2pUP = zH2UP - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH2pUP = rH2UP + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH2ppUP = zH2UP + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH2ppUP = rH2UP - (0.5 * length - zOverlap()) * sin(tilt);
 
   double zH2DOWN = zOuter_ - 0.5 * dsDistance * sin(tilt);
   double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tilt);
-  double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tilt);
-  double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tilt);
-  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
-  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
+  double zH2pDOWN = zH2DOWN - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH2pDOWN = rH2DOWN + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH2ppDOWN = zH2DOWN + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH2ppDOWN = rH2DOWN - (0.5 * length - zOverlap()) * sin(tilt);
 
 
   /*std::cout << "zH2ppUP = " << zH2ppUP << " zH2ppDOWN = " << zH2ppDOWN << std::endl;
-  std::cout << "rH2ppUP = " << rH2ppUP <<" rH2ppDOWN = " << rH2ppDOWN << std::endl;
-  
+  std::cout << "rH2ppUP = " << rH2ppUP <<" rH2ppDOWN = " << rH2ppDOWN << std::endl; 
   std::cout << "atan(rH2ppUP / zH2ppUP) = " << atan(rH2ppUP / zH2ppUP) << std::endl;
   std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;*/
   
-  thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+
+
+  //thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
   //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
-  //buildModules(emod, numMods, smallDelta());
 
 
 
@@ -344,27 +343,29 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   deltaTiltIdealInner_ = tiltAngle() - tiltAngleIdealInner_;
 
 
-  double zH1p = zInner_ - 0.5 * lengthEff * cos(tilt);
-  double rH1p = innerRadius() + 0.5 * lengthEff * sin(tilt);
-  double zH1pp = zInner_ + 0.5 * lengthEff * cos(tilt);
-  double rH1pp = innerRadius() - 0.5 * lengthEff * sin(tilt);
+  double zH1p = zInner_ - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH1p = innerRadius() + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH1pp = zInner_ + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH1pp = innerRadius() - (0.5 * length - zOverlap()) * sin(tilt);
 
   double zH1UP = zInner_ + 0.5 * dsDistance * sin(tilt);
   double rH1UP = innerRadius() + 0.5 * dsDistance * cos(tilt);
-  double zH1pUP = zH1UP - 0.5 * lengthEff * cos(tilt);
-  double rH1pUP = rH1UP + 0.5 * lengthEff * sin(tilt);
-  double zH1ppUP = zH1UP + 0.5 * lengthEff * cos(tilt);
-  double rH1ppUP = rH1UP - 0.5 * lengthEff * sin(tilt);
+  double zH1pUP = zH1UP - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH1pUP = rH1UP + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH1ppUP = zH1UP + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH1ppUP = rH1UP - (0.5 * length - zOverlap()) * sin(tilt);
 
   double zH1DOWN = zInner_ - 0.5 * dsDistance * sin(tilt);
   double rH1DOWN = innerRadius() - 0.5 * dsDistance * cos(tilt);
-  double zH1pDOWN = zH1DOWN - 0.5 * lengthEff * cos(tilt);
-  double rH1pDOWN = rH1DOWN + 0.5 * lengthEff * sin(tilt);
-  double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
-  double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
+  double zH1pDOWN = zH1DOWN - (0.5 * length - zOverlap()) * cos(tilt);
+  double rH1pDOWN = rH1DOWN + (0.5 * length - zOverlap()) * sin(tilt);
+  //double zH1ppDOWN = zH1DOWN + (0.5 * length - zOverlap()) * cos(tilt);
+  //double rH1ppDOWN = rH1DOWN - (0.5 * length - zOverlap()) * sin(tilt);
 
-  thetaStartInner_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
-  thetaEndInner_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
+  //thetaStartInner_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
+  //thetaEndInner_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
+
+
 
 
 
