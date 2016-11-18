@@ -241,21 +241,21 @@ define_enum_strings(Ring::BuildDirection) = { "topdown", "bottomup" };
 
 void TiltedRing::check() {
   PropertyObject::check();
-  if (zOverlap.state()) {
-    if (zInner.state() || zOuter.state()) throw PathfulException("Only one parameter among zOverlap, ringInnerZ, and ringOuterZ can be specified.");
+  if (ringZOverlap.state()) {
+    if (zInner.state() || zOuter.state()) throw PathfulException("Only one parameter among ringZOverlap, ringInnerZ, and ringOuterZ can be specified.");
   }
   else {
-    if (!zInner.state() && !zOuter.state()) throw PathfulException("At least one parameter among zOverlap, ringInnerZ, and ringOuterZ must be specified.");
-    if (zInner.state() && zOuter.state()) throw PathfulException("Only one parameter among zOverlap, ringInnerZ, and ringOuterZ can be specified.");
+    if (!zInner.state() && !zOuter.state()) throw PathfulException("At least one parameter among ringZOverlap, ringInnerZ, and ringOuterZ must be specified.");
+    if (zInner.state() && zOuter.state()) throw PathfulException("Only one parameter among ringZOverlap, ringInnerZ, and ringOuterZ can be specified.");
   }
 }
 
 
 
 
-void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
+void TiltedRing::buildLeftRight(double lastThetaEnd) {
   
-  std::cout << "zOverlap.state() = " << zOverlap.state() << std::endl;
+  std::cout << "ringZOverlap.state() = " << ringZOverlap.state() << std::endl;
 
   thetaStart_ = lastThetaEnd;
   double tilt = tiltAngle() * M_PI / 180.;
@@ -284,11 +284,10 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
   else {
 
     // CASE A : ZOVERLAP IS SPECIFIED IN INPUT
-    if (zOverlap.state()) {
+    if (ringZOverlap.state()) {
 
       // Calculate lengthEff
-      if (zOverlapAveraged) lengthEff = length - zOverlap();
-      else lengthEff = length - 2.*zOverlap();
+      lengthEff = length - 2.*ringZOverlap();
 
       // Calculate thetaOuter
       thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tilt) + lengthEff/2.*cos(tilt) ));
@@ -303,7 +302,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
       /*std::cout << "thetaStart_ * 180. / M_PI = " << thetaStart_ * 180. / M_PI << std::endl;
 	std::cout << "outerRadius() = " << outerRadius() << std::endl;
 	std::cout << "lengthEff = " << lengthEff << std::endl;
-	std::cout << "zOverlap() = " << zOverlap() << std::endl;
+	std::cout << "ringZOverlap() = " << ringZOverlap() << std::endl;
 	std::cout << "thetaOuterUP_  * 180. / M_PI = " << thetaOuterUP_  * 180. / M_PI << std::endl;
 	std::cout << "thetaOuterDOWN_  * 180. / M_PI = " << thetaOuterDOWN_  * 180. / M_PI << std::endl;
 	std::cout << "thetaOuter_  * 180. / M_PI = " << thetaOuter_  * 180. / M_PI << std::endl;
@@ -329,18 +328,17 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
       // Calculate thetaOuter
       thetaOuter_ = atan( outerRadius() / zOuter());
 
-      // Calculate zOverlap
-      double zOverlapUP = length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. );
+      // Calculate ringZOverlap
+      double ringZOverlapUP = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
 
-      double zOverlapDOWN = length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) - dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. );
+      double ringZOverlapDOWN = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) - dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
 
-      std::cout << " zOverlapUP = " <<  zOverlapUP <<  "zOverlapDOWN = " << zOverlapDOWN << std::endl;
-      if (zOverlapAveraged) zOverlap( MIN(zOverlapUP, zOverlapDOWN) );
-      else zOverlap( 0.5 * MIN(zOverlapUP, zOverlapDOWN) );
+      std::cout << " ringZOverlapUP = " <<  ringZOverlapUP <<  "ringZOverlapDOWN = " << ringZOverlapDOWN << std::endl;
+      
+      ringZOverlap( MIN(ringZOverlapUP, ringZOverlapDOWN) );
 
       // Calculate lengthEff
-      if (zOverlapAveraged) lengthEff = length - zOverlap();
-      else lengthEff = length - 2.*zOverlap();
+      lengthEff = length - 2.*ringZOverlap();
     }
      
   }
@@ -359,22 +357,22 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
 
   double zH2p = zOuter() - 0.5 * lengthEff * cos(tilt);
   double rH2p = outerRadius() + 0.5 * lengthEff * sin(tilt);
-  double zH2pp = zOuter() + 0.5 * lengthEff * cos(tilt);
-  double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tilt);
+  //double zH2pp = zOuter() + 0.5 * lengthEff * cos(tilt);
+  //double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tilt);
 
   double zH2UP = zOuter() + 0.5 * dsDistance * sin(tilt);
   double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tilt);
   double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tilt);
   double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tilt);
-  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
-  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
+  //double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
+  //double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
 
   double zH2DOWN = zOuter() - 0.5 * dsDistance * sin(tilt);
   double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tilt);
   double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tilt);
   double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tilt);
-  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
-  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
+  //double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
+  //double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
 
 
   /*std::cout << "zH2ppUP = " << zH2ppUP << " zH2ppDOWN = " << zH2ppDOWN << std::endl;
@@ -383,8 +381,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
   std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;*/
   
 
-  // THIS MAKES SENSE AND IS ONLY USED FOR PLACEMENT IF zOverlapAveraged = TRUE
-  thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+  //thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
   //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
 
 
@@ -490,7 +487,6 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
     rStartInner_REAL_ = rH1pDOWN_REAL; 
     zStartInner_REAL_ = zH1pDOWN_REAL;
   }
-  // THIS IS ONLY USED FOR PLACEMENT IF zOverlapAveraged = FALSE
   if ( (rH1ppUP_REAL / zH1ppUP_REAL) > (rH1ppDOWN_REAL / zH1ppDOWN_REAL) ) { 
     rEndInner_REAL_ = rH1ppUP_REAL; 
     zEndInner_REAL_ = zH1ppUP_REAL;
@@ -504,7 +500,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd, bool zOverlapAveraged) {
 }
 
 
-void TiltedRing::build(double lastThetaEnd, bool zOverlapAveraged) {
+void TiltedRing::build(double lastThetaEnd) {
   //materialObject_.store(propertyTree());
   //materialObject_.build();
 
@@ -512,7 +508,7 @@ void TiltedRing::build(double lastThetaEnd, bool zOverlapAveraged) {
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    buildLeftRight(lastThetaEnd, zOverlapAveraged);
+    buildLeftRight(lastThetaEnd);
 
   } catch (PathfulException& pe) {
     std::cout << pe.what() << std::endl; // TO DO : should not be necessary to specify pe.what() !! Problem in fullid from capabilities.h ?

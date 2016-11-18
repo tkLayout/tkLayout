@@ -268,11 +268,10 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
     double lastThetaEnd;
     if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
     else {
-      if (zOverlapAveraged()) lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEnd();
-      else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
+      lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
     }
  
-    tiltedRing->build(lastThetaEnd, zOverlapAveraged()); 
+    tiltedRing->build(lastThetaEnd); 
     tiltedRingsGeometry[i] = tiltedRing;
   }
 
@@ -415,8 +414,7 @@ void Layer::buildTilted() {
 	  (bigParity() > 0 ? flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()));
 	}
 
-	if (zOverlapAveraged()) { flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd()); }
-	else { flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd_REAL() : flatPartRod2->thetaEnd_REAL()); }
+	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd_REAL() : flatPartRod2->thetaEnd_REAL());
 	auto lastMod1 = zPlusModules1.back();
 	auto lastMod2 = zPlusModules2.back();	
 	flatPartrEndInner = (bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());
