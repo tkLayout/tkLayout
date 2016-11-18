@@ -199,11 +199,7 @@ public:
     return thetaEnd;
   }
 
-
 };
-
-
-
 
 
 
