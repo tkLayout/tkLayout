@@ -1,5 +1,5 @@
-This is to simulate resolution on pixel modules local coordinates X and Y.
-resolutionLocalX or Y are either nominal values, either values calculated from parameterized models.
+This is to simulate resolution on pixel modules local coordinates X and Y with tkLayout.
+2 modes are avaialble : either resolutionLocalX or Y are set as nominal values, either they are calculated from parameterized models.
 
 
 
@@ -38,17 +38,17 @@ resolutionLocalYEndcap = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelPa
 
 
 
-NB on geometry (common to nominal and parametric cases) :
+NB on geometry :
 In the plane of any module, local Y axis is always along the strips, and local X axis is the axis orthogonal to it.
 As a result : 
-Barrel modules : Local X axis is in RPhi, Local Y axis is along Z.
-Endcap modules : Local X axis is in RPhi, Local Y axis is along R.
+Barrel modules : Local X axis is along RPhi, Local Y axis is along Z.
+Endcap modules : Local X axis is along RPhi, Local Y axis is along R.
 
-Specific to parametric case : Alpha and beta angles are the reference notation angles for a track hitting a pixel module.
+Specific to parametric case : alpha and beta angles are the reference notation angles for a track hitting a pixel module.
 They are defined in Figure 7 from [3]. 
 
 
 
 [1] Parametrization of the spatial resolution of the reconstructed hits in the Inner Pixel for HL-LHC studies, E. Migliore and M. Musich, 2015/09/18
 [2] Summary of available parametrizations, E. Migliore, Torino, 2016/06/13
-[3] Commissioning and Performance of the CMS Pixel Tracker with Cosmic Ray Muons, The CMS Collaboration, 2010/02/02.
+[3] Commissioning and Performance of the CMS Pixel Tracker with Cosmic Ray Muons, The CMS Collaboration, 2010/02/02
