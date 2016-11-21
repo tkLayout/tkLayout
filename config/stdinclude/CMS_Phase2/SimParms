@@ -11,11 +11,14 @@ SimParms {
     operatingTemp -20
     referenceTemp 20
     chargeDepletionVoltage 600
-    alphaParam 4.28e-17
+    alphaParm 4.28e-17
     pixelEfficiency 1
 
     numTriggerTowersEta 6
     numTriggerTowersPhi 8
     triggerPtCut 2
     triggerEtaCut 2.2
+
+
+    Gabie IsAHero           // inside joke. forget about it
 }
