@@ -205,9 +205,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   double newZ = lastZ;
   if (!beamSpotCover()) dz = 0;
   if (direction == BuildDir::RIGHT) {
+    double newZA = (newZ - ov) * newRA/lastRA; // newZ associated to case A
     double originZ = parity > 0 ? dz : -dz;
-    double newZA = (newZ - ov) * newRA/lastRA;
-    double newZB = (newZ - originZ) * newRB/lastRB + originZ;
+    double newZB = (newZ - originZ) * newRB/lastRB + originZ; // newZ associated to case B
     if (beamSpotCover()) newZ = MIN(newZA, newZB); // Take the most stringent of cases A and B
     else newZ = newZA;
     if (forbiddenRange.state()) {
@@ -226,9 +226,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
     }
   } 
   else {
+    double newZA = (newZ + ov) * newRA/lastRA; // newZ associated to case A
     double originZ = parity > 0 ? -dz : dz;
-    double newZA = (newZ + ov) * newRA/lastRA;
-    double newZB = (newZ - originZ) * newRB/lastRB + originZ;
+    double newZB = (newZ - originZ) * newRB/lastRB + originZ; // newZ associated to case B
     if (beamSpotCover()) newZ = MAX(newZA, newZB); // Take the most stringent of cases A and B
     else newZ = newZA;
     if (forbiddenRange.state()) {
