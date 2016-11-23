@@ -22,7 +22,7 @@ BINDIR=bin
 TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
-#COMPILERFLAGS+=-Wall
+COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-std=c++11
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
@@ -30,13 +30,21 @@ COMPILERFLAGS+=-fpermissive
 COMPILERFLAGS+=-lstdc++
 COMPILERFLAGS+=-fmax-errors=2
 #COMPILERFLAGS+=-pg
-#COMPILERFLAGS+=-Werror
-#COMPILERFLAGS+=-O5
+COMPILERFLAGS+=-Werror
+COMPILERFLAGS+=-O5
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
-#LINKERFLAGS+=-pg
+
+# Suppressed warnings: we should remove these :-)
+COMPILERFLAGS+=-Wno-reorder
+COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
+COMPILERFLAGS+=-Wno-unused-variable
+COMPILERFLAGS+=-Wno-unused-but-set-variable
+COMPILERFLAGS+=-Wno-sign-compare
+COMPILERFLAGS+=-Wno-maybe-uninitialized
 
 OUT_DIR+=$(LIBDIR)
 OUT_DIR+=$(BINDIR)
+OUT_DIR+=$(LIBDIR)/AnalyzerVisitors
 MKDIR_P = mkdir -p
 .PHONY: directories
 
@@ -189,10 +197,22 @@ $(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) getRevisionDef
 $(BINDIR)/diskPlace: $(SRCDIR)/diskPlace.cpp
 	$(COMP) $(SRCDIR)/diskPlace.cpp -lm -o $(BINDIR)/diskPlace
 
+# Clean and documentation
+clean: clean_exes clean_objects clean_analyzerVisitors
+
+doc: doxydoc
+
+doxydoc:
+	rm -rf $(DOXYDIR)/html
+	doxygen $(DOCDIR)/tkdoc.doxy
+	@echo "Created API documentation."
+
+
+
+
+
 
 # Other stuff for testing
-
-
 testObjects: $(TESTDIR)/testObjects
 $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/messageLogger.o $(TESTDIR)/testObjects.cpp \
@@ -213,12 +233,3 @@ $(TESTDIR)/%: $(SRCDIR)/Tests/%.cpp $(INCDIR)/Tests/%.h
 	@echo "Building target $@..."
 	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAGS) -o $@ $< $(SRCDIR)/DetectorModule.cpp $(SRCDIR)/GeometricModule.cpp $(SRCDIR)/Sensor.cpp $(SRCDIR)/global_funcs.cpp $(SRCDIR)/Polygon3d.cpp
 	@echo "Built target $@"
-
-clean: clean_exes clean_objects clean_analyzerVisitors
-
-doc: doxydoc
-
-doxydoc:
-	rm -rf $(DOXYDIR)/html
-	doxygen $(DOCDIR)/tkdoc.doxy
-	@echo "Created API documentation."
