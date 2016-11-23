@@ -967,54 +967,6 @@ namespace insur {
   }
 
   /**
-   * This geometry function computes the transformation matrix that describes the position of a given module
-   * in space. It also sets the shape of the provided template volume to correspond to that of the module.
-   * @param m A pointer to the module object that needs to be visualised
-   * @param v A pointer to the template volume that will represent the module in the visualisation
-   * @return A pointer to the finished transformation matrix object
-   */
-  TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
-    XYZVector ex, ey, ez, b, c, d, p;
-    TGeoArb8* arb;
-    TGeoRotation* rot;
-    TGeoCombiTrans* tr;
-    // copy of module placement parameters in Module class
-/*    b = m->getCorner(1) - m->getCorner(0);
-    c = m->getCorner(2) - m->getCorner(0);
-    d = m->getCorner(3) - m->getCorner(0);
-    ex = b / b.R();
-    p = (d.Dot(ex) * ex);
-    // unit vectors for module coordinate system
-    ey = d - p;
-    ey = ey / ey.R();
-    ez = ex.Cross(ey);
-    // set vertices in volume v according to extracted module measurements
-    arb = (TGeoArb8*)(v->GetShape());
-    for (int i = 0; i < 5; i = i + 4) {
-      arb->SetVertex(i, 0, 0);
-      arb->SetVertex(i + 1, b.R(), 0);
-      arb->SetVertex(i + 2, c.Dot(ex), c.Dot(ey));
-      arb->SetVertex(i + 3, d.Dot(ex), d.Dot(ey));
-    }
-    // set position of module within the tracker volume
-    double matrix[9];
-    matrix[0] = ex.X();
-    matrix[1] = ey.X();
-    matrix[2] = ez.X();
-    matrix[3] = ex.Y();
-    matrix[4] = ey.Y();
-    matrix[5] = ez.Y();
-    matrix[6] = ex.Z();
-    matrix[7] = ey.Z();
-    matrix[8] = ez.Z();
-    rot = new TGeoRotation();
-    rot->SetMatrix(matrix);
-    // save position in transformation object
-    tr = new TGeoCombiTrans(m->getCorner(0).X(), m->getCorner(0).Y(), m->getCorner(0).Z(), rot); */
-    return tr;
-  }
-
-  /**
    * This function computes the average of a range of histogram bins: from the first to the one that includes a
    * cutoff value along the axis.
    * @param histo A reference to the histogram data
@@ -6114,7 +6066,7 @@ namespace insur {
       content->addItem(outerTrackerXmlFileList);
     }
     myPage->addContent(content);
+    return true;
   }
   // NB : XML files are copied from the XML directory to the www/layout directory with RootWBinaryFileList::dump.
-
 }
