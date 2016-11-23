@@ -4,7 +4,7 @@ myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
 #TKG_MATSHOW=$myDir/bin/materialShow
 #TKG_TUNE=$myDir/bin/tunePtParam
-TKG_SETUP_BIN=$myDir/bin/setup.bin
+TKG_SETUP_BIN=$myDir/bin/setup
 
 if [ ! -f $TKG_MAIN ] ; then
     echo I cannot find the main program binary $TKG_MAIN

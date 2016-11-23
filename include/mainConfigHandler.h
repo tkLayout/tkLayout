@@ -12,7 +12,7 @@
 #include <global_constants.h>
 #include <global_funcs.h>
 
-#include "GraphVizCreator.hh"
+#include "GraphVizCreator.h"
 
 using namespace std;
 

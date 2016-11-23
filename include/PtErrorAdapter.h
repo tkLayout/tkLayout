@@ -2,7 +2,7 @@
 #define PT_ERROR_ADAPTER_H
 
 #include "global_constants.h"
-#include "ptError.h"
+#include "PtError.h"
 #include "Module.h"
 
 

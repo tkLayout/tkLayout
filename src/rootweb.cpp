@@ -1,5 +1,5 @@
 // Project includes
-#include <rootweb.hh>
+#include <rootweb.h>
 #include "global_funcs.h"
 
 // standard includes

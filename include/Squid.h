@@ -27,7 +27,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
 

@@ -47,7 +47,7 @@
 
 #include <InactiveSurfaces.h>
 #include "Module.h"
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <vector>
 #include <set>
 #include <Palette.h>
