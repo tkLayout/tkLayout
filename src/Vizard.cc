@@ -470,7 +470,7 @@ namespace insur {
     TH2D *ir = NULL, *ii = NULL;
 #endif
     TH2D *mapRad = NULL, *mapInt = NULL;
-    TProfile *ciProf, *crProf;
+    TProfile *ciProf;//, *crProf;
 
     // 1D OVERVIEW (FULL VOLUME)
     myCanvas = new TCanvas(name_overviewMaterial.c_str());
@@ -481,41 +481,21 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // Full volume rlength
-    THStack* rOverviewFull = new THStack("rfullvolume", "Radiation Length Over Full Tracker Volume");
     cr = (TH1D*)a.getHistoGlobalR().Clone();
-    cr->SetFillColor(kGray + 2);
-    cr->SetLineColor(kGray + 2);
-    rOverviewFull->Add(cr);
-    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-    fr1->SetFillColor(kGray + 2);
-    fr1->SetLineColor(kGray + 2);
-    rOverviewFull->Add(fr1);
-    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-    fr2->SetLineColor(kGray + 2);
-    fr2->SetFillColor(kGray + 2); 
-    rOverviewFull->Add(fr2);
-    rOverviewFull->Draw();
-    rOverviewFull->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    TProfile* crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
+    //crProf->Rebin(10);
+    crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
+    crProf->SetFillColor(kGray + 2);
+    crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // Full volume ilength
-    THStack* iOverviewFull = new THStack("ifullvolume", "Radiation Length Over Full Tracker Volume");
     ci = (TH1D*)a.getHistoGlobalI().Clone();
-    ci->SetFillColor(kGray + 2);
-    ci->SetLineColor(kGray + 2);
-    iOverviewFull->Add(ci);
-    fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-    fi1->SetFillColor(kGray + 2);
-    fi1->SetLineColor(kGray + 2);
-    iOverviewFull->Add(fi1);
-    fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-    fi2->SetLineColor(kGray + 2);
-    fi2->SetFillColor(kGray + 2); 
-    iOverviewFull->Add(fi2);
-    iOverviewFull->Draw();
-    iOverviewFull->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
+    ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
+    ciProf->SetFillColor(kGray + 2);
+    ciProf->Draw("hist");
+
     // Put the full volume materials plots to the site
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in full volume");
@@ -587,21 +567,25 @@ namespace insur {
     myPad->cd();
     // radiation length in tracking volume by active, serving or passive
     THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
-    sur = (TH1D*)a.getHistoSupportsAllR().Clone();
+    TProfile* surProf = newProfile((TH1D*)a.getHistoSupportsAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    sur = surProf->ProjectionX();
     sur->SetLineColor(kOrange + 4);
     sur->SetFillColor(kOrange + 4);
     rcontainer->Add(sur);
-    ser = (TH1D*)a.getHistoServicesAllR().Clone();
+    TProfile* serProf = newProfile((TH1D*)a.getHistoServicesAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    ser = serProf->ProjectionX();
     ser->SetLineColor(kBlue);
     ser->SetFillColor(kBlue);
     rcontainer->Add(ser);
-    acr = (TH1D*)a.getHistoModulesAllR().Clone();
+    TProfile* acrProf = newProfile((TH1D*)a.getHistoModulesAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    acr = acrProf->ProjectionX();
     acr->SetLineColor(kRed);
     acr->SetFillColor(kRed);
-    rcontainer->Add(acr);   
-    rcontainer->Draw();
+    rcontainer->Add(acr);
+    rcontainer->Draw("hist");
     rcontainer->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
+
     // interaction length in tracking volume by active, serving or passive
     THStack* icontainer = new THStack("istack", "Interaction Length by Category");
     myPad = myCanvas->GetPad(2);
@@ -2977,7 +2961,7 @@ namespace insur {
     // global plots in tracking volume: radiation length
     THStack* rOverviewTotalTrackingVolume = new THStack("rtotalglobal", "Overall Radiation Length");
     cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    cr->SetLineColor(kGray + 2);
+    //cr->SetLineColor(kGray + 2);
     cr->SetFillColor(kGray + 2);
     rOverviewTotalTrackingVolume->Add(cr);
     rOverviewTotalTrackingVolume->Draw();
@@ -2988,7 +2972,7 @@ namespace insur {
     // global plots in tracking volume: interaction length
     THStack* iOverviewTotalTrackingVolume = new THStack("itotalglobal", "Overall Interaction Length");
     ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    ci->SetLineColor(kGray + 2);
+    //ci->SetLineColor(kGray + 2);
     ci->SetFillColor(kGray + 2);
     iOverviewTotalTrackingVolume->Add(ci);
     iOverviewTotalTrackingVolume->Draw();
@@ -6040,13 +6024,14 @@ namespace insur {
   }
 
   // Helper function to convert a histogram into a TProfile
-  TProfile* Vizard::newProfile(TH1D* sourceHistogram) {
-    TProfile* resultProfile;
-    resultProfile = new TProfile(Form("%s_profile",sourceHistogram->GetName()),
+  TProfile* Vizard::newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins /* = 0 */) {
+    int nBins = sourceHistogram->GetNbinsX();
+    if (desiredNBins != 0 && desiredNBins < nBins) nBins = desiredNBins;
+    TProfile* resultProfile = new TProfile(Form("%s_profile",sourceHistogram->GetName()),
                                  sourceHistogram->GetTitle(),
-                                 sourceHistogram->GetNbinsX(),
-                                 sourceHistogram->GetXaxis()->GetXmin(),
-                                 sourceHistogram->GetXaxis()->GetXmax());
+                                 nBins,
+                                 xlow,
+                                 xup);
     for (int i=1; i<=sourceHistogram->GetNbinsX(); ++i) {
       resultProfile->Fill(sourceHistogram->GetBinCenter(i), sourceHistogram->GetBinContent(i));
     } 
@@ -6072,7 +6057,6 @@ namespace insur {
       sourceGraph.GetPoint(i, x, y);
       resultProfile->Fill(x, y);
     }
-
     return (*resultProfile);
   }
 

@@ -133,10 +133,6 @@ namespace insur {
     TH1D& getHistoServicesAllI() { return iserfall; }
     TH1D& getHistoSupportsAllR() { return rlazyall; }
     TH1D& getHistoSupportsAllI() { return ilazyall; }
-    TH1D& getHistoExtraServicesR() { return rextraservices; }
-    TH1D& getHistoExtraServicesI() { return iextraservices; }
-    TH1D& getHistoExtraSupportsR() { return rextrasupports; }
-    TH1D& getHistoExtraSupportsI() { return iextrasupports; }
     std::map<std::string, TH1D*>& getHistoServicesDetailsR() { return rComponentsServicesDetails; }
     std::map<std::string, TH1D*>& getHistoServicesDetailsI() { return iComponentsServicesDetails; }
     TH1D& getHistoGlobalR() { return rglobal; }
@@ -293,8 +289,6 @@ namespace insur {
     TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
     TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
     TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
-    TH1D rextraservices, rextrasupports;
-    TH1D iextraservices, iextrasupports;
     std::map<std::string, TH1D*> rComponentsServicesDetails, iComponentsServicesDetails;
     TH1D rglobal, iglobal;
 

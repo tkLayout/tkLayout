@@ -94,7 +94,7 @@ namespace insur {
 
   // gStyle stuff
   static const int style_grid = 3;
-  static const int materialRebin = 2;
+  static const int materialNBins = 300;
 
   // Colors for plot background and such
   static const int color_plot_background       = kWhite;
@@ -289,7 +289,7 @@ namespace insur {
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
 
-    TProfile* newProfile(TH1D* nn);
+    TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     void stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);

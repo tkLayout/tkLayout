@@ -2280,15 +2280,6 @@ void Analyzer::clearMaterialBudgetHistograms() {
   iserfall.SetNameTitle("iserfall", "Services Interaction Length");
   ilazyall.Reset();
   ilazyall.SetNameTitle("ilazyall", "Supports Interaction Length");
-  // outside tracking volume
-  rextraservices.Reset();
-  rextraservices.SetNameTitle("rextraservices", "Services Outside Tracking Volume: Radiation Length");
-  rextrasupports.Reset();
-  rextrasupports.SetNameTitle("rextrasupports", "Supports Outside Tracking Volume: Radiation Length");
-  iextraservices.Reset();
-  iextraservices.SetNameTitle("iextraservices", "Services Outside Tracking Volume: Interaction Length");
-  iextrasupports.Reset();
-  iextrasupports.SetNameTitle("iextrasupports", "Supports Outside Tracking Volume: Interaction Length");
   // global
   rglobal.Reset();
   rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
@@ -2703,11 +2694,6 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   iactiveall.SetBins(bins, min, max);
   iserfall.SetBins(bins, min, max);
   ilazyall.SetBins(bins, min, max);
-  // outside tracking volume
-  rextraservices.SetBins(bins, min, max);
-  rextrasupports.SetBins(bins, min, max);
-  iextraservices.SetBins(bins, min, max);
-  iextrasupports.SetBins(bins, min, max);
   // global
   rglobal.SetBins(bins, min, max);
   iglobal.SetBins(bins, min, max);
