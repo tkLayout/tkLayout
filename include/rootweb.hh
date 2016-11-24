@@ -4,23 +4,16 @@
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #define BOOST_NO_CXX11_SCOPED_ENUM
 
-#include <boost/filesystem/exception.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
+// standard includes
 #include <map>
 #include <sstream>
 #include <string>
+#include <list>
+#include <limits>
+// ROOT includes
 #include <TCanvas.h>
-#include <TError.h>
-#include <time.h>
-#include <TView.h>
 #include <TFile.h>
 #include <vector>
-#include <TColor.h>
-#include <TROOT.h>
-#include "global_funcs.h"
 
 using namespace std;
 
@@ -33,7 +26,11 @@ using namespace std;
 
 namespace RootWeb {
   std::string cleanUpObjectName(const std::string&);
+  static const int least_relevant = std::numeric_limits<int>::min();
+  static const int most_relevant = std::numeric_limits<int>::max();
 };
+
+using namespace RootWeb;
 
 class RootWItem {
 public:
@@ -69,6 +66,8 @@ public:
   string setValue(string newText);
   string setValue(int number);
   string setValue(double number, int precision);
+  string setValueSci(double number, int precision);
+  string appendValue(string);
   string addValueText(string newText) {value_+=newText; return value_;};
   ostream& dump(ostream& output);
 protected:
@@ -116,8 +115,8 @@ public:
   void setName(string newName);
   std::string getName();
   void setZoomedSize(int witdh, int height);
-  void setRelativeHtmlDirectory(string newDirectory); 
-  void setTargetDirectory(string newDirectory); 
+  void setRelativeHtmlDirectory(string newDirectory);
+  void setTargetDirectory(string newDirectory);
   string saveFiles(int smallWidth, int smallHeight);
   string saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight);
   ostream& dump(ostream& output);
@@ -220,8 +219,8 @@ public:
   ~RootWBinaryFileList() {};
   template<class I> RootWBinaryFileList(I begin, I end) : RootWFileList(begin, end) {}
   template<class I> RootWBinaryFileList(I begin, I end, string newDescription) : RootWFileList(begin, end, newDescription) {}
-  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) { 
-    setOriginalFiles(beginOrigNames, endOrigNames); 
+  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) {
+    setOriginalFiles(beginOrigNames, endOrigNames);
   }
   template<class I> void setOriginalFiles(I begin, I end) { originalFileNames_.insert(originalFileNames_.end(), begin, end); }
   ostream& dump(ostream& output);
@@ -283,7 +282,6 @@ private:
   string revision_;
   string targetDirectory_;
   TFile* summaryFile_;
-  static const int least_relevant = -1000;
   bool createSummaryFile_;
   string summaryFileName_;
 public:
@@ -360,5 +358,5 @@ public:
 
 
 
-  
+
 #endif

@@ -1,4 +1,4 @@
-// 
+//
 // File:   Vizard.h
 // Author: ndemaio
 //
@@ -112,6 +112,7 @@ namespace insur {
 
   // Formatting parameters
   static const int coordPrecision = 3;
+  static const int zOverlapPrecision = 5;
   static const int anglePrecision = 1;
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
@@ -158,8 +159,8 @@ namespace insur {
    * It provides one to write a simplified geometry of active and inactive surfaces to a <i>ROOT</i> file, another to
    * save the neighbour relations between different inactive surfaces and layers/discs to a text file, and a third to print
    * the radiation and interaction length histograms to an image and embed that in HTML after a tracker layout has
-   * been analysed. 
-   * 
+   * been analysed.
+   *
    * A function to write the neighbour relations to a DOT file instead of the quick and dirty internal format that is
    * used now is planned but not implemented yet.
    */
@@ -188,8 +189,8 @@ namespace insur {
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
-    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
+    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
+    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
@@ -255,11 +256,11 @@ namespace insur {
     double getDrawAreaX(const Tracker& tracker) const { return tracker.maxR()*1.1; }
     double getDrawAreaY(const Tracker& tracker) const { return tracker.maxR()*1.1; }
 
-    void fillPlotMap(std::string& plotName, 
+    void fillPlotMap(std::string& plotName,
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
                      std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
-    
+
     void fillTaggedPlotMap(GraphBag& gb,
                            const string& plotName,
                            int graphType,
@@ -296,7 +297,8 @@ namespace insur {
     void stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
-    TCanvas* drawFullLayout();
+    TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
   };
@@ -305,4 +307,3 @@ namespace insur {
 
 }
 #endif	/* _VIZARD_H */
-

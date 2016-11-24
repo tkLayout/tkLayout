@@ -174,21 +174,42 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   double minr = minBuildRadius();
  
   // Case A : zOverlap is considered for computing next Z
-  double newRA = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
-  double lastRA = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
+  double lastRA;
+  double newRA;
+  if (parity > 0) { // Going upwards
+    lastRA = maxr - d + lastDsDistance/2;
+    newRA = maxr + d - newDsDistance/2; // use of maxr because outer rod wins, from -d to +d because going upwards
+  } else { // Going downwards
+    lastRA = minr + d + lastDsDistance/2;
+    newRA = minr - d - newDsDistance/2; // use of minr because inner rod wins, from +d to -d because going downwards
+  }
 
   // Case B : zError is considered for computing next Z
-  double newRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr + d : minr + d) : minr - d) - newDsDistance/2;
-  double lastRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr - d : minr - d) : minr + d) + lastDsDistance/2;
+  double lastRB;
+  double newRB; 
+  if (parity > 0) { // Going upwards
+    if ((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) { // lastZ is not in [-zError; zError]
+      lastRB = maxr - d + lastDsDistance/2;
+      newRB = maxr + d - newDsDistance/2;  // use of maxr because outer rod wins, from -d to +d because going upwards
+    }
+    else { // lastZ is in [-zError; zError] : special case which is often forgotten
+      lastRB = minr - d - lastDsDistance/2;
+      newRB = minr + d + newDsDistance/2; // use of minr because inner rod wins, from -d to +d because going upwards
+    }
+  }
+  else { // Going downwards
+    lastRB = minr + d + lastDsDistance/2;
+    newRB = minr - d - newDsDistance/2; // use of minr because inner rod wins, from +d to -d because going downwards
+  }
 
   double newZ = lastZ;
   if (!beamSpotCover()) dz = 0;
   if (direction == BuildDir::RIGHT) {
+    double newZA = (newZ - ov) * newRA/lastRA; // newZ associated to case A
     double originZ = parity > 0 ? dz : -dz;
-    double newZorigin = (newZ - ov) * newRA/lastRA;
-    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
-    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted); // Take the most stringent of cases A and B
-    else newZ = newZorigin;
+    double newZB = (newZ - originZ) * newRB/lastRB + originZ; // newZ associated to case B
+    if (beamSpotCover()) newZ = MIN(newZA, newZB); // Take the most stringent of cases A and B
+    else newZ = newZA;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end; 
       forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
@@ -205,11 +226,11 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
     }
   } 
   else {
+    double newZA = (newZ + ov) * newRA/lastRA; // newZ associated to case A
     double originZ = parity > 0 ? -dz : dz;
-    double newZorigin = (newZ + ov) * newRA/lastRA;
-    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
-    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted); // Take the most stringent of cases A and B
-    else newZ = newZorigin;
+    double newZB = (newZ - originZ) * newRB/lastRB + originZ; // newZ associated to case B
+    if (beamSpotCover()) newZ = MAX(newZA, newZB); // Take the most stringent of cases A and B
+    else newZ = newZA;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end;              
       forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;

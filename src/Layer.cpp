@@ -10,17 +10,25 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
   StraightRodPair* minusBigDeltaRod = (bigParity > 0 ? flatPartRods.at(1) : flatPartRods.front());
   const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
   StraightRodPair* plusBigDeltaRod = (bigParity > 0 ? flatPartRods.front() : flatPartRods.at(1));
-  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
+  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;  
 
   int i = 0;
   double rStartInner;
   double zStartInner_REAL;
   double rEndInner;
   double zEndInner_REAL;
+  int smallParity = minusBigDeltaRod->zPlusParity();
   for (const auto& m : minusBigDeltaModules) {
     if (i > 0) {
-      rStartInner = m.center().Rho() - 0.5 * m.dsDistance();
       zStartInner_REAL = m.planarMinZ();
+      // Special case where ring has been built going upwards, and with zEndInner_REAL < zError
+      if ((zStartInner_REAL < zEndInner_REAL) && (smallParity > 0)) {
+	rEndInner -= m.dsDistance(); 
+	rStartInner = m.center().Rho() + 0.5 * m.dsDistance();
+      }
+	else { // Standard case
+	rStartInner = m.center().Rho() - 0.5 * m.dsDistance();
+      }
 
       if (rStartInner != rEndInner) {
 	double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
@@ -48,9 +56,11 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
 
     }
 
-    rEndInner = m.center().Rho() + 0.5 * m.dsDistance();
     zEndInner_REAL = m.planarMaxZ();
+    rEndInner = m.center().Rho() + 0.5 * m.dsDistance();
+   
     i++;
+    smallParity = -smallParity;
   }
 
   i = 0;
@@ -58,10 +68,17 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
   double zStartOuter_REAL;
   double rEndOuter;
   double zEndOuter_REAL;
+  smallParity = plusBigDeltaRod->zPlusParity();
   for (const auto& m : plusBigDeltaModules) {
     if (i > 0) {
-      rStartOuter = m.center().Rho() - 0.5 * m.dsDistance();
       zStartOuter_REAL = m.planarMinZ();
+      if ((zStartOuter_REAL < zEndOuter_REAL) && (smallParity > 0)) {
+	  rEndOuter -= m.dsDistance(); 
+	  rStartOuter = m.center().Rho() + 0.5 * m.dsDistance();
+	}
+	else {
+	  rStartOuter = m.center().Rho() - 0.5 * m.dsDistance();
+	}
 
       if (rStartOuter != rEndOuter) {
 	double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
@@ -83,10 +100,12 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
       }
 
     }
-
-    rEndOuter = m.center().Rho() + 0.5 * m.dsDistance();
+ 
     zEndOuter_REAL = m.planarMaxZ();
+    rEndOuter = m.center().Rho() + 0.5 * m.dsDistance();
+
     i++;
+    smallParity = -smallParity;
   }  
 }
 
@@ -267,7 +286,9 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
 
     double lastThetaEnd;
     if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
-    else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEnd();
+    else {
+      lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
+    }
  
     tiltedRing->build(lastThetaEnd); 
     tiltedRingsGeometry[i] = tiltedRing;
@@ -412,7 +433,7 @@ void Layer::buildTilted() {
 	  (bigParity() > 0 ? flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()));
 	}
 
-	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
+	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd_REAL() : flatPartRod2->thetaEnd_REAL());
 	auto lastMod1 = zPlusModules1.back();
 	auto lastMod2 = zPlusModules2.back();	
 	flatPartrEndInner = (bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());

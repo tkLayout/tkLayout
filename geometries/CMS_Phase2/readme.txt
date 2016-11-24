@@ -60,11 +60,25 @@ OT_Tilted_363_200_Pixel_4021.cfg     OT Version 3.6.3 !! Work in progress !!
                                      2      355.175 -> 356.7   16 -> 12.5     89.562   -> 73.053
                                      3      508     -> 511     17 ->  8.5     138.486  -> 75.649
 
+OT_Tilted_364_200_Pixel_4021.cfg     OT Version 3.6.4 !! Work in progress !!
+                                     Starting the same process as for 3.6.3, with updated δ
+                                     Layer 1: δ = 3.9mm
+                                     Layer 2, 3: δ = 3.4mm
+                                     Since the first tilted ring -> last flat ring had a Δz = 43.58 mm and was already considered to be "close"
+                                     and the δ reduction caused this number to further shrink (down to 43.33) , we adjusted zOverlap (16.0 → 15.5)
+                                     to push back Δz to 43.62 (basically the same as 3.6.3). Layer 2 and 3 are not expected to be troublesome with a
+                                     Δz(last flat → first tilted) = 47.1 and 46.8 respectively).
+                                     Overall the change 3.6.3 → 3.6.4 had a positive effect on the coverage of tracks from the origin, with
+                                     zErrorOuter = { 51.8, 76.0, 78.8 }: a slight reduction for layer 1 and an increase for layers 2 and 3
+
                                      
 OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-style
                                      Pixel version 4.0.2.1
 
 
 Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX
+
+OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
+                                     Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 FPIX_1 disks and 4 FPIX_2 disks
 
 
