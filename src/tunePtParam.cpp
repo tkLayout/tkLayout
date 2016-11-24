@@ -11,7 +11,7 @@
 #include <boost/program_options.hpp>
 
 // Private libraries
-#include <PtError.h>
+#include <ptError.h>
 #include <module.hh>
 
 using namespace std;

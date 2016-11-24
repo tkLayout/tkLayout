@@ -64,7 +64,7 @@ class DetIdentifiable {
   // i will create a capabilities.cc and put that in it, sorry in the meantime ;p
   void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts) {
     detIdRef_ = refs;
-    for (unsigned int i = 0; i < schemeShifts.size(); i++) {
+    for (int i = 0; i < schemeShifts.size(); i++) {
       uint32_t ref = refs.at(i);
       int shift = schemeShifts.at(i);
       if (ref <= pow(2, shift) ) {

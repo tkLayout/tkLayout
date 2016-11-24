@@ -3,7 +3,8 @@
  * @brief This file implements the hit and track classes used for internal analysis
  */
 
-#include "Hit.h"
+#include "hit.hh"
+//#include "module.hh"
 #include <global_constants.h>
 #include <vector>
 #include <algorithm>

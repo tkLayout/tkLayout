@@ -19,7 +19,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <Hit.h>
+#include <hit.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
@@ -80,7 +80,7 @@ namespace insur {
   typedef TriggerProcessorBandwidthVisitor::TriggerSectorMap TriggerSectorMap;
 
   // TODO:
-  // Move this to track.h?
+  // Move this to track.hh?
   typedef std::vector<Track> TrackCollection;
   //typedef double TrackCollectionKey;
   typedef std::map<int, TrackCollection> TrackCollectionMap;

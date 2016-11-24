@@ -1,4 +1,4 @@
-#include <GraphVizCreator.h>
+#include <GraphVizCreator.hh>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 

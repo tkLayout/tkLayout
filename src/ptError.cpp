@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <PtError.h>
+#include <ptError.h>
 #include <global_constants.h>
 
 using namespace std;
