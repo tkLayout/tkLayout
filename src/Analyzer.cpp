@@ -779,12 +779,10 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	  
 	  InactiveElement* inactive = hit->getHitInactiveElement();
 	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-	  Material test;
 	  for (const auto& it : servicesComponentsRI) {
 	    Material res;
 	    res.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
 	    res.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
-	    test += res;
 	    if (rComponentsServicesDetails[it.first]==NULL) {
 	      rComponentsServicesDetails[it.first] = new TH1D();
 	      rComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 

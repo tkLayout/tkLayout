@@ -470,7 +470,7 @@ namespace insur {
     TH2D *ir = NULL, *ii = NULL;
 #endif
     TH2D *mapRad = NULL, *mapInt = NULL;
-    TProfile *ciProf;//, *crProf;
+    TProfile *crProf, *ciProf;
 
     // 1D OVERVIEW (FULL VOLUME)
     myCanvas = new TCanvas(name_overviewMaterial.c_str());
@@ -482,7 +482,7 @@ namespace insur {
     myPad->cd();
     // Full volume rlength
     cr = (TH1D*)a.getHistoGlobalR().Clone();
-    TProfile* crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
+    crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
     //crProf->Rebin(10);
     crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
     crProf->SetFillColor(kGray + 2);
@@ -848,26 +848,20 @@ namespace insur {
       myPad->SetFillColor(color_pad_background);
       myPad = myCanvas->GetPad(1);
       myPad->cd();
-      // global plots in tracking volume: radiation length
-      THStack* rOverviewTrackingVolume = new THStack("rglobal", "Overall Radiation Length");
+      // global plots in tracking volume: radiation length      
       cr = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
-      cr->SetLineColor(kGray + 2);
-      cr->SetFillColor(kGray + 2);
-      rOverviewTrackingVolume->Add(cr);
-      rOverviewTrackingVolume->Draw();
-      rOverviewTrackingVolume->GetXaxis()->SetTitle("#eta");
-      myCanvas->Modified();
+      crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
+      crProf->SetFillColor(kGray + 2);
+      crProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
+      crProf->Draw("hist");
       myPad = myCanvas->GetPad(2);
       myPad->cd();
       // global plots in tracking volume: interaction length
-      THStack* iOverviewTrackingVolume = new THStack("iglobal", "Overall Interaction Length");
       ci = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
-      ci->SetLineColor(kGray + 2);
-      ci->SetFillColor(kGray + 2);
-      iOverviewTrackingVolume->Add(ci);
-      iOverviewTrackingVolume->Draw();
-      iOverviewTrackingVolume->GetXaxis()->SetTitle("#eta");
-      myCanvas->Modified();
+      ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
+      ciProf->SetFillColor(kGray + 2);
+      ciProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->Draw("hist");
       // Write global tracking volume plots to web pag
       myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Material in tracking volume");
@@ -2959,25 +2953,19 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // global plots in tracking volume: radiation length
-    THStack* rOverviewTotalTrackingVolume = new THStack("rtotalglobal", "Overall Radiation Length");
     cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    //cr->SetLineColor(kGray + 2);
-    cr->SetFillColor(kGray + 2);
-    rOverviewTotalTrackingVolume->Add(cr);
-    rOverviewTotalTrackingVolume->Draw();
-    rOverviewTotalTrackingVolume->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+    crProf->SetFillColor(kGray + 2);
+    crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+    crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // global plots in tracking volume: interaction length
-    THStack* iOverviewTotalTrackingVolume = new THStack("itotalglobal", "Overall Interaction Length");
     ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    //ci->SetLineColor(kGray + 2);
-    ci->SetFillColor(kGray + 2);
-    iOverviewTotalTrackingVolume->Add(ci);
-    iOverviewTotalTrackingVolume->Draw();
-    iOverviewTotalTrackingVolume->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+    ciProf->SetFillColor(kGray + 2);
+    ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+    ciProf->Draw("hist");
     // Write global tracking volume plots to web pag
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in total tracking volume");
