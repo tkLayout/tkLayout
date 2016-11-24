@@ -668,7 +668,7 @@ namespace insur {
       myTable->setContent(compIndex, 0, it->first);
       myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
-    rCompStack->Draw();
+    rCompStack->Draw("hist");
     rCompStack->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
     compLegend->Draw();
@@ -684,7 +684,7 @@ namespace insur {
       iCompStack->Add(it->second);
       myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
-    iCompStack->Draw();
+    iCompStack->Draw("hist");
     iCompStack->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
     compLegend->Draw();
@@ -733,7 +733,7 @@ namespace insur {
       myTable->setContent(servicesCompIndex, 0, it->first);
       myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
-    rServicesCompStack->Draw();  
+    rServicesCompStack->Draw("hist");  
     rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
     servicesCompLegend->Draw();
@@ -749,7 +749,7 @@ namespace insur {
       iServicesCompStack->Add(it->second);
       myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
-    iServicesCompStack->Draw();
+    iServicesCompStack->Draw("hist");
     rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
     servicesCompLegend->Draw();
@@ -802,7 +802,7 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume, 0, it.first);
 	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
-      rCompTrackingVolumeStack->Draw();
+      rCompTrackingVolumeStack->Draw("hist");
       rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
       myCanvas->Modified();
       compLegendTrackingVolume->Draw();
@@ -824,7 +824,7 @@ namespace insur {
 	iCompTrackingVolumeStack->Add(it.second);
 	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
-      iCompTrackingVolumeStack->Draw();
+      iCompTrackingVolumeStack->Draw("hist");
       iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
       myCanvas->Modified();
       compLegendTrackingVolume->Draw();
@@ -2749,7 +2749,7 @@ namespace insur {
     myPage->setAddress("info.html");
 
     site.addPage(myPage, RootWeb::most_relevant);
-    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent, *geometryContent, *materialOverviewContent, *materialCategoriesContent, *materialComponentsContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent = nullptr, *configFilesContent, *materialOverviewContent, *materialCategoriesContent, *materialComponentsContent;
 
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
@@ -2768,11 +2768,11 @@ namespace insur {
     TCanvas* aLayoutXY = drawFullLayoutBarrelXY();
     if (aLayout||aLayoutXY) fullLayoutContent = new RootWContent("Full layout", true);
     if (aLayout) {
-      geometryContent = new RootWContent("Full layout Geometry", true);
+      fullLayoutContent = new RootWContent("Full layout Geometry", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
       anImage->setComment("RZ position of the modules (full layout)");
       anImage->setName("fullLayout");
-      geometryContent->addItem(anImage);
+      fullLayoutContent->addItem(anImage);
     }
     if (aLayoutXY) {
       RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
@@ -2783,7 +2783,6 @@ namespace insur {
     if (aLayout||aLayoutXY) myPage->addContent(fullLayoutContent);
 
     // Define web-page sections
-    if (aLayout) myPage->addContent(geometryContent);
     materialOverviewContent = new RootWContent("Full layout Material : 1d overview (tracking volume)");
     myPage->addContent(materialOverviewContent);
     materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)", false);
@@ -2812,7 +2811,7 @@ namespace insur {
     totalEtaStack->GetStack()->Last()->Draw("same");
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImage->setComment("Full hit coverage across eta");
-    geometryContent->addItem(myImage);
+    if (fullLayoutContent) fullLayoutContent->addItem(myImage);
 
     // Number of layers count
     THStack* totalLayersEtaStack = new THStack();
@@ -2836,7 +2835,7 @@ namespace insur {
     totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
     RootWImage* myImageLayers = new RootWImage(totalEtaProfileLayersFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
-    geometryContent->addItem(myImageLayers);
+    if (fullLayoutContent) fullLayoutContent->addItem(myImageLayers);
     
 
 
@@ -2883,7 +2882,7 @@ namespace insur {
     stackHistos(analyzer.getHistoPixelTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
-    rCompTotalTrackingVolumeStack->Draw();
+    rCompTotalTrackingVolumeStack->Draw("hist");
     rCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
     myCanvas->Modified();
     compLegend->Draw();
@@ -2897,7 +2896,7 @@ namespace insur {
     stackHistos(analyzer.getHistoPixelTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelTrackingVolumeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
-    iCompTotalTrackingVolumeStack->Draw();
+    iCompTotalTrackingVolumeStack->Draw("hist");
     iCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
     myCanvas->Modified();
     compLegend->Draw();
@@ -2948,7 +2947,7 @@ namespace insur {
     isRadiation = true;
     index = 1;
     stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
-    rCompCategoryTrackingVolumeStack->Draw();
+    rCompCategoryTrackingVolumeStack->Draw("hist");
     rCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
     myCanvas->Modified();
     compLegend->Draw();
@@ -2958,7 +2957,7 @@ namespace insur {
     isRadiation = false;
     index = 1;
     stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
-    iCompCategoryTrackingVolumeStack->Draw();
+    iCompCategoryTrackingVolumeStack->Draw("hist");
     iCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
     myCanvas->Modified();
     compLegend->Draw();
