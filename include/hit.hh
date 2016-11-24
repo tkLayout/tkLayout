@@ -1,5 +1,5 @@
 /**
- * @file Hit.h
+ * @file hit.hh
  * @brief This header file defines the hit and track classes used for internal analysis
  */
 

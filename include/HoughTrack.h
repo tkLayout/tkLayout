@@ -14,7 +14,7 @@
 
 #include <Histo.h>
 #include <TrackShooter.h>
-#include <PtError.h>
+#include <ptError.h>
 #include <global_funcs.h>
 
 
