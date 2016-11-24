@@ -604,7 +604,7 @@ namespace insur {
     aci->SetLineColor(kRed - 3);
     aci->SetFillColor(kRed - 3);
     icontainer->Add(aci);
-    icontainer->Draw();
+    icontainer->Draw("hist");
     icontainer->GetXaxis()->SetTitle("#eta"); 
     myCanvas->Modified();
 
@@ -692,7 +692,7 @@ namespace insur {
     myContent->addItem(myTable);
 
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Radiation and interaction length distribution in eta by component type in modules");
+    myImage->setComment("Material in full volume as a function of &eta; (excluding beam pipe and including services, supports and module material (split by component)");
     myImage->setName("matComponentsFull");
     myContent->addItem(myImage);
 

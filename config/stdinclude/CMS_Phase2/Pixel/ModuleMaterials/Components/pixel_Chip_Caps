@@ -2,7 +2,7 @@
 // According to Murata web page (from Stella)
 
 Component {
-  componentName "Pixel chip capacitors"
+  componentName "Pixel hybrid"
   service false
   scaleOnSensor 0
   Element {
