@@ -613,7 +613,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iComponents["Services"]->Fill(eta, tmp.interaction);
 
 
-    /* for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
+    /*for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
       if (rComponents[it->first]==NULL) { 
         rComponents[it->first] = new TH1D();
         rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -1670,10 +1670,9 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
             sumServicesComponentsRI[it.first].radiation += it.second.radiation / (iter->isVertical() ? cos(theta) : sin(theta));  
             sumServicesComponentsRI[it.first].interaction += it.second.interaction / (iter->isVertical() ? cos(theta) : sin(theta));
 	    }*/
-	  //if (servicesComponentsRI.size() == 0) {
-	    sumServicesComponentsRI["Services : others"].radiation += corr.radiation;
-	    sumServicesComponentsRI["Services : others"].interaction += corr.interaction;
-	    //}
+	  sumServicesComponentsRI["Services : others"].radiation += corr.radiation;
+	  sumServicesComponentsRI["Services : others"].interaction += corr.interaction;
+
 	}
 
 
