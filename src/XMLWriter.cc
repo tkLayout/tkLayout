@@ -910,14 +910,14 @@ namespace insur {
 	    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 	    compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
 	  }
-	  else { 
+	  else {
 	    std::cerr << "While building paths for trackerRecoMaterial.xml, neither " << xml_rod << " nor " << xml_ring << " can be found in " << rcurrent << "." << std::endl; 
 	  }
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
 
 	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-	    spname = trackerXmlTags.reco_layer_name + xml_pixbar + xml_layer + lnumber;
+	    spname = trackerXmlTags.reco_layer_name + lnumber;
 	    layer = atoi(lnumber.c_str());
 	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
 	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
@@ -994,8 +994,7 @@ namespace insur {
 	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);  // TO DO : WHAT IS THIS ???
 	else index << 1 + i; // disc numbering starts from 1
 	layer = atoi(dnumber.c_str());
-	if (!isPixelTracker) spname = trackerXmlTags.reco_disc_name + index.str();
-	else spname = trackerXmlTags.reco_disc_name + index.str() + "Fw";
+	spname = trackerXmlTags.reco_disc_name + index.str();
 
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;

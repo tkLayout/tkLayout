@@ -240,7 +240,7 @@ namespace insur {
     static const std::string xml_det_ring = "TIDRing";
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
-    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";   
+    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
@@ -251,10 +251,11 @@ namespace insur {
     static const std::string xml_roc_rows_name = "PixelROCRows";
     static const std::string xml_roc_cols_name = "PixelROCCols";
     static const std::string xml_par_tail = "Par";
-    static const std::string xml_OT_reco_layer_name = "TrackerRecMaterialTOB";
-    static const std::string xml_PX_reco_layer_name = "TrackerRecMaterialPhase1";
-    static const std::string xml_OT_reco_disc_name = "TrackerRecMaterialTIDDisk";
-    static const std::string xml_PX_reco_disc_name = "TrackerRecMaterialPhase2PixelEndcapDisk";
+    static const std::string xml_reco = "TrackerRecMaterial";
+    static const std::string xml_OT_reco_layer_name = "Phase2OTBarrelLayer";
+    static const std::string xml_PX_reco_layer_name = "Phase1PixelBarrelLayer";
+    static const std::string xml_OT_reco_disc_name = "Phase2OTForwardDisk";
+    static const std::string xml_PX_reco_disc_name = "Phase2PixelForwardDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
     static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
@@ -360,8 +361,8 @@ namespace insur {
 	topo_emodule_name(!isPixelTracker ? xml_OT_topo_emodule_name : xml_PX_topo_emodule_name),
 	topo_emodule_value(!isPixelTracker ? xml_OT_topo_emodule_value : xml_PX_topo_emodule_value),
 
-	reco_layer_name(!isPixelTracker ? xml_OT_reco_layer_name : xml_PX_reco_layer_name),
-	reco_disc_name(!isPixelTracker ? xml_OT_reco_disc_name : xml_PX_reco_disc_name)
+	reco_layer_name(xml_reco + (!isPixelTracker ? xml_OT_reco_layer_name : xml_PX_reco_layer_name)),
+	reco_disc_name(xml_reco + (!isPixelTracker ? xml_OT_reco_disc_name : xml_PX_reco_disc_name))
       {};
 
       const std::string nspace;
