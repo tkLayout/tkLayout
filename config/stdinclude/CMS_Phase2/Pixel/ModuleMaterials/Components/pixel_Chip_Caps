@@ -1,11 +1,14 @@
 // Capacitors for one pixel chip
 // According to Murata web page (from Stella)
-Element {
-    componentName "Pixel chip capacitors"
-    service false 
-    scaleOnSensor 0
+
+Component {
+  componentName "Pixel hybrid"
+  service false
+  scaleOnSensor 0
+  Element {
     elementName Pix_Caps
     quantity 0.1878
     unit g
     targetVolume 3
+  }
 }
