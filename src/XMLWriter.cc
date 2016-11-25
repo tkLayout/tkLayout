@@ -340,9 +340,12 @@ namespace insur {
         b = buildPaths(t, b, isPixelTracker, trackerXmlTags, wt);
         if (!b.empty()) {
             std::string line;
-            while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-            out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
-            while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+	    // preamble only once, when OT info is printed.
+	    if (!isPixelTracker) {
+                while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+                out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
+	    }
+            while (std::getline(in, line) && (line.find(trackerXmlTags.insert_marker) == std::string::npos)) out << line << std::endl;
             std::vector<PathInfo>::iterator iter, guard = b.end();
             for (iter = b.begin(); iter != guard; iter++) {
                 unsigned int id;

@@ -123,9 +123,14 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW sensor surface output has been written to " << xmlOutputPath << trackerXmlTags.trackersensfile << std::endl;
 
-	    if (wt) instream.open((xmlDirectoryPath + "/" + xml_newrecomatfile).c_str());
-	    else instream.open((xmlDirectoryPath + "/" + xml_recomatfile).c_str());
-	    outstream.open((xmlOutputPath + trackerXmlTags.recomatfile).c_str());
+	    if (!isPixelTracker) {
+	      instream.open((xmlDirectoryPath + "/" + xml_recomatfile).c_str()); // for OT, takes template file.
+	      outstream.open((xmlDirectoryPath + "/" + xml_tmppath + xml_recomatfile).c_str());
+	    }
+	    else {
+	      instream.open((xmlDirectoryPath + "/" + xml_tmppath + xml_recomatfile).c_str()); // for PX, takes output file from OT already created.
+	      outstream.open((xmlOutputPath + trackerXmlTags.recomatfile).c_str());
+	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
             //writeSimpleHeader(outstream);
             wr.recomaterial(data.specs, data.lrilength, instream, outstream, isPixelTracker, trackerXmlTags, wt);

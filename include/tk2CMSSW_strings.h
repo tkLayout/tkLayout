@@ -152,12 +152,14 @@ namespace insur {
     static const std::string xml_PX_trackersensfile = "pixelsens.xml";
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
     static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
-    static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
+    //static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
     static const std::string xml_tmppath = "tmp";
     /**
      * Naming conventions and variable names
      */
     static const std::string xml_insert_marker = "<!--mid point marker-->";
+    static const std::string xml_OT_insert_marker = "<!--Outer Tracker info marker-->";
+    static const std::string xml_PX_insert_marker = "<!--Pixel info marker-->";
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_Act = "Active";
@@ -339,7 +341,8 @@ namespace insur {
 	topologyfile(!isPixelTracker ? xml_topologyfile : xml_PX_topologyfile),
 	prodcutsfile(!isPixelTracker ? xml_prodcutsfile : xml_PX_prodcutsfile),
 	trackersensfile(!isPixelTracker ? xml_trackersensfile : xml_PX_trackersensfile),
-	recomatfile(!isPixelTracker ? xml_recomatfile : xml_PX_recomatfile),
+	recomatfile(xml_recomatfile),  // For users convinience, reco material info is stored in only one file for both OT and PX.
+	insert_marker(!isPixelTracker ? xml_OT_insert_marker : xml_PX_insert_marker),
 
 	topo_barrel_name(!isPixelTracker ? xml_OT_topo_barrel_name : xml_PX_topo_barrel_name),
 	topo_barrel_value(!isPixelTracker ? xml_OT_topo_barrel_value : xml_PX_topo_barrel_value),
@@ -373,7 +376,8 @@ namespace insur {
       const std::string topologyfile;
       const std::string prodcutsfile;
       const std::string trackersensfile;
-      const std::string recomatfile;       
+      const std::string recomatfile;
+      const std::string insert_marker;      
 
       const std::string topo_barrel_name;
       const std::string topo_barrel_value;
