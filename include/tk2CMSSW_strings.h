@@ -15,7 +15,6 @@ namespace insur {
     static const int xml_prec = 3;
     static const int xml_roc_rows = 128;
     static const int xml_roc_cols = 1;
-    static const int xml_reco_material_disc_offset = 3;
     //static const double xml_z_pixfwd = 325.0;
     static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
     static const double xml_epsilon = 0.01;

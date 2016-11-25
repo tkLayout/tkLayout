@@ -991,8 +991,7 @@ namespace insur {
 	//CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
 	//else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
 	std::ostringstream index;
-	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);  // TO DO : WHAT IS THIS ???
-	else index << 1 + i; // disc numbering starts from 1
+	index << i + 1; // disc numbering starts from 1
 	layer = atoi(dnumber.c_str());
 	spname = trackerXmlTags.reco_disc_name + index.str();
 
