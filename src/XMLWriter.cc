@@ -358,8 +358,14 @@ namespace insur {
                     }
                     if (id < ri.size()) {
                         out << xml_spec_par_parameter_first << xml_recomat_radlength << xml_spec_par_parameter_second;
-                        out << ri.at(id).rlength << xml_general_endline << xml_spec_par_parameter_first << xml_recomat_xi;
-                        out << xml_spec_par_parameter_second << ri.at(id).ilength;
+                        out << ri.at(id).rlength << xml_general_endline; // RadLength associated to tracking group
+			out << xml_spec_par_parameter_first << xml_recomat_xi << xml_spec_par_parameter_second;
+			out << ri.at(id).rlength / 500.; // Energy loss associated to tracking group
+			// WARNING  : Radlength / 500. is a temporary estimate of energy loss !!!
+			// Energy loss is not calculated by tkLayout for the moment.
+			// TO DO : 
+			// Energy loss estimates should be incorporated in the core of the code for the material in tkLayout.
+			// Results should then be exported here, using a new equivalent of ri.at(id).ilength (like re.at(id).energyLoss).
                     }
                     else {
                         std::cerr << "WARNING: no RILengthInfo entry found for SpecPar block " << iter->block_name;
