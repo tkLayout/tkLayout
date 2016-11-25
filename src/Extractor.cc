@@ -3014,7 +3014,10 @@ namespace insur {
 	if ( el->targetVolume() == PixelModuleSensor ) {
 	  continue; // Still to skip sensors, in case not detected by the component name.
 	}
-
+	else if ( el->targetVolume() != PixelModuleHybrid &&
+		  el->targetVolume() != PixelModuleChip ) {
+	  throw PathfulException("!!!! ERROR !!!! : Found unexpected targetVolume, not supported for Pixel Barrel modules.");
+	}
 	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
 	if ( el->targetVolume() == PixelModuleHybrid   ||
