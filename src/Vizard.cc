@@ -585,8 +585,8 @@ namespace insur {
     acr->SetFillColor(kRed);
     rcontainer->Add(acr);
     rcontainer->Draw("hist");
-    rcontainer->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //rcontainer->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
 
     // interaction length in tracking volume by active, serving or passive
     THStack* icontainer = new THStack("istack", "Interaction Length by Category");
@@ -605,8 +605,8 @@ namespace insur {
     aci->SetFillColor(kRed - 3);
     icontainer->Add(aci);
     icontainer->Draw("hist");
-    icontainer->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //icontainer->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
 
     // Write asl category plots to web page
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -669,8 +669,8 @@ namespace insur {
       myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     rCompStack->Draw("hist");
-    rCompStack->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //rCompStack->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -685,8 +685,8 @@ namespace insur {
       myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     iCompStack->Draw("hist");
-    iCompStack->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //iCompStack->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
     compLegend->Draw();
 
     myContent->addItem(myTable);
@@ -803,8 +803,8 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
       rCompTrackingVolumeStack->Draw("hist");
-      rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      myCanvas->Modified();
+      // rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
+      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myPad = myCanvas->GetPad(2);
@@ -825,8 +825,8 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
       }
       iCompTrackingVolumeStack->Draw("hist");
-      iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      myCanvas->Modified();
+      //iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
+      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myContentDetails->addItem(myTable);
@@ -840,6 +840,8 @@ namespace insur {
 
 
       // 1D OVERVIEW (TRACKING VOLUME)
+      TH1D *rTrackingVolume = NULL, *iTrackingVolume = NULL;
+      TProfile *rTrackingVolumeProf = NULL, *iTrackingVolumeProf = NULL;
       myContent = new RootWContent("1D Overview (Tracking volume)", false);
       myPage->addContent(myContent);
       // Work area re-init
@@ -851,19 +853,23 @@ namespace insur {
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       // global plots in tracking volume: radiation length      
-      cr = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
-      crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
-      crProf->SetFillColor(kGray + 2);
-      crProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
-      crProf->Draw("hist");
+      if (rCompTrackingVolumeStack->GetHists()) {
+	rTrackingVolume = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
+	rTrackingVolumeProf = newProfile(rTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
+	rTrackingVolumeProf->SetFillColor(kGray + 2);
+	rTrackingVolumeProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
+	rTrackingVolumeProf->Draw("hist");
+      }
       myPad = myCanvas->GetPad(2);
       myPad->cd();
       // global plots in tracking volume: interaction length
-      ci = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
-      ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
-      ciProf->SetFillColor(kGray + 2);
-      ciProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
-      ciProf->Draw("hist");
+      if (iCompTrackingVolumeStack->GetHists()) {
+	iTrackingVolume = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
+	iTrackingVolumeProf = newProfile(iTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
+	iTrackingVolumeProf->SetFillColor(kGray + 2);
+	iTrackingVolumeProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
+	iTrackingVolumeProf->Draw("hist");
+      }
       // Write global tracking volume plots to web pag
       myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Material in tracking volume");
@@ -873,8 +879,8 @@ namespace insur {
       myTable->setContent(1, 1, titleString);
       sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", a.getEtaMaxMaterial());
       myTable->setContent(2, 1, titleString);
-      myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
-      myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
+      if (rTrackingVolume) myTable->setContent(1, 2, averageHistogramValues(*rTrackingVolume, a.getEtaMaxMaterial()), 5);
+      if (iTrackingVolume) myTable->setContent(2, 2, averageHistogramValues(*iTrackingVolume, a.getEtaMaxMaterial()), 5);
       myContent->addItem(myTable);
       myContent->addItem(myImage);
 
@@ -2749,7 +2755,7 @@ namespace insur {
     myPage->setAddress("info.html");
 
     site.addPage(myPage, RootWeb::most_relevant);
-    RootWContent *simulationContent, *summaryContent, *fullLayoutContent = nullptr, *configFilesContent, *materialOverviewContent, *materialCategoriesContent, *materialComponentsContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent, *materialOverviewContent, *materialCategoriesContent, *materialComponentsContent;
 
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
@@ -2883,8 +2889,8 @@ namespace insur {
     stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
     rCompTotalTrackingVolumeStack->Draw("hist");
-    rCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    //rCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    //myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -2897,8 +2903,8 @@ namespace insur {
     stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
     iCompTotalTrackingVolumeStack->Draw("hist");
-    iCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    //iCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    //myCanvas->Modified();
     compLegend->Draw();
 
     materialComponentsContent->addItem(myTable);
@@ -2922,16 +2928,16 @@ namespace insur {
     compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
     std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
-    histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
-    histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
-    histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
+    if (rCompBeamPipeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
+    if (iCompBeamPipeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
+    if (rCompPixelIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
+    if (iCompPixelIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
+    if (rCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
+    if (iCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
+    if (rCompIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
+    if (iCompIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
+    if (rCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
+    if (iCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
     THStack* rCompCategoryTrackingVolumeStack = new THStack("rcompcategorytrackingvolumestack", "Radiation Length by Category in tracking volume");
     THStack* iCompCategoryTrackingVolumeStack = new THStack("icompcategorytrackingvolumestack", "Interaction Length by Category in tracking volume");
     THStack* dummy = new THStack("dummy", "dummy");
@@ -2948,8 +2954,8 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     rCompCategoryTrackingVolumeStack->Draw("hist");
-    rCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    //rCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    //myCanvas->Modified();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -2958,8 +2964,8 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     iCompCategoryTrackingVolumeStack->Draw("hist");
-    iCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    myCanvas->Modified();
+    //iCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
+    //myCanvas->Modified();
     compLegend->Draw();
 
     materialCategoriesContent->addItem(myTable);
@@ -2984,19 +2990,23 @@ namespace insur {
     myPad = myCanvas->GetPad(1);
     myPad->cd();
     // global plots in tracking volume: radiation length
-    cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
-    crProf->SetFillColor(kGray + 2);
-    crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
-    crProf->Draw("hist");
+    if (rCompTotalTrackingVolumeStack->GetHists()) {
+      cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
+      crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+      crProf->SetFillColor(kGray + 2);
+      crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+      crProf->Draw("hist");
+    }
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // global plots in tracking volume: interaction length
-    ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-    ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
-    ciProf->SetFillColor(kGray + 2);
-    ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
-    ciProf->Draw("hist");
+    if (iCompTotalTrackingVolumeStack->GetHists()) {
+      ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
+      ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+      ciProf->SetFillColor(kGray + 2);
+      ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->Draw("hist");
+    }
     // Write global tracking volume plots to web pag
     myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in total tracking volume");
@@ -3006,8 +3016,8 @@ namespace insur {
     myTable->setContent(1, 1, titleString);
     sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(2, 1, titleString);
-    myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
+    if (cr) myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
+    if (ci) myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
     materialOverviewContent->addItem(myTable);
     materialOverviewContent->addItem(myImage);
 
@@ -6048,6 +6058,7 @@ namespace insur {
 
   // Helper function to convert a histogram into a TProfile
   TProfile* Vizard::newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins /* = 0 */) {
+    if (sourceHistogram == NULL) return NULL;
     int nBins = sourceHistogram->GetNbinsX();
     if (desiredNBins != 0 && desiredNBins < nBins) nBins = desiredNBins;
     TProfile* resultProfile = new TProfile(Form("%s_profile",sourceHistogram->GetName()),
