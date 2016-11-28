@@ -734,8 +734,8 @@ namespace insur {
       myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     rServicesCompStack->Draw("hist");  
-    rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
     servicesCompLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
@@ -750,8 +750,8 @@ namespace insur {
       myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     iServicesCompStack->Draw("hist");
-    rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
-    myCanvas->Modified();
+    //rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
+    //myCanvas->Modified();
     servicesCompLegend->Draw();
 
     myContent->addItem(myTable);

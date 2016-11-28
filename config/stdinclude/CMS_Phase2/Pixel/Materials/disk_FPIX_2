@@ -138,7 +138,7 @@ Materials FPIX_2_disk {
   // Support Mechanics
   //Mechanics
   Component {
-    componentName "Disk support mechanics" 
+    componentName "Disk support mechanics"
     service false
     scaleOnSensor 0
     Element {
