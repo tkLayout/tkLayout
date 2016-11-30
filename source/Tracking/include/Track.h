@@ -1,6 +1,8 @@
 /**
- * @file Track.h
- * @brief This header file defines track class used for internal analysis
+ * Track.h
+ *
+ * Created on: 20. 4. 2016
+ *     Author: Drasal (CERN)
  */
 
 #ifndef INCLUDE_TRACK_H_
@@ -39,7 +41,8 @@ typedef std::vector<TrackPtr>  TrackCollection;
  * d0 & cotg(theta), impact parameter in s-Z plane z0. To provide tracking independently on complexity of defined tracker
  * geometry, each track is assigned a tag, all sub-trackers being assigned the same tag are then used in the track for
  * tracking. In order to extract individual track parameters at arbitrary reference point (not only at [0,0,0]), the
- * standard technique of covariance propagator is applied (for details see getDelta***() methods).
+ * standard technique of covariance propagator is applied (for details see getDelta***() methods). The propagators are
+ * currently implemented for const Bz, not for case of B = B(z).
  */
 class Track {
 
@@ -85,6 +88,12 @@ public:
   //! Helper method printing track covariance matrices in R-Phi
   void printErrors();
 
+  //! Helper method printing symmetric matrix
+  void printSymMatrix(const TMatrixTSym<double>&);
+
+  //! Helper method printing general matrix
+  void printMatrix(const TMatrixT<double>&);
+
   //! Helper method printing track hits
   void printHits();
 
@@ -105,33 +114,37 @@ public:
   double getTransverseMomentum() const { return m_pt; }
   double getPt() const                 { return m_pt; }
   
-  //! Get DeltaRho (error on 1/R) at point [r,z] (using 3x3 covariance propagator in case [r,z]!=[0,0])
-  double getDeltaRho() const;
+  //! Get DeltaRho (error on 1/R) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
+  double getDeltaRho(double rPos) const;
 
-  //! Get DeltaPtOvePt at point [r,z] utilizing the calculated deltaRho quantity
-  double getDeltaPtOverPt() const;
+  //! Get DeltaPtOvePt at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize the calculated deltaRho quantity)
+  double getDeltaPtOverPt(double rPos) const;
 
-  //! Get DeltaPOverP at point [r,z] utilizing deltaRho & deltaCotgTheta quantities
-  double getDeltaPOverP() const;
+  //! Get DeltaPOverP at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize deltaRho & deltaCotgTheta quantities)
+  double getDeltaPOverP(double rPos) const;
 
-  //! Get DeltaPhi at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
-  double getDeltaPhi() const;
+  //! Get DeltaPhi0 at point (r,z) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
+  double getDeltaPhi0(double rPos) const;
 
-  //! Get DeltaD0 at point (r,z) (using 3x3 covariance propagator in case [r,z]!=[0,0])
-  double getDeltaD0() const;
+  //! Get DeltaD0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
+  double getDeltaD0(double rPos) const;
 
-  //! Get DeltaCtgTheta at arbitrary path length s (independent on s)
+  //! Get DeltaCtgTheta at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (independent on sXY)
   double getDeltaCtgTheta() const;
 
-  //! Get DeltaZ0 at path length s (point [r,z]), using 2x2 covariance propagator if s!=0
-  double getDeltaZ0(double s) const;
+  //! Get DeltaZ0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Using 2x2 covariance propagator in case [r,z]!=[0,0]
+  double getDeltaZ0(double rPos) const;
 
   // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
-  double getMagField(double z) const;
+  double getMagField(double zPos) const;
 
   // Calculate radius or 1/R at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
-  double getRho(double z) const        { return (getRadius(z)>0 ? 1/getRadius(z) : 0);}
-  double getRadius(double z) const     { return m_pt / (0.3 * getMagField(z)); }
+  double getRho(double zPos) const    { return (getRadius(zPos)>0 ? 1/getRadius(zPos) : 0);}
+  double getRadius(double zPos) const { return m_pt / (0.3 * getMagField(zPos)); }
 
   const Polar3DVector& getDirection() const { return m_direction; }
   const XYZVector& getOrigin() const        { return m_origin; }
@@ -148,6 +161,10 @@ public:
 
   //! Get number of hits assigned
   int getNHits() const { return m_hits.size(); }
+
+  //! Hits collection iterators
+  HitCollection::const_iterator getBeginHits() { return m_hits.cbegin(); }
+  HitCollection::const_iterator getEndHits()   { return m_hits.cend(); }
 
   //! Get track material
   RILength getMaterial();

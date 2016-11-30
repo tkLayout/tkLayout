@@ -285,6 +285,15 @@ bool AnalysisManager::makeWebInfoPage()
     for (auto it=unit->getCsvResP().getCsvTextBegin(); it!=unit->getCsvResP().getCsvTextEnd(); ++it) {
       myCsvResFileP.addText(unit->getCsvResP().getCsvText(it->first));
     }
+
+    // Hit collection
+    fileName    = "HitCollection.csv";
+    webFileName = "Studied hit collections";
+    RootWTextFile& myCsvHitCol = myContentCsv.addTextFile(fileName, webFileName);
+
+    for (auto it=unit->getCsvHitCol().getCsvTextBegin(); it!=unit->getCsvHitCol().getCsvTextEnd(); ++it) {
+      myCsvHitCol.addText(unit->getCsvHitCol().getCsvText(it->first));
+    }
   }
 
   return true;

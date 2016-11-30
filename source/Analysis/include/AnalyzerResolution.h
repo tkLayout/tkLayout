@@ -67,6 +67,9 @@ class AnalyzerResolution : public AnalyzerUnit {
   //! Get Csv text output for const p -> exception thrown if doesn't exist
   const CsvTextBuilder& getCsvResP() const;
 
+  //! Get Csv text output for hit collection-> exception thrown if doesn't exist
+  const CsvTextBuilder& getCsvHitCol() const;
+
  private:
 
   //! Prepare plot: fill with data & set properties; varType specifies variable type to be filled: pT, p, d0, z0, phi0, cotgTheta & scenario const pT,  const p
@@ -100,6 +103,8 @@ class AnalyzerResolution : public AnalyzerUnit {
   const double c_min_dPhi0     = 1E-4;
   const double c_max_dCtgTheta = 1.0;
   const double c_min_dCtgTheta = 1E-6;
+
+  std::unique_ptr<CsvTextBuilder> m_csvHitCol;
 
   const int    c_nBins;
 

@@ -242,7 +242,7 @@ double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) co
 
   // Parameters
   double A = hitRho/(2*trackR); // r_i / 2R
-  A = 0; // For debugging purposes
+  //A = 0; // For debugging purposes
   double B = A/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
@@ -259,7 +259,7 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 
   // Parameters
   double A = hitRho/(2*trackR); 
-  A = 0; // For debugging purposes
+  //A = 0; // For debugging purposes
   double D = trackCotgTheta/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)

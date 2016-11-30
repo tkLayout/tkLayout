@@ -84,8 +84,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
   // Check that initialization & analysis OK
   if (!m_isInitOK || !m_isAnalysisOK) return false;
 
-  RootWPage& myPage = webSite.addPage("indexOccupancy", web_priority_Occup);
-  myPage.setAddress("occupancy.html");
+  RootWPage& myPage = webSite.addPage("Occupancy", web_priority_Occup);
+  myPage.setAddress("indexOccupancy.html");
 
 
   // Draw magnetic fiel - map
@@ -555,7 +555,6 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
             senAddrSparSize[iSensor]   = m_layerSenAddrSparSize[iLayer][iSensor] + addrSparClsWidth;
             senAddrUnsparSize[iSensor] = m_layerSenAddrUnsparSize[iLayer][iSensor];
 
-            std::cout << ">iLayer>>" << iLayer << " " << channelRate[iSensor] << " " << senAddrSparSize[iSensor] << "  " << m_layerNModules[iLayer] << std::endl;
             totHitRate        += hitRate[iSensor];
             totChannelRate    += channelRate[iSensor];
             totAddrSparSize   += senAddrSparSize[iSensor];
@@ -569,7 +568,6 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
             dataRateUnTriggerSpar += channelRate[iSensor]*senAddrSparSize[iSensor];
           }
 
-          std::cout << ">>> " << dataRateCollisionSpar << std::endl;
           dataRateTriggerSpar   *= trigger_freq;
           dataRateUnTriggerSpar *= collision_freq;
 
