@@ -183,8 +183,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     hit->setOrientation(Hit::Horizontal);
     hit->setObjectKind(Hit::Inactive);
     Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
+    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
 
@@ -699,8 +699,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     hit->setObjectKind(Hit::Inactive);
     hit->setObjectCategory(Hit::BeamPipe);
     Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
+    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
     if (!track.noHits()) {
