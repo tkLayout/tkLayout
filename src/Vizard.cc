@@ -592,15 +592,18 @@ namespace insur {
     THStack* icontainer = new THStack("istack", "Interaction Length by Category");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
-    sui = (TH1D*)a.getHistoSupportsAllI().Clone();
+    TProfile* suiProf = newProfile((TH1D*)a.getHistoSupportsAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    sui = suiProf->ProjectionX();
     sui->SetLineColor(kOrange + 2);
     sui->SetFillColor(kOrange + 2);
     icontainer->Add(sui);
-    sei = (TH1D*)a.getHistoServicesAllI().Clone();
+    TProfile* seiProf = newProfile((TH1D*)a.getHistoServicesAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    sei = seiProf->ProjectionX();
     sei->SetLineColor(kAzure - 2);
     sei->SetFillColor(kAzure - 2);
     icontainer->Add(sei);
-    aci = (TH1D*)a.getHistoModulesAllI().Clone();
+    TProfile* aciProf = newProfile((TH1D*)a.getHistoModulesAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+    aci = aciProf->ProjectionX();
     aci->SetLineColor(kRed - 3);
     aci->SetFillColor(kRed - 3);
     icontainer->Add(aci);
@@ -659,14 +662,18 @@ namespace insur {
     myPad->cd();
     std::map<std::string, TH1D*>& rActiveComps = a.getHistoActiveComponentsR();
     int compIndex = 1;
+    TProfile* prof;
+    TH1D* histo;
     for (std::map<std::string, TH1D*>::iterator it = rActiveComps.begin(); it != rActiveComps.end(); ++it) {
-      it->second->SetLineColor(Palette::color(compIndex));
-      it->second->SetFillColor(Palette::color(compIndex));
-      it->second->SetTitle(it->first.c_str());
-      compLegend->AddEntry(it->second, it->first.c_str());
-      rCompStack->Add(it->second);
+      prof = newProfile((TH1D*)it->second, 0., a.getEtaMaxMaterial(), materialNBins);
+      histo = prof->ProjectionX();   
+      histo->SetLineColor(Palette::color(compIndex));
+      histo->SetFillColor(Palette::color(compIndex));
+      histo->SetTitle(it->first.c_str());
+      compLegend->AddEntry(histo, it->first.c_str());
+      rCompStack->Add(histo);
       myTable->setContent(compIndex, 0, it->first);
-      myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      myTable->setContent(compIndex++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
     }
     rCompStack->Draw("hist");
     //rCompStack->GetXaxis()->SetTitle("#eta"); 
@@ -678,11 +685,13 @@ namespace insur {
     std::map<std::string, TH1D*>& iActiveComps = a.getHistoActiveComponentsI();
     compIndex = 1;
     for (std::map<std::string, TH1D*>::iterator it = iActiveComps.begin(); it != iActiveComps.end(); ++it) {
-      it->second->SetLineColor(Palette::color(compIndex));
-      it->second->SetFillColor(Palette::color(compIndex));
-      it->second->SetTitle(it->first.c_str());
-      iCompStack->Add(it->second);
-      myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      prof = newProfile((TH1D*)it->second, 0., a.getEtaMaxMaterial(), materialNBins);
+      histo = prof->ProjectionX();   
+      histo->SetLineColor(Palette::color(compIndex));
+      histo->SetFillColor(Palette::color(compIndex));
+      histo->SetTitle(it->first.c_str());
+      iCompStack->Add(histo);
+      myTable->setContent(compIndex++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
     }
     iCompStack->Draw("hist");
     //iCompStack->GetXaxis()->SetTitle("#eta"); 
@@ -725,13 +734,15 @@ namespace insur {
     std::map<std::string, TH1D*>& rServicesComps = a.getHistoServicesDetailsR();
     int servicesCompIndex = 1;
     for (std::map<std::string, TH1D*>::iterator it = rServicesComps.begin(); it != rServicesComps.end(); ++it) {
-      it->second->SetLineColor(Palette::color(servicesCompIndex));
-      it->second->SetFillColor(Palette::color(servicesCompIndex));
-      it->second->SetTitle(it->first.c_str());
-      servicesCompLegend->AddEntry(it->second, it->first.c_str());
-      rServicesCompStack->Add(it->second);
+      prof = newProfile((TH1D*)it->second, 0., a.getEtaMaxMaterial(), materialNBins);
+      histo = prof->ProjectionX();     
+      histo->SetLineColor(Palette::color(servicesCompIndex));
+      histo->SetFillColor(Palette::color(servicesCompIndex));
+      histo->SetTitle(it->first.c_str());
+      servicesCompLegend->AddEntry(histo, it->first.c_str());
+      rServicesCompStack->Add(histo);
       myTable->setContent(servicesCompIndex, 0, it->first);
-      myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      myTable->setContent(servicesCompIndex++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
     }
     rServicesCompStack->Draw("hist");  
     //rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
@@ -743,11 +754,13 @@ namespace insur {
     std::map<std::string, TH1D*>& iServicesComps = a.getHistoServicesDetailsI();
     servicesCompIndex = 1;
     for (std::map<std::string, TH1D*>::iterator it = iServicesComps.begin(); it != iServicesComps.end(); ++it) {
-      it->second->SetLineColor(Palette::color(servicesCompIndex));
-      it->second->SetFillColor(Palette::color(servicesCompIndex));
-      it->second->SetTitle(it->first.c_str());
-      iServicesCompStack->Add(it->second);
-      myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      prof = newProfile((TH1D*)it->second, 0., a.getEtaMaxMaterial(), materialNBins);
+      histo = prof->ProjectionX();
+      histo->SetLineColor(Palette::color(servicesCompIndex));
+      histo->SetFillColor(Palette::color(servicesCompIndex));
+      histo->SetTitle(it->first.c_str());
+      iServicesCompStack->Add(histo);
+      myTable->setContent(servicesCompIndex++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
     }
     iServicesCompStack->Draw("hist");
     //rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
@@ -794,13 +807,15 @@ namespace insur {
       int compIndexTrackingVolume = 1;
 
       for (const auto& it : rCompsTrackingVolume) {
-	it.second->SetLineColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetFillColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetTitle(it.first.c_str());
-	compLegendTrackingVolume->AddEntry(it.second, it.first.c_str());
-	rCompTrackingVolumeStack->Add(it.second);
+	prof = newProfile((TH1D*)it.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	histo = prof->ProjectionX();
+	histo->SetLineColor(Palette::color(compIndexTrackingVolume));
+	histo->SetFillColor(Palette::color(compIndexTrackingVolume));
+	histo->SetTitle(it.first.c_str());
+	compLegendTrackingVolume->AddEntry(histo, it.first.c_str());
+	rCompTrackingVolumeStack->Add(histo);
 	myTable->setContent(compIndexTrackingVolume, 0, it.first);
-	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
+	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       rCompTrackingVolumeStack->Draw("hist");
       // rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
@@ -818,11 +833,13 @@ namespace insur {
       compIndexTrackingVolume = 1;
 
       for (const auto& it : iCompsTrackingVolume) {
-	it.second->SetLineColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetFillColor(Palette::color(compIndexTrackingVolume));
-	it.second->SetTitle(it.first.c_str());
-	iCompTrackingVolumeStack->Add(it.second);
-	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*it.second, a.getEtaMaxMaterial()), 5);
+	prof = newProfile((TH1D*)it.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	histo = prof->ProjectionX();
+	histo->SetLineColor(Palette::color(compIndexTrackingVolume));
+	histo->SetFillColor(Palette::color(compIndexTrackingVolume));
+	histo->SetTitle(it.first.c_str());
+	iCompTrackingVolumeStack->Add(histo);
+	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       iCompTrackingVolumeStack->Draw("hist");
       //iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
@@ -2717,33 +2734,39 @@ namespace insur {
 
 
   void Vizard::stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
-
+    TProfile* prof;
+    TH1D* histo;
     for (const auto& it : histoMap) {
-      it.second->SetLineColor(Palette::color(index));
-      it.second->SetFillColor(Palette::color(index));
-      it.second->SetTitle(it.first.c_str());
-      if (isRadiation) legend->AddEntry(it.second, it.first.c_str());
-      myStack->Add(it.second);
-      totalStack->Add(it.second);
+      prof = newProfile((TH1D*)it.second, 0., 4.0, materialNBins);
+      histo = prof->ProjectionX();
+      histo->SetLineColor(Palette::color(index));
+      histo->SetFillColor(Palette::color(index));
+      histo->SetTitle(it.first.c_str());
+      if (isRadiation) legend->AddEntry(histo, it.first.c_str());
+      myStack->Add(histo);
+      totalStack->Add(histo);
       myTable->setContent(index, 0, it.first);
       int column = (isRadiation ? 1 : 2);
-      myTable->setContent(index++, column, averageHistogramValues(*it.second, 4.0), 5);
+      myTable->setContent(index++, column, averageHistogramValues(*histo, 4.0), 5);
     }
   }
 
 
   void Vizard::stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
-
+    TProfile* prof;
+    TH1D* histo;
     for (const auto& it : histoMap) {
-      it.second->SetLineColor(Palette::color(index));
-      it.second->SetFillColor(Palette::color(index));
-      it.second->SetTitle(it.first.c_str());
-      if (isRadiation) legend->AddEntry(it.second, it.first.c_str());
-      myStack->Add(it.second);
-      totalStack->Add(it.second);
+      prof = newProfile((TH1D*)it.second, 0., 4.0, materialNBins);
+      histo = prof->ProjectionX();
+      histo->SetLineColor(Palette::color(index));
+      histo->SetFillColor(Palette::color(index));
+      histo->SetTitle(it.first.c_str());
+      if (isRadiation) legend->AddEntry(histo, it.first.c_str());
+      myStack->Add(histo);
+      totalStack->Add(histo);
       myTable->setContent(index, 0, it.first);
       int column = (isRadiation ? 1 : 2);
-      myTable->setContent(index++, column, averageHistogramValues(*it.second, 4.0), 5);
+      myTable->setContent(index++, column, averageHistogramValues(*histo, 4.0), 5);
     }
   }
 
