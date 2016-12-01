@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
   <SpecParSection label="spec-pars2.xml">
-    <!--mid point marker-->
 
+    <!--Pixel info marker-->
+
+    <!--Outer Tracker info marker-->
   </SpecParSection>
 </DDDefinition>
