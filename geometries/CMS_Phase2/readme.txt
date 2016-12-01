@@ -82,8 +82,11 @@ Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX
 OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 FPIX_1 disks and 4 FPIX_2 disks
 
-OT365_200_IT4022.cfg                 OT Version 3.6.5  <- like 3.6.4 (no change: just a placehodler for work in progress)
+OT365_200_IT4022.cfg                 OT Version 3.6.5  <- like 3.6.4 but with adjusted tilted ring positions and increased layer radii
                                      Inner tracker version 4.0.2.2
 
-OT365_200_IT4024.cfg                 OT Version 3.6.5  <- like 3.6.4 (no change: just a placehodler for work in progress)
+OT365_200_IT4024.cfg                 OT Version 3.6.5  <- like 3.6.4 but with adjusted tilted ring positions and increased layer radii 
                                      Inner tracker version 4.0.2.4 <- like 4.0.2.3 but with smaller barrel radii, just like 4.0.2.2 
+
+OT365_200_IT4025.cfg                 OT Version 3.6.5
+                                     Inner tracker version 4.0.2.5 <- based on 4.0.2.4 but with BPIX_4.3.0 (work in progress radii)
