@@ -616,7 +616,6 @@ namespace insur {
 	  //std::cout << 
 	}
       }
-      std::cout << flatPartOneBeforeLastModuleMaxZ << std::endl;
 
       if ((rmax - rmin) == 0.0) continue;
 
@@ -1006,12 +1005,11 @@ namespace insur {
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
 
-      // TO DO : IMPROVE THIS !!
       // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
       if (isTilted && flatPartNumModules >= 2) {
 	shape.name_tag = rodname.str() + "Air";
 	shape.dx = shape.dx / 2.0;
-	//shape.dz = 10.; // To be calculated with maxZ of the 'one before last' module of the flat part rod
+	shape.dy = shape.dy + xml_epsilon;
 	shape.dz = (shape.dz - flatPartOneBeforeLastModuleMaxZ) / 2.;
 	s.push_back(shape);
 	
@@ -1021,9 +1019,7 @@ namespace insur {
 	shapeOp.rSolid2 = rodname.str() + "Air";
 	shapeOp.trans.dx = shape.dx + xml_epsilon;
 	shapeOp.trans.dy = 0.;
-	//shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz / 2.0;
 	shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz + xml_epsilon;
-	std::cout << shapeOp.trans.dz << std::endl;
 	so.push_back(shapeOp);
 
 	shapeOp.name_tag = rodname.str();
