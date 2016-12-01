@@ -166,7 +166,7 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-			       bool isOuterPixel,
+			       bool isPixel,
 			       bool& debugResolution,
                                int etaSteps = 50,
                                MaterialBudget* pm = NULL);
