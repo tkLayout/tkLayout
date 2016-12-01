@@ -24,7 +24,7 @@ Materials FPIX_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 8 pipes per disk
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -87,7 +87,7 @@ Materials FPIX_disk {
   // HV power wires
   // Power for the module
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
@@ -109,7 +109,7 @@ Materials FPIX_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 12 chains per disk, 2 wires per chain
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
@@ -132,7 +132,7 @@ Materials FPIX_disk {
   // Support Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Disk support mechanics"
     service false
     scaleOnSensor 0
     Element {

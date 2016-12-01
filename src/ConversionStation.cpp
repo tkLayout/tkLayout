@@ -49,7 +49,22 @@ namespace material {
               inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
           
             for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
+	      // newElement is the converted Element.
+	      // newElement is assigned the properties from OUTPUT Element.
+	      // Notably, in the rare case where outputElement has a componentName (see conversion station cfg file), 
+	      // that name is assigned to newElement.
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+
+	      // Here, new Element is assigned additional info from the INPUT Elements.
+	      // newElement is assigned the same componentName as in input
+	      // (except if outputElement has a componentName).
+	      if (currElement->componentName.state() && !outputElement->componentName.state()) {
+		newElement->componentName(currElement->componentName());
+	      }
+	      // If we end up with a converted element belonging to no component, there is a problem !
+	      if (!newElement->componentName.state()) {
+		logWARNING("Element " + newElement->elementName() + "which is at output of station" + stationName_() + "has no assigned componentName.");
+	      }
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
@@ -57,6 +72,8 @@ namespace material {
               if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
                 newElement->destination(currElement->destination());
               }
+
+	      // We now have our newElement :)
               if (newElement->service()) {
                 if (newElement->unit().compare("g") != 0) {
                   serviceOutput.addElement(newElement);

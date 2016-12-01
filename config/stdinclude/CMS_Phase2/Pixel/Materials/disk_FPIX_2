@@ -25,7 +25,7 @@ Materials FPIX_2_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 16 pipes per disk
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -89,8 +89,9 @@ Materials FPIX_2_disk {
 // HV power wires
 // Power for the module
 // Rescaled on surface *2.41
+// Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
@@ -111,8 +112,10 @@ Materials FPIX_2_disk {
   }
   // fake numbers for calculating conversion with a factor of 1000
   // 24 chains per disk
+  // Proportional to PP0-SEH-HV (700067231 Rev 01)
+
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
@@ -135,7 +138,7 @@ Materials FPIX_2_disk {
   // Support Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Disk support mechanics"
     service false
     scaleOnSensor 0
     Element {
