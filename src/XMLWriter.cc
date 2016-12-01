@@ -555,7 +555,7 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
     void XMLWriter::elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream) {
-        stream << xml_elementary_material_open << tag << xml_elementary_material_first_inter << tag;
+      stream << xml_elementary_material_open << xml_tkLayout_material << tag << xml_elementary_material_first_inter << xml_tkLayout_material << tag;
         stream << xml_elementary_material_second_inter << a_number << xml_elementary_material_third_inter;
         stream << a_weight << xml_elementary_material_fourth_inter << density;
         stream << xml_elementary_material_close;
@@ -587,7 +587,7 @@ namespace insur {
         stream << xml_general_inter;
         for (unsigned int i = 0; i < es.size(); i++) {
             stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << trackerXmlTags.nspace << ":" << es.at(i).first << xml_material_fraction_close;
+            stream << trackerXmlTags.nspace << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
         }
         stream << xml_composite_material_close;
     }

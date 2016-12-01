@@ -859,7 +859,7 @@ namespace insur {
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+            logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
             l.push_back(logic);
 
 	    // PosPart section
@@ -1613,7 +1613,7 @@ namespace insur {
 
 	      logic.name_tag = shape.name_tag;
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	      logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+	      logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
 	      l.push_back(logic);
 
 	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
@@ -1645,7 +1645,7 @@ namespace insur {
 
 		logic.name_tag = shape.name_tag;
 		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-		logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+		logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
 		l.push_back(logic);
 
 		pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
