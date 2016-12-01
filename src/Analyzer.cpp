@@ -1783,7 +1783,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
         hit->setCorrectedMaterial(corr);
         hit->setPixel(isPixel);
         t.addHit(hit);
-	std::cout << "OLD USED" << std::endl;
+	// std::cout << "OLD USED" << std::endl;
       }
     }
     iter++;
