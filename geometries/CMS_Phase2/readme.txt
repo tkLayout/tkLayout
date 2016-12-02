@@ -96,4 +96,8 @@ OT365_200_IT4025.cfg                 OT Version 3.6.5
                                                                 radii 29.000, 70.146, 117.753, 157.388
                                      and FPIX_2 shifted by 10 cm inwards
                                             disk z: 1750.0, 1985.43, 2250.83, 2550.0
+                                     * Added the pixel support tube and service cylinders
+
+OT365_200_IT4026.cfg                 OT Version 3.6.5
+                                     Inner tracker version 4.0.2.6 <- based one 4.0.2.5 but with 7 FPIX disks
 
