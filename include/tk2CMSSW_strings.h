@@ -54,6 +54,7 @@ namespace insur {
     static const std::string xml_algorithm_vector_close = "</Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
+    static const std::string xml_tkLayout_material = "tkLayout_";
     static const std::string xml_elementary_material_open = "<ElementaryMaterial name=\"";
     static const std::string xml_elementary_material_first_inter = "\" symbol=\"";
     static const std::string xml_elementary_material_second_inter = "\" atomicNumber=\"";

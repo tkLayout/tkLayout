@@ -538,6 +538,9 @@ namespace insur {
       // is the layer tilted ?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
      
+      // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
+      // ALL THIS SHOULD BE DELETED AND REPLACED BY module->minRwithHybrids() GETTERS.
+
       // Calculate geometrical extrema of rod (straight layer), or of rod part + tilted ring (tilted layer)
       // straight layer : x and y extrema of rod
       double xmin = std::numeric_limits<double>::max();
@@ -557,6 +560,9 @@ namespace insur {
       double flatPartMaxZ = 0;
       double flatPartMinR = std::numeric_limits<double>::max();
       double flatPartMaxR = 0;
+      // tilted layer : z extrema of one before last module of flat part
+      int flatPartNumModules = lagg.getBarrelLayers()->at(layer - 1)->buildNumModulesFlat();
+      double flatPartOneBeforeLastModuleMaxZ = 0;
       // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
       double RadiusIn = 0;
       double RadiusOut = 0;
@@ -602,13 +608,14 @@ namespace insur {
 	    flatPartMaxZ = MAX(flatPartMaxZ, modcomplex.getZmax());
 	    flatPartMinR = MIN(flatPartMinR, modcomplex.getRmin());
 	    flatPartMaxR = MAX(flatPartMaxR, modcomplex.getRmax());
+	    if (flatPartNumModules >= 2 && modRing == (flatPartNumModules - 1)) { flatPartOneBeforeLastModuleMaxZ = MAX(flatPartOneBeforeLastModuleMaxZ, modcomplex.getZmax()); }
 	  }
 	  // both modRings 1 and 2 have to be taken into account because of small delta
 	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
 	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
+	  //std::cout << 
 	}
       }
-
 
       if ((rmax - rmin) == 0.0) continue;
 
@@ -852,7 +859,7 @@ namespace insur {
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+            logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
             l.push_back(logic);
 
 	    // PosPart section
@@ -998,12 +1005,12 @@ namespace insur {
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
 
-      // TO DO : IMPROVE THIS !!
       // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
-      if (isTilted) {
+      if (isTilted && flatPartNumModules >= 2) {
 	shape.name_tag = rodname.str() + "Air";
 	shape.dx = shape.dx / 2.0;
-	shape.dz = 10.; // To be calculated with maxZ of the 'one before last' module of the flat part rod
+	shape.dy = shape.dy + xml_epsilon;
+	shape.dz = (shape.dz - flatPartOneBeforeLastModuleMaxZ) / 2.;
 	s.push_back(shape);
 	
 	shapeOp.name_tag = rodname.str() + "SubtractionIntermediate";
@@ -1012,7 +1019,7 @@ namespace insur {
 	shapeOp.rSolid2 = rodname.str() + "Air";
 	shapeOp.trans.dx = shape.dx + xml_epsilon;
 	shapeOp.trans.dy = 0.;
-	shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz / 2.0;
+	shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz + xml_epsilon;
 	so.push_back(shapeOp);
 
 	shapeOp.name_tag = rodname.str();
@@ -1606,7 +1613,7 @@ namespace insur {
 
 	      logic.name_tag = shape.name_tag;
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	      logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+	      logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
 	      l.push_back(logic);
 
 	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
@@ -1638,7 +1645,7 @@ namespace insur {
 
 		logic.name_tag = shape.name_tag;
 		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-		logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
+		logic.material_tag = trackerXmlTags.nspace + ":" + xml_tkLayout_material + xml_sensor_silicon;
 		l.push_back(logic);
 
 		pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
@@ -1711,8 +1718,6 @@ namespace insur {
           ri.push_back(ril);
         }
 
-	double rminStepInForwadestDisc = 0;
-
         // rings
         shape.type = tb;
         shape.dx = 0.0;
@@ -1730,8 +1735,6 @@ namespace insur {
             shape.rmax = rinfo[*siter].rmax + xml_epsilon;
 	    shape.dz = (rinfo[*siter].zmax - rinfo[*siter].zmin) / 2.0 + xml_epsilon;
             s.push_back(shape);
-	    // Quick and dirty
-	    if (dname.str() == "Disc11" && *siter == 2) { rminStepInForwadestDisc = shape.rmin - xml_epsilon; }
 
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
