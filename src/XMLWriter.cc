@@ -109,7 +109,7 @@ namespace insur {
     buffer << xml_definition;
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, trackerXmlTags);
+      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker);
       rotationSection(r, xml_newtrackerfile, buffer);
       logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
       solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
@@ -117,7 +117,7 @@ namespace insur {
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, trackerXmlTags);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
       logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
       solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
@@ -393,10 +393,14 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker) {
         stream << xml_material_section_open << name << xml_general_inter;
-        for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream, trackerXmlTags);
+	// Elementary materials (only in tracker.xml)
+	if (!isPixelTracker) {
+            for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
+	}
+	// Composite materials
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream);
         stream << xml_material_section_close;
     }
     
@@ -555,7 +559,7 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
     void XMLWriter::elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream) {
-      stream << xml_elementary_material_open << xml_tkLayout_material << tag << xml_elementary_material_first_inter << xml_tkLayout_material << tag;
+        stream << xml_elementary_material_open << xml_tkLayout_material << tag << xml_elementary_material_first_inter << tag;
         stream << xml_elementary_material_second_inter << a_number << xml_elementary_material_third_inter;
         stream << a_weight << xml_elementary_material_fourth_inter << density;
         stream << xml_elementary_material_close;
@@ -571,7 +575,7 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
     void XMLWriter::compositeMaterial(std::string name,
-				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
         stream << xml_composite_material_open << name << xml_composite_material_first_inter;
         stream << density << xml_composite_material_second_inter ;
         switch (method) {
@@ -587,7 +591,7 @@ namespace insur {
         stream << xml_general_inter;
         for (unsigned int i = 0; i < es.size(); i++) {
             stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << trackerXmlTags.nspace << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
+            stream << xml_fileident << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
         }
         stream << xml_composite_material_close;
     }

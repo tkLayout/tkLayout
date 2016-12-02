@@ -43,7 +43,7 @@ namespace insur {
     const std::string& getSimpleHeader() const { return simpleHeader_; }
   protected:
     void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
-    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, XmlTags& trackerXmlTags);
+    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker);
     void rotationSection(std::map<std::string,Rotation>& r, std::string label, std::ostringstream& stream);
     void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool isPixelTracker, bool wt = false);
@@ -52,7 +52,7 @@ namespace insur {
     void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
     void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
     void compositeMaterial(std::string name, double density, CompType method,
-			   std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags);
+			   std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
     void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream);
     void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
     void trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream);
