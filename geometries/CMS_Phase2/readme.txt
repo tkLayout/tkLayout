@@ -89,5 +89,11 @@ OT365_200_IT4024.cfg                 OT Version 3.6.5  <- like 3.6.4 but with ad
                                      Inner tracker version 4.0.2.4 <- like 4.0.2.3 but with smaller barrel radii, just like 4.0.2.2 
 
 OT365_200_IT4025.cfg                 OT Version 3.6.5
-                                     Inner tracker version 4.0.2.5 <- based on 4.0.2.4 but with BPIX_4.3.0 (work in progress radii)
+                                     Inner tracker version 4.0.2.5 <- based on 4.0.2.4 but with
+                                     BPIX_4.3.0 adjusted radii: #rods reverted to 12,28,24,32
+                                                                smaller overlap (0.6mm) in L2
+                                                                bigger overlap (2.0mm) in L3,4
+                                                                radii 29.000, 70.146, 117.753, 157.388
                                      and FPIX_2 shifted by 10 cm inwards
+                                            disk z: 1750.0, 1985.43, 2250.83, 2550.0
+
