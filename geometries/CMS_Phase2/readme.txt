@@ -90,3 +90,4 @@ OT365_200_IT4024.cfg                 OT Version 3.6.5  <- like 3.6.4 but with ad
 
 OT365_200_IT4025.cfg                 OT Version 3.6.5
                                      Inner tracker version 4.0.2.5 <- based on 4.0.2.4 but with BPIX_4.3.0 (work in progress radii)
+                                     and FPIX_2 shifted by 10 cm inwards
