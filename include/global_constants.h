@@ -25,16 +25,16 @@ namespace insur {
   static const std::vector<double>      geom_range_eta_regions = {0.001,0.8,1.6,2.4 ,3.2 ,4.0  }; // Name tracker eta regions
 
   static const double geom_epsilon                    = 0.1;
-  //static const double geom_inactive_volume_width      = 10.0;   // mm
-  static const double geom_inactive_volume_width      = 5.0;   // mm
-  static const double geom_inner_pixel_radius         = 30.0;   // mm
-  static const double geom_inner_strip_radius         = 150.0;  // mm
-  static const double geom_outer_strip_radius         = 1200.0; // mm
+  static const double geom_inactive_volume_width      = 2.0;     // mm
+  static const double geom_conversion_station_width    = 2.0;     // mm
+  static const double geom_inner_pixel_radius         = 30.0;    // mm
+  static const double geom_inner_strip_radius         = 150.0;   // mm
+  static const double geom_outer_strip_radius         = 1200.0;  // mm
   static const double geom_z_threshold_service_zigzag = 100.0;
-  static const double geom_top_volume_pad             = 200;    // mm
+  static const double geom_top_volume_pad             = 200;     // mm
 
-  static const double geom_support_margin_bottom      = 1;      // mm
-  static const double geom_support_margin_top         = 2;      // mm
+  static const double geom_support_margin_bottom      = 1;       // mm
+  static const double geom_support_margin_top         = 2;       // mm
 
   static const double geom_safety_factor              = 1.1;
 
@@ -71,7 +71,7 @@ namespace insur {
   static const double mat_a_carbon           = 12.0107;
   static const double mat_z_carbon           = 6;
   static const double mat_d_carbon           = 1.9;
-  
+
   static const int    vis_temperature_levels = 512;
 
   /**
