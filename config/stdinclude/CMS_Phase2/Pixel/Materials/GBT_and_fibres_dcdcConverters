@@ -1,36 +1,39 @@
+//Powering of each GBT with a reduced version of the DCDC converter, no more 1DCDC:6GBT 
+//numbers estimated for a smaller DCDC alim carrying less current
+//ant the outer tracker SEH keeping 75% size 
+
 //Component {
   //componentName "GBT"
   Element {
-    componentName "GBT"
+//quantity is OT version 1.146(*75%)
+    componentName "GBT+DCDC"
+    service false
+    elementName CFRP
+    quantity 0.8595  
+    unit g
+  }
+  Element {
+//SEH glue, quantity is OT version 0.089(*75%)
+    componentName "GBT+DCDC"
+    service false
+    elementName Epoxy
+    quantity 0.06675  
+    unit g
+  }
+  Element {
+//SEH copper, quantity is OT version 2.379(*50%)
+    componentName "GBT+DCDC"
     service false
     elementName Cu
-    quantity 0.474
+    quantity 1.435
     unit g
   }
   Element {
-    componentName "GBT"
+//SEH board and components, OT number is 5.743
+    componentName "GBT+DCDC"
     service false
-    elementName PS-ROH-mix
-    quantity 3.024
-    unit g
-  }
-//}
-
-
-// 1/6 DC converters
-//Component {
-  Element {
-    componentName "DC/DC converters"
-    service false
-    elementName Cu
-    quantity 0.403
-    unit g
-  }
-  Element {
-    componentName "DC/DC converters"
-    service false
-    elementName PS-POH-mix
-    quantity 0.518
+    elementName 2S-SEH-mix
+    quantity 4.391
     unit g
   }
 //}
@@ -62,30 +65,31 @@
 //}
 
 
-// 1/6 DC alim
-// Two wires/6
+// Power for the converter (10V)
+// PP0-SEH-LV (700067232 Rev 01)
+// 1 pair of Al/Cu 0.09/0.10
 //Component {
   Element {
     componentName "DC power wires"
     service true
     elementName Cu
-    quantity 0.093
+    quantity 0.16
     unit g/m
   }
-  // Two wires/6
+  // Two wires/1
   Element {
     componentName "DC power wires"
     service true
     elementName PE
-    quantity 0.074
+    quantity 0.88
     unit g/m
   }
-  // Two wires/6 0.4 mm^2
+  // Two wires/1 0.1 mm^2
   Element {
     componentName "DC power wires"
     service true
     elementName Al
-    quantity 0.36
+    quantity 0.46
     unit g/m
   }
 //}
