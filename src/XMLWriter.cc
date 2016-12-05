@@ -109,7 +109,7 @@ namespace insur {
     buffer << xml_definition;
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker);
+      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, xml_newtrackerfile, buffer);
       logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
       solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
@@ -117,7 +117,7 @@ namespace insur {
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
       logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
       solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
@@ -393,14 +393,14 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker) {
+  void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags) {
         stream << xml_material_section_open << name << xml_general_inter;
 	// Elementary materials (only in tracker.xml)
 	if (!isPixelTracker) {
             for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
 	}
 	// Composite materials
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -433,8 +433,8 @@ namespace insur {
     void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
-        if (!wt && !isPixelTracker) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream);
-        for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
+        if (!wt && !isPixelTracker) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream, trackerXmlTags);
+        for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream, trackerXmlTags);
         stream << xml_logical_part_section_close;
     }
 
@@ -575,8 +575,19 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
     void XMLWriter::compositeMaterial(std::string name,
-				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
-        stream << xml_composite_material_open << name << xml_composite_material_first_inter;
+				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+
+      std::string idName = trackerXmlTags.nspace + ":" + name;
+      auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](std::pair<std::string, CompoInfo> i) { return (std::get<0>(i.second) == density && std::get<1>(i.second) == method && std::get<2>(i.second) == es); });
+
+      if (foundComp == printedComposites_.end()) {
+	CompoInfo myCompoInfo = std::make_tuple(density, method, es);
+	printedComposites_.push_back(std::make_pair(name, myCompoInfo));
+ 
+	compositeNames_.insert(std::make_pair(idName, name));
+	std::cout << "name = " << idName << "new = " <<   name << std::endl;  
+
+      stream << xml_composite_material_open << name << xml_composite_material_first_inter;
         stream << density << xml_composite_material_second_inter ;
         switch (method) {
             case wt : stream << "mixture by weight";
@@ -594,6 +605,14 @@ namespace insur {
             stream << xml_fileident << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
         }
         stream << xml_composite_material_close;
+      }
+
+      else {
+	compositeNames_.insert(std::make_pair(idName, (*foundComp).first)); 
+	std::cout << "name = " << idName << "found = " <<   (*foundComp).first << std::endl;   
+      }
+
+
     }
     
     /**
@@ -604,9 +623,15 @@ namespace insur {
      * @param material The name of the material that this volume is made of
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream) {
-        stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
-        stream << xml_logical_part_second_inter << material << xml_logical_part_close;
+  void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+      stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
+      std::cout << "logical name = " << material << std::endl;
+      auto newMaterialName = compositeNames_.find(material);
+      if (newMaterialName != compositeNames_.end()) {
+	stream << xml_logical_part_second_inter << trackerXmlTags.nspace << ":" << (*newMaterialName).second << xml_logical_part_close;
+      } else {
+	stream << xml_logical_part_second_inter << material << xml_logical_part_close;
+	}
     }
     
     /**
