@@ -578,7 +578,7 @@ namespace insur {
 				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags) {
 
       std::string idName = trackerXmlTags.nspace + ":" + name;
-      auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](std::pair<std::string, CompoInfo> i) { return (std::get<0>(i.second) == density && std::get<1>(i.second) == method && std::get<2>(i.second) == es); });
+      auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](std::pair<std::string, CompoInfo> i) { return (fabs(std::get<0>(i.second) - density) < 0.0000001 && std::get<1>(i.second) == method ); });
 
       if (foundComp == printedComposites_.end()) {
 	CompoInfo myCompoInfo = std::make_tuple(density, method, es);
