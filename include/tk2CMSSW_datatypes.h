@@ -8,7 +8,9 @@
 
 #include <string>
 #include <vector>
-#include<map>
+#include <map>
+#include <math.h> 
+#include <tk2CMSSW_strings.h>
 
 namespace insur {
     /**
@@ -70,6 +72,9 @@ namespace insur {
         int atomic_number;
         double atomic_weight;
     };
+
+    typedef std::vector<std::pair<std::string, double> > ElementsComposition;
+
     /**
      * @struct Composite
      * @brief This struct collects some global properties and the chemical elements that make up a composite material.
@@ -83,6 +88,20 @@ namespace insur {
         double density;
         CompType method;
         std::vector<std::pair<std::string, double> > elements;
+
+      bool operator==(const Composite& comp) const {
+	bool ans = true;
+	if (fabs(density - comp.density) > xml_composite_density_tolerance) ans = false;
+	if (method != comp.method) ans = false;
+	if (elements.size() != comp.elements.size()) ans = false;
+	else {
+	  for (int i = 0; i < elements.size(); i++) {
+	    if (elements.at(i).first != comp.elements.at(i).first) ans = false;
+	    if (fabs(elements.at(i).second - comp.elements.at(i).second) > xml_composite_ratio_tolerance) ans = false;
+	  }
+	}
+	return ans;
+      }
     };
     /**
      * @struct LogicalInfo

@@ -400,7 +400,7 @@ namespace insur {
             for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
 	}
 	// Composite materials
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream, trackerXmlTags);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -574,46 +574,42 @@ namespace insur {
      * @param es A reference to a list of elementary material names and their fractions in the composite mixture, stored in instances of <i>std::pair</i>
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::compositeMaterial(std::string name,
-				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+    std::string& name = comp.name;
+    double& density = comp.density;
+    CompType& method = comp.method;
+    std::vector<std::pair<std::string, double> >& elements = comp.elements;
 
-      std::string idName = trackerXmlTags.nspace + ":" + name;
-      auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](std::pair<std::string, CompoInfo> i) { return (fabs(std::get<0>(i.second) - density) < 0.0000001 && std::get<1>(i.second) == method ); });
+    std::string idName = trackerXmlTags.nspace + ":" + name;
+    auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](Composite& i) { return (comp == i); });
 
-      if (foundComp == printedComposites_.end()) {
-	CompoInfo myCompoInfo = std::make_tuple(density, method, es);
-	printedComposites_.push_back(std::make_pair(name, myCompoInfo));
- 
-	compositeNames_.insert(std::make_pair(idName, name));
-	std::cout << "name = " << idName << "new = " <<   name << std::endl;  
-
+    if (foundComp != printedComposites_.end()) {
+      compositeNames_.insert(std::make_pair(idName, (*foundComp).name)); 
+    } 
+    else {
       stream << xml_composite_material_open << name << xml_composite_material_first_inter;
-        stream << density << xml_composite_material_second_inter ;
-        switch (method) {
-            case wt : stream << "mixture by weight";
-            break;
-            case vl : stream << "mixture by volume";
-            break;
-            case ap : stream << "compound by atomic proportion";
-            break;
-            default: std::cerr << "tk2CMSSW::compositeMaterial(): unknown method identifier for composite material. Using mixture by weight." << std::endl;
-            stream << "mixture by weight";
-        }
-        stream << xml_general_inter;
-        for (unsigned int i = 0; i < es.size(); i++) {
-            stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << xml_fileident << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
-        }
-        stream << xml_composite_material_close;
+      stream << density << xml_composite_material_second_inter ;
+      switch (method) {
+      case wt : stream << "mixture by weight";
+	break;
+      case vl : stream << "mixture by volume";
+	break;
+      case ap : stream << "compound by atomic proportion";
+	break;
+      default: std::cerr << "tk2CMSSW::compositeMaterial(): unknown method identifier for composite material. Using mixture by weight." << std::endl;
+	stream << "mixture by weight";
       }
-
-      else {
-	compositeNames_.insert(std::make_pair(idName, (*foundComp).first)); 
-	std::cout << "name = " << idName << "found = " <<   (*foundComp).first << std::endl;   
+      stream << xml_general_inter;
+      for (const auto& elem : elements) {
+	stream << xml_material_fraction_open << elem.second << xml_material_fraction_inter;
+	stream << xml_fileident << ":" << xml_tkLayout_material << elem.first << xml_material_fraction_close;
       }
+      stream << xml_composite_material_close;
 
-
+      printedComposites_.push_back(comp); 
+      compositeNames_.insert(std::make_pair(idName, name));
     }
+  }
     
     /**
      * This formatter writes an XML entry describing a logical volume to the stream that serves as a buffer for the

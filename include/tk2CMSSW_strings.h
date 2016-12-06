@@ -19,6 +19,8 @@ namespace insur {
     static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
     static const double xml_epsilon = 0.01;
     static const double xml_pixel_layeroffset = 1.65;
+    static const double xml_composite_density_tolerance = 0.0000001;
+    static const double xml_composite_ratio_tolerance = 0.0000001;
     /**
      * XML tags and attributes
      */
