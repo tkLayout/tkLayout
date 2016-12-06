@@ -12,15 +12,11 @@ namespace insur {
     /**
      * Numeric constants
      */
-    static const int xml_prec = 3;
-    static const int xml_roc_rows = 128;
-    static const int xml_roc_cols = 1;
-    //static const double xml_z_pixfwd = 325.0;
-    static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
-    static const double xml_epsilon = 0.01;
-    static const double xml_pixel_layeroffset = 1.65;
-    static const double xml_composite_density_tolerance = 0.0000001;
-    static const double xml_composite_ratio_tolerance = 0.0000001;
+    static const double xml_z_pixfwd = 291.0; // VERY IMPORTANT : xml_z_pixfwd defines the offset of the Pixel Forward container volume. 
+    // It should be equal to ZPixelForward defined statically in pixfwd.xml. Otherwise, anything contained by Pixel Forward will have wrong Z in XMLs !!
+    static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
+    static const double xml_composite_density_tolerance = 1E-07;
+    static const double xml_composite_ratio_tolerance = 1E-07;
     /**
      * XML tags and attributes
      */
