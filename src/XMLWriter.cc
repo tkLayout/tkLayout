@@ -606,6 +606,10 @@ namespace insur {
       }
       stream << xml_composite_material_close;
 
+      if (compositeNames_.find(idName) != compositeNames_.end()) {
+	//throw PathfulException("Found several composite materials with same name");
+	std::cout << idName << std::endl;
+      }
       printedComposites_.push_back(comp); 
       compositeNames_.insert(std::make_pair(idName, name));
     }
@@ -621,7 +625,6 @@ namespace insur {
      */
   void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags) {
       stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
-      std::cout << "logical name = " << material << std::endl;
       auto newMaterialName = compositeNames_.find(material);
       if (newMaterialName != compositeNames_.end()) {
 	stream << xml_logical_part_second_inter << trackerXmlTags.nspace << ":" << (*newMaterialName).second << xml_logical_part_close;

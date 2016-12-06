@@ -16,6 +16,7 @@
 #include <tk2CMSSW_datatypes.h>
 #include <tk2CMSSW_strings.h>
 #include <global_constants.h>
+#include <Property.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
