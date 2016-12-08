@@ -608,7 +608,7 @@ namespace insur {
 
       if (compositeNames_.find(idName) != compositeNames_.end()) {
 	//throw PathfulException("Found several composite materials with same name");
-	std::cout << idName << std::endl;
+	std::cout << "VOLUME " << idName << "IS DUPLICATED !!!!!!!!!!" << std::endl;
       }
       printedComposites_.push_back(comp); 
       compositeNames_.insert(std::make_pair(idName, name));
