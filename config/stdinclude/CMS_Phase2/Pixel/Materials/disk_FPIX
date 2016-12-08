@@ -47,7 +47,7 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 13.1
+      quantity 13.31
       unit g
     }
     Element {
