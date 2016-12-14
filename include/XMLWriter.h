@@ -73,8 +73,9 @@ namespace insur {
     void specPar(std::string name, std::vector<SpecParInfo>& t, std::ofstream& stream, XmlTags& trackerXmlTags);
     void specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker);
   private:
-    std::vector<Composite> printedComposites_;
-    std::map<std::string, std::string> compositeNames_;
+    std::vector<Composite> printedComposites_; // List of composites whose materials are printed in the XMLs.
+    std::map<std::string, std::string> mapCompoToPrintedCompo_; // This maps each existing composite to a composite which has same materials. 
+                                                                // Only the PrintedCompo materials are printed in the XMLs.
     std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     bool endcapsInTopology(std::vector<SpecParInfo>& specs);
     int findNumericPrefixSize(std::string s);

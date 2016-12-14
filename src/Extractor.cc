@@ -2086,100 +2086,6 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
 #endif
 
-      //fres = found.find(iter->getCategory());
-
-      /*
-#if 0
-      if (fres == found.end()) {
-        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-        found.insert(iter->getCategory());
-      }
-
-      shape.name_tag = shapename.str();
-      shape.dz = iter->getZLength() / 2.0;
-      shape.rmin = iter->getInnerRadius();
-      shape.rmax = shape.rmin + iter->getRWidth();
-      s.push_back(shape);
-
-      logic.name_tag = shapename.str();
-      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
-      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-      l.push_back(logic);
-
-      switch (iter->getCategory()) {
-      case MaterialProperties::b_sup:
-      case MaterialProperties::t_sup:
-      case MaterialProperties::u_sup:
-      case MaterialProperties::o_sup:
-          pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
-          break;
-      case MaterialProperties::e_sup:
-          pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
-          break;
-      default:
-	pos.parent_tag = trackerXmlTags.nspace + ":" + xml_tracker;
-      }
-      pos.child_tag = logic.shape_tag;
-      if ((iter->getCategory() == MaterialProperties::o_sup) ||
-          (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
-      else pos.trans.dz = iter->getZOffset() + shape.dz;
-      p.push_back(pos);
-      pos.copy = 2;
-      pos.trans.dz = -pos.trans.dz;
-      pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
-      p.push_back(pos);
-      pos.copy = 1;
-      pos.rotref.clear();
-#else
-      
-      //if (fres == found.end() && iter->getLocalMasses().size() ) {
-      if (iter->getLocalMasses().size() ) {
-        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-        //found.insert(iter->getCategory());
-
-        shape.name_tag = shapename.str();
-        shape.dz = iter->getZLength() / 2.0;
-        shape.rmin = iter->getInnerRadius();
-        shape.rmax = shape.rmin + iter->getRWidth();
-        s.push_back(shape);
-
-        logic.name_tag = shapename.str();
-        logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
-        logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-        l.push_back(logic);
-
-        switch (iter->getCategory()) {
-        case MaterialProperties::b_sup:
-        case MaterialProperties::t_sup:
-        case MaterialProperties::u_sup:
-        case MaterialProperties::o_sup:
-	  pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
-	  break;
-        case MaterialProperties::e_sup:
-	  pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
-	  break;
-        default:
-	  pos.parent_tag = trackerXmlTags.nspace + ":" + xml_tracker;
-        }
-        pos.child_tag = logic.shape_tag;
-        if ((iter->getCategory() == MaterialProperties::o_sup) ||
-            (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
-        else pos.trans.dz = iter->getZOffset() + shape.dz;
-        p.push_back(pos);
-	pos.copy = 2;
-	pos.trans.dz = -pos.trans.dz;
-	pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
-	p.push_back(pos);
-	pos.copy = 1;
-	pos.rotref.clear();
-	}
-	#endif*/
-
-
-
-
-
-
       if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -2248,14 +2154,6 @@ namespace insur {
         }
       }
 
-
-
-
-
-
-
-
-
     }
     // DEBUG EXTREMA
     /*std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
@@ -2283,18 +2181,21 @@ namespace insur {
     comp.density = density;
     comp.method = wt;
     double m = 0.0;
-   for (std::map<std::string, double>::const_iterator it = mp.getLocalMasses().begin(); it != mp.getLocalMasses().end(); ++it) {
-      if (!nosensors || (it->first.compare(xml_sensor_silicon) != 0)) {
-        //    std::pair<std::string, double> p;
-        //    p.first = mp.getLocalTag(i);
-        //    p.second = mp.getLocalMass(i);
-        comp.elements.push_back(*it);
-        //    m = m + mp.getLocalMass(i);
-        m += it->second;
+    for (const auto& it : mp.getLocalMasses()) {   
+      if (!nosensors || (it.first.compare(xml_sensor_silicon) != 0)) { // SenSi element is not treated here. 
+	if (comp.elements.find(it.first) != comp.elements.end()) { // should not be necessary, but better safe than sorry
+	  throw PathfulException("Tried to insert several times " + it.first + " in component " + comp.name);
+        } 
+	else { 
+	  comp.elements.insert(it); // add element to the composite
+	  m += it.second; // calculate total mass of the composite
+	}      
       }
     }
-    for (unsigned int i = 0; i < comp.elements.size(); i++)
-      comp.elements.at(i).second = comp.elements.at(i).second / m;
+    // element info is the ratio of the mass of the element by the mass of the composite
+    for (auto& elem : comp.elements) {
+      elem.second /= m;
+    }
     return comp;
   }
 
@@ -3093,23 +2994,22 @@ namespace insur {
   }
 
   void ModuleComplex::addMaterialInfo(std::vector<Composite>& vec) {
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
+    for (const auto& vit : volumes) {
+      if (!(vit->getDensity() > 0.)) continue; 
       Composite comp;
-      comp.name    = prefix_material + (*vit)->getName();
-      comp.density = (*vit)->getDensity();
+      comp.name    = prefix_material + vit->getName();
+      comp.density = vit->getDensity();
       comp.method  = wt;
 
       double m = 0.0;
-      for (std::map<std::string, double>::const_iterator it = (*vit)->getMaterialList().begin(); 
-                                                         it != (*vit)->getMaterialList().end(); ++it) {
-          comp.elements.push_back(*it);
-          m += it->second;
+      for (const auto& it : vit->getMaterialList()) {
+	comp.elements.insert(it);
+	m += it.second;
       }
    
-      for (unsigned int i = 0; i < comp.elements.size(); i++)
-        comp.elements.at(i).second = comp.elements.at(i).second / m;
+      for (auto& elem : comp.elements) {
+        elem.second /= m;
+      }
       
       vec.push_back(comp);
     }

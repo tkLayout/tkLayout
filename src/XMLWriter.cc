@@ -576,16 +576,21 @@ namespace insur {
      */
   void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags) {
     std::string& name = comp.name;
+    std::string nspaceName = trackerXmlTags.nspace + ":" + name;
     double& density = comp.density;
     CompType& method = comp.method;
-    std::vector<std::pair<std::string, double> >& elements = comp.elements;
+    std::map<std::string, double>& elements = comp.elements;
+ 
+    // Look if ever another composite with same materials is already printed.
+    auto foundComposite = std::find_if(printedComposites_.begin(), printedComposites_.end(), 
+				  [&](Composite& printedComposite) { return (printedComposite == comp); });
 
-    std::string idName = trackerXmlTags.nspace + ":" + name;
-    auto foundComp = std::find_if(printedComposites_.begin(), printedComposites_.end(), [&](Composite& i) { return (comp == i); });
-
-    if (foundComp != printedComposites_.end()) {
-      compositeNames_.insert(std::make_pair(idName, (*foundComp).name)); 
-    } 
+    // Case where a composite with same materials is already printed
+    if (foundComposite != printedComposites_.end()) {
+      mapCompoToPrintedCompo_.insert(std::make_pair(nspaceName, foundComposite->name)); // Just map the name of the composite 
+                                                                                        // to the name of the one which is already printed.
+    }
+    // Case where the materials composition is not already printed : hence, print it !
     else {
       stream << xml_composite_material_open << name << xml_composite_material_first_inter;
       stream << density << xml_composite_material_second_inter ;
@@ -606,12 +611,14 @@ namespace insur {
       }
       stream << xml_composite_material_close;
 
-      if (compositeNames_.find(idName) != compositeNames_.end()) {
-	//throw PathfulException("Found several composite materials with same name");
-	std::cout << "VOLUME " << idName << "IS DUPLICATED !!!!!!!!!!" << std::endl;
+      // Special case where a composite with same name already exists
+      if (mapCompoToPrintedCompo_.find(nspaceName) != mapCompoToPrintedCompo_.end()) {
+	//throw PathfulException("Found several composite materials with same name " + nspaceName);
+	std::cout << "VERY IMPORTANT : VOLUME " << nspaceName << " IS DUPLICATED !!!!!!!!!!" << std::endl;
       }
-      printedComposites_.push_back(comp); 
-      compositeNames_.insert(std::make_pair(idName, name));
+      // Add the composite which has just been printed, to the list of printed composites.
+      printedComposites_.push_back(comp);
+      mapCompoToPrintedCompo_.insert(std::make_pair(nspaceName, name)); // Maps the composite to itself, since it is a printed composite !
     }
   }
     
@@ -625,12 +632,16 @@ namespace insur {
      */
   void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags) {
       stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
-      auto newMaterialName = compositeNames_.find(material);
-      if (newMaterialName != compositeNames_.end()) {
-	stream << xml_logical_part_second_inter << trackerXmlTags.nspace << ":" << (*newMaterialName).second << xml_logical_part_close;
-      } else {
-	stream << xml_logical_part_second_inter << material << xml_logical_part_close;
-	}
+      // Look whether the considered material is associated to an identical and already printed materials composition.
+      auto printedComposite = mapCompoToPrintedCompo_.find(material);
+      // KEY POINT : in that case, associate the logical volume to the materials compopsition which was already printed.
+      if (printedComposite != mapCompoToPrintedCompo_.end()) {
+        stream << xml_logical_part_second_inter << trackerXmlTags.nspace << ":" << printedComposite->second << xml_logical_part_close;
+      }
+      // Otherwise, associate the logical volume to its own material.
+      else {
+        stream << xml_logical_part_second_inter << material << xml_logical_part_close;
+      }
     }
     
     /**
