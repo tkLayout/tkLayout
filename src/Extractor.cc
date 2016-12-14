@@ -1898,12 +1898,10 @@ namespace insur {
       if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 #else
       matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-	  if ((int)(iter->getInnerRadius()) == 270 && (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) == 2567) { std::cout << "R" << iter->getInnerRadius() << "Z" << fabs(iter->getZOffset() + iter->getZLength() / 2.0) << std::endl; }
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
