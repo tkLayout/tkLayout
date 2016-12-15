@@ -30,7 +30,7 @@ public:
   ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<double, NoDefault> stripLengthEstimate;
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
-  ReadonlyProperty<double, Default> sensorThickness;
+  ReadonlyProperty<double, NoDefault> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
   ReadonlyProperty<double, Computable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
   ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
@@ -42,7 +42,7 @@ public:
     stripLengthEstimate("stripLengthEstimate", parsedOnly()),
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
-    sensorThickness("sensorThickness", parsedOnly(), 0.1),
+    sensorThickness("sensorThickness", parsedAndChecked()),
     type("sensorType", parsedOnly(), SensorType::None)
       {}
 

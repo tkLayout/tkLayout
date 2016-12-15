@@ -36,12 +36,12 @@ public:
   }
 
   void visit(Barrel& b) {
-    irradiatedPowerConsumptionSummaries[b.myid()].setHeader("layer", "ring");
+    irradiatedPowerConsumptionSummaries[b.myid()].setHeader("Layer", "Ring");
     irradiatedPowerConsumptionSummaries[b.myid()].setPrecision(3);        
   }
 
   void visit(Endcap& e) {
-    irradiatedPowerConsumptionSummaries[e.myid()].setHeader("layer", "ring");
+    irradiatedPowerConsumptionSummaries[e.myid()].setHeader("Disk", "Ring");
     irradiatedPowerConsumptionSummaries[e.myid()].setPrecision(3);        
   }
 
