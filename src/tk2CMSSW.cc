@@ -166,8 +166,8 @@ namespace insur {
                 default: std::cout << "unknown method";
             }
             std::cout << std::endl << "elements: ";
-            std::vector<std::pair<std::string, double> >& elems = data.composites.at(i).elements;
-            for (unsigned int j = 0; j < elems.size(); j++) std::cout << "(" << elems.at(j).first << ", " << elems.at(j).second << ") ";
+            std::map<std::string, double>& elements = data.composites.at(i).elements;
+            for (const auto& elem : elements) std::cout << "(" << elem.first << ", " << elem.second << ") ";
             std::cout << std::endl;
         }
         std::cout << "rotations: " << data.rots.size() << " entries." << std::endl;
