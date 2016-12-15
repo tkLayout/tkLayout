@@ -96,17 +96,17 @@ Materials FPIX_2_disk {
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 3.34
+      quantity 4.31
       unit g
     }
     Element {
       elementName Cu
-      quantity 1.19
+      quantity 1.54
       unit g
     }
     Element {
       elementName PE
-      quantity 12.01
+      quantity 15.50
       unit g
     }
   }
@@ -120,17 +120,17 @@ Materials FPIX_2_disk {
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.0110
+      quantity 0.0220
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0039
+      quantity 0.0078
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0396
+      quantity 0.0792
       unit g/m
     }
   }

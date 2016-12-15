@@ -47,17 +47,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 13.31
+      quantity 12.19
       unit g
     }
     Element {
       elementName Cu
-      quantity 2.05
+      quantity 1.9
       unit g
     }
     Element {
       elementName PE
-      quantity 4.49
+      quantity 4.35
       unit g
     }
   }
@@ -69,17 +69,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.0954
+      quantity 0.0836
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0143
+      quantity 0.0298
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0317
+      quantity 0.0292
       unit g/m
     }
   }
@@ -92,17 +92,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 1.46
+      quantity 1.86
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.52
+      quantity 0.66
       unit g
     }
     Element {
       elementName PE
-      quantity 5.24
+      quantity 6.69
       unit g
     }
   }
@@ -114,17 +114,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.0064
+      quantity 0.0129
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0023
+      quantity 0.0046
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0231
+      quantity 0.0462
       unit g/m
     }
   }
