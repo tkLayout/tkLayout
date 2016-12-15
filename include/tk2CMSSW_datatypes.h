@@ -8,7 +8,9 @@
 
 #include <string>
 #include <vector>
-#include<map>
+#include <map>
+#include <math.h> 
+#include <tk2CMSSW_strings.h>
 
 namespace insur {
     /**
@@ -76,13 +78,31 @@ namespace insur {
      * @param name The name of the composite material
      * @param density The overall density of the composite material (in g/cm3)
      * @param method The type of mixture: by weight, by volume or by atomic proportion
-     * @param elements A list of pairs indicating the elements in the compound by name and fraction of the whole
+     * @param elements A list of elements in the compound, key = name of the element, value = massic fraction of the whole
      */
     struct Composite {
         std::string name;
         double density;
         CompType method;
-        std::vector<std::pair<std::string, double> > elements;
+        std::map<std::string, double> elements;
+
+        // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
+        // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
+        // No matter the name of the component !
+        bool operator==(const Composite& otherComp) const {
+	  if ((fabs(density - otherComp.density) > xml_composite_density_tolerance)  // not same density ?
+	      || (method != otherComp.method)  // not same mixture method ?
+	      || (elements.size() != otherComp.elements.size())) {  // not same number of elements ?
+	    return false;
+  	  }
+	  for (const auto& elem : otherComp.elements) {  // for a given element :
+	    if ((elements.find(elem.first) == elements.end())  // not found in the composite ?
+	        || (fabs(elements.at(elem.first) - elem.second) > xml_composite_ratio_tolerance)) { // not same massic ratio ?
+	      return false;
+	  }
+	}
+	return true;
+      }
     };
     /**
      * @struct LogicalInfo

@@ -109,7 +109,7 @@ namespace insur {
     buffer << xml_definition;
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker);
+      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, xml_newtrackerfile, buffer);
       logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
       solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
@@ -117,7 +117,7 @@ namespace insur {
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
       logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
       solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
@@ -393,14 +393,14 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker) {
+  void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags) {
         stream << xml_material_section_open << name << xml_general_inter;
 	// Elementary materials (only in tracker.xml)
 	if (!isPixelTracker) {
             for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
 	}
 	// Composite materials
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -433,8 +433,8 @@ namespace insur {
     void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
-        if (!wt && !isPixelTracker) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream);
-        for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
+        if (!wt && !isPixelTracker) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream, trackerXmlTags);
+        for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream, trackerXmlTags);
         stream << xml_logical_part_section_close;
     }
 
@@ -574,27 +574,53 @@ namespace insur {
      * @param es A reference to a list of elementary material names and their fractions in the composite mixture, stored in instances of <i>std::pair</i>
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::compositeMaterial(std::string name,
-				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
-        stream << xml_composite_material_open << name << xml_composite_material_first_inter;
-        stream << density << xml_composite_material_second_inter ;
-        switch (method) {
-            case wt : stream << "mixture by weight";
-            break;
-            case vl : stream << "mixture by volume";
-            break;
-            case ap : stream << "compound by atomic proportion";
-            break;
-            default: std::cerr << "tk2CMSSW::compositeMaterial(): unknown method identifier for composite material. Using mixture by weight." << std::endl;
-            stream << "mixture by weight";
-        }
-        stream << xml_general_inter;
-        for (unsigned int i = 0; i < es.size(); i++) {
-            stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << xml_fileident << ":" << xml_tkLayout_material << es.at(i).first << xml_material_fraction_close;
-        }
-        stream << xml_composite_material_close;
+  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+    std::string& name = comp.name;
+    std::string nspaceName = trackerXmlTags.nspace + ":" + name;
+    double& density = comp.density;
+    CompType& method = comp.method;
+    std::map<std::string, double>& elements = comp.elements;
+ 
+    // Look if ever another composite with same materials is already printed.
+    auto foundComposite = std::find_if(printedComposites_.begin(), printedComposites_.end(), 
+				  [&](Composite& printedComposite) { return (printedComposite == comp); });
+
+    // Case where a composite with same materials is already printed
+    if (foundComposite != printedComposites_.end()) {
+      mapCompoToPrintedCompo_.insert(std::make_pair(nspaceName, foundComposite->name)); // Just map the name of the composite 
+                                                                                        // to the name of the one which is already printed.
     }
+    // Case where the materials composition is not already printed : hence, print it !
+    else {
+      stream << xml_composite_material_open << name << xml_composite_material_first_inter;
+      stream << density << xml_composite_material_second_inter ;
+      switch (method) {
+      case wt : stream << "mixture by weight";
+	break;
+      case vl : stream << "mixture by volume";
+	break;
+      case ap : stream << "compound by atomic proportion";
+	break;
+      default: std::cerr << "tk2CMSSW::compositeMaterial(): unknown method identifier for composite material. Using mixture by weight." << std::endl;
+	stream << "mixture by weight";
+      }
+      stream << xml_general_inter;
+      for (const auto& elem : elements) {
+	stream << xml_material_fraction_open << elem.second << xml_material_fraction_inter;
+	stream << xml_fileident << ":" << xml_tkLayout_material << elem.first << xml_material_fraction_close;
+      }
+      stream << xml_composite_material_close;
+
+      // Special case where a composite with same name already exists
+      if (mapCompoToPrintedCompo_.find(nspaceName) != mapCompoToPrintedCompo_.end()) {
+	//throw PathfulException("Found several composite materials with same name " + nspaceName);
+	std::cout << "VERY IMPORTANT : VOLUME " << nspaceName << " IS DUPLICATED !!!!!!!!!!" << std::endl;
+      }
+      // Add the composite which has just been printed, to the list of printed composites.
+      printedComposites_.push_back(comp);
+      mapCompoToPrintedCompo_.insert(std::make_pair(nspaceName, name)); // Maps the composite to itself, since it is a printed composite !
+    }
+  }
     
     /**
      * This formatter writes an XML entry describing a logical volume to the stream that serves as a buffer for the
@@ -604,9 +630,18 @@ namespace insur {
      * @param material The name of the material that this volume is made of
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream) {
-        stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
+  void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+      stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
+      // Look whether the considered material is associated to an identical and already printed materials composition.
+      auto printedComposite = mapCompoToPrintedCompo_.find(material);
+      // KEY POINT : in that case, associate the logical volume to the materials compopsition which was already printed.
+      if (printedComposite != mapCompoToPrintedCompo_.end()) {
+        stream << xml_logical_part_second_inter << trackerXmlTags.nspace << ":" << printedComposite->second << xml_logical_part_close;
+      }
+      // Otherwise, associate the logical volume to its own material.
+      else {
         stream << xml_logical_part_second_inter << material << xml_logical_part_close;
+      }
     }
     
     /**
