@@ -54,6 +54,7 @@ bool AnalyzerResolution::init(int nTracks)
     // Prepare Csv containers -> keep final pT/p resolution in csv file
     m_csvResPt = std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
     m_csvResP  = std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
+    m_csvHitCol= std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
 
     m_csvResPt->addCsvElement("Label", "Tag name");
     m_csvResPt->addCsvElement("Label", "Resolution type");
@@ -62,6 +63,10 @@ bool AnalyzerResolution::init(int nTracks)
     m_csvResP->addCsvElement("Label", "Tag name");
     m_csvResP->addCsvElement("Label", "Resolution type");
     m_csvResP->addCsvElement("Label", "Total momentum [GeV]");
+
+    m_csvHitCol->addCsvElement("Label", "Eta");
+    m_csvHitCol->addCsvElement("Label", "BPHit");
+    m_csvHitCol->addCsvElement("Label", "NxDetHits (s_R:s_Z:X/X0@Eta)");
 
     for (unsigned int iBorder=0; iBorder<SimParms::getInstance().getNEtaRegions()-1; ++iBorder) {
 
@@ -73,6 +78,7 @@ bool AnalyzerResolution::init(int nTracks)
 
     m_csvResPt->addCsvEOL("Label");
     m_csvResP->addCsvEOL("Label");
+    m_csvHitCol->addCsvEOL("Label");
 
     m_isInitOK = true;
     return m_isInitOK;
@@ -109,8 +115,21 @@ bool AnalyzerResolution::analyze()
 
     // Assign material to the track
     MatTrackVisitor matVisitor(matTrack);
-    for (auto iTracker : m_trackers) iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
     m_beamPipe->accept(matVisitor);                                 // Assign to material track hit corresponding to beam-pipe
+    for (auto iTracker : m_trackers) iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
+
+    // Output hits to a file for debuggin purposes
+    m_csvHitCol->addCsvElement(std::string("LastEta="+any2str(eta, 2)), any2str(eta, 2));
+
+    std::map<double, std::string> hitInfoRSorted;
+    for (std::vector<std::unique_ptr<Hit>>::const_iterator iter=matTrack.getBeginHits(); iter!=matTrack.getEndHits(); iter++) {
+
+      std::string hitInfo = any2str((*iter)->getRPos()/Units::mm,1)+":"+any2str((*iter)->getZPos()/Units::mm,1)+":"+any2str((*iter)->getCorrectedMaterial().radiation, 6);
+      hitInfoRSorted[(*iter)->getRPos()] = hitInfo;
+    }
+    for (auto& iMap : hitInfoRSorted) m_csvHitCol->addCsvElement(std::string("LastEta="+any2str(eta, 2)), iMap.second);
+    hitInfoRSorted.clear();
+    m_csvHitCol->addCsvEOL(std::string("LastEta="+any2str(eta, 2)));
 
     // Go through tracks with non-zero number of hits
     if (!matTrack.hasNoHits()) {
@@ -502,6 +521,18 @@ const CsvTextBuilder& AnalyzerResolution::getCsvResP() const
 }
 
 //
+// Get Csv text output for hit collection-> exception thrown if doesn't exist
+//
+const CsvTextBuilder& AnalyzerResolution::getCsvHitCol() const
+{
+  // Check if exist
+  if (m_csvHitCol) return *m_csvHitCol;
+
+  // Otherwise throw exception
+  else throw std::invalid_argument( "CsvTextBuilder::getCsvHitCol() - csvHitCol not defined (null reference), check!!!" );
+}
+
+//
 // Prepare plot: fill with data & set properties; varType specifies variable type to be filled: pT, p, d0, z0, phi0, cotgTheta
 //
 void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisArray, std::string varType, std::string scenario, const std::map<int, TrackCollection>& mapCollection)
@@ -554,11 +585,14 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
 
       double xVal = track->getEta();
       double yVal = 0;
-      if (varType=="pT")        yVal = track->getDeltaPtOverPt()*100; // In percent
-      if (varType=="p")         yVal = track->getDeltaPOverP()*100;   // In percent
-      if (varType=="d0")        yVal = track->getDeltaD0()/Units::um;
-      if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
-      if (varType=="phi0")      yVal = track->getDeltaPhi()/M_PI*180.; // In degerees
+
+      // Evaluate at reference point [r,z] =[0,0]
+      double rPos = 0.0;
+      if (varType=="pT")        yVal = track->getDeltaPtOverPt(rPos)*100; // In percent
+      if (varType=="p")         yVal = track->getDeltaPOverP(rPos)*100;   // In percent
+      if (varType=="d0")        yVal = track->getDeltaD0(rPos)/Units::um;
+      if (varType=="z0")        yVal = track->getDeltaZ0(rPos)/Units::um;
+      if (varType=="phi0")      yVal = track->getDeltaPhi0(rPos)/M_PI*180.; // In degerees
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta();
 
       profHis->Fill(xVal, yVal);
@@ -858,7 +892,8 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
   double theta = m_matTrack.getTheta();
   double eta   = m_matTrack.getEta();
   double rPos  = (bp.radius()+bp.thickness()/2.);
-  double zPos  = rPos/sin(theta);
+  double zPos  = rPos/tan(theta);
+
   HitPtr hit(new Hit(rPos, zPos));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);
@@ -878,8 +913,8 @@ void MatTrackVisitor::visit(const BeamPipe& bp)
 void MatTrackVisitor::visit(const Barrel& b)
 {
   for (auto& element : b.services()) {
-      analyzeInactiveElement(element);
-    }
+    analyzeInactiveElement(element);
+  }
 }
 
 //
@@ -965,104 +1000,108 @@ void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
 //
 void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
 {
-  // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
-  // only volumes of the requested category, or those without one (which should not exist) are examined
-  if ((e.getZOffset() + e.getZLength()) > 0) {
+  // Work-out only if inactive element has non-zero material assigned, otherwise no effect of inactive material
+  if (e.getRadiationLength()!=0 || e.getInteractionLength()!=0) {
 
-    // collision detection: check eta range
-    auto etaMinMax = e.getEtaMinMax();
+    // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
+    // only volumes of the requested category, or those without one (which should not exist) are examined
+    if ((e.getZOffset() + e.getZLength()) > 0) {
 
-    // Volume hit
-    double eta   = m_matTrack.getEta();
-    double theta = m_matTrack.getTheta();
+      // collision detection: check eta range
+      auto etaMinMax = e.getEtaMinMax();
 
-    if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
+      // Volume hit
+      double eta   = m_matTrack.getEta();
+      double theta = m_matTrack.getTheta();
 
-      /*
-      if (eta<0.01) {
-        std::cout << "Hitting an inactive surface at z=("
-                  << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
-                  << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
-        const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-        const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
-        for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-        for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-      }
-      */
+      if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
 
-      // Initialize
-      Material material;
-      material.radiation   = 0.0;
-      material.interaction = 0.0;
-
-      double rPos = 0.0;
-      double zPos = 0.0;
-
-      // Radiation and interaction lenth scaling for vertical volumes
-      if (e.isVertical()) {
-
-        zPos = e.getZOffset() + e.getZLength() / 2.0;
-        rPos = zPos * tan(theta);
-
-        material.radiation   = e.getRadiationLength();
-        material.interaction = e.getInteractionLength();
-
-        // Special treatment for user-defined supports as they can be very close to z=0
-        if (e.getCategory() == MaterialProperties::u_sup) {
-
-          double s = e.getZLength() / cos(theta);
-          if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
-
-          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-          //if (e.track()) {}
-
-          material.radiation  *= s / e.getZLength();
-          material.interaction*= s / e.getZLength();
+        /*
+        if (eta<0.01) {
+          std::cout << "Hitting an inactive surface at z=("
+                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
+                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
+          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
+          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
+          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
         }
+        */
+
+        // Initialize
+        Material material;
+        material.radiation   = 0.0;
+        material.interaction = 0.0;
+
+        double rPos = 0.0;
+        double zPos = 0.0;
+
+        // Radiation and interaction lenth scaling for vertical volumes
+        if (e.isVertical()) {
+
+          zPos = e.getZOffset() + e.getZLength() / 2.0;
+          rPos = zPos * tan(theta);
+
+          material.radiation   = e.getRadiationLength();
+          material.interaction = e.getInteractionLength();
+
+          // Special treatment for user-defined supports as they can be very close to z=0
+          if (e.getCategory() == MaterialProperties::u_sup) {
+
+            double s = e.getZLength() / cos(theta);
+            if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
+
+            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+            //if (e.track()) {}
+
+            material.radiation  *= s / e.getZLength();
+            material.interaction*= s / e.getZLength();
+          }
+          else {
+
+            material.radiation   /= cos(theta);
+            material.interaction /= cos(theta);
+          }
+        }
+        // Radiation and interaction length scaling for horizontal volumes
         else {
 
-          material.radiation   /= cos(theta);
-          material.interaction /= cos(theta);
+          rPos = e.getInnerRadius() + e.getRWidth() / 2.0;
+          zPos = rPos/tan(theta);
+
+          material.radiation   = e.getRadiationLength();
+          material.interaction = e.getInteractionLength();
+
+          // Special treatment for user-defined supports; should not be necessary for now
+          // as all user-defined supports are vertical, but just in case...
+          if (e.getCategory() == MaterialProperties::u_sup) {
+
+            double s = e.getZLength() / sin(theta);
+
+            if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
+
+            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
+            //if (e.track()) {}
+
+            material.radiation  *= s / e.getZLength();
+            material.interaction*= s / e.getZLength();
+          }
+          else {
+
+            material.radiation   /= sin(theta);
+            material.interaction /= sin(theta);
+          }
         }
-      }
-      // Radiation and interaction length scaling for horizontal volumes
-      else {
 
-        rPos = e.getInnerRadius() + e.getRWidth() / 2.0;
-        zPos = rPos/tan(theta);
+        // Create Hit object with appropriate parameters, add to Track t
+        HitPtr hit(new Hit(rPos, zPos));
+        if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
+        else                hit->setOrientation(HitOrientation::Horizontal);
+        hit->setObjectKind(HitKind::Inactive);
+        hit->setCorrectedMaterial(material);
+        m_matTrack.addHit(std::move(hit));
 
-        material.radiation   = e.getRadiationLength();
-        material.interaction = e.getInteractionLength();
-
-        // Special treatment for user-defined supports; should not be necessary for now
-        // as all user-defined supports are vertical, but just in case...
-        if (e.getCategory() == MaterialProperties::u_sup) {
-
-          double s = e.getZLength() / sin(theta);
-
-          if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
-
-          // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-          //if (e.track()) {}
-
-          material.radiation  *= s / e.getZLength();
-          material.interaction*= s / e.getZLength();
-        }
-        else {
-
-          material.radiation   /= sin(theta);
-          material.interaction /= sin(theta);
-        }
-      }
-
-      // Create Hit object with appropriate parameters, add to Track t
-      HitPtr hit(new Hit(rPos, zPos));
-      if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
-      else                hit->setOrientation(HitOrientation::Horizontal);
-      hit->setObjectKind(HitKind::Inactive);
-      hit->setCorrectedMaterial(material);
-      m_matTrack.addHit(std::move(hit));
-
-    } // Eta min max
-  } // +Z check
+      } // Eta min max
+    } // +Z check
+  } // Non-zero material assigned
 }

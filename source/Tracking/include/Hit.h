@@ -67,8 +67,9 @@ public:
   void setPixel(bool isPixel)                       { m_isPixel = isPixel;}
   void setBeamPipe(bool isBeamPipe)                 { m_isBeamPipe = isBeamPipe;}
   void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
-  void setResolutionRphi(double newRes)             { m_resolutionRphi = newRes; } // Only used for virtual hits on non-modules
-  void setResolutionY(double newRes)                { m_resolutionY = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionRphi(double newRes)             { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionZ(double newRes)                { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
+  void setResolutionY(double newRes)                { setResolutionZ(newRes); } // Used for compatibility only -> use setResolutionZ(double newRes) instead
   bool setIP(bool newIP)                            { return m_isIP = newIP; }
   void setActiveHitType(HitType activeHitType)      { m_activeHitType = activeHitType; }
 
@@ -119,8 +120,8 @@ private:
   
   double getTrackTheta();
 
-  double m_resolutionRphi; // Only used for virtual hits on non-modules
-  double m_resolutionY;    // Only used for virtual hits on non-modules
+  double m_resolutionRPhi; // Only used for virtual hits on non-modules
+  double m_resolutionZ;    // Only used for virtual hits on non-modules
 
 }; // Class
 

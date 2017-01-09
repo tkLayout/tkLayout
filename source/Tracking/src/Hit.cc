@@ -60,8 +60,8 @@ Hit::Hit() {
     m_isTrigger        = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = HitType::NONE;
 }
 
@@ -82,8 +82,8 @@ Hit::Hit(const Hit& h) {
     m_isTrigger         = h.m_isTrigger;
     m_isIP              = h.m_isIP;
     m_isBeamPipe        = h.m_isBeamPipe;
-    m_resolutionRphi    = h.m_resolutionRphi;
-    m_resolutionY       = h.m_resolutionY;
+    m_resolutionRPhi    = h.m_resolutionRPhi;
+    m_resolutionZ       = h.m_resolutionZ;
     m_activeHitType     = h.m_activeHitType;
 }
 
@@ -102,8 +102,8 @@ Hit::Hit(double rPos, double zPos) {
     m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = HitType::NONE;
 }
 
@@ -123,8 +123,8 @@ Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activ
     m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = activeHitType;
 }
 
@@ -189,7 +189,7 @@ double Hit::getResolutionRphi(double trackRadius) {
      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
      // else return hitModule_->resolutionRPhi();
     }
-    else return m_resolutionRphi;
+    else return m_resolutionRPhi;
   }
 }
 
@@ -222,7 +222,7 @@ double Hit::getResolutionZ(double trackRadius) {
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     }
-    else return m_resolutionY;
+    else return m_resolutionZ;
   }
 }
 
