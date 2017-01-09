@@ -194,7 +194,7 @@ double Track::getDeltaPOverP(double rPos) const {
 
   // Combining into p measurement
   // dp/p = dp_t/p_t + A / (1+A^2) * dA // with A = ctg(theta)
-  // dp/p = dp_t/p_t + sin(theta)*cos(theta)
+  // dp/p = dp_t/p_t + sin(theta)*cos(theta)*dcotg(theta)
   double deltaPtOverPt = getDeltaPtOverPt(rPos);
   double deltaCtgTheta = getDeltaCtgTheta();
   if (deltaPtOverPt!=-1 && deltaCtgTheta!=-1) deltaPOverP = sqrt(deltaPtOverPt*deltaPtOverPt + sin(m_theta)*sin(m_theta) * cos(m_theta)*cos(m_theta) * deltaCtgTheta*deltaCtgTheta);
@@ -680,9 +680,13 @@ bool Track::computeVarianceMatrixRPhi() {
       // instead of p & then one has to multiply the msTheta by deltaR to get MS error
       msTheta = (13.6*Units::MeV * 13.6*Units::MeV) / (m_pt/Units::MeV * m_pt/Units::MeV) * XtoX0 * (1 + 0.038 * log(XtoX0)) * (1 + 0.038 * log(XtoX0));
 
-      // Take into account a very small correction factor coming from the circular shape of particle track (similar approach as for local resolutions)
-      double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());     // r_i/2R
-           A = 0; // For testing purposes only -> don't apply helix correction
+      // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+      // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+      // approach as for local resolutions)
+      // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+      // (hence correction not applied in such case)
+      double A = 0;
+      if (SimParms::getInstance().isMagFieldConst()) A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());     // r_i/2R
       double corrFactor = 1 + A*A*cos(m_theta)*cos(m_theta)/(1-A*A);
 
       msTheta *= corrFactor;
@@ -906,11 +910,13 @@ bool Track::computeVarianceMatrixRZ() {
       // instead of p & then one has to multiply the msTheta by deltaR to get MS error
       msTheta = (13.6*Units::MeV * 13.6*Units::MeV) / (m_pt/Units::MeV * m_pt/Units::MeV) * XtoX0 * (1 + 0.038 * log(XtoX0)) * (1 + 0.038 * log(XtoX0));
 
-      // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit) ->
-      // in limit R->inf. propagation along line, otherwise very small correction factor coming from the circular shape of particle track is used (similar
+      // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+      // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
       // approach as for local resolutions)
-      double A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());  // r_i/2R
-           A = 0; // For testing purposes only -> don't apply helix correction
+      // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+      // (hence correction not applied in such case)
+      double A = 0;
+      if (SimParms::getInstance().isMagFieldConst()) A = m_hits.at(i)->getRPos()/2./getRadius(m_hits.at(i)->getZPos());  // r_i/2R
       double corrFactor = pow( cos(m_theta)*cos(m_theta)/sin(m_theta)/sqrt(1-A*A) + sin(m_theta) ,2); // Without correction it would be 1/sin(theta)^2
 
       msTheta *=corrFactor;

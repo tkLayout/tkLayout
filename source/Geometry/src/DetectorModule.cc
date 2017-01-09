@@ -1,6 +1,7 @@
 
 #include "DetectorModule.h"
 #include "ModuleCap.h"
+#include "SimParms.h"
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
 define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
@@ -240,16 +241,20 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 //
 double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) const {
 
-  // Parameters
-  double A = hitRho/(2*trackR); // r_i / 2R
-  //A = 0; // For debugging purposes
+  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+  // approach as for local resolutions)
+  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+  // (hence correction not applied in such case)
+  double A = 0;
+  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR); // r_i / 2R
   double B = A/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
   double resolution = sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
 
   // Return calculated resolution (resolutionLocalX is intrinsic resolution along R-Phi for barrel module)
-  return resolution; //resolutionLocalX();
+  return resolution;
 }
 
 //
@@ -257,23 +262,18 @@ double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) co
 //
 double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta) const {
 
-  // Parameters
-  double A = hitRho/(2*trackR); 
-  //A = 0; // For debugging purposes
+
+  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+  // approach as for local resolutions)
+  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+  // (hence correction not applied in such case)
+  double A = 0;
+  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR);
   double D = trackCotgTheta/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
   double resolution = sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
-
-  // Used in special studies
-  //double tilt     =  M_PI/2. - atan(1./trackCotgTheta);
-  //double localRes = resolutionLocalY();
-  //
-  //double eta = -log(tan(0.5*atan(1./trackCotgTheta)));
-  //
-  //if (eta>1.0 && eta<3.5) localRes = localRes* pow(10,-0.31*(eta-1));
-  //
-  //double resolution = sqrt(pow(((D*cos(tilt) + sin(tilt))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tilt) + cos(tilt)) * localRes,2));
 
   // Return calculated resolution (resolutionLocalY is intrinsic resolution along Z for barrel module)
   return resolution; //resolutionLocalY();
