@@ -3448,8 +3448,12 @@ namespace insur {
   }
 
   bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
-    RootWPage* myPage = new RootWPage("Power");
-    myPage->setAddress("power.html");
+    std::string trackerName = tracker.myid();
+    std::string pageName = "Power (" + trackerName + ")";
+    std::string pageAddress = "power_" + trackerName + ".html";
+
+    RootWPage* myPage = new RootWPage(pageName);
+    myPage->setAddress(pageAddress);
     site.addPage(myPage);
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
