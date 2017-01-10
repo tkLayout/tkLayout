@@ -16,7 +16,7 @@ SimParms {
     operatingTemp -20
     referenceTemp 20
     chargeDepletionVoltage 600
-    alphaParm 4.28e-17
+    alphaParam 4.28e-17
     magneticField 3.8
 
     triggerEtaCut 2.2

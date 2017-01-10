@@ -6,18 +6,18 @@
 #include <vector>
 #include <utility>
 
+#include "global_constants.h"
 #include "Tracker.h"
 #include "SimParms.h"
-
 #include "Visitor.h"
 #include "SummaryTable.h"
 
 class IrradiationPowerVisitor : public GeometryVisitor {
-  double numInvFemtobarns;
+  double timeIntegratedLumi;
   double operatingTemp;
+  double referenceTemp;
   double chargeDepletionVoltage;
   double alphaParam;
-  double referenceTemp;
   const IrradiationMapsManager* irradiationMap_;
 public:
   MultiSummaryTable irradiatedPowerConsumptionSummaries;
@@ -27,11 +27,11 @@ public:
   }
 
   void visit(SimParms& sp) {
-    numInvFemtobarns = sp.timeIntegratedLumi();
-    operatingTemp    = sp.operatingTemp();
+    timeIntegratedLumi = sp.timeIntegratedLumi();
+    operatingTemp    = sp.operatingTemp() + insur::celcius_to_kelvin;
+    referenceTemp    = sp.referenceTemp() + insur::celcius_to_kelvin;
     chargeDepletionVoltage = sp.chargeDepletionVoltage();
-    alphaParam       = sp.alphaParm();
-    referenceTemp    = sp.referenceTemp();
+    alphaParam       = sp.alphaParam();
     irradiationMap_  = &sp.irradiationMapsManager();
   }
 
@@ -91,17 +91,24 @@ public:
     //irrPoint22 = irrPoint;
     if(irrPoint > irrxy) irrxy = irrPoint;
 
-    double fluence = irrxy * numInvFemtobarns; // fluence is in 1MeV-equiv-neutrons/cm^2
-    //double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2
-    double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
-    double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
-    //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
+    double fluence = irrxy * timeIntegratedLumi; // fluence is in 1MeV-equiv-neutrons/cm^2
+    //double fluence = irrxy * timeIntegratedLumi * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2
 
-//    modulePowerConsumptions_[&m] = irradiatedPowerConsumption; // CUIDADO CHECK WHERE IT IS NEEDED
+    // Calculate the leakage current at the reference temperature
+    double leakageCurrentAtReferenceTemp = alphaParam * fluence * volume;
+    // HAMBURG MODEL
+    // Calculate the leakage current at operational temperature
+    double leakageCurrent = leakageCurrentAtReferenceTemp * pow(operatingTemp / referenceTemp , 2) * exp(-insur::siliconEffectiveBandGap / (2 * insur::boltzmann_constant) * (1 / operatingTemp - 1 / referenceTemp));
+
+    // Calculate the heat power produced by the silicon sensors due to leakage current
+    double irradiatedPowerConsumption = leakageCurrent * chargeDepletionVoltage;
+
+    // Store result
     m.irradiationPower(irradiatedPowerConsumption);
-
     TableRef tref = m.tableRef();
     irradiatedPowerConsumptionSummaries[tref.table].setCell(tref.row, tref.col, irradiatedPowerConsumption);
+
+    //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
   }
 };
 

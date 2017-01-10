@@ -41,7 +41,7 @@ public:
   ReadonlyProperty<double, NoDefault> operatingTemp;
   ReadonlyProperty<double, NoDefault> referenceTemp;
   ReadonlyProperty<double, NoDefault> chargeDepletionVoltage;
-  ReadonlyProperty<double, NoDefault> alphaParm;
+  ReadonlyProperty<double, NoDefault> alphaParam;
   ReadonlyProperty<double, NoDefault> magneticField;
 
   PropertyVector<std::string, ','> irradiationMapFiles;
@@ -69,7 +69,7 @@ public:
       operatingTemp("operatingTemp", parsedAndChecked()),
       referenceTemp("referenceTemp", parsedAndChecked()),
       chargeDepletionVoltage("chargeDepletionVoltage", parsedAndChecked()),
-      alphaParm("alphaParm", parsedAndChecked()),    
+      alphaParam("alphaParam", parsedAndChecked()),    // radiation-damage coefficient, A/cm
       magneticField("magneticField", parsedAndChecked()),
       irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
       minTracksEta("minTracksEta", parsedOnly()),

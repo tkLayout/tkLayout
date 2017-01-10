@@ -3076,7 +3076,7 @@ namespace insur {
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Irradiation &alpha; parameter");
-    myInfo->setValueSci(simparms.alphaParm(),4);
+    myInfo->setValueSci(simparms.alphaParam(), 4);  // 4 digits-precision
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 
