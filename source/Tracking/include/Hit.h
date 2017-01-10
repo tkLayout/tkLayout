@@ -40,17 +40,14 @@ class Hit {
 
 public:
 
-  //! Constructor
-  Hit();
-
   //! Copy constructor
   Hit(const Hit& h);
 
-  //! Constructor for a hit with no module at a given distance from the origin
-  Hit(double myDistance);
+  //! Constructor for a hit with no module (for passive materials) at [rPos, zPos] (cylindrical position) from the origin
+  Hit(double rPos, double zPos);
 
-  //! Constructor for a hit on a given module at a given distance from the origin
-  Hit(double myDistance, const DetectorModule* myModule, HitType activeHitType);
+  //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
+  Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType);
 
   //! Destructor
   ~Hit();
@@ -61,21 +58,18 @@ public:
   //! Given two hits, compare the distance to the z-axis based on higher R
   static bool sortHigherR(const HitPtr& h1, const HitPtr& h2);
 
-  //! Update hit radius (radius in 2D - xy plane), based on new track parameters
-  void updateRadius() {m_radius = m_distance * sin(getTrackTheta());};
-
   // Setter methods
   void setHitModule(const DetectorModule* myModule);
-  void setDistance(double newDistance)              { if (newDistance>0) m_distance = newDistance; updateRadius(); };
   void setOrientation(HitOrientation newOrientation){ m_orientation = newOrientation; };
   void setObjectKind(HitKind newObjectKind)         { m_objectKind = newObjectKind;};
-  void setTrack(const Track* newTrack)              { m_track = newTrack; updateRadius();};
+  void setTrack(const Track* newTrack)              { m_track = newTrack;};
   void setCorrectedMaterial(RILength newMaterial)   { m_correctedMaterial = newMaterial;};
   void setPixel(bool isPixel)                       { m_isPixel = isPixel;}
   void setBeamPipe(bool isBeamPipe)                 { m_isBeamPipe = isBeamPipe;}
   void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
-  void setResolutionRphi(double newRes)             { m_resolutionRphi = newRes; } // Only used for virtual hits on non-modules
-  void setResolutionY(double newRes)                { m_resolutionY = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionRphi(double newRes)             { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionZ(double newRes)                { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
+  void setResolutionY(double newRes)                { setResolutionZ(newRes); } // Used for compatibility only -> use setResolutionZ(double newRes) instead
   bool setIP(bool newIP)                            { return m_isIP = newIP; }
   void setActiveHitType(HitType activeHitType)      { m_activeHitType = activeHitType; }
 
@@ -83,12 +77,13 @@ public:
   const DetectorModule* getHitModule() { return m_hitModule; };
 
   double         getDistance() const               { return m_distance;};
-  double         getRadius() const                 { return m_radius;};
+  double         getRPos() const                   { return m_rPos;};
+  double         getZPos() const                   { return m_zPos;};
   HitOrientation getOrientation() const            { return m_orientation;};
   HitKind        getObjectKind() const             { return m_objectKind;};
   RILength       getCorrectedMaterial();
-  double         getResolutionRphi(double trackR);
-  double         getResolutionZ(double trackR);
+  double         getResolutionRphi(double trackRadius);
+  double         getResolutionZ(double trackRadius);
   double         getD();
   HitType        getActiveHitType() const          { return m_activeHitType; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
 
@@ -101,8 +96,12 @@ public:
 
 protected:
   
-  double         m_distance;      //!< Distance of hit from origin in 3D
-  double         m_radius;        //!< Distance of hit from origin in the x/y plane
+  //! Default constructor
+  Hit();
+
+  double         m_distance;      //!< Distance of hit from origin in 3D = sqrt(rPos*rPos + zPos*zPos)
+  double         m_rPos;          //!< Distance of hit from origin in the x/y plane (cylindrical coordinates -> r)
+  double         m_zPos;          //!< Distance of hit from origin in z (cylindrical coordinates -> z)
   HitOrientation m_orientation;   //!< Orientation of the surface
   HitKind        m_objectKind;    //!< Kind of hit object: Active, Inactive, ...
   HitType        m_activeHitType; //!< Hit coming from inner, outer, stub, ... module
@@ -119,10 +118,10 @@ protected:
 
 private:
   
-  double   getTrackTheta();
+  double getTrackTheta();
 
-  double m_resolutionRphi; // Only used for virtual hits on non-modules
-  double m_resolutionY;    // Only used for virtual hits on non-modules
+  double m_resolutionRPhi; // Only used for virtual hits on non-modules
+  double m_resolutionZ;    // Only used for virtual hits on non-modules
 
 }; // Class
 

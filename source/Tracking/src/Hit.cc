@@ -30,7 +30,7 @@ using namespace std;
  * @param h2 A pointer to the second hit
  * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
  */
-bool Hit::sortSmallerR(const HitPtr& h1, const HitPtr& h2) { return (h1->getDistance() < h2->getDistance()); }
+bool Hit::sortSmallerR(const HitPtr& h1, const HitPtr& h2) { return (h1->getRPos() < h2->getRPos()); }
 
 /**
  * This is a comparator for two Hit objects based on higher radius
@@ -38,7 +38,7 @@ bool Hit::sortSmallerR(const HitPtr& h1, const HitPtr& h2) { return (h1->getDist
  * @param h2 A pointer to the second hit
  * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
  */
-bool Hit::sortHigherR(const HitPtr& h1, const HitPtr& h2) { return (h1->getDistance() > h2->getDistance()); }
+bool Hit::sortHigherR(const HitPtr& h1, const HitPtr& h2) { return (h1->getRPos() > h2->getRPos()); }
 
 /**
  * Nothing to do for the destructor, as a hit never owns any objects it has pointers to...
@@ -50,7 +50,8 @@ Hit::~Hit() {}
  */
 Hit::Hit() {
     m_distance         = 0;
-    m_radius           = 0;
+    m_rPos             = 0;
+    m_zPos             = 0;
     m_objectKind       = HitKind::Undefined;
     m_orientation      = HitOrientation::Undefined;
     m_hitModule        = nullptr;
@@ -59,8 +60,8 @@ Hit::Hit() {
     m_isTrigger        = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = HitType::NONE;
 }
 
@@ -70,7 +71,8 @@ Hit::Hit() {
  */
 Hit::Hit(const Hit& h) {
     m_distance          = h.m_distance;
-    m_radius            = h.m_radius;
+    m_rPos              = h.m_rPos;
+    m_zPos              = h.m_zPos;
     m_objectKind        = h.m_objectKind;
     m_orientation       = h.m_orientation;
     m_hitModule         = h.m_hitModule;
@@ -80,18 +82,18 @@ Hit::Hit(const Hit& h) {
     m_isTrigger         = h.m_isTrigger;
     m_isIP              = h.m_isIP;
     m_isBeamPipe        = h.m_isBeamPipe;
-    m_resolutionRphi    = h.m_resolutionRphi;
-    m_resolutionY       = h.m_resolutionY;
+    m_resolutionRPhi    = h.m_resolutionRPhi;
+    m_resolutionZ       = h.m_resolutionZ;
     m_activeHitType     = h.m_activeHitType;
 }
 
 /**
- * Constructor for a hit with no module at a given distance from the origin
- * @param myDistance distance from the origin
+ * Constructor for a hit with no module at a given [rPos, zPos] from the origin
  */
-Hit::Hit(double myDistance) {
-    m_distance         = myDistance;
-    m_radius           = 0;
+Hit::Hit(double rPos, double zPos) {
+    m_distance         = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos             = rPos;
+    m_zPos             = zPos;
     m_objectKind       = HitKind::Undefined;
     m_orientation      = HitOrientation::Undefined;
     m_hitModule        = nullptr;
@@ -100,19 +102,19 @@ Hit::Hit(double myDistance) {
     m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = HitType::NONE;
 }
 
 /**
- * Constructor for a hit on a given module at a given distance from the origin
- * @param myDistance distance from the origin
+ * //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
  * @param myModule pointer to the module with the hit 
  */
-Hit::Hit(double myDistance, const DetectorModule* myModule, HitType activeHitType) {
-    m_distance         = myDistance;
-    m_radius           = 0;
+Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+    m_distance         = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos             = rPos;
+    m_zPos             = zPos;
     m_objectKind       = HitKind::Active;
     m_orientation      = HitOrientation::Undefined;
     setHitModule(myModule);
@@ -121,8 +123,8 @@ Hit::Hit(double myDistance, const DetectorModule* myModule, HitType activeHitTyp
     m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
-    m_resolutionRphi   = 0;
-    m_resolutionY      = 0;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
     m_activeHitType    = activeHitType;
 }
 
@@ -173,7 +175,7 @@ RILength Hit::getCorrectedMaterial() {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionRphi(double trackR) {
+double Hit::getResolutionRphi(double trackRadius) {
 
   if (m_objectKind!=HitKind::Active) {
 
@@ -183,11 +185,11 @@ double Hit::getResolutionRphi(double trackR) {
   else {
 
     if (m_hitModule) {
-      return m_hitModule->resolutionEquivalentRPhi(getRadius(), trackR);
+      return m_hitModule->resolutionEquivalentRPhi(getRPos(), trackRadius);
      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
      // else return hitModule_->resolutionRPhi();
     }
-    else return m_resolutionRphi;
+    else return m_resolutionRPhi;
   }
 }
 
@@ -200,7 +202,7 @@ double Hit::getResolutionRphi(double trackR) {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionZ(double trackR) {
+double Hit::getResolutionZ(double trackRadius) {
 
   if (m_objectKind!=HitKind::Active) {
 
@@ -216,11 +218,11 @@ double Hit::getResolutionZ(double trackR) {
         logWARNING("Hit::getResolutionZ -> no track assigned, will return zero!");
         return 0;
       }
-      else return m_hitModule->resolutionEquivalentZ(getRadius(), trackR, m_track->getCotgTheta());
+      else return m_hitModule->resolutionEquivalentZ(getRPos(), trackRadius, m_track->getCotgTheta());
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     }
-    else return m_resolutionY;
+    else return m_resolutionZ;
   }
 }
 

@@ -228,6 +228,9 @@ public:
   ///using Property<T, ValueHolder>::Property; // constructor inheritance not supported by GCC as of version 4.7.2
   using Property<T, ValueHolder>::operator();
   
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { Property<T, ValueHolder>::operator()(Property<T, ValueHolder>::operator()()*unit); }
+
 #define ALLOW_FORCE_SET
 #ifdef ALLOW_FORCE_SET
   void force(const T& value) { Property<T, ValueHolder>::operator()(value); } // for testing purposes only
@@ -286,6 +289,9 @@ public:
 
   typename std::vector<T>::const_iterator begin() const { return m_values.begin(); }
   typename std::vector<T>::const_iterator end()   const { return m_values.end(); }
+
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { for (size_t i=0; i<m_values.size(); i++) m_values[i] *= unit; }
 
   bool state() const  { return !m_values.empty(); }
   void clear()        { m_values.clear(); }

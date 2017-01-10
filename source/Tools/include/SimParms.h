@@ -39,7 +39,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! SimParms visitable -> implememented const accept method to call visitor pattern
   void accept(ConstGeometryVisitor& v) const;
 
-  //! Cross-check that Sim parameters correctly read-in from the file
+  //! Cross-check that Sim parameters correctly read-in from the file & set units
   void crosscheck();
 
   //! Set command line options passed over to program to analyze data
@@ -96,6 +96,12 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! Get eta max value as defined by user in definition of various tracker eta regions
   double getMaxEtaCoverage() const { if (etaRegionRanges.size()>0) return etaRegionRanges[etaRegionRanges.size()-1]; else return 0.0; }
 
+  //! Check whether magnetic field const. or defined as a function
+  bool isMagFieldConst() const { if (magField.size()==1) return true; else return false;}
+
+  //! Get number of defined mag. field regions
+  size_t getNMagFieldRegions() const { return magFieldZRegions.size(); }
+
   //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return *m_irradiationMapsManager;}
 
@@ -121,12 +127,8 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyProperty<double, Default>   alphaParm;
   ReadonlyProperty<double, Default>   referenceTemp;
 
-  ReadonlyProperty<double, Default>   magneticField;        //!< Central magnetic field in Tesla
-
-  // To include dipole region in a quick way
-  ReadonlyProperty<double, Default>   dipoleMagneticField;  //!< Dipole integral magnetic field in [Tm]
-  ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;  //!< Dipole deltaPl/Pl resolution of dipole tracker at 10 TeV
-  ReadonlyProperty<double, Default>   dipoleXToX0;          //  [%]
+  ReadonlyPropertyVector<double, ','> magField;             //!< Magnetic field [T] as a vector of approximate values of B(z) in predefined regions 0-z0, z0-z1, ...
+  ReadonlyPropertyVector<double, ','> magFieldZRegions;     //!< Regions [m], in which the magnetic field values (B(z)) are defined, regions defined as a sequence of z0 [m], z1 [m], ... -> intervals 0-z0; z0-z1, etc.
 
   PropertyVector<std::string, ','>    irradiationMapFiles;
 
@@ -135,7 +137,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyPropertyVector<double     , ','> etaRegionRanges; //!< Set ordered eta regions, the last one being maximum tracker eta coverage (e.g. 0, 2.5, 4.0)
   ReadonlyPropertyVector<std::string, ','> etaRegionNames;  //!< Set names for ordered eta borders (e.g TRK-0, TRK-BRL, TRK-MAX)
 
-  Property<std::string, Default> bFieldMapFile;           // Map of b field - not currently currently for tracking
+  Property<std::string, Default> bFieldMapFile;           // Map of b field - currently forvisualization use only (not for tracking)
   Property<std::string, Default> chargedMapFile;          // Map of charged hadron fluxes, segmented in R x Z
   Property<std::string, Default> chargedMapLowThFile;     // Map of charged hadron fluxes - electrons with lower threshold, segmented in R x Z
   Property<std::string, Default> chargedMapBOffMatOnFile; // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied
