@@ -32,6 +32,7 @@
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
 #include "RootWTextFile.h"
+#include "TROOT.h"
 #include "Units.h"
 
 //
@@ -41,6 +42,9 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
  m_webSitePrepared(false)
 {
   std::unique_ptr<AnalyzerUnit> unit;
+
+  // Initialize global TROOT variable - needed workaround when moving from ROOT5 to ROOT6, otherwise not properly initialized palette, style etc. for visualization
+  ROOT::GetROOT();
 
   // Create AnalyzerGeometry
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerGeometry(detector));

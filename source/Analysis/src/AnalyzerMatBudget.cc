@@ -517,7 +517,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myPad = dynamic_cast<TPad*>(myCanvasMat.GetPad(1));
     myPad->cd();
     m_radMB[trkName]["Total"].SetStats(kFALSE);
-    m_radMB[trkName]["Total"].Draw();
+    m_radMB[trkName]["Total"].Draw("HIST");
 
     m_intMB[trkName]["Total"].SetFillColor(kGray + 2);
     m_intMB[trkName]["Total"].SetLineColor(kBlue + 2);
@@ -527,7 +527,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myPad = dynamic_cast<TPad*>(myCanvasMat.GetPad(2));
     myPad->cd();
     m_intMB[trkName]["Total"].SetStats(kFALSE);
-    m_intMB[trkName]["Total"].Draw();
+    m_intMB[trkName]["Total"].Draw("HIST");
 
     // Write tracking volume plots to the web site
     RootWImage& myImageOverview = myContentOverview.addImage(myCanvasMat, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -684,7 +684,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     radContainer->Add(&m_radMB[trkName]["Endcap"]);
     radContainer->Add(&m_radMB[trkName]["Supports"]);
     radContainer->Add(&m_radMB[trkName]["Services"]);
-    radContainer->Draw();
+    radContainer->Draw("HIST");
     radContainer->GetXaxis()->SetTitle("#eta");
 
     myPad = dynamic_cast<TPad*>(myCanvasMatCat.GetPad(2));
@@ -694,7 +694,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     intContainer->Add(&m_intMB[trkName]["Endcap"]);
     intContainer->Add(&m_intMB[trkName]["Supports"]);
     intContainer->Add(&m_intMB[trkName]["Services"]);
-    intContainer->Draw();
+    intContainer->Draw("HIST");
     intContainer->GetXaxis()->SetTitle("#eta");
 
     RootWImage& myImageMatCat = myContentCateg.addImage(myCanvasMatCat, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -754,7 +754,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     }
     myTableComp.setContent(compIndex, 0, "Total");
     myTableComp.setContent(compIndex, 1, totalRadLength*100, 2);
-    radCompStack->Draw();
+    radCompStack->Draw("HIST");
     radCompStack->GetXaxis()->SetTitle("#eta");
     compLegend->Draw();
 
@@ -784,7 +784,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       totalIntLength += avgValue;
     }
     myTableComp.setContent(compIndex, 2, totalIntLength*100, 2);
-    intCompStack->Draw();
+    intCompStack->Draw("HIST");
     intCompStack->GetXaxis()->SetTitle("#eta");
     compLegend->Draw();
 
