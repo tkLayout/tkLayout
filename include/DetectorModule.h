@@ -86,6 +86,8 @@ public:
   ReadonlyProperty<int, AutoDefault> numSparsifiedHeaderBits,  numSparsifiedPayloadBits;
   ReadonlyProperty<int, AutoDefault> numTriggerDataHeaderBits, numTriggerDataPayloadBits;
 
+  ReadonlyProperty<double, NoDefault> operatingTemp;
+  ReadonlyProperty<double, NoDefault> chargeDepletionVoltage;
   Property<double, AutoDefault> sensorPowerConsumption;  // CUIDADO provide also power per strip (see original module and moduleType methods)
   ReadonlyProperty<double, AutoDefault> powerModuleOptical;
   ReadonlyProperty<double, AutoDefault> powerModuleChip;
@@ -131,6 +133,8 @@ public:
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
       numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
       triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
+      operatingTemp            ("operatingTemp"            , parsedAndChecked()),
+      chargeDepletionVoltage   ("chargeDepletionVoltage"   , parsedAndChecked()),
       powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
       powerModuleChip          ("powerModuleChip"          , parsedOnly()),
       powerStripOptical        ("powerStripOptical"        , parsedOnly()),

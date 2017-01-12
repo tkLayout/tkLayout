@@ -13,10 +13,8 @@ SimParms {
     pixelEfficiency 1
     
     timeIntegratedLumi 3000
-    operatingTemp -20
-    referenceTemp 20
-    chargeDepletionVoltage 600
-    alphaParam 4.28e-17
+    referenceTemp 20         
+    alphaParam 4.28e-17       // A/cm, radiation damage constant
     magneticField 3.8
 
     triggerEtaCut 2.2

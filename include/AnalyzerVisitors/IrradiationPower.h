@@ -14,10 +14,10 @@
 
 class IrradiationPowerVisitor : public GeometryVisitor {
   double timeIntegratedLumi;
-  double operatingTemp;
   double referenceTemp;
-  double chargeDepletionVoltage;
+  double operatingTemp;
   double alphaParam;
+  double chargeDepletionVoltage;
   const IrradiationMapsManager* irradiationMap_;
 public:
   MultiSummaryTable irradiatedPowerConsumptionSummaries;
@@ -28,9 +28,7 @@ public:
 
   void visit(SimParms& sp) {
     timeIntegratedLumi = sp.timeIntegratedLumi();
-    operatingTemp    = sp.operatingTemp() + insur::celcius_to_kelvin;
-    referenceTemp    = sp.referenceTemp() + insur::celcius_to_kelvin;
-    chargeDepletionVoltage = sp.chargeDepletionVoltage();
+    referenceTemp    = sp.referenceTemp() + insur::celcius_to_kelvin;   
     alphaParam       = sp.alphaParam();
     irradiationMap_  = &sp.irradiationMapsManager();
   }
@@ -46,6 +44,8 @@ public:
   }
 
   void visit(DetectorModule& m) {
+    operatingTemp    = m.operatingTemp() + insur::celcius_to_kelvin;
+    chargeDepletionVoltage = m.chargeDepletionVoltage();
     // <Stefano Mersi>
     // will visit also the modules with z<0, otherwise totals in the summaries will be wrong!
     // if (m.maxZ() < 0) return;
@@ -100,7 +100,7 @@ public:
     // Calculate the leakage current at operational temperature
     double leakageCurrent = leakageCurrentAtReferenceTemp * pow(operatingTemp / referenceTemp , 2) * exp(-insur::siliconEffectiveBandGap / (2 * insur::boltzmann_constant) * (1 / operatingTemp - 1 / referenceTemp));
 
-    // Calculate the heat power produced by the silicon sensors due to leakage current
+    // Calculate the heat power produced on the silicon sensors due to leakage current
     double irradiatedPowerConsumption = leakageCurrent * chargeDepletionVoltage;
 
     // Store result

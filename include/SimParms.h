@@ -38,9 +38,7 @@ public:
   ReadonlyProperty<int, NoDefault> numTriggerTowersEta, numTriggerTowersPhi;
 
   ReadonlyProperty<double, NoDefault> timeIntegratedLumi;
-  ReadonlyProperty<double, NoDefault> operatingTemp;
   ReadonlyProperty<double, NoDefault> referenceTemp;
-  ReadonlyProperty<double, NoDefault> chargeDepletionVoltage;
   ReadonlyProperty<double, NoDefault> alphaParam;
   ReadonlyProperty<double, NoDefault> magneticField;
 
@@ -66,9 +64,7 @@ public:
       numTriggerTowersEta("numTriggerTowersEta", parsedAndChecked()),
       numTriggerTowersPhi("numTriggerTowersPhi", parsedAndChecked()),
       timeIntegratedLumi("timeIntegratedLumi", parsedAndChecked()),
-      operatingTemp("operatingTemp", parsedAndChecked()),
       referenceTemp("referenceTemp", parsedAndChecked()),
-      chargeDepletionVoltage("chargeDepletionVoltage", parsedAndChecked()),
       alphaParam("alphaParam", parsedAndChecked()),    // radiation-damage coefficient, A/cm
       magneticField("magneticField", parsedAndChecked()),
       irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
