@@ -1,3 +1,23 @@
+# FLUKA simulation of CMS cavern.
+# ----------------------------------------------------------
+# CMS geometry of Phase-II configuration used in Technical Proposal (TP).
+# Geometry version tag v.3.7.0.0
+#
+# List of Phase-II specific geometry changes:
+# Tacker (Pixel and Strips) updated with design presented in TP.
+# Preshower replaced with 18cm borated PE.
+# Increased TAS radius (2.85 cm) and CT2 beam pipe (7.25).
+# Beam pipe in Aluminium with thickness increased by 50%.
+# RPCs replaced with GEMs in end-caps.
+#
+# Primary particles: proton-proton, 7TeV per beam
+# Inelastic collision cross section used for normalization: 80 mb
+# Cut-offs:
+# Hadrons 1 keV, Neutrons, 0.01 meV, Photons 3 keV, Electrons 30 keV
+# Photons and Electrons have significantly higher cut-offs in heavy materials. 
+
+
+
 # simulation run: CMSphase2 pp 7TeV v3.7.0.0 FLUKA
 # scoring: 1MeV neutron equivalent (PIXEL volume, high R resolution)
 # normalization form: integrated [fb^-1]
