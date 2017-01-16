@@ -469,7 +469,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
   int webPriority         = web_priority_MB;
 
   // Set Rainbow palette for drawing
-  Palette::setRootPalette(55);
+  Palette::setRootPalette();
 
   for (int iTrk=0; iTrk<=m_trackers.size(); iTrk++) {
 

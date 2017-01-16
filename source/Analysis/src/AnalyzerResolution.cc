@@ -29,7 +29,9 @@
 #include <TStyle.h>
 #include "Units.h"
 
-
+//
+// AnalyzerResolution constructor
+//
 AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit("AnalyzerResolution", detector),
  m_nTracks(0),
  m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
@@ -37,6 +39,9 @@ AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit(
  c_nBins(SimParms::getInstance().getMaxEtaCoverage()/vis_eta_step)  // Default number of bins in histogram from eta=0  to max_eta_coverage)
 {};
 
+//
+// AnalyzerResolution init method
+//
 bool AnalyzerResolution::init(int nTracks)
 {
   // Set nTracks
@@ -85,6 +90,9 @@ bool AnalyzerResolution::init(int nTracks)
   }
 }
 
+//
+// AnalyzerResolution visualization method
+//
 bool AnalyzerResolution::analyze()
 {
   // Check that initialization OK
@@ -246,13 +254,16 @@ bool AnalyzerResolution::analyze()
   return m_isAnalysisOK;
 }
 
+//
+// AnalyzerResolution visualization method
+//
 bool AnalyzerResolution::visualize(RootWSite& webSite)
 {
   // Check that initialization & analysis OK
   if (!m_isInitOK && !m_isAnalysisOK) return false;
 
   // Set Rainbow palette for drawing
-  Palette::setRootPalette(55);
+  Palette::setRootPalette();
 
   // Go through all trackers & prepare web content
   for (auto& key : m_taggedTrackPtCollectionMap) {
