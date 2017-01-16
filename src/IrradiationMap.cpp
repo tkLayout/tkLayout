@@ -206,7 +206,7 @@ double IrradiationMap::calculateIrradiation(const std::pair<double,double>& coor
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho2)][int(z1)];
       //linear interpolation in rho
-      irrxy = (irr1/(rho2-rho1) * (rho2-rho) + irr2/(rho2-rho1) * (rho-rho1));
+      irrxy = irr1/(rho2-rho1) * (rho2-rho) + irr2/(rho2-rho1) * (rho-rho1);
     }
 
     //if is in a rho line
@@ -214,7 +214,7 @@ double IrradiationMap::calculateIrradiation(const std::pair<double,double>& coor
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho1)][int(z2)];
       //linear interpolation in z
-      irrxy = (irr1/(z2-z1) * (z2-z) + irr2/(z2-z1) * (z-z1));
+      irrxy = irr1/(z2-z1) * (z2-z) + irr2/(z2-z1) * (z-z1);
     }
 
     //if is in the middle
