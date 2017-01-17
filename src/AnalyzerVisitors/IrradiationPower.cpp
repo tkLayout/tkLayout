@@ -32,18 +32,18 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
     volume += s.sensorThickness() * m.area() * Units::mm3 / Units::cm3; // convert volume to cm^3
 
     // Calculate irradiation at the center of the sensor
-    const std::pair<double,double>& center = std::make_pair(s.envelopePoly().getCenter().Z(), s.envelopePoly().getCenter().Rho());
+    const std::pair<double,double>& center = std::make_pair(s.center().Z(), s.center().Rho());
     double centerIrradiation = irradiationMap_->calculateIrradiationPower(center);
     irradiationValues.push_back(centerIrradiation);
 
     // Calculate irradiation at each vertex of the sensor
-    for (int i = 0; i < 4; i++) {
-      const std::pair<double,double>& vertex = std::make_pair(s.envelopePoly().getVertex(i).Z(), s.envelopePoly().getCenter().Rho());
+    for (int i = 0; i < s.envelopePoly().getNumSides(); i++) {
+      const std::pair<double,double>& vertex = std::make_pair(s.envelopePoly().getVertex(i).Z(), s.envelopePoly().getVertex(i).Rho());
       double vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
       irradiationValues.push_back(vertexIrradiation);
     }
   }
-    
+
   // THIS IS TO CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
 
   // For a given module, take the worst fluence value obtained on the sensor(s) (FLUKA simulation)
