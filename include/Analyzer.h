@@ -178,7 +178,7 @@ namespace insur {
     void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
-    void computeIrradiatedPowerConsumption(Tracker& tracker);
+    void computeIrradiationPowerConsumption(Tracker& tracker);
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
@@ -247,7 +247,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerEfficiencySummaries() { return triggerEfficiencySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
-    std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    std::map<std::string, SummaryTable>& getSensorsIrradiationPowerSummary() { return sensorsIrradiationPowerSummary_; }
     
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
     const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
@@ -337,7 +337,7 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyMisfilteredSummaries_, triggerFrequencyCombinatorialSummaries_, triggerFrequencyInterestingSummaries_;
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
-    std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
+    std::map<std::string, SummaryTable> sensorsIrradiationPowerSummary_;
 
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;

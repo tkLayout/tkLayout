@@ -75,7 +75,7 @@ using std::string;
     static const int suggestedSpacingMap;
     static const int suggestedSpacingMapAW;
     static const int nominalCutMap;
-    static const int irradiatedPowerConsumptionMap;
+    static const int sensorsIrradiationPowerMap;
     static const int totalPowerConsumptionMap;
     static const int moduleConnectionEtaMap;
     static const int moduleConnectionPhiMap;

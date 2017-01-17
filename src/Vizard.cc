@@ -1489,13 +1489,13 @@ namespace insur {
 	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
-        tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
-        if (tagMapSensorPowerMax[aSensorTag] < m.irradiationPower()) tagMapSensorPowerMax[aSensorTag] = m.irradiationPower();
+        tagMapSensorPowerAvg[aSensorTag] += m.sensorsIrradiationPower();
+        if (tagMapSensorPowerMax[aSensorTag] < m.sensorsIrradiationPower()) tagMapSensorPowerMax[aSensorTag] = m.sensorsIrradiationPower();
         totCountMod++;
         totCountSens += m.numSensors();
         totChannel += m.totalChannels();
         totArea += m.area()*m.numSensors();
-        totalSensorPower += m.irradiationPower();
+        totalSensorPower += m.sensorsIrradiationPower();
         if (tagMap.find(aSensorTag)==tagMap.end()){
           // We have a new sensor geometry
           tagMap[aSensorTag] = &m;
@@ -3451,7 +3451,7 @@ namespace insur {
     return true;
   }
 
-  bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+  bool Vizard::irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
     std::string trackerName = tracker.myid();
     std::string pageName = "Power (" + trackerName + ")";
     std::string pageAddress = "power_" + trackerName + ".html";
@@ -3460,7 +3460,7 @@ namespace insur {
     myPage->setAddress(pageAddress);
     site.addPage(myPage);
 
-    std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
+    std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
     for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
       myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
@@ -3469,44 +3469,38 @@ namespace insur {
     ostringstream tempSS;
     std::string tempString;
 
-    // mapBag myMapBag = a.getMapBag();
-    //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
-    // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
-    //
-    //
-
-    struct IrradiationPower {
-      double operator()(const Module& m) { return m.irradiationPower(); }
+    struct SensorsIrradiationPower {
+      double operator()(const Module& m) { return m.sensorsIrradiationPower(); }  // W
     };
 
-    struct TotalIrradiationPower {
-      double operator()(const Module& m) { return m.irradiationPower() + m.totalPower()/1000; }
+    struct TotalPower {
+      double operator()(const Module& m) { return m.sensorsIrradiationPower() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
     };
 
 
-    PlotDrawer<YZ, IrradiationPower, Average> yzPowerDrawer(0, 0);
-    PlotDrawer<YZ, TotalIrradiationPower, Average> yzTotalPowerDrawer(0, 0);
+    PlotDrawer<YZ, SensorsIrradiationPower, Average> yzSensorsPowerDrawer(0, 0);
+    PlotDrawer<YZ, TotalPower, Average> yzTotalPowerDrawer(0, 0);
 
-    yzPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
+    yzSensorsPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
     yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
     RootWContent& myContent = myPage->addContent("Power maps", true);
 
-    TCanvas irradiatedPowerCanvas;
+    TCanvas sensorsIrradiationPowerCanvas;
     TCanvas totalPowerCanvas;
 
-    yzPowerDrawer.drawFrame<HistogramFrameStyle>(irradiatedPowerCanvas);
-    yzPowerDrawer.drawModules<ContourStyle>(irradiatedPowerCanvas);
+    yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(sensorsIrradiationPowerCanvas);
+    yzSensorsPowerDrawer.drawModules<ContourStyle>(sensorsIrradiationPowerCanvas);
 
 
     yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
     yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
 
-    RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    irradiatedPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
-    irradiatedPowerImage.setName("irradiatedPowerMap");
+    RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    sensorsIrradiationPowerImage.setComment("Map of power dissipation in irradiated sensors (due to leakage current) (W)");
+    sensorsIrradiationPowerImage.setName("sensorsIrradiationPowerMap");
     RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    totalPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
+    totalPowerImage.setComment("Map of total power dissipation in irradiated modules (W)");
     totalPowerImage.setName("totalPowerMap");
 
 

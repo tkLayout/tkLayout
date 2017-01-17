@@ -1,7 +1,7 @@
 #include "AnalyzerVisitors/IrradiationPower.h"
 
 void IrradiationPowerVisitor::preVisit() {
-  irradiatedPowerConsumptionSummaries.clear();   
+  sensorsIrradiationPowerSummary.clear();   
 }
 
 void IrradiationPowerVisitor::visit(SimParms& sp) {
@@ -12,24 +12,24 @@ void IrradiationPowerVisitor::visit(SimParms& sp) {
 }
 
 void IrradiationPowerVisitor::visit(Barrel& b) {
-  irradiatedPowerConsumptionSummaries[b.myid()].setHeader("Layer", "Ring");
-  irradiatedPowerConsumptionSummaries[b.myid()].setPrecision(3);        
+  sensorsIrradiationPowerSummary[b.myid()].setHeader("Layer", "Ring");
+  sensorsIrradiationPowerSummary[b.myid()].setPrecision(3);        
 }
 
 void IrradiationPowerVisitor::visit(Endcap& e) {
-  irradiatedPowerConsumptionSummaries[e.myid()].setHeader("Disk", "Ring");
-  irradiatedPowerConsumptionSummaries[e.myid()].setPrecision(3);        
+  sensorsIrradiationPowerSummary[e.myid()].setHeader("Disk", "Ring");
+  sensorsIrradiationPowerSummary[e.myid()].setPrecision(3);        
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
   operatingTemp    = m.operatingTemp() + insur::celcius_to_kelvin;
-  chargeDepletionVoltage = m.chargeDepletionVoltage();
+  biasVoltage = m.biasVoltage();
   double volume = 0.;
   std::vector<double> irradiationValues;
   
   for (const auto& s : m.sensors()) {
     // Calculate total volume occupied by sensors
-    volume += s.sensorThickness() * m.area() / 1000.0; // volume in cm^3
+    volume += s.sensorThickness() * m.area() * Units::mm3 / Units::cm3; // convert volume to cm^3
 
     // Calculate irradiation at the center of the sensor
     const std::pair<double,double>& center = std::make_pair(s.envelopePoly().getCenter().Z(), s.envelopePoly().getCenter().Rho());
@@ -60,10 +60,10 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   double leakageCurrent = leakageCurrentAtReferenceTemp * pow(operatingTemp / referenceTemp , 2) * exp(-insur::siliconEffectiveBandGap / (2 * insur::boltzmann_constant) * (1 / operatingTemp - 1 / referenceTemp)); // A
 
   // Calculate the heat power dissipated within the silicon sensors due to leakage current
-  double irradiatedPowerConsumption = leakageCurrent * chargeDepletionVoltage; // W
+  double sensorsIrradiationPower = leakageCurrent * biasVoltage; // W
 
   // Store result
-  m.irradiationPower(irradiatedPowerConsumption);
+  m.sensorsIrradiationPower(sensorsIrradiationPower);
   TableRef tref = m.tableRef();
-  irradiatedPowerConsumptionSummaries[tref.table].setCell(tref.row, tref.col, irradiatedPowerConsumption);
+  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, sensorsIrradiationPower);
 }

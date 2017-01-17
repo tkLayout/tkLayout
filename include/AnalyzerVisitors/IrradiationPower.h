@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "global_constants.h"
+#include "Units.h"
 #include "Tracker.h"
 #include "SimParms.h"
 #include "Visitor.h"
@@ -17,11 +18,11 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double referenceTemp;
   double operatingTemp;
   double alphaParam;
-  double chargeDepletionVoltage;
+  double biasVoltage;
   const IrradiationMapsManager* irradiationMap_;
 
 public:
-  MultiSummaryTable irradiatedPowerConsumptionSummaries;
+  MultiSummaryTable sensorsIrradiationPowerSummary;
   void preVisit();
   void visit(SimParms& sp);
   void visit(Barrel& b);
