@@ -102,7 +102,7 @@ public:
 
   PropertyVector<string, ','> trackingTags;
 
-  Property<int8_t, Default> plotColor;
+  Property<int, Default> plotColor;
 
   Property<double, Default> serviceHybridWidth;
   Property<double, Default> frontEndHybridWidth;
