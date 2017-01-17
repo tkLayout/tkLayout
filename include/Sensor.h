@@ -22,8 +22,9 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   ModuleSubdetector subdet_;
   SensorPosition innerOuter_ = SensorPosition::NO;
   mutable const Polygon3d<4>* hitPoly_ = 0; 
-  mutable const Polygon3d<4>* envPoly_ = 0; 
-  Polygon3d<4>* buildOwnPoly(double polyOffset) const;
+  mutable const Polygon3d<8>* envPoly_ = 0; 
+  Polygon3d<4>* buildHitPoly(double polyOffset) const;
+  Polygon3d<8>* buildEnvelopePoly(double polyOffset) const;
 public:
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;
@@ -32,8 +33,8 @@ public:
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<double, NoDefault> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
-  ReadonlyProperty<double, Computable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
-  ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
+  ReadonlyProperty<double, Computable> minR, maxR;
+  ReadonlyProperty<double, Computable> minZ, maxZ;
 
  Sensor() :
   numStripsAcross("numStripsAcross", parsedOnly()),
@@ -66,7 +67,11 @@ public:
 
   int totalROCs() const { return numROCX() * numROCY(); }
 
-  double normalOffset() const;
+  const XYZVector& center() const { return hitPoly().getCenter(); }
+  double sensorNormalOffset() const;
+  const Polygon3d<4>& hitPoly() const;
+  const Polygon3d<8>& envelopePoly() const;
+  void clearPolys();
 
   std::pair<XYZVector, int> checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const;
 
@@ -84,15 +89,7 @@ public:
     maxR.setup([&]() { return CoordinateOperations::computeMaxR(envelopePoly()); });
     minZ.setup([&]() { return CoordinateOperations::computeMinZ(envelopePoly()); });
     maxZ.setup([&]() { return CoordinateOperations::computeMaxZ(envelopePoly()); });
-    }
-
-
-//  double minRVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Rho()); } return min; }
-//  double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
-  
-  void clearPolys();
-  const Polygon3d<4>& hitPoly() const;
-  const Polygon3d<4>& envelopePoly() const;
+  }
 
   void accept(SensorGeometryVisitor& v) { 
     v.visit(*this);
