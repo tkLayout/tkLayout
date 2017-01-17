@@ -3069,14 +3069,18 @@ namespace insur {
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
     myInfo->setValue(simparms.numMinBiasEvents(), minimumBiasPrecision);
     simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Integrated luminosity");
+    myInfo->setValue(simparms.timeIntegratedLumi(), luminosityPrecision);
+    myInfo->appendValue(" fb" + superStart + "-1" + superEnd);
+    simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for material");
     myInfo->setValue(materialTracksUsed);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for geometry");
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Irradiation &alpha; parameter");
-    myInfo->setValueSci(simparms.alphaParam(), 4);  // 4 digits-precision
+    myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", simparms.referenceTemp()));
+    myInfo->setValueSci(simparms.alphaParam(), alphaParamPrecision);
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 

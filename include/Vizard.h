@@ -128,6 +128,8 @@ namespace insur {
   static const int powerPerUnitPrecision = 2;
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
+  static const int luminosityPrecision = 0;
+  static const int alphaParamPrecision = 4;
   static const int weightPrecision = 0;
 
   static const int tableResolutionPrecisionHigh = 5;
