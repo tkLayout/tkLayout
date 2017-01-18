@@ -82,6 +82,31 @@ namespace CoordinateOperations {
     return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
+  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
+    Polygon* p = new Polygon(basePolygon);
+    p->translate(p->getNormal() * normalOffset);
+    return p;
+  }
+
+  template<class PolygonA, class PolygonB> PolygonB* computeEnvelopePolygon(const PolygonA& basePolygon, double normalOffset) {
+    double innerOffset =  -normalOffset;
+    PolygonA* innerPoly = new PolygonA(basePolygon);
+    innerPoly->translate(innerPoly->getNormal() * innerOffset);
+
+    double outerOffset =  normalOffset;
+    PolygonA* outerPoly = new PolygonA(basePolygon);
+    outerPoly->translate(outerPoly->getNormal() * outerOffset);
+
+    PolygonB* envelopePoly = new PolygonB();
+    for (int i = 0; i < innerPoly->getNumSides(); i++) *envelopePoly << innerPoly->getVertex(i);
+    for (int i = 0; i < outerPoly->getNumSides(); i++) *envelopePoly << outerPoly->getVertex(i);
+    // Would have been much nicer to do sth like : *envelopePoly << innerPoly->getVertices() , 
+    // unfortunately this apparently does not work and only assign the first two vertices to *envelopePoly.
+    // On a more general note, the entire AbstractPolygon and Polygon3d classes should be rewritten.
+ 
+    return envelopePoly;
+  }
+
 }
 
 

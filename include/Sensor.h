@@ -25,8 +25,6 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   mutable const Polygon3d<4>* hitMidPoly_ = 0;
   mutable const Polygon3d<8>* envelopePoly_ = 0;
   mutable const Polygon3d<8>* envelopeMidPoly_ = 0;
-  Polygon3d<4>* buildHitPoly(const double polyOffset) const;
-  Polygon3d<8>* buildEnvelopePoly(const Polygon3d<4>& basePoly) const;
 public:
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;

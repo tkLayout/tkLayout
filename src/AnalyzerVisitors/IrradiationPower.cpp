@@ -28,27 +28,27 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   std::vector<double> irradiationValues;
   
   for (const auto& s : m.sensors()) {
+
     // Calculate total volume occupied by sensors
     volume += s.sensorThickness() * m.area() * Units::mm3 / Units::cm3; // convert volume to cm^3
 
     // Calculate irradiation at the center of the sensor
     const std::pair<double,double>& center = std::make_pair(s.center().Z(), s.center().Rho());
-    //const std::pair<double,double>& center = std::make_pair(m.center().Z(), m.center().Rho());
     double centerIrradiation = irradiationMap_->calculateIrradiationPower(center);
     irradiationValues.push_back(centerIrradiation);
 
     // Calculate irradiation at each vertex of the sensor
     for (int i = 0; i < 8; i++) {
-      if (i == 1 || i == 3) {
-	const std::pair<double,double>& vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
-	double vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
-	irradiationValues.push_back(vertexIrradiation);
-      }
+      const std::pair<double,double>& vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
+      std::cout << "i = " << i << std::endl;
+      std::cout << "s.envelopeMidPoly().getVertex(i).Z() = " << s.envelopeMidPoly().getVertex(i).Z() << "s.envelopeMidPoly().getVertex(i).Rho() = " << s.envelopeMidPoly().getVertex(i).Rho() << std::endl;
+      double vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
+      irradiationValues.push_back(vertexIrradiation);
+    }
 
-      /*vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
+    /*vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
       vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
       irradiationValues.push_back(vertexIrradiation);*/
-    }
   }
 
   // THIS IS TO CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT

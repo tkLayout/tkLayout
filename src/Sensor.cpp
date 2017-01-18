@@ -20,33 +20,9 @@ double Sensor::sensorNormalOffset() const {
   return offset;
 }
 
-Polygon3d<4>* Sensor::buildHitPoly(const double sensorNormalOffset) const {
-  Polygon3d<4>* p = new Polygon3d<4>(parent_->basePoly());
-  p->translate(p->getNormal() * sensorNormalOffset);
-  return p;
-}
-
-Polygon3d<8>* Sensor::buildEnvelopePoly(const Polygon3d<4>& basePoly) const {
-  double innerOffset =  -sensorThickness() / 2.;
-  Polygon3d<4>* innerPlane = new Polygon3d<4>(basePoly);
-  innerPlane->translate(innerPlane->getNormal() * innerOffset);
-
-  double outerOffset =  sensorThickness() / 2.;
-  Polygon3d<4>* outerPlane = new Polygon3d<4>(basePoly);
-  outerPlane->translate(outerPlane->getNormal() * outerOffset);
-
-  Polygon3d<8>* envelopePoly = new Polygon3d<8>();
-  for (int i = 0; i < innerPlane->getNumSides(); i++) *envelopePoly << innerPlane->getVertex(i);
-  for (int i = 0; i < outerPlane->getNumSides(); i++) *envelopePoly << outerPlane->getVertex(i);
-  // Would have been much nicer to do sth like : *envelopePoly << innerPlane->getVertices() , 
-  // unfortunately this apparently does not work and only assign the first two vertices to *envelopePoly.
-  // On a more general note, the entire AbstractPolygon class should be rewritten.
- 
-  return envelopePoly;
-}
-
 const Polygon3d<4>& Sensor::hitPoly() const {
-  if (hitPoly_ == 0) hitPoly_ = buildHitPoly(sensorNormalOffset());
+  double offset = sensorNormalOffset();
+  if (hitPoly_ == 0) hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset);
   return *hitPoly_;
 }
 
@@ -56,12 +32,14 @@ const Polygon3d<4>& Sensor::hitMidPoly() const {
 }
 
 const Polygon3d<8>& Sensor::envelopePoly() const {
-  if (envelopePoly_ == 0) envelopePoly_ = buildEnvelopePoly(hitPoly()); 
+  double envelopeOffset =  sensorThickness() / 2.;
+  if (envelopePoly_ == 0) envelopePoly_ = CoordinateOperations::computeEnvelopePolygon<Polygon3d<4>, Polygon3d<8> >(hitPoly(), envelopeOffset); 
   return *envelopePoly_;
 }
 
 const Polygon3d<8>& Sensor::envelopeMidPoly() const {
-  if (envelopeMidPoly_ == 0) envelopeMidPoly_ = buildEnvelopePoly(hitMidPoly()); 
+  double envelopeOffset =  sensorThickness() / 2.;
+  if (envelopeMidPoly_ == 0) envelopeMidPoly_ = CoordinateOperations::computeEnvelopePolygon<Polygon3d<4>, Polygon3d<8> >(hitMidPoly(), envelopeOffset); 
   return *envelopeMidPoly_;
 }
 
