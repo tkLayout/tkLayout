@@ -21,10 +21,12 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   const DetectorModule* parent_;
   ModuleSubdetector subdet_;
   SensorPosition innerOuter_ = SensorPosition::NO;
-  mutable const Polygon3d<4>* hitPoly_ = 0; 
-  mutable const Polygon3d<8>* envPoly_ = 0; 
-  Polygon3d<4>* buildHitPoly(double polyOffset) const;
-  Polygon3d<8>* buildEnvelopePoly(double polyOffset) const;
+  mutable const Polygon3d<4>* hitPoly_ = 0;
+  mutable const Polygon3d<4>* hitMidPoly_ = 0;
+  mutable const Polygon3d<8>* envelopePoly_ = 0;
+  mutable const Polygon3d<8>* envelopeMidPoly_ = 0;
+  Polygon3d<4>* buildHitPoly(const double polyOffset) const;
+  Polygon3d<8>* buildEnvelopePoly(const Polygon3d<4>& basePoly) const;
 public:
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;
@@ -67,10 +69,12 @@ public:
 
   int totalROCs() const { return numROCX() * numROCY(); }
 
-  const XYZVector& center() const { return hitPoly().getCenter(); }
-  double sensorNormalOffset() const;
-  const Polygon3d<4>& hitPoly() const;
-  const Polygon3d<8>& envelopePoly() const;
+  double sensorNormalOffset() const;  // offset of the sensor center, with respect to the module center
+  const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor
+  const Polygon3d<4>& hitPoly() const;  // sensor plane containing the sensor center
+  const Polygon3d<4>& hitMidPoly() const;  // losange formed by the mid-points of hitPoly
+  const Polygon3d<8>& envelopePoly() const; // parallelepiped rectangle formed by the sensor (6 faces)
+  const Polygon3d<8>& envelopeMidPoly() const;  // parallelepiped formed by the mid-points of envelopePoly
   void clearPolys();
 
   std::pair<XYZVector, int> checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const;

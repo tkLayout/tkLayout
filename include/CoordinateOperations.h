@@ -38,12 +38,24 @@ namespace CoordinateOperations {
   }
 */
 
-  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
+  template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
+    Polygon* midPoly = new Polygon();
 
+    XYZVector v0 = polygon.getVertex(0);
+    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
+      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      XYZVector vMid = (v0 + v1) / 2.;
+      *midPoly << vMid;
+      v0 = v1;   
+    }
+    return midPoly;
+  }
+
+  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
   template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
     std::vector<XYZVector> distanceVectors;
     XYZVector v0 = polygon.getVertex(0);
-    for (int i = 1; i < polygon.getNumSides()+1; i++) {
+    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
       XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
       v0.SetZ(0.0);
       v1.SetZ(0.0);
