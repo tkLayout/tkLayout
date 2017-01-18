@@ -37,18 +37,18 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
     double centerIrradiation = irradiationMap_->calculateIrradiationPower(center);
     irradiationValues.push_back(centerIrradiation);
 
-    // Calculate irradiation at each vertex of the sensor
-    for (int i = 0; i < 8; i++) {
-      const std::pair<double,double>& vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
-      std::cout << "i = " << i << std::endl;
-      std::cout << "s.envelopeMidPoly().getVertex(i).Z() = " << s.envelopeMidPoly().getVertex(i).Z() << "s.envelopeMidPoly().getVertex(i).Rho() = " << s.envelopeMidPoly().getVertex(i).Rho() << std::endl;
+    // Calculate irradiation at many vertexes of the sensor
+    for (int i = 0; i < s.envelopePoly().getNumSides(); i++) {
+      // each vertex
+      std::pair<double,double> vertex = std::make_pair(s.envelopePoly().getVertex(i).Z(), s.envelopePoly().getVertex(i).Rho());
       double vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
       irradiationValues.push_back(vertexIrradiation);
-    }
 
-    /*vertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
-      vertexIrradiation = irradiationMap_->calculateIrradiationPower(vertex);
-      irradiationValues.push_back(vertexIrradiation);*/
+      // each middle of 2 consecutive vertexes
+      std::pair<double,double> midVertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
+      double midVertexIrradiation = irradiationMap_->calculateIrradiationPower(midVertex);
+      irradiationValues.push_back(midVertexIrradiation);
+    }
   }
 
   // THIS IS TO CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
