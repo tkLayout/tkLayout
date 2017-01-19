@@ -1489,13 +1489,13 @@ namespace insur {
 	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
-        tagMapSensorPowerAvg[aSensorTag] += m.sensorsIrradiationPower();
-        if (tagMapSensorPowerMax[aSensorTag] < m.sensorsIrradiationPower()) tagMapSensorPowerMax[aSensorTag] = m.sensorsIrradiationPower();
+        tagMapSensorPowerAvg[aSensorTag] += m.sensorsIrradiationPowerMean();
+        if (tagMapSensorPowerMax[aSensorTag] < m.sensorsIrradiationPowerMean()) tagMapSensorPowerMax[aSensorTag] = m.sensorsIrradiationPowerMean();
         totCountMod++;
         totCountSens += m.numSensors();
         totChannel += m.totalChannels();
         totArea += m.area()*m.numSensors();
-        totalSensorPower += m.sensorsIrradiationPower();
+        totalSensorPower += m.sensorsIrradiationPowerMean();
         if (tagMap.find(aSensorTag)==tagMap.end()){
           // We have a new sensor geometry
           tagMap[aSensorTag] = &m;
@@ -3470,11 +3470,11 @@ namespace insur {
     std::string tempString;
 
     struct SensorsIrradiationPower {
-      double operator()(const Module& m) { return m.sensorsIrradiationPower(); }  // W
+      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean(); }  // W
     };
 
     struct TotalPower {
-      double operator()(const Module& m) { return m.sensorsIrradiationPower() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
+      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
     };
 
 

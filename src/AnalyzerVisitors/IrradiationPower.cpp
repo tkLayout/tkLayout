@@ -65,11 +65,14 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
 								      volume, referenceTemp_, operatingTemp_, biasVoltage_);
 
   // Store results
-  m.sensorsIrradiationPower(sensorsIrradiationPowerMean);
-
+  m.sensorsIrradiationPowerMean(sensorsIrradiationPowerMean);
+  m.sensorsIrradiationPowerMax(sensorsIrradiationPowerMax);
 
   TableRef tref = m.tableRef();
-  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, sensorsIrradiationPowerMean);
+  std::ostringstream values;
+  values.str("");
+  values << std::dec << std::fixed << std::setprecision(1) << sensorsIrradiationPowerMean << " , " << sensorsIrradiationPowerMax;
+  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, values.str());
 }
 
 

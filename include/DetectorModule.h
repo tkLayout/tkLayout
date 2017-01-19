@@ -92,7 +92,8 @@ public:
   ReadonlyProperty<double, AutoDefault> powerModuleChip;
   ReadonlyProperty<double, AutoDefault> powerStripOptical;
   ReadonlyProperty<double, AutoDefault> powerStripChip;
-  Property<double, AutoDefault> sensorsIrradiationPower;
+  Property<double, AutoDefault> sensorsIrradiationPowerMean;
+  Property<double, AutoDefault> sensorsIrradiationPowerMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;

@@ -3265,7 +3265,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     string aSensorType = aModule->moduleType();
     typeToCount[aSensorType] ++;
     typeToSurface[aSensorType] += aModule->area() / 1e6; // in mq
-    typeToPower[aSensorType] += aModule->sensorsIrradiationPower() / 1e3; // in kW
+    typeToPower[aSensorType] += aModule->sensorsIrradiationPowerMean() / 1e3; // in kW
   }
 
   int iPoints = 0;
