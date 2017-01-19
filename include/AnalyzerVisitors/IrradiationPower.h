@@ -20,7 +20,9 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double alphaParam_;
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
-
+  const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
+					      const double& alphaParam, const double& volume, const double& referenceTemp,
+					      const double& operatingTemp, const double& biasVoltage) const;
 public:
   MultiSummaryTable sensorsIrradiationPowerSummary;
   void preVisit();
@@ -28,9 +30,6 @@ public:
   void visit(Barrel& b);
   void visit(Endcap& e);
   void visit(DetectorModule& m);
-  const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
-					const double& alphaParam, const double& volume, const double& referenceTemp,
-					const double& operatingTemp, const double& biasVoltage) const;
 };
 
 
