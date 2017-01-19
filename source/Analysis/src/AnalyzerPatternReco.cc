@@ -6,12 +6,18 @@
  */
 #include "AnalyzerPatternReco.h"
 
+#include "BeamPipe.h"
 #include "IrradiationMap.h"
 #include "MainConfigHandler.h"
 #include "MessageLogger.h"
 #include "Palette.h"
 #include "RootWSite.h"
 #include "SimParms.h"
+#include "TRandom3.h"
+#include "Track.h"
+#include "Tracker.h"
+#include "Units.h"
+#include "VisitorMatTrack.h"
 
 //
 // AnalyzerPatternReco constructor
@@ -44,10 +50,6 @@ bool AnalyzerPatternReco::init(int nTracks)
   bool chargedMapOK     = checkFile(SimParms::getInstance().chargedMapFile(), directory);
 
   if (chargedMapOK) m_chargedMap  = new IrradiationMap(directory + "/" + SimParms::getInstance().chargedMapFile());
-  else {
-
-       std::cout << "BUUUUUU" << std::endl;
-  }
 
   // Set nTracks
   m_nTracks = nTracks;
@@ -73,6 +75,48 @@ bool AnalyzerPatternReco::analyze()
 {
   // Check that initialization OK
   if (!m_isInitOK) return false;
+
+  // Random generator
+  TRandom3 myDice;
+  myDice.SetSeed(random_seed);
+
+  for (int iTrack = 0; iTrack <m_nTracks; iTrack++) {
+
+    // Define track
+    Track matTrack;
+
+    double eta   = 0.;// + m_etaMax/m_nTracks*(iTrack); //+0.5);
+    double theta = 2 * atan(exp(-eta));
+    double phi   = M_PI/2.;//myDice.Rndm() * M_PI * 2.0;
+    double pT    = 100*Units::TeV; // Arbitrarily high number
+
+    matTrack.setThetaPhiPt(theta, phi, pT);
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
+
+    // Assign material to the track
+    VisitorMatTrack matVisitor(matTrack);
+    m_beamPipe->accept(matVisitor);                                 // Assign to material track hit corresponding to beam-pipe
+    matTrack.printHits();
+    for (auto iTracker : m_trackers) {
+
+      iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
+      matTrack.printHits();
+    }
+
+    // Add IP constraint
+    if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rphiErrorIP(), SimParms::getInstance().zErrorIP());
+
+    // Sort hits
+    bool bySmallerRadius = true;
+    matTrack.sortHits(bySmallerRadius);
+
+    // Start with a triplet (2 innermost layers + IP)
+    matTrack.keepFirstNHitsActive(3);
+
+    matTrack.printHits();
+
+
+  }
 
   m_isAnalysisOK = true;
   return m_isAnalysisOK;

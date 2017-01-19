@@ -328,7 +328,7 @@ void Track::addIPConstraint(double dr, double dz) {
   // This modeling of the IP constraint was validated:
   // By placing dr = 0.5 mm and dz = 1 mm one obtains
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
-  HitPtr newHit(new Hit(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
+  HitPtr newHit(new Hit(0,0)); //(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
   newHit->setIP(true);
 
   RILength emptyMaterial;
@@ -340,7 +340,7 @@ void Track::addIPConstraint(double dr, double dz) {
   newHit->setOrientation(HitOrientation::Horizontal);
   newHit->setObjectKind(HitKind::Active);
   newHit->setResolutionRphi(dr);
-  newHit->setResolutionY(dz);
+  newHit->setResolutionZ(dz);
   this->addHit(std::move(newHit));
 
 }
@@ -389,6 +389,24 @@ void Track::keepTaggedOnly(const string& tag) {
     if (std::count_if(module->trackingTags.begin(), module->trackingTags.end(), [&tag](const string& s){ return s == tag; })) iHit->setObjectKind(HitKind::Active);
     else iHit->setObjectKind(HitKind::Inactive);
   }
+}
+
+//! Set only first N hits as active -> return true if possible N>= size of hits vector
+bool Track::keepFirstNHitsActive(signed int N) {
+
+  int iCounter = 0;
+
+  for (auto& iHit : m_hits) {
+
+    if (iCounter<N) iHit->setObjectKind(HitKind::Active);
+    else            iHit->setObjectKind(HitKind::Inactive);
+
+    iCounter++;
+  }
+
+  // Number of hits was lower than expected N
+  if (iCounter>=N) return true;
+  else             return false;
 }
 
 //
@@ -475,13 +493,17 @@ void Track::printHits() {
   std::cout << "Track eta=" << m_eta << std::endl;
 
   for (const auto& it : m_hits) {
-    std::cout << "    Hit"
-              << " r="  << it->getRPos()
-              << " z="  << it->getZPos()
-              << " d="  << it->getDistance()
+    std::cout << "    Hit";
+    if (it->getObjectKind()==HitKind::Active) std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+    else                                      std::cout << " r="  << it->getRPos();
+    if (it->getObjectKind()==HitKind::Active) std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
+    else                                      std::cout << " z="  << it->getZPos();
+    std::cout << " d="  << it->getDistance()
               << " rl=" << it->getCorrectedMaterial().radiation
-              << " il=" << it->getCorrectedMaterial().interaction
-              << " getObjectKind()=" << static_cast<short>(it->getObjectKind());
+              << " il=" << it->getCorrectedMaterial().interaction;
+    if (it->getObjectKind()==HitKind::Active) std::cout << " active ";
+    else                                      std::cout << " inactive ";
+
     if (it->getObjectKind()==HitKind::Active) {
       std::cout << " activeHitType_=" << static_cast<short>(it->getActiveHitType());
     }
@@ -516,10 +538,13 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
 
   for (auto& iHit : m_hits) {
     if (iHit) {
-      if ((useIP) || (!iHit->isIP())) {
-        if (iHit->getObjectKind()==HitKind::Active){
+      if (iHit->getObjectKind()==HitKind::Active){
+        if (iHit->isIP() && useIP) {
+          nHits++;
+        }
+        else if (!iHit->isIP()) {
 
-          // Check tag
+          // Check tag for non-IP assigned hits
           bool tagOK = false;
           for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
             if (tag==*it || tag=="all") tagOK = true;

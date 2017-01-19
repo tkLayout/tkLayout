@@ -107,8 +107,8 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
 
   // Variables to be read in by SimParms class from a configuration file
   ReadonlyProperty<int   , NoDefault> numMinBiasEvents;
-  ReadonlyProperty<int   , NoDefault> zErrorCollider;
-  ReadonlyProperty<int   , NoDefault> rError;
+  ReadonlyProperty<double, NoDefault> zErrorIP;
+  ReadonlyProperty<double, NoDefault> rphiErrorIP;
   ReadonlyProperty<bool  , NoDefault> useIPConstraint;
   ReadonlyProperty<int   , NoDefault> ptCost;
   ReadonlyProperty<int   , NoDefault> stripCost;

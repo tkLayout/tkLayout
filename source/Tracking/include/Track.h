@@ -82,6 +82,9 @@ public:
   //! Set active only hits with the given tag
   void keepTaggedOnly(const string& tag);
 
+  //! Set only first N hits as active (hit vector assumed to be sorted) -> return true if possible, i.e. N>= (size of hit vector)
+  bool keepFirstNHitsActive(signed int N);
+
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
 

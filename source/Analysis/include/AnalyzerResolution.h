@@ -9,13 +9,13 @@
 #define INCLUDE_ANALYZERRESOLUTION_H_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <AnalyzerUnit.h>
 #include "global_constants.h"
-#include <Track.h>
-#include <Visitor.h>
+#include "Track.h"
 
 class BarrelModule;
 class CsvTextBuilder;
@@ -109,44 +109,5 @@ class AnalyzerResolution : public AnalyzerUnit {
   const int    c_nBins;
 
 }; // Class
-
-//! Helper class - Material track visitor (visitor pattern) - checks that modules, beam-pipe etc. hit by a track -> returns radiation & interaction length
-class MatTrackVisitor : public ConstGeometryVisitor {
-
-public:
-
-  //! Constructor
-  //! As a parameter provide a track, under which the material is studied
-  MatTrackVisitor(Track& matTrack);
-
-  //! Destructor
-  ~MatTrackVisitor();
-
-  //! Visit BeamPipe
-  void visit(const BeamPipe& bp) override;
-
-  //! Visit Barrel
-  void visit(const Barrel& b) override;
-
-  //! Visit BarrelModule (no limits on Rods, Layers or Barrels)
-  void visit(const BarrelModule& m) override;
-
-  //! Visit EndcapModule (no limits on Rings, Discs or Endcaps)
-  void visit(const EndcapModule& m) override;
-
-  //! Visit Support structure
-  void visit(const SupportStructure& s) override;
-
-private:
-
-  //! Analyze if module crossed by given track & how much material is on the way
-  void analyzeModuleMB(const DetectorModule& m);
-
-  //! Helper method - analyse inactive element & estimate how much material is in the way
-  void analyzeInactiveElement(const insur::InactiveElement& e);
-
-  Track& m_matTrack;   //!< Shooting direction + origin encapsulated in a track class -> update track with hits once found
-
-}; // Helper class
 
 #endif /* INCLUDE_ANALYZERRESOLUTION_H_ */
