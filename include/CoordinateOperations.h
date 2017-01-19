@@ -38,6 +38,9 @@ namespace CoordinateOperations {
   }
 */
 
+/**
+ * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
+ */
   template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
     Polygon* midPoly = new Polygon();
 
@@ -88,6 +91,12 @@ namespace CoordinateOperations {
     return p;
   }
 
+/**
+ * Compute the envelope polygon (2n vertices) from a polygon (n vertices) specified as a parameter.
+ * param basePolygon
+ * param normalOffset
+ * return envelopePolygon : poly formed by basePolygon shifted by a - normal offset, and by basePolygon shifted by a + normal offset.
+ */
   template<class PolygonA, class PolygonB> PolygonB* computeEnvelopePolygon(const PolygonA& basePolygon, double normalOffset) {
     double innerOffset =  -normalOffset;
     PolygonA* innerPoly = new PolygonA(basePolygon);
