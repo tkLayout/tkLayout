@@ -128,6 +128,8 @@ namespace insur {
   static const int powerPerUnitPrecision = 2;
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
+  static const int luminosityPrecision = 0;
+  static const int alphaParamPrecision = 4;
   static const int weightPrecision = 0;
 
   static const int tableResolutionPrecisionHigh = 5;
@@ -185,7 +187,7 @@ namespace insur {
     bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);

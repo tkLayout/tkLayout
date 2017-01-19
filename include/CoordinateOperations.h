@@ -38,12 +38,27 @@ namespace CoordinateOperations {
   }
 */
 
-  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
+/**
+ * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
+ */
+  template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
+    Polygon* midPoly = new Polygon();
 
+    XYZVector v0 = polygon.getVertex(0);
+    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
+      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      XYZVector vMid = (v0 + v1) / 2.;
+      *midPoly << vMid;
+      v0 = v1;   
+    }
+    return midPoly;
+  }
+
+  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
   template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
     std::vector<XYZVector> distanceVectors;
     XYZVector v0 = polygon.getVertex(0);
-    for (int i = 1; i < polygon.getNumSides()+1; i++) {
+    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
       XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
       v0.SetZ(0.0);
       v1.SetZ(0.0);
@@ -68,6 +83,37 @@ namespace CoordinateOperations {
 
   template<class Polygon> double computeMaxR(const Polygon& polygon) {
     return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
+  }
+
+  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
+    Polygon* p = new Polygon(basePolygon);
+    p->translate(p->getNormal() * normalOffset);
+    return p;
+  }
+
+/**
+ * Compute the envelope polygon (2n vertices) from a polygon (n vertices) specified as a parameter.
+ * param basePolygon
+ * param normalOffset
+ * return envelopePolygon : poly formed by basePolygon shifted by a - normal offset, and by basePolygon shifted by a + normal offset.
+ */
+  template<class PolygonA, class PolygonB> PolygonB* computeEnvelopePolygon(const PolygonA& basePolygon, double normalOffset) {
+    double innerOffset =  -normalOffset;
+    PolygonA* innerPoly = new PolygonA(basePolygon);
+    innerPoly->translate(innerPoly->getNormal() * innerOffset);
+
+    double outerOffset =  normalOffset;
+    PolygonA* outerPoly = new PolygonA(basePolygon);
+    outerPoly->translate(outerPoly->getNormal() * outerOffset);
+
+    PolygonB* envelopePoly = new PolygonB();
+    for (int i = 0; i < innerPoly->getNumSides(); i++) *envelopePoly << innerPoly->getVertex(i);
+    for (int i = 0; i < outerPoly->getNumSides(); i++) *envelopePoly << outerPoly->getVertex(i);
+    // Would have been much nicer to do sth like : *envelopePoly << innerPoly->getVertices() , 
+    // unfortunately this apparently does not work and only assign the first two vertices to *envelopePoly.
+    // On a more general note, the entire AbstractPolygon and Polygon3d classes should be rewritten.
+ 
+    return envelopePoly;
   }
 
 }

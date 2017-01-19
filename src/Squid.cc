@@ -616,9 +616,11 @@ namespace insur {
     if (tr) {
       startTaskClock("Computing dissipated power");
       a.analyzePower(*tr);
+      if (px) pixelAnalyzer.analyzePower(*px);
       stopTaskClock();
       startTaskClock("Creating power report");
-      v.irradiatedPowerSummary(a, *tr, site);
+      v.irradiationPowerSummary(a, *tr, site);
+      if (px) v.irradiationPowerSummary(pixelAnalyzer, *px, site);
       stopTaskClock();
       return true;
     } else {

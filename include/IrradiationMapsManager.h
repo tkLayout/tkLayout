@@ -42,7 +42,7 @@ public:
    * @param coordinates represent the point, is a pair (z,r) with coordinates z in Z, and r in Rho
    * @return The value of irradiation in the point
    */
-  double calculateIrradiationPower(std::pair<double,double> coordinates) const;
+  double calculateIrradiationPower(const std::pair<double,double>& coordinates) const;
 
 private:
 

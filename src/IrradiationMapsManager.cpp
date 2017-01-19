@@ -23,7 +23,7 @@ void IrradiationMapsManager::addIrradiationMap(std::string newIrradiationMapFile
   addIrradiationMap(newIrradiationMap);
 }
 
-double IrradiationMapsManager::calculateIrradiationPower(std::pair<double,double> coordinates) const{
+double IrradiationMapsManager::calculateIrradiationPower(const std::pair<double,double>& coordinates) const{
   double irradiation = 0;
   bool mapFound = false;
 
