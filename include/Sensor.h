@@ -67,12 +67,12 @@ public:
 
   int totalROCs() const { return numROCX() * numROCY(); }
 
-  double sensorNormalOffset() const;  // offset of the sensor center, with respect to the module center
+  double sensorNormalOffset() const;             // offset of the sensor center, with respect to the module center
   const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor
-  const Polygon3d<4>& hitPoly() const;  // sensor plane containing the sensor center
-  const Polygon3d<4>& hitMidPoly() const;  // losange formed by the mid-points of hitPoly
-  const Polygon3d<8>& envelopePoly() const; // parallelepiped rectangle formed by the sensor (6 faces)
-  const Polygon3d<8>& envelopeMidPoly() const;  // parallelepiped formed by the mid-points of envelopePoly
+  const Polygon3d<4>& hitPoly() const;           // sensor plane containing the sensor center
+  const Polygon3d<4>& hitMidPoly() const;        // losange formed by the mid-points of hitPoly
+  const Polygon3d<8>& envelopePoly() const;      // parallelepiped rectangle formed by the sensor (6 faces)
+  const Polygon3d<8>& envelopeMidPoly() const;   // parallelepiped formed by the mid-points of envelopePoly
   void clearPolys();
 
   std::pair<XYZVector, int> checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const;
