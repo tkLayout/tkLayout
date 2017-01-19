@@ -14,11 +14,11 @@
 #include "SummaryTable.h"
 
 class IrradiationPowerVisitor : public GeometryVisitor {
-  double timeIntegratedLumi;
-  double referenceTemp;
-  double operatingTemp;
-  double alphaParam;
-  double biasVoltage;
+  double timeIntegratedLumi_;
+  double referenceTemp_;
+  double operatingTemp_;
+  double alphaParam_;
+  double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
 
 public:
@@ -28,6 +28,9 @@ public:
   void visit(Barrel& b);
   void visit(Endcap& e);
   void visit(DetectorModule& m);
+  const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
+					const double& alphaParam, const double& volume, const double& referenceTemp,
+					const double& operatingTemp, const double& biasVoltage) const;
 };
 
 

@@ -5,9 +5,9 @@ void IrradiationPowerVisitor::preVisit() {
 }
 
 void IrradiationPowerVisitor::visit(SimParms& sp) {
-  timeIntegratedLumi = sp.timeIntegratedLumi();
-  referenceTemp    = sp.referenceTemp() + insur::celcius_to_kelvin;   
-  alphaParam       = sp.alphaParam();
+  timeIntegratedLumi_ = sp.timeIntegratedLumi();
+  referenceTemp_    = sp.referenceTemp() + insur::celcius_to_kelvin;   
+  alphaParam_       = sp.alphaParam();
   irradiationMap_  = &sp.irradiationMapsManager();
 }
 
@@ -22,8 +22,8 @@ void IrradiationPowerVisitor::visit(Endcap& e) {
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
-  operatingTemp    = m.operatingTemp() + insur::celcius_to_kelvin;
-  biasVoltage = m.biasVoltage();
+  operatingTemp_    = m.operatingTemp() + insur::celcius_to_kelvin;
+  biasVoltage_ = m.biasVoltage();
   double volume = 0.;
   std::vector<double> irradiationValues;
   
@@ -51,14 +51,33 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
     }
   }
 
-  // THIS IS TO CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
-
-  // For a given module, take the worst fluence value obtained on the sensor(s) (FLUKA simulation)
+  // For a given module, consider all fluence values obtained on the sensor(s) (FLUKA simulation)
   // This is a 1 MeV-neutrons-equivalent fluence, for an integrated luminosity = 1 fb-1
-  double maxIrradiation = *max_element(irradiationValues.begin(), irradiationValues.end());  // 1MeV-equiv-neutrons / cm^2 / fb-1
+  double sum = std::accumulate(irradiationValues.begin(), irradiationValues.end(), 0.);
+  double irradiationMean = sum / irradiationValues.size();                                   // 1MeV-equiv-neutrons / cm^2 / fb-1
+  double irradiationMax = *max_element(irradiationValues.begin(), irradiationValues.end());  // 1MeV-equiv-neutrons / cm^2 / fb-1
 
+
+  // THIS IS TO CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
+  const double sensorsIrradiationPowerMean = computeSensorsIrradiationPower(irradiationMean, timeIntegratedLumi_, alphaParam_,
+								     volume, referenceTemp_, operatingTemp_, biasVoltage_);
+  const double sensorsIrradiationPowerMax = computeSensorsIrradiationPower(irradiationMax, timeIntegratedLumi_, alphaParam_,
+								      volume, referenceTemp_, operatingTemp_, biasVoltage_);
+
+  // Store results
+  m.sensorsIrradiationPower(sensorsIrradiationPowerMean);
+
+
+  TableRef tref = m.tableRef();
+  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, sensorsIrradiationPowerMean);
+}
+
+
+const double IrradiationPowerVisitor::computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
+							       const double& alphaParam, const double& volume, const double& referenceTemp, 
+							       const double& operatingTemp, const double& biasVoltage) const {			
   // 1 MeV-neutrons-equivalent fluence
-  double fluence = maxIrradiation * timeIntegratedLumi; // 1MeV-equiv-neutrons / cm^2
+  double fluence = irradiation * timeIntegratedLumi; // 1MeV-equiv-neutrons / cm^2
 
   // Calculate the leakage current at the reference temperature
   double leakageCurrentAtReferenceTemp = alphaParam * fluence * volume;  // A
@@ -69,8 +88,5 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // Calculate the heat power dissipated within the silicon sensors due to leakage current
   double sensorsIrradiationPower = leakageCurrent * biasVoltage; // W
 
-  // Store result
-  m.sensorsIrradiationPower(sensorsIrradiationPower);
-  TableRef tref = m.tableRef();
-  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, sensorsIrradiationPower);
+  return sensorsIrradiationPower;
 }
