@@ -71,7 +71,7 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   TableRef tref = m.tableRef();
   std::ostringstream values;
   values.str("");
-  values << std::dec << std::fixed << std::setprecision(1) << sensorsIrradiationPowerMean << " , " << sensorsIrradiationPowerMax;
+  values << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
   sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, values.str());
 }
 
