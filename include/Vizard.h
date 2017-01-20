@@ -286,9 +286,10 @@ namespace insur {
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
+    std::string createSensorsIrradiationCsv(const Tracker& t);
+    std::string createAllModulesCsv(const Tracker& t, bool& withHeader);
     std::string createBarrelModulesCsv(const Tracker& t);
     std::string createEndcapModulesCsv(const Tracker& t);
-    std::string createAllModulesCsv(const Tracker& t, bool& withHeader);
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
 
