@@ -3461,9 +3461,21 @@ namespace insur {
     site.addPage(myPage);
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
-    for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
+    /*for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
       myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      }*/
+
+
+    for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
+      RootWTable* type = new RootWTable();
+      type->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
+      type->setContent(1, 0, "bias voltage = 600 V, operating temperature = -20 °C.");
+      RootWContent& con = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
+      con.addItem(type);
+      con.addTable().setContent(it->second.getContent());
     }
+
+
 
     // Some helper string objects
     ostringstream tempSS;
