@@ -24,13 +24,10 @@ void IrradiationPowerVisitor::visit(Endcap& e) {
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
   operatingTemp_    = m.operatingTemp() + insur::celsius_to_kelvin;
   biasVoltage_ = m.biasVoltage();
-  double volume = 0.;
-  std::vector<double> irradiationValues;
+  double volume = m.totalSensorsVolume() * Units::mm3 / Units::cm3; // Total volume occupied by sensors, converted to cm^3
   
+  std::vector<double> irradiationValues;
   for (const auto& s : m.sensors()) {
-
-    // Calculate total volume occupied by sensors
-    volume += s.sensorThickness() * m.area() * Units::mm3 / Units::cm3; // convert volume to cm^3
 
     // Calculate irradiation at the center of the sensor
     const std::pair<double,double>& center = std::make_pair(s.center().Z(), s.center().Rho());

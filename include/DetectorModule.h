@@ -170,6 +170,11 @@ public:
     double area = module.area(); 
     return area;
   }
+  double totalSensorsVolume() const { // Calculate total volume occupied by sensors
+    double volume = 0.;
+    for (const auto& s : sensors()) volume += area() * s.sensorThickness();
+    return volume;
+  }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }
   double thickness() const { return dsDistance() + sensorThickness(); }

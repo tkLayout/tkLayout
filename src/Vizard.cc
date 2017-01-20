@@ -3469,8 +3469,6 @@ namespace insur {
       myContent.addTable().setContent(it->second.getContent());
     }
 
-
-
     // Some helper string objects
     ostringstream tempSS;
     std::string tempString;
@@ -3510,7 +3508,6 @@ namespace insur {
     totalPowerImage.setName("totalPowerMap");
 
 
-
     // Add csv file with sensors irradiation handful info
     RootWContent* filesContent = new RootWContent("power csv files", false);
     myPage->addContent(filesContent);
@@ -3518,8 +3515,6 @@ namespace insur {
     myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
     myTextFile->addText(createSensorsIrradiationCsv(tracker));
     filesContent->addItem(myTextFile);
-
-
 
     return true;
   }
@@ -6186,7 +6181,7 @@ namespace insur {
       int layerId_;
     public:
       void preVisit() {
-        output_ << "Section, Layer, Ring, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+        output_ << "Section, Layer, Ring, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -6202,8 +6197,9 @@ namespace insur {
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.sensorThickness() << ", "
+		<< m.totalSensorsVolume() << ", "
 		<< m.sensorsIrradiationPowerMean() << ", "
-		<< m.sensorsIrradiationPowerMax()
+		<< m.sensorsIrradiationPowerMax()	
 		<< std::endl;
       }
 
