@@ -6198,6 +6198,7 @@ namespace insur {
 		<< m.length() << ", "
 		<< m.sensorThickness() << ", "
 		<< m.totalSensorsVolume() << ", "
+		<< std::fixed << std::setprecision(3)
 		<< m.sensorsIrradiationPowerMean() << ", "
 		<< m.sensorsIrradiationPowerMax()	
 		<< std::endl;
