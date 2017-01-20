@@ -6,7 +6,7 @@ void IrradiationPowerVisitor::preVisit() {
 
 void IrradiationPowerVisitor::visit(SimParms& sp) {
   timeIntegratedLumi_ = sp.timeIntegratedLumi();
-  referenceTemp_    = sp.referenceTemp() + insur::celcius_to_kelvin;   
+  referenceTemp_    = sp.referenceTemp() + insur::celsius_to_kelvin;   
   alphaParam_       = sp.alphaParam();
   irradiationMap_  = &sp.irradiationMapsManager();
 }
@@ -22,7 +22,7 @@ void IrradiationPowerVisitor::visit(Endcap& e) {
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
-  operatingTemp_    = m.operatingTemp() + insur::celcius_to_kelvin;
+  operatingTemp_    = m.operatingTemp() + insur::celsius_to_kelvin;
   biasVoltage_ = m.biasVoltage();
   double volume = 0.;
   std::vector<double> irradiationValues;

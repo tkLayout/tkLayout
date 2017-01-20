@@ -13,7 +13,7 @@
 namespace insur {
   static const double magnetic_field = 3.8;                // Tesla; CMS magnet field strength
   static const double boltzmann_constant = 8.6173303E-05;  // eV/K
-  static const double celcius_to_kelvin = 273.15;          // T(K) = T(°C) + celcius_to_kelvin
+  static const double celsius_to_kelvin = 273.15;          // T(K) = T(°C) + celsius_to_kelvin
   static const double siliconEffectiveBandGap = 1.21;      // eV. Used in the Hamburg model (effect of temperature on sensor leakage current).
 
   /**

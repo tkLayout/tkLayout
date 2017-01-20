@@ -3465,7 +3465,6 @@ namespace insur {
       RootWContent& myContent = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
       RootWTable* comments = new RootWTable();
       comments->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
-      comments->setContent(1, 0, "bias voltage = 600 V, operating temperature = -20 °C.");
       myContent.addItem(comments);
       myContent.addTable().setContent(it->second.getContent());
     }
@@ -3509,6 +3508,17 @@ namespace insur {
     RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
     totalPowerImage.setName("totalPowerMap");
+
+
+
+    // Add csv file with sensors irradiation handful info
+    RootWContent* filesContent = new RootWContent("power csv files", false);
+    myPage->addContent(filesContent);
+    RootWTextFile* myTextFile;
+    myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
+    myTextFile->addText(createSensorsIrradiationCsv(tracker));
+    filesContent->addItem(myTextFile);
+
 
 
     return true;
@@ -6167,6 +6177,43 @@ namespace insur {
       ss << csv_eol;
     }
     moduleConnectionsCsv_ = ss.str();
+  }
+
+  std::string Vizard::createSensorsIrradiationCsv(const Tracker& t) {
+    class TrackerVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string sectionName_;
+      int layerId_;
+    public:
+      void preVisit() {
+        output_ << "Section, Layer, Ring, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+      }
+      void visit(const Barrel& b) { sectionName_ = b.myid(); }
+      void visit(const Endcap& e) { sectionName_ = e.myid(); }
+      void visit(const Layer& l)  { layerId_ = l.myid(); }
+      void visit(const Disk& d)  { layerId_ = d.myid(); }
+      void visit(const Module& m) {
+        output_ << sectionName_ << ", "
+		<< layerId_ << ", "
+		<< m.moduleRing() << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.operatingTemp() << ", "
+		<< m.biasVoltage() << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.sensorThickness() << ", "
+		<< m.sensorsIrradiationPowerMean() << ", "
+		<< m.sensorsIrradiationPowerMax()
+		<< std::endl;
+      }
+
+      std::string output() const { return output_.str(); }
+    };
+
+    TrackerVisitor v;
+    v.preVisit();
+    t.accept(v);
+    return v.output();
   }
 
   std::string Vizard::createAllModulesCsv(const Tracker& t, bool& withHeader) {
