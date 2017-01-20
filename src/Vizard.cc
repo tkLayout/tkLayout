@@ -3461,18 +3461,13 @@ namespace insur {
     site.addPage(myPage);
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
-    /*for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-      }*/
-
-
     for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      RootWTable* type = new RootWTable();
-      type->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
-      type->setContent(1, 0, "bias voltage = 600 V, operating temperature = -20 °C.");
-      RootWContent& con = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
-      con.addItem(type);
-      con.addTable().setContent(it->second.getContent());
+      RootWContent& myContent = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
+      RootWTable* comments = new RootWTable();
+      comments->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
+      comments->setContent(1, 0, "bias voltage = 600 V, operating temperature = -20 °C.");
+      myContent.addItem(comments);
+      myContent.addTable().setContent(it->second.getContent());
     }
 
 
@@ -3509,10 +3504,10 @@ namespace insur {
     yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
 
     RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    sensorsIrradiationPowerImage.setComment("Map of power dissipation in irradiated sensors (due to leakage current) (W)");
+    sensorsIrradiationPowerImage.setComment("Power dissipation in irradiated sensors (due to leakage current) (average per module) (W)");
     sensorsIrradiationPowerImage.setName("sensorsIrradiationPowerMap");
     RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    totalPowerImage.setComment("Map of total power dissipation in irradiated modules (W)");
+    totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
     totalPowerImage.setName("totalPowerMap");
 
 
