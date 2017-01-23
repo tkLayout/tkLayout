@@ -13,6 +13,8 @@
 #include "Visitor.h"
 #include "SummaryTable.h"
 
+typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
+
 class IrradiationPowerVisitor : public GeometryVisitor {
   double timeIntegratedLumi_;
   double referenceTemp_;
@@ -23,13 +25,21 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
 					      const double& alphaParam, const double& volume, const double& referenceTemp,
 					      const double& operatingTemp, const double& biasVoltage) const;
+  bool isBarrel_;
+  bool isOuterRadiusRod_;
+  std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
+  std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
+  std::map<ModuleRef, int> sensorsCounter_;
+
 public:
   MultiSummaryTable sensorsIrradiationPowerSummary;
   void preVisit();
   void visit(SimParms& sp);
   void visit(Barrel& b);
+  void visit(RodPair& r);
   void visit(Endcap& e);
   void visit(DetectorModule& m);
+  void postVisit();
 };
 
 

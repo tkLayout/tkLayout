@@ -12,11 +12,18 @@ void IrradiationPowerVisitor::visit(SimParms& sp) {
 }
 
 void IrradiationPowerVisitor::visit(Barrel& b) {
+  isBarrel_ = true;
   sensorsIrradiationPowerSummary[b.myid()].setHeader("Layer", "Ring");
   sensorsIrradiationPowerSummary[b.myid()].setPrecision(3);        
 }
 
+void IrradiationPowerVisitor::visit(RodPair& r) {
+  isOuterRadiusRod_ = r.isOuterRadiusRod();     
+}
+
 void IrradiationPowerVisitor::visit(Endcap& e) {
+  isBarrel_ = false;
+  isOuterRadiusRod_ = false;
   sensorsIrradiationPowerSummary[e.myid()].setHeader("Disk", "Ring");
   sensorsIrradiationPowerSummary[e.myid()].setPrecision(3);        
 }
@@ -65,11 +72,25 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   m.sensorsIrradiationPowerMean(sensorsIrradiationPowerMean);
   m.sensorsIrradiationPowerMax(sensorsIrradiationPowerMax);
 
-  TableRef tref = m.tableRef();
+
+
+  TableRef tableRef = m.tableRef();
+  ModuleRef moduleRef = std::make_tuple(isBarrel_, isOuterRadiusRod_, tableRef.table, tableRef.row, tableRef.col);
+  sensorsIrradiationPowerMean_[moduleRef] += sensorsIrradiationPowerMean;
+
+
+
   std::ostringstream values;
   values.str("");
   values << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
   sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, values.str());
+  std::cout << "tref.table = " << tref.table << std::endl;
+  std::cout << "tref.ref = " << tref.row << std::endl;
+  std::cout << "tref.col = " << tref.col << std::endl;
+}
+
+void IrradiationPowerVisitor::postVisit() {
+  
 }
 
 
