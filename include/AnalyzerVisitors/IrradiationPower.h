@@ -14,7 +14,7 @@
 #include "SummaryTable.h"
 
 typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
-// Used to identify a module.
+// Used to identify an irradiated module : all info which matters in that respect.
 // bool isBarrel, bool isOuterRadiusRod, std::string barrel/endcap name, int layer/disk number, int ring number
 
 class IrradiationPowerVisitor : public GeometryVisitor {

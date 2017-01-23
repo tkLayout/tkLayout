@@ -12,13 +12,10 @@ void IrradiationPowerVisitor::visit(SimParms& sp) {
 }
 
 void IrradiationPowerVisitor::visit(Barrel& b) {
-  std::cout << "b.myid() =" << b.myid() << std::endl;
   isBarrel_ = true;     
 }
 
 void IrradiationPowerVisitor::visit(RodPair& r) {
-  std::cout << "r.Phi() =" << r.Phi() << std::endl;
-  std::cout << "r.isOuterRadiusRod() =" << r.isOuterRadiusRod() << std::endl;
   isOuterRadiusRod_ = r.isOuterRadiusRod();     
 }
 
@@ -67,23 +64,29 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   const double sensorsIrradiationPowerMax = computeSensorsIrradiationPower(irradiationMax, timeIntegratedLumi_, alphaParam_,
 								      volume, referenceTemp_, operatingTemp_, biasVoltage_);
 
-  // Store results
+  // STORE RESULTS
   // Results for each module
   m.sensorsIrradiationPowerMean(sensorsIrradiationPowerMean);
   m.sensorsIrradiationPowerMax(sensorsIrradiationPowerMax);
 
-  // Also gather results in maps that will be used for summary tables
+  // Also gather results for all modules of a given type, identified by ModuleRef.
+  // This will be used for summary tables.
   TableRef tableRef = m.tableRef();
   ModuleRef moduleRef = std::make_tuple(isBarrel_, isOuterRadiusRod_, tableRef.table, tableRef.row, tableRef.col);
+  // mean
   sensorsIrradiationPowerMean_[moduleRef] += sensorsIrradiationPowerMean;
+  // max
   if (sensorsIrradiationPowerMax > sensorsIrradiationPowerMax_[moduleRef]) sensorsIrradiationPowerMax_[moduleRef] = sensorsIrradiationPowerMax;
+  // counter
   modulesCounter_[moduleRef]++;
 }
 
 void IrradiationPowerVisitor::postVisit() {
-  // Create summary tables of results
-  for (const auto& it : modulesCounter_) {
+  // Create summary tables of results.
+  // All results are per module category, identified by ModuleRef.
+  for (const auto& it : modulesCounter_) {  // for each module category
     if (it.second > 0) {
+      // Identifiers of the module category.
       std::string name = std::get<2>(it.first);
       bool isBarrel = std::get<0>(it.first);
       bool isOuterRadiusRod = std::get<1>(it.first);
@@ -94,12 +97,14 @@ void IrradiationPowerVisitor::postVisit() {
       int row = std::get<3>(it.first);
       int col = std::get<4>(it.first);
 
+      // Obtain the mean and the max sensorsIrradiationPower, for a given module category.
       double sensorsIrradiationPowerMean = sensorsIrradiationPowerMean_[it.first] / it.second;
       double sensorsIrradiationPowerMax = sensorsIrradiationPowerMax_[it.first];
       std::ostringstream values;
       values.str("");
       values << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
 
+      // Store results in summary table.
       if (isBarrel) sensorsIrradiationPowerSummary[name].setHeader("Layer", "Ring");
       else sensorsIrradiationPowerSummary[name].setHeader("Disk", "Ring");
       sensorsIrradiationPowerSummary[name].setPrecision(3);   

@@ -6187,8 +6187,8 @@ namespace insur {
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
       void visit(const Layer& l)  { layerId_ = l.myid(); }
-      void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadius(); }
-      void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); }
+      void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
+      void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
       void visit(const Module& m) {
         output_ << sectionName_ << ", "
 		<< layerId_ << ", "
