@@ -38,8 +38,9 @@ using namespace RootWeb;
 std::string RootWeb::cleanUpObjectName(const std::string& source) {
   std::string dest = "";
   const std::string allowedChars  = "abcdefghijklmnopqrstuvwxyz"
-                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const std::string convertedChars = "0123456789._-() "; // including space here
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                    "0123456789";
+  const std::string convertedChars = "._-() "; // including space here
   auto N=source.size();
   auto i=N;
   bool pleaseConvert = false;
