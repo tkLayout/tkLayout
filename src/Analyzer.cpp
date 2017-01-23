@@ -1097,8 +1097,10 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
 void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
   IrradiationPowerVisitor v;
+  v.preVisit();
   simParms_->accept(v);
   tracker.accept(v);
+  v.postVisit();
 
   sensorsIrradiationPowerSummary_ = v.sensorsIrradiationPowerSummary;
 }

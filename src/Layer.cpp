@@ -551,7 +551,7 @@ void Layer::buildTilted() {
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
-  first->isOuterRadiusRod(true);
+  second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
   second->rotateZ(rodPhiRotation);

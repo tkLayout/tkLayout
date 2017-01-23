@@ -12,20 +12,19 @@ void IrradiationPowerVisitor::visit(SimParms& sp) {
 }
 
 void IrradiationPowerVisitor::visit(Barrel& b) {
-  isBarrel_ = true;
-  sensorsIrradiationPowerSummary[b.myid()].setHeader("Layer", "Ring");
-  sensorsIrradiationPowerSummary[b.myid()].setPrecision(3);        
+  std::cout << "b.myid() =" << b.myid() << std::endl;
+  isBarrel_ = true;     
 }
 
 void IrradiationPowerVisitor::visit(RodPair& r) {
+  std::cout << "r.Phi() =" << r.Phi() << std::endl;
+  std::cout << "r.isOuterRadiusRod() =" << r.isOuterRadiusRod() << std::endl;
   isOuterRadiusRod_ = r.isOuterRadiusRod();     
 }
 
 void IrradiationPowerVisitor::visit(Endcap& e) {
   isBarrel_ = false;
-  isOuterRadiusRod_ = false;
-  sensorsIrradiationPowerSummary[e.myid()].setHeader("Disk", "Ring");
-  sensorsIrradiationPowerSummary[e.myid()].setPrecision(3);        
+  isOuterRadiusRod_ = false;    
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
@@ -69,28 +68,45 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
 								      volume, referenceTemp_, operatingTemp_, biasVoltage_);
 
   // Store results
+  // Results for each module
   m.sensorsIrradiationPowerMean(sensorsIrradiationPowerMean);
   m.sensorsIrradiationPowerMax(sensorsIrradiationPowerMax);
 
-
-
+  // Also gather results in maps that will be used for summary tables
   TableRef tableRef = m.tableRef();
   ModuleRef moduleRef = std::make_tuple(isBarrel_, isOuterRadiusRod_, tableRef.table, tableRef.row, tableRef.col);
   sensorsIrradiationPowerMean_[moduleRef] += sensorsIrradiationPowerMean;
-
-
-
-  std::ostringstream values;
-  values.str("");
-  values << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
-  sensorsIrradiationPowerSummary[tref.table].setCell(tref.row, tref.col, values.str());
-  std::cout << "tref.table = " << tref.table << std::endl;
-  std::cout << "tref.ref = " << tref.row << std::endl;
-  std::cout << "tref.col = " << tref.col << std::endl;
+  if (sensorsIrradiationPowerMax > sensorsIrradiationPowerMax_[moduleRef]) sensorsIrradiationPowerMax_[moduleRef] = sensorsIrradiationPowerMax;
+  modulesCounter_[moduleRef]++;
 }
 
 void IrradiationPowerVisitor::postVisit() {
-  
+  // Create summary tables of results
+  for (const auto& it : modulesCounter_) {
+    if (it.second > 0) {
+      std::string name = std::get<2>(it.first);
+      bool isBarrel = std::get<0>(it.first);
+      bool isOuterRadiusRod = std::get<1>(it.first);
+      if (isBarrel) {
+	if (isOuterRadiusRod) name += ", outer radius rods";
+	else name += ", inner radius rods";
+      }
+      int row = std::get<3>(it.first);
+      int col = std::get<4>(it.first);
+
+      double sensorsIrradiationPowerMean = sensorsIrradiationPowerMean_[it.first] / it.second;
+      double sensorsIrradiationPowerMax = sensorsIrradiationPowerMax_[it.first];
+      std::ostringstream values;
+      values.str("");
+      values << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
+
+      if (isBarrel) sensorsIrradiationPowerSummary[name].setHeader("Layer", "Ring");
+      else sensorsIrradiationPowerSummary[name].setHeader("Disk", "Ring");
+      sensorsIrradiationPowerSummary[name].setPrecision(3);   
+      sensorsIrradiationPowerSummary[name].setCell(row, col, values.str());
+    }
+    else logERROR("Tried to access values from sensorsIrradiationPowerMean_, sensorsIrradiationPowerMax_, but no module in modulesCounter_.");
+  }  
 }
 
 

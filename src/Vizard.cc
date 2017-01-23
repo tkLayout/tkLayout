@@ -6179,18 +6179,21 @@ namespace insur {
       std::stringstream output_;
       string sectionName_;
       int layerId_;
+      bool isOuterRadiusRod_;
     public:
       void preVisit() {
-        output_ << "Section, Layer, Ring, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+        output_ << "Section, Layer, Ring, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
       void visit(const Layer& l)  { layerId_ = l.myid(); }
-      void visit(const Disk& d)  { layerId_ = d.myid(); }
+      void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadius(); }
+      void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); }
       void visit(const Module& m) {
         output_ << sectionName_ << ", "
 		<< layerId_ << ", "
 		<< m.moduleRing() << ", "
+		<< isOuterRadiusRod_ << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.operatingTemp() << ", "
 		<< m.biasVoltage() << ", "

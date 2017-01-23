@@ -14,6 +14,8 @@
 #include "SummaryTable.h"
 
 typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
+// Used to identify a module.
+// bool isBarrel, bool isOuterRadiusRod, std::string barrel/endcap name, int layer/disk number, int ring number
 
 class IrradiationPowerVisitor : public GeometryVisitor {
   double timeIntegratedLumi_;
@@ -29,7 +31,7 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   bool isOuterRadiusRod_;
   std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
   std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
-  std::map<ModuleRef, int> sensorsCounter_;
+  std::map<ModuleRef, int> modulesCounter_;
 
 public:
   MultiSummaryTable sensorsIrradiationPowerSummary;
