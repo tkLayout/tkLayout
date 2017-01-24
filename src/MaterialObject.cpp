@@ -140,6 +140,9 @@ namespace material {
         quantity = currElement->totalGrams(materialProperties);
 
         if (currElement->componentName.state()) {
+	  /*if (currElement->componentName() == "Sensor HV line") {
+	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
+	    }*/
           materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
         } else {
           materialProperties.addLocalMass(currElement->elementName(), quantity);

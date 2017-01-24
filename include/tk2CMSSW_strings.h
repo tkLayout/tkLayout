@@ -12,14 +12,11 @@ namespace insur {
     /**
      * Numeric constants
      */
-    static const int xml_prec = 3;
-    static const int xml_roc_rows = 128;
-    static const int xml_roc_cols = 1;
-    static const int xml_reco_material_disc_offset = 3;
-    //static const double xml_z_pixfwd = 325.0;
-    static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
-    static const double xml_epsilon = 0.01;
-    static const double xml_pixel_layeroffset = 1.65;
+    static const double xml_z_pixfwd = 291.0; // VERY IMPORTANT : xml_z_pixfwd defines the offset of the Pixel Forward container volume. 
+    // It should be equal to ZPixelForward defined statically in pixfwd.xml. Otherwise, anything contained by Pixel Forward will have wrong Z in XMLs !!
+    static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
+    static const double xml_composite_density_tolerance = 1E-07;
+    static const double xml_composite_ratio_tolerance = 1E-07;
     /**
      * XML tags and attributes
      */
@@ -55,6 +52,7 @@ namespace insur {
     static const std::string xml_algorithm_vector_close = "</Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
+    static const std::string xml_tkLayout_material = "tkLayout_";
     static const std::string xml_elementary_material_open = "<ElementaryMaterial name=\"";
     static const std::string xml_elementary_material_first_inter = "\" symbol=\"";
     static const std::string xml_elementary_material_second_inter = "\" atomicNumber=\"";
@@ -153,12 +151,14 @@ namespace insur {
     static const std::string xml_PX_trackersensfile = "pixelsens.xml";
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
     static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
-    static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
+    //static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
     static const std::string xml_tmppath = "tmp";
     /**
      * Naming conventions and variable names
      */
     static const std::string xml_insert_marker = "<!--mid point marker-->";
+    static const std::string xml_OT_insert_marker = "<!--Outer Tracker info marker-->";
+    static const std::string xml_PX_insert_marker = "<!--Pixel info marker-->";
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_Act = "Active";
@@ -240,7 +240,7 @@ namespace insur {
     static const std::string xml_det_ring = "TIDRing";
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
-    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";   
+    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
@@ -251,10 +251,11 @@ namespace insur {
     static const std::string xml_roc_rows_name = "PixelROCRows";
     static const std::string xml_roc_cols_name = "PixelROCCols";
     static const std::string xml_par_tail = "Par";
-    static const std::string xml_OT_reco_layer_name = "TrackerRecMaterialTOB";
-    static const std::string xml_PX_reco_layer_name = "TrackerRecMaterialPhase1";
-    static const std::string xml_OT_reco_disc_name = "TrackerRecMaterialTIDDisk";
-    static const std::string xml_PX_reco_disc_name = "TrackerRecMaterialPhase2PixelEndcapDisk";
+    static const std::string xml_reco = "TrackerRecMaterial";
+    static const std::string xml_OT_reco_layer_name = "Phase2OTBarrelLayer";
+    static const std::string xml_PX_reco_layer_name = "Phase1PixelBarrelLayer";
+    static const std::string xml_OT_reco_disc_name = "Phase2OTForwardDisk";
+    static const std::string xml_PX_reco_disc_name = "Phase2PixelForwardDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
     static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
@@ -339,7 +340,8 @@ namespace insur {
 	topologyfile(!isPixelTracker ? xml_topologyfile : xml_PX_topologyfile),
 	prodcutsfile(!isPixelTracker ? xml_prodcutsfile : xml_PX_prodcutsfile),
 	trackersensfile(!isPixelTracker ? xml_trackersensfile : xml_PX_trackersensfile),
-	recomatfile(!isPixelTracker ? xml_recomatfile : xml_PX_recomatfile),
+	recomatfile(xml_recomatfile),  // For users convinience, reco material info is stored in only one file for both OT and PX.
+	insert_marker(!isPixelTracker ? xml_OT_insert_marker : xml_PX_insert_marker),
 
 	topo_barrel_name(!isPixelTracker ? xml_OT_topo_barrel_name : xml_PX_topo_barrel_name),
 	topo_barrel_value(!isPixelTracker ? xml_OT_topo_barrel_value : xml_PX_topo_barrel_value),
@@ -360,8 +362,8 @@ namespace insur {
 	topo_emodule_name(!isPixelTracker ? xml_OT_topo_emodule_name : xml_PX_topo_emodule_name),
 	topo_emodule_value(!isPixelTracker ? xml_OT_topo_emodule_value : xml_PX_topo_emodule_value),
 
-	reco_layer_name(!isPixelTracker ? xml_OT_reco_layer_name : xml_PX_reco_layer_name),
-	reco_disc_name(!isPixelTracker ? xml_OT_reco_disc_name : xml_PX_reco_disc_name)
+	reco_layer_name(xml_reco + (!isPixelTracker ? xml_OT_reco_layer_name : xml_PX_reco_layer_name)),
+	reco_disc_name(xml_reco + (!isPixelTracker ? xml_OT_reco_disc_name : xml_PX_reco_disc_name))
       {};
 
       const std::string nspace;
@@ -373,7 +375,8 @@ namespace insur {
       const std::string topologyfile;
       const std::string prodcutsfile;
       const std::string trackersensfile;
-      const std::string recomatfile;       
+      const std::string recomatfile;
+      const std::string insert_marker;      
 
       const std::string topo_barrel_name;
       const std::string topo_barrel_value;

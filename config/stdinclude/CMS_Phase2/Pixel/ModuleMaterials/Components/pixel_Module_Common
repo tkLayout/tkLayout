@@ -1,7 +1,7 @@
 // Pixel module common components (no bumps, no cooling blocks, no connectivity)
 
 Component {
-  componentName pixel_Module_Common
+  componentName "Pixel sensor" 
   service false
   scaleOnSensor 0
   Element {
@@ -10,6 +10,12 @@ Component {
     unit mm
     targetVolume 2
   }
+}
+
+Component {
+  componentName "Pixel hybrid"
+  service false
+  scaleOnSensor 0
   Element {
     elementName Si
     quantity 0.15
@@ -28,6 +34,12 @@ Component {
     unit mm
     targetVolume 1
   }
+}
+
+Component {
+  componentName "Pixel Support plate"
+  service false
+  scaleOnSensor 0
   // Support
   Element {
     elementName CF

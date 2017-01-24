@@ -1,0 +1,25 @@
+// 1.6 mm^2 power wires NEW TYPE OF CABLE based on Habia specs
+// Serial power: the power lines do not accumulate
+Component {
+  componentName "Power wires"
+  service true
+  scaleOnSensor 0
+  // ONE wire
+  Element {
+    elementName Cu
+    quantity 0.55
+    unit g/m
+  }
+  // ONE wire
+  Element {
+    elementName PE
+    quantity 1.26
+    unit g/m
+  }
+  // ONE wire 1.6 mm^2
+  Element {
+    elementName Al
+    quantity 4.07
+    unit g/m
+  }
+}

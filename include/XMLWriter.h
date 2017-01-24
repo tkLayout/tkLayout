@@ -16,11 +16,14 @@
 #include <tk2CMSSW_datatypes.h>
 #include <tk2CMSSW_strings.h>
 #include <global_constants.h>
+#include <Property.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 namespace insur {
+
   /**
    * @class XMLWriter
    * @brief This class bundles the output functions that write tracker information from a series of internal collections to CMSSW XML files.
@@ -43,7 +46,7 @@ namespace insur {
     const std::string& getSimpleHeader() const { return simpleHeader_; }
   protected:
     void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
-    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, XmlTags& trackerXmlTags);
+    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags);
     void rotationSection(std::map<std::string,Rotation>& r, std::string label, std::ostringstream& stream);
     void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool isPixelTracker, bool wt = false);
@@ -51,9 +54,8 @@ namespace insur {
     void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
     void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
     void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
-    void compositeMaterial(std::string name, double density, CompType method,
-			   std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags);
-    void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream);
+    void compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags);
+    void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
     void trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream);
     void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
@@ -71,6 +73,9 @@ namespace insur {
     void specPar(std::string name, std::vector<SpecParInfo>& t, std::ofstream& stream, XmlTags& trackerXmlTags);
     void specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker);
   private:
+    std::vector<Composite> printedComposites_; // List of composites whose materials are printed in the XMLs.
+    std::map<std::string, std::string> mapCompoToPrintedCompo_; // This maps each existing composite to a composite which has same materials. 
+                                                                // Only the PrintedCompo materials are printed in the XMLs.
     std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     bool endcapsInTopology(std::vector<SpecParInfo>& specs);
     int findNumericPrefixSize(std::string s);

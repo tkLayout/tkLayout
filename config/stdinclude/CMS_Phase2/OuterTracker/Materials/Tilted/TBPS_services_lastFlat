@@ -5,7 +5,7 @@
 
    // Cooling for the module
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     targetVolume 0

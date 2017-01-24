@@ -10,6 +10,7 @@
 #include "Module.h"
 #include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
+#include <InactiveElement.h>
 #include <cmath>
 #include <vector>
 #include <TMatrixT.h>
@@ -27,6 +28,10 @@
 using namespace std;
 
 class Track;
+namespace insur {
+  class InactiveElement;
+}
+using insur::InactiveElement;
 
 // TODO: why this?
 typedef double momentum;  // Track momentum in MeV
@@ -50,13 +55,20 @@ protected:
   double radius_; // distance of hit from origin in the x/y plane
   int orientation_;   // orientation of the surface
   int objectKind_;    // kind of hit object
+  int objectCategory_;
   Module* hitModule_; // Pointer to the hit module
+  InactiveElement* hitInactiveElement_; // Pointer to the hit inactive element
   //double trackTheta_; // Theta angle of the track
   //Material material_;
   // "Thickness" in terms of radiation_length and interaction_length
   RILength correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
+  bool isPixelIntersticeVolume_;
+  bool isPixelTrackingVolume_;
+  bool isIntersticeVolume_;
+  bool isOuterTrackingVolume_;
+  bool isTotalTrackingVolume_;
   bool isTrigger_;
   bool isIP_;
   HitType activeHitType_;
@@ -74,15 +86,18 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
+  InactiveElement* getHitInactiveElement() { return hitInactiveElement_; };
   void computeLocalResolution();
   double getResolutionRphi(double trackR);
   double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
+  void setHitInactiveElement(InactiveElement* myInactiveElement);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
    */
   enum { Undefined, Horizontal, Vertical,  // Hit object orientation 
     Active, Inactive };               // Hit object type
+  enum {Unknown, Act, BeamPipe, Service, Support };
 
   double getDistance() {return distance_;};
   void setDistance(double newDistance) { if (newDistance>0) distance_ = newDistance; updateRadius(); };
@@ -91,15 +106,27 @@ public:
   int getOrientation() { return orientation_;};
   void setOrientation(int newOrientation) { orientation_ = newOrientation; };
   int getObjectKind() { return objectKind_;};
+  int getObjectCategory() { return objectCategory_;};
   void setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
+  void setObjectCategory(int newObjectCategory) { objectCategory_ = newObjectCategory;};
   void setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
   double getTrackTheta();
   RILength getCorrectedMaterial();
   void setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
+  bool isPixelIntersticeVolume() { return isPixelIntersticeVolume_; };
+  bool isPixelTrackingVolume() { return isPixelTrackingVolume_; };
+  bool isIntersticeVolume() { return isIntersticeVolume_; };
+  bool isOuterTrackingVolume() { return isOuterTrackingVolume_; };
+  bool isTotalTrackingVolume() { return isTotalTrackingVolume_; };
   bool isTrigger() { return isTrigger_; };
   bool isIP() { return isIP_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
+  void setPixelIntersticeVolume(bool isPixelIntersticeVolume) { isPixelIntersticeVolume_ = isPixelIntersticeVolume; }
+  void setPixelTrackingVolume(bool isPixelTrackingVolume) { isPixelTrackingVolume_ = isPixelTrackingVolume; }
+  void setIntersticeVolume(bool isIntersticeVolume) { isIntersticeVolume_ = isIntersticeVolume; }
+  void setOuterTrackingVolume(bool isOuterTrackingVolume) { isOuterTrackingVolume_ = isOuterTrackingVolume; }
+  void setTotalTrackingVolume(bool isTotalTrackingVolume) { isTotalTrackingVolume_ = isTotalTrackingVolume; }
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
   double getResolutionLocalX() { return resolutionLocalX_; }
   double getResolutionLocalY() { return resolutionLocalY_; }
@@ -178,6 +205,7 @@ public:
   Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
+  void assignTrackingVolumesToHits();
   void computeErrors();
   void printErrors();
   void print();

@@ -12,19 +12,19 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName Ti
-      quantity 11.45
+      quantity 10.21
       unit g
     }
     Element {
       elementName CO2
-      quantity 10.8
+      quantity 9.69
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
   // 8 pipes per disk
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
@@ -47,17 +47,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 4.7
+      quantity 13.31
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.99
+      quantity 2.05
       unit g
     }
     Element {
       elementName PE
-      quantity 1
+      quantity 4.49
       unit g
     }
   }
@@ -69,17 +69,17 @@ Materials FPIX_disk {
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.032
+      quantity 0.0954
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0067160494
+      quantity 0.0143
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.006
+      quantity 0.0317
       unit g/m
     }
   }
@@ -87,44 +87,44 @@ Materials FPIX_disk {
   // HV power wires
   // Power for the module
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 0.393125
+      quantity 1.46
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.140
+      quantity 0.52
       unit g
     }
     Element {
       elementName PE
-      quantity 1.41
+      quantity 5.24
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
   // 12 chains per disk, 2 wires per chain
   Component {
-    componentName "HV Power wires"
+    componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.005508
+      quantity 0.0064
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0019608
+      quantity 0.0023
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0198
+      quantity 0.0231
       unit g/m
     }
   }
@@ -132,7 +132,7 @@ Materials FPIX_disk {
   // Support Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Disk support mechanics"
     service false
     scaleOnSensor 0
     Element {
