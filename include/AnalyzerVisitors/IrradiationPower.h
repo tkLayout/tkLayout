@@ -24,6 +24,7 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double alphaParam_;
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
+  std::pair<double, double> getModuleIrradiationMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
   const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
 					      const double& alphaParam, const double& volume, const double& referenceTemp,
 					      const double& operatingTemp, const double& biasVoltage) const;
