@@ -53,6 +53,7 @@ public:
   Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<bool, Default> beamSpotCover;
+  Property<bool, NoDefault> isOuterRadiusRod;
 
   RodPair() :
       materialObject_(MaterialObject::ROD),
