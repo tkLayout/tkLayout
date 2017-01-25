@@ -1,4 +1,4 @@
-// Cooling for the pixel module on the rod: 2 pipes/rod
+// Cooling for the pixel module on the rod: 1 pipe/rod
 
 Component {
   componentName "Cooling"
@@ -6,12 +6,12 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Ti_L2 
-    quantity 3.31
+    quantity 1.66
     unit g/m
   }
   Element {
     elementName CO2_L2
-    quantity 3.14
+    quantity 1.57
     unit g/m
   }
 }
@@ -22,12 +22,12 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Ti_L2 
-    quantity 3.31
+    quantity 1.66
     unit g/m
   }
   Element {
     elementName CO2_L2
-    quantity 3.14
+    quantity 1.57
     unit g/m
   }
 }

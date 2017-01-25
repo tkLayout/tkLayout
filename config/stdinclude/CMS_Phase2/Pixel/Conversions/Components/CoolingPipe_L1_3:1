@@ -1,0 +1,40 @@
+// One cooling pipe serves one rod' cooling pipes 
+
+  // Titanium pipe
+  Conversion {
+    Input {
+      Element {
+        elementName Ti_L1 
+        quantity 3
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Ti_L1
+        quantity 1
+        unit g/m
+        service true
+      }
+    }  
+  }
+ 
+
+  // Coolant
+  Conversion {
+    Input {
+      Element {
+        elementName CO2_L1
+        quantity 3
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName CO2_L1
+        quantity 1
+        unit g/m
+        service true
+      }
+    }  
+  }

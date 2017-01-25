@@ -1,0 +1,21 @@
+// (1+1) Low-Speed TWP / 4 modules 1x1
+
+Component {
+  componentName "Twisted pairs"
+  service true
+  scaleOnSensor 0
+  // Two conductors
+  Element {
+    elementName Cu_TWP_1+1_LS_div4
+    quantity 0.11
+    unit g/m
+    targetVolume 1
+  }
+  // Two insulations
+  Element {
+    elementName Kapton
+    quantity 0.009
+    unit g/m
+    targetVolume 1
+  }
+}

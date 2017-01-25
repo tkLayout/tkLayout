@@ -6,7 +6,9 @@ Materials BPIX_rod_L2 {
   type rod
 
   @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L2
+  @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L2
   @include-std CMS_Phase2/Pixel/Materials/Components/Power_0.8mm2
   @include-std CMS_Phase2/Pixel/Materials/Components/HV_Wires
+  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_SupportStructure_0.2
 }
 

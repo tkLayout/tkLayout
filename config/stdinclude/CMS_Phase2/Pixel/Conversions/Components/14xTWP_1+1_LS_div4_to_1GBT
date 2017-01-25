@@ -1,12 +1,12 @@
-// (2+1) TWP/module
-// 3 modules/GBT
+// (1+1) low-speed TWP/module
+// 14 modules/GBT
 
 Conversion {
   Input {
     // Two conductors
     Element {
-      elementName Cu_TWP_2+1_HS
-      quantity 1.989
+      elementName Cu_TWP_1+1_LS_div4 
+      quantity 6.188
       unit g/m
     }
   }
