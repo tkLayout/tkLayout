@@ -64,6 +64,12 @@ public:
   //! and using linear fit in s-Z plane: cotg(theta), z0 parameters -> call this method before calling getDelta***() methods.
   void computeErrors();
 
+  //! Method calculating track parameters in s-z plane only, using linear fit: cotg(theta), z0 parameters -> call this method before calling getDelta***() methods.
+  void computeErrorsRZ();
+
+  //! Method calculating track parameters in r-phi plane only, using Karimaki parametrization & parabolic track approximation in R-Phi plane: 1/R, d0, phi parameters -> call this method before calling getDelta***() methods.
+  void computeErrorsRPhi();
+
   //! Add new hit to track and return a pointer to that hit
   void addHit(HitPtr newHit);
 
@@ -79,11 +85,11 @@ public:
   //! Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
   bool pruneHits();
   
-  //! Set active only hits with the given tag
-  void keepTaggedOnly(const string& tag);
+  //! Set active only hits with the given tag. If tag="all" all hits coming from measurement planes or IP will be set as active
+  void keepTaggedHitsOnly(const string& tag, bool useIP = true);
 
-  //! Set only first N hits as active (hit vector assumed to be sorted) -> return true if possible, i.e. N>= (size of hit vector)
-  bool keepFirstNHitsActive(signed int N);
+  //! Keep only first N hits coming from measurement planes or IP as active -> return true if possible N>= size of hits vector
+  bool keepFirstNHitsActive(signed int N, bool useIP = true);
 
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
@@ -99,6 +105,9 @@ public:
 
   //! Helper method printing track hits
   void printHits();
+
+  //! Helper method printing active track hits
+  void printActiveHits();
 
   //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
@@ -154,6 +163,12 @@ public:
 
   //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
   int getNActiveHits(std::string tag, bool useIP = true) const;
+
+  //! Get number of hits, set as active & coming from measurement planes or IP constraint. All hits must be assigned to tracker with given tag. If tag specified as "all", all module & IP hits assigned.
+  int getNMeasuredHits(std::string tag, bool useIP = true) const;
+
+  //! Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
+  const Hit* getMeasurableOrIPHit(int iHit) const;
 
   //! Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
   //! If tag specified as "all" no extra tag required
@@ -217,8 +232,8 @@ protected:
   Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
   XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
 
-  HitCollection         m_hits;//!< Hits assigned to track
-  std::set<std::string> m_tags;//!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
+  HitCollection         m_hits;         //!< Hits assigned to track
+  std::set<std::string> m_tags;         //!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
   // Track parameters covariance matrices
   TMatrixTSym<double>   m_varMatrixRPhi; //!< NxN (hits) Variance matrix in R-Phi: V(NxN) (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)

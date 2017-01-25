@@ -1110,8 +1110,7 @@ void VisitorMatBudget::visit(const BeamPipe& bp)
   double rPos  = (bp.radius()+bp.thickness()/2.);
   double zPos  = rPos/tan(theta);
   HitPtr hit(new Hit(rPos, zPos));
-  hit->setOrientation(HitOrientation::Horizontal);
-  hit->setObjectKind(HitKind::Inactive);
+  hit->setAsPassive();
 
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
@@ -1383,9 +1382,7 @@ void VisitorMatBudget::analyzeInactiveElement(std::string tag, const insur::Inac
 
         // Create Hit object with appropriate parameters, add to Track t
         HitPtr hit(new Hit(rPos, zPos));
-        if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
-        else                hit->setOrientation(HitOrientation::Horizontal);
-        hit->setObjectKind(HitKind::Inactive);
+        hit->setAsPassive();
         hit->setCorrectedMaterial(material);
         m_matTrack.addHit(std::move(hit));
 

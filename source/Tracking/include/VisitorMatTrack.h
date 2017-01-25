@@ -8,6 +8,7 @@
 #ifndef INCLUDE_VISITORMATTRACK_H_
 #define INCLUDE_VISITORMATTRACK_H_
 
+#include <string>
 #include <Visitor.h>
 
 class Track;
@@ -30,8 +31,20 @@ public:
   //! Visit BeamPipe
   void visit(const BeamPipe& bp) override;
 
+  //! Visit Tracker
+  void visit(const Tracker& t) override;
+
   //! Visit Barrel
   void visit(const Barrel& b) override;
+
+  //! Visit Endcap
+  void visit(const Endcap& e) override;
+
+  //! Visit Layer
+  void visit(const Layer& l) override;
+
+  //! Visit Disc
+  void visit(const Disk& d) override;
 
   //! Visit BarrelModule (no limits on Rods, Layers or Barrels)
   void visit(const BarrelModule& m) override;
@@ -51,6 +64,12 @@ private:
   void analyzeInactiveElement(const insur::InactiveElement& e);
 
   Track& m_matTrack;   //!< Shooting direction + origin encapsulated in a track class -> update track with hits once found
+
+  std::string m_detName;
+  std::string m_brlName;
+  std::string m_ecapName;
+  int         m_layerID;
+  int         m_discID;
 
 }; // Class
 

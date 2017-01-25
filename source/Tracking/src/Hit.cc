@@ -49,20 +49,21 @@ Hit::~Hit() {}
  * The default constructor sets the internal parameters to default values.
  */
 Hit::Hit() {
+    m_detName          = "Undefined";
     m_distance         = 0;
     m_rPos             = 0;
     m_zPos             = 0;
-    m_objectKind       = HitKind::Undefined;
-    m_orientation      = HitOrientation::Undefined;
+    m_activity         = HitActivity::Undefined;
+    m_activeHitType    = HitType::NONE;
     m_hitModule        = nullptr;
     m_track            = nullptr;
-    m_isPixel          = false;
     m_isTrigger        = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
+    m_layerID          = -1;
+    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
-    m_activeHitType    = HitType::NONE;
 }
 
 /**
@@ -70,41 +71,44 @@ Hit::Hit() {
  * be set explicitly later). The pointer to the module, on the other hand, stays the same as that of the original.
  */
 Hit::Hit(const Hit& h) {
+    m_detName           = h.m_detName;
     m_distance          = h.m_distance;
     m_rPos              = h.m_rPos;
     m_zPos              = h.m_zPos;
-    m_objectKind        = h.m_objectKind;
-    m_orientation       = h.m_orientation;
+    m_activity          = h.m_activity;
+    m_activeHitType     = h.m_activeHitType;
     m_hitModule         = h.m_hitModule;
     m_track             = nullptr;
     m_correctedMaterial = h.m_correctedMaterial;
-    m_isPixel           = h.m_isPixel;
     m_isTrigger         = h.m_isTrigger;
     m_isIP              = h.m_isIP;
     m_isBeamPipe        = h.m_isBeamPipe;
+    m_layerID           = h.m_layerID;
+    m_discID            = h.m_discID;
     m_resolutionRPhi    = h.m_resolutionRPhi;
     m_resolutionZ       = h.m_resolutionZ;
-    m_activeHitType     = h.m_activeHitType;
 }
 
 /**
  * Constructor for a hit with no module at a given [rPos, zPos] from the origin
  */
 Hit::Hit(double rPos, double zPos) {
+    m_detName          = "Undefined";
     m_distance         = sqrt(rPos*rPos + zPos*zPos);
     m_rPos             = rPos;
     m_zPos             = zPos;
-    m_objectKind       = HitKind::Undefined;
-    m_orientation      = HitOrientation::Undefined;
+    m_activity         = HitActivity::Undefined;
+    m_activeHitType    = HitType::NONE;
     m_hitModule        = nullptr;
     m_track            = nullptr;
     m_isTrigger        = false;
-    m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
+    m_layerID          = -1;
+    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
-    m_activeHitType    = HitType::NONE;
+
 }
 
 /**
@@ -112,20 +116,22 @@ Hit::Hit(double rPos, double zPos) {
  * @param myModule pointer to the module with the hit 
  */
 Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+    m_detName          = "Undefined";
     m_distance         = sqrt(rPos*rPos + zPos*zPos);
     m_rPos             = rPos;
     m_zPos             = zPos;
-    m_objectKind       = HitKind::Active;
-    m_orientation      = HitOrientation::Undefined;
+    m_activity         = HitActivity::Active;
+    m_activeHitType    = activeHitType;
     setHitModule(myModule);
     m_track            = nullptr;
     m_isTrigger        = false;
-    m_isPixel          = false;
     m_isIP             = false;
     m_isBeamPipe       = false;
+    m_layerID          = -1;
+    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
-    m_activeHitType    = activeHitType;
+
 }
 
 
@@ -135,13 +141,7 @@ Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activ
  */
 void Hit::setHitModule(const DetectorModule* myModule) {
 
-  if (myModule) {
-
-    m_hitModule = myModule;
-
-    if (myModule->subdet() == BARREL) m_orientation = HitOrientation::Horizontal;
-    else                              m_orientation = HitOrientation::Vertical;
-  }
+  if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
 }
 
@@ -177,7 +177,7 @@ RILength Hit::getCorrectedMaterial() {
  */
 double Hit::getResolutionRphi(double trackRadius) {
 
-  if (m_objectKind!=HitKind::Active) {
+  if (!(this->isActive())) {
 
     logERROR("Hit::getResolutionRphi called on a non-active hit");
     return -1;
@@ -204,7 +204,7 @@ double Hit::getResolutionRphi(double trackRadius) {
  */
 double Hit::getResolutionZ(double trackRadius) {
 
-  if (m_objectKind!=HitKind::Active) {
+  if (!(this->isActive())) {
 
     logERROR("Hit::getResolutionZ called on a non-active hit");
     return -1;
@@ -233,7 +233,6 @@ double Hit::getResolutionZ(double trackRadius) {
  */
 bool Hit::isSquareEndcap() {
 
-  if (m_isPixel) return false;
   //std::cout << "Hit::isSquareEndcap() "; //debug
 
   if (m_hitModule) {

@@ -153,6 +153,24 @@ void Track::computeErrors() {
 }
 
 //
+// Method calculating track parameters in s-z plane only, using linear fit: cotg(theta), z0 parameters -> call this method before calling getDelta***() methods.
+//
+void Track::computeErrorsRZ() {
+
+  // Compute the relevant 2x2 covariance matrix in RZ plane first (check that V matrix can be inverted)
+  if (computeVarianceMatrixRZ()) computeCovarianceMatrixRZ();
+}
+
+//
+// Method calculating track parameters in r-phi plane only, using Karimaki parametrization & parabolic track approximation in R-Phi plane: 1/R, d0, phi parameters -> call this method before calling getDelta***() methods.
+//
+void Track::computeErrorsRPhi() {
+
+  // Compute the relevant 3x3 covariance matrix in R-Phi plane (check that V matrix can be inverted)
+  if (computeVarianceMatrixRPhi()) computeCovarianceMatrixRPhi();
+}
+
+//
 // Get DeltaRho (error on 1/R) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
 // Using 3x3 covariance propagator in case [r,z]!=[0,0]
 //
@@ -335,10 +353,8 @@ void Track::addIPConstraint(double dr, double dz) {
   emptyMaterial.radiation   = 0;
   emptyMaterial.interaction = 0;
 
-  newHit->setPixel(false);
   newHit->setCorrectedMaterial(emptyMaterial);
-  newHit->setOrientation(HitOrientation::Horizontal);
-  newHit->setObjectKind(HitKind::Active);
+  newHit->setAsActive();
   newHit->setResolutionRphi(dr);
   newHit->setResolutionZ(dz);
   this->addHit(std::move(newHit));
@@ -379,29 +395,49 @@ bool Track::pruneHits() {
 //
 // Set active only hits with the given tag
 //
-void Track::keepTaggedOnly(const string& tag) {
+void Track::keepTaggedHitsOnly(const string& tag, bool useIP /*=true*/) {
 
   for (auto& iHit : m_hits) {
 
-    const DetectorModule* module = iHit->getHitModule();
-    if (!module) continue;
+    // IP constraint hit
+    if (tag=="all" && iHit->isIP() && useIP) iHit->setAsActive();
 
-    if (std::count_if(module->trackingTags.begin(), module->trackingTags.end(), [&tag](const string& s){ return s == tag; })) iHit->setObjectKind(HitKind::Active);
-    else iHit->setObjectKind(HitKind::Inactive);
+    // Measurement hit
+    if (iHit->isMeasurable()) {
+      if (tag=="all") iHit->setAsActive();
+      else {
+        if (std::count_if(iHit->getHitModule()->trackingTags.begin(), iHit->getHitModule()->trackingTags.end(), [&tag](const string& s){ return s == tag; })) iHit->setAsActive();
+        else iHit->setAsPassive();
+      }
+    }
   }
 }
 
-//! Set only first N hits as active -> return true if possible N>= size of hits vector
-bool Track::keepFirstNHitsActive(signed int N) {
+//
+// Keep only first N measurement hits as active -> return true if possible N>= size of hits vector
+//
+bool Track::keepFirstNHitsActive(signed int N, bool useIP /*=true*/) {
 
   int iCounter = 0;
 
   for (auto& iHit : m_hits) {
 
-    if (iCounter<N) iHit->setObjectKind(HitKind::Active);
-    else            iHit->setObjectKind(HitKind::Inactive);
+    // IP constraint
+    if (iHit->isIP() && useIP && iCounter<N) {
 
-    iCounter++;
+      iHit->setAsActive();
+      iCounter++;
+    }
+
+    // Measurement hit coming from an active module
+    else if (iHit->isMeasurable() && iCounter<N) {
+
+      iHit->setAsActive();
+      iCounter++;
+    }
+
+    // Set as inactive
+    else iHit->setAsPassive();
   }
 
   // Number of hits was lower than expected N
@@ -494,20 +530,55 @@ void Track::printHits() {
 
   for (const auto& it : m_hits) {
     std::cout << "    Hit";
-    if (it->getObjectKind()==HitKind::Active) std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
-    else                                      std::cout << " r="  << it->getRPos();
-    if (it->getObjectKind()==HitKind::Active) std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
-    else                                      std::cout << " z="  << it->getZPos();
+    if (it->isActive())   std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+    else                  std::cout << " r="  << it->getRPos();
+    if (it->isActive())   std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
+    else                  std::cout << " z="  << it->getZPos();
     std::cout << " d="  << it->getDistance()
               << " rl=" << it->getCorrectedMaterial().radiation
               << " il=" << it->getCorrectedMaterial().interaction;
-    if (it->getObjectKind()==HitKind::Active) std::cout << " active ";
-    else                                      std::cout << " inactive ";
+    if (it->isActive())   std::cout << " active";
+    else                  std::cout << " inactive";
+    if (it->isBarrel())   std::cout << " barrel";
+    if (it->isEndcap())   std::cout << " endcap";
+    if (it->isBeamPipe()) std::cout << " beam-pipe";
+    if (it->isIP())       std::cout << " ip";
+    if (it->getLayerOrDiscID()!=-1) std::cout << " " << it->getDetName() << " L/D_id= " << it->getLayerOrDiscID();
 
-    if (it->getObjectKind()==HitKind::Active) {
+    if (it->isActive()) {
       std::cout << " activeHitType_=" << static_cast<short>(it->getActiveHitType());
     }
     std::cout << std::endl;
+  }
+}
+
+//
+// Helper method printing track hits
+//
+void Track::printActiveHits() {
+
+  std::cout << "******************" << std::endl;
+  std::cout << "Track eta=" << m_eta << std::endl;
+
+  for (const auto& it : m_hits) {
+    if (it->isActive()) {
+
+      std::cout << "    Hit";
+      std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+      std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
+      std::cout << " d="  << it->getDistance()
+                << " rl=" << it->getCorrectedMaterial().radiation
+                << " il=" << it->getCorrectedMaterial().interaction;
+      if (it->isActive())   std::cout << " active";
+      else                  std::cout << " inactive";
+      if (it->isBarrel())   std::cout << " barrel";
+      if (it->isEndcap())   std::cout << " endcap";
+      if (it->isBeamPipe()) std::cout << " beam-pipe";
+      if (it->isIP())       std::cout << " ip";
+      if (it->getLayerOrDiscID()!=-1) std::cout << " " << it->getDetName() << " L/D_id= " << it->getLayerOrDiscID();
+      std::cout << " activeHitType_=" << static_cast<short>(it->getActiveHitType());
+      std::cout << std::endl;
+    }
   }
 }
 
@@ -537,26 +608,77 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
   int nHits=0;
 
   for (auto& iHit : m_hits) {
-    if (iHit) {
-      if (iHit->getObjectKind()==HitKind::Active){
-        if (iHit->isIP() && useIP) {
-          nHits++;
-        }
-        else if (!iHit->isIP()) {
+    if (iHit && iHit->isActive()){
+      if (iHit->isIP() && useIP) {
+        nHits++;
+      }
+      else if (!iHit->isIP()) {
 
-          // Check tag for non-IP assigned hits
-          bool tagOK = false;
-          for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-            if (tag==*it || tag=="all") tagOK = true;
-          }
-
-          if (tagOK) nHits++;
+        // Check tag for non-IP assigned hits
+        bool tagOK = false;
+        for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
+          if (tag==*it || tag=="all") tagOK = true;
         }
+
+        if (tagOK) nHits++;
       }
     }
   } // For
 
   return nHits;
+}
+
+//
+// Get number of active hits coming from measurement planes or IP constraint assigned to track for given tag. If tag specified as "all", all module & IP hits assigned.
+//
+int Track::getNMeasuredHits(std::string tag, bool useIP /*=true*/) const {
+
+  // Result variable
+  int nHits=0;
+
+  for (auto& iHit : m_hits) {
+    if (iHit && iHit->isActive()) {
+      if (iHit->isIP() && useIP) {
+        nHits++;
+      }
+      else if (iHit->isMeasurable()) {
+
+        // Check tag for non-IP assigned hits
+        bool tagOK = false;
+        for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
+          if (tag==*it || tag=="all") tagOK = true;
+        }
+        if (tagOK) nHits++;
+      }
+    }
+  } // For
+
+  return nHits;
+
+}
+
+//
+// Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
+//
+const Hit* Track::getMeasurableOrIPHit(int iHit) const {
+
+  int   hitCounter = 0;
+  const Hit* pHit  = nullptr;
+
+  for (auto& hit : m_hits) {
+    if (hit && (hit->isIP() || hit->isMeasurable())) {
+
+      // Hit we're looking for!
+      if (hitCounter==iHit) {
+
+        pHit = hit.get();
+        break;
+      }
+      hitCounter++;
+    }
+  }
+
+  return pHit;
 }
 
 //
@@ -575,7 +697,7 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
 
   for (auto& iHit : m_hits) {
     if (iHit) {
-      if (iHit->getObjectKind()==HitKind::Active){
+      if (iHit->isActive()){
 
         // Check tag
         bool tagOK = false;
@@ -614,7 +736,7 @@ double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
   for (auto& iHit : m_hits) {
 
     if (iHit) {
-      if (iHit->getObjectKind()==HitKind::Active) {
+      if (iHit->isActive()) {
 
         // Check tag
         bool tagOK = false;
@@ -663,7 +785,7 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
 
   for (auto& iHit : m_hits) {
 
-    if ((iHit) && (iHit->isTrigger()) && (!iHit->isIP()) && (iHit->getObjectKind()==HitKind::Active)) {
+    if ((iHit) && (iHit->isTrigger()) && (!iHit->isIP()) && (iHit->isActive())) {
 
       // We've got a possible trigger here
       // Let's find the corresponding module
@@ -726,7 +848,7 @@ bool Track::computeVarianceMatrixRPhi() {
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
-    if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
+    if (m_hits.at(c)->isPassive()) {
       for (int r = 0; r <= c; r++) m_varMatrixRPhi(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
@@ -734,7 +856,7 @@ bool Track::computeVarianceMatrixRPhi() {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_varMatrixRPhi(r, c) = 0.0;
+        if (m_hits.at(r)->isPassive()) m_varMatrixRPhi(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -768,11 +890,11 @@ bool Track::computeVarianceMatrixRPhi() {
 
   for (int i = 0; i < n; i++) {
 
-    if ((m_hits.at(i)->getObjectKind() == HitKind::Inactive) && (!look_for_active)) {
+    if ((m_hits.at(i)->isPassive()) && (!look_for_active)) {
       nResized = i;
       look_for_active = true;
     }
-    else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
+    else if ((m_hits.at(i)->isActive()) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
         m_varMatrixRPhi(nResized, j) = m_varMatrixRPhi(i, j);
@@ -887,7 +1009,7 @@ void Track::computeCovarianceMatrixRPhi() {
   // Set up partial derivative matrices diffs and diffsT -> using Karimaki approach & parabolic aproximations to define these matrices
   for (auto i = 0; i < nHits; i++) {
 
-    if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
+    if (m_hits.at(i)->isActive()) {
       diffs(i - offset, 0) = computeDfOverDRho(m_hits.at(i)->getRPos(),m_hits.at(i)->getZPos());
       diffs(i - offset, 1) = +m_hits.at(i)->getRPos(); // No impact of sign on results, but from analytical derivation point of view correct with a plus sign!!! Was minus sign here!!!
       diffs(i - offset, 2) = 1;
@@ -956,7 +1078,7 @@ bool Track::computeVarianceMatrixRZ() {
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
-    if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
+    if (m_hits.at(c)->isPassive()) {
       for (int r = 0; r <= c; r++) m_varMatrixRZ(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
@@ -964,7 +1086,7 @@ bool Track::computeVarianceMatrixRZ() {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_varMatrixRZ(r, c) = 0.0;
+        if (m_hits.at(r)->isPassive()) m_varMatrixRZ(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -1000,11 +1122,11 @@ bool Track::computeVarianceMatrixRZ() {
 
   for (int i = 0; i < n; i++) {
 
-    if ((m_hits.at(i)->getObjectKind() == HitKind::Inactive) && (!look_for_active)) {
+    if ((m_hits.at(i)->isPassive()) && (!look_for_active)) {
       nResized = i;
       look_for_active = true;
     }
-    else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
+    else if ((m_hits.at(i)->isActive()) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
         m_varMatrixRZ(nResized, j) = m_varMatrixRZ(i, j);
@@ -1046,7 +1168,7 @@ void Track::computeCovarianceMatrixRZ() {
   // Set up partial derivative matrices diffs and diffsT -> line fit in s-Z to define these matrices
   for (auto i = 0; i < nHits; i++) {
 
-    if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
+    if (m_hits.at(i)->isActive()) {
 
       // Partial derivatives for x = p[0] * y + p[1]
       diffs(i - offset, 0) = m_hits.at(i)->getRPos();

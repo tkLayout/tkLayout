@@ -150,7 +150,7 @@ bool AnalyzerResolution::analyze()
       for (string tag : matTrack.getTags()) {
 
         // Analyze only hits within track coming from the defined bunch of detectors (the same tag)
-        matTrack.keepTaggedOnly(tag);
+        matTrack.keepTaggedHitsOnly(tag);
 
         // Sort hits
         bool bySmallerRadius = true;

@@ -109,6 +109,7 @@ static const int         web_priority_Geom = 99;
 static const int         web_priority_MB   = 89;
 static const int         web_priority_Resol= 79;
 static const int         web_priority_Occup= 69;
+static const int         web_priority_PR   = 59;
 
 /**
  * Filename and path constants

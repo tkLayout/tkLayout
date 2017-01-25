@@ -9,11 +9,15 @@
 #include "Barrel.h"
 #include "BeamPipe.h"
 #include "DetectorModule.h"
+#include "Disk.h"
+#include "Endcap.h"
 #include "InactiveElement.h"
+#include "Layer.h"
 #include "MaterialProperties.h"
 #include "ModuleCap.h"
 #include "SupportStructure.h"
 #include "Track.h"
+#include "Tracker.h"
 
 //
 // Material track visitor - constructor
@@ -21,6 +25,11 @@
 VisitorMatTrack::VisitorMatTrack(Track& matTrack) :
     m_matTrack(matTrack)
 {
+  m_detName  = "Undefined";
+  m_brlName  = "Undefined";
+  m_ecapName = "Undefined";
+  m_layerID  = -1;
+  m_discID   = -1;
 }
 
 //
@@ -42,8 +51,7 @@ void VisitorMatTrack::visit(const BeamPipe& bp)
   double zPos  = rPos/tan(theta);
 
   HitPtr hit(new Hit(rPos, zPos));
-  hit->setOrientation(HitOrientation::Horizontal);
-  hit->setObjectKind(HitKind::Inactive);
+  hit->setAsPassive();
 
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
@@ -55,13 +63,55 @@ void VisitorMatTrack::visit(const BeamPipe& bp)
 }
 
 //
+// Visit Tracker
+//
+void VisitorMatTrack::visit(const Tracker& t)
+{
+  m_detName = t.myid();
+  m_layerID    = -1;
+  m_discID     = -1;
+}
+
+//
 // Visit Barrel
 //
 void VisitorMatTrack::visit(const Barrel& b)
 {
+  m_brlName  = b.myid();
+  m_layerID  = -1;
+  m_discID   = -1;
+
   for (auto& element : b.services()) {
     analyzeInactiveElement(element);
   }
+}
+
+//
+// Visit Endcap
+//
+void VisitorMatTrack::visit(const Endcap& e)
+{
+  m_ecapName = e.myid();
+  m_layerID  = -1;
+  m_discID   = -1;
+}
+
+//
+// Visit Layer
+//
+void VisitorMatTrack::visit(const Layer& l)
+{
+  m_layerID = l.myid();
+  m_discID  = -1;
+}
+
+//
+// Visit Disc
+//
+void VisitorMatTrack::visit(const Disk& d)
+{
+  m_layerID = -1;
+  m_discID  = d.myid();
 }
 
 //
@@ -137,6 +187,14 @@ void VisitorMatTrack::analyzeModuleMB(const DetectorModule& m)
       // Create Hit object with appropriate parameters, add to Track t
       HitPtr hit(new Hit(hitRPos, hitZPos, &m, hitType));
       hit->setCorrectedMaterial(material);
+      if (m.subdet() == BARREL) {
+        hit->setDetName(m_detName+"_"+m_brlName);
+        hit->setLayerID(m_layerID);
+      }
+      else {
+        hit->setDetName(m_detName+"_"+m_ecapName);
+        hit->setDiscID(m_discID);
+      }
       m_matTrack.addHit(std::move(hit));
     }
   } // Z>0
@@ -242,9 +300,7 @@ void VisitorMatTrack::analyzeInactiveElement(const insur::InactiveElement& e)
 
         // Create Hit object with appropriate parameters, add to Track t
         HitPtr hit(new Hit(rPos, zPos));
-        if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
-        else                hit->setOrientation(HitOrientation::Horizontal);
-        hit->setObjectKind(HitKind::Inactive);
+        hit->setAsPassive();
         hit->setCorrectedMaterial(material);
         m_matTrack.addHit(std::move(hit));
 
