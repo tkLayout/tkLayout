@@ -1,6 +1,6 @@
 // 1x1 chips pixel module rotated (50um x 50um)
 // Chip size 16.4x22
-moduleType pixel_2_R_1x1_50x50  // pixel modules should always have a type starting with keyword 'pixel_'
+moduleType pixel_2_rotated_1x1_50x50  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
 width 22.0
