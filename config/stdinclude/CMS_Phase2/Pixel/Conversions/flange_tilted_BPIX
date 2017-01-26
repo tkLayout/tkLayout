@@ -2,7 +2,7 @@
 // used to generate services at the FPIX flange 
 
 Station {
-  stationName flange_BPIX_tilted
+  stationName flange_tilted_BPIX
   type flange
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_3:1

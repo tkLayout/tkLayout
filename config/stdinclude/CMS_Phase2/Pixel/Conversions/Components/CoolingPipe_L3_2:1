@@ -1,4 +1,4 @@
-// One cooling pipe serves one rods' cooling pipes 
+// Cooling pipes : 2 -> 1
 
   // Titanium pipe
   Conversion {

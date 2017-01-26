@@ -1,4 +1,5 @@
-// (1+1) Low-Speed TWP / 4 modules 1x1
+// (1+1) Low-Speed TWP 
+// quantities / 4 (modules 1x1)
 
 Component {
   componentName "Twisted pairs"

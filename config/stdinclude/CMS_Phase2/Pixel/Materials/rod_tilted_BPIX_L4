@@ -8,7 +8,7 @@ Materials tilted_BPIX_rod_L4 {
   @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L4
   @include-std CMS_Phase2/Pixel/Materials/Components/Power_1.6mm2
   @include-std CMS_Phase2/Pixel/Materials/Components/HV_Wires
-  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_SupportStructure_0.2
-  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_SupportStructure_0.2
+  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_Support_Structure_0.2
+  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_Support_Structure_0.2
 }
 
