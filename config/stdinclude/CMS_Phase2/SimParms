@@ -1,23 +1,26 @@
 SimParms {
     numMinBiasEvents 140
     bunchSpacingNs 25
+    
     zErrorCollider 70
     rError 5
-    ptCost 0       // CHF / cm^2
-    stripCost 0    // CHF / cm^2
-    efficiency 1
     useIPConstraint 0
-    numInvFemtobarns 3000
-    operatingTemp -20
-    referenceTemp 20
-    chargeDepletionVoltage 600
-    alphaParm 4.28e-17
+    
+    ptCost 0                  // CHF / cm^2
+    stripCost 0               // CHF / cm^2
+    
+    efficiency 1
     pixelEfficiency 1
+    
+    timeIntegratedLumi 3000   // fb^-1
+    referenceTemp 20          // °C
+    alphaParam 4.28e-17       // A/cm, radiation damage constant
+    magneticField 3.8         // T
 
+    triggerEtaCut 2.2
+    triggerPtCut 2
     numTriggerTowersEta 6
     numTriggerTowersPhi 8
-    triggerPtCut 2
-    triggerEtaCut 2.2
 
 
     Gabie IsAHero           // inside joke. forget about it

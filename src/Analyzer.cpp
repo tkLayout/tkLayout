@@ -1045,7 +1045,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 }
 
 void Analyzer::analyzePower(Tracker& tracker) {
-  computeIrradiatedPowerConsumption(tracker);
+  computeIrradiationPowerConsumption(tracker);
   preparePowerHistograms();
   //fillPowerMap(tracker);
 }
@@ -1095,12 +1095,14 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 }
 
 
-void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
+void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
   IrradiationPowerVisitor v;
+  v.preVisit();
   simParms_->accept(v);
   tracker.accept(v);
+  v.postVisit();
 
-  irradiatedPowerConsumptionSummaries_ = v.irradiatedPowerConsumptionSummaries;
+  sensorsIrradiationPowerSummary_ = v.sensorsIrradiationPowerSummary;
 }
 
 
@@ -2415,17 +2417,17 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 /*
 void Analyzer::fillPowerMap(Tracker& tracker) {
-  TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum];
   TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-  for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
-    for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-      irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+  for (int i=1; i<=sensorsIrradiationPowerMap.GetNbinsX(); ++i) {
+    for (int j=1; j<=sensorsIrradiationPowerMap.GetNbinsY(); ++j) {
+      sensorsIrradiationPowerMap.SetBinContent(i,j,0);
       totalPowerConsumptionMap.SetBinContent(i,j,0);
     }
   }
 
-  IrradiatedPowerMapVisitor v(irradiatedPowerConsumptionMap, totalPowerConsumptionMap);
+  IrradiationPowerMapVisitor v(sensorsIrradiationPowerMap, totalPowerConsumptionMap);
   simParms_->accept(v);
   tracker.accept(v);
   v.postVisit();
@@ -2583,12 +2585,12 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
 
 
 void Analyzer::preparePowerHistograms() {
-  myMapBag.clearMaps(mapBag::irradiatedPowerConsumptionMap);
+  myMapBag.clearMaps(mapBag::sensorsIrradiationPowerMap);
   myMapBag.clearMaps(mapBag::totalPowerConsumptionMap);
-  TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
+  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
   TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
-  prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in sensors (after irradiation)");
-  prepareTrackerMap(totalPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
+  prepareTrackerMap(sensorsIrradiationPowerMap, "sensorsIrradiationPowerMap", "Map of power dissipation in sensors (after irradiation)");
+  prepareTrackerMap(totalPowerConsumptionMap, "irradiationPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
 }
 
 void Analyzer::prepareTriggerProcessorHistograms() {
@@ -3265,7 +3267,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     string aSensorType = aModule->moduleType();
     typeToCount[aSensorType] ++;
     typeToSurface[aSensorType] += aModule->area() / 1e6; // in mq
-    typeToPower[aSensorType] += aModule->sensorPowerConsumption() / 1e3; // in kW
+    typeToPower[aSensorType] += aModule->sensorsIrradiationPowerMean() / 1e3; // in kW
   }
 
   int iPoints = 0;

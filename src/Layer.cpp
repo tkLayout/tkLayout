@@ -338,6 +338,7 @@ void Layer::buildStraight(bool isFlatPart) {
 
   // FIRST ROD : build and store
   bool isPlusBigDeltaRod = (bigParity() > 0);
+  first->isOuterRadiusRod(isPlusBigDeltaRod);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
   if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
@@ -346,6 +347,7 @@ void Layer::buildStraight(bool isFlatPart) {
   // SECOND ROD : assign other properties, build and store 
   if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
   isPlusBigDeltaRod = (bigParity() < 0);
+  second->isOuterRadiusRod(isPlusBigDeltaRod);
   second->build(rodTemplate, isPlusBigDeltaRod);
   second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
   second->rotateZ(rodPhiRotation);
@@ -542,12 +544,14 @@ void Layer::buildTilted() {
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
+  first->isOuterRadiusRod(false);
   first->store(propertyTree());
   first->build(rodTemplate, tmspecsi, 1);
   rods_.push_back(first);
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
+  second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
   second->rotateZ(rodPhiRotation);

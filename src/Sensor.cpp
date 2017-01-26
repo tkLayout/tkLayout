@@ -10,34 +10,48 @@ void Sensor::check() {
   if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegments and stripLengthEstimate can be specified");
 }
 
-double Sensor::normalOffset() const {
-  return parent_->numSensors() <= 1 ? 0. : (myid() == 1 ? -parent_->dsDistance()/2. : parent_->dsDistance()/2.);
+double Sensor::sensorNormalOffset() const {
+  double offset;
+  if (parent_->numSensors() <= 1) offset = 0.;
+  else {
+    if (myid() == 1) offset = -parent_->dsDistance()/2.;
+    else offset = parent_->dsDistance()/2.;
+  }
+  return offset;
 }
 
-Polygon3d<4>* Sensor::buildOwnPoly(double polyOffset) const {
-  Polygon3d<4>* p = new Polygon3d<4>(parent_->basePoly());
-  p->translate(p->getNormal()*polyOffset);
-  return p;
+const Polygon3d<4>& Sensor::hitPoly() const {
+  double offset = sensorNormalOffset();
+  if (hitPoly_ == 0) hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset);
+  return *hitPoly_;
+}
+
+const Polygon3d<4>& Sensor::hitMidPoly() const {
+  if (hitMidPoly_ == 0) hitMidPoly_ = CoordinateOperations::computeMidPolygon(hitPoly());
+  return *hitMidPoly_;
+}
+
+const Polygon3d<8>& Sensor::envelopePoly() const {
+  double envelopeOffset =  sensorThickness() / 2.;
+  if (envelopePoly_ == 0) envelopePoly_ = CoordinateOperations::computeEnvelopePolygon<Polygon3d<4>, Polygon3d<8> >(hitPoly(), envelopeOffset); 
+  return *envelopePoly_;
+}
+
+const Polygon3d<8>& Sensor::envelopeMidPoly() const {
+  double envelopeOffset =  sensorThickness() / 2.;
+  if (envelopeMidPoly_ == 0) envelopeMidPoly_ = CoordinateOperations::computeEnvelopePolygon<Polygon3d<4>, Polygon3d<8> >(hitMidPoly(), envelopeOffset); 
+  return *envelopeMidPoly_;
 }
 
 void Sensor::clearPolys() { 
   delete hitPoly_; 
-  hitPoly_ = 0; 
-  delete envPoly_;
-  envPoly_ = 0;
-}
-
-const Polygon3d<4>& Sensor::hitPoly() const {
-  if (hitPoly_ == 0) hitPoly_ = buildOwnPoly(normalOffset());
-  return *hitPoly_;
-}
-
-const Polygon3d<4>& Sensor::envelopePoly() const {
-  if (envPoly_ == 0) {
-    double envelopeOffset = normalOffset() > 1e-6 ? normalOffset() + sensorThickness()/2. : (normalOffset() < -1e-6 ? normalOffset() - sensorThickness()/2. : 0.);
-    envPoly_ = buildOwnPoly(envelopeOffset); 
-  }
-  return *envPoly_;
+  hitPoly_ = 0;
+  delete hitMidPoly_; 
+  hitMidPoly_ = 0;
+  delete envelopePoly_;
+  envelopePoly_ = 0;
+  delete envelopeMidPoly_;
+  envelopeMidPoly_ = 0;
 }
 
 std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const {

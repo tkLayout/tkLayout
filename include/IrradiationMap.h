@@ -56,14 +56,14 @@ public:
    * @param coordinates is a pair (z,rho) that indicate a point in the plane ZxRho
    * @return True if the point is inside the map region, false otherwise
    */
-  bool isInRegion(std::pair<double,double> coordinates) const;
+  bool isInRegion(const std::pair<double,double>& coordinates) const;
 
   /**
    * Get the irradiation of the point
    * @param coordinates is a (z,rho) that indicate a point in the plane ZxRho
    * @return the value of the irradiation of the point, or 0 if the point is outside the map
    */
-  double calculateIrradiation(std::pair<double,double> coordinates) const;
+  double calculateIrradiation(const std::pair<double,double>& coordinates) const;
 
 private:
   const std::string comp_rhoMin = "# R min: ";                  /**< Prefix of the line of the header of the feeded file that precedes the value of min rho*/

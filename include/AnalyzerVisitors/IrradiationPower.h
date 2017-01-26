@@ -6,103 +6,43 @@
 #include <vector>
 #include <utility>
 
+#include "global_constants.h"
+#include "Units.h"
 #include "Tracker.h"
 #include "SimParms.h"
-
 #include "Visitor.h"
 #include "SummaryTable.h"
 
+typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
+// Used to identify an irradiated module : all info which matters in that respect.
+// bool isBarrel, bool isOuterRadiusRod, std::string barrel/endcap name, int layer/disk number, int ring number
+
 class IrradiationPowerVisitor : public GeometryVisitor {
-  double numInvFemtobarns;
-  double operatingTemp;
-  double chargeDepletionVoltage;
-  double alphaParam;
-  double referenceTemp;
+  double timeIntegratedLumi_;
+  double referenceTemp_;
+  double operatingTemp_;
+  double alphaParam_;
+  double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
+  std::pair<double, double> getModuleIrradiationMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
+  const double computeSensorsIrradiationPower(const double& irradiation, const double& timeIntegratedLumi,
+					      const double& alphaParam, const double& volume, const double& referenceTemp,
+					      const double& operatingTemp, const double& biasVoltage) const;
+  bool isBarrel_;
+  bool isOuterRadiusRod_;
+  std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
+  std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
+  std::map<ModuleRef, int> modulesCounter_;
+
 public:
-  MultiSummaryTable irradiatedPowerConsumptionSummaries;
-
-  void preVisit() {
-    irradiatedPowerConsumptionSummaries.clear();   
-  }
-
-  void visit(SimParms& sp) {
-    numInvFemtobarns = sp.timeIntegratedLumi();
-    operatingTemp    = sp.operatingTemp();
-    chargeDepletionVoltage = sp.chargeDepletionVoltage();
-    alphaParam       = sp.alphaParm();
-    referenceTemp    = sp.referenceTemp();
-    irradiationMap_  = &sp.irradiationMapsManager();
-  }
-
-  void visit(Barrel& b) {
-    irradiatedPowerConsumptionSummaries[b.myid()].setHeader("layer", "ring");
-    irradiatedPowerConsumptionSummaries[b.myid()].setPrecision(3);        
-  }
-
-  void visit(Endcap& e) {
-    irradiatedPowerConsumptionSummaries[e.myid()].setHeader("layer", "ring");
-    irradiatedPowerConsumptionSummaries[e.myid()].setPrecision(3);        
-  }
-
-  void visit(DetectorModule& m) {
-    // <Stefano Mersi>
-    // will visit also the modules with z<0, otherwise totals in the summaries will be wrong!
-    // if (m.maxZ() < 0) return;
-    // </Stefano Mersi>
-    double irrxy = 0;
-    double irrPoint = 0;
-    /*double irrPointCen = 0;
-    double irrPoint11 = 0;
-    double irrPoint12 = 0;
-    double irrPoint21 = 0;
-    double irrPoint22 = 0;*/
-
-    auto vertex11 = std::make_pair(m.minZ(), m.minR());
-    auto vertex12 = std::make_pair(m.maxZ(), m.minR());
-    auto vertex21 = std::make_pair(m.minZ(), m.maxR());
-    auto vertex22 = std::make_pair(m.maxZ(), m.maxR());
-    
-    XYZVector centerVector = m.center();
-    auto center = std::make_pair(centerVector.Z(), centerVector.Rho());
-
-    //if (centerVector.Z() < 0) return;
-    double volume = 0.;
-    for (const auto& s : m.sensors()) volume += s.sensorThickness() * m.area() / 1000.0; // volume is in cm^3
-
-    //calculate irradiation in each vertex (and center) and take the worst
-    irrPoint = irradiationMap_->calculateIrradiationPower(center);
-    //irrPointCen = irrPoint;
-    if(irrPoint > irrxy) irrxy = irrPoint;
-
-    irrPoint = irradiationMap_->calculateIrradiationPower(vertex11);
-    //irrPoint11 = irrPoint;
-    if(irrPoint > irrxy) irrxy = irrPoint;
-
-    irrPoint = irradiationMap_->calculateIrradiationPower(vertex12);
-    //irrPoint12 = irrPoint;
-    if(irrPoint > irrxy) irrxy = irrPoint;
-
-    irrPoint = irradiationMap_->calculateIrradiationPower(vertex21);
-    //irrPoint21 = irrPoint;
-    if(irrPoint > irrxy) irrxy = irrPoint;
-
-    irrPoint = irradiationMap_->calculateIrradiationPower(vertex22);
-    //irrPoint22 = irrPoint;
-    if(irrPoint > irrxy) irrxy = irrPoint;
-
-    double fluence = irrxy * numInvFemtobarns; // fluence is in 1MeV-equiv-neutrons/cm^2
-    //double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2
-    double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
-    double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
-    //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
-
-//    modulePowerConsumptions_[&m] = irradiatedPowerConsumption; // CUIDADO CHECK WHERE IT IS NEEDED
-    m.irradiationPower(irradiatedPowerConsumption);
-
-    TableRef tref = m.tableRef();
-    irradiatedPowerConsumptionSummaries[tref.table].setCell(tref.row, tref.col, irradiatedPowerConsumption);
-  }
+  MultiSummaryTable sensorsIrradiationPowerSummary;
+  void preVisit();
+  void visit(SimParms& sp);
+  void visit(Barrel& b);
+  void visit(RodPair& r);
+  void visit(Endcap& e);
+  void visit(DetectorModule& m);
+  void postVisit();
 };
 
 

@@ -86,12 +86,14 @@ public:
   ReadonlyProperty<int, AutoDefault> numSparsifiedHeaderBits,  numSparsifiedPayloadBits;
   ReadonlyProperty<int, AutoDefault> numTriggerDataHeaderBits, numTriggerDataPayloadBits;
 
-  Property<double, AutoDefault> sensorPowerConsumption;  // CUIDADO provide also power per strip (see original module and moduleType methods)
+  ReadonlyProperty<double, NoDefault> operatingTemp;
+  ReadonlyProperty<double, NoDefault> biasVoltage;
   ReadonlyProperty<double, AutoDefault> powerModuleOptical;
   ReadonlyProperty<double, AutoDefault> powerModuleChip;
   ReadonlyProperty<double, AutoDefault> powerStripOptical;
   ReadonlyProperty<double, AutoDefault> powerStripChip;
-  Property<double, AutoDefault> irradiationPower;
+  Property<double, AutoDefault> sensorsIrradiationPowerMean;
+  Property<double, AutoDefault> sensorsIrradiationPowerMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
@@ -102,7 +104,7 @@ public:
 
   PropertyVector<string, ','> trackingTags;
 
-  Property<int8_t, Default> plotColor;
+  Property<int, Default> plotColor;
 
   Property<double, Default> serviceHybridWidth;
   Property<double, Default> frontEndHybridWidth;
@@ -131,6 +133,8 @@ public:
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
       numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
       triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
+      operatingTemp            ("operatingTemp"            , parsedAndChecked()),
+      biasVoltage              ("biasVoltage"              , parsedAndChecked()),
       powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
       powerModuleChip          ("powerModuleChip"          , parsedOnly()),
       powerStripOptical        ("powerStripOptical"        , parsedOnly()),
@@ -165,6 +169,11 @@ public:
     const GeometricModule& module = decorated();
     double area = module.area(); 
     return area;
+  }
+  double totalSensorsVolume() const { // Calculate total volume occupied by sensors
+    double volume = 0.;
+    for (const auto& s : sensors()) volume += area() * s.sensorThickness();
+    return volume;
   }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }

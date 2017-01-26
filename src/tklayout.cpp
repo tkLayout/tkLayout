@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
     ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
-    ("power,p", "Report irradiated power analysis.")
+    ("power,p", "Report irradiation power analysis.")
     ("bandwidth,b", "Report base bandwidth analysis.")
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
     ("material,m", "Report materials and weights analyses.")

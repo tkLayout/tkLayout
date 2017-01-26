@@ -1489,13 +1489,13 @@ namespace insur {
 	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
-        tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
-        if (tagMapSensorPowerMax[aSensorTag] < m.irradiationPower()) tagMapSensorPowerMax[aSensorTag] = m.irradiationPower();
+        tagMapSensorPowerAvg[aSensorTag] += m.sensorsIrradiationPowerMean();
+        if (tagMapSensorPowerMax[aSensorTag] < m.sensorsIrradiationPowerMean()) tagMapSensorPowerMax[aSensorTag] = m.sensorsIrradiationPowerMean();
         totCountMod++;
         totCountSens += m.numSensors();
         totChannel += m.totalChannels();
         totArea += m.area()*m.numSensors();
-        totalSensorPower += m.irradiationPower();
+        totalSensorPower += m.sensorsIrradiationPowerMean();
         if (tagMap.find(aSensorTag)==tagMap.end()){
           // We have a new sensor geometry
           tagMap[aSensorTag] = &m;
@@ -3069,14 +3069,18 @@ namespace insur {
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
     myInfo->setValue(simparms.numMinBiasEvents(), minimumBiasPrecision);
     simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Integrated luminosity");
+    myInfo->setValue(simparms.timeIntegratedLumi(), luminosityPrecision);
+    myInfo->appendValue(" fb" + superStart + "-1" + superEnd);
+    simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for material");
     myInfo->setValue(materialTracksUsed);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for geometry");
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Irradiation &alpha; parameter");
-    myInfo->setValueSci(simparms.alphaParm(),4);
+    myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", simparms.referenceTemp()));
+    myInfo->setValueSci(simparms.alphaParam(), alphaParamPrecision);
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 
@@ -3447,60 +3451,70 @@ namespace insur {
     return true;
   }
 
-  bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
-    RootWPage* myPage = new RootWPage("Power");
-    myPage->setAddress("power.html");
+  bool Vizard::irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+    std::string trackerName = tracker.myid();
+    std::string pageName = "Power (" + trackerName + ")";
+    std::string pageAddress = "power_" + trackerName + ".html";
+
+    RootWPage* myPage = new RootWPage(pageName);
+    myPage->setAddress(pageAddress);
     site.addPage(myPage);
 
-    std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
+    std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
     for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      RootWContent& myContent = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
+      RootWTable* comments = new RootWTable();
+      comments->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
+      myContent.addItem(comments);
+      myContent.addTable().setContent(it->second.getContent());
     }
 
     // Some helper string objects
     ostringstream tempSS;
     std::string tempString;
 
-    // mapBag myMapBag = a.getMapBag();
-    //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
-    // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
-    //
-    //
-
-    struct IrradiationPower {
-      double operator()(const Module& m) { return m.irradiationPower(); }
+    struct SensorsIrradiationPower {
+      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean(); }  // W
     };
 
-    struct TotalIrradiationPower {
-      double operator()(const Module& m) { return m.irradiationPower() + m.totalPower()/1000; }
+    struct TotalPower {
+      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
     };
 
 
-    PlotDrawer<YZ, IrradiationPower, Average> yzPowerDrawer(0, 0);
-    PlotDrawer<YZ, TotalIrradiationPower, Average> yzTotalPowerDrawer(0, 0);
+    PlotDrawer<YZ, SensorsIrradiationPower, Average> yzSensorsPowerDrawer(0, 0);
+    PlotDrawer<YZ, TotalPower, Average> yzTotalPowerDrawer(0, 0);
 
-    yzPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
+    yzSensorsPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
     yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
     RootWContent& myContent = myPage->addContent("Power maps", true);
 
-    TCanvas irradiatedPowerCanvas;
+    TCanvas sensorsIrradiationPowerCanvas;
     TCanvas totalPowerCanvas;
 
-    yzPowerDrawer.drawFrame<HistogramFrameStyle>(irradiatedPowerCanvas);
-    yzPowerDrawer.drawModules<ContourStyle>(irradiatedPowerCanvas);
+    yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(sensorsIrradiationPowerCanvas);
+    yzSensorsPowerDrawer.drawModules<ContourStyle>(sensorsIrradiationPowerCanvas);
 
 
     yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
     yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
 
-    RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    irradiatedPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
-    irradiatedPowerImage.setName("irradiatedPowerMap");
+    RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    sensorsIrradiationPowerImage.setComment("Power dissipation in irradiated sensors (due to leakage current) (average per module) (W)");
+    sensorsIrradiationPowerImage.setName("sensorsIrradiationPowerMap");
     RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    totalPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
+    totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
     totalPowerImage.setName("totalPowerMap");
 
+
+    // Add csv file with sensors irradiation handful info
+    RootWContent* filesContent = new RootWContent("power csv files", false);
+    myPage->addContent(filesContent);
+    RootWTextFile* myTextFile;
+    myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
+    myTextFile->addText(createSensorsIrradiationCsv(tracker));
+    filesContent->addItem(myTextFile);
 
     return true;
   }
@@ -6158,6 +6172,48 @@ namespace insur {
       ss << csv_eol;
     }
     moduleConnectionsCsv_ = ss.str();
+  }
+
+  std::string Vizard::createSensorsIrradiationCsv(const Tracker& t) {
+    class TrackerVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string sectionName_;
+      int layerId_;
+      bool isOuterRadiusRod_;
+    public:
+      void preVisit() {
+        output_ << "Section, Layer, Ring, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+      }
+      void visit(const Barrel& b) { sectionName_ = b.myid(); }
+      void visit(const Endcap& e) { sectionName_ = e.myid(); }
+      void visit(const Layer& l)  { layerId_ = l.myid(); }
+      void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
+      void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
+      void visit(const Module& m) {
+        output_ << sectionName_ << ", "
+		<< layerId_ << ", "
+		<< m.moduleRing() << ", "
+		<< isOuterRadiusRod_ << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.operatingTemp() << ", "
+		<< m.biasVoltage() << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.sensorThickness() << ", "
+		<< m.totalSensorsVolume() << ", "
+		<< std::fixed << std::setprecision(3)
+		<< m.sensorsIrradiationPowerMean() << ", "
+		<< m.sensorsIrradiationPowerMax()	
+		<< std::endl;
+      }
+
+      std::string output() const { return output_.str(); }
+    };
+
+    TrackerVisitor v;
+    v.preVisit();
+    t.accept(v);
+    return v.output();
   }
 
   std::string Vizard::createAllModulesCsv(const Tracker& t, bool& withHeader) {
