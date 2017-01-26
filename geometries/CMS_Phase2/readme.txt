@@ -76,10 +76,8 @@ OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-styl
                                      Pixel version 4.0.2.1
 
 
-Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX  // layout only created for code test purposes, to be removed (Pixel_tilted directory as well)
-
-OT_Tilted_362_200_Pixel_500.cfg      OT Version 3.6.2
-                                     Pixel version 5.0.0 : created series of tilted pixel layouts
+OT365_200_IT500.cfg                  OT Version 3.6.5
+                                     Pixel version 5.0.0 : created series of tilted pixel layouts. Geometry is first jet and needs to be more optimized :)
 
 
 OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
