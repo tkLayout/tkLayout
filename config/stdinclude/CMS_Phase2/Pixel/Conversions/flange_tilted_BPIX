@@ -2,17 +2,17 @@
 // used to generate services at the FPIX flange 
 
 Station {
-  stationName flange_FPIX
+  stationName flange_tilted_BPIX
   type flange
 
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Steel_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Ti_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Cu_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_CO2_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_HV_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_3:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L2_3:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L3_2:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L4_2:1
 
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_HS
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_LS
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_HS_div4

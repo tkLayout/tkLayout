@@ -1,11 +1,11 @@
-// Cooling pipe : 4 -> 1
+// Cooling pipes : 2 -> 1
 
   // Titanium pipe
   Conversion {
     Input {
       Element {
         elementName Ti_L4 
-        quantity 4
+        quantity 2
         unit g/m
       }
     }
@@ -25,7 +25,7 @@
     Input {
       Element {
         elementName CO2_L4
-        quantity 4
+        quantity 2
         unit g/m
       }
     }
