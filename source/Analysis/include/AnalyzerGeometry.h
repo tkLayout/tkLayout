@@ -190,7 +190,7 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   const int   c_coordPrecision     = 1;
   const int   c_areaPrecision      = 1;
   const int   c_occupancyPrecision = 1;
-  const int   c_resolutionPrecision= 0;
+  const int   c_resolutionPrecision= 1;
   const int   c_channelPrecision   = 2;
 }; // Helper Class
 

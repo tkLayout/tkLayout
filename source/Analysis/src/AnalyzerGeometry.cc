@@ -995,9 +995,9 @@ void VisitorLayerDiscSummary::postVisit() {
   std::string sTrkTotNumChannels= web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + web_emphEnd;
 
   m_layerTable->setContent( 0, m_nBarrelLayers+1, "Total");
-  m_layerTable->setContent( 6, m_nBarrelLayers+1, sTotBarrelModules);
+  m_layerTable->setContent( 8, m_nBarrelLayers+1, sTotBarrelModules);
   m_diskTable->setContent(  0, m_nDisks+1       , "Total");
-  m_diskTable->setContent(  5, m_nDisks+1       , sTotEndcapModules);
+  m_diskTable->setContent(  7, m_nDisks+1       , sTotEndcapModules);
   m_moduleTable->setContent(0, iType+1          , "Total");
   m_moduleTable->setContent(4, iType+1          , sTrkTotArea);
   m_moduleTable->setContent(5, iType+1          , sTrkTotModules);

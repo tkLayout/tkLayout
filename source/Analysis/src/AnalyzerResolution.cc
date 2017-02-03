@@ -129,7 +129,7 @@ bool AnalyzerResolution::analyze()
 
     // Add IP constraint
     //std::cout << "Adding IP constraint: " << SimParms::getInstance().rphiErrorIP() << " " << SimParms::getInstance().zErrorIP() << std::endl;
-    if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rphiErrorIP(), SimParms::getInstance().zErrorIP());
+    //if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rphiErrorIP(), SimParms::getInstance().zErrorIP());
 
     // Output hits to a file for debuggin purposes
     m_csvHitCol->addCsvElement(std::string("LastEta="+any2str(eta, 2)), any2str(eta, 2));
