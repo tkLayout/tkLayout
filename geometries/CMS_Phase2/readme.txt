@@ -102,3 +102,22 @@ OT365_200_IT4025.cfg                 OT Version 3.6.5
 OT365_200_IT4026.cfg                 OT Version 3.6.5
                                      Inner tracker version 4.0.2.6 <- based one 4.0.2.5 but with 7 FPIX disks
 
+OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adjusted TBPS flat part
+                                     bigDelta = 11.9 (unchanged) smallDelta=3.5625 (from CML) 
+                                     New TEDD following Nick's indications:
+                                     Outer Physical envelope = 1125 -- Considering 20.54 mm 2S FEH + 1.1 mm sensor margin => outerRadius 1103.36 (+8.36 mm w.r.t v3.5.1)
+                                     Inner Physical envelope = 215/315 -- Considering 10.65 mm PS FEH + 1.45 mm sensor margin => 227/327 mm inner envelope for sensors
+                                     Disk    z [mm]
+                                     1_1(1)  1326.8
+                                     1_2(2)  1550.0
+                                     2_1(3)  1853.4
+                                     2_2(4)  2216.2
+                                     2_3(5)  2650.0
+                                        bigDelta =30.7/2=15.35
+                                        Module/ring            smallDelta:
+                                        2S 4.0mm rings 11-12   17.10/2 =  8.55 mm
+                                        2S 4.0mm ring  10      20.10/2 = 10.05 mm
+                                        2S 1.8mm rings (11-15) 14.90/2 =  7.45 mm
+                                        PS 4.0mm all rings     14.84/2 =  7.42 mm
+                                     IT version 4.0.2.5
+
