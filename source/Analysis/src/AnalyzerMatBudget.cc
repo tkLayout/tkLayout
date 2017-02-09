@@ -373,9 +373,6 @@ bool AnalyzerMatBudget::analyze()
       // Calculate efficiency plots
       if (!matTrack.hasNoHits()) {
 
-        bool bySmallerR = true;
-        matTrack.sortHits(bySmallerR);
-
         // Get hits
         int nActive = matTrack.getNActiveHits("all",true);
         if (nActive>0) {

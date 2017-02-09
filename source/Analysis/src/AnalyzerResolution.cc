@@ -106,9 +106,6 @@ bool AnalyzerResolution::analyze()
   // Initialize
   double efficiency  = SimParms::getInstance().efficiency();
 
-  // Tracks pruned
-  bool isPruned = false;
-
   for (int iTrack = 0; iTrack < m_nTracks; iTrack++) {
 
     // Define track
@@ -152,9 +149,7 @@ bool AnalyzerResolution::analyze()
         // Analyze only hits within track coming from the defined bunch of detectors (the same tag)
         matTrack.keepTaggedHitsOnly(tag);
 
-        // Sort hits
-        bool bySmallerRadius = true;
-        matTrack.sortHits(bySmallerRadius);
+        // Print hits
         //matTrack.printHits();
 
         // Remove some hits randomly based on inefficiency parameter
@@ -174,13 +169,8 @@ bool AnalyzerResolution::analyze()
           trackPt->resetPt(pT);
 
           // Remove tracks with less than 3 hits
-          bool pruned = trackPt->pruneHits();
-          if (pruned) isPruned = true;
-
           if (trackPt->getNActiveHits(tag, true)>2) {
 
-            //trackPt->printHits();
-            trackPt->computeErrors();
             std::map<int, TrackCollection>& myMap        = m_taggedTrackPtCollectionMap[tag];
             TrackCollection&                myCollection = myMap[parameter];
             myCollection.push_back(std::move(trackPt));
@@ -190,15 +180,11 @@ bool AnalyzerResolution::analyze()
           TrackPtr idealTrackPt(new Track(matTrack));
           idealTrackPt->resetPt(pT);
 
-          // Remove tracks with less than 3 hits
-          pruned = idealTrackPt->pruneHits();
-          if (pruned) isPruned = true;
-
-          // Remove material
+          // Remove tracks with less than 3 hits & remove material
           idealTrackPt->removeMaterial();
+
           if (idealTrackPt->getNActiveHits(tag, true)>2) {
 
-            idealTrackPt->computeErrors();
             std::map<int, TrackCollection>& myMapIdeal        = m_taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(std::move(idealTrackPt));
@@ -212,12 +198,8 @@ bool AnalyzerResolution::analyze()
           trackP->resetPt(pT);
 
           // Remove tracks with less than 3 hits
-          pruned = trackP->pruneHits();
-          if (pruned) isPruned = true;
-
           if (trackP->getNActiveHits(tag, true)>2) {
 
-            trackP->computeErrors();
             std::map<int, TrackCollection>& myMapII        = m_taggedTrackPCollectionMap[tag];
             TrackCollection&                myCollectionII = myMapII[parameter];
             myCollectionII.push_back(std::move(trackP));
@@ -227,16 +209,11 @@ bool AnalyzerResolution::analyze()
           TrackPtr idealTrackP(new Track(matTrack));
           idealTrackP->resetPt(pT);
 
-          // Remove tracks with less than 3 hits
-          pruned = idealTrackP->pruneHits();
-          if (pruned) isPruned = true;
-
-          // Remove material
+          // Remove tracks with less than 3 hits & remove material
           idealTrackP->removeMaterial();
 
           if (idealTrackP->getNActiveHits(tag, true)>2) {
 
-            idealTrackP->computeErrors();
             std::map<int, TrackCollection>& myMapIdealII        = m_taggedTrackPCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(std::move(idealTrackP));
@@ -245,13 +222,6 @@ bool AnalyzerResolution::analyze()
       } // For tags
     }
   } // For tracks
-
-  // Log pruning procedure -> no result mode might occur if starting momenta wrongly set
-  if (isPruned) {
-
-    std::string message = std::string("Resolution - some tracks pruned! Hits that don't follow the parabolic approximation removed. Check momenta if no result appears!");
-    logWARNING(message);
-  }
 
   m_isAnalysisOK = true;
   return m_isAnalysisOK;
@@ -604,9 +574,9 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       double rPos = 0.0;
       if (varType=="pT")        yVal = track->getDeltaPtOverPt(rPos)*100; // In percent
       if (varType=="p")         yVal = track->getDeltaPOverP(rPos)*100;   // In percent
-      if (varType=="d0")        yVal = track->getDeltaD0(rPos)/Units::um;
-      if (varType=="z0")        yVal = track->getDeltaZ0(rPos)/Units::um;
-      if (varType=="phi0")      yVal = track->getDeltaPhi0(rPos)/M_PI*180.; // In degerees
+      if (varType=="d0")        yVal = track->getDeltaD0()/Units::um;
+      if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
+      if (varType=="phi0")      yVal = track->getDeltaPhi0()/M_PI*180.; // In degerees
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta();
 
       profHis->Fill(xVal, yVal);
