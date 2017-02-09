@@ -76,9 +76,10 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ../src \
-                         ../include
+INPUT                  = ../README.md ../source
 INPUT_ENCODING         = UTF-8
+MARKDOWN_SUPPORT       = YES
+USE_MDFILE_AS_MAINPAGE = README.md
 FILE_PATTERNS          = *.cc \
                          *.cpp \
                          *.h \

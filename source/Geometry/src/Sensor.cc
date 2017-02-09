@@ -66,10 +66,14 @@ void Sensor::build() {
 //
 void Sensor::setup() {
 
-  minR.setup([&]() { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly()), CoordinateOperations::computeMinR(upperEnvelopePoly()) ); });
-  maxR.setup([&]() { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly()), CoordinateOperations::computeMaxR(upperEnvelopePoly()) ); });
-  minZ.setup([&]() { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly()), CoordinateOperations::computeMinZ(upperEnvelopePoly()) ); });
-  maxZ.setup([&]() { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly()), CoordinateOperations::computeMaxZ(upperEnvelopePoly()) ); });
+  minR.setup([&]()       { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly()), CoordinateOperations::computeMinR(upperEnvelopePoly()) ); });
+  maxR.setup([&]()       { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly()), CoordinateOperations::computeMaxR(upperEnvelopePoly()) ); });
+  minRAllMat.setup([&]() { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly(true)), CoordinateOperations::computeMinR(upperEnvelopePoly(true)) ); });
+  maxRAllMat.setup([&]() { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly(true)), CoordinateOperations::computeMaxR(upperEnvelopePoly(true)) ); });
+  minZ.setup([&]()       { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly()), CoordinateOperations::computeMinZ(upperEnvelopePoly()) ); });
+  maxZ.setup([&]()       { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly()), CoordinateOperations::computeMaxZ(upperEnvelopePoly()) ); });
+  minZAllMat.setup([&]() { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly(true)), CoordinateOperations::computeMinZ(upperEnvelopePoly(true)) ); });
+  maxZAllMat.setup([&]() { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly(true)), CoordinateOperations::computeMaxZ(upperEnvelopePoly(true)) ); });
 }
 
 //
@@ -104,25 +108,37 @@ void Sensor::clearPolys() {
 }
 
 //
-// Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module)
+// Get upper envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module)
 //
-const Polygon3d<4>& Sensor::upperEnvelopePoly() const {
+const Polygon3d<4>& Sensor::upperEnvelopePoly(bool applyAllMaterial) const {
 
-  if (m_upperEnvPoly==nullptr) m_upperEnvPoly = buildOwnPoly(normalOffset() + sensorThickness()/2.);
-  return *m_upperEnvPoly;
+  if (!applyAllMaterial) {
+    if (m_upperEnvPoly==nullptr) m_upperEnvPoly = buildOwnPoly(normalOffset() + sensorThickness()/2.);
+    return *m_upperEnvPoly;
+  }
+  else {
+    if (m_upperEnvPolyAllMat==nullptr) m_upperEnvPolyAllMat = buildOwnPoly(m_parent->thicknessAllMat()/2.);
+    return *m_upperEnvPolyAllMat;
+  }
 }
 
 //
-// Get lower envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+// Get lower envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module)
 //
-const Polygon3d<4>& Sensor::lowerEnvelopePoly() const {
+const Polygon3d<4>& Sensor::lowerEnvelopePoly(bool applyAllMaterial) const {
 
-  if (m_lowerEnvPoly==nullptr) m_lowerEnvPoly = buildOwnPoly(normalOffset() - sensorThickness()/2.);
-  return *m_lowerEnvPoly;
+  if (!applyAllMaterial) {
+    if (m_lowerEnvPoly==nullptr) m_lowerEnvPoly = buildOwnPoly(normalOffset() - sensorThickness()/2.);
+    return *m_lowerEnvPoly;
+  }
+  else {
+    if (m_lowerEnvPolyAllMat==nullptr) m_lowerEnvPolyAllMat = buildOwnPoly(-m_parent->thicknessAllMat()/2.);
+    return *m_lowerEnvPolyAllMat;
+  }
 }
 
 //
-// Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+// Get geometry properties
 //
 const Polygon3d<4>& Sensor::hitPoly() const {
   if (m_hitPoly == nullptr) m_hitPoly = buildOwnPoly(normalOffset());

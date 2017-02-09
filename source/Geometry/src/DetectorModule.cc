@@ -1,6 +1,7 @@
 
 #include "DetectorModule.h"
 #include "ModuleCap.h"
+#include "SimParms.h"
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
 define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
@@ -10,8 +11,8 @@ define_enum_strings(ReadoutMode)  = { "binary", "cluster" };
 //
 // Constructor - specify unique id, geometry module defining shape & parse geometry config file using boost property tree & read-in module parameters
 //
-DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
- Decorator<GeometricModule>(decorated),
+DetectorModule::DetectorModule(int id, GeometricModule* moduleGeom, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
+ BaseModule(moduleGeom),
  m_materialObject(MaterialObject::MODULE),
  minZ                     (string("minZ")             ),
  maxZ                     (string("maxZ")             ),
@@ -56,7 +57,9 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<
  serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
  frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
  hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
- supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+ supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1),
+ m_cntName(""),
+ m_cntId(0)
 {
   // Set the geometry config parameters
   this->myid(id);
@@ -67,8 +70,8 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<
 //
 // Constructor - specify unique id, geometry module defining shape & parse geometry config file using boost property tree & read-in module parameters
 //
-DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree& treeProperty) :
- Decorator<GeometricModule>(decorated),
+DetectorModule::DetectorModule(int id, GeometricModule* moduleGeom, const PropertyTree& treeProperty) :
+ BaseModule(moduleGeom),
  m_materialObject(MaterialObject::MODULE),
  minZ                     (string("minZ")             ),
  maxZ                     (string("maxZ")             ),
@@ -113,7 +116,9 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree&
  serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
  frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
  hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
- supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+ supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1),
+ m_cntName(""),
+ m_cntId(0)
 {
   // Set the geometry config parameters
   this->myid(id);
@@ -125,7 +130,8 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree&
 //
 DetectorModule::~DetectorModule()
 {
-  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
+  if (m_moduleCap!=nullptr) delete m_moduleCap;
+  if (m_moduleGeom!=nullptr) delete m_moduleGeom;
 }
 
 //
@@ -134,10 +140,10 @@ DetectorModule::~DetectorModule()
 void DetectorModule::build() {
 
   check();
-  if (!decorated().builtok()) {
+  if (!m_moduleGeom->builtok()) {
 
-    decorated().store(propertyTree());
-    decorated().build();
+    m_moduleGeom->store(propertyTree());
+    m_moduleGeom->build();
   }
   if (numSensors() > 0) {
 
@@ -146,7 +152,7 @@ void DetectorModule::build() {
       s->build();
 
       m_sensors.push_back(s);
-      m_materialObject.sensorChannels[iSensor+1]=s->numChannels();
+      m_materialObject.sensorChannels[iSensor]=s->numChannels();
     }
   } else {
 
@@ -183,6 +189,11 @@ void DetectorModule::setup() {
   minZ.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minZ); });
   maxR.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxR); });
   minR.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minR); });
+
+  maxZAllMat.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxZAllMat); });
+  minZAllMat.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minZAllMat); });
+  maxRAllMat.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxRAllMat); });
+  minRAllMat.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minRAllMat); });
 
   planarMaxZ.setup([&]() { return CoordinateOperations::computeMaxZ(basePoly()); });
   planarMinZ.setup([&]() { return CoordinateOperations::computeMinZ(basePoly()); });
@@ -230,15 +241,20 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 //
 double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) const {
 
-  // Parameters
-  double A = hitRho/(2*trackR); // r_i / 2R
+  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+  // approach as for local resolutions)
+  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+  // (hence correction not applied in such case)
+  double A = 0;
+  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR); // r_i / 2R
   double B = A/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
   double resolution = sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
 
   // Return calculated resolution (resolutionLocalX is intrinsic resolution along R-Phi for barrel module)
-  return resolution; //resolutionLocalX();
+  return resolution;
 }
 
 //
@@ -246,8 +262,14 @@ double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) co
 //
 double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta) const {
 
-  // Parameters
-  double A = hitRho/(2*trackR); 
+
+  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+  // approach as for local resolutions)
+  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+  // (hence correction not applied in such case)
+  double A = 0;
+  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR);
   double D = trackCotgTheta/sqrt(1-A*A);
 
   // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
@@ -259,8 +281,8 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 
 void DetectorModule::setModuleCap(ModuleCap* newCap)
 {
-  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
-  m_myModuleCap = newCap ;
+  if (m_moduleCap!=nullptr) delete m_moduleCap;
+  m_moduleCap = newCap ;
 }
 
 void DetectorModule::mirrorZ() {
@@ -336,7 +358,10 @@ double DetectorModule::effectiveDsDistance() const {
   else return dsDistance()*sin(center().Theta())/sin(center().Theta()+tiltAngle());
 }
 
-std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
+//
+// Check if track hit the module. If yes, return the intersection point of 2D plane & track as a hit + its type (which module sensor(s) was/were hit)
+//
+std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const {
 
   HitType ht = HitType::NONE;
   XYZVector gc; // global coordinates of the hit
@@ -359,12 +384,12 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
   //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
-  if (ht != HitType::NONE) m_numHits++;
+  // if (ht != HitType::NONE) m_numHits++; // TODO: correct -> don't change it's content!!!
   return std::make_pair(gc, ht);
 };
 
-BarrelModule::BarrelModule(int id, Decorated* decorated, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
- DetectorModule(id, decorated, nodeProperty, treeProperty)
+BarrelModule::BarrelModule(int id, GeometricModule* moduleGeom, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
+ DetectorModule(id, moduleGeom, nodeProperty, treeProperty)
 {}
 
 //
@@ -378,10 +403,10 @@ void BarrelModule::build()
     DetectorModule::build();
 
     // Initialize module: rotations & translations called at higher level for the whole set of modules
-    decorated().rotateY(M_PI/2);
+    m_moduleGeom->rotateY(M_PI/2);
     m_rAxis = normal();
-    m_tiltAngle = 0.;
-    m_skewAngle = 0.;
+    m_moduleGeom->tiltAngle(0.);
+    m_moduleGeom->skewAngle(0.);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
 
@@ -463,7 +488,7 @@ void BarrelModule::setup()
 void BarrelModule::accept(GeometryVisitor& v) {
   v.visit(*this);
   v.visit(*(DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
@@ -472,14 +497,14 @@ void BarrelModule::accept(GeometryVisitor& v) {
 void BarrelModule::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   v.visit(*(const DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
 // Constructor - parse geometry config file using boost property tree & read-in module parameters, specify unique id
 //
-EndcapModule::EndcapModule(int id, Decorated* decorated, const PropertyTree& treeProperty) :
- DetectorModule(id, decorated, treeProperty)
+EndcapModule::EndcapModule(int id, GeometricModule* moduleGeom, const PropertyTree& treeProperty) :
+ DetectorModule(id, moduleGeom, treeProperty)
 {}
 
 //
@@ -494,8 +519,8 @@ void EndcapModule::build()
 
     // Initialize module: rotations & translations called at higher level for the whole set of modules
     m_rAxis = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
-    m_tiltAngle = M_PI/2.;
-    m_skewAngle = 0.;
+    m_moduleGeom->tiltAngle(M_PI/2.);
+    m_moduleGeom->skewAngle(0.);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();
@@ -632,7 +657,7 @@ void EndcapModule::setup()
 void EndcapModule::accept(GeometryVisitor& v) {
   v.visit(*this);
   v.visit(*(DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 
 //
@@ -641,6 +666,6 @@ void EndcapModule::accept(GeometryVisitor& v) {
 void EndcapModule::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   v.visit(*(const DetectorModule*)this);
-  decorated().accept(v);
+  m_moduleGeom->accept(v);
 }
 

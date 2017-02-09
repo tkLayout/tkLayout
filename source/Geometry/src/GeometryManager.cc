@@ -6,28 +6,23 @@
  */
 #include <GeometryManager.h>
 
-#include <BeamPipe.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
+#include "Detector.h"
 #include <fstream>
-#include <InactiveSurfaces.h>
-#include <Materialway.h>
 #include <MainConfigHandler.h>
 #include <MessageLogger.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <Tracker.h>
 
 //
 // Constructor - initializes manager -> reads-in all geometry configuration files (using the mainConfigHandler)
 //
 GeometryManager::GeometryManager(std::string baseGeomFile) :
- m_initOK(false),
- m_geomTree(nullptr),
- m_beamPipe(nullptr)
+ m_initOK(false)
 {
   // Set geometry file, directory, layout name ...
   setGeometryFile(baseGeomFile);
@@ -48,15 +43,20 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
     std::stringstream outputConfig;
     m_includeSet = MainConfigHandler::getInstance().preprocessConfiguration(inputFile, outputConfig, baseGeomFile);
 
-    m_geomTree = new boost::property_tree::ptree();
+    m_geomTree = std::unique_ptr<boost::property_tree::ptree>(new boost::property_tree::ptree());
     boost::property_tree::info_parser::read_info(outputConfig, *m_geomTree);
 
     //
     // Fill SimParms singleton class (container for generic info necessary for simulation), store data to property tree
-    auto simParms = SimParms::getInstance();
+    auto& simParms = SimParms::getInstance();
 
-    simParms->store(getChild(*m_geomTree, "SimParms"));
-    simParms->crosscheck();
+    simParms.store(getChild(*m_geomTree, "SimParms"));
+    simParms.crosscheck();
+
+    //
+    // Create detector
+    std::string detName = MainConfigHandler::getInstance().getProjectName();
+    m_detector          = std::unique_ptr<Detector>(new Detector(detName));
   }
 }
 
@@ -65,222 +65,39 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
 //
 GeometryManager::~GeometryManager()
 {
-  // Clear memory
-  if (m_geomTree==nullptr) delete m_geomTree;
-
-  // Active sub-trackers
-  for (auto iTracker : m_activeTrackers) {
-
-    if (iTracker==nullptr) delete iTracker;
-  }
-
-  // Passive components related to active sub-trackers
-  for (auto iPassive : m_passiveTrackers) {
-
-    if (iPassive==nullptr) delete iPassive;
-  }
-
-  // Beam pipe
-  if (m_beamPipe!=nullptr) delete m_beamPipe;
+  m_detector.reset();
+  m_geomTree.reset();
 }
 
 //
-// Build active part of the tracker (a bare-bones geometry of active modules). The resulting tracker object consists of individual sub-trackers
-// (pixel, strip, central, forward, ...). This procedure replaces the previously registered tracker (applying correct memory managment), if such an object
-// existed.
+// Build active part of the detector: individual trackers: pixel, strip, central, forward, ... (a bare-bones geometry of active modules).
 // Return True if there were no errors during processing, false otherwise
 //
-bool GeometryManager::buildActiveTracker()
+bool GeometryManager::buildActiveDetector()
 {
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
-    logERROR(any2str("GeometryManager::buildActiveTracker(): Can't built active tracker if GeometryManager not properly initialized in constructor"));
+    logERROR(any2str("GeometryManager::buildActiveDetector: Can't built active parts of detector if GeometryManager not properly initialized in constructor"));
     return false;
   }
 
-  // Clear out content of trackers container
-  for (auto iTracker : m_activeTrackers) {
-
-    if (iTracker!=nullptr) delete iTracker;
-  }
-  m_activeTrackers.clear();
-
-  // Build active tracker -> look for tag "Tracker"
-  startTaskClock("Building active trackers");
-  try {
-
-    auto childRange = getChildRange(*m_geomTree, "Tracker");
-    for (auto it=childRange.first; it!=childRange.second; ++it) {
-
-      // Message
-      if (it==childRange.first) std::cout << std::endl;
-      std::cout << " " << it->second.data() << " tracker" << std::endl;
-
-      // Create tracker
-      Tracker* trk = new Tracker(it->second);
-      trk->build();
-      trk->setup();
-
-      m_activeTrackers.push_back(trk);
-
-    } // Trackers
-
-    // Declare unmatched properties
-    std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
-    if (!unmatchedProperties.empty()) {
-
-      std::ostringstream message;
-      message << "GeometryManager::buildActiveTracker(): The following unknown properties were ignored:" << std::endl;
-
-      for (const string& property  : unmatchedProperties) {
-        message << "  " << property << std::endl;
-      }
-      logERROR(message);
-    }
-  } // Try
-  catch (PathfulException& e) {
-
-    logERROR(e.path()+ " : " +e.what());
-    stopTaskClock();
-    return false;
-  }
-
-  stopTaskClock();
-  return true;
+  return m_detector->buildActiveTracker(*m_geomTree);
 }
 
 //
-// Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
-// memory managment), if such an object existed.
+// Build all passive components related to individual active sub-trackers & beam-pipe.
 //
-bool GeometryManager::buildPassiveTracker()
-{
-  if (m_activeTrackers.size()>0) {
-
-    startTaskClock("Building passive materials of active trackers");
-
-    for (auto iTracker : m_activeTrackers) {
-
-      // Build new inactive surface
-      insur::InactiveSurfaces* iPassive = new insur::InactiveSurfaces();
-
-      // Get all materials in the way for given tracker
-      material::Materialway materialway;
-      materialway.build(*iTracker, *iPassive);
-    }
-
-    stopTaskClock();
-    return true;
-  }
-  else return false;
-}
-
-//
-// Build beam pipe. This procedure replaces the previously registered beam pipe
-//
-bool GeometryManager::buildBeamPipe()
+bool GeometryManager::buildPassiveDetector()
 {
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
-    logERROR(any2str("GeometryManager::buildBeamPipe(): Can't built beam pipe if GeometryManager not properly initialized in constructor"));
+    logERROR(any2str("GeometryManager::buildPassiveDetector: Can't built passive parts of detector if GeometryManager not properly initialized in constructor"));
     return false;
   }
 
-  // Clear out memory if beam pipe built before
-  if (m_beamPipe!=nullptr) {
-
-    delete m_beamPipe;
-    m_beamPipe = nullptr;
-  }
-
-  // Build beam pipe -> look for tag "BeamPipe"
-  startTaskClock("Building beam pipe");
-  try {
-
-    auto childRange = getChildRange(*m_geomTree, "BeamPipe");
-    for (auto it=childRange.first; it!=childRange.second; ++it) {
-
-      // Declare if more than one beam pipes defined
-      if (m_beamPipe!=nullptr) {
-
-        std::ostringstream message;
-        message << "GeometryManager::buildBeamPipe(): More than one beam pipe defined -> only first one found used!" << std::endl;
-        logERROR(message);
-      }
-      else {
-
-        std::cout << "Building new beam pipe" << std::endl;
-        m_beamPipe = new BeamPipe(it->second);
-        m_beamPipe->build();
-        m_beamPipe->setup();
-      }
-
-    }; // Beam pipes
-
-    // Declare unmatched properties
-    std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
-    if (!unmatchedProperties.empty()) {
-
-      std::ostringstream message;
-      message << "GeometryManager::buildBeamPipe(): The following unknown properties were ignored:" << std::endl;
-
-      for (const string& property  : unmatchedProperties) {
-        message << "  " << property << std::endl;
-      }
-      logERROR(message);
-    }
-  } // Try
-  catch (PathfulException& e) {
-
-    logERROR(e.path()+ " : " +e.what());
-    stopTaskClock();
-    return false;
-  }
-  stopTaskClock();
-  return true;
-}
-
-//
-// Get active sub-trackers
-//
-std::vector<const Tracker*> GeometryManager::getActiveTrackers() const
-{
-  std::vector<const Tracker*> activeTrackers;
-
-  for (auto iTracker : m_activeTrackers) {
-
-    const Tracker* trk = iTracker;
-    activeTrackers.push_back(trk);
-  }
-
-  return activeTrackers;
-}
-
-//
-// Get passive components related to active sub-trackers
-//
-std::vector<const insur::InactiveSurfaces*> GeometryManager::getPassiveTrackers() const
-{
-  std::vector<const insur::InactiveSurfaces*> passiveTrackers;
-
-  for (auto iPassive : m_passiveTrackers) {
-
-    const insur::InactiveSurfaces* passive = iPassive;
-    passiveTrackers.push_back(passive);
-  }
-
-  return passiveTrackers;
-}
-
-//
-// Get beam pipe
-//
-const BeamPipe* GeometryManager::getBeamPipe() const
-{
-  const BeamPipe* beamPipe = m_beamPipe;
-  return beamPipe;
+  return (m_detector->buildPassiveTracker() && m_detector->buildBeamPipe(*m_geomTree));
 }
 
 //

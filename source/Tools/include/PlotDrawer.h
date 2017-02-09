@@ -33,7 +33,7 @@
  *    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type.
  *      A ModuleValidator is a lambda or functor taking a const DetectorModule& and returning a bool, used to decide whether a module should be included or not in the plot
  * 3) Draw the plot frame: void drawFrame<FrameStyleType>(canvas, frameStyle)
- *   - FrameStyleType is the type of frame to draw. The predefined classes are SummaryFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
+ *   - FrameStyleType is the type of frame to draw. The predefined classes are TicksFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
  *   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
  *   - frameStyle is the instance of a FrameStyleType class, which can be used in case of custom frame styles. Default is FrameStyleType<CoordType>()
  * 4) Draw the modules: void drawModules<DrawStyleType>(canvas, drawStyle)
@@ -291,9 +291,9 @@ public:
 
 //! Frame style with ticks to be drawn for given coordinate type: XY, RZ, RZFull -> used to plot eta range
 template<class CoordType> class TicksFrameStyle {
-  void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+  void drawEtaTicks(double maxZ, double maxR, double tickDistance, double tickLength, double textDistance,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
-  void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickScaleFactor, double textScaleFactor,
+  void drawEtaTicks(double maxZ, double maxR, double tickDistance, double tickScaleFactor, double textScaleFactor,
                     Style_t labelFont, Float_t labelSize, double etaStepShort, double etaStepLong, double etaMax, double etaLongLineI, 
                     double etaLongLineII, bool zPlsMin=false) const;
   

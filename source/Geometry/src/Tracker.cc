@@ -1,6 +1,5 @@
 #include "Tracker.h"
 #include "global_constants.h"
-#include "global_funcs.h"
 
 #include <Barrel.h>
 #include <DetectorModule.h>
@@ -9,10 +8,8 @@
 #include <Layer.h>
 #include <Ring.h>
 #include <RodPair.h>
+#include "SimParms.h"
 #include <SupportStructure.h>
-
-// Using namespaces
-using material::SupportStructure;
 
 //
 // Helper class: Name visitor - methods
@@ -36,7 +33,7 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
  maxZ(     string("maxZ")           ),
  minEta(   string("minEta")         ),
  maxEta(   string("maxEta")         ),
- etaCut(          "etaCut"          , parsedOnly(), geom_max_eta_coverage),
+ etaCut(          "etaCut"          , parsedOnly(), SimParms::getInstance().getMaxEtaCoverage()),
  isPixelType(     "isPixelType"     , parsedOnly(), true),
  servicesForcedUp("servicesForcedUp", parsedOnly(), true),
  skipAllServices( "skipAllServices" , parsedOnly(), false),
@@ -44,11 +41,25 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
  m_barrelNode(    "Barrel"          , parsedOnly()),
  m_endcapNode(    "Endcap"          , parsedOnly()),
  m_supportNode(   "Support"         , parsedOnly()),
- m_containsOnly(  "containsOnly"    , parsedOnly())
+ m_containsOnly(  "containsOnly"    , parsedOnly()),
+ m_modulesSetVisitor(nullptr),
+ m_cntNameVisitor(nullptr)
 {
   // Set the geometry config parameters
   this->myid(treeProperty.data());
   this->store(treeProperty);
+
+  m_modulesSetVisitor = new ModulesSetVisitor();
+  m_cntNameVisitor    = new HierarchicalNameVisitor();
+}
+
+//
+// Destructor
+//
+Tracker::~Tracker()
+{
+  if (m_modulesSetVisitor!=nullptr) delete m_modulesSetVisitor;
+  if (m_cntNameVisitor   !=nullptr) delete m_cntNameVisitor;
 }
 
 //
@@ -105,8 +116,8 @@ void Tracker::build() {
   }
 
   // Search tracker and get its properties
-  accept(m_modulesSetVisitor);
-  accept(m_cntNameVisitor);
+  accept(*m_modulesSetVisitor);
+  accept(*m_cntNameVisitor);
 
   cleanup();
   builtok(true);
@@ -137,12 +148,12 @@ void Tracker::setup() {
   });
   minEta.setup([&]() {
     double min = std::numeric_limits<double>::max();
-    for (const auto& m : m_modulesSetVisitor.modules()) min = MIN(min, m->minEta());
+    for (const auto& m : m_modulesSetVisitor->modules()) min = MIN(min, m->minEta());
     return min;
   });
   maxEta.setup([&]() {
     double max = -std::numeric_limits<double>::max();
-    for (const auto& m : m_modulesSetVisitor.modules()) max = MAX(max, m->maxEta());
+    for (const auto& m : m_modulesSetVisitor->modules()) max = MAX(max, m->maxEta());
     return max;
   });
 }
@@ -155,6 +166,7 @@ void Tracker::accept(GeometryVisitor& v)
   v.visit(*this);
   for (auto& b : m_barrels) { b.accept(v); }
   for (auto& e : m_endcaps) { e.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -164,4 +176,10 @@ void Tracker::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   for (const auto& b : m_barrels) { b.accept(v); }
   for (const auto& e : m_endcaps) { e.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }
+
+//
+// Return all tracker modules
+//
+const set<DetectorModule*>& Tracker::modules() const { return m_modulesSetVisitor->modules(); }

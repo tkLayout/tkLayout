@@ -4,6 +4,8 @@
 #include <typeinfo>
 #include <string>
 
+#include "StringConverter.h"
+
 /*
  * Set that object has unique identifier that built properly
  */

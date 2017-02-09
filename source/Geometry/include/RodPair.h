@@ -1,15 +1,12 @@
 #ifndef INCLUDE_RODPAIR_H_
 #define INCLUDE_RODPAIR_H_
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <functional>
 #include <algorithm>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "global_funcs.h"
 #include "GeometryFactory.h"
 #include "Property.h"
 #include "DetectorModule.h"
@@ -21,7 +18,8 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-typedef PtrVector<BarrelModule>            BarrelModules;
+// Typedefs
+typedef PtrVector<RodPair> Rods;
 
 enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
@@ -77,6 +75,8 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   ReadonlyProperty<double, Computable> minZ;               //!< Minimum rod Z
   ReadonlyProperty<double, Computable> minR;               //!< Minimum rod radius
   ReadonlyProperty<double, Computable> maxR;               //!< Maximum rod radius
+  ReadonlyProperty<double, Computable> minRAllMat;         //!< Minimum rod radius taking into account all material structures
+  ReadonlyProperty<double, Computable> maxRAllMat;         //!< Maximum rod radius taking into account all material structures
   ReadonlyProperty<double, Computable> maxModuleThickness; //!< Calculated maximum module thickness in a rod
   Property<        bool  , Default>    beamSpotCover;      //!< Take into account beam spot size when positioning modules
 

@@ -178,11 +178,11 @@ int main(int argc, char* argv[]) {
             TProfile* myProfile = (TProfile*)aList->At(i);
             //std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
             double aMomentum;
-            if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+            if (sscanf(myProfile->GetName(), "pT_vs_eta%lf", &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
-            else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+            else if (sscanf(myProfile->GetName(), "Total_pT_vs_eta%lf", &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
 
@@ -195,89 +195,90 @@ int main(int argc, char* argv[]) {
   //inputFile->Close();
 
   // Check that non-zero profile map
-  auto itPtProfiles = ptProfiles.begin();
-  
-  if (itPtProfiles==ptProfiles.end()) {
+  if (ptProfiles.empty()) {
     std::cerr << "Error: the collection of profiles is empty" << std::endl;
     return false;
   }
-  
-  // First profile -> get eta, rescale bins, ...
-  TProfile* exampleProfile = itPtProfiles->second;
+  else {
+    auto itPtProfiles = ptProfiles.begin();
 
-  double maxEta = exampleProfile->GetXaxis()->GetXmax();
-  VDUMP(maxEta);
-  double minEta = exampleProfile->GetXaxis()->GetXmin();
-  VDUMP(minEta);
-  double originalEtaStep = exampleProfile->GetXaxis()->GetBinWidth(1);
-  VDUMP(originalEtaStep);
-  int rebinScale = etaSlice / originalEtaStep;
-  VDUMP(rebinScale);
-  for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) it->second->Rebin(rebinScale);
-  int newBins = exampleProfile->GetXaxis()->GetNbins();
-  VDUMP(newBins);
+    // First profile -> get eta, rescale bins, ...
+    TProfile* exampleProfile = itPtProfiles->second;
 
-  // OK, for each eta slice (rebinned bins) we will compute
-  // an interpolation formula. Keep your finger crossed...
-  
-  // Looping on eta range first:
-  double lowEta, highEta;
-  double myResolution, nextResolution;
-  double myPt, nextPt;
-  (*osp) << "#" << std::endl;
-  (*osp) << "# Automatically generated tracker resolution formula for layout: " << layoutName << std::endl;
-  (*osp) << "#" << std::endl;
-  (*osp) << "#  By " << author << " on: " << currentDateTime() << std::endl;
-  (*osp) << "#" << std::endl;
-  (*osp) << "set ResolutionFormula { ";
+    double maxEta = exampleProfile->GetXaxis()->GetXmax();
+    VDUMP(maxEta);
+    double minEta = exampleProfile->GetXaxis()->GetXmin();
+    VDUMP(minEta);
+    double originalEtaStep = exampleProfile->GetXaxis()->GetBinWidth(1);
+    VDUMP(originalEtaStep);
+    int rebinScale = etaSlice / originalEtaStep;
+    VDUMP(rebinScale);
+    for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) it->second->Rebin(rebinScale);
+    int newBins = exampleProfile->GetXaxis()->GetNbins();
+    VDUMP(newBins);
 
-  for (int iBin=1; iBin<=newBins; ++iBin) {
+    // OK, for each eta slice (rebinned bins) we will compute
+    // an interpolation formula. Keep your finger crossed...
 
-    // Get eta
-    lowEta  = exampleProfile->GetXaxis()->GetBinLowEdge(iBin);
-    highEta = exampleProfile->GetXaxis()->GetBinUpEdge(iBin);
+    // Looping on eta range first:
+    double lowEta, highEta;
+    double myResolution, nextResolution;
+    double myPt, nextPt;
+    (*osp) << "#" << std::endl;
+    (*osp) << "# Automatically generated tracker resolution formula for layout: " << layoutName << std::endl;
+    (*osp) << "#" << std::endl;
+    (*osp) << "#  By " << author << " on: " << currentDateTime() << std::endl;
+    (*osp) << "#" << std::endl;
+    (*osp) << "set ResolutionFormula { ";
 
-    // Loop over pT
-    for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
+    for (int iBin=1; iBin<=newBins; ++iBin) {
 
-      auto nextItem = (++it)--;
+      // Get eta
+      lowEta  = exampleProfile->GetXaxis()->GetBinLowEdge(iBin);
+      highEta = exampleProfile->GetXaxis()->GetBinUpEdge(iBin);
 
-      double aMomentum = it->first;
-      if (iBin==1) std::cout << "Using momentum [GeV]: " << std::setw(6) << aMomentum << std::endl;
+      // Loop over pT
+      for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
 
-      TProfile* myProfile = it->second;
-      myPt         = it->first;
-      myResolution = myProfile->GetBinContent(iBin)/100.;
-      printEtaRange(lowEta, highEta);
-      if (it==ptProfiles.begin()) {
-        // From here down the resolution will be always the same
-        printPtRange(0, myPt);
-        printResolutionScale(myResolution, myPt, myResolution, myPt);
-        printNewLine(false);
+        auto nextItem = (++it)--;
+
+        double aMomentum = it->first;
+        if (iBin==1) std::cout << "Using momentum [GeV]: " << std::setw(6) << aMomentum << std::endl;
+
+        TProfile* myProfile = it->second;
+        myPt         = it->first;
+        myResolution = myProfile->GetBinContent(iBin)/100.;
         printEtaRange(lowEta, highEta);
-      }
-      if (nextItem==ptProfiles.end()) {
-        // From here up the resolution will just scale with pT
-        printPtRange(myPt, -1);
-        printResolutionStandardWorsen(myResolution, myPt);
-        printNewLine(iBin==newBins); // true if it is the last
-      }
-      else {
-        TProfile* nextProfile = nextItem->second;
-        nextPt = nextItem->first;
-        nextResolution = nextProfile->GetBinContent(iBin)/100.;
-        printPtRange(myPt, nextPt);
-        printResolutionScale(myResolution, myPt, nextResolution, nextPt);
-        printNewLine(false);
+        if (it==ptProfiles.begin()) {
+          // From here down the resolution will be always the same
+          printPtRange(0, myPt);
+          printResolutionScale(myResolution, myPt, myResolution, myPt);
+          printNewLine(false);
+          printEtaRange(lowEta, highEta);
+        }
+        if (nextItem==ptProfiles.end()) {
+          // From here up the resolution will just scale with pT
+          printPtRange(myPt, -1);
+          printResolutionStandardWorsen(myResolution, myPt);
+          printNewLine(iBin==newBins); // true if it is the last
+        }
+        else {
+          TProfile* nextProfile = nextItem->second;
+          nextPt = nextItem->first;
+          nextResolution = nextProfile->GetBinContent(iBin)/100.;
+          printPtRange(myPt, nextPt);
+          printResolutionScale(myResolution, myPt, nextResolution, nextPt);
+          printNewLine(false);
+        }
       }
     }
   }
 
   // Close file
   inputFile->Close();
-  delete inputFile;
+  if (inputFile!=nullptr) delete inputFile;
   outFile->close();
-  delete outFile;
+  if (inputFile!=nullptr) delete outFile;
 
   return true;
 }

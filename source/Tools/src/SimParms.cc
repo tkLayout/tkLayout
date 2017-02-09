@@ -2,20 +2,16 @@
 
 #include <MainConfigHandler.h>
 #include "global_constants.h"
+#include "Units.h"
 #include "Visitor.h"
 #include "IrradiationMapsManager.h"
 
 //
-// Static instance of this class
-//
-SimParms * SimParms::s_instance = nullptr;
-
-//
 // Method constructing static instance of this class
 //
-SimParms * SimParms::getInstance()
+SimParms& SimParms::getInstance()
 {
-  if (s_instance == nullptr) s_instance = new SimParms;
+  static SimParms s_instance;
   return s_instance;
 }
 
@@ -24,8 +20,8 @@ SimParms * SimParms::getInstance()
 //
 SimParms::SimParms() :
  numMinBiasEvents(        "numMinBiasEvents"        , parsedAndChecked()),
- zErrorCollider(          "zErrorCollider"          , parsedAndChecked()),
- rError(                  "rError"                  , parsedAndChecked()),
+ zErrorIP(                "zErrorIP"                , parsedAndChecked()),
+ rphiErrorIP(             "rphiErrorIP"             , parsedAndChecked()),
  useIPConstraint(         "useIPConstraint"         , parsedAndChecked()),
  ptCost(                  "ptCost"                  , parsedAndChecked()),
  stripCost(               "stripCost"               , parsedAndChecked()),
@@ -41,11 +37,11 @@ SimParms::SimParms() :
  chargeDepletionVoltage(  "chargeDepletionVoltage"  , parsedOnly(), 600),
  alphaParm(               "alphaParm"               , parsedOnly(), 4e-17),
  referenceTemp(           "referenceTemp"           , parsedOnly(), 20),
- magneticField(           "magneticField"           , parsedOnly(), magnetic_field),
- dipoleMagneticField(     "dipoleMagneticField"     , parsedOnly(), 0.0),
- dipoleDPlResAt10TeV(     "dipoleDPlResAt10TeV"     , parsedOnly(), 0.1),
- dipoleXToX0(             "dipoleXToX0"             , parsedOnly(), 0.1),
+ magField(                "magField"                , parsedOnly()),
+ magFieldZRegions(        "magFieldZRegions"        , parsedOnly()),
  irradiationMapFiles(     "irradiationMapFiles"     , parsedAndChecked()),
+ etaRegionRanges(         "etaRegionRanges"         , parsedAndChecked()),
+ etaRegionNames(          "etaRegionNames"          , parsedAndChecked()),
  bFieldMapFile(           "bFieldMapFile"           , parsedOnly(), std::string("")),
  chargedMapFile(          "chargedMapFile"          , parsedOnly(), std::string("")),
  chargedMapLowThFile(     "chargedMapLowThFile"     , parsedOnly(), std::string("")),
@@ -69,7 +65,7 @@ SimParms::SimParms() :
  m_layoutName("Default")
 {
   // Read irradiation maps
-  m_irradiationMapsManager = new IrradiationMapsManager();
+  m_irradiationMapsManager = std::unique_ptr<IrradiationMapsManager>(new IrradiationMapsManager());
   for (auto file : default_irradiationfiles) {
 
     std::string path = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + file;
@@ -83,11 +79,11 @@ SimParms::SimParms() :
 //
 SimParms::~SimParms()
 {
-  if (m_irradiationMapsManager != nullptr) delete m_irradiationMapsManager;
+  m_irradiationMapsManager.reset();
 }
 
 //
-// Check that sim parameters read-in correctly
+// Check that sim parameters read-in correctly & set units
 //
 void SimParms::crosscheck() {
   try {
@@ -95,6 +91,36 @@ void SimParms::crosscheck() {
     builtok(true);
     cleanup();
   } catch (PathfulException& pe) { pe.pushPath("SimParms"); throw; }
+
+  // Check that sizes of eta vectors: names & ranges are the same
+  if (etaRegionNames.size()!=etaRegionRanges.size()) throw PathfulException("Number of names assigned to individual eta regions don't correspond to number of defined eta regions, check the config file!" , "SimParms");
+
+  // Check that number of magnetic field values correspond to number of magnetic field intervals
+  if (magField.size()!=magFieldZRegions.size()) throw PathfulException("Number of magnetic field values doesn't correspond to number of intervals!" , "SimParms");
+
+  // Check that magnetic field non-zero in at least one interval
+  bool nonZero = false;
+  for (auto i=0; i<magFieldZRegions.size(); i++) {
+    if (magField[i]>0) nonZero = true;
+  }
+  if (nonZero!=true) throw PathfulException("Magnetic field needs to be defined non-zero in at least one Z interval!" , "SimParms");
+
+  // Check that IP errors non-zero in R-Phi & Z if IP constraint will be used
+  nonZero = true;
+  if (useIPConstraint()) {
+
+    if (zErrorIP()==0)    nonZero = false;
+    if (rphiErrorIP()==0) nonZero = false;
+  }
+  if (!nonZero) throw PathfulException("IP constraint required, but errors on beam spot set to zero in R-Phi/Z!" , "SimParms");
+
+  // Set expected default units
+  magField.scaleByUnit(Units::T);
+  magFieldZRegions.scaleByUnit(Units::m);
+
+  zErrorIP.scaleByUnit(Units::mm);
+  rphiErrorIP.scaleByUnit(Units::mm);
+
 }
 
 //

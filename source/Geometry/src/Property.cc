@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "global_funcs.h"
 #include "Property.h"
 
 std::function<int()> noDefault() { return [](){ throw std::logic_error("Tried to get value from an unset property"); return 0; }; }
