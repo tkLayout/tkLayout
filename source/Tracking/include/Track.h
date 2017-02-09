@@ -91,9 +91,6 @@ public:
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
 
-  //! Sort hits if necessary
-  void sortHits() { if (m_pt>=0) sortHits(true); else sortHits(false); };
-
   //
   // Print methods
 
