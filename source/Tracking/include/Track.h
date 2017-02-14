@@ -36,13 +36,14 @@ typedef std::vector<TrackPtr>  TrackCollection;
  * tracking). The track model assumes mag. field to be variable only in z: B = B(z).e_z + 0.e_x + 0.e_y, further
  * the parabolic approximation for track is considered (a la Karimaki parametrization + Multiple Coulomb scattering
  * is taken into account), disentangling the problem to fit 5 track parameters simultaneously into a problem of
- * fitting track independenly in R-Phi and s-Z plane. The covariance matrix is then 3x3 (rho, phi0, d0) +
- * 2x2 (cotg(theta), z0). Parametrization used is the following, one fits: phi0, 1/R, impact parameter in R-Phi plane
- * d0 & cotg(theta), impact parameter in s-Z plane z0. To provide tracking independently on complexity of defined tracker
- * geometry, each track is assigned a tag, all sub-trackers being assigned the same tag are then used in the track for
- * tracking. In order to extract individual track parameters at arbitrary reference point (not only at [0,0,0]), the
- * standard technique of covariance propagator is applied (for details see getDelta***() methods). The propagators are
- * currently implemented for const Bz, not for case of B = B(z).
+ * fitting track independenly in R-Phi and s-Z plane. The direction, in which Multiple scattering is calculated is
+ * defined by particle direction or track propagation requirements. Either inside-out or outside-in can be set. The final
+ * covariance matrix is 3x3 (rho, phi0, d0) + 2x2 (cotg(theta), z0). The parametrization used is the following, one fits:
+ * phi0, 1/R, impact parameter in R-Phi plane d0 & cotg(theta), impact parameter in s-Z plane z0. To provide tracking independently
+ * on complexity of defined tracker geometry, each track is assigned a tag, all sub-trackers being assigned the same tag
+ * are then used in the track for tracking. In order to extract individual track parameters at arbitrary reference
+ * point (not only at [0,0,0]), the standard technique of covariance propagator is applied (for details see getDelta***()
+ * methods). The propagators are currently implemented for const Bz, not for case of B = B(z).
  */
 class Track {
 
@@ -60,30 +61,38 @@ public:
   //! Destructor
   ~Track();
 
-  //! Main method calculating track parameters using Karimaki parametrization & parabolic track approximation in R-Phi plane: 1/R, d0, phi parameters
-  //! and using linear fit in s-Z plane: cotg(theta), z0 parameters -> call this method before calling getDelta***() methods.
-  void computeErrors();
+  //
+  // Define track properties
 
-  //! Add new hit to track and return a pointer to that hit
+  //! Add new hit to track and return a pointer to that hit (+ prune hits + resort hits)
   void addHit(HitPtr newHit);
 
-  //! Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
+  //! Add IP constraint (+ prune hits + resort hits) to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
   void addIPConstraint(double dr, double dz);
 
-  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
-  void sortHits(bool bySmallerR);
+  //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt (signed: + -> particle in-out, - -> particle out-in)
+  const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
-  //! Does track contain no hits?
-  bool hasNoHits() const {return m_hits.empty(); }
+  //! Set track origin
+  const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
 
-  //! Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
-  bool pruneHits();
-  
-  //! Set active only hits with the given tag
-  void keepTaggedOnly(const string& tag);
+  //! Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
+  void resetPt(double newPt);
+
+  //! Set active only hits with the given tag. If tag="all" all hits coming from measurement planes or IP will be set as active
+  void keepTaggedHitsOnly(const string& tag, bool useIP = true);
+
+  //! Keep only first N hits coming from measurement planes or IP as active -> return true if possible N>= size of hits vector
+  bool keepFirstNHitsActive(signed int N, bool useIP = true);
+
+  //! Keep only last N hits coming from measurement planes or IP as active -> return true if possible N>= size of hits vector
+  bool keepLastNHitsActive(signed int N, bool useIP = true);
 
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
+
+  //
+  // Print methods
 
   //! Helper method printing track covariance matrices in R-Phi
   void printErrors();
@@ -97,15 +106,13 @@ public:
   //! Helper method printing track hits
   void printHits();
 
-  //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
-  const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
+  //! Helper method printing active track hits
+  void printActiveHits();
 
-  //! Set track origin
-  const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
+  //! Does track contain no hits?
+  bool hasNoHits() const {return m_hits.empty(); }
 
-  //! Re-set transverse momentum, pT
-  void resetPt(double newPt) {m_pt = newPt;}
-
+  //
   // Getter methods
   double getTheta() const              { return m_theta;}
   double getEta() const                { return m_eta; }
@@ -116,41 +123,53 @@ public:
   
   //! Get DeltaRho (error on 1/R) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaRho(double rPos) const;
+  double getDeltaRho(double rPos);
 
   //! Get DeltaPtOvePt at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize the calculated deltaRho quantity)
-  double getDeltaPtOverPt(double rPos) const;
+  double getDeltaPtOverPt(double rPos);
 
   //! Get DeltaPOverP at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize deltaRho & deltaCotgTheta quantities)
-  double getDeltaPOverP(double rPos) const;
+  double getDeltaPOverP(double rPos);
 
   //! Get DeltaPhi0 at point (r,z) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaPhi0(double rPos) const;
+  double getDeltaPhi(double rPos);
+  double getDeltaPhi0() { return getDeltaPhi(0.0); };
 
   //! Get DeltaD0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaD0(double rPos) const;
+  double getDeltaD(double rPos);
+  double getDeltaD0() { return getDeltaD(0.0); };
 
   //! Get DeltaCtgTheta at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (independent on sXY)
-  double getDeltaCtgTheta() const;
+  double getDeltaCtgTheta();
 
   //! Get DeltaZ0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
   //! Using 2x2 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaZ0(double rPos) const;
+  double getDeltaZ(double rPos);
+  double getDeltaZ0() { return getDeltaZ(0.0); }
 
   // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
   double getMagField(double zPos) const;
 
   // Calculate radius or 1/R at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
-  double getRho(double zPos) const    { return (getRadius(zPos)>0 ? 1/getRadius(zPos) : 0);}
-  double getRadius(double zPos) const { return m_pt / (0.3 * getMagField(zPos)); }
+  double getRho(double zPos) const    { return (getRadius(zPos)!=0 ? 1/getRadius(zPos) : 0);}
+  double getRadius(double zPos) const { return fabs(m_pt / (0.3 * getMagField(zPos))); }
 
   const Polar3DVector& getDirection() const { return m_direction; }
-  const XYZVector& getOrigin() const        { return m_origin; }
+  const XYZVector&     getOrigin() const    { return m_origin; }
 
   //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
   int getNActiveHits(std::string tag, bool useIP = true) const;
+
+  //! Get number of hits, set as active & coming from measurement planes or IP constraint. All hits must be assigned to tracker with given tag. If tag specified as "all", all module & IP hits assigned.
+  int getNMeasuredHits(std::string tag, bool useIP = true) const;
+
+  //! Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
+  const Hit* getMeasurableOrIPHit(int iHit) const;
+
+  //! Reverse search -> Get reversely reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
+  const Hit* getRMeasurableOrIPHit(int iHit) const;
 
   //! Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
   //! If tag specified as "all" no extra tag required
@@ -165,9 +184,11 @@ public:
   //! Hits collection iterators
   HitCollection::const_iterator getBeginHits() { return m_hits.cbegin(); }
   HitCollection::const_iterator getEndHits()   { return m_hits.cend(); }
+  //HitCollection::const_iterator getRBeginHits(){ return m_hits.crbegin(); }
+  //HitCollection::const_iterator getREndHits()  { return m_hits.crend(); }
 
   //! Get track material
-  RILength getMaterial();
+  RILength getMaterial() const;
 
   //! Get all tags assigned to the track (see m_tags variable below
   const std::set<std::string>& getTags() const { return m_tags; }
@@ -188,12 +209,18 @@ public:
 
 protected:
 
+  //! Main method calculating track parameters in s-z plane only, using linear fit: cotg(theta), z0 parameters -> internally calling computation of varMatrixRZ & covMatrixRZ
+  void computeErrorsRZ();
   //! Compute the variance matrix in R-Z (s-Z): NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
   //! Return true if V invertable
   bool computeVarianceMatrixRZ();
   //! Compute 2x2 covariance matrix of the track parameters in R-Z (s-Z) projection
   void computeCovarianceMatrixRZ();
 
+  //! Main method calculating track parameters in r-phi plane only, using Karimaki parametrization & parabolic track
+  //! approximation in R-Phi plane: 1/R, d0, phi parameters -> call this method before calling getDelta***() methods.
+  //! -> internally calling computation of varMatrixRPhi & covMatrixRPhi
+  void computeErrorsRPhi();
   //! Compute the variance matrix in R-Phi: NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
   //! Return true if V invertable
   bool computeVarianceMatrixRPhi();
@@ -205,17 +232,33 @@ protected:
   //! field only one parabola assumed.
   double computeDfOverDRho(double rPos, double zPos);
 
-  double m_theta;              //!< Track shot at given theta & phi, i.e. theta at primary vertex
-  double m_phi;                //!< Track shot at given theta & phi, i.e. phi at primary vertex
-  double m_cotgTheta;          //!< Automatically calculated from theta at [0,0]
-  double m_eta;                //!< Automatically calculated from eta at [0,0]
-  double m_pt;                 //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes)
+  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
+  //! Sorting naturally affects whether in->out approach is being used or out->in is being used. Approach set directly by dedicated setter methods.
+  void sortHits(bool bySmallerR);
 
-  Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
-  XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
+  //! Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
+  bool followsParabolicApprox(double rPos, double zPos) { return rPos<2*getRadius(zPos); }
+  bool pruneHits();
 
-  HitCollection         m_hits;//!< Hits assigned to track
-  std::set<std::string> m_tags;//!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
+  double m_theta;               //!< Track shot at given theta & phi, i.e. theta at primary vertex
+  double m_phi;                 //!< Track shot at given theta & phi, i.e. phi at primary vertex
+  double m_pt;                  //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes), pT sign: + -> particle traverses inside-out, - -> particle traverses outside-in
+  double m_cotgTheta;           //!< Automatically calculated from theta at [0,0]
+  double m_eta;                 //!< Automatically calculated from eta at [0,0]
+
+  Polar3DVector  m_direction;   //!< Track parameters as a 3-vector: R, theta, phi
+  XYZVector      m_origin;      //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
+
+  bool           m_reSortHits;  //!< Caching whether necessary to resort hits (sorting will be done again if a new hit added or direction changed)
+
+  bool           m_covRPhiDone; //!< Caching whether errors in R-Phi already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
+  bool           m_covRZDone;   //!< Caching whether errors in R-Z already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
+//  double         m_ZPointPropag;//!< Caching Z coordinate, with respect to which the errors calculation have been done last time
+//  double         m_DPointPropag;//!< Caching R-Phi coordinate (D), with respect to which the errors calculation have been done last time
+//  bool           m_InOutPropag; //!< Caching whether MS effects propagated in-out (true) or out-in (false),
+
+  HitCollection         m_hits;         //!< Hits assigned to track
+  std::set<std::string> m_tags;         //!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
   // Track parameters covariance matrices
   TMatrixTSym<double>   m_varMatrixRPhi; //!< NxN (hits) Variance matrix in R-Phi: V(NxN) (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)

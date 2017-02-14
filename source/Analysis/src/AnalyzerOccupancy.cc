@@ -44,8 +44,9 @@ AnalyzerOccupancy::AnalyzerOccupancy(const Detector& detector) :
 
 AnalyzerOccupancy::~AnalyzerOccupancy()
 {
-  delete m_photonsMap;
-  delete m_chargedMap;
+  if (m_bFieldMap !=nullptr) delete m_bFieldMap;
+  if (m_photonsMap!=nullptr) delete m_photonsMap;
+  if (m_chargedMap!=nullptr) delete m_chargedMap;
 }
 
 //! Init variables

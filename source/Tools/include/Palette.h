@@ -27,7 +27,7 @@ class Palette {
   static       std::string colorMomentaNames(const unsigned int& colorIndex);
 
   //! Set one of Root predefined palettes for drawing TH2D etc -> default RainBow (i.e. 55)
-  static       void setRootPalette(short palette);
+  static       void setRootPalette(short palette=55);
 
   // Colors definitions
   static const Color_t color_invalid_module = kGray + 1;

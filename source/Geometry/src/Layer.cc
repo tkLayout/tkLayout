@@ -132,6 +132,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   // Optimization algorithm
 
   // Calculate minimum/maximum R boundary taking into account modules layout (+/-bigDelta +-smallDelta +-dsDistance)
+  // TODO: Still not taking into account all materials, just the active thickness, not the passive
   ReadonlyProperty<double, NoDefault> moduleWidth( "width", parsedOnly());
   evaluateProperty(moduleWidth);
   ReadonlyProperty<double, Default> maxDsDistance( "dsDistance", parsedOnly(), 0.0);

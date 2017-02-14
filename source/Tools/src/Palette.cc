@@ -76,9 +76,9 @@ std::string Palette::colorMomentaNames(const unsigned int& colorIndex) {
 }
 
 //
-// Set one of predefined Root palette -> default RainBow (i.e. 55)
+// Set one of predefined Root palette -> default kRainBow (i.e. 55)
 //
-void Palette::setRootPalette(short palette=55) {
+void Palette::setRootPalette(short palette) {
 
   gStyle->SetPalette(palette);
 }

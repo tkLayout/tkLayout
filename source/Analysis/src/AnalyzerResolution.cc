@@ -27,9 +27,12 @@
 #include "Tracker.h"
 #include "Track.h"
 #include <TStyle.h>
+#include "VisitorMatTrack.h"
 #include "Units.h"
 
-
+//
+// AnalyzerResolution constructor
+//
 AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit("AnalyzerResolution", detector),
  m_nTracks(0),
  m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
@@ -37,6 +40,9 @@ AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit(
  c_nBins(SimParms::getInstance().getMaxEtaCoverage()/vis_eta_step)  // Default number of bins in histogram from eta=0  to max_eta_coverage)
 {};
 
+//
+// AnalyzerResolution init method
+//
 bool AnalyzerResolution::init(int nTracks)
 {
   // Set nTracks
@@ -85,6 +91,9 @@ bool AnalyzerResolution::init(int nTracks)
   }
 }
 
+//
+// AnalyzerResolution visualization method
+//
 bool AnalyzerResolution::analyze()
 {
   // Check that initialization OK
@@ -96,9 +105,6 @@ bool AnalyzerResolution::analyze()
 
   // Initialize
   double efficiency  = SimParms::getInstance().efficiency();
-
-  // Tracks pruned
-  bool isPruned = false;
 
   for (int iTrack = 0; iTrack < m_nTracks; iTrack++) {
 
@@ -114,9 +120,13 @@ bool AnalyzerResolution::analyze()
     matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
 
     // Assign material to the track
-    MatTrackVisitor matVisitor(matTrack);
+    VisitorMatTrack matVisitor(matTrack);
     m_beamPipe->accept(matVisitor);                                 // Assign to material track hit corresponding to beam-pipe
     for (auto iTracker : m_trackers) iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
+
+    // Add IP constraint
+    //std::cout << "Adding IP constraint: " << SimParms::getInstance().rphiErrorIP() << " " << SimParms::getInstance().zErrorIP() << std::endl;
+    //if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rphiErrorIP(), SimParms::getInstance().zErrorIP());
 
     // Output hits to a file for debuggin purposes
     m_csvHitCol->addCsvElement(std::string("LastEta="+any2str(eta, 2)), any2str(eta, 2));
@@ -137,14 +147,9 @@ bool AnalyzerResolution::analyze()
       for (string tag : matTrack.getTags()) {
 
         // Analyze only hits within track coming from the defined bunch of detectors (the same tag)
-        matTrack.keepTaggedOnly(tag);
+        matTrack.keepTaggedHitsOnly(tag);
 
-        // Add IP constraint
-        if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rError(), SimParms::getInstance().zErrorCollider());
-
-        // Sort hits
-        bool smallerRadius = true;
-        matTrack.sortHits(true);
+        // Print hits
         //matTrack.printHits();
 
         // Remove some hits randomly based on inefficiency parameter
@@ -164,12 +169,8 @@ bool AnalyzerResolution::analyze()
           trackPt->resetPt(pT);
 
           // Remove tracks with less than 3 hits
-          bool pruned = trackPt->pruneHits();
-          if (pruned) isPruned = true;
-
           if (trackPt->getNActiveHits(tag, true)>2) {
 
-            trackPt->computeErrors();
             std::map<int, TrackCollection>& myMap        = m_taggedTrackPtCollectionMap[tag];
             TrackCollection&                myCollection = myMap[parameter];
             myCollection.push_back(std::move(trackPt));
@@ -179,15 +180,11 @@ bool AnalyzerResolution::analyze()
           TrackPtr idealTrackPt(new Track(matTrack));
           idealTrackPt->resetPt(pT);
 
-          // Remove tracks with less than 3 hits
-          pruned = idealTrackPt->pruneHits();
-          if (pruned) isPruned = true;
-
-          // Remove material
+          // Remove tracks with less than 3 hits & remove material
           idealTrackPt->removeMaterial();
+
           if (idealTrackPt->getNActiveHits(tag, true)>2) {
 
-            idealTrackPt->computeErrors();
             std::map<int, TrackCollection>& myMapIdeal        = m_taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(std::move(idealTrackPt));
@@ -201,12 +198,8 @@ bool AnalyzerResolution::analyze()
           trackP->resetPt(pT);
 
           // Remove tracks with less than 3 hits
-          pruned = trackP->pruneHits();
-          if (pruned) isPruned = true;
-
           if (trackP->getNActiveHits(tag, true)>2) {
 
-            trackP->computeErrors();
             std::map<int, TrackCollection>& myMapII        = m_taggedTrackPCollectionMap[tag];
             TrackCollection&                myCollectionII = myMapII[parameter];
             myCollectionII.push_back(std::move(trackP));
@@ -216,16 +209,11 @@ bool AnalyzerResolution::analyze()
           TrackPtr idealTrackP(new Track(matTrack));
           idealTrackP->resetPt(pT);
 
-          // Remove tracks with less than 3 hits
-          pruned = idealTrackP->pruneHits();
-          if (pruned) isPruned = true;
-
-          // Remove material
+          // Remove tracks with less than 3 hits & remove material
           idealTrackP->removeMaterial();
 
           if (idealTrackP->getNActiveHits(tag, true)>2) {
 
-            idealTrackP->computeErrors();
             std::map<int, TrackCollection>& myMapIdealII        = m_taggedTrackPCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(std::move(idealTrackP));
@@ -235,24 +223,20 @@ bool AnalyzerResolution::analyze()
     }
   } // For tracks
 
-  // Log pruning procedure -> no result mode might occur if starting momenta wrongly set
-  if (isPruned) {
-
-    std::string message = std::string("Resolution - some tracks pruned! Hits that don't follow the parabolic approximation removed. Check momenta if no result appears!");
-    logWARNING(message);
-  }
-
   m_isAnalysisOK = true;
   return m_isAnalysisOK;
 }
 
+//
+// AnalyzerResolution visualization method
+//
 bool AnalyzerResolution::visualize(RootWSite& webSite)
 {
   // Check that initialization & analysis OK
   if (!m_isInitOK && !m_isAnalysisOK) return false;
 
   // Set Rainbow palette for drawing
-  Palette::setRootPalette(55);
+  Palette::setRootPalette();
 
   // Go through all trackers & prepare web content
   for (auto& key : m_taggedTrackPtCollectionMap) {
@@ -590,9 +574,9 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       double rPos = 0.0;
       if (varType=="pT")        yVal = track->getDeltaPtOverPt(rPos)*100; // In percent
       if (varType=="p")         yVal = track->getDeltaPOverP(rPos)*100;   // In percent
-      if (varType=="d0")        yVal = track->getDeltaD0(rPos)/Units::um;
-      if (varType=="z0")        yVal = track->getDeltaZ0(rPos)/Units::um;
-      if (varType=="phi0")      yVal = track->getDeltaPhi0(rPos)/M_PI*180.; // In degerees
+      if (varType=="d0")        yVal = track->getDeltaD0()/Units::um;
+      if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
+      if (varType=="phi0")      yVal = track->getDeltaPhi0()/M_PI*180.; // In degerees
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta();
 
       profHis->Fill(xVal, yVal);
@@ -866,242 +850,4 @@ std::vector<double> AnalyzerResolution::averageHisValues(const TProfile& his, st
     else               averages.push_back(0);
   }
   return averages;
-}
-
-//
-// Material budget visitor - constructor
-//
-MatTrackVisitor::MatTrackVisitor(Track& matTrack) :
-    m_matTrack(matTrack)
-{
-}
-
-//
-// Destructor
-//
-MatTrackVisitor::~MatTrackVisitor()
-{
-}
-
-//
-// Visit BeamPipe -> update track with beam pipe hit
-//
-void MatTrackVisitor::visit(const BeamPipe& bp)
-{
-  // Add hit corresponding with beam-pipe
-  double theta = m_matTrack.getTheta();
-  double eta   = m_matTrack.getEta();
-  double rPos  = (bp.radius()+bp.thickness()/2.);
-  double zPos  = rPos/tan(theta);
-
-  HitPtr hit(new Hit(rPos, zPos));
-  hit->setOrientation(HitOrientation::Horizontal);
-  hit->setObjectKind(HitKind::Inactive);
-
-  Material material;
-  material.radiation   = bp.radLength()/sin(theta);
-  material.interaction = bp.intLength()/sin(theta);
-
-  hit->setCorrectedMaterial(material);
-  hit->setBeamPipe(true);
-  m_matTrack.addHit(std::move(hit));
-}
-
-//
-// Visit Barrel
-//
-void MatTrackVisitor::visit(const Barrel& b)
-{
-  for (auto& element : b.services()) {
-    analyzeInactiveElement(element);
-  }
-}
-
-//
-// Visit BarrelModule (no limits on Rods, Layers or Barrels)
-//
-void MatTrackVisitor::visit(const BarrelModule& m)
-{
-  analyzeModuleMB(m);
-}
-
-//
-// Visit EndcapModule (no limits on Rings or Endcaps)
-//
-void MatTrackVisitor::visit(const EndcapModule& m)
-{
-  analyzeModuleMB(m);
-}
-
-//
-// Visit Support strucutre
-//
-void MatTrackVisitor::visit(const SupportStructure& s)
-{
-  for (auto& elem : s.inactiveElements()) {
-    analyzeInactiveElement(elem);
-  }
-}
-
-//
-// Analyze if module crossed by given track & how much material is in the way
-//
-void MatTrackVisitor::analyzeModuleMB(const DetectorModule& m)
-{
-  // Collision detection: material tracks being shot in z+ only, so consider only modules that lie on +Z side
-  if (m.maxZ() > 0) {
-
-    XYZVector direction(m_matTrack.getDirection());
-
-    auto pair    = m.checkTrackHits(m_matTrack.getOrigin(), direction);
-    //auto hitDistance = pair.first.R();
-    auto hitRPos = pair.first.rho();
-    auto hitZPos = pair.first.z();
-    auto hitType = pair.second;
-
-    if (hitType!=HitType::NONE) {
-
-      Material material;
-      material.radiation   = m.getModuleCap().getRadiationLength();
-      material.interaction = m.getModuleCap().getInteractionLength();
-
-      // Fill material map
-      double theta = m_matTrack.getTheta();
-
-      // Treat barrel & endcap modules separately
-      double tiltAngle = m.tiltAngle();
-
-      if (m.subdet() == BARREL) {
-
-        material.radiation   /= sin(theta + tiltAngle);
-        material.interaction /= sin(theta + tiltAngle);
-
-      }
-      else if (m.subdet() == ENDCAP) {
-
-        material.radiation   /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
-        material.interaction /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
-
-      }
-      else {
-        logWARNING("MatTrackVisitor::analyzeModuleMB -> incorrectly scaled material, unknown module type. Neither barrel or endcap");
-      }
-
-      // Create Hit object with appropriate parameters, add to Track t
-      HitPtr hit(new Hit(hitRPos, hitZPos, &m, hitType));
-      hit->setCorrectedMaterial(material);
-      m_matTrack.addHit(std::move(hit));
-    }
-  } // Z>0
-}
-
-//
-// Helper method - analyse inactive element & estimate how much material is in the way
-//
-void MatTrackVisitor::analyzeInactiveElement(const insur::InactiveElement& e)
-{
-  // Work-out only if inactive element has non-zero material assigned, otherwise no effect of inactive material
-  if (e.getRadiationLength()!=0 || e.getInteractionLength()!=0) {
-
-    // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
-    // only volumes of the requested category, or those without one (which should not exist) are examined
-    if ((e.getZOffset() + e.getZLength()) > 0) {
-
-      // collision detection: check eta range
-      auto etaMinMax = e.getEtaMinMax();
-
-      // Volume hit
-      double eta   = m_matTrack.getEta();
-      double theta = m_matTrack.getTheta();
-
-      if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
-
-        /*
-        if (eta<0.01) {
-          std::cout << "Hitting an inactive surface at z=("
-                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
-                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
-          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
-          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-        }
-        */
-
-        // Initialize
-        Material material;
-        material.radiation   = 0.0;
-        material.interaction = 0.0;
-
-        double rPos = 0.0;
-        double zPos = 0.0;
-
-        // Radiation and interaction lenth scaling for vertical volumes
-        if (e.isVertical()) {
-
-          zPos = e.getZOffset() + e.getZLength() / 2.0;
-          rPos = zPos * tan(theta);
-
-          material.radiation   = e.getRadiationLength();
-          material.interaction = e.getInteractionLength();
-
-          // Special treatment for user-defined supports as they can be very close to z=0
-          if (e.getCategory() == MaterialProperties::u_sup) {
-
-            double s = e.getZLength() / cos(theta);
-            if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
-
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            //if (e.track()) {}
-
-            material.radiation  *= s / e.getZLength();
-            material.interaction*= s / e.getZLength();
-          }
-          else {
-
-            material.radiation   /= cos(theta);
-            material.interaction /= cos(theta);
-          }
-        }
-        // Radiation and interaction length scaling for horizontal volumes
-        else {
-
-          rPos = e.getInnerRadius() + e.getRWidth() / 2.0;
-          zPos = rPos/tan(theta);
-
-          material.radiation   = e.getRadiationLength();
-          material.interaction = e.getInteractionLength();
-
-          // Special treatment for user-defined supports; should not be necessary for now
-          // as all user-defined supports are vertical, but just in case...
-          if (e.getCategory() == MaterialProperties::u_sup) {
-
-            double s = e.getZLength() / sin(theta);
-
-            if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
-
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            //if (e.track()) {}
-
-            material.radiation  *= s / e.getZLength();
-            material.interaction*= s / e.getZLength();
-          }
-          else {
-
-            material.radiation   /= sin(theta);
-            material.interaction /= sin(theta);
-          }
-        }
-
-        // Create Hit object with appropriate parameters, add to Track t
-        HitPtr hit(new Hit(rPos, zPos));
-        if (e.isVertical()) hit->setOrientation(HitOrientation::Vertical);
-        else                hit->setOrientation(HitOrientation::Horizontal);
-        hit->setObjectKind(HitKind::Inactive);
-        hit->setCorrectedMaterial(material);
-        m_matTrack.addHit(std::move(hit));
-
-      } // Eta min max
-    } // +Z check
-  } // Non-zero material assigned
 }
