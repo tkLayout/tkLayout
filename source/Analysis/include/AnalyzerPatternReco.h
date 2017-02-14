@@ -66,18 +66,6 @@ class AnalyzerPatternReco : public AnalyzerUnit {
 
   IrradiationMap* m_chargedMap;   //!< Charged particles fluxes
 
-  std::map<std::string, std::vector<TProfile*>> m_hisPtHitD0ProjInOut;    //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
-  std::map<std::string, std::vector<TProfile*>> m_hisPHitD0ProjInOut;     //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of p
-  std::map<std::string, std::vector<TProfile*>> m_hisPtHitZ0ProjInOut;    //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
-  std::map<std::string, std::vector<TProfile*>> m_hisPHitZ0ProjInOut;     //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
-  std::map<std::string, std::vector<TProfile*>> m_hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
-  std::map<std::string, std::vector<TProfile*>> m_hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
-
-  std::vector<TProfile*> m_hisPtFakeProbInOut; //! InOut approach: Bkg contamination probability accumulated across eta for set of pT
-  std::vector<TProfile*> m_hisPFakeProbInOut;  //! InOut approach: Bkg contamination probability accumulated across eta for set of p
-  std::vector<TProfile*> m_hisPtFakeProbOutIn; //! OutIn approach: Bkg contamination probability accumulated across eta for set of pT
-  std::vector<TProfile*> m_hisPFakeProbOutIn;  //! OutIn approach: Bkg contamination probability accumulated across eta for set of p
-
   const int    c_nBins;
 
 }; // Class

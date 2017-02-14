@@ -577,7 +577,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       if (varType=="d0")        yVal = track->getDeltaD0()/Units::um;
       if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
       if (varType=="phi0")      yVal = track->getDeltaPhi0()/M_PI*180.; // In degerees
-      if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta();
+      if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta(rPos);
 
       profHis->Fill(xVal, yVal);
 

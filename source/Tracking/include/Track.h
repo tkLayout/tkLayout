@@ -82,12 +82,6 @@ public:
   //! Set active only hits with the given tag. If tag="all" all hits coming from measurement planes or IP will be set as active
   void keepTaggedHitsOnly(const string& tag, bool useIP = true);
 
-  //! Keep only first N hits coming from measurement planes or IP as active -> return true if possible N>= size of hits vector
-  bool keepFirstNHitsActive(signed int N, bool useIP = true);
-
-  //! Keep only last N hits coming from measurement planes or IP as active -> return true if possible N>= size of hits vector
-  bool keepLastNHitsActive(signed int N, bool useIP = true);
-
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
 
@@ -121,32 +115,39 @@ public:
   double getTransverseMomentum() const { return m_pt; }
   double getPt() const                 { return m_pt; }
   
-  //! Get DeltaRho (error on 1/R) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Get DeltaRho (error on 1/R) at refPoint [rPos, zPos].
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaRho(double rPos);
+  double getDeltaRho(double refPointRPos, bool propagOutIn=true);
 
-  //! Get DeltaPtOvePt at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize the calculated deltaRho quantity)
-  double getDeltaPtOverPt(double rPos);
+  //! Get DeltaPtOvePt at refPoint [rPos, zPos] (utilize the calculated deltaRho quantity)
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
+  double getDeltaPtOverPt(double refPointRPos, bool propagOutIn=true);
 
-  //! Get DeltaPOverP at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (utilize deltaRho & deltaCotgTheta quantities)
-  double getDeltaPOverP(double rPos);
+  //! Get DeltaPOverP at refPoint [rPos, zPos] (utilize deltaRho & deltaCotgTheta quantities)
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
+  double getDeltaPOverP(double refPointRPos, bool propagOutIn=true);
 
-  //! Get DeltaPhi0 at point (r,z) at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Get DeltaPhi(Phi0) at refPoint [rPos, zPos] ([0,0])
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaPhi(double rPos);
+  double getDeltaPhi(double refPointRPos, bool propagOutIn=true);
   double getDeltaPhi0() { return getDeltaPhi(0.0); };
 
-  //! Get DeltaD0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Get DeltaD (D0) at refPoint [rPos, zPos] ([0,0])
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
   //! Using 3x3 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaD(double rPos);
+  double getDeltaD(double refPointRPos, bool propagOutIn=true);
   double getDeltaD0() { return getDeltaD(0.0); };
 
-  //! Get DeltaCtgTheta at path length s projected to XY plane, i.e. at [r,z] sXY ~ r (independent on sXY)
-  double getDeltaCtgTheta();
+  //! Get DeltaCtgTheta at refPoint [rPos, zPos]
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
+  double getDeltaCtgTheta(double refPointRPos, bool propagOutIn=true);
 
-  //! Get DeltaZ0 at path length s projected to XY plane, i.e. at [r,z] sXY ~ r
+  //! Get DeltaZ (Z0) at refPoint [rPos, zPos] ([0,0])
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
   //! Using 2x2 covariance propagator in case [r,z]!=[0,0]
-  double getDeltaZ(double rPos);
+  double getDeltaZ(double refPointRPos, bool propagOutIn=true);
   double getDeltaZ0() { return getDeltaZ(0.0); }
 
   // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
@@ -184,8 +185,6 @@ public:
   //! Hits collection iterators
   HitCollection::const_iterator getBeginHits() { return m_hits.cbegin(); }
   HitCollection::const_iterator getEndHits()   { return m_hits.cend(); }
-  //HitCollection::const_iterator getRBeginHits(){ return m_hits.crbegin(); }
-  //HitCollection::const_iterator getREndHits()  { return m_hits.crend(); }
 
   //! Get track material
   RILength getMaterial() const;
@@ -209,53 +208,59 @@ public:
 
 protected:
 
-  //! Main method calculating track parameters in s-z plane only, using linear fit: cotg(theta), z0 parameters -> internally calling computation of varMatrixRZ & covMatrixRZ
-  void computeErrorsRZ();
-  //! Compute the variance matrix in R-Z (s-Z): NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  //! Main method calculating track parameters in s-z plane only, using linear fit with parameters: cotg(theta), z0 -> internally calling computation of covMatrixRZ
+  //! As the Multiple scattering effects must be set in a way to have then correct propagation of errors up-to ref. point [rPos,zPos] (including all dead materials between the
+  //! last measurement and the ref. point). E.g. for standard estimation of D0,Z0 parameters one calculates MS inside->out from rPos=0 (zPos can be calculated from rPos using theta).
+  //! PropagOutIn variable defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation (e.g. d0,z0) or whether detectors at
+  //! lower R (false).
+  //! Return true if errors correctly calculated
+  bool computeErrorsRZ(double refPointRPos=0, bool propagOutIn=true);
+  //! Compute 2x2 covariance matrix of track parameters in R-Z (s-z), using the NxN variance matrix (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material).
+  //! Ref. point dictates, whether Multiple scattering effects need to be calculated inside-out or outside-in. MS effect is symmetric as regards track fitting. PropagOutIn variable
+  //! defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation (e.g. d0,z0) or whether detectors at lower R (false).
   //! Return true if V invertable
-  bool computeVarianceMatrixRZ();
-  //! Compute 2x2 covariance matrix of the track parameters in R-Z (s-Z) projection
-  void computeCovarianceMatrixRZ();
+  bool computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn);
 
-  //! Main method calculating track parameters in r-phi plane only, using Karimaki parametrization & parabolic track
-  //! approximation in R-Phi plane: 1/R, d0, phi parameters -> call this method before calling getDelta***() methods.
-  //! -> internally calling computation of varMatrixRPhi & covMatrixRPhi
-  void computeErrorsRPhi();
-  //! Compute the variance matrix in R-Phi: NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  //! Main method calculating track parameters in r-phi plane only, using parabolic track approximation in R-Phi plane: 1/R, d0, phi0 parameters -> internally calling computation
+  //! of covMatrixRPhi. As the Multiple scattering effects must be set in a way to have then correct propagation of errors up-to the ref. point [rPos,zPos] (including all dead
+  //! materials between the last measurement and the ref. point). E.g. for standard estimation of D0,Z0 parameters one calculates MS inside->out from rPos=0 (zPos can be
+  //! calculated from rPos using theta). PropagOutIn variable defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation
+  //! (e.g. d0,z0) or whether detectors at lower R (false).
+  //! Return true if errors correctly calculated
+  bool computeErrorsRPhi(double refPointRPos=0, bool propagOutIn=true);
+  //! Compute 3x3 covariance matrix of the track parameters in R-Phi projection, using NxN (N hits = K+L: K active hits on detectors + L passive (artificial) hits due to material)
+  //! Ref. point dictates, whether Multiple scattering effects need to be calculated inside-out or outside-in. MS effect is symmetric as regards track fitting. PropagOutIn variable
+  //! defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation (e.g. d0,z0) or whether detectors at lower R (false).
   //! Return true if V invertable
-  bool computeVarianceMatrixRPhi();
-  //! Compute 3x3 covariance matrix of the track parameters in R-Phi projection
-  void computeCovarianceMatrixRPhi();
+  bool computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn);
 
   //! Helper fce returning derivative: d[f(rho, d0, phi0)]/d[rho], where f approximates
   //! a helix by set of parabolas. In general, N connected parabolas used, for const B
   //! field only one parabola assumed.
   double computeDfOverDRho(double rPos, double zPos);
 
-  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
-  //! Sorting naturally affects whether in->out approach is being used or out->in is being used. Approach set directly by dedicated setter methods.
+  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-to-outer approach or vice-versa)
   void sortHits(bool bySmallerR);
 
-  //! Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
+  //! Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account here)
   bool followsParabolicApprox(double rPos, double zPos) { return rPos<2*getRadius(zPos); }
   bool pruneHits();
 
-  double m_theta;               //!< Track shot at given theta & phi, i.e. theta at primary vertex
-  double m_phi;                 //!< Track shot at given theta & phi, i.e. phi at primary vertex
-  double m_pt;                  //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes), pT sign: + -> particle traverses inside-out, - -> particle traverses outside-in
-  double m_cotgTheta;           //!< Automatically calculated from theta at [0,0]
-  double m_eta;                 //!< Automatically calculated from eta at [0,0]
+  double m_theta;             //!< Track shot at given theta & phi, i.e. theta at primary vertex
+  double m_phi;               //!< Track shot at given theta & phi, i.e. phi at primary vertex
+  double m_pt;                //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes), pT sign: + -> particle traverses inside-out, - -> particle traverses outside-in
+  double m_cotgTheta;         //!< Automatically calculated from theta at [0,0]
+  double m_eta;               //!< Automatically calculated from eta at [0,0]
 
-  Polar3DVector  m_direction;   //!< Track parameters as a 3-vector: R, theta, phi
-  XYZVector      m_origin;      //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
+  Polar3DVector  m_direction; //!< Track parameters as a 3-vector: R, theta, phi
+  XYZVector      m_origin;    //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
 
-  bool           m_reSortHits;  //!< Caching whether necessary to resort hits (sorting will be done again if a new hit added or direction changed)
+  bool   m_reSortHits;        //!< Caching whether necessary to resort hits (sorting will be done again if a new hit added or direction changed)
+  bool   m_covRPhiDone;       //!< Caching whether errors in R-Phi already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
+  bool   m_covRZDone;         //!< Caching whether errors in R-Z already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
+  bool   m_refPointRPosCache; //!< Caching the last r position of ref. point, which was used to calculate track errors (if changed -> recalculate track parameters).
+  bool   m_propagOutInCache;  //!< Caching the last used propagator direction (if changed -> recalculate track parameters).
 
-  bool           m_covRPhiDone; //!< Caching whether errors in R-Phi already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
-  bool           m_covRZDone;   //!< Caching whether errors in R-Z already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)
-//  double         m_ZPointPropag;//!< Caching Z coordinate, with respect to which the errors calculation have been done last time
-//  double         m_DPointPropag;//!< Caching R-Phi coordinate (D), with respect to which the errors calculation have been done last time
-//  bool           m_InOutPropag; //!< Caching whether MS effects propagated in-out (true) or out-in (false),
 
   HitCollection         m_hits;         //!< Hits assigned to track
   std::set<std::string> m_tags;         //!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
