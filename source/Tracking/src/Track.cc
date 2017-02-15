@@ -975,11 +975,9 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
   else {
 
     logWARNING("Variance matrix V(NxN) in R-Phi -> calculations of particle traversing outside-in not yet implemented.");
-            return false;
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); // Important -> resort back
+    return false;
   }
-
-  //std::cout << ">?> " << nHitsUsed << " " << nActiveHitsUsed << " " << iStart << " " << iEnd << std::endl;
-  //printHits();
 
   // Check that enough hits for RPhi calculation, i.e. >=3
   nHitsUsed = nHits - iStart;
@@ -988,6 +986,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
     std::string message = "Variance matrix V(NxN) in R-Phi -> refPointRPos[mm]="+any2str(refPointRPos/Units::mm,1);
                 message+= " in combination with propagator direction doesn't provide sufficient number of hits for tracking!";
     logWARNING(message);
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); // Important -> resort back
     return false;
   }
 
@@ -1109,6 +1108,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRPhi.GetNoElements() > 0) && (m_varMatrixRPhi.Determinant() != 0.0))) {
     logWARNING("Variance matrix V(NxN) in R-Phi -> zero determinat or zero number of elements");
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); //  Important -> resort back
     return false;
   }
 
@@ -1205,11 +1205,9 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
   else {
 
     logWARNING("Variance matrix V(NxN) in R-Z (s-Z) -> calculations of particle traversing outside-in not yet implemented.");
-            return false;
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); // Important -> resort back!
+    return false;
   }
-
-  //std::cout << ">?> " << nHitsUsed << " " << nActiveHitsUsed << " " << iStart << " " << iEnd << std::endl;
-  //printHits();
 
   // Check that enough hits for RZ calculation, i.e. >=2
   nHitsUsed = nHits - iStart;
@@ -1218,6 +1216,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
     std::string message = "Variance matrix V(NxN) in R-Z (s-Z) -> refPointRPos[mm]="+any2str(refPointRPos/Units::mm,1);
                 message+= " in combination with propagator direction doesn't provide sufficient number of hits for tracking!";
     logWARNING(message);
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); // Important -> resort back!
     return false;
   }
 
@@ -1342,6 +1341,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRZ.GetNoElements() > 0) && (m_varMatrixRZ.Determinant() != 0.0))) {
     logWARNING("Variance matrix V(NxN) in R-Z (s-Z) -> zero determinat or zero number of elements");
+    if (m_pt>=0 && !propagOutIn) sortHits(bySmallerR); // Important - resort back!
     return false;
   }
 

@@ -124,10 +124,6 @@ bool AnalyzerResolution::analyze()
     m_beamPipe->accept(matVisitor);                                 // Assign to material track hit corresponding to beam-pipe
     for (auto iTracker : m_trackers) iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
 
-    // Add IP constraint
-    //std::cout << "Adding IP constraint: " << SimParms::getInstance().rphiErrorIP() << " " << SimParms::getInstance().zErrorIP() << std::endl;
-    //if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rphiErrorIP(), SimParms::getInstance().zErrorIP());
-
     // Output hits to a file for debuggin purposes
     m_csvHitCol->addCsvElement(std::string("LastEta="+any2str(eta, 2)), any2str(eta, 2));
 
