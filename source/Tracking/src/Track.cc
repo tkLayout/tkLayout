@@ -333,11 +333,19 @@ double Track::getDeltaD(double refPointRPos, bool propagOutIn/*=true*/) {
 
     if (m_covRPhiDone) {
 
-      double covPhi0Phi0  = m_covMatrixRPhi(1,1);
-      double covPhi0D0    = m_covMatrixRPhi(1,2);
-      double covD0D0      = m_covMatrixRPhi(2,2);
+      double covRhoRho     = m_covMatrixRPhi(0,0);
+      double covRhoPhi0    = m_covMatrixRPhi(0,1);
+      double covRhoD0      = m_covMatrixRPhi(0,2);
+      double covPhi0Phi0   = m_covMatrixRPhi(1,1);
+      double covPhi0D0     = m_covMatrixRPhi(1,2);
+      double covD0D0       = m_covMatrixRPhi(2,2);
 
-      double deltaD0Sq  = refPointRPos*refPointRPos*covPhi0Phi0 + 2*refPointRPos*covPhi0D0 + covD0D0;
+      double refPointRPos2 = refPointRPos*refPointRPos;
+      double refPointRPos3 = refPointRPos2*refPointRPos;
+      double refPointRPos4 = refPointRPos3*refPointRPos;
+
+      double deltaD0Sq  = refPointRPos4/4.*covRhoRho + refPointRPos3*covRhoPhi0 + refPointRPos2*covRhoD0;
+             deltaD0Sq += refPointRPos2*covPhi0Phi0  + 2*refPointRPos*covPhi0D0 + covD0D0;
 
       if (deltaD0Sq>=0) deltaD0 = sqrt(deltaD0Sq);
     }
