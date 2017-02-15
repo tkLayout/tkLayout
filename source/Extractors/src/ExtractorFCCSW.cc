@@ -160,8 +160,8 @@ bool ExtractorFCCSW::analyze()
   auto xmlBeamPipeDimensions = m_xmlDoc->NewElement("dimensions");
   xmlBeamPipeDimensions->SetAttribute("rmin", printWithUnit(20., c_precision, "mm").c_str());
   xmlBeamPipeDimensions->SetAttribute("rmax", printWithUnit(21., c_precision, "mm").c_str());
-  xmlBeamPipeDimensions->SetAttribute("z", printWithUnit(500., c_precision, "mm").c_str());
-  xmlBeamPipeDimensions->SetAttribute("material", "Air");
+  xmlBeamPipeDimensions->SetAttribute("z", printWithUnit(800., c_precision, "mm").c_str());
+  xmlBeamPipeDimensions->SetAttribute("material", "Beryllium");
   xmlBeamPipeDimensions->SetAttribute("vis", "violet");
   xmlSubdetectorBeampipe->InsertEndChild(xmlBeamPipeDimensions);
   xmlSubdetectorAssemblies->InsertEndChild(xmlSubdetectorBeampipe);
