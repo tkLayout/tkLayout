@@ -59,8 +59,8 @@ class ExtractorFCCSW : public AnalyzerUnit {
   //! Helper method printing out number with unit & given precision
   std::string printWithUnit(double value, int precision, std::string unit);
 
-  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDoc;      //!< An XML base container (pointing to XML file created on disc)
-  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDefinitionsDoc;      //!< An XML base container (pointing to XML file created on disc)
+  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDoc;      //!< An XML base container (pointing to XML file with top level dd4hep tags such as readout ... created on disc)
+  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDefinitionsDoc;      //!< An XML base container (pointing to XML file with detector definitions and dimensions created on disc)
   tinyxml2::XMLNode*                     m_xmlNodeRoot; //!< XML root node
 
   const char* c_defaultBrlGeoCreator = "TkLayoutBrlTracker";
