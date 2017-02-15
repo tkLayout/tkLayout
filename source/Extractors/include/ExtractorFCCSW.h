@@ -60,6 +60,7 @@ class ExtractorFCCSW : public AnalyzerUnit {
   std::string printWithUnit(double value, int precision, std::string unit);
 
   std::unique_ptr<tinyxml2::XMLDocument> m_xmlDoc;      //!< An XML base container (pointing to XML file created on disc)
+  std::unique_ptr<tinyxml2::XMLDocument> m_xmlDefinitionsDoc;      //!< An XML base container (pointing to XML file created on disc)
   tinyxml2::XMLNode*                     m_xmlNodeRoot; //!< XML root node
 
   const char* c_defaultBrlGeoCreator = "TkLayoutBrlTracker";
