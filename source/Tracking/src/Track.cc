@@ -294,10 +294,14 @@ double Track::getDeltaPhi(double refPointRPos, bool propagOutIn/*=true*/) {
       double covPhi0Phi0  = m_covMatrixRPhi(1,1);
       double covPhi0D0    = m_covMatrixRPhi(1,2);
       double covD0D0      = m_covMatrixRPhi(2,2);
-      double rho          = getRho(refPointRPos*m_cotgTheta);
 
-      double deltaPhi0Sq  = refPointRPos*refPointRPos*covRhoRho + covPhi0Phi0                                  + rho*rho*rho*rho*refPointRPos*refPointRPos*covD0D0;
-             deltaPhi0Sq += 2*refPointRPos*covRhoPhi0           - 2*rho*rho*refPointRPos*refPointRPos*covRhoD0 - 2*rho*rho*refPointRPos*covPhi0D0;
+      double rho          = getRho(refPointRPos*m_cotgTheta);
+      double rho2         = rho*rho;
+      double rho4         = rho2*rho2;
+      double refPointRPos2= refPointRPos*refPointRPos;
+
+      double deltaPhi0Sq  = refPointRPos2*covRhoRho   + covPhi0Phi0                   + rho4*refPointRPos2*covD0D0;
+             deltaPhi0Sq += 2*refPointRPos*covRhoPhi0 - 2*rho2*refPointRPos2*covRhoD0 - 2*rho2*refPointRPos*covPhi0D0;
 
       if (deltaPhi0Sq>=0) deltaPhi0 = sqrt(deltaPhi0Sq);
     }
