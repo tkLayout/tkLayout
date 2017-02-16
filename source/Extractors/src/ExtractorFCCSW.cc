@@ -8,6 +8,7 @@
 
 // System include files
 #include <boost/range/adaptor/reversed.hpp>
+#include <map>
 
 // Project include files
 #include "Barrel.h"
@@ -44,6 +45,7 @@ bool ExtractorFCCSW::init(int nGeomTracks)
 {
   // Create an empty XML document
   m_xmlDoc = std::unique_ptr<XMLDocument>(new XMLDocument());
+  m_xmlDefinitionsDoc = std::unique_ptr<XMLDocument>(new XMLDocument());
 
   // Create XML declaration
   XMLNode* xmlDeclare = m_xmlDoc->NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"");
@@ -82,6 +84,24 @@ bool ExtractorFCCSW::init(int nGeomTracks)
 // @return True if OK
 bool ExtractorFCCSW::analyze()
 {
+  // workaround: hardcoded ids for the names
+  std::map<std::string, std::string> detNames2IDs;
+  detNames2IDs.insert(std::make_pair("InnerBRL_0", "BarTrackerInner_id"));
+  detNames2IDs.insert(std::make_pair("InnerBRL_1", "BarTrackerInner_id + 16"));
+  detNames2IDs.insert(std::make_pair("InnerECAPpos", "EndCapTrackerInner_id"));
+  detNames2IDs.insert(std::make_pair("InnerECAPneg", "EndCapTrackerInner_id + 16"));
+  detNames2IDs.insert(std::make_pair("OuterBRL", "BarTrackerOuter_id"));
+  detNames2IDs.insert(std::make_pair("OuterECAPpos", "EndCapTrackerOuter_id"));
+  detNames2IDs.insert(std::make_pair("OuterECAPneg", "EndCapTrackerOuter_id + 16"));
+  detNames2IDs.insert(std::make_pair("FwdECAPpos", "27"));
+  detNames2IDs.insert(std::make_pair("FwdECAPneg", "28"));
+  detNames2IDs.insert(std::make_pair("FwdHelpECAPpos", "29"));
+  detNames2IDs.insert(std::make_pair("FwdHelpECAPneg", "30"));
+
+  // Save XML file
+  std::string xmlDocBaseName = SimParms::getInstance().getWebDir();
+  std::string xmlDocName = SimParms::getInstance().getLayoutName()  + ".xml";
+  std::string xmlDefinitionsDocName = SimParms::getInstance().getLayoutName() + "_Definitions.xml";
   // Access all geometry parameters through visitor pattern
   //GeomExtractVisitor geomExtractVisitor(m_xmlDoc);
 
@@ -104,7 +124,7 @@ bool ExtractorFCCSW::analyze()
   xmlDetBrlReadout->InsertEndChild(xmlDetBrlSeg);
 
   auto xmlDetBrlId = m_xmlDoc->NewElement("id");
-  xmlDetBrlId->SetText("system:4,layer:5,module:16,component:4,x:-15,z:-15");
+  xmlDetBrlId->SetText("system:5,layer:5,module:16,component:4,x:-15,z:-15");
   xmlDetBrlReadout->InsertEndChild(xmlDetBrlId);
 
   // Ecap read-out
@@ -119,16 +139,79 @@ bool ExtractorFCCSW::analyze()
   xmlDetEcapReadout->InsertEndChild(xmlDetEcapSeg);
 
   auto xmlDetEcapId = m_xmlDoc->NewElement("id");
-  xmlDetEcapId->SetText("system:4,posneg:1,disc:5,module:16,component:4,x:-15,z:-15");
+  xmlDetEcapId->SetText("system:5,disc:5,module:16,component:4,x:-15,z:-15");
   xmlDetEcapReadout->InsertEndChild(xmlDetEcapId);
 
 
   // Initialize detector id
   short detId = c_defaultTrackerId;
 
+  auto xmlIncludeDefinitions = m_xmlDoc->NewElement("include");
+  xmlIncludeDefinitions->SetAttribute("ref", xmlDefinitionsDocName.c_str());
+  m_xmlNodeRoot->InsertEndChild(xmlIncludeDefinitions);
+  
+  auto xmlSubdetectorAssemblies = m_xmlDoc->NewElement("detectors");
+  m_xmlNodeRoot->InsertEndChild(xmlSubdetectorAssemblies);
+
+  auto xmlSubdetectorBeampipe = m_xmlDoc->NewElement("detector");
+  xmlSubdetectorBeampipe->SetAttribute("id", 0);
+  xmlSubdetectorBeampipe->SetAttribute("name", "beampipe");
+  xmlSubdetectorBeampipe->SetAttribute("type", "BeamTube");
+  auto xmlBeamPipeDimensions = m_xmlDoc->NewElement("dimensions");
+  xmlBeamPipeDimensions->SetAttribute("rmin", "CentralBeamTube_rmin");
+  xmlBeamPipeDimensions->SetAttribute("rmax", "CentralBeamTube_rmax");
+  xmlBeamPipeDimensions->SetAttribute("z", "CentralBeamTube_dz");
+  xmlBeamPipeDimensions->SetAttribute("material", "Beryllium");
+  xmlBeamPipeDimensions->SetAttribute("vis", "violet");
+  xmlSubdetectorBeampipe->InsertEndChild(xmlBeamPipeDimensions);
+  xmlSubdetectorAssemblies->InsertEndChild(xmlSubdetectorBeampipe);
+
+  auto xmlSubdetectorInnermostBarrel = m_xmlDoc->NewElement("detector");
+  xmlSubdetectorInnermostBarrel->SetAttribute("id", 100); // this id is not used in readout, just in dd4hep plugin
+  xmlSubdetectorInnermostBarrel->SetAttribute("name", "FCChhInner0");
+  xmlSubdetectorInnermostBarrel->SetAttribute("type", "DD4hep_SubdetectorAssembly");
+  xmlSubdetectorInnermostBarrel->SetAttribute("vis", "BlueVisTrans");
+  auto xmlInnermostComposite = m_xmlDoc->NewElement("composite");
+  xmlInnermostComposite->SetAttribute("name", "InnerBRL_0");
+  xmlSubdetectorInnermostBarrel->InsertEndChild(xmlInnermostComposite);
+  xmlSubdetectorAssemblies->InsertEndChild(xmlSubdetectorInnermostBarrel);
+  
+  auto xmlSubdetectorInnerBarrel = m_xmlDoc->NewElement("detector");
+  xmlSubdetectorInnerBarrel->SetAttribute("id", 101); // this id is not used in readout, just in dd4hep plugin
+  xmlSubdetectorInnerBarrel->SetAttribute("name", "FCChhInner");
+  xmlSubdetectorInnerBarrel->SetAttribute("type", "DD4hep_SubdetectorAssembly");
+  xmlSubdetectorInnerBarrel->SetAttribute("vis", "BlueVisTrans");
+  auto xmlInnerComposite = m_xmlDoc->NewElement("composite");
+  xmlInnerComposite->SetAttribute("name", "InnerBRL_1");
+  xmlSubdetectorInnerBarrel->InsertEndChild(xmlInnerComposite);
+  auto xmlInnerCompositeEcapPos = m_xmlDoc->NewElement("composite");
+  xmlInnerCompositeEcapPos->SetAttribute("name", "InnerECAPpos");
+  xmlSubdetectorInnerBarrel->InsertEndChild(xmlInnerCompositeEcapPos);
+  auto xmlInnerCompositeEcapNeg = m_xmlDoc->NewElement("composite");
+  xmlInnerCompositeEcapNeg->SetAttribute("name", "InnerECAPneg");
+  xmlSubdetectorInnerBarrel->InsertEndChild(xmlInnerCompositeEcapNeg);
+  xmlSubdetectorAssemblies->InsertEndChild(xmlSubdetectorInnerBarrel);
+
+  auto xmlSubdetectorOuterBarrel = m_xmlDoc->NewElement("detector");
+  xmlSubdetectorOuterBarrel->SetAttribute("id", 102); // this id is not used in readout, just in dd4hep plugin
+  xmlSubdetectorOuterBarrel->SetAttribute("name", "FCChhOuter");
+  xmlSubdetectorOuterBarrel->SetAttribute("type", "DD4hep_SubdetectorAssembly");
+  xmlSubdetectorOuterBarrel->SetAttribute("vis", "BlueVisTrans");
+  auto xmlOuterComposite = m_xmlDoc->NewElement("composite");
+  xmlOuterComposite->SetAttribute("name", "OuterBRL");
+  xmlSubdetectorOuterBarrel->InsertEndChild(xmlOuterComposite);
+  auto xmlOuterCompositeEcapPos = m_xmlDoc->NewElement("composite");
+  xmlOuterCompositeEcapPos->SetAttribute("name", "OuterECAPpos");
+  xmlSubdetectorOuterBarrel->InsertEndChild(xmlOuterCompositeEcapPos);
+  auto xmlOuterCompositeEcapNeg = m_xmlDoc->NewElement("composite");
+  xmlOuterCompositeEcapNeg->SetAttribute("name", "OuterECAPneg");
+  xmlSubdetectorOuterBarrel->InsertEndChild(xmlOuterCompositeEcapNeg);
+  xmlSubdetectorAssemblies->InsertEndChild(xmlSubdetectorOuterBarrel);
+
+
   // Go through the whole geometry hierarchy & build corresponding XML node
-  auto xmlDetectors = m_xmlDoc->NewElement("detectors");
-  m_xmlNodeRoot->InsertEndChild(xmlDetectors);
+  auto xmlDetectors = m_xmlDefinitionsDoc->NewElement("detectors");
+  m_xmlDefinitionsDoc->InsertFirstChild(xmlDetectors);
 
   auto xmlDetComment = m_xmlDoc->NewElement("comment");
   std::string text   = "The tracker geometry as described here follows the concept of CMS tracker design. Each sub-tracker (inner, outer, etc. tracker) is either of barrel type or end-cape type. ";
@@ -150,7 +233,7 @@ bool ExtractorFCCSW::analyze()
   text              += "Individual material properties are specified as defined within tkLayout, i.e. by their density, radiation and interaction lengths. ";
   text              += "Finally, positioning of individual modules have been optimized in the tkLayout software. Hence, the relevant geometry parameters are directly the X, Y, Z coordinates of modules ";
   text              += "centre position plus modules rotation: in phi (phiTilt) and theta (thetaTilt=0*deg for barrel modules, thetaTilt=90*deg for end-cap modules. ";
-  text              += "Other parameters, based on which tkLayout algorithms have found the optimial positions of tracker modules are given just for completeness. ";
+  text              += "Other parameters, based on which tkLayout algorithms have found the optimal positions of tracker modules are given just for completeness. ";
 
   xmlDetComment->SetText(text.c_str());
   xmlDetectors->InsertEndChild(xmlDetComment);
@@ -169,15 +252,16 @@ bool ExtractorFCCSW::analyze()
     for (const auto& iBrl : iTrk->barrels()) {
 
       // Create detector element assigned to given barrel
-      auto xmlBrlDet = m_xmlDoc->NewElement("detector");
-      xmlBrlDet->SetAttribute("id", detId++);
-      xmlBrlDet->SetAttribute("name", std::string(iTrk->myid()+iBrl.myid()).c_str());
+      auto xmlBrlDet = m_xmlDefinitionsDoc->NewElement("detector");
+      std::string brlName = std::string(iTrk->myid()+iBrl.myid());
+      xmlBrlDet->SetAttribute("name", brlName.c_str());
+      xmlBrlDet->SetAttribute("id", detNames2IDs[brlName].c_str());
       xmlBrlDet->SetAttribute("type", c_defaultBrlGeoCreator);
       xmlBrlDet->SetAttribute("readout", c_defaultBrlReadout);
       xmlDetectors->InsertEndChild(xmlBrlDet);
 
       // Add detailed info about given barrel
-      auto xmlBrlDim = m_xmlDoc->NewElement("dimensions");
+      auto xmlBrlDim = m_xmlDefinitionsDoc->NewElement("dimensions");
 
       xmlBrlDim->SetAttribute("rmin", printWithUnit(iBrl.minRAllMat(), c_precision, "mm").c_str());
       xmlBrlDim->SetAttribute("rmax", printWithUnit(iBrl.maxRAllMat(), c_precision, "mm").c_str());
@@ -186,12 +270,12 @@ bool ExtractorFCCSW::analyze()
       xmlBrlDet->InsertEndChild(xmlBrlDim);
 
       // Add sensitive type
-      auto xmlBrlSens = m_xmlDoc->NewElement("sensitive");
+      auto xmlBrlSens = m_xmlDefinitionsDoc->NewElement("sensitive");
       xmlBrlSens->SetAttribute("type", c_defaultSensDet);
       xmlBrlDet->InsertEndChild(xmlBrlSens);
 
       // Add detailed info about layers
-      auto xmlBrlLayers = m_xmlDoc->NewElement("layers");
+      auto xmlBrlLayers = m_xmlDefinitionsDoc->NewElement("layers");
       xmlBrlLayers->SetAttribute("repeat" , iBrl.numLayers());
       for (const auto& iLayer : iBrl.layers()) {
 
@@ -200,7 +284,7 @@ bool ExtractorFCCSW::analyze()
         }
 
         // Add detailed info about individual layer
-        auto xmlBrlIthLayer = m_xmlDoc->NewElement("layer");
+        auto xmlBrlIthLayer = m_xmlDefinitionsDoc->NewElement("layer");
         xmlBrlIthLayer->SetAttribute("id",            iLayer.myid());
         xmlBrlIthLayer->SetAttribute("radius",        printWithUnit(iLayer.avgBuildRadius(), c_precision, "mm").c_str());
         xmlBrlIthLayer->SetAttribute("rmin",          printWithUnit(iLayer.minRAllMat()    , c_precision, "mm").c_str());
@@ -210,7 +294,7 @@ bool ExtractorFCCSW::analyze()
         xmlBrlLayers->InsertEndChild(xmlBrlIthLayer);
 
         // Rods general info
-        auto xmlBrlRods = m_xmlDoc->NewElement("rods");
+        auto xmlBrlRods = m_xmlDefinitionsDoc->NewElement("rods");
 
         // Add detailed info about rods
         for (const auto& iRod : iLayer.rods()) {
@@ -232,18 +316,18 @@ bool ExtractorFCCSW::analyze()
             xmlBrlIthLayer->InsertEndChild(xmlBrlRods);
 
             // Odd rod
-            auto xmlBrlRodOdd = m_xmlDoc->NewElement("rodOdd");
+            auto xmlBrlRodOdd = m_xmlDefinitionsDoc->NewElement("rodOdd");
             xmlBrlRodOdd->SetAttribute("id", iRod.myid());
             xmlBrlRods->InsertEndChild(xmlBrlRodOdd);
 
             // Add all modules info (negative Z modules first, then positive)
-            auto xmlBrlModules = m_xmlDoc->NewElement("modules");
+            auto xmlBrlModules = m_xmlDefinitionsDoc->NewElement("modules");
             xmlBrlRodOdd->InsertEndChild(xmlBrlModules);
 
-            auto xmlBrlModProperties = m_xmlDoc->NewElement("moduleProperties");
+            auto xmlBrlModProperties = m_xmlDefinitionsDoc->NewElement("moduleProperties");
             xmlBrlRodOdd->InsertEndChild(xmlBrlModProperties);
 
-            auto xmlBrlSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+            auto xmlBrlSensorProperties = m_xmlDefinitionsDoc->NewElement("sensorProperties");
             xmlBrlRodOdd->InsertEndChild(xmlBrlSensorProperties);
 
             int idMod = 1;
@@ -261,14 +345,14 @@ bool ExtractorFCCSW::analyze()
                 xmlBrlSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
                 xmlBrlSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
 
-                auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
+                auto xmlBrlModComponents = m_xmlDefinitionsDoc->NewElement("components");
                 xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
 
                 double modThick = 0;
 
                 for (auto& elem : iMod.materialObject().getLocalElements()) {
 
-                  auto xmlBrlModComponent = m_xmlDoc->NewElement("component");
+                  auto xmlBrlModComponent = m_xmlDefinitionsDoc->NewElement("component");
                   xmlBrlModComponent->SetAttribute("name",      elem->componentName().c_str());
                   xmlBrlModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
                   xmlBrlModComponent->SetAttribute("material",  elem->elementName().c_str());
@@ -286,7 +370,7 @@ bool ExtractorFCCSW::analyze()
               }
 
               // negative Z position & rotation
-              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              auto xmlBrlMod = m_xmlDefinitionsDoc->NewElement("module");
               xmlBrlMod->SetAttribute("id",       idMod++);
               xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
               xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -298,7 +382,7 @@ bool ExtractorFCCSW::analyze()
             for (const auto& iMod : iRod.modules().first) {
 
               // positive Z position & rotation
-              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              auto xmlBrlMod = m_xmlDefinitionsDoc->NewElement("module");
               xmlBrlMod->SetAttribute("id",       idMod++);
               xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
               xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -311,18 +395,18 @@ bool ExtractorFCCSW::analyze()
           // Even rods
           else if (iRod.myid()==2) {
 
-            auto xmlBrlRodEven = m_xmlDoc->NewElement("rodEven");
+            auto xmlBrlRodEven = m_xmlDefinitionsDoc->NewElement("rodEven");
             xmlBrlRodEven->SetAttribute("id", iRod.myid());
             xmlBrlRods->InsertEndChild(xmlBrlRodEven);
 
             // Add all modules info (negative Z modules first, then positive)
-            auto xmlBrlModules = m_xmlDoc->NewElement("modules");
+            auto xmlBrlModules = m_xmlDefinitionsDoc->NewElement("modules");
             xmlBrlRodEven->InsertEndChild(xmlBrlModules);
 
-            auto xmlBrlModProperties = m_xmlDoc->NewElement("moduleProperties");
+            auto xmlBrlModProperties = m_xmlDefinitionsDoc->NewElement("moduleProperties");
             xmlBrlRodEven->InsertEndChild(xmlBrlModProperties);
 
-            auto xmlBrlSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+            auto xmlBrlSensorProperties = m_xmlDefinitionsDoc->NewElement("sensorProperties");
             xmlBrlRodEven->InsertEndChild(xmlBrlSensorProperties);
 
             int idMod = 1;
@@ -340,14 +424,14 @@ bool ExtractorFCCSW::analyze()
                 xmlBrlSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
                 xmlBrlSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
 
-                auto xmlBrlModComponents = m_xmlDoc->NewElement("components");
+                auto xmlBrlModComponents = m_xmlDefinitionsDoc->NewElement("components");
                 xmlBrlModProperties->InsertEndChild(xmlBrlModComponents);
 
                 double modThick = 0;
 
                 for (auto& elem : iMod.materialObject().getLocalElements()) {
 
-                  auto xmlBrlModComponent = m_xmlDoc->NewElement("component");
+                  auto xmlBrlModComponent = m_xmlDefinitionsDoc->NewElement("component");
                   xmlBrlModComponent->SetAttribute("name",      elem->componentName().c_str());
                   xmlBrlModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
                   xmlBrlModComponent->SetAttribute("material",  elem->elementName().c_str());
@@ -365,7 +449,7 @@ bool ExtractorFCCSW::analyze()
               }
 
               // negative Z position & rotation
-              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              auto xmlBrlMod = m_xmlDefinitionsDoc->NewElement("module");
               xmlBrlMod->SetAttribute("id",       idMod++);
               xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
               xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -377,7 +461,7 @@ bool ExtractorFCCSW::analyze()
             for (const auto& iMod : iRod.modules().first) {
 
               // positive Z position & rotation
-              auto xmlBrlMod = m_xmlDoc->NewElement("module");
+              auto xmlBrlMod = m_xmlDefinitionsDoc->NewElement("module");
               xmlBrlMod->SetAttribute("id",       idMod++);
               xmlBrlMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
               xmlBrlMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -394,32 +478,40 @@ bool ExtractorFCCSW::analyze()
         } // Rods
       } // Layers
     } // Barrels
+    std::array<std::string, 2> posnegStringArray {{"pos", "neg"}};
+    for (auto posnegString: posnegStringArray) {
     for (const auto& iEcap : iTrk->endcaps()) {
 
       // Create detector element assigned to given endcap
-      auto xmlEcapDet = m_xmlDoc->NewElement("detector");
-      xmlEcapDet->SetAttribute("id", detId++);
-      xmlEcapDet->SetAttribute("name", std::string(iTrk->myid()+iEcap.myid()).c_str());
+      auto xmlEcapDet = m_xmlDefinitionsDoc->NewElement("detector");
+      std::string ecapName = std::string(iTrk->myid()+iEcap.myid()+posnegString);
+      xmlEcapDet->SetAttribute("name", ecapName.c_str());
+      xmlEcapDet->SetAttribute("id", detNames2IDs[ecapName].c_str());
       xmlEcapDet->SetAttribute("type", c_defaultEcapGeoCreator);
       xmlEcapDet->SetAttribute("readout", c_defaultEcapReadout);
       xmlDetectors->InsertEndChild(xmlEcapDet);
 
       // Add detailed info about given endcap
-      auto xmlEcapDim = m_xmlDoc->NewElement("dimensions");
+      auto xmlEcapDim = m_xmlDefinitionsDoc->NewElement("dimensions");
 
       xmlEcapDim->SetAttribute("rmin", printWithUnit(iEcap.minR(), c_precision, "mm").c_str());
       xmlEcapDim->SetAttribute("rmax", printWithUnit(iEcap.maxR(), c_precision, "mm").c_str());
       xmlEcapDim->SetAttribute("zmin", printWithUnit(iEcap.minZAllMat(), c_precision, "mm").c_str());
       xmlEcapDim->SetAttribute("zmax", printWithUnit(iEcap.maxZAllMat(), c_precision, "mm").c_str());
+      if ("pos" == posnegString) {
+        xmlEcapDim->SetAttribute("reflect", "false");
+      } else {
+        xmlEcapDim->SetAttribute("reflect", "true");
+      }
       xmlEcapDet->InsertEndChild(xmlEcapDim);
 
       // Add sensitive type
-      auto xmlEcapSens = m_xmlDoc->NewElement("sensitive");
+      auto xmlEcapSens = m_xmlDefinitionsDoc->NewElement("sensitive");
       xmlEcapSens->SetAttribute("type", c_defaultSensDet);
       xmlEcapDet->InsertEndChild(xmlEcapSens);
 
       // Add detailed info about discs
-      auto xmlEcapDiscs = m_xmlDoc->NewElement("discs");
+      auto xmlEcapDiscs = m_xmlDefinitionsDoc->NewElement("discs");
       xmlEcapDiscs->SetAttribute("repeat" , iEcap.numDisks());
       xmlEcapDet->InsertEndChild(xmlEcapDiscs);
 
@@ -429,7 +521,7 @@ bool ExtractorFCCSW::analyze()
         if (iDisc.averageZ()>0) {
 
           // Add detailed info about individual disc
-          auto xmlEcapIthDisc = m_xmlDoc->NewElement("discZPls");
+          auto xmlEcapIthDisc = m_xmlDefinitionsDoc->NewElement("discZPls");
           xmlEcapIthDisc->SetAttribute("id",       iDisc.myid());
           xmlEcapIthDisc->SetAttribute("z",        printWithUnit(iDisc.averageZ(),   c_precision, "mm").c_str());
           xmlEcapIthDisc->SetAttribute("zmin",     printWithUnit(iDisc.minZAllMat(), c_precision, "mm").c_str());
@@ -438,7 +530,7 @@ bool ExtractorFCCSW::analyze()
           xmlEcapDiscs->InsertEndChild(xmlEcapIthDisc);
 
           // Rods general info
-          auto xmlEcapRings = m_xmlDoc->NewElement("rings");
+          auto xmlEcapRings = m_xmlDefinitionsDoc->NewElement("rings");
 
           // Add detailed info about rods
           for (const auto& iRing : iDisc.rings()) {
@@ -457,20 +549,20 @@ bool ExtractorFCCSW::analyze()
 
             // Discs are symmetrically shifted - fill only the first disc
             if (iDisc.myid()==1) {
-              auto xmlEcapRing = m_xmlDoc->NewElement("ring");
+              auto xmlEcapRing = m_xmlDefinitionsDoc->NewElement("ring");
               xmlEcapRing->SetAttribute("id",       iRing.myid());
               xmlEcapRing->SetAttribute("phi0",     printWithUnit(iRing.zRotation(),2*c_precision, "rad").c_str());
               xmlEcapRing->SetAttribute("nModules", iRing.numModules());
               xmlEcapRings->InsertEndChild(xmlEcapRing);
 
               // Add all modules info (negative Z modules first, then positive)
-              auto xmlEcapModules = m_xmlDoc->NewElement("modules");
+              auto xmlEcapModules = m_xmlDefinitionsDoc->NewElement("modules");
               xmlEcapRing->InsertEndChild(xmlEcapModules);
 
-              auto xmlEcapModProperties = m_xmlDoc->NewElement("moduleProperties");
+              auto xmlEcapModProperties = m_xmlDefinitionsDoc->NewElement("moduleProperties");
               xmlEcapRing->InsertEndChild(xmlEcapModProperties);
 
-              auto xmlEcapSensorProperties = m_xmlDoc->NewElement("sensorProperties");
+              auto xmlEcapSensorProperties = m_xmlDefinitionsDoc->NewElement("sensorProperties");
               xmlEcapRing->InsertEndChild(xmlEcapSensorProperties);
 
               for (const auto& iMod : iRing.modules()) {
@@ -478,7 +570,7 @@ bool ExtractorFCCSW::analyze()
                 // Odd module -> use symmetry to build the ring
                 if (iMod.myid()==1) {
 
-                  auto xmlOddMod = m_xmlDoc->NewElement("moduleOdd");
+                  auto xmlOddMod = m_xmlDefinitionsDoc->NewElement("moduleOdd");
                   xmlOddMod->SetAttribute("id",       iMod.myid());
                   xmlOddMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
                   xmlOddMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -500,14 +592,14 @@ bool ExtractorFCCSW::analyze()
                   xmlEcapSensorProperties->SetAttribute("resRPhi"        , printWithUnit(iMod.resolutionLocalX(), 1, "um").c_str());
                   xmlEcapSensorProperties->SetAttribute("resZ"           , printWithUnit(iMod.resolutionLocalY(), 1, "um").c_str());
 
-                  auto xmlEcapModComponents = m_xmlDoc->NewElement("components");
+                  auto xmlEcapModComponents = m_xmlDefinitionsDoc->NewElement("components");
                   xmlEcapModProperties->InsertEndChild(xmlEcapModComponents);
 
                   double modThick = 0;
 
                   for (auto& elem : iMod.materialObject().getLocalElements()) {
 
-                    auto xmlEcapModComponent = m_xmlDoc->NewElement("component");
+                    auto xmlEcapModComponent = m_xmlDefinitionsDoc->NewElement("component");
                     xmlEcapModComponent->SetAttribute("name",      elem->componentName().c_str());
                     xmlEcapModComponent->SetAttribute("thickness", printWithUnit(elem->quantity(), c_precision, elem->unit()).c_str());
                     xmlEcapModComponent->SetAttribute("material",  elem->elementName().c_str());
@@ -526,7 +618,7 @@ bool ExtractorFCCSW::analyze()
                 // Even module -> use symmetry to build the ring
                 else if (iMod.myid()==2) {
 
-                  auto xmlEvenMod = m_xmlDoc->NewElement("moduleEven");
+                  auto xmlEvenMod = m_xmlDefinitionsDoc->NewElement("moduleEven");
                   xmlEvenMod->SetAttribute("id",       iMod.myid());
                   xmlEvenMod->SetAttribute("X",        printWithUnit(iMod.center().X(), c_precision, "mm").c_str());
                   xmlEvenMod->SetAttribute("Y",        printWithUnit(iMod.center().Y(), c_precision, "mm").c_str());
@@ -545,14 +637,14 @@ bool ExtractorFCCSW::analyze()
         }
       } // Discs
     } // Endcaps
+  }
 
   } // Trackers
 
-  // Save XML file
-  std::string xmlDocName = SimParms::getInstance().getWebDir()+"/"+SimParms::getInstance().getLayoutName()+".xml";
-  auto eResult = m_xmlDoc->SaveFile(xmlDocName.c_str());
+  auto eResult = m_xmlDoc->SaveFile((xmlDocBaseName + "/" + xmlDocName).c_str());
+  auto eResultDefinitions = m_xmlDefinitionsDoc->SaveFile((xmlDocBaseName + "/" + xmlDefinitionsDocName).c_str());
 
-  if (eResult==XML_SUCCESS) {
+  if (eResult==XML_SUCCESS && eResultDefinitions==XML_SUCCESS) {
 
     logINFO(std::string("Geometry extracted to the following XML file: "+xmlDocName));
     m_isAnalysisOK = true;
