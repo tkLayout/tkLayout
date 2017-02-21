@@ -75,6 +75,8 @@ OT_Tilted_364_200_Pixel_4021.cfg     OT Version 3.6.4 !! Work in progress !!
 OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-style
                                      Pixel version 4.0.2.1
 
+OT463_200_IT4025.cfg                 OT Version 4.6.3 <- like 4.6.2 but with 5 endcap disks
+                                     Pixel version 4.0.2.5
 
 OT365_200_IT500.cfg                  OT Version 3.6.5
                                      Pixel version 5.0.0 : created series of tilted pixel layouts. Geometry is first jet and needs to be more optimized :)
