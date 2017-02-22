@@ -123,3 +123,12 @@ OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adju
                                         PS 4.0mm all rings     14.84/2 =  7.42 mm
                                      IT version 4.0.2.5
 
+OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          covering η 1.8 → 2.8
+                          using 5×10 cm² active sensor with vertical orienation (minimal # modules)
+                          active pads are 2×2mm² (x×y)
+                       IT Version 4.0.2.5 (standard)
+OT467_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 1×4mm² (x×y)
+OT468_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 4×1mm² (x×y)
+
