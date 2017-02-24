@@ -2,30 +2,6 @@
 #include "DetectorModule.h"
 #include "ModuleCap.h"
 
-/*
-DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m) {
-  using namespace boost::property_tree;
-  if (type.empty()) return new TypedModule(m); // CUIDADO default type should be NullTypeModule or something similar, not the parent class!
-  ptree pt;
-  TypedModule* tmod;
-  try {
-    info_parser::read_info(join<string>({Paths::stdconfig, Paths::moduleTypes, type}, Paths::sep), pt);
-    string layout = pt.get<string>("sensorLayout", "");
-    if (layout == "mono") tmod = new SingleSensorModule(m);
-    else if (layout == "pt") tmod = new PtModule(m);
-    else if (layout == "stereo") tmod = new StereoModule(m);
-    else throw InvalidPropertyValue("sensorLayout", layout);
-  } 
-  catch(info_parser::info_parser_error& e) { throw InvalidPropertyValue("moduleType", type); }
-  catch(ptree_bad_path& e) { throw CheckedPropertyMissing("sensorLayout"); }
-
-  tmod->store(pt);
-
-  return tmod;
-}
-*/
-
-
 void DetectorModule::build() {
   check();
   if (!decorated().builtok()) {

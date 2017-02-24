@@ -5,8 +5,7 @@ moduleType timingLong
 width 48
 length 92
 
-// sensorLayout pt
-// zCorrelation samesegment
+sensorLayout mono
 
 numSensors 1
 
