@@ -60,7 +60,8 @@ public:
   TriggerEfficiencyMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
   void visit(const DetectorModule& aModule) {
-    // CUIDADO needs to return immediately if module is not pt enabled!!!!
+    // returns immediately if module is not pt enabled
+    if (aModule.sensorLayout() != PT) return;
     double myValue = PtErrorAdapter(aModule).getTriggerProbability(myPt_);
     if (myValue>=0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap_, *counter_);
   }
