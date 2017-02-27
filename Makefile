@@ -87,6 +87,9 @@ hit: $(LIBDIR)/hit.o
 $(LIBDIR)/CoordinateOperations.o: $(SRCDIR)/CoordinateOperations.cpp $(INCDIR)/CoordinateOperations.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/CoordinateOperations.o $(SRCDIR)/CoordinateOperations.cpp
 
+$(LIBDIR)/PlotStyle.o: $(SRCDIR)/PlotStyle.cpp $(INCDIR)/PlotStyle.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PlotStyle.o $(SRCDIR)/PlotStyle.cpp
+
 $(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o $(SRCDIR)/hit.cpp
 
@@ -432,7 +435,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/PlotStyle.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o getRevisionDefine
 	#
 	# Let's make the revision object first
@@ -449,7 +452,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/PlotStyle.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o \
 	$(LIBDIR)/SvnRevision.o \
 	$(LIBDIR)/tklayout.o \
