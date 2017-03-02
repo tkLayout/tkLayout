@@ -88,8 +88,8 @@ namespace insur {
   static const double vis_trk_eta_coverage   = geom_range_eta_regions[2];
   static const double vis_long_eta_coverage  = geom_range_eta_regions[3];
 
-  static const double vis_max_dPtOverPt      = 500;  // [%]
-  static const double vis_min_dPtOverPt      = 0.001; // [%]
+  static const double vis_max_dPtOverPt      = 100;  // [%]
+  static const double vis_min_dPtOverPt      = 0.1; // [%]
   static const double vis_max_dZ0            = 5000.;
   static const double vis_min_dZ0            = 1.;
   static const double vis_max_dD0            = 5000.;
