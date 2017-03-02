@@ -656,8 +656,8 @@ namespace insur {
   bool Squid::reportResolutionSite() {
     if (mb) {
       startTaskClock("Creating resolution report");
-      v.errorSummary(a, site, "", false);
 #ifdef NO_TAGGED_TRACKING
+      v.errorSummary(a, site, "", false);
       v.errorSummary(a, site, "trigger", true);
 #else
       v.taggedErrorSummary(a, site);
