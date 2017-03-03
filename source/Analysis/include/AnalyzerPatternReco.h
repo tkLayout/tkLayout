@@ -18,6 +18,7 @@ class Detector;
 class IrradiationMap;
 class RootWSite;
 class TProfile;
+class Track;
 
 /*
  * @class AnalyzerPatternReco
@@ -60,11 +61,29 @@ class AnalyzerPatternReco : public AnalyzerUnit {
   //! Check that a file can be opened
   bool checkFile(const std::string& fileName, const std::string& filePath);
 
+  //! Is starting triplet from different layers (avoid using overlapping modules in one layer)
+  bool isTripletFromDifLayers(Track& track, int iHit, bool propagOutIn);
+
   int    m_nTracks; //!< Number of simulated tracks to be used in the analysis
   double m_etaMin;  //!< Minimum eta value;
   double m_etaMax;  //!< Maximum eta value
 
   IrradiationMap* m_chargedMap;   //!< Charged particles fluxes
+
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitDProjInOut;     //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitDProjInOut;      //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of p
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitZProjInOut;     //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitZProjInOut;      //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
+
+  std::vector<TProfile*> m_hisPtBkgContInOut;      //! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of pT
+  std::vector<TProfile*> m_hisPtBkgContInnerInOut; //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT
+  std::vector<TProfile*> m_hisPtBkgContOutIn;      //! OutIn approach - tracker: Bkg contamination probability accumulated across eta for set of pT
+
+  std::vector<TProfile*> m_hisPBkgContInOut;       //! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of p
+  std::vector<TProfile*> m_hisPBkgContInnerInOut;  //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of p
+  std::vector<TProfile*> m_hisPBkgContOutIn;       //! OutIn approach - tracker: Bkg contamination probability accumulated across eta for set of p
 
   const int    c_nBins;
 
