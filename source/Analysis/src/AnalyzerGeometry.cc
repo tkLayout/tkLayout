@@ -723,6 +723,7 @@ void VisitorLayerDiscSummary::preVisit() {
   // Initialize
   m_nBarrelLayers      = 0;
   m_nDisks             = 0;
+  m_nRings             = 0;
   m_totalBarrelModules = 0;
   m_totalEndcapModules = 0;
 
@@ -813,7 +814,8 @@ void VisitorLayerDiscSummary::visit(const Disk& d) {
   if (d.averageZ() < 0.) return;
 
   // Update disk counter
-  if (m_nDisks==0) m_ringNModules.resize(d.numRings());
+  if (d.numRings()>m_nRings) m_ringNModules.resize(d.numRings());
+  m_nRings = d.numRings();
   ++m_nDisks;
 
   // Update module counter

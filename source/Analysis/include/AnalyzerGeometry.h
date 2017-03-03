@@ -151,6 +151,7 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   // Counters
   int m_nBarrelLayers      = 0; //!< Number of barrel layers
   int m_nDisks             = 0; //!< Number of disks
+  int m_nRings             = 0; //!< Number of rings
   int m_totalBarrelModules = 0; //!< Total number of barrel modules
   int m_totalEndcapModules = 0; //!< Total number of end-cap modules
 
