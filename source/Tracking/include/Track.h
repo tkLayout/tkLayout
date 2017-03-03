@@ -92,16 +92,16 @@ public:
   void printErrors();
 
   //! Helper method printing symmetric matrix
-  void printSymMatrix(const TMatrixTSym<double>&);
+  void printSymMatrix(const TMatrixTSym<double>&) const;
 
   //! Helper method printing general matrix
-  void printMatrix(const TMatrixT<double>&);
+  void printMatrix(const TMatrixT<double>&) const;
 
   //! Helper method printing track hits
-  void printHits();
+  void printHits() const;
 
   //! Helper method printing active track hits
-  void printActiveHits();
+  void printActiveHits() const;
 
   //! Does track contain no hits?
   bool hasNoHits() const {return m_hits.empty(); }
@@ -167,10 +167,10 @@ public:
   int getNMeasuredHits(std::string tag, bool useIP = true) const;
 
   //! Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
-  const Hit* getMeasurableOrIPHit(int iHit) const;
+  const Hit* getMeasurableOrIPHit(int iHit);
 
   //! Reverse search -> Get reversely reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
-  const Hit* getRMeasurableOrIPHit(int iHit) const;
+  const Hit* getRMeasurableOrIPHit(int iHit);
 
   //! Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
   //! If tag specified as "all" no extra tag required

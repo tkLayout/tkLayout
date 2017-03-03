@@ -11,7 +11,8 @@
 #include <cstdlib>
 
 #include "DetectorModule.h"
-#include <MessageLogger.h>
+#include "MessageLogger.h"
+#include "SimParms.h"
 #include "Track.h"
 
 //using namespace ROOT::Math;
@@ -184,11 +185,29 @@ double Hit::getResolutionRphi(double trackRadius) {
   }
   else {
 
+    // Module hit
     if (m_hitModule) {
-      return m_hitModule->resolutionEquivalentRPhi(getRPos(), trackRadius);
-     // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
-     // else return hitModule_->resolutionRPhi();
+
+      // R-Phi-resolution calculated as for a barrel-type module -> transform local R-Phi res. to a true module orientation (rotation by theta angle, skew, tilt)
+      // In detail, take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+      // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+      // approach as for local resolutions)
+      // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+      // (hence correction not applied in such case)
+      double A = 0;
+      if (SimParms::getInstance().isMagFieldConst()) A = getRPos()/(2*trackRadius); // r_i / 2R
+      double B         = A/sqrt(1-A*A);
+      double tiltAngle = m_hitModule->tiltAngle();
+      double skewAngle = m_hitModule->skewAngle();
+      double resLocalX = m_hitModule->resolutionLocalX();
+      double resLocalY = m_hitModule->resolutionLocalY();
+
+      // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+      double resolutionRPhi = sqrt(pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resLocalX,2) + pow(B*sin(tiltAngle) * resLocalY,2));
+
+      return resolutionRPhi;
     }
+    // IP or beam-constraint etc. hit
     else return m_resolutionRPhi;
   }
 }
@@ -211,6 +230,7 @@ double Hit::getResolutionZ(double trackRadius) {
   }
   else {
 
+    // Module hit
     if (m_hitModule) {
 
       if (m_track==nullptr) {
@@ -218,10 +238,29 @@ double Hit::getResolutionZ(double trackRadius) {
         logWARNING("Hit::getResolutionZ -> no track assigned, will return zero!");
         return 0;
       }
-      else return m_hitModule->resolutionEquivalentZ(getRPos(), trackRadius, m_track->getCotgTheta());
-      //if (isTrigger_) return hitModule_->resolutionYTrigger();
-      //else return hitModule_->resolutionY();
+      else {
+
+        // Z-resolution calculated as for a barrel-type module -> transform local Z res. to a true module orientation (rotation by theta angle, skew, tilt)
+        // In detail, take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+        // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+        // approach as for local resolutions)
+        // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+        // (hence correction not applied in such case)
+        double A = 0;
+        if (SimParms::getInstance().isMagFieldConst()) A = getRPos()/(2*trackRadius);
+        double D         = m_track->getCotgTheta()/sqrt(1-A*A);
+        double tiltAngle = m_hitModule->tiltAngle();
+        double skewAngle = m_hitModule->skewAngle();
+        double resLocalX = m_hitModule->resolutionLocalX();
+        double resLocalY = m_hitModule->resolutionLocalY();
+
+        // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+        double resolutionZ = sqrt(pow(((D*cos(tiltAngle) + sin(tiltAngle))*sin(skewAngle)) * resLocalX,2) + pow((D*sin(tiltAngle) + cos(tiltAngle)) * resLocalY,2));
+
+        return resolutionZ;
+      }
     }
+    // IP or beam-constraint etc. hit
     else return m_resolutionZ;
   }
 }

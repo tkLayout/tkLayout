@@ -104,12 +104,6 @@ public:
   //! Calculate min & max module eta coverage taking into account error on beam Z position
   std::pair<double, double> minMaxEtaWithError(double zError) const;
 
-  //! Module R-Phi-resolution calculated as for a barrel-type module -> transform it to true orientation (rotation by theta angle, skew, tilt)
-  double resolutionEquivalentRPhi(double hitRho, double trackR) const;
-
-  //! Module Z-resolution calculated as for a barrel-type module -> transform it to true orientation (rotation by theta angle, skew, tilt)
-  double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta) const;
-
   //! Derive classes use it to identify themselves
   virtual ModuleSubdetector subdet() const = 0;
 
@@ -216,7 +210,7 @@ public:
   ReadonlyProperty<ReadoutMode , Default    > readoutMode;     //!< Binary or analog (cluster) readout
   ReadonlyProperty<ReadoutType , Default    > readoutType;     //!< Readout strips/pixels/pT (stubs
   ReadonlyProperty<std::string , Default    > moduleType;
-  Property<        int8_t      , Default    > plotColor;       //!< Color used to draw module in the final graphical plots
+  Property<        short       , Default    > plotColor;       //!< Color used to draw module in the final graphical plots
 
   Property<int16_t, AutoDefault> side;
   

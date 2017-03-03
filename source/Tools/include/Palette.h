@@ -18,13 +18,13 @@ class Palette {
   static       Color_t color(const std::string& objectName);
 
   //! Based on index return predefined color, if index higher than color range, modulo range operator used
-  static       Color_t color(const unsigned int& colorIndex);
+  static       Color_t color(const short& colorIndex);
 
   //! Based on index return predefined color for momenta
-  static       Color_t colorMomenta(const unsigned int& colorIndex);
+  static       Color_t colorMomenta(const short& colorIndex);
 
   //! Based on index return names for predefined momenta colors
-  static       std::string colorMomentaNames(const unsigned int& colorIndex);
+  static       std::string colorMomentaNames(const short& colorIndex);
 
   //! Set one of Root predefined palettes for drawing TH2D etc -> default RainBow (i.e. 55)
   static       void setRootPalette(short palette=55);
@@ -39,10 +39,10 @@ class Palette {
 
  private:
 
-  static std::map<std::string, int> colorPickMap;
+  static std::map<std::string, short> colorPickMap;
 
   //! Internal definition of color map: index <-> color relation
-  static Color_t color_int(const unsigned int& plotIndex);
+  static Color_t color_int(const short& plotIndex);
 
   static bool    initialized;    //!< Has been initialized
   static void    initializeMe(); //!< Standard initialization method

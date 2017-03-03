@@ -599,7 +599,7 @@ void Track::printErrors() {
 //
 // Helper method printing symmetric matrix
 //
-void Track::printSymMatrix(const TMatrixTSym<double>& matrix) {
+void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -620,7 +620,7 @@ void Track::printSymMatrix(const TMatrixTSym<double>& matrix) {
 //
 // Helper method printing matrix
 //
-void Track::printMatrix(const TMatrixT<double>& matrix) {
+void Track::printMatrix(const TMatrixT<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -641,7 +641,7 @@ void Track::printMatrix(const TMatrixT<double>& matrix) {
 //
 // Helper method printing track hits
 //
-void Track::printHits() {
+void Track::printHits() const {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
@@ -673,7 +673,7 @@ void Track::printHits() {
 //
 // Helper method printing track hits
 //
-void Track::printActiveHits() {
+void Track::printActiveHits() const {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
@@ -761,10 +761,19 @@ int Track::getNMeasuredHits(std::string tag, bool useIP /*=true*/) const {
 //
 // Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
 //
-const Hit* Track::getMeasurableOrIPHit(int iHit) const {
+const Hit* Track::getMeasurableOrIPHit(int iHit) {
 
   int   hitCounter = 0;
   const Hit* pHit  = nullptr;
+
+  // Sort hits based on particle direction: in-out or out-in
+  if (m_reSortHits) {
+
+    bool bySmallerRadius = true;
+    if (m_pt>=0) sortHits(bySmallerRadius);
+    else         sortHits(!bySmallerRadius);
+    m_reSortHits = false;
+  }
 
   for (auto& hit : m_hits) {
     if (hit && (hit->isIP() || hit->isMeasurable())) {
@@ -785,10 +794,19 @@ const Hit* Track::getMeasurableOrIPHit(int iHit) const {
 //
 // Reverse search - Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
 //
-const Hit* Track::getRMeasurableOrIPHit(int iHit) const {
+const Hit* Track::getRMeasurableOrIPHit(int iHit) {
 
   int   hitCounter = 0;
   const Hit* pHit  = nullptr;
+
+  // Sort hits based on particle direction: in-out or out-in
+  if (m_reSortHits) {
+
+    bool bySmallerRadius = true;
+    if (m_pt>=0) sortHits(bySmallerRadius);
+    else         sortHits(!bySmallerRadius);
+    m_reSortHits = false;
+  }
 
   for (auto hit = m_hits.rbegin(); hit != m_hits.rend(); ++hit) {
     if (*hit && ((*hit)->isIP() || (*hit)->isMeasurable())) {

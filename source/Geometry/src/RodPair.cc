@@ -167,7 +167,7 @@ void RodPairStraight::build()
     m_materialObject.store(propertyTree());
     m_materialObject.build();
 
-    logINFO(Form("Building %s protot // TODO: Put it to constructorype", fullid(*this).c_str()));
+    logINFO(Form("Building %s prototype", fullid(*this).c_str()));
     check();
 
     // Get module length from a tree

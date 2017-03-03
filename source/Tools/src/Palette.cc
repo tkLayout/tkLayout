@@ -2,7 +2,7 @@
 #include <TStyle.h>
 
 bool Palette::initialized = false;  
-std::map<std::string, int> Palette::colorPickMap;
+std::map<std::string, short> Palette::colorPickMap;
 
 void Palette::initializeMe() {
   Palette::colorPickMap["pt2S"]   = 2;
@@ -28,7 +28,7 @@ Color_t Palette::color(const std::string& type) {
     while (found) {
       ++iColor;
       found=false;
-      for (std::map<std::string, int>::iterator it=colorPickMap.begin(); it!=colorPickMap.end(); ++it) {
+      for (auto it=colorPickMap.begin(); it!=colorPickMap.end(); ++it) {
         if (it->first==iColor) {
           found = true;
           break;
@@ -43,7 +43,7 @@ Color_t Palette::color(const std::string& type) {
 //
 // Based on index return predefined color, if index higher than color range, modulo range operator used
 //
-Color_t Palette::color(const unsigned int& plotIndex) {
+Color_t Palette::color(const short& plotIndex) {
   if (!initialized) initializeMe();
   return color_int(plotIndex);
 }
@@ -51,7 +51,7 @@ Color_t Palette::color(const unsigned int& plotIndex) {
 //
 // Based on index return predefined color for momenta
 //
-Color_t Palette::colorMomenta(const unsigned int& colorIndex)
+Color_t Palette::colorMomenta(const short& colorIndex)
 {
   if      (colorIndex==0) return kBlack;
   else if (colorIndex==1) return kBlue;
@@ -64,7 +64,7 @@ Color_t Palette::colorMomenta(const unsigned int& colorIndex)
 
 //
 // Based on index return names for predefined momenta colors
-std::string Palette::colorMomentaNames(const unsigned int& colorIndex) {
+std::string Palette::colorMomentaNames(const short& colorIndex) {
 
   if      (colorIndex==0) return std::string("Black");
   else if (colorIndex==1) return std::string("Blue");
@@ -86,7 +86,7 @@ void Palette::setRootPalette(short palette) {
 //
 // Internal definition of color map
 //
-Color_t Palette::color_int(const unsigned int& plotIndex) {
+Color_t Palette::color_int(const short& plotIndex) {
   std::string colorCode;
   
   if (plotIndex==0) colorCode = "#000000";
