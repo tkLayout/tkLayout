@@ -2412,7 +2412,8 @@ namespace insur {
     TCanvas *XYCanvas = NULL;
     TCanvas *XYCanvasEC = NULL;
     TCanvas *myCanvas = NULL;
-    createSummaryCanvas(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
+    //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
+    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
       logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
@@ -5965,9 +5966,68 @@ namespace insur {
     }
   }
 
-  void Vizard::createSummaryCanvas(Tracker& tracker,
-                                   TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
+
+  // private
+  // Creates 4 new canvas with XY and YZ views with all the useful details, like the axis ticks
+  // and the eta reference.
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+  // @return a pointer to the new TCanvas
+  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer,
+                                   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
                                    TCanvas *&XYCanvasEC) {
+    Int_t irep;
+    TVirtualPad* myPad;
+
+    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+
+    // YZView
+    if (analyzer.getGeomLiteYZ()) {
+      YZCanvas->cd();
+      myPad = YZCanvas->GetPad(0);
+      drawGrid(maxZ, maxRho, ViewSectionYZ);
+      analyzer.getGeomLiteYZ()->DrawClonePad();
+      myPad->SetBorderMode(0);
+      myPad->SetFillColor(color_plot_background);
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+      myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+      drawTicks(analyzer, myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+    }
+
+    // XYView (barrel)
+    if (analyzer.getGeomLiteXY()) {
+      XYCanvas->cd();
+      myPad = XYCanvas->GetPad(0);
+      drawGrid(maxZ, maxRho, ViewSectionXY);
+      analyzer.getGeomLiteXY()->DrawClonePad();
+      myPad->SetFillColor(color_plot_background);
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    }
+
+    // XYView (EndCap)
+    if (analyzer.getGeomLiteEC()) {
+      XYCanvasEC->cd();
+      myPad = XYCanvasEC->GetPad(0);
+      drawGrid(maxZ, maxRho, ViewSectionXY);
+      analyzer.getGeomLiteEC()->DrawClonePad();
+      myPad->SetFillColor(color_plot_background);
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    }
+
+    //return summaryCanvas;
+  }
+
+  void Vizard::createSummaryCanvasNicer(Tracker& tracker,
+                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
+                                        TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
 
