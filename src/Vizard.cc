@@ -3451,23 +3451,29 @@ namespace insur {
     return true;
   }
 
-  bool Vizard::irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+  void Vizard::dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries,
+					 const std::string& title, std::string units) {
+    for (std::map<std::string, SummaryTable>::iterator it = radiationSummaries.begin(); it != radiationSummaries.end(); ++it) {
+      RootWContent& myContent = myPage.addContent(title+std::string(" (") + it->first + ")", false);
+      RootWTable* comments = new RootWTable();
+      comments->setContent(0, 0, "Values in table are (average, max) per module in irradiated sensor(s) ["+units+"]");
+      myContent.addItem(comments);
+      myContent.addTable().setContent(it->second.getContent());
+    }    
+  }
+  
+  bool Vizard::irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
     std::string trackerName = tracker.myid();
     std::string pageName = "Power (" + trackerName + ")";
     std::string pageAddress = "power_" + trackerName + ".html";
 
-    RootWPage* myPage = new RootWPage(pageName);
-    myPage->setAddress(pageAddress);
-    site.addPage(myPage);
+    RootWPage& myPage = site.addPage(pageName);
+    myPage.setAddress(pageAddress);
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
-    for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      RootWContent& myContent = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
-      RootWTable* comments = new RootWTable();
-      comments->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
-      myContent.addItem(comments);
-      myContent.addTable().setContent(it->second.getContent());
-    }
+    std::map<std::string, SummaryTable>& irradiationSummaries = a.getSensorsIrradiationSummary();
+    dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
+    dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
 
     // Some helper string objects
     ostringstream tempSS;
@@ -3488,7 +3494,7 @@ namespace insur {
     yzSensorsPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
     yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
-    RootWContent& myContent = myPage->addContent("Power maps", true);
+    RootWContent& myContent = myPage.addContent("Power maps", true);
 
     TCanvas sensorsIrradiationPowerCanvas;
     TCanvas totalPowerCanvas;
@@ -3510,7 +3516,7 @@ namespace insur {
 
     // Add csv file with sensors irradiation handful info
     RootWContent* filesContent = new RootWContent("power csv files", false);
-    myPage->addContent(filesContent);
+    myPage.addContent(filesContent);
     RootWTextFile* myTextFile;
     myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
     myTextFile->addText(createSensorsIrradiationCsv(tracker));
@@ -6182,7 +6188,7 @@ namespace insur {
       bool isOuterRadiusRod_;
     public:
       void preVisit() {
-        output_ << "Section, Layer, Ring, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+        output_ << "Section, Layer, Ring, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W, sensorsIrradiationMean_Hb, sensorsIrradiationMax_Hb" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -6203,7 +6209,9 @@ namespace insur {
 		<< m.totalSensorsVolume() << ", "
 		<< std::fixed << std::setprecision(3)
 		<< m.sensorsIrradiationPowerMean() << ", "
-		<< m.sensorsIrradiationPowerMax()	
+		<< m.sensorsIrradiationPowerMax() << ", "
+		<< m.sensorsIrradiationMean() << ", "
+		<< m.sensorsIrradiationMax()	
 		<< std::endl;
       }
 

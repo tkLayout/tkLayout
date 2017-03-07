@@ -1103,6 +1103,7 @@ void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
   v.postVisit();
 
   sensorsIrradiationPowerSummary_ = v.sensorsIrradiationPowerSummary;
+  sensorsIrradiationSummary_ = v.sensorsIrradiationSummary;
 }
 
 

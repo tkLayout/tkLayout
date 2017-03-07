@@ -248,6 +248,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getSensorsIrradiationPowerSummary() { return sensorsIrradiationPowerSummary_; }
+    std::map<std::string, SummaryTable>& getSensorsIrradiationSummary() { return sensorsIrradiationSummary_; }
     
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
     const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
@@ -338,6 +339,7 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> sensorsIrradiationPowerSummary_;
+    std::map<std::string, SummaryTable> sensorsIrradiationSummary_;
 
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
