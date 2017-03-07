@@ -132,3 +132,9 @@ OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
 OT467_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 1×4mm² (x×y)
 OT468_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 4×1mm² (x×y)
 
+OT367_200_IT4025.cfg  OT Version 3.6.7 <- like version 3.6.6, but with small adjustments from Nick (WORK IN PROGRESS!!!)
+                                            Outer Radius reduced from 1103 mm to 1100 mm
+                                            bigDelta increased from 15.35 mm to 15.65 mm
+                                            (a suggested inwards shift R7 radius by 2.5mm and that of R5 by 0.5mm is NOT implemented here)                                             
+                                          Inner radius for ring 1 should be 229.3 mm
+                                          Inner radius for ring 3 should be 329.3 mm
