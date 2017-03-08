@@ -150,3 +150,6 @@ OT568_200_IT4025.cfg  OT Version 5.6.8 <- like version 5.6.7, but replacing one 
                                             Requirement to reach 229 mm and 329 mm with innermost ring is obtained
                                             by setting different zError: in TEDD1 zError=139.5mm and TEDD2 zError=176.83mm
 
+OT577_200_IT4025.cfg  OT Version 5.7.7 <- like 5.6.7, but with overlap spread over first rings
+OT578_200_IT4025.cfg  OT Version 5.7.8 <- like 5.6.8, but with overlap spread over first rings
+OT377_200_IT4025.cfg  OT Version 3.7.7 <- like 3.6.7, but with overlap spread over first rings
