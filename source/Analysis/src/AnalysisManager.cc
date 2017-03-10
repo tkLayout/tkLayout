@@ -12,6 +12,7 @@
 #include "AnalyzerMatBudget.h"
 #include "AnalyzerOccupancy.h"
 #include "AnalyzerResolution.h"
+#include "AnalyzerPatternReco.h"
 #include "ExtractorCMSSW.h"
 #include "ExtractorFCCSW.h"
 
@@ -32,6 +33,7 @@
 #include "RootWSite.h"
 #include "RootWBinaryFileList.h"
 #include "RootWTextFile.h"
+#include "TROOT.h"
 #include "Units.h"
 
 //
@@ -42,6 +44,9 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
 {
   std::unique_ptr<AnalyzerUnit> unit;
 
+  // Initialize global TROOT variable - needed workaround when moving from ROOT5 to ROOT6, otherwise not properly initialized palette, style etc. for visualization
+  ROOT::GetROOT();
+
   // Create AnalyzerGeometry
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerGeometry(detector));
   m_units[unit->getName()] = std::move(unit);
@@ -50,8 +55,12 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerMatBudget(detector));
   m_units[unit->getName()] = std::move(unit);
 
-  // Create AnalyzerMatBudget
+  // Create AnalyzerResolution
   unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(detector));
+  m_units[unit->getName()] = std::move(unit);
+
+  // Create AnalyzerPatternReco
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerPatternReco(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Create AnalyzerOccupancy
@@ -209,7 +218,7 @@ bool AnalysisManager::makeWebInfoPage()
   if (m_units.find("AnalyzerGeometry")!=m_units.end() && m_units["AnalyzerGeometry"]->isInitOK()) {
 
     const AnalyzerGeometry* unit = dynamic_cast<const AnalyzerGeometry*>(m_units["AnalyzerGeometry"].get());
-    RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - geometry studies: ");
+    RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - geometry studies");
     myInfo.setValue(unit->getNGeomTracks());
   }
   if (m_units.find("AnalyzerResolution")!=m_units.end() && m_units["AnalyzerResolution"]->isInitOK()) {
@@ -219,7 +228,7 @@ bool AnalysisManager::makeWebInfoPage()
     myInfo.setValue(unit->getNSimTracks());
   }
 
-  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T] averaged along Z: ");
+  RootWInfo& myInfoBField = myContentParms.addInfo("Applied magnetic field [T] averaged along Z");
   double avgMagField = 0;
   for (auto i=0; i<SimParms::getInstance().getNMagFieldRegions(); i++) avgMagField += SimParms::getInstance().magField[i]*Units::T;
   avgMagField /= SimParms::getInstance().getNMagFieldRegions();

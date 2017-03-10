@@ -39,7 +39,8 @@ int main(int argc, char* argv[]) {
     ("material-tracks,N", po::value<int>(&matTracks)->default_value(default_n_tracks), "Number of tracks for material & resolution calculations.")
     ("occupancy,o"      , "Report occupancy studies based on Fluka data.")
     ("geometry,g"       , "Report geometry layout.")
-    ("material,m"       , "Report material buget.")
+    ("material,m"       , "Report material budget.")
+    ("patternreco,p"    , "Report pattern recognition capabilities in given occupancy (using Fluka data).")
     ("resolution,r"     , "Report resolution studies.")
     ("all,a"            , "Report all studies.")
     ("extraction,e"     , po::value<std::string>(&expOption)->implicit_value("CMS"), "Extract tkLayout geometry to an XML file to be used in CMS/FCC SW frameworks. Supported values: CMS or FCC.")
@@ -147,7 +148,7 @@ int main(int argc, char* argv[]) {
   if (activeDetOK) {
 
     // Geometry layout study
-    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution") || progOptions.count("occupancy")) {
+    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution") || progOptions.count("patternreco") || progOptions.count("occupancy")) {
 
       startTaskClock("Analyzing tracker geometry");
       aManager.initUnit(geomTracks, "AnalyzerGeometry");
@@ -180,6 +181,18 @@ int main(int argc, char* argv[]) {
       stopTaskClock();
       if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
       if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
+    }
+
+    // Pattern-recognition study
+    if ((progOptions.count("all") || progOptions.count("patternreco")) && passiveDetOK) {
+
+      startTaskClock("Analyzing pattern recognition");
+      aManager.initUnit(matTracks, "AnalyzerPatternReco");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerPatternReco");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerPatternReco");
+      stopTaskClock();
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerPatternReco -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerPatternReco -> visualization failed!");
     }
 
     // Occupancy study

@@ -236,49 +236,6 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
   else return true;
 }
 
-//
-// Module R-Phi-resolution calculated as for a barrel-type module -> transform it to true orientation (rotation by theta angle, skew, tilt)
-//
-double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) const {
-
-  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
-  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
-  // approach as for local resolutions)
-  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
-  // (hence correction not applied in such case)
-  double A = 0;
-  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR); // r_i / 2R
-  double B = A/sqrt(1-A*A);
-
-  // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
-  double resolution = sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
-
-  // Return calculated resolution (resolutionLocalX is intrinsic resolution along R-Phi for barrel module)
-  return resolution;
-}
-
-//
-// Module Z-resolution calculated as for a barrel-type module -> transform it to true orientation (rotation by theta angle, skew, tilt)
-//
-double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta) const {
-
-
-  // Take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
-  // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
-  // approach as for local resolutions)
-  // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
-  // (hence correction not applied in such case)
-  double A = 0;
-  if (SimParms::getInstance().isMagFieldConst()) A = hitRho/(2*trackR);
-  double D = trackCotgTheta/sqrt(1-A*A);
-
-  // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
-  double resolution = sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
-
-  // Return calculated resolution (resolutionLocalY is intrinsic resolution along Z for barrel module)
-  return resolution; //resolutionLocalY();
-}
-
 void DetectorModule::setModuleCap(ModuleCap* newCap)
 {
   if (m_moduleCap!=nullptr) delete m_moduleCap;

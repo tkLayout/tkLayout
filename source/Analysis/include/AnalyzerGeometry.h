@@ -27,7 +27,7 @@ class Disk;
 class Endcap;
 class EndcapModule;
 class Layer;
-class LayerNameVisitor;
+class VisitorLayerName;
 class DetectorModule;
 class TCanvas;
 class Tracker;
@@ -82,7 +82,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
   const float c_etaSafetyMargin = 0.01;
   const int   c_nBinsProfile    = 100;
 
-  std::unique_ptr<LayerNameVisitor> m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
+  std::unique_ptr<VisitorLayerName> m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
 
   // Histogram output
   std::map<std::string,TH2D>      m_hitMapPhiEta;            //!< Number of hits - map in phi & eta for each tracker with given name
@@ -105,7 +105,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
 /*
  * Helper class: Layer name visitor (visitor pattern) -> get names of individual layers
  */
-class LayerNameVisitor : public ConstGeometryVisitor {
+class VisitorLayerName : public ConstGeometryVisitor {
 
   std::string m_idBRLorEC; //!< Barrel/Endcap id number
   std::string m_idTRK;     //!< Tracker name
@@ -114,8 +114,8 @@ class LayerNameVisitor : public ConstGeometryVisitor {
 
  public:
 
-  LayerNameVisitor(std::vector<const Tracker*>& trackers);
-  virtual ~LayerNameVisitor() {};
+  VisitorLayerName(std::vector<const Tracker*>& trackers);
+  virtual ~VisitorLayerName() {};
 
   //! Fill container with layer names for defined tracker if tracker exists
   bool getLayerNames(std::string trkName, std::set<std::string>& layerNames);
@@ -129,11 +129,11 @@ class LayerNameVisitor : public ConstGeometryVisitor {
 /*
  *  Helper class: Layer/disk summary visitor (visitor pattern) - gather information for geometry tables
  */
-class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
+class VisitorLayerDiscSummary : public ConstGeometryVisitor {
 
  public:
 
-  virtual ~LayerDiskSummaryVisitor();
+  virtual ~VisitorLayerDiscSummary();
 
   void preVisit();
   void visit(const Layer& l) override;
@@ -151,6 +151,7 @@ class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
   // Counters
   int m_nBarrelLayers      = 0; //!< Number of barrel layers
   int m_nDisks             = 0; //!< Number of disks
+  int m_nRings             = 0; //!< Number of rings
   int m_totalBarrelModules = 0; //!< Total number of barrel modules
   int m_totalEndcapModules = 0; //!< Total number of end-cap modules
 
@@ -190,7 +191,7 @@ class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
   const int   c_coordPrecision     = 1;
   const int   c_areaPrecision      = 1;
   const int   c_occupancyPrecision = 1;
-  const int   c_resolutionPrecision= 0;
+  const int   c_resolutionPrecision= 1;
   const int   c_channelPrecision   = 2;
 }; // Helper Class
 

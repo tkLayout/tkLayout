@@ -40,7 +40,7 @@
 //
 AnalyzerGeometry::AnalyzerGeometry(const Detector& detector) : AnalyzerUnit("AnalyzerGeometry", detector),
  m_nTracks(0),
- m_layerNamesVisitor(new LayerNameVisitor(m_trackers)),
+ m_layerNamesVisitor(new VisitorLayerName(m_trackers)),
  m_etaSpan(2*SimParms::getInstance().getMaxEtaCoverage()),
  m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
  m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage())
@@ -239,8 +239,9 @@ bool AnalyzerGeometry::analyze()
 
       ROOT::Math::XYZVector direction = ROOT::Math::XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
 
-      double zError = SimParms::getInstance().zErrorCollider();
-      double zPos   = myDice.Rndm()*2 - 1;
+      double zErrorIP = 0.;
+      if (SimParms::getInstance().useIPConstraint()) zErrorIP = SimParms::getInstance().zErrorIP();
+      double zPos     = myDice.Rndm()*2 - 1;
 
       ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
 
@@ -255,7 +256,7 @@ bool AnalyzerGeometry::analyze()
         // CouldHit -> save CPU time by calculating a cross-section of hit and given module within track phi and eta
         // (assuming origin error within +-5 sigma). Beware that module phi extends from -pi to +3*pi to avoid troubles
         // with -pi & +pi cross-line
-        if (module->couldHit(direction, zError*zErrorSafetyMargin)) {
+        if (module->couldHit(direction, zErrorIP*zErrorSafetyMargin)) {
 
           // Get hit
           auto hit = module->checkTrackHits(origin, direction);
@@ -401,7 +402,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     RootWContent& myContentLayout = myPage.addContent("Layer & disk layout");
 
     // Fill in all information directly from Tracker geometry object
-    LayerDiskSummaryVisitor geometryVisitor;
+    VisitorLayerDiscSummary geometryVisitor;
     geometryVisitor.preVisit();
     iTracker->accept(geometryVisitor);
     geometryVisitor.postVisit();
@@ -665,9 +666,9 @@ void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
 }
 
 //
-// LayerNameVisitor constructor method
+// VisitorLayerName constructor method
 //
-LayerNameVisitor::LayerNameVisitor(std::vector<const Tracker*>& trackers)
+VisitorLayerName::VisitorLayerName(std::vector<const Tracker*>& trackers)
 {
   for (auto tracker : trackers) {
 
@@ -677,9 +678,9 @@ LayerNameVisitor::LayerNameVisitor(std::vector<const Tracker*>& trackers)
 }
 
 //
-// LayerNameVisitor - fill container with layer names for defined tracker if tracker exists
+// VisitorLayerName - fill container with layer names for defined tracker if tracker exists
 //
-bool LayerNameVisitor::getLayerNames(string trkName, std::set<std::string>& layerNames)
+bool VisitorLayerName::getLayerNames(string trkName, std::set<std::string>& layerNames)
 {
   if (m_data.find(trkName) != m_data.end()) {
 
@@ -690,38 +691,39 @@ bool LayerNameVisitor::getLayerNames(string trkName, std::set<std::string>& laye
 }
 
 //
-// LayerNameVisitor - visit barrel
+// VisitorLayerName - visit barrel
 //
-void LayerNameVisitor::visit(const Barrel& b) { m_idBRLorEC = b.myid(); }
+void VisitorLayerName::visit(const Barrel& b) { m_idBRLorEC = b.myid(); }
 
 //
-// LayerNameVisitor - visit endcap
+// VisitorLayerName - visit endcap
 //
-void LayerNameVisitor::visit(const Endcap& e) { m_idBRLorEC = e.myid(); }
+void VisitorLayerName::visit(const Endcap& e) { m_idBRLorEC = e.myid(); }
 
 //
-// LayerNameVisitor - visit layer
+// VisitorLayerName - visit layer
 //
-void LayerNameVisitor::visit(const Layer& l)  { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(l.myid())); }
+void VisitorLayerName::visit(const Layer& l)  { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(l.myid())); }
 
 //
-// LayerNameVisitor - visit disk
+// VisitorLayerName - visit disk
 //
-void LayerNameVisitor::visit(const Disk& d)   { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(d.myid())); }
+void VisitorLayerName::visit(const Disk& d)   { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(d.myid())); }
 
 //
-// LayerNameVisitor destructor
+// VisitorLayerName destructor
 //
-LayerDiskSummaryVisitor::~LayerDiskSummaryVisitor() {};
+VisitorLayerDiscSummary::~VisitorLayerDiscSummary() {};
 
 //
-// LayerDiskSummaryVisitor preVisit method - initialize
+// VisitorLayerDiscSummary preVisit method - initialize
 //
-void LayerDiskSummaryVisitor::preVisit() {
+void VisitorLayerDiscSummary::preVisit() {
 
   // Initialize
   m_nBarrelLayers      = 0;
   m_nDisks             = 0;
+  m_nRings             = 0;
   m_totalBarrelModules = 0;
   m_totalEndcapModules = 0;
 
@@ -779,9 +781,9 @@ void LayerDiskSummaryVisitor::preVisit() {
 }
 
 //
-// LayerDiskSummaryVisitor visit layer
+// VisitorLayerDiscSummary visit layer
 //
-void LayerDiskSummaryVisitor::visit(const Layer& l) {
+void VisitorLayerDiscSummary::visit(const Layer& l) {
 
   if (l.maxZ() < 0.) return;
 
@@ -805,14 +807,15 @@ void LayerDiskSummaryVisitor::visit(const Layer& l) {
 }
 
 //
-// LayerDiskSummaryVisitor visit disk
+// VisitorLayerDiscSummary visit disk
 //
-void LayerDiskSummaryVisitor::visit(const Disk& d) {
+void VisitorLayerDiscSummary::visit(const Disk& d) {
 
   if (d.averageZ() < 0.) return;
 
   // Update disk counter
-  if (m_nDisks==0) m_ringNModules.resize(d.numRings());
+  if (d.numRings()>m_nRings) m_ringNModules.resize(d.numRings());
+  m_nRings = d.numRings();
   ++m_nDisks;
 
   // Update module counter
@@ -831,9 +834,9 @@ void LayerDiskSummaryVisitor::visit(const Disk& d) {
 }
 
 //
-// LayerDiskSummaryVisitor visit ring
+// VisitorLayerDiscSummary visit ring
 //
-void LayerDiskSummaryVisitor::visit(const Ring& r) {
+void VisitorLayerDiscSummary::visit(const Ring& r) {
 
   if (r.averageZ() < 0.) return;
 
@@ -841,9 +844,9 @@ void LayerDiskSummaryVisitor::visit(const Ring& r) {
 }
 
 //
-// LayerDiskSummaryVisitor visit module (barrel + endcap)
+// VisitorLayerDiscSummary visit module (barrel + endcap)
 //
-void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
+void VisitorLayerDiscSummary::visit(const DetectorModule& m) {
 
   // Get unique sensor tag
   TagMaker moduleTagMaker(m);
@@ -883,9 +886,9 @@ void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
 }
 
 //
-// LayerDiskSummaryVisitor visit end-cap module
+// VisitorLayerDiscSummary visit end-cap module
 //
-void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
+void VisitorLayerDiscSummary::visit(const EndcapModule& m) {
 
   // All disks symmetric - visit only the first one
   if (m.disk() != 1 && m.side() != 1) return;
@@ -895,9 +898,9 @@ void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
 }
 
 //
-// LayerDiskSummaryVisitor postvisit method - finalize
+// VisitorLayerDiscSummary postvisit method - finalize
 //
-void LayerDiskSummaryVisitor::postVisit() {
+void VisitorLayerDiscSummary::postVisit() {
 
   // Normalize
   for (auto& iter : m_moduleCount) {
@@ -994,9 +997,9 @@ void LayerDiskSummaryVisitor::postVisit() {
   std::string sTrkTotNumChannels= web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + web_emphEnd;
 
   m_layerTable->setContent( 0, m_nBarrelLayers+1, "Total");
-  m_layerTable->setContent( 6, m_nBarrelLayers+1, sTotBarrelModules);
+  m_layerTable->setContent( 8, m_nBarrelLayers+1, sTotBarrelModules);
   m_diskTable->setContent(  0, m_nDisks+1       , "Total");
-  m_diskTable->setContent(  5, m_nDisks+1       , sTotEndcapModules);
+  m_diskTable->setContent(  7, m_nDisks+1       , sTotEndcapModules);
   m_moduleTable->setContent(0, iType+1          , "Total");
   m_moduleTable->setContent(4, iType+1          , sTrkTotArea);
   m_moduleTable->setContent(5, iType+1          , sTrkTotModules);

@@ -96,7 +96,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! E stands for an expansion, i.e. optimal radius is bigger then the current one and detectors are positioned to an expanded radius.
   //! S stands for shrinking, i.e. optimal position is lower then the current one and detectors are positioned to a shrunk radius.
   //! A stands for an automatic mode, i.e. the closer configuration is chosen, either E or S. That's the implicit build mode.
-  //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zErrorCollider), are always passing through edges of layer modules.
+  //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zError), are always passing through edges of layer modules.
   //! The positioning algorithm starts at Z=0 and takes then into consideration the extreme cases, taking into account all parameters: bigDelta, smallDelta, zError, z/phiOverlap
   Property<RadiusMode, Default>     radiusMode;
   Property<double    , NoDefault>   requestedAvgRadius;  //!< Requested radius at which the layer should be positioned

@@ -20,8 +20,8 @@ SimParms& SimParms::getInstance()
 //
 SimParms::SimParms() :
  numMinBiasEvents(        "numMinBiasEvents"        , parsedAndChecked()),
- zErrorCollider(          "zErrorCollider"          , parsedAndChecked()),
- rError(                  "rError"                  , parsedAndChecked()),
+ zErrorIP(                "zErrorIP"                , parsedAndChecked()),
+ rphiErrorIP(             "rphiErrorIP"             , parsedAndChecked()),
  useIPConstraint(         "useIPConstraint"         , parsedAndChecked()),
  ptCost(                  "ptCost"                  , parsedAndChecked()),
  stripCost(               "stripCost"               , parsedAndChecked()),
@@ -105,9 +105,22 @@ void SimParms::crosscheck() {
   }
   if (nonZero!=true) throw PathfulException("Magnetic field needs to be defined non-zero in at least one Z interval!" , "SimParms");
 
+  // Check that IP errors non-zero in R-Phi & Z if IP constraint will be used
+  nonZero = true;
+  if (useIPConstraint()) {
+
+    if (zErrorIP()==0)    nonZero = false;
+    if (rphiErrorIP()==0) nonZero = false;
+  }
+  if (!nonZero) throw PathfulException("IP constraint required, but errors on beam spot set to zero in R-Phi/Z!" , "SimParms");
+
   // Set expected default units
   magField.scaleByUnit(Units::T);
   magFieldZRegions.scaleByUnit(Units::m);
+
+  zErrorIP.scaleByUnit(Units::mm);
+  rphiErrorIP.scaleByUnit(Units::mm);
+
 }
 
 //
