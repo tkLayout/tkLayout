@@ -18,7 +18,6 @@ namespace material {
 }
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
-
  private:
   typedef boost::ptr_vector<Disk>                       Container;
   typedef boost::ptr_vector<material::SupportStructure> SupportStructures;
@@ -75,6 +74,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
 
   const Container& disks() const         { return disks_; }
   SupportStructures& supportStructures() { return supportStructures_; }
+
+  set<Module*> modules();
 
   Property<        int   , NoDefault>  numDisks;
   Property<        double, NoDefault>  barrelMaxZ;
