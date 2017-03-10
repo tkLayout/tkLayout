@@ -2694,17 +2694,14 @@ namespace insur {
     TCanvas* result = nullptr;
     std::string aClass;
     PlotDrawer<YZ, Type> yzDrawer;
-    //double maxR = 1100;
-    //double maxL = 2800;
-    //double scaleFactor = maxR / 600;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_[i]);
-      yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+      yzDrawer.addModules(tracker);
     }
 
-    int rzCanvasX = vis_max_canvas_sizeX; //int(maxL/scaleFactor);
-    int rzCanvasY = vis_min_canvas_sizeY; //int(maxR/scaleFactor);
+    int rzCanvasX = vis_max_canvas_sizeX;
+    int rzCanvasY = vis_min_canvas_sizeY;
     result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
@@ -2720,7 +2717,7 @@ namespace insur {
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_[i]);
-      xyDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+      xyDrawer.addModulesType(tracker, BARREL);
     }
 
     int xyCanvasX = vis_min_canvas_sizeX;
@@ -6038,7 +6035,7 @@ namespace insur {
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer;
-    yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
+    yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
@@ -6046,28 +6043,52 @@ namespace insur {
     RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     RZCanvasBarrel->cd();
     PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
-    yzDrawerBarrel.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    yzDrawerBarrel.addModulesType(tracker, BARREL);
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
-    xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
     for (auto& anEndcap : tracker.endcaps() ) {
       TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
-					Form("XY projection of Endcap (%s)", anEndcap.myid().c_str()),
+					Form("XY projection of Endcap %s", anEndcap.myid().c_str()),
 					vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       XYCanvasEC->cd();
       PlotDrawer<XY, Type> xyEndcapDrawer;
-      set<Module*> modules = anEndcap.modules();
-      xyEndcapDrawer.addModulesType(modules.begin(), modules.end(), ENDCAP);
+      xyEndcapDrawer.addModules(anEndcap);
       xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
       XYCanvasesEC.push_back(XYCanvasEC);
+    }
+
+    // And now one per disk surface
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size()>0) {
+	auto lastDiskIt = anEndcap.disks().end();
+	lastDiskIt--;
+	const Disk& lastDisk = *(lastDiskIt);
+
+	std::vector<std::set<const Module*>> modZ = lastDisk.getModuleSurfaces();
+	int iSurface=0;
+	for (std::set<const Module*>& moduleSet : modZ) {
+	  iSurface++; //for (int iSurface=1; iSurface<=4; ++iSurface) {
+	  TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), iSurface),
+					    Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), iSurface),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasEC->cd();
+	  PlotDrawer<XY, Type> xyEndcapDrawer;
+
+	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+	  XYCanvasesEC.push_back(XYCanvasEC);
+	}
+      }
     }
   }
 

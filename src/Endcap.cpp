@@ -104,14 +104,4 @@ void Endcap::build() {
   builtok(true);
 }
 
-set<Module*> Endcap::modules() {
-  class ModuleVisitor : public GeometryVisitor {
-  public:
-    set<Module*> result;
-    void visit(Module& m) { result.insert(&m); }
-  };
-  ModuleVisitor v;
-  this->accept(v);
-  return v.result;
-}
 

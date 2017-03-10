@@ -75,8 +75,6 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   const Container& disks() const         { return disks_; }
   SupportStructures& supportStructures() { return supportStructures_; }
 
-  set<Module*> modules();
-
   Property<        int   , NoDefault>  numDisks;
   Property<        double, NoDefault>  barrelMaxZ;
   Property<        double, NoDefault>  innerZ;
