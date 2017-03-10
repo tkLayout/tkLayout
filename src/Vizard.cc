@@ -2410,10 +2410,9 @@ namespace insur {
     TCanvas *RZCanvas = NULL;
     TCanvas *RZCanvasBarrel = NULL;
     TCanvas *XYCanvas = NULL;
-    TCanvas *XYCanvasEC = NULL;
+    std::vector<TCanvas*> XYCanvasesEC;
     TCanvas *myCanvas = NULL;
-    //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
+    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesEC);
     if (name=="pixel") {
       logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
@@ -2421,8 +2420,10 @@ namespace insur {
       beampipe->SetPoint(1, 2915/2., 45/2.);
       beampipe->SetPoint(2, 3804/2., 56.6/2.);
       beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
-      XYCanvasEC->cd();
-      drawCircle(22.5, true, 18); // "grey18"
+      for (auto XYCanvasEC : XYCanvasesEC) {
+	XYCanvasEC->cd();
+	drawCircle(22.5, true, 18); // "grey18"
+      }
       XYCanvas->cd();
       drawCircle(22.5, true, 18); // "grey18"
       RZCanvas->cd();
@@ -2464,9 +2465,9 @@ namespace insur {
       myImage->setComment("XY Section of the tracker barrel");
       myContent->addItem(myImage);
     }
-    if (XYCanvasEC) {
+    for (auto XYCanvasEC : XYCanvasesEC ) {
       myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("XY Projection of the tracker endcap(s)");
+      myImage->setComment(XYCanvasEC->GetTitle());
       myContent->addItem(myImage);
     }
 
@@ -6027,7 +6028,7 @@ namespace insur {
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
-                                        TCanvas *&XYCanvasEC) {
+                                        std::vector<TCanvas*> &XYCanvasesEC) {
 
     double scaleFactor = tracker.maxR()/600;
 
@@ -6056,13 +6057,18 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYCanvasEC->cd();
-    PlotDrawer<XY, Type> xyEndcapDrawer;
-    xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
-    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-
+    for (auto& anEndcap : tracker.endcaps() ) {
+      TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
+					Form("XY projection of Endcap (%s)", anEndcap.myid().c_str()),
+					vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      XYCanvasEC->cd();
+      PlotDrawer<XY, Type> xyEndcapDrawer;
+      set<Module*> modules = anEndcap.modules();
+      xyEndcapDrawer.addModulesType(modules.begin(), modules.end(), ENDCAP);
+      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+      XYCanvasesEC.push_back(XYCanvasEC);
+    }
   }
 
 
