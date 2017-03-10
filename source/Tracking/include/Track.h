@@ -150,6 +150,10 @@ public:
   double getDeltaZ(double refPointRPos, bool propagOutIn=true);
   double getDeltaZ0() { return getDeltaZ(0.0); }
 
+  //! Get DeltaCTau for secondary particles coming from the primary vertex at ~ [0,0] -> an important quantity to estimate the
+  //! resolution of secondary vertices
+  double getDeltaCTau();
+
   // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
   double getMagField(double zPos) const;
 

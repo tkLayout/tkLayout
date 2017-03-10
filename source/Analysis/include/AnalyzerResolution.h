@@ -103,6 +103,8 @@ class AnalyzerResolution : public AnalyzerUnit {
   const double c_min_dPhi0     = 1E-4;
   const double c_max_dCtgTheta = 1.0;
   const double c_min_dCtgTheta = 1E-6;
+  const double c_min_dCTau     = 1.;
+  const double c_max_dCTau     = 1E3;
 
   std::unique_ptr<CsvTextBuilder> m_csvHitCol;
 

@@ -415,6 +415,24 @@ double Track::getDeltaZ(double refPointRPos, bool propagOutIn/*=true*/) {
 }
 
 //
+// Get DeltaCTau for secondary particles coming from the primary vertex at ~ [0,0] -> an important quantity to estimate the
+// resolution of secondary vertices
+//
+double Track::getDeltaCTau() {
+
+  double deltaCTau = -1;
+  double deltaD0   = getDeltaD0();
+  double deltaZ0   = getDeltaZ0();
+
+  if (deltaD0>0 && deltaZ0>0) {
+    deltaCTau = (cos(m_theta)*cos(m_theta)+1)/deltaD0/deltaD0 + sin(m_theta)*sin(m_theta)/deltaZ0/deltaZ0;
+    deltaCTau = sqrt(2/deltaCTau);
+  }
+
+  return deltaCTau;
+}
+
+//
 // Adds a new hit to the track (hit radius automatically updated)
 //
 void Track::addHit(HitPtr newHit) {

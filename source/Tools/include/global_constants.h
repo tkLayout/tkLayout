@@ -104,6 +104,7 @@ static const std::string web_etaLetter  = "&eta;";
 static const std::string web_phiLetter  = "&phi;";
 static const std::string web_thetaLetter= "&theta;";
 static const std::string web_deltaLetter= "&delta;";
+static const std::string web_tauLetter  = "&tau;";
 
 static const int         web_priority_Geom = 99;
 static const int         web_priority_MB   = 89;
