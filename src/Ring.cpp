@@ -67,10 +67,10 @@ std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWafe
   return std::make_pair(optimalAlpha, optimalNumMods);
 }
 
-std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius) {
-  double delta = phiOverlap()/maxRadius;
-  double optimalAlpha = 2*asin(moduleWidth/2. / maxRadius) - delta;
-  double tentativeNumMods = 2*M_PI/optimalAlpha;
+std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double moduleWidth, double highRadius) {
+  double effectiveWidth = moduleWidth - phiOverlap();
+  double optimalAlpha = 2 * atan( effectiveWidth / (2. * highRadius));
+  double tentativeNumMods = 2 * M_PI/ optimalAlpha;
   int modsPerSlice = ceil(tentativeNumMods/phiSegments());
   if ((modsPerSlice % 2) == 0 && requireOddModsPerSlice()) modsPerSlice++;
   int optimalNumMods = modsPerSlice * phiSegments();
