@@ -139,39 +139,10 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       if (parity > 0) {
 	lastZ = buildZ() - zHalfLength() - bigDelta() - getSmallDelta(firstDiskSmallDeltas, i+1) - getDsDistance(firstDiskDsDistances, i+1) / 2.;
 	newZ  = buildZ() - zHalfLength() + bigDelta() + getSmallDelta(firstDiskSmallDeltas, i) + getDsDistance(firstDiskDsDistances, i) / 2.;
-
-	std::cout << "OOOOOOO firstDiskSmallDeltas.size() = " << firstDiskSmallDeltas.size() << std::endl;
-
-	std::cout << "!!!!!! DISK i = " << myid() << std::endl;
-	std::cout << "!!!!!! RING i = " << i << std::endl;
-	std::cout << "parity = " << parity << std::endl;
-	std::cout << "lastZ = " << lastZ << std::endl;
-	std::cout << "last smallDelta = " << getSmallDelta(firstDiskSmallDeltas, i+1) << std::endl;
-	std::cout << "last dsDistance = " << getDsDistance(firstDiskDsDistances, i+1) << std::endl;
-	std::cout << "newZ = " << newZ << std::endl;
-	std::cout << "new small delta = " << getSmallDelta(firstDiskSmallDeltas, i) << std::endl;
-	std::cout << "new dsDistance = " << getDsDistance(firstDiskDsDistances, i) << std::endl;
-
-
       }
       else {
 	lastZ = buildZ() + zHalfLength() + bigDelta() - getSmallDelta(lastDiskSmallDeltas, i+1) - getDsDistance(lastDiskDsDistances, i+1) / 2.;
         newZ  = buildZ() + zHalfLength() - bigDelta() + getSmallDelta(lastDiskSmallDeltas, i) + getDsDistance(lastDiskDsDistances, i) / 2.;
-
-	std::cout << "OOOOOOO lastDiskSmallDeltas.size() = " << lastDiskSmallDeltas.size() << std::endl;
-
-	std::cout << "!!!!!! DISK i = " << myid() << std::endl;
-	std::cout << "!!!!!! RING i = " << i << std::endl;
-	std::cout << "parity = " << parity << std::endl;
-	std::cout << "lastZ = " << lastZ << std::endl;
-	std::cout << "last smallDelta = " << getSmallDelta(lastDiskSmallDeltas, i+1) << std::endl;
-	std::cout << "last dsDistance = " << getDsDistance(lastDiskDsDistances, i+1) << std::endl;
-	std::cout << "newZ = " << newZ << std::endl;
-	std::cout << "new small delta = " << getSmallDelta(lastDiskSmallDeltas, i) << std::endl;
-	std::cout << "new dsDistance = " << getDsDistance(lastDiskDsDistances, i) << std::endl;
-
-
-
       }
 
 
@@ -188,7 +159,6 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       double nextRhoWZError   = lastRho / (lastZ - errorShiftZ) * (newZ - errorShiftZ);
 
       double nextRho = MAX(nextRhoWOverlap, nextRhoWZError);
-      std::cout << "FINALLLLLLLL nextRho " << nextRho << std::endl;
       ring->buildStartRadius(nextRho);
     }
 
