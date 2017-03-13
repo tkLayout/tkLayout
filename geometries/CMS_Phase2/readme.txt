@@ -152,10 +152,17 @@ OT568_200_IT4025.cfg  OT Version 5.6.8 <- like version 5.6.7, but replacing one 
 
 OT577_200_IT4025.cfg  OT Version 5.7.7 <- like 5.6.7, but with overlap spread over first rings
 OT578_200_IT4025.cfg  OT Version 5.7.8 <- like 5.6.8, but with overlap spread over first rings
-OT600_200_IT4025.cfg  OT Version 6.0.0 <- starting from 5.7.8 we solve PS->2S clash by shifting the PS rings instead of adding additional
-                                          smallDetlta. Removing rings etc
-
- 
-
-
 OT377_200_IT4025.cfg  OT Version 3.7.7 <- like 3.6.7, but with overlap spread over first rings
+OT601_200_IT4025.cfg  OT Version 6.0.1 <- starting from 5.7.8 we solve PS->2S clash by shifting the PS rings instead of adding additional
+                                          smallDelta. This allows to reduce bigDelta to 14.15 mm
+                                          10,7 PS rings in TEDD1,2
+                                             5 2S rings in TEDD1&2
+                                          phioverlap = -2
+                                          gaps distributed with bigDelta. Plenty of room
+
+OT602_200_IT4025.cfg                       9,7 PS rings in TEDD1,2
+                                             6 2S rings in TEDD1&2
+                                           overlap mainly through bigDelta (and 2S)
+                                           phioverlap = -2
+
+OT603_200_IT4025.cfg                      like 602, but overlap mainly through PS modules
