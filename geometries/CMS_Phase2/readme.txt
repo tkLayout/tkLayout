@@ -152,4 +152,10 @@ OT568_200_IT4025.cfg  OT Version 5.6.8 <- like version 5.6.7, but replacing one 
 
 OT577_200_IT4025.cfg  OT Version 5.7.7 <- like 5.6.7, but with overlap spread over first rings
 OT578_200_IT4025.cfg  OT Version 5.7.8 <- like 5.6.8, but with overlap spread over first rings
+OT600_200_IT4025.cfg  OT Version 6.0.0 <- starting from 5.7.8 we solve PS->2S clash by shifting the PS rings instead of adding additional
+                                          smallDetlta. Removing rings etc
+
+ 
+
+
 OT377_200_IT4025.cfg  OT Version 3.7.7 <- like 3.6.7, but with overlap spread over first rings
