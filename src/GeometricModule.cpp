@@ -142,6 +142,16 @@ void RectangularModule::check() {
 void RectangularModule::build() {
   try { 
     check();
+    
+    int iContourPoint=0;
+    ContourPoint p;
+    while (contourPointNode.count(iContourPoint) > 0) {
+      p.store(contourPointNode.at(iContourPoint));
+      ROOT::Math::XYZVector contourPoint;
+      contourPoint.SetXYZ(p.pointX(), p.pointY(), 0);
+      contour_.push_back(contourPoint);
+      iContourPoint++;
+    }
 
     float l = length(), w = width();
     basePoly_ << XYZVector( l/2, w/2, 0)

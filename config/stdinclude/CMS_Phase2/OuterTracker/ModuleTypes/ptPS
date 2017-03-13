@@ -43,3 +43,44 @@ Sensor 2 {
 
 plotColor 1
 
+ContourPoint 0 {
+  pointX 59.2
+  pointY -35.43
+}
+
+ContourPoint 1 {
+  pointX 65
+  pointY -29.63
+}
+
+ContourPoint 2 {
+  pointX 65
+  pointY 29.63
+}
+
+ContourPoint 3 {
+  pointX 59.2
+  pointY 35.43
+}
+
+ContourPoint 4 {
+  pointX -59.2
+  pointY 35.43
+}
+
+ContourPoint 5 {
+  pointX -65
+  pointY 29.63
+}
+
+ContourPoint 6 {
+  pointX -65
+  pointY -29.63
+}
+
+ContourPoint 7 {
+  pointX -59.2
+  pointY -35.43
+}
+
+
