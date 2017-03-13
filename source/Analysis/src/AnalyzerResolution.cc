@@ -278,27 +278,31 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
     for (int i=0; i<4; i++) {
 
       const std::map<int,TrackCollection>* taggedTrackCollectionMap = nullptr;
-      std::string scenario, scenarioName;
+      std::string scenario, scenarioName, webScenarioName;
 
       if (i==0) {
         taggedTrackCollectionMap = &m_taggedTrackPtCollectionMap[tag];
         scenario                 = "withMS_Pt";
         scenarioName             = "const p_{T}";
+        webScenarioName          = "const pt";
       }
       if (i==1) {
         taggedTrackCollectionMap = &m_taggedTrackPtCollectionMapIdeal[tag];
         scenario                 = "noMS_Pt";
         scenarioName             = "const p_{T}";
+        webScenarioName          = "const pt";
       }
       if (i==2) {
         taggedTrackCollectionMap = &m_taggedTrackPCollectionMap[tag];
         scenario                 = "withMS_P";
         scenarioName             = "const p";
+        webScenarioName          = scenarioName;
       }
       if (i==3) {
         taggedTrackCollectionMap = &m_taggedTrackPCollectionMapIdeal[tag];
         scenario                 = "noMS_P";
         scenarioName             = "const p";
+        webScenarioName          = scenarioName;
       }
 
       // Histogram arrays[momenta] - array of profile histograms for different momenta
@@ -308,6 +312,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       std::vector<unique_ptr<TProfile>> profHisArray_Z0;
       std::vector<unique_ptr<TProfile>> profHisArray_Phi0;
       std::vector<unique_ptr<TProfile>> profHisArray_CotgTheta;
+      std::vector<unique_ptr<TProfile>> profHisArray_CTau;
 
       preparePlot(profHisArray_Pt       , "pT"       , scenarioName, *taggedTrackCollectionMap);
       preparePlot(profHisArray_P        , "p"        , scenarioName, *taggedTrackCollectionMap);
@@ -315,24 +320,25 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       preparePlot(profHisArray_Z0       , "z0"       , scenarioName, *taggedTrackCollectionMap);
       preparePlot(profHisArray_Phi0     , "phi0"     , scenarioName, *taggedTrackCollectionMap);
       preparePlot(profHisArray_CotgTheta, "cotgTheta", scenarioName, *taggedTrackCollectionMap);
+      preparePlot(profHisArray_CTau     , "ctau"     , scenarioName, *taggedTrackCollectionMap);
 
       std::string contentName = "";
       bool        contentVis  = true;
 
       if      (i==0) {
-        contentName = "Track resolution for const Pt across "  +web_etaLetter+" (active+pasive material)";
+        contentName = "Track resolution for const Pt across "+web_etaLetter+" (active+pasive material)";
         contentVis  = true;
       }
       else if (i==1) {
-        contentName = "Track resolution for const Pt across "  +web_etaLetter+" (ideal - no material)";
+        contentName = "Track resolution for const Pt across "+web_etaLetter+" (ideal - no material)";
         contentVis  = true;
       }
       else if (i==2) {
-        contentName = "Track resolution for const P across "   +web_etaLetter+" (active+pasive material)";
+        contentName = "Track resolution for const P across "+web_etaLetter+" (active+pasive material)";
         contentVis  = false;
       }
       else if (i==3) {
-        contentName = "Track resolution for const P across "   +web_etaLetter+" (ideal - no material)";
+        contentName = "Track resolution for const P across "+web_etaLetter+" (ideal - no material)";
         contentVis  = false;
       }
       else {
@@ -357,7 +363,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImageLinPt = myContentPlots.addImage(canvasResPtLin, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageLinPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (lin. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageLinPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (lin. scale) - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageLinPt.setName(Form("linptres_%s_%s", tag.c_str(), scenario.c_str()));
 
       TCanvas canvasResPtLog(std::string("ResPtLog_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
@@ -370,7 +376,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
         else                                (*itHis)->Draw("PE1 SAME");
       }
       RootWImage& myImageLogPt = myContentPlots.addImage(canvasResPtLog, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageLogPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (log. scale) - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageLogPt.setComment("Transverse momentum resolution vs. "+web_etaLetter+" (log. scale) - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageLogPt.setName(Form("logptres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Pt.clear();
@@ -388,7 +394,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImageP = myContentPlots.addImage(canvasResP, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageP.setComment("Momentum resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageP.setComment("Momentum resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageP.setName(Form("pres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_P.clear();
@@ -405,7 +411,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImageD0 = myContentPlots.addImage(canvasResD0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageD0.setComment("d0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageD0.setComment("d0 resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageD0.setName(Form("d0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_D0.clear();
@@ -422,7 +428,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImageZ0 = myContentPlots.addImage(canvasResZ0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageZ0.setComment("z0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageZ0.setComment("z0 resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageZ0.setName(Form("z0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Z0.clear();
@@ -439,7 +445,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImagePhi0 = myContentPlots.addImage(canvasResPhi0, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImagePhi0.setComment(web_phiLetter + "0 resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImagePhi0.setComment(web_phiLetter + "0 resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImagePhi0.setName(Form("phi0res_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_Phi0.clear();
@@ -456,10 +462,27 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       }
 
       RootWImage& myImageCtg = myContentPlots.addImage(canvasResCotgTh, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImageCtg.setComment("Ctg("+web_thetaLetter+") resolution vs. "+web_etaLetter+" - " + scenarioName.c_str() + " across "+web_etaLetter);
+      myImageCtg.setComment("Ctg("+web_thetaLetter+") resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
       myImageCtg.setName(Form("cotgThres_%s_%s", tag.c_str(), scenario.c_str()));
 
       profHisArray_CotgTheta.clear();
+
+      // g) Resolution in ctau
+      TCanvas canvasResCTau(std::string("ResCTau_"+scenario+"_"+tag).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasResCTau.SetGrid(1,1);
+      canvasResCTau.SetLogy(1);
+      canvasResCTau.SetFillColor(Palette::color_plot_background);
+      for (auto itHis=profHisArray_CTau.begin(); itHis!=profHisArray_CTau.end(); itHis++) {
+
+        if (itHis==profHisArray_CTau.begin()) (*itHis)->Draw("PE1");
+        else                                  (*itHis)->Draw("PE1 SAME");
+      }
+
+      RootWImage& myImageCTau = myContentPlots.addImage(canvasResCTau, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImageCTau.setComment("c"+web_tauLetter+" resolution vs. "+web_etaLetter+" - " + webScenarioName.c_str() + " across "+web_etaLetter);
+      myImageCTau.setName(Form("ctauRes_%s_%s", tag.c_str(), scenario.c_str()));
+
+      profHisArray_CTau.clear();
 
     } // For scenarios
 
@@ -552,6 +575,10 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       name  = "cotgTh_vs_eta"+any2str(momentum/Units::GeV);
       title = "Track polar angle error - "+scenario+" across #eta;#eta;#delta ctg(#theta)";
     }
+    else if (varType=="ctau") {
+      name  = "ctau_vs_eta"+any2str(momentum/Units::GeV);
+      title = "c#tau resolution - "+scenario+" across #eta;#eta;#delta c#tau [#mum]";
+    }
     std::unique_ptr<TProfile> profHis(new TProfile(name.c_str(), title.c_str(), c_nBins, 0, SimParms::getInstance().getMaxEtaCoverage()));
 
     // Set style
@@ -574,6 +601,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       if (varType=="z0")        yVal = track->getDeltaZ0()/Units::um;
       if (varType=="phi0")      yVal = track->getDeltaPhi0()/M_PI*180.; // In degerees
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta(rPos);
+      if (varType=="ctau")      yVal = track->getDeltaCTau()/Units::um;
 
       profHis->Fill(xVal, yVal);
 
@@ -603,6 +631,10 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
     if (varType=="cotgTheta") {
       profHis->SetMaximum(c_max_dCtgTheta);
       profHis->SetMinimum(c_min_dCtgTheta);
+    }
+    if (varType=="ctau") {
+      profHis->SetMaximum(c_max_dCTau);
+      profHis->SetMinimum(c_min_dCTau);
     }
 
     // Add histogram for given momentum to array
