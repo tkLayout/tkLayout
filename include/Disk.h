@@ -71,7 +71,7 @@ public:
     bigDelta(    "bigDelta"   , parsedAndChecked()),
     zError(      "zError"     , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
-    rOverlap(    "rOverlap"   , parsedOnly(), 1.),
+    rOverlap(    "rOverlap"   , parsedOnly(), 0.),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),
