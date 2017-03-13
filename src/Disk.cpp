@@ -38,15 +38,15 @@ void Disk::check() {
 }
 
 double Disk::getSmallDelta(const vector<double>& diskSmallDeltas, int ringIndex) const {
-  std::cout << " ringIndex = " << ringIndex << std::endl;
-  std::cout << "diskSmallDeltas.size() = " << diskSmallDeltas.size() << std::endl;
+  //std::cout << " ringIndex = " << ringIndex << std::endl;
+  //std::cout << "diskSmallDeltas.size() = " << diskSmallDeltas.size() << std::endl;
   if (ringIndex > diskSmallDeltas.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
   return diskSmallDeltas.at(ringIndex - 1);
 }
 
 double Disk::getDsDistance(const vector<double>& diskDsDistances, int ringIndex) const {
-  std::cout << " ringIndex = " << ringIndex << std::endl;
-  std::cout << "diskDsDistances.size() = " << diskDsDistances.size() << std::endl;
+  //std::cout << " ringIndex = " << ringIndex << std::endl;
+  //std::cout << "diskDsDistances.size() = " << diskDsDistances.size() << std::endl;
   if (ringIndex > diskDsDistances.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
   return diskDsDistances.at(ringIndex - 1);
 }
@@ -123,7 +123,7 @@ void Disk::cutAtEta(double eta) {
 
 void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances) {
   double lastRho;
-  double lastSmallDelta;
+  //double lastSmallDelta;
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
     Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::TOPDOWN);
@@ -188,6 +188,7 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       double nextRhoWZError   = lastRho / (lastZ - errorShiftZ) * (newZ - errorShiftZ);
 
       double nextRho = MAX(nextRhoWOverlap, nextRhoWZError);
+      std::cout << "FINALLLLLLLL nextRho " << nextRho << std::endl;
       ring->buildStartRadius(nextRho);
     }
 
@@ -201,7 +202,7 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
 
     // Keep for next calculation
     lastRho        = ring->minR();
-    lastSmallDelta = ring->smallDelta();
+    //lastSmallDelta = ring->smallDelta();
   }
 }
 

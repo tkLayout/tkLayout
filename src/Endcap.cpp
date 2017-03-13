@@ -84,17 +84,17 @@ void Endcap::build() {
       disk1->myid(1);
       disk1->store(propertyTree());
       if (diskNode.count(1) > 0) disk1->store(diskNode.at(1));
-      firstDiskSmallDeltas = diskp->getSmallDeltasFromTree();
-      firstDiskDsDistances = diskp->getDsDistancesFromTree();
+      firstDiskSmallDeltas = disk1->getSmallDeltasFromTree();
+      firstDiskDsDistances = disk1->getDsDistancesFromTree();
       
       Disk* diskL = GeometryFactory::make<Disk>();
       diskL->myid(numDisks());
       diskL->store(propertyTree());
       if (diskNode.count(numDisks()) > 0) diskL->store(diskNode.at(numDisks()));
-      lastDiskSmallDeltas = diskp->getSmallDeltasFromTree();
-      lastDiskDsDistances = diskp->getDsDistancesFromTree();
+      lastDiskSmallDeltas = diskL->getSmallDeltasFromTree();
+      lastDiskDsDistances = diskL->getDsDistancesFromTree();
       
-      std::cout << "FOUND ITTTTTTTTT " << lastDiskSmallDeltas.size() << std::endl;
+      //std::cout << "FOUND ITTTTTTTTT " << lastDiskSmallDeltas.size() << std::endl;
 
       // To test the extreme cases -> one needs to test either first or last layer (based on parity)
       diskp->zHalfLength((outerZ()-innerZ())/2.);
