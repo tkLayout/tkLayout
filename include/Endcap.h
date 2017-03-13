@@ -18,7 +18,6 @@ namespace material {
 }
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
-
  private:
   typedef boost::ptr_vector<Disk>                       Container;
   typedef boost::ptr_vector<material::SupportStructure> SupportStructures;

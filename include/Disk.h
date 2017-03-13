@@ -129,6 +129,7 @@ public:
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;
   const std::vector<ConversionStation*>& secondConversionStations() const;
-};
+  std::vector< std::set<const Module*> > getModuleSurfaces() const;
+ };
 
 #endif
