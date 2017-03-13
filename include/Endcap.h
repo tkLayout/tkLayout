@@ -29,7 +29,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   PropertyNode<int>               diskNode;
   PropertyNodeUnique<std::string> supportNode;
 
-  vector<double> findMaxDsDistances();
+  //vector<double> findMaxDsDistances();
 
  public:
   Endcap() :
@@ -57,6 +57,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
 	return min;
       });
   }
+ 
   void build();
   void cutAtEta(double eta);
   void accept(GeometryVisitor& v) {
