@@ -385,8 +385,10 @@ public:
 
   void add(const Module& m);
   template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
+  void addModules(const Visitable& structure);
+  void addModulesType(const Visitable& structure, int moduleTypes = BARREL | ENDCAP);
+  template<class ModuleValidator> void addModules(const Visitable& structure, const ModuleValidator& isValid = ModuleValidator());
   template<class ModuleValidator, class InputIterator> void addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid = ModuleValidator());
-
 };
 
 
@@ -452,6 +454,57 @@ template<class CoordType, class ValueGetterType, class StatType>
       add(**it); 
     }
   }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const Visitable& structure) {
+  class ModuleVisitor : public ConstGeometryVisitor {
+  private:
+    PlotDrawer<CoordType, ValueGetterType, StatType>* pd_;
+  public:
+    ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd) { pd_ = pd; };
+    void visit(const Module& m) { pd_->add(m); }
+  };
+  ModuleVisitor v(this);
+  structure.accept(v);
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const Visitable& structure, int moduleTypes) {
+  class ModuleVisitor : public ConstGeometryVisitor {
+  private:
+    PlotDrawer<CoordType, ValueGetterType, StatType>* pd_;
+    int moduleTypes_;
+  public:
+    ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd, int modType) {
+      pd_ = pd;
+      moduleTypes_ = modType;
+    };
+    void visit(const Module& m) {
+      int subDet = m.subdet();
+      if (subDet & moduleTypes_) pd_->add(m);
+    }
+  };
+  ModuleVisitor v(this, moduleTypes);
+  structure.accept(v);
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class ModuleValidator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const Visitable& structure, const ModuleValidator& isValid) {
+  class ModuleVisitor : public ConstGeometryVisitor {
+  private:
+    PlotDrawer<CoordType, ValueGetterType, StatType>* pd_;
+    const ModuleValidator& isValid_;
+  public:
+    ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd, const ModuleValidator& isValid) : pd_(pd), isValid_(isValid) {};
+    void visit(const Module& m) {
+      int subDet = m.subdet();
+      if (isValid_(m)) pd_->add(m);
+    }
+  };
+  ModuleVisitor v(this, isValid);
+  structure.accept(v);
 }
 
 template<class CoordType, class ValueGetterType, class StatType>

@@ -23,7 +23,7 @@
 using std::set;
 using material::SupportStructure;
 
-class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
+class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
