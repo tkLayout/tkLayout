@@ -399,6 +399,10 @@ struct HistogramFrameStyle {
 ///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
+/// 5) Draw the modules with outer contour: void drawModuleContours<DrawStyleType>(canvas, drawStyle)
+///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
+///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
+///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
 
 template<class CoordType, class ValueGetterType, class StatType = NoStat >
 class PlotDrawer {
@@ -424,6 +428,7 @@ public:
 
   template<template<class> class FrameStyleType> void drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle = FrameStyleType<CoordType>());
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
+  template<class DrawStyleType> void drawModuleContours(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
   template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
@@ -464,17 +469,24 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   frameStyle(*frame, canvas, palette_);
 }
 
-
-
 template<class CoordType, class ValueGetterType, class StatType>
 template<class DrawStyleType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
   canvas.cd();
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
     StatType* bin = it->second;
     TPolyLine* line = lines_.at(it->first);
-    TPolyLine* contour = contour_.at(it->first);
     drawStyle(*line, *bin, palette_);
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class DrawStyleType>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModuleContours(TCanvas& canvas, const DrawStyleType& drawStyle) {
+  canvas.cd();
+  for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
+    StatType* bin = it->second;
+    TPolyLine* contour = contour_.at(it->first);
     if (contour) drawStyle(*contour, *bin, palette_);
   }
 }
