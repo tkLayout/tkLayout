@@ -820,8 +820,6 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       rCompTrackingVolumeStack->Draw("hist");
-      // rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myPad = myCanvas->GetPad(2);
@@ -844,8 +842,6 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       iCompTrackingVolumeStack->Draw("hist");
-      //iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myContentDetails->addItem(myTable);
@@ -1091,45 +1087,6 @@ namespace insur {
         drawInactiveSurfacesSummary(materialBudget, *myPage);
     }
 
-  }
-
-  // private
-  /**
-   * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for
-   * visualisation. It loops through the provided module vectors, determining their modules' corners and position
-   * in space. Using that information, it adds a ROOT shape and a 3D transformation to a volume assembly
-   * note from the geometry tree for each module found in the vectors.
-   * @param layers A pointer to the list of layers or discs that is to be displayed
-   * @param v A pointer to a template volume that is to be adjusted to the module shape
-   * @param t A pointer to a transformation object that will describe the template volume's position in space
-   * @param a A pointer to the assembly node that the template volume will be added to
-   * @param counter The element counter that keeps track of how many volumes have been added to the geometry tree
-   * @return The new value of the element counter
-   */
-  int Vizard::detailedModules(std::vector<Layer*>* layers,
-                              TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter) {
-/*    Layer* current;
-    Module* mod;
-    if (!layers->empty()) {
-      //  init of volume object for modules
-      v = gm->MakeArb8("", medact, 0);
-      v->SetLineColor(kRed);
-      // layer loop
-      for (unsigned int i = 0; i < layers->size(); i++) {
-        current = layers->at(i);
-        // module loop
-        for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
-          mod = current->getModuleVector()->at(j);
-          // place volume v according to information in module mod
-          t = modulePlacement(mod, v);
-          // add volume v to scene graph using translation t
-          a->AddNode(v, counter, t);
-          counter++;
-        }
-      }
-    }
-    else std::cout << "detailedModules(): layers vector is empty." << std::endl;*/
-    return counter;
   }
 
   /**
@@ -2472,28 +2429,6 @@ namespace insur {
       myImage->setComment(XYCanvasEC->GetTitle());
       myContent->addItem(myImage);
     }
-
-    /*
-     * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padXY);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY Section of the tracker barrel");
-     * myContent->addItem(myImage);
-     * }
-     *
-     * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padEC);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY View of the tracker endcap");
-     * myContent->addItem(myImage);
-     * }
-     */
 
     // Eta profile big plot
     myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -6110,6 +6045,7 @@ namespace insur {
 	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
 	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+	  xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
 	  XYCanvasesEC.push_back(XYCanvasEC);
 	}
       }
