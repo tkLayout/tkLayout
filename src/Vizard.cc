@@ -4,8 +4,10 @@
  */
 
 #include <Vizard.h>
-#include <TPolyLine.h>
 #include <Units.h>
+
+#include <TPolyLine.h>
+#include <TPaveText.h>
 
 #include <boost/filesystem.hpp>
 
@@ -2663,10 +2665,12 @@ namespace insur {
       myCanvas->cd();
 
 
-      TPad* upperPad = new TPad(Form("%s_upper", myCanvas->GetName()), "upper", 0, 0.4, 1, 1);
+      TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
+      TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
       TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
       myCanvas->cd();
-      upperPad->Draw();
+      upperLeftPad->Draw();
+      upperRightPad->Draw();
       lowerPad->Draw();
       aProfile.SetMinimum(0);
       aProfile.SetMaximum(1.05);
@@ -2674,12 +2678,25 @@ namespace insur {
       aProfile.SetLineColor(Palette::color(1));
       aProfile.SetMarkerStyle(1);
 
+      TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
+      efficiencyHistogram->SetXTitle("Inefficiency");
+      efficiencyHistogram->SetYTitle("Eta bins");
+      for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
+      TPaveText* tpt;
+      tpt = new TPaveText(0.7, 0.7, 1, 1, "NB NDC");
+      tpt->SetBorderSize(1);
+      tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
+      tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
+      
       TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
       zoomedProfile->SetMinimum(0.9);
       zoomedProfile->SetMaximum(1.01);
       zoomedProfile->SetTitle("");
-      upperPad->cd();
+      upperLeftPad->cd();
       aProfile.Draw();
+      upperRightPad->cd();
+      efficiencyHistogram->Draw();
+      tpt->Draw();
       lowerPad->cd();
       zoomedProfile->Draw();
 
