@@ -2681,9 +2681,10 @@ namespace insur {
       TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
       efficiencyHistogram->SetXTitle("Inefficiency");
       efficiencyHistogram->SetYTitle("Eta bins");
+      efficiencyHistogram->SetFillColor(Palette::color(1));
       for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
       TPaveText* tpt;
-      tpt = new TPaveText(0.7, 0.7, 1, 1, "NB NDC");
+      tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
       tpt->SetBorderSize(1);
       tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
       tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
