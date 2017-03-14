@@ -1905,7 +1905,7 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1281.;
+	  if (!isPixelTracker) startEndcaps = 1250.;
 	  //else startEndcaps = 300.; // PIXEL 1_1_1
 	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
           
@@ -2090,7 +2090,7 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1281.;
+	  if (!isPixelTracker) startEndcaps = 1250.;
 	  //else startEndcaps = 300.; // PIXEL 1_1_1
 	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
 

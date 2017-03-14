@@ -65,8 +65,8 @@
    </Polycone>-->
  <Polycone name="Forward" startPhi="0*deg" deltaPhi="360*deg" >    <!-- TEMPORARY!! Should be defined automatically -->
    <ZSection z="[RootStartZ]" rMin="2.8*cm" rMax="[RootRadius1]"/>
-   <ZSection z="99.00*cm" rMin="2.8*cm" rMax="[RootRadius1]"/>
-   <ZSection z="99.00*cm" rMin="2.8*cm" rMax="116.0*cm"/>
+   <ZSection z="95.90*cm" rMin="2.8*cm" rMax="[RootRadius1]"/>
+   <ZSection z="95.90*cm" rMin="2.8*cm" rMax="116.0*cm"/>
    <ZSection z="120.9*cm" rMin="2.8*cm" rMax="116.0*cm"/>
    <ZSection z="120.9*cm" rMin="6.3*cm" rMax="116.0*cm"/>
    <ZSection z="261.9*cm" rMin="6.3*cm" rMax="116.0*cm"/>
