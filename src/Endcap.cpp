@@ -90,12 +90,14 @@ void Endcap::build() {
       lastDiskSmallDeltas = diskL->getSmallDeltasFromTree();
       lastDiskDsDistances = diskL->getDsDistancesFromTree();
       
+      std::pair<std::vector<double>> endcapInnermostDiskInfo = getDiskProperties(1);
+      std::pair<std::vector<double>> endcapOutermostDiskInfo = getDiskProperties(numDisks());
 
       // To test the extreme cases -> one needs to test either first or last layer (based on parity)
       diskp->zHalfLength((outerZ()-innerZ())/2.);
 
       // Build
-      diskp->build(firstDiskSmallDeltas, lastDiskSmallDeltas, firstDiskDsDistances, lastDiskDsDistances);
+      diskp->build(endcapInnermostDiskProperties, endcapOutermostDiskProperties);
 
       // Mirror discs
       Disk* diskn = GeometryFactory::clone(*diskp);
