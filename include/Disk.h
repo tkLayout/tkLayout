@@ -44,8 +44,8 @@ private:
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
 
-  inline double getSmallDelta(const vector<double>& diskSmallDeltas, int ringIndex) const;
-  inline double getDsDistance(const vector<double>& buildDsDistances, int ringIndex) const;
+  inline double getSmallDelta(const vector<double>& diskSmallDeltas, int ringNumber) const;
+  inline double getDsDistance(const vector<double>& buildDsDistances, int ringNumber) const;
   void buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances);
   //void buildBottomUp(const vector<double>& buildDsDistances);
 

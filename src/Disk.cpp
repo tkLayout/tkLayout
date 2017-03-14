@@ -18,10 +18,6 @@ const std::vector<double> Disk::getDsDistancesFromTree() const {
   std::vector<double> dsDistances;
 
   for (int i = 1; i <= numRings(); i++) {
-    Ring* ringTemplate = GeometryFactory::make<Ring>();
-    ringTemplate->store(propertyTree());
-    if (ringNode.count(i) > 0) ringTemplate->store(ringNode.at(i));
-
     RectangularModule* modTemplate = GeometryFactory::make<RectangularModule>();
     modTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) modTemplate->store(ringNode.at(i));
@@ -37,18 +33,14 @@ void Disk::check() {
   else if (!numRings.state() && !innerRadius.state()) throw PathfulException("At least one between numRings and innerRadius must be specified"); 
 }
 
-double Disk::getSmallDelta(const vector<double>& diskSmallDeltas, int ringIndex) const {
-  //std::cout << " ringIndex = " << ringIndex << std::endl;
-  //std::cout << "diskSmallDeltas.size() = " << diskSmallDeltas.size() << std::endl;
-  if (ringIndex > diskSmallDeltas.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
-  return diskSmallDeltas.at(ringIndex - 1);
+double Disk::getSmallDelta(const vector<double>& diskSmallDeltas, int ringNumber) const {
+  if (ringNumber > diskSmallDeltas.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
+  return diskSmallDeltas.at(ringNumber - 1);
 }
 
-double Disk::getDsDistance(const vector<double>& diskDsDistances, int ringIndex) const {
-  //std::cout << " ringIndex = " << ringIndex << std::endl;
-  //std::cout << "diskDsDistances.size() = " << diskDsDistances.size() << std::endl;
-  if (ringIndex > diskDsDistances.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
-  return diskDsDistances.at(ringIndex - 1);
+double Disk::getDsDistance(const vector<double>& diskDsDistances, int ringNumber) const {
+  if (ringNumber > diskDsDistances.size()) throw PathfulException("Tries to access information from ring which is not in disk.");
+  return diskDsDistances.at(ringNumber - 1);
 }
 
 void Disk::cutAtEta(double eta) { 
@@ -123,56 +115,86 @@ void Disk::cutAtEta(double eta) {
 
 void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances) {
   double lastRho;
-  //double lastSmallDelta;
+  
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
+
+    // CREATES RING
     Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));
 
+    // INITIALIZATION
     if (i == numRings()) {
       ring->buildStartRadius(outerRadius());
-    } else {
+    }
+    
+    // ALL THIS IS TO AUTOMATICALLY CALCULATE RING RADIUSHIGH FOR RING (i) FROM RIMG (i+1)
+    // In what follows, 'innermost' corresponds to 'lower Z', and 'outermost' corresponds to 'bigger Z'.
+    else {
 
-      double lastZ, newZ;
-      // Calcalate new and last position in Z
+      // 1) FIND THE Z OF THE MOST STRINGENT POINTS IN RING (i+1) AND RING (i)
+
+      double lastZ;          // Z of the most stringent point in Ring i+1
+      double newZ;           // Z of the most stringent point in Ring i
+      double lastSmallDelta; // smallDelta (Ring i+1)
+      double newSmalDelta;   // smallDelta (Ring i)
+      double lastDsDistance; // dsDistance (Ring i+1)
+      double newDsDistance;  // dsDistance (Ring i)
+     
+      // Case where Ring (i+1) is the innermost ring, and Ring (i) is the outermost ring.
       if (parity > 0) {
-	lastZ = buildZ() - zHalfLength() - bigDelta() - getSmallDelta(firstDiskSmallDeltas, i+1) - getDsDistance(firstDiskDsDistances, i+1) / 2.;
-	newZ  = buildZ() - zHalfLength() + bigDelta() + getSmallDelta(firstDiskSmallDeltas, i) + getDsDistance(firstDiskDsDistances, i) / 2.;
+	// In this case, the innermost disk of the Endcaps block is the most stringent.
+	// As a result, geometry information is taken from that disk.
+	lastSmallDelta = getSmallDelta(firstDiskSmallDeltas, i+1);
+	newSmallDelta = getSmallDelta(firstDiskSmallDeltas, i);
+	lastDsDistance = getDsDistance(firstDiskDsDistances, i+1);
+	newDsDistance = getDsDistance(firstDiskDsDistances, i);
+
+	// Calculates Z of the most stringent points
+	lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+	newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2.;
       }
+
+      // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
       else {
-	lastZ = buildZ() + zHalfLength() + bigDelta() - getSmallDelta(lastDiskSmallDeltas, i+1) - getDsDistance(lastDiskDsDistances, i+1) / 2.;
-        newZ  = buildZ() + zHalfLength() - bigDelta() + getSmallDelta(lastDiskSmallDeltas, i) + getDsDistance(lastDiskDsDistances, i) / 2.;
+	// In this case, the outermost disk of the Endcaps block is the most stringent.
+	// As a result, geometry information is taken from that disk.
+	lastSmallDelta = getSmallDelta(lastDiskSmallDeltas, i+1);
+	newSmallDelta = getSmallDelta(lastDiskSmallDeltas, i);
+	lastDsDistance = getDsDistance(lastDiskDsDistances, i+1);
+	newDsDistance = getDsDistance(lastDiskDsDistances, i);
+
+	// Calculates Z of the most stringent points
+	lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+        newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2.;
       }
 
 
-      // Calculate shift in Z position of extreme cases (either innemost or outermost disc)
-      // Remember that disc put always in to the centre of endcap
-      //double shiftZ = parity > 0 ? +zHalfLength() : -zHalfLength();
+      // 2) CALCULATES RING RADIUSHIGH FOR RING (i) FROM RING (i+1)
+      
+      // Case A : Consider zError
+      double zError   = parity > 0 ? +zError() : -zError();
+      double nextRhoWithZError   = lastRho / (lastZ - zError) * (newZ - zError);
 
-      // Calculate shift in Z due to beam spot
-      double errorShiftZ   = parity > 0 ? +zError() : -zError();
+      // Case B : Consider rOverlap
+      double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+      
+      // Takes the most stringent of cases A and B
+      double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
 
-      // Calculate next rho taking into account overlap in extreme cases of innermost or outermost disc
-      double nextRhoWOverlap  = (lastRho + rOverlap()) / lastZ * newZ;
-      // Calculate next rho taking into account overlap zError in extreme cases of innermost or outermost disc
-      double nextRhoWZError   = lastRho / (lastZ - errorShiftZ) * (newZ - errorShiftZ);
-
-      double nextRho = MAX(nextRhoWOverlap, nextRhoWZError);
       ring->buildStartRadius(nextRho);
     }
 
+    // NOW TAHT RADIUS HAS BEEN CALCULATED, FINISHES BUILDING THE RING AND STORE IT
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
-    //rings_.push_back(ring);
     rings_.insert(rings_.begin(), ring);
-    //ringIndexMap_.insert(i, ring);
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
     lastRho        = ring->minR();
-    //lastSmallDelta = ring->smallDelta();
   }
 }
 

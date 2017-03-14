@@ -55,10 +55,6 @@ void Endcap::build() {
     if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());
     else if(barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
 
-    /*vector<double> maxDsDistances = findMaxDsDistances();
-    for (int i = 0; i < maxDsDistances.size(); i++) {
-      std::cout << maxDsDistances.at(i) << std::endl;
-      }*/
     vector<Disk*> tdisks;
 
     double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
@@ -94,7 +90,6 @@ void Endcap::build() {
       lastDiskSmallDeltas = diskL->getSmallDeltasFromTree();
       lastDiskDsDistances = diskL->getDsDistancesFromTree();
       
-      //std::cout << "FOUND ITTTTTTTTT " << lastDiskSmallDeltas.size() << std::endl;
 
       // To test the extreme cases -> one needs to test either first or last layer (based on parity)
       diskp->zHalfLength((outerZ()-innerZ())/2.);
