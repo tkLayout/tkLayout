@@ -12,7 +12,6 @@
 #include <boost/accumulators/statistics/moment.hpp>
 #include <boost/accumulators/statistics/count.hpp>
 
-
 #include "Sensor.h"
 #include "ModuleBase.h"
 #include "GeometricModule.h"
