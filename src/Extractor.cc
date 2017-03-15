@@ -1437,7 +1437,17 @@ namespace insur {
 	    ringzmax.at(modRing) = MAX(ringzmax.at(modRing), modcomplex.getZmax());
 	  }
 	}
-	double diskThickness = zmax - zmin;
+
+	double diskZ = 0;
+	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
+	else {
+	  int firstRingIndex = *(ringsIndexes.begin());
+	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
+	}
+	
+	//double diskThickness = zmax - zmin;
+	double diskThickness = 2. * MAX(fabs(zmin - diskZ), fabs(zmax - diskZ));
 
 	//shape.type = tp;
         shape.rmin = 0.0;
@@ -1744,7 +1754,7 @@ namespace insur {
             pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
-	    pos.trans.dz = (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0 - (zmin + zmax) / 2.0;
+	    pos.trans.dz = (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0 - diskZ;
             p.push_back(pos);
             //pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
@@ -1822,7 +1832,8 @@ namespace insur {
 
         pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
         pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-        pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
+        //pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
+	pos.trans.dz = diskZ - xml_z_pixfwd;
         p.push_back(pos);
 
         dspec.partselectors.push_back(logic.name_tag);
