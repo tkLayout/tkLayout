@@ -1,0 +1,16 @@
+// (1+1) TWP/module
+// 6 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_TWP_1+1_HS
+      quantity 2.652
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres
+  }
+}
