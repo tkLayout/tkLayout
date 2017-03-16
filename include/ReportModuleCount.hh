@@ -12,7 +12,7 @@ class DetectorModule;
 class Tracker;
 
 // The visitor counting module per types and subdetector
-class ModuleCounterVisitor : public ConstGeometryVisitor {
+class VisitorModuleCount : public ConstGeometryVisitor {
 private:
   bool firstVisit = true;
   std::map<std::string, int> moduleTypes;
@@ -32,10 +32,10 @@ public:
 
 class ReportModuleCount : public Report {
 private:
-  ModuleCounterVisitor moduleCounter_;
+  VisitorModuleCount moduleCounter_;
 public:
   void analyze(const Tracker&);
-  void visualize(RootWContent&);
+  void visualizeTo(RootWContent&);
 };
 
 #endif

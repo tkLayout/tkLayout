@@ -6,21 +6,21 @@
 #include <map>
 #include <string>
 
-std::string ModuleCounterVisitor::moduleSummaryType(const DetectorModule& m) const  {
+std::string VisitorModuleCount::moduleSummaryType(const DetectorModule& m) const  {
   std::string result;
   result+=m.moduleType();
   if (m.dsDistance()!=0) result+=" "+any2str(m.dsDistance(), 1)+" mm";
   return result;
 };
 
-void ModuleCounterVisitor::sortTypesAndDetectors() {
+void VisitorModuleCount::sortTypesAndDetectors() {
   int iType=1;
   int iSub=1;
   for (auto aType : moduleTypes) aType.second=iType++;
   for (auto aType : subDetectors) aType.second=iSub++;
 }
 
-RootWTable* ModuleCounterVisitor::makeTable() {
+RootWTable* VisitorModuleCount::makeTable() {
   RootWTable* moduleCountTable = new RootWTable();
   int iType;
   int iSub;
@@ -63,28 +63,28 @@ RootWTable* ModuleCounterVisitor::makeTable() {
   return moduleCountTable;
 }
 
-void ModuleCounterVisitor::preVisit(const Tracker& tracker) {
+void VisitorModuleCount::preVisit(const Tracker& tracker) {
   firstVisit = true;
   tracker.accept(*this);
   sortTypesAndDetectors();
   firstVisit = false;
 }
     
-void ModuleCounterVisitor::visit(const Barrel& barrel) {
+void VisitorModuleCount::visit(const Barrel& barrel) {
   currentSubdetector = barrel.myid();
   if (firstVisit) {
     subDetectors[currentSubdetector]=1;
   }
 }
 
-void ModuleCounterVisitor::visit(const Endcap& endcap) {
+void VisitorModuleCount::visit(const Endcap& endcap) {
   currentSubdetector = endcap.myid();
   if (firstVisit) {
     subDetectors[currentSubdetector]=1;
   }
 }
 
-void ModuleCounterVisitor::visit(const DetectorModule& m) {
+void VisitorModuleCount::visit(const DetectorModule& m) {
   std::string modType = moduleSummaryType(m);
   if (firstVisit) {
     moduleTypes[modType]=1;
@@ -100,7 +100,7 @@ void ReportModuleCount::analyze(const Tracker& tracker) {
   tracker.accept(moduleCounter_);  
 }
 
-void ReportModuleCount::visualize(RootWContent& myContent) {
+void ReportModuleCount::visualizeTo(RootWContent& myContent) {
   myContent.addItem(moduleCounter_.makeTable());
 }
 

@@ -2171,7 +2171,7 @@ namespace insur {
 
     ReportModuleCount rmc;
     rmc.analyze(tracker);
-    rmc.visualize(*myContent);
+    rmc.visualizeTo(*myContent);
 
     //********************************//
     //*                              *//
