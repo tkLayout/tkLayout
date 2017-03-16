@@ -8,6 +8,7 @@
 
 #include <TPolyLine.h>
 #include <TPaveText.h>
+#include <ReportModuleCount.hh>
 
 #include <boost/filesystem.hpp>
 
@@ -2167,77 +2168,10 @@ namespace insur {
     //*   Module types breakdown     *//
     //*                              *//
     //********************************//
-    class ModuleSummaryType {
-       public:
-         double dsDistance;
-         std::string moduleType;
-         ModuleSummaryType(const DetectorModule& m) {
-           dsDistance = m.dsDistance();
-           moduleType = m.moduleType();
-         }
-         std::string toString() const {
-           std::string result;
-           result+=moduleType;
-           if (dsDistance!=0) result+=" "+any2str(dsDistance, 1)+" mm";
-           return result;
-         }
-    };
 
-    struct cmpModuleSummaryType {
-      bool operator()(const ModuleSummaryType& a, const ModuleSummaryType& b) const {
-        if (a.moduleType!=b.moduleType) return a.moduleType<b.moduleType;
-        return a.dsDistance < b.dsDistance;
-      }
-    };
-
-    class ModuleCounter {
-      public:
-        int barrel, endcap;
-        void add(const DetectorModule& m) {
-          if (m.subdet()==BARREL) barrel++;
-          else if (m.subdet()==ENDCAP) endcap++;
-        }
-    };
-
-    class ModuleTypesVisitor : public ConstGeometryVisitor {
-    public:
-      std::map<ModuleSummaryType, ModuleCounter, cmpModuleSummaryType> moduleTypeCount;
-      int totalCount = 0;
-      void visit(const DetectorModule& m) override {
-        ModuleSummaryType aType(m);
-        moduleTypeCount[aType].add(m);
-        totalCount++;
-      }
-    };
-
-    ModuleTypesVisitor aModuleTypesVisitor;
-    tracker.accept(aModuleTypesVisitor);
-    RootWTable* moduleTypeTable = new RootWTable(); myContent->addItem(moduleTypeTable);
-    int i=1;
-    moduleTypeTable->setContent(0, 0, "Module type");
-    moduleTypeTable->setContent(0, 1, "Barrel");
-    moduleTypeTable->setContent(0, 2, "Endcap");
-    moduleTypeTable->setContent(0, 3, "Total");
-    const auto& moduleTypeCountMap = aModuleTypesVisitor.moduleTypeCount;
-    int totalBarrelCount = 0;
-    int totalEndcapCount = 0;
-    for (const auto& aTypeCount : moduleTypeCountMap) {
-      int barCount = aTypeCount.second.barrel;
-      int endCount = aTypeCount.second.endcap;
-      int totalCount = barCount+endCount;
-      totalBarrelCount += barCount;
-      totalEndcapCount += endCount;
-      moduleTypeTable->setContent(i, 0, aTypeCount.first.toString());
-      moduleTypeTable->setContent(i, 1, barCount);
-      moduleTypeTable->setContent(i, 2, endCount);
-      moduleTypeTable->setContent(i, 3, totalCount);
-      i++;
-    }
-    moduleTypeTable->setContent(i, 0, "Total");
-    moduleTypeTable->setContent(i, 1, totalBarrelCount);
-    moduleTypeTable->setContent(i, 2, totalEndcapCount);
-    moduleTypeTable->setContent(i, 3, aModuleTypesVisitor.totalCount);
-
+    ReportModuleCount rmc;
+    rmc.analyze(tracker);
+    rmc.visualize(*myContent);
 
     //********************************//
     //*                              *//
