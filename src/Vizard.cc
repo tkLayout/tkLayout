@@ -3347,69 +3347,6 @@ namespace insur {
     }    
   }
   
-  bool Vizard::irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
-    std::string trackerName = tracker.myid();
-    std::string pageName = "Power (" + trackerName + ")";
-    std::string pageAddress = "power_" + trackerName + ".html";
-
-    RootWPage& myPage = site.addPage(pageName);
-    myPage.setAddress(pageAddress);
-
-    std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
-    std::map<std::string, SummaryTable>& irradiationSummaries = a.getSensorsIrradiationSummary();
-    dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
-    dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
-
-    // Some helper string objects
-    ostringstream tempSS;
-    std::string tempString;
-
-    struct SensorsIrradiationPower {
-      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean(); }  // W
-    };
-
-    struct TotalPower {
-      double operator()(const Module& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
-    };
-
-
-    PlotDrawer<YZ, SensorsIrradiationPower, Average> yzSensorsPowerDrawer(0, 0);
-    PlotDrawer<YZ, TotalPower, Average> yzTotalPowerDrawer(0, 0);
-
-    yzSensorsPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
-    yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
-
-    RootWContent& myContent = myPage.addContent("Power maps", true);
-
-    TCanvas sensorsIrradiationPowerCanvas;
-    TCanvas totalPowerCanvas;
-
-    yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(sensorsIrradiationPowerCanvas);
-    yzSensorsPowerDrawer.drawModules<ContourStyle>(sensorsIrradiationPowerCanvas);
-
-
-    yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
-    yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
-
-    RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    sensorsIrradiationPowerImage.setComment("Power dissipation in irradiated sensors (due to leakage current) (average per module) (W)");
-    sensorsIrradiationPowerImage.setName("sensorsIrradiationPowerMap");
-    RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-    totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
-    totalPowerImage.setName("totalPowerMap");
-
-
-    // Add csv file with sensors irradiation handful info
-    RootWContent* filesContent = new RootWContent("power csv files", false);
-    myPage.addContent(filesContent);
-    RootWTextFile* myTextFile;
-    myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
-    myTextFile->addText(createSensorsIrradiationCsv(tracker));
-    filesContent->addItem(myTextFile);
-
-    return true;
-  }
-
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
 
     //********************************//

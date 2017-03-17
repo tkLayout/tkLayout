@@ -1044,11 +1044,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 }
 
-void Analyzer::analyzePower(Tracker& tracker) {
-  computeIrradiationPowerConsumption(tracker);
-  preparePowerHistograms();
-  //fillPowerMap(tracker);
-}
 
 
 
@@ -1093,20 +1088,6 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   sampleTriggerPetal_ = v.sampleTriggerPetal;
   triggerPetalCrossoverR_ = v.crossoverR;
 }
-
-
-void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
-  IrradiationPowerVisitor v;
-  v.preVisit();
-  simParms_->accept(v);
-  tracker.accept(v);
-  v.postVisit();
-
-  sensorsIrradiationPowerSummary_ = v.sensorsIrradiationPowerSummary;
-  sensorsIrradiationSummary_ = v.sensorsIrradiationSummary;
-}
-
-
 
 
 // protected
@@ -2416,48 +2397,6 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
   scv.postVisit();
 }
 
-/*
-void Analyzer::fillPowerMap(Tracker& tracker) {
-  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum];
-  TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
-
-  for (int i=1; i<=sensorsIrradiationPowerMap.GetNbinsX(); ++i) {
-    for (int j=1; j<=sensorsIrradiationPowerMap.GetNbinsY(); ++j) {
-      sensorsIrradiationPowerMap.SetBinContent(i,j,0);
-      totalPowerConsumptionMap.SetBinContent(i,j,0);
-    }
-  }
-
-  IrradiationPowerMapVisitor v(sensorsIrradiationPowerMap, totalPowerConsumptionMap);
-  simParms_->accept(v);
-  tracker.accept(v);
-  v.postVisit();
-
-}
-*/
-void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 10.); // every cm
-  int mapBinsX = int( (geom_max_length) * geom_safety_factor / 10.); // every cm
-  myMap.SetName(name.c_str());
-  myMap.SetTitle(title.c_str());
-  myMap.SetXTitle("z [mm]");
-  myMap.SetYTitle("r [mm]");
-  myMap.SetBins(mapBinsX, 0.0, geom_max_length*geom_safety_factor, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor);
-  myMap.Reset();
-}
-
-void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
-  int mapBinsX = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
-  myMap.SetName(name.c_str());
-  myMap.SetTitle(title.c_str());
-  myMap.SetXTitle("x [mm]");
-  myMap.SetYTitle("y [mm]");
-  myMap.SetBins(mapBinsX, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor, mapBinsY, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor);
-  myMap.Reset();
-}
-
-
 /**
  * This convenience function resets and empties all histograms for
  * the trigger performance, so they are ready for a new round of
@@ -2584,15 +2523,6 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
 
 }
 
-
-void Analyzer::preparePowerHistograms() {
-  myMapBag.clearMaps(mapBag::sensorsIrradiationPowerMap);
-  myMapBag.clearMaps(mapBag::totalPowerConsumptionMap);
-  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
-  TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
-  prepareTrackerMap(sensorsIrradiationPowerMap, "sensorsIrradiationPowerMap", "Map of power dissipation in sensors (after irradiation)");
-  prepareTrackerMap(totalPowerConsumptionMap, "irradiationPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
-}
 
 void Analyzer::prepareTriggerProcessorHistograms() {
   myMapBag.clearMaps(mapBag::moduleConnectionEtaMap);
