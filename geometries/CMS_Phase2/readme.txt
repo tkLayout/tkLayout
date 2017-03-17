@@ -169,4 +169,12 @@ OT603_200_IT4025.cfg                      like 602, but overlap mainly through P
 
 OT611_200_IT4025.cfg                      TDR geometry
 
-OT411_200_IT4025.cfg                      TDR geometry with 'Avi' Z coordinates in TEDD
+OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paired-up layers:
+                                             Z coordinates in TEDD: 1356.8 1440 1854.67 1937.67 2567 2650
+                                             while keeping the radial positions as in 6.1.1
+                                          TB2D radii taken from 4.6.3
+                                          TBPS configuration as in 6.1.1, but reducing L2 radius to have 1 cm clearance (incl. hybrid) to L1
+
+
+                                          
+
