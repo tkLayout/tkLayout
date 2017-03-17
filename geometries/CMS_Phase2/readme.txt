@@ -166,3 +166,7 @@ OT602_200_IT4025.cfg                       9,7 PS rings in TEDD1,2
                                            phioverlap = -2
 
 OT603_200_IT4025.cfg                      like 602, but overlap mainly through PS modules
+
+OT611_200_IT4025.cfg                      TDR geometry
+
+OT411_200_IT4025.cfg                      TDR geometry with 'Avi' Z coordinates in TEDD
