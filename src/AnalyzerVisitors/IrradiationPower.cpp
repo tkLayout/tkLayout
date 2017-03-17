@@ -93,8 +93,7 @@ void IrradiationPowerVisitor::postVisit() {
       powerValues.str("");
       irradiationValues.str("");
       powerValues << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
-      //irradiationValues << std::dec << std::scientific << std::setprecision(3) << sensorsIrradiationMean << "," << sensorsIrradiationMax;
-      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsIrradiationMax;
+      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsIrradiationMean;
 
       // Store results in the power and irradiation summary tables
       if (isBarrel) {
