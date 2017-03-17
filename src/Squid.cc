@@ -8,6 +8,8 @@
 #include "Squid.h"
 #include "StopWatch.h"
 
+#include "ReportIrradiation.hh"
+
 namespace insur {
   // public
   /**
@@ -615,12 +617,16 @@ namespace insur {
   bool Squid::reportPowerSite() {
     if (tr) {
       startTaskClock("Computing dissipated power");
-      a.analyzePower(*tr);
-      if (px) pixelAnalyzer.analyzePower(*px);
+      ReportIrradiation repIrr(*tr, *simParms_);
+      repIrr.analyze();
+      if (px) {
+	ReportIrradiation repIrrPx(*px, *simParms_);
+	repIrrPx.analyze();
+      }
       stopTaskClock();
       startTaskClock("Creating power report");
-      v.irradiationSummary(a, *tr, site);
-      if (px) v.irradiationSummary(pixelAnalyzer, *px, site);
+      repIrr.visualizeTo(site);
+      if (px) repIrr.visualizeTo(site);
       stopTaskClock();
       return true;
     } else {

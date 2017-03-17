@@ -3336,17 +3336,6 @@ namespace insur {
     return true;
   }
 
-  void Vizard::dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries,
-					 const std::string& title, std::string units) {
-    for (std::map<std::string, SummaryTable>::iterator it = radiationSummaries.begin(); it != radiationSummaries.end(); ++it) {
-      RootWContent& myContent = myPage.addContent(title+std::string(" (") + it->first + ")", false);
-      RootWTable* comments = new RootWTable();
-      comments->setContent(0, 0, "Values in table are (average, max) per module in irradiated sensor(s) ["+units+"]");
-      myContent.addItem(comments);
-      myContent.addTable().setContent(it->second.getContent());
-    }    
-  }
-  
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
 
     //********************************//
@@ -6030,52 +6019,6 @@ namespace insur {
       ss << csv_eol;
     }
     moduleConnectionsCsv_ = ss.str();
-  }
-
-  std::string Vizard::createSensorsIrradiationCsv(const Tracker& t) {
-    class TrackerVisitor : public ConstGeometryVisitor {
-      std::stringstream output_;
-      string sectionName_;
-      int layerId_;
-      bool isOuterRadiusRod_;
-    public:
-      void preVisit() {
-        output_ << "Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W, sensorsIrradiationMean_Hb, sensorsIrradiationMax_Hb" << std::endl;
-      }
-      void visit(const Barrel& b) { sectionName_ = b.myid(); }
-      void visit(const Endcap& e) { sectionName_ = e.myid(); }
-      void visit(const Layer& l)  { layerId_ = l.myid(); }
-      void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
-      void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
-      void visit(const Module& m) {
-        output_ << sectionName_ << ", "
-		<< layerId_ << ", "
-		<< m.moduleRing() << ", "
-		<< m.moduleType() << ", "
-		<< m.dsDistance() << ", "
-		<< isOuterRadiusRod_ << ", "
-		<< std::fixed << std::setprecision(6)
-		<< m.operatingTemp() << ", "
-		<< m.biasVoltage() << ", "
-		<< m.meanWidth() << ", "
-		<< m.length() << ", "
-		<< m.sensorThickness() << ", "
-		<< m.totalSensorsVolume() << ", "
-		<< std::fixed << std::setprecision(3)
-		<< m.sensorsIrradiationPowerMean() << ", "
-		<< m.sensorsIrradiationPowerMax() << ", "
-		<< m.sensorsIrradiationMean() << ", "
-		<< m.sensorsIrradiationMax()	
-		<< std::endl;
-      }
-
-      std::string output() const { return output_.str(); }
-    };
-
-    TrackerVisitor v;
-    v.preVisit();
-    t.accept(v);
-    return v.output();
   }
 
   std::string Vizard::createAllModulesCsv(const Tracker& t, bool& withHeader) {
