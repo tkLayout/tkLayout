@@ -269,7 +269,6 @@ namespace insur {
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
-    std::string createSensorsIrradiationCsv(const Tracker& t);
     std::string createAllModulesCsv(const Tracker& t, bool& withHeader);
     std::string createBarrelModulesCsv(const Tracker& t);
     std::string createEndcapModulesCsv(const Tracker& t);
@@ -287,7 +286,6 @@ namespace insur {
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
-    void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
 
   };
 
