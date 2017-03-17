@@ -192,6 +192,9 @@ public:
   ///using Property<T, ValueHolder>::Property; // constructor inheritance not supported by GCC as of version 4.7.2
   using Property<T, ValueHolder>::operator();
   
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { Property<T, ValueHolder>::operator()(Property<T, ValueHolder>::operator()()*unit); }
+
 #define ALLOW_FORCE_SET
 #ifdef ALLOW_FORCE_SET
   void force(const T& value) { Property<T, ValueHolder>::operator()(value); } // for testing purposes only
@@ -226,6 +229,41 @@ public:
   }
 }; 
 
+//! Vector of property variables, which are read-only - property can be read-in (or computed) using data from boost property_tree, can't be (re)set further on
+template<typename T, const char Sep = ','>
+class ReadonlyPropertyVector : public Parsable {  // CUIDADO DEPRECATED
+  std::vector<T> m_values;
+  const string&  m_name;
+
+  void operator()(size_t i, const T& value) {}
+public:
+  ReadonlyPropertyVector(const string& name, PropertyMap& registrar, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) { registrar[name] = this; }
+  ReadonlyPropertyVector(const string& name, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) {}
+  ReadonlyPropertyVector(const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref("unnamed")) {}
+
+  const T& operator()(size_t i) const       { return m_values[i]; }
+  const T& operator[](size_t i) const       { return m_values[i]; }
+  size_t size() const                       { return m_values.size(); }
+
+  typename std::vector<T>::const_iterator begin() const { return m_values.begin(); }
+  typename std::vector<T>::const_iterator end()   const { return m_values.end(); }
+
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { for (size_t i=0; i<m_values.size(); i++) m_values[i] *= unit; }
+
+  bool state() const  { return !m_values.empty(); }
+  void clear()        { m_values.clear(); }
+  string name() const { return m_name; }
+
+  void fromPtree(const ptree& pt)    { fromString(pt.data()); }
+  void fromString(const string& s)   {
+
+    string seq = trim(s);
+    if (seq.front() != Sep) m_values.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
+    std::vector<T> values = split<T>(seq, string(1, Sep));
+    for (const auto& v : values) m_values.push_back(v);
+  }
+};
 
 template<typename T, const char Sep = ','>
 class MultiProperty : public T, public Parsable {

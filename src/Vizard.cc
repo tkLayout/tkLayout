@@ -1243,7 +1243,7 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string name) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string name) {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
@@ -1350,9 +1350,8 @@ namespace insur {
         diskTable->setContent(2, 0, "z");
         diskTable->setContent(3, 0, "# rings");
 	diskTable->setContent(4, 0, "# mods");
+	      nMB = SimParms::getInstance().numMinBiasEvents();
       }
-
-      void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
 
       void visit(const Barrel& b) override {
 	layerTable->setContent(0, 1 + nBarrelLayers, b.myid());
@@ -1482,7 +1481,6 @@ namespace insur {
 
     LayerDiskSummaryVisitor v;
     v.preVisit();
-    simparms.accept(v);
     tracker.accept(v);
     v.postVisit();
 
@@ -2011,10 +2009,10 @@ namespace insur {
       aCost  << std::fixed << std::setprecision(costPrecision) <<
         (*tagMapIt).second->area() * 1e-2 *          // area in cm^2
         (*tagMapIt).second->numSensors() *               // number of faces
-        simparms.calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
+        SimParms::getInstance().calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
         1e-6 *                                           // conversion CHF-> MCHF
         v.tagMapCount[(*tagMapIt).first];                // Number of modules
-      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * simparms.calcCost((*tagMapIt).second->readoutType()) * 1e-6 * v.tagMapCount[(*tagMapIt).first];
+      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * SimParms::getInstance().calcCost((*tagMapIt).second->readoutType()) * 1e-6 * v.tagMapCount[(*tagMapIt).first];
 
       // Weight
       aWeight.str("");
@@ -2658,7 +2656,7 @@ namespace insur {
 
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
-                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
+                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
 
@@ -2952,10 +2950,10 @@ namespace insur {
 
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
-    myInfo->setValue(simparms.numMinBiasEvents(), minimumBiasPrecision);
+    myInfo->setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Integrated luminosity");
-    myInfo->setValue(simparms.timeIntegratedLumi(), luminosityPrecision);
+    myInfo->setValue(SimParms::getInstance().timeIntegratedLumi(), luminosityPrecision);
     myInfo->appendValue(" fb" + superStart + "-1" + superEnd);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for material");
@@ -2964,8 +2962,8 @@ namespace insur {
     myInfo = new RootWInfo("Number of tracks used for geometry");
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", simparms.referenceTemp()));
-    myInfo->setValueSci(simparms.alphaParam(), alphaParamPrecision);
+    myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", SimParms::getInstance().referenceTemp()));
+    myInfo->setValueSci(SimParms::getInstance().alphaParam(), alphaParamPrecision);
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 
@@ -2975,8 +2973,8 @@ namespace insur {
     //myTable->setContent(2, 0, "mW/channel");
     myTable->setContent(0, 1, "Pt modules");
     myTable->setContent(0, 2, "Strip modules");
-    myTable->setContent(1, 1, simparms.calcCost(READOUT_PT), costPerUnitPrecision);
-    myTable->setContent(1, 2, simparms.calcCost(READOUT_STRIP), costPerUnitPrecision);
+    myTable->setContent(1, 1, SimParms::getInstance().calcCost(READOUT_PT), costPerUnitPrecision);
+    myTable->setContent(1, 2, SimParms::getInstance().calcCost(READOUT_STRIP), costPerUnitPrecision);
     simulationContent->addItem(myTable);
 
     RootWTable& typesTable = simulationContent->addTable();
@@ -3061,7 +3059,7 @@ namespace insur {
   }
 
 
-  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
+  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Bandwidth");
     myPage->setAddress("bandwidth.html");
     site.addPage(myPage);
@@ -3106,7 +3104,7 @@ namespace insur {
     myDescription->addText( "(Pt modules: ignored)<br/>");
     myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
     myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
-    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << simparms.numMinBiasEvents();
+    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << SimParms::getInstance().numMinBiasEvents();
     aStringStream <<" minimum bias events assumed</br>";
     myDescription->addText( aStringStream.str() );
 

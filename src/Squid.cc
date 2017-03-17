@@ -154,17 +154,15 @@ namespace insur {
       });
 
       // Read simulation parameters
-      simParms_ = new SimParms();
+      auto& simParms = SimParms::getInstance();
 
       //iter between the default irradiation files vector and add each to simParm
       for (auto singleIrradiationFile : insur::default_irradiationfiles) {
-        simParms_->addIrradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + singleIrradiationFile);
+        simParms.addIrradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + singleIrradiationFile);
       }
       //simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
-      simParms_->store(getChild(pt, "SimParms"));
-      simParms_->build();
-      a.simParms(simParms_);
-      pixelAnalyzer.simParms(simParms_);
+      simParms.store(getChild(pt, "SimParms"));
+      simParms.build();
 
       childRange = getChildRange(pt, "Support");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
@@ -572,8 +570,8 @@ namespace insur {
   bool Squid::reportGeometrySite(bool debugResolution) {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, is, site, debugResolution);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, debugResolution, "pixel");
+      v.geometrySummary(a, *tr, is, site, debugResolution);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");
       stopTaskClock();
       return true;
     } else {
@@ -589,7 +587,7 @@ namespace insur {
       a.computeTriggerFrequency(*tr);
       stopTaskClock();
       startTaskClock("Creating bandwidth and rates report");
-      v.bandwidthSummary(a, *tr, *simParms_, site);
+      v.bandwidthSummary(a, *tr, site);
       stopTaskClock();
       return true;
     } else {
@@ -703,7 +701,7 @@ namespace insur {
     } else {
       startTaskClock("Saving additional information");
       v.additionalInfoSite(getSettingsFile(),
-                           a, pixelAnalyzer, *tr, *simParms_, site);
+                           a, pixelAnalyzer, *tr, site);
       stopTaskClock();
       return true;
     }

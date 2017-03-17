@@ -115,7 +115,6 @@ namespace insur {
   private:
     //std::string g;
     Tracker* tr;
-    SimParms* simParms_;
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;

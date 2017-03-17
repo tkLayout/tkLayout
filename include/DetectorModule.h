@@ -201,11 +201,11 @@ public:
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
   virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
-  double resolutionLocalX(double phi) {
+  double resolutionLocalX(double phi) const {
     if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
     else { return calculateParameterizedResolutionLocalX(phi); }
   }
-  double resolutionLocalY(double theta) {
+  double resolutionLocalY(double theta) const {
     if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
     else { return calculateParameterizedResolutionLocalY(theta); }
   }

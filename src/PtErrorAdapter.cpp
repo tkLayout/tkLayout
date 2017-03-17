@@ -1,4 +1,5 @@
 #include "PtErrorAdapter.h"
+#include "SimParms.h"
 
 const double PtErrorAdapter::minimumPt = 0.3;
 const double PtErrorAdapter::maximumPt = 30;
@@ -65,7 +66,7 @@ double PtErrorAdapter::getTriggerFrequencyTruePerEventBetween(double myLowCut, d
   if (myLowCut<ptMinFit) myLowCut=ptMinFit;
   if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
   double r = mod_.center().Rho()/1000;
-  double ptMin = MAX(0.3 * insur::magnetic_field * r, myLowCut);
+  double ptMin = MAX(0.3 * SimParms::getInstance().magField() * r, myLowCut);
   double integral = 0.0;
   double dPt = 0.05;
   double etaphi = mod_.phiAperture()/(2.0*3.141592)*fabs(mod_.etaAperture())/6.0;	
@@ -92,7 +93,7 @@ double PtErrorAdapter::getParticleFrequencyPerEventBetween(double myLowCut, doub
   if (myLowCut<ptMinFit) myLowCut=ptMinFit;
   if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
   double r = mod_.center().Rho()/1000;
-  double ptMin = MAX(0.3 * insur::magnetic_field * r, myLowCut);
+  double ptMin = MAX(0.3 * SimParms::getInstance().magField() * r, myLowCut);
   double integral = 0.0;
   double dPt = 0.05;
   double etaphi = mod_.phiAperture()/(2.0*3.141592)*fabs(mod_.etaAperture())/6.0;	
@@ -124,7 +125,7 @@ double PtErrorAdapter::getPtThreshold(const double& myEfficiency) {
 }
 
 double PtErrorAdapter::stripsToP(double strips) const {
-  double A = 0.3 * insur::magnetic_field * mod_.center().Rho() / 1000. / 2.; // GeV
+  double A = 0.3 * SimParms::getInstance().magField() * mod_.center().Rho() / 1000. / 2.; // GeV
   double p;
   double x;
   double effective_d = mod_.effectiveDsDistance();
@@ -135,7 +136,7 @@ double PtErrorAdapter::stripsToP(double strips) const {
 }
 
 double PtErrorAdapter::pToStrips(double p) const {
-  double A = 0.3 * insur::magnetic_field * mod_.center().Rho() / 1000. / 2.; // GeV
+  double A = 0.3 * SimParms::getInstance().magField() * mod_.center().Rho() / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double strips = mod_.effectiveDsDistance() / sqrt(a-1) / mod_.outerSensor().pitch();
 
