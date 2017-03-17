@@ -615,21 +615,23 @@ namespace insur {
   }
 
   bool Squid::reportPowerSite() {
+    bool done=false;
+    startTaskClock("Computing dissipated power and creating report");
     if (tr) {
-      startTaskClock("Computing dissipated power");
       ReportIrradiation repIrr(*tr, *simParms_);
       repIrr.analyze();
-      if (px) {
-	ReportIrradiation repIrrPx(*px, *simParms_);
-	repIrrPx.analyze();
-      }
-      stopTaskClock();
-      startTaskClock("Creating power report");
       repIrr.visualizeTo(site);
-      if (px) repIrr.visualizeTo(site);
-      stopTaskClock();
-      return true;
-    } else {
+      done=true;
+    }
+    if (px) {
+      ReportIrradiation repIrrPx(*px, *simParms_);
+      repIrrPx.analyze();
+      repIrrPx.visualizeTo(site);
+      done=true;
+    }
+    stopTaskClock();
+    if (done) return true;
+    else {
       logERROR(err_no_tracker);
       return false;
     }
