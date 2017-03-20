@@ -461,8 +461,8 @@ namespace insur {
     std::string name_hadTrackRanger = std::string("hadTrackRanger") + name ;
 
 
-    // 1D Overview
-    myContent = new RootWContent("1D Overview (Full volume)");
+    // Overview
+    myContent = new RootWContent("Overview (Full volume)");
     myPage->addContent(myContent);
 
     ostringstream label;
@@ -523,6 +523,11 @@ namespace insur {
     myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
+
+    // Bill of materials ##########3
+    RootWTextFile* myTextFile = new RootWTextFile(Form("materials_%s.csv", name.c_str()), "Bill of materials");
+    myTextFile->addText(a.getBillOfMaterials());
+    myContent->addItem(myTextFile);
 
     // Material summary table
     RootWTable* materialSummaryTable = new RootWTable();
@@ -2998,11 +3003,6 @@ namespace insur {
     // DetId sensors list with associated geometry info
     myTextFile = new RootWTextFile("DetId_sensors_list.csv", "DetId sensors list with associated geometry info");
     myTextFile->addText(createSensorsDetIdListCsv());
-    summaryContent->addItem(myTextFile);
-
-    // Bill of materials
-    myTextFile = new RootWTextFile("materials.csv", "Bill of materials");
-    myTextFile->addText(analyzer.getBillOfMaterials());
     summaryContent->addItem(myTextFile);
 
     createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
