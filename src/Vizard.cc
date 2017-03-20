@@ -544,21 +544,15 @@ namespace insur {
           // First row: the radiation length
           averageValue = averageHistogramValues(*cr, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
           materialSummaryTable->setContent(1,j, averageValue ,4);
-          addSummaryLabelElement("radiation length ("+geom_name_eta_regions[j]+") for "+name);
-          addSummaryElement(averageValue);
 
           // Third row: the photon conversion probability
           averageValue *= -7./9.;
           averageValue = 1 - exp(averageValue);
           materialSummaryTable->setContent(3,j, averageValue ,4);
-          addSummaryLabelElement("photon conversion probability ("+geom_name_eta_regions[j]+") for "+name);
-          addSummaryElement(averageValue);
 
           // Second row: the interaction length
           averageValue = averageHistogramValues(*ci, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
           materialSummaryTable->setContent(2,j, averageValue ,4);
-          addSummaryLabelElement("interaction length ("+geom_name_eta_regions[j]+") for "+name);
-          addSummaryElement(averageValue);
         }
       }
 
@@ -1078,8 +1072,6 @@ namespace insur {
           myValue = 100 * (1 - (*it));
           summaryTable.setContent(i+delta,j, myValue,4);
           summaryTable.setContent(0,j, geom_name_eta_regions[j]);
-          addSummaryLabelElement(fractionTitles[i]+"("+geom_name_eta_regions[j]+") for "+name);
-          addSummaryElement(myValue);
           j++;
         }
       } else delta--;
@@ -1189,40 +1181,6 @@ namespace insur {
     return avg;
   }
 
-
-  std::string Vizard::getSummaryString() {
-    return summaryCsv_;
-  }
-
-  std::string Vizard::getSummaryLabelString() {
-    return summaryCsvLabels_;
-  }
-
-  void Vizard::setSummaryString(std::string myString) {
-    summaryCsv_ = myString;
-  }
-
-  void Vizard::setSummaryLabelString(std::string myString) {
-    summaryCsvLabels_ = myString;
-  }
-
-  void Vizard::addSummaryElement(std::string element, bool first /*= false*/ ) {
-    if (!first) summaryCsv_+=csv_separator;
-    summaryCsv_+=element;
-  }
-
-  void Vizard::addSummaryLabelElement(std::string element, bool first /*= false*/ ) {
-    if (!first) summaryCsvLabels_+=csv_separator;
-    summaryCsvLabels_+=element;
-  }
-
-  void Vizard::addSummaryElement(double element, bool first /*= false*/ ) {
-    std::ostringstream myElement;
-    std::string myString;
-    myElement.str("");
-    myElement << element;
-    addSummaryElement(myElement.str(), first);
-  }
 
   /**
    * This function draws the profile of hits obtained by the analysis of the geometry
@@ -2031,30 +1989,6 @@ namespace insur {
       // moduleTable->setContent(areaRow, iType, anArea.str());
 
     }
-
-    // Summary in short
-    setSummaryString(tracker.myid());
-    setSummaryLabelString("Name");
-    addSummaryElement(v.totArea/1e6);
-    addSummaryElement(v.totCountMod);
-    addSummaryElement(v.totCountSens);
-    addSummaryElement(v.totChannel / 1e6);
-    addSummaryElement(totalPower);
-    addSummaryElement(totalCost);
-    addSummaryElement(moduleTotalWeight/1.e3);
-    addSummaryElement(inactiveSurfacesTotalMass/1.e3);
-    addSummaryElement((moduleTotalWeight+inactiveSurfacesTotalMass)/1.e3);
-
-    addSummaryLabelElement("Area (total) mq");
-    addSummaryLabelElement("Modules");
-    addSummaryLabelElement("Sensors");
-    addSummaryLabelElement("Standard channels (M)");
-    addSummaryLabelElement("pt channels (M)");
-    addSummaryLabelElement("Power (kW)");
-    addSummaryLabelElement("Cost (MCHF)");
-    addSummaryLabelElement("Modules weight (kg)");
-    addSummaryLabelElement("Services weight (kg)");
-    addSummaryLabelElement("Total weight (kg)");
 
     // Score totals
     ++iType;
@@ -2989,12 +2923,6 @@ namespace insur {
 
     RootWTextFile* myTextFile;
 
-    // Summary of layout and performance
-    myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
-    myTextFile->addText(getSummaryLabelString()+"\n");
-    myTextFile->addText(getSummaryString());
-    summaryContent->addItem(myTextFile);
-
     // DetId modules list with associated geometry info
     myTextFile = new RootWTextFile("DetId_modules_list.csv", "DetId modules list with associated geometry info");
     myTextFile->addText(createModulesDetIdListCsv());
@@ -3686,10 +3614,6 @@ namespace insur {
             myLabel << myIndex.name
               << std::dec << std::fixed << std::setprecision(0)
               << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
-            addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
-            addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
-            addSummaryElement(averagesReal[j]);
-            addSummaryElement(averagesIdeal[j]);
           }
         }
       }

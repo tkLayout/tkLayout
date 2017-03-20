@@ -179,8 +179,6 @@ namespace insur {
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
-    std::string getSummaryString();
-    std::string getSummaryLabelString();
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
       bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
@@ -251,19 +249,8 @@ namespace insur {
                            int graphType,
                            const string& tag,
                            std::map<graphIndex, TGraph*>& myPlotMap);
-    std::string summaryCsv_;
-    std::string summaryCsvLabels_;
     std::string triggerSectorMapCsv_;
     std::string moduleConnectionsCsv_;
-    void setSummaryString(std::string);
-    void addSummaryElement(std::string element, bool first = false);
-    void setSummaryLabelString(std::string);
-    void addSummaryLabelElement(std::string element, bool first = false);
-    void addSummaryElement(double element, bool first = false);
-
-    void addOccupancyElement(double element);
-    void addOccupancyElement(std::string element);
-    void addOccupancyEOL();
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
