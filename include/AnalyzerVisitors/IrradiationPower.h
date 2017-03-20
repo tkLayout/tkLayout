@@ -18,6 +18,7 @@ typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
 // bool isBarrel, bool isOuterRadiusRod, std::string barrel/endcap name, int layer/disk number, int ring number
 
 class IrradiationPowerVisitor : public GeometryVisitor {
+ private:
   double timeIntegratedLumi_;
   double referenceTemp_;
   double operatingTemp_;
@@ -35,10 +36,13 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
   std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
   std::map<ModuleRef, int> modulesCounter_;
+  std::map<std::string, std::vector<double> > mapTypeToIrradiation_;
 
-public:
+ public:
   MultiSummaryTable sensorsIrradiationPowerSummary;
   MultiSummaryTable sensorsIrradiationSummary;
+  SummaryTable sensorsIrradiationPerType;
+  
   void preVisit();
   void visit(SimParms& sp);
   void visit(Barrel& b);

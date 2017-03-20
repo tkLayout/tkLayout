@@ -323,6 +323,9 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
   void resetHits() { numHits_ = 0; }
+
+  std::string summaryType() const;
+  std::string summaryFullType() const;
 };
 
 

@@ -425,6 +425,29 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   return std::make_pair(gc, ht);
 };
 
+std::string DetectorModule::summaryType() const  {
+  std::string result;
+  result+=moduleType();
+  if (dsDistance()!=0) result+=" "+any2str(dsDistance(), 1)+" mm";
+  return result;
+};
+
+std::string DetectorModule::summaryFullType() const  {
+  std::string result;
+  if (dsDistance()!=0) result=any2str(dsDistance(), 1)+" mm ";
+  result+=moduleType();
+  if (subdet()==BARREL) {
+    if (isTilted()) result += " Tilted";
+    else result += " Flat";
+    result += " Barrel";
+  } else if (subdet()==ENDCAP) {
+    result += " Endcap";
+  } else {
+    std::cerr << "HELP! I am a bit lost here..." << std::endl;
+  }
+  return result;
+};
+
 //BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
 //setup();
                                     // this was already commented

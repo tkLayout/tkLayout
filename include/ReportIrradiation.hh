@@ -19,9 +19,9 @@ class Tracker;
 
 class ReportIrradiation : public Report, private insur::AnalyzerTools {
 private:
-  IrradiationPowerVisitor irradiation_;
   std::map<std::string, SummaryTable> powerSummaries;
   std::map<std::string, SummaryTable> irradiationSummaries;
+  SummaryTable irradiationSummaryPerType;
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();
   void computeIrradiationPowerConsumption();

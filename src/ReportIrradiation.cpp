@@ -20,6 +20,7 @@ void ReportIrradiation::computeIrradiationPowerConsumption() {
 
   powerSummaries = irradiation_.sensorsIrradiationPowerSummary;
   irradiationSummaries = irradiation_.sensorsIrradiationSummary;
+  irradiationSummaryPerType = irradiation_.sensorsIrradiationPerType;
 }
 
 std::string ReportIrradiation::createSensorsIrradiationCsv() {
@@ -88,6 +89,10 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   RootWPage& myPage = site.addPage(pageName);
   myPage.setAddress(pageAddress);
 
+  RootWContent& summaryContent = myPage.addContent("Irradiation summary per module type");
+  RootWTable& summaryTable = summaryContent.addTable();
+  summaryTable.setContent(irradiationSummaryPerType.getContent());
+  
   dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
   dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
 
@@ -102,7 +107,6 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   struct TotalPower {
     double operator()(const Module& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
   };
-
 
   PlotDrawer<YZ, SensorsIrradiationPower, Average> yzSensorsPowerDrawer(0, 0);
   PlotDrawer<YZ, TotalPower, Average> yzTotalPowerDrawer(0, 0);
@@ -128,7 +132,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
   totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
   totalPowerImage.setName("totalPowerMap");
-
+  
   // Add csv file with sensors irradiation handful info
   RootWContent* filesContent = new RootWContent("power csv files", false);
   myPage.addContent(filesContent);
