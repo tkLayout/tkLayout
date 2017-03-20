@@ -3341,7 +3341,7 @@ namespace insur {
     for (std::map<std::string, SummaryTable>::iterator it = radiationSummaries.begin(); it != radiationSummaries.end(); ++it) {
       RootWContent& myContent = myPage.addContent(title+std::string(" (") + it->first + ")", false);
       RootWTable* comments = new RootWTable();
-      comments->setContent(0, 0, "Values in table are (average, max) per module in irradiated sensor(s) ["+units+"]");
+      comments->setContent(0, 0, "Values in table are average per module in irradiated sensor(s) ["+units+"]");
       myContent.addItem(comments);
       myContent.addTable().setContent(it->second.getContent());
     }    
