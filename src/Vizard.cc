@@ -3005,16 +3005,6 @@ namespace insur {
     myTextFile->addText(createSensorsDetIdListCsv());
     summaryContent->addItem(myTextFile);
 
-    createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
-    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger Towers to Modules connections");
-    myTextFile->addText(triggerSectorMapCsv_);
-    summaryContent->addItem(myTextFile);
-
-    createModuleConnectionsCsv(analyzer.getModuleConnectionMap());
-    myTextFile = new RootWTextFile("module_connections.csv", "Modules to Trigger Towers connections");
-    myTextFile->addText(moduleConnectionsCsv_);
-    summaryContent->addItem(myTextFile);
-
     RootWGraphViz* myGv = new RootWGraphViz("include_graph.gv", "Include structure");
     myGv->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myGv);
@@ -3180,6 +3170,7 @@ namespace insur {
 
   bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Trigger CPUs");
+    RootWTextFile* myTextFile;
     myPage->setAddress("trigger_cpus.html");
     site.addPage(myPage);
 
@@ -3187,6 +3178,17 @@ namespace insur {
     SummaryTable& processorCommonSummary = analyzer.getProcessorCommonConnectionSummary();
     //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
+    // Connections between modules and trigger towers
+    RootWContent& summaryContent = myPage->addContent("Summary tables", false);
+    createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
+    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger Towers to Modules connections");
+    myTextFile->addText(triggerSectorMapCsv_);
+    summaryContent.addItem(myTextFile);
+    createModuleConnectionsCsv(analyzer.getModuleConnectionMap());
+    myTextFile = new RootWTextFile("module_connections.csv", "Modules to Trigger Towers connections");
+    myTextFile->addText(moduleConnectionsCsv_);
+    summaryContent.addItem(myTextFile);
+    
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
     RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
     TCanvas sharedConnCanvas;
