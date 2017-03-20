@@ -253,7 +253,6 @@ namespace insur {
                            std::map<graphIndex, TGraph*>& myPlotMap);
     std::string summaryCsv_;
     std::string summaryCsvLabels_;
-    std::string occupancyCsv_;
     std::string triggerSectorMapCsv_;
     std::string moduleConnectionsCsv_;
     void setSummaryString(std::string);
@@ -262,7 +261,6 @@ namespace insur {
     void addSummaryLabelElement(std::string element, bool first = false);
     void addSummaryElement(double element, bool first = false);
 
-    void setOccupancyString(std::string newString) { occupancyCsv_ = newString; };
     void addOccupancyElement(double element);
     void addOccupancyElement(std::string element);
     void addOccupancyEOL();

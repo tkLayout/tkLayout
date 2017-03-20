@@ -1219,23 +1219,6 @@ namespace insur {
     addSummaryElement(myElement.str(), first);
   }
 
-  void Vizard::addOccupancyElement(std::string element) {
-    // 2 is a magic adjustment factoroccupancyCsv_ += element;
-    occupancyCsv_ += csv_separator;
-  }
-
-  void Vizard::addOccupancyElement(double element) {
-    std::ostringstream myElement;
-    std::string myString;
-    myElement.str("");
-    myElement << element;
-    addOccupancyElement(myElement.str());
-  }
-
-  void Vizard::addOccupancyEOL() {
-    occupancyCsv_ += "\n";
-  }
-
   /**
    * This function draws the profile of hits obtained by the analysis of the geometry
    * together with the summaries in tables with the rootweb library. It also actually does a couple of
@@ -1780,16 +1763,6 @@ namespace insur {
     int hiPitch;
 
 
-    setOccupancyString("");
-
-    addOccupancyElement(tracker.myid());
-    addOccupancyElement("");
-    addOccupancyElement("");
-    addOccupancyEOL();
-    addOccupancyElement("radius");
-    addOccupancyElement("occupancy [%]");
-    addOccupancyElement("rphi resolution [um]");
-
     // Summary cycle: prepares the rows cell by cell
     int iType=0;
 
@@ -1830,11 +1803,6 @@ namespace insur {
       aHitOccupancy.str("");
       aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  v.tagMapMaxStripOccupancy[(*tagMapIt).first]*100<< "/" <<v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first] ; // Percentage
       aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  v.tagMapMaxHitOccupancy[(*tagMapIt).first]*100<< "/" <<v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first] ; // Percentage
-
-      addOccupancyEOL();
-      addOccupancyElement((aModule->minR() + aModule->maxR())/2);
-      addOccupancyElement(v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
-      addOccupancyElement(v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
 
       // Formulae used for mean and RMSE in the parametric case :
       // mean = S / N
@@ -1921,7 +1889,6 @@ namespace insur {
       aPitchPair.str("");
       loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
       hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
-      addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {
         aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
@@ -3031,11 +2998,6 @@ namespace insur {
     // DetId sensors list with associated geometry info
     myTextFile = new RootWTextFile("DetId_sensors_list.csv", "DetId sensors list with associated geometry info");
     myTextFile->addText(createSensorsDetIdListCsv());
-    summaryContent->addItem(myTextFile);
-
-    // Occupancy vs. radius
-    myTextFile = new RootWTextFile("occupancy.csv", "Occupancy vs. radius");
-    myTextFile->addText(occupancyCsv_);
     summaryContent->addItem(myTextFile);
 
     // Bill of materials
