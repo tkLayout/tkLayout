@@ -82,8 +82,6 @@ public:
   void accept(GeometryVisitor& v) { v.visit(*this); }
   void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
 
-  double calcCost(int) { return 0.; } // CUIDADO FIX THIS does nothing
-
   double particleCurvatureR(double pt) const { return pt/(0.3*insur::magnetic_field) * 1e3; }
 };
 

@@ -1623,7 +1623,6 @@ namespace insur {
     //*                              *//
     //********************************//
     double totalPower=0;
-    double totalCost=0;
     double moduleTotalWeight=0;
 
     std::ostringstream aName;
@@ -1652,7 +1651,6 @@ namespace insur {
     std::ostringstream aSensorPower;
     std::ostringstream aSensorPowerPerModuleAvg;
     std::ostringstream aSensorPowerPerModuleMax;
-    std::ostringstream aCost;
     std::ostringstream aWeight;
     int barrelCount=0;
     int endcapCount=0;
@@ -1686,10 +1684,9 @@ namespace insur {
     static const int sensorPowerPerModuleMaxRow = 23;
     static const int powerRow = 24;
     static const int sensorPowerRow = 25;
-    static const int costRow = 26;
-    static const int moduleWeightRow = 27;
-    static const int inactiveWeightRow = 28;
-    static const int totalWeightRow = 29;
+    static const int moduleWeightRow = 26;
+    static const int inactiveWeightRow = 27;
+    static const int totalWeightRow = 28;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
@@ -1717,7 +1714,6 @@ namespace insur {
     moduleTable->setContent(powerPerModuleRow, 0, "FE Power/mod (mW)");
     moduleTable->setContent(sensorPowerPerModuleAvgRow, 0, "Agerage sensor power/mod (mW)");
     moduleTable->setContent(sensorPowerPerModuleMaxRow, 0, "Max sensor power/mod (mW)");
-    moduleTable->setContent(costRow, 0, "Cost (MCHF)");
     moduleTable->setContent(moduleWeightRow, 0, "Weight (av, g)");
     moduleTable->setContent(inactiveWeightRow, 0, "Service Weight");
     moduleTable->setContent(totalWeightRow, 0, "Total Weight");
@@ -1936,16 +1932,6 @@ namespace insur {
         aSensorPowerPerModuleMax << "n/a";
       }
 
-      // Cost
-      aCost.str("");
-      aCost  << std::fixed << std::setprecision(costPrecision) <<
-        (*tagMapIt).second->area() * 1e-2 *          // area in cm^2
-        (*tagMapIt).second->numSensors() *               // number of faces
-        simparms.calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
-        1e-6 *                                           // conversion CHF-> MCHF
-        v.tagMapCount[(*tagMapIt).first];                // Number of modules
-      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * simparms.calcCost((*tagMapIt).second->readoutType()) * 1e-6 * v.tagMapCount[(*tagMapIt).first];
-
       // Weight
       aWeight.str("");
       TagMaker tmak(*aModule);
@@ -1979,7 +1965,6 @@ namespace insur {
       moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
       moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
       moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
-      moduleTable->setContent(costRow, iType, aCost.str());
       moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
 
       moduleTable->setContent(thicknessRow, iType, aThickness.str());
@@ -2032,20 +2017,17 @@ namespace insur {
     aSensorPower.str("");
     aSensorPowerPerModuleAvg.str("");
     aSensorPowerPerModuleMax.str("");
-    aCost.str("");
     aPower << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-6;
     if (v.totalSensorPower > 1e-6) { // non-zero check for double
       aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << v.totalSensorPower * 1e-3;
     } else {
       aSensorPower << "n/a";
     }
-    aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
     moduleTable->setContent(powerRow, iType, aPower.str());
     moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
     moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
     moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
     moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
-    moduleTable->setContent(costRow, iType, aCost.str());
     aWeight.str("");
     if (moduleTotalWeight > 1e-6) { // non-zero check for double
       aWeight << std::fixed << std::setprecision(weightPrecision) << moduleTotalWeight/1.e3 << " (kg)";
@@ -2877,12 +2859,9 @@ namespace insur {
 
     // TODO: make an object that handles this properly:
     myTable = new RootWTable();
-    myTable->setContent(1, 0, "CHF/cm"+superStart+"2"+superEnd);
     //myTable->setContent(2, 0, "mW/channel");
     myTable->setContent(0, 1, "Pt modules");
     myTable->setContent(0, 2, "Strip modules");
-    myTable->setContent(1, 1, simparms.calcCost(READOUT_PT), costPerUnitPrecision);
-    myTable->setContent(1, 2, simparms.calcCost(READOUT_STRIP), costPerUnitPrecision);
     simulationContent->addItem(myTable);
 
     RootWTable& typesTable = simulationContent->addTable();
