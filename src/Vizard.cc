@@ -435,6 +435,8 @@ namespace insur {
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
   void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+    materialBudgets_.push_back(&materialBudget);
+    
     // Initialize the page with the material budget
     RootWPage* myPage;
     RootWContent* myContent;
@@ -2465,9 +2467,10 @@ namespace insur {
     return true;
   }
 
+  static int nLayoutCanvases = 0;
+  
   TCanvas* Vizard::drawFullLayoutRZ() {
     TCanvas* result = nullptr;
-    std::string aClass;
     PlotDrawer<YZ, Type> yzDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -2477,7 +2480,7 @@ namespace insur {
 
     int rzCanvasX = vis_max_canvas_sizeX;
     int rzCanvasY = vis_min_canvas_sizeY;
-    result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
+    result = new TCanvas(Form("FullRZCanvas%d", nLayoutCanvases++), "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
     yzDrawer.drawModules<ContourStyle>(*result);
@@ -2485,9 +2488,33 @@ namespace insur {
     return result;
   }
 
+  TCanvas* Vizard::drawFullLayoutServicesRZ() {
+    TCanvas* result = drawFullLayoutRZ();
+    result->cd();
+    for (auto& matBud : materialBudgets_ ) {
+      std::vector<InactiveElement> allServices = matBud->getAllServices();
+      for (auto& iter : allServices) {
+	double z1 = iter.getZOffset();
+	double z2 = iter.getZOffset()+iter.getZLength();
+	double r1 = iter.getInnerRadius();
+	double r2 = iter.getInnerRadius()+iter.getRWidth();
+	if ((z1>=0)||(z2>0)) {
+	  TBox* myBox = new TBox(z1, r1, z2, r2);
+	  myBox->SetLineColor(kGray);
+	  myBox->SetFillColor(kGray);
+	  myBox->SetFillStyle(1);
+	  myBox->SetLineStyle(1);
+	  myBox->Draw("l");
+	}
+      }
+    }
+    
+    return result;
+  }
+
+  
   TCanvas* Vizard::drawFullLayoutBarrelXY() {
     TCanvas* result = nullptr;
-    std::string aClass;
     PlotDrawer<XY, Type> xyDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -2734,22 +2761,30 @@ namespace insur {
 
     // Detector full layout
     TCanvas* aLayout = drawFullLayoutRZ();
+    TCanvas* aLayoutServices = drawFullLayoutServicesRZ();
     TCanvas* aLayoutXY = drawFullLayoutBarrelXY();
-    if (aLayout||aLayoutXY) fullLayoutContent = new RootWContent("Full layout", true);
-    if (aLayout) {
+    if (aLayout||aLayoutXY) {
       fullLayoutContent = new RootWContent("Full layout Geometry", true);
-      RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
-      anImage->setComment("RZ position of the modules (full layout)");
-      anImage->setName("fullLayout");
-      fullLayoutContent->addItem(anImage);
+      myPage->addContent(fullLayoutContent);
+      if (aLayout) {
+	RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
+	anImage->setComment("RZ position of the modules (full layout)");
+	anImage->setName("fullLayout");
+	fullLayoutContent->addItem(anImage);
+      }
+      if (aLayoutXY) {
+	RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
+	anImage->setComment("XY position of the barrel modules (full layout)");
+	anImage->setName("fullLayoutBarrelXY");
+	fullLayoutContent->addItem(anImage);
+      }
+      if (aLayoutServices) {
+	RootWImage* anImage = new RootWImage(aLayoutServices, aLayoutServices->GetWindowWidth(), aLayoutServices->GetWindowHeight() );
+	anImage->setComment("RZ position of the modules (full layout with services)");
+	anImage->setName("fullLayout");
+	fullLayoutContent->addItem(anImage);
+      }
     }
-    if (aLayoutXY) {
-      RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
-      anImage->setComment("XY position of the barrel modules (full layout)");
-      anImage->setName("fullLayoutBarrelXY");
-      fullLayoutContent->addItem(anImage);
-    }
-    if (aLayout||aLayoutXY) myPage->addContent(fullLayoutContent);
 
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
@@ -6026,23 +6061,12 @@ namespace insur {
     myEllipse->Draw();
   }
 
-
   void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
 
     RootWContent& myContent = myPage.addContent("Service details");
-
-    auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
-    auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();
-    auto& supports = materialBudget.getInactiveSurfaces().getSupports();
-
-    // We put all services inside the same container
-    std::vector<InactiveElement> allServices;
-    allServices.reserve( barrelServices.size() + endcapServices.size() + supports.size() ); // preallocate memory
-    allServices.insert( allServices.end(), barrelServices.begin(), barrelServices.end() );
-    allServices.insert( allServices.end(), endcapServices.begin(), endcapServices.end() );
-    allServices.insert( allServices.end(), supports.begin(), supports.end() );
 
     // Counting services with an ad-hoc index
     int serviceId = 0;

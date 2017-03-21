@@ -267,7 +267,9 @@ namespace insur {
 
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
+    std::vector<MaterialBudget*> materialBudgets_;
     TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutServicesRZ();
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
