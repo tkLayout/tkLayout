@@ -2857,38 +2857,6 @@ namespace insur {
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
 
-    // TODO: make an object that handles this properly:
-    myTable = new RootWTable();
-    //myTable->setContent(2, 0, "mW/channel");
-    myTable->setContent(0, 1, "Pt modules");
-    myTable->setContent(0, 2, "Strip modules");
-    simulationContent->addItem(myTable);
-
-    RootWTable& typesTable = simulationContent->addTable();
-    typesTable.setContent(1,0,"mW / channel [chip]");
-    typesTable.setContent(2,0,"mW / channel [opto]");
-    typesTable.setContent(3,0,"mW / channel [total]");
-    typesTable.setContent(4,0,"mW / module [chip]");
-    typesTable.setContent(5,0,"mW / module [opto]");
-    typesTable.setContent(6,0,"mW / module [total]");
-    int iType=1;
-    struct ModuleTypeVisitor : public ConstGeometryVisitor {
-      std::map<std::string, const Module*> typeMap;
-      void visit(const Module& m) { if (!typeMap.count(m.moduleType())) typeMap[m.moduleType()] = &m; }
-    };
-    ModuleTypeVisitor v;
-    tracker.accept(v);
-    for (auto it = v.typeMap.begin(); it != v.typeMap.end(); ++it) {
-      typesTable.setContent(0,iType, it->first);
-      typesTable.setContent(1,iType,it->second->powerStripChip(),2);
-      typesTable.setContent(2,iType,it->second->powerStripOptical(),2);
-      typesTable.setContent(3,iType,it->second->totalPowerStrip(), 2);
-      typesTable.setContent(4,iType,it->second->powerModuleChip(),2);
-      typesTable.setContent(5,iType,it->second->powerModuleOptical(),2);
-      typesTable.setContent(6,iType,it->second->totalPowerModule(), 2);
-      iType++;
-    }
-
     //********************************//
     //*                              *//
     //*  Summary files               *//

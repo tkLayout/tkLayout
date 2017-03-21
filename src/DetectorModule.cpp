@@ -354,8 +354,14 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 }
 
 
-//double DetectorModule::calculateAlphaAndBeta(double hitRho, double trackR) const {
-  //}
+double DetectorModule::totalPower() const {
+  double result = powerPerModule();
+  for (const auto& sen : sensors()) {
+    result += sen.powerPerChannel() * sen.numChannels();
+  }
+  return result;
+}
+
 
 double DetectorModule::stripOccupancyPerEventBarrel() const {
   double rho = center().Rho()/10.;

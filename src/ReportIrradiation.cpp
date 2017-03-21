@@ -3,6 +3,7 @@
 
 void ReportIrradiation::analyze() {
   computeIrradiationPowerConsumption();
+  computeChipPowerConsumptionTable();
   preparePowerHistograms();
 }
 
@@ -21,6 +22,37 @@ void ReportIrradiation::computeIrradiationPowerConsumption() {
   powerSummaries = irradiation_.sensorsIrradiationPowerSummary;
   irradiationSummaries = irradiation_.sensorsIrradiationSummary;
   irradiationSummaryPerType = irradiation_.sensorsIrradiationPerType;
+}
+
+void ReportIrradiation::computeChipPowerConsumptionTable() {
+  int iType=1;
+  struct ModuleTypeVisitor : public ConstGeometryVisitor {
+    std::map<std::string, std::vector<std::string> > typeMap;
+    void visit(const Module& m) {
+      if (!typeMap.count(m.moduleType())) {
+	std::vector<std::string>& displayValues = typeMap[m.moduleType()];
+	displayValues.push_back(any2str(m.totalPower(), 0));
+	displayValues.push_back(any2str(m.powerPerModule(), 0));
+	for (const auto& sen : m.sensors()) {
+	  displayValues.push_back(any2str(sen.powerPerChannel(), 0));	  
+	}
+      }
+    }
+  };
+  ModuleTypeVisitor v;
+  tracker.accept(v);
+  for (auto it = v.typeMap.begin(); it != v.typeMap.end(); ++it) {
+    chipPowerPerType.setCell(0, iType,it->first);
+    int j=1;
+    for (auto& itPowerValue : it->second) {
+      if (j==1) chipPowerPerType.setCell(j, 0, "Totap power [mW]");
+      else if (j==2) chipPowerPerType.setCell(j, 0, "Power per module [mW]");
+      else chipPowerPerType.setCell(j, 0, Form("Power per channel in sensor %d [mW]", j-2));
+      chipPowerPerType.setCell(j, iType, itPowerValue);
+      j++;
+    }
+    iType++;
+  }
 }
 
 std::string ReportIrradiation::createSensorsIrradiationCsv() {
@@ -89,9 +121,15 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   RootWPage& myPage = site.addPage(pageName);
   myPage.setAddress(pageAddress);
 
+  // Irradiation on each module type (fine grained)
   RootWContent& summaryContent = myPage.addContent("Irradiation summary per module type");
   RootWTable& summaryTable = summaryContent.addTable();
   summaryTable.setContent(irradiationSummaryPerType.getContent());
+
+  // Power consumption per module tpye (coarse grained)
+  RootWContent& chipContent = myPage.addContent("Chip power consumption per module type", false);
+  RootWTable& typesTable = chipContent.addTable();
+  typesTable.setContent(chipPowerPerType.getContent());
   
   dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
   dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);

@@ -22,9 +22,11 @@ private:
   std::map<std::string, SummaryTable> powerSummaries;
   std::map<std::string, SummaryTable> irradiationSummaries;
   SummaryTable irradiationSummaryPerType;
+  SummaryTable chipPowerPerType;
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();
   void computeIrradiationPowerConsumption();
+  void computeChipPowerConsumptionTable();
   void preparePowerHistograms();
   TH2D sensorsIrradiationPowerMap;
   TH2D totalPowerConsumptionMap;

@@ -35,7 +35,8 @@ public:
   ReadonlyProperty<SensorType, Default> type;
   ReadonlyProperty<double, Computable> minR, maxR;
   ReadonlyProperty<double, Computable> minZ, maxZ;
-
+  ReadonlyProperty<double, AutoDefault> powerPerChannel;
+  
  Sensor() :
   numStripsAcross("numStripsAcross", parsedOnly()),
     pitchEstimate("pitchEstimate", parsedOnly()),
@@ -44,7 +45,8 @@ public:
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
     sensorThickness("sensorThickness", parsedAndChecked()),
-    type("sensorType", parsedOnly(), SensorType::None)
+    type("sensorType", parsedOnly(), SensorType::None),
+    powerPerChannel("powerPerChannel", parsedOnly())
       {}
 
   void parent(const DetectorModule* m) { parent_ = m; }
