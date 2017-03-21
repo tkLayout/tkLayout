@@ -93,6 +93,16 @@ $(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
 $(LIBDIR)/global_funcs.o: $(SRCDIR)/global_funcs.cpp $(INCDIR)/global_funcs.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/global_funcs.o $(SRCDIR)/global_funcs.cpp
 
+$(LIBDIR)/TrackNew.o: $(SRCDIR)/TrackNew.cc $(INCDIR)/TrackNew.h
+	@echo "Building target TrackNew.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackNew.o $(SRCDIR)/TrackNew.cc 
+	@echo "Built target TrackNew.o"
+
+$(LIBDIR)/HitNew.o: $(SRCDIR)/HitNew.cc $(INCDIR)/HitNew.h
+	@echo "Building target HitNew.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/HitNew.o $(SRCDIR)/HitNew.cc 
+	@echo "Built target HitNew.o"
+
 $(LIBDIR)/Property.o: $(SRCDIR)/Property.cpp $(INCDIR)/Property.h
 	@echo "Building target Property.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Property.o $(SRCDIR)/Property.cpp 
@@ -438,7 +448,7 @@ $(BINDIR)/diskplace: $(SRCDIR)/diskPlace.cpp
 	$(COMP) $(SRCDIR)/diskPlace.cpp -lm -o $(BINDIR)/diskplace
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
-	$(LIBDIR)/Property.o \
+	$(LIBDIR)/Property.o $(LIBDIR)/TrackNew.o $(LIBDIR)/HitNew.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
@@ -455,7 +465,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	#
 	# And compile the executable by linking the revision too
 	$(LINK)	$(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
-	$(LIBDIR)/Property.o \
+	$(LIBDIR)/Property.o $(LIBDIR)/TrackNew.o $(LIBDIR)/HitNew.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \

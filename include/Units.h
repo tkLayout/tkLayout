@@ -14,6 +14,8 @@ namespace Units {
   static const float GeV = 1.E3;
   static const float TeV = 1.E6;
 
+  static const float T   = 1.0;
+
   static const float mm  = 1.0;
   static const float cm  = 1.E1;
   static const float m   = 1.E3;
@@ -29,6 +31,8 @@ namespace Units {
   static const float mm3 = mm*mm*mm;
   static const float cm3 = cm*cm*cm;
   static const float m3  = m*m*m;
+
+  static const float s   = 1.0;
 
   static const float mW   = 1.E-3;
   static const float kW   = 1.E3;

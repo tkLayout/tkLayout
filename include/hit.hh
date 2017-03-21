@@ -161,21 +161,23 @@ protected:
   double cotgTheta_, eta_; // calculated from theta and then cached
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
-  TMatrixTSym<double> correlations_;
-  TMatrixT<double> covariances_;
-  TMatrixTSym<double> correlationsRZ_;
-  TMatrixT<double> covariancesRZ_;
-  double deltarho_;
-  double deltaphi_;
-  double deltad_;
-  double deltaCtgTheta_;
-  double deltaZ0_;
-  double deltaP_;
+// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
+//  TMatrixTSym<double> correlations_;
+//  TMatrixT<double> covariances_;
+//  TMatrixTSym<double> correlationsRZ_;
+//  TMatrixT<double> covariancesRZ_;
+//  double deltarho_;
+//  double deltaphi_;
+//  double deltad_;
+//  double deltaCtgTheta_;
+//  double deltaZ0_;
+//  double deltaP_;
   void computeLocalResolution();
-  void computeCorrelationMatrixRZ();
-  void computeCovarianceMatrixRZ();
-  void computeCorrelationMatrix();
-  void computeCovarianceMatrix();
+// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
+//  void computeCorrelationMatrixRZ();
+//  void computeCovarianceMatrixRZ();
+//  void computeCorrelationMatrix();
+//  void computeCovarianceMatrix();
   
   std::set<std::string> tags_;
   double transverseMomentum_;
@@ -193,21 +195,23 @@ public:
   double getCotgTheta() const { return cotgTheta_; } // ditto here
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
-  TMatrixTSym<double>& getCorrelations() { return correlations_; }
-  TMatrixT<double>& getCovariances() { return covariances_; }
-  const double& getDeltaRho() const { return deltarho_; }
-  const double& getDeltaPhi() const { return deltaphi_; }
-  const double& getDeltaD() const { return deltad_; }
-  const double& getDeltaCtgTheta() const { return deltaCtgTheta_; }
-  const double& getDeltaZ0() const { return deltaZ0_; }
-  const double& getDeltaP() const { return deltaP_; }
+// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
+//  TMatrixTSym<double>& getCorrelations() { return correlations_; }
+//  TMatrixT<double>& getCovariances() { return covariances_; }
+//  const double& getDeltaRho() const { return deltarho_; }
+//  const double& getDeltaPhi() const { return deltaphi_; }
+//  const double& getDeltaD() const { return deltad_; }
+//  const double& getDeltaCtgTheta() const { return deltaCtgTheta_; }
+//  const double& getDeltaZ0() const { return deltaZ0_; }
+//  const double& getDeltaP() const { return deltaP_; }
 
   Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
   void assignTrackingVolumesToHits();
-  void computeErrors();
-  void printErrors();
+// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
+//  void computeErrors();
+//  void printErrors();
   void print();
   void removeMaterial();
   int nActiveHits(bool usePixels = false, bool useIP = true) const;
@@ -228,9 +232,10 @@ public:
   RILength getCorrectedMaterial();
   std::vector<std::pair<Module*, HitType>> getHitModules() const;
 
-  void setTransverseMomentum(const double newPt);
-  double getTransverseMomentum() const { return transverseMomentum_; }
+// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
+//  void setTransverseMomentum(const double newPt);
+//  double getTransverseMomentum() const { return transverseMomentum_; }
 
-  void pruneHits();
+//  void pruneHits();
 };
 #endif

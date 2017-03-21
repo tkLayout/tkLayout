@@ -17,9 +17,12 @@
 //typedef std::map<std::pair<int,int>, double> IrradiationMap;
 
 class SimParms : public PropertyObject, public Buildable, public Visitable {
-  IrradiationMapsManager irradiationMapsManager_;
+
 public:
   
+  //! SimParms access method -> get instance of singleton class SimParms
+  static SimParms& getInstance();
+
   ReadonlyProperty<int, NoDefault> numMinBiasEvents;
   ReadonlyProperty<int, NoDefault> bunchSpacingNs;
 
@@ -40,7 +43,7 @@ public:
   ReadonlyProperty<double, NoDefault> timeIntegratedLumi;
   ReadonlyProperty<double, NoDefault> referenceTemp;
   ReadonlyProperty<double, NoDefault> alphaParam;
-  ReadonlyProperty<double, NoDefault> magneticField;
+  ReadonlyProperty<double, NoDefault> magField;
 
   PropertyVector<std::string, ','> irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
@@ -49,40 +52,30 @@ public:
 
   PropertyNode<std::string> taggedTracking;
 
-  SimParms() : 
-      numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
-      bunchSpacingNs("bunchSpacingNs", parsedAndChecked()),
-      zErrorCollider("zErrorCollider", parsedAndChecked()),
-      rError("rError", parsedAndChecked()),
-      useIPConstraint("useIPConstraint", parsedAndChecked()),
-      ptCost("ptCost", parsedAndChecked()),
-      stripCost("stripCost", parsedAndChecked()),
-      efficiency("efficiency", parsedAndChecked()),
-      pixelEfficiency("pixelEfficiency", parsedAndChecked()), 
-      triggerEtaCut("triggerEtaCut", parsedAndChecked()),
-      triggerPtCut("triggerPtCut", parsedAndChecked()),
-      numTriggerTowersEta("numTriggerTowersEta", parsedAndChecked()),
-      numTriggerTowersPhi("numTriggerTowersPhi", parsedAndChecked()),
-      timeIntegratedLumi("timeIntegratedLumi", parsedAndChecked()),
-      referenceTemp("referenceTemp", parsedAndChecked()),
-      alphaParam("alphaParam", parsedAndChecked()),    // radiation-damage coefficient, A/cm
-      magneticField("magneticField", parsedAndChecked()),
-      irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
-      minTracksEta("minTracksEta", parsedOnly()),
-      maxTracksEta("maxTracksEta", parsedOnly()),
-      taggedTracking("TaggedTracking", parsedOnly())
-  { }
-
   void build();
 
   void addIrradiationMapFile(std::string path);
 
+  //! Check whether magnetic field const. or defined as a function -> for now assumed const.
+  bool isMagFieldConst() const { return true;}
+
+  //! Get number of defined mag. field regions
+  //size_t getNMagFieldRegions() const { return magFieldZRegions.size(); }
+
+  //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return irradiationMapsManager_; }
 
   void accept(GeometryVisitor& v) { v.visit(*this); }
   void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
 
-  double particleCurvatureR(double pt) const { return pt/(0.3*insur::magnetic_field) * 1e3; }
+  double particleCurvatureR(double pt) const { return pt/(0.3*magField()) * 1e3; }
+
+private:
+
+  //! Singleton private constructor -> initialize all variables to be read-out from configuration file & define if checker should be called after parsing
+  SimParms();
+
+  IrradiationMapsManager irradiationMapsManager_;
 };
 
 #endif

@@ -15,7 +15,7 @@ void ReportIrradiation::preparePowerHistograms() {
 void ReportIrradiation::computeIrradiationPowerConsumption() {
   IrradiationPowerVisitor irradiation_;
   irradiation_.preVisit();
-  simParms_.accept(irradiation_);
+  SimParms::getInstance().accept(irradiation_);
   tracker.accept(irradiation_);
   irradiation_.postVisit();
 

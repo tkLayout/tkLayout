@@ -3,12 +3,13 @@
 
 #include <ptError.h>
 #include <global_constants.h>
+#include "SimParms.h"
 
 using namespace std;
 
 // Default values for gloabl parameters
 double ptError::IP_length = 70;     // mm
-double ptError::B = insur::magnetic_field; // T
+//double ptError::B = SimParms::getInstance().magField[0]; // T
 
 void ptError::defaultParameters() {
   Module_pitch = defaultModulePitch;
@@ -23,7 +24,7 @@ void ptError::defaultParameters() {
 }
 
 double ptError::computeErrorBE(double p) {
-  double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
+  double A = 0.3 * SimParms::getInstance().magField() * Module_r / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double g = 1/a;
   //std::cout << "g = " << g << std::endl;

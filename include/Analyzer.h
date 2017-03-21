@@ -19,7 +19,6 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <hit.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
@@ -35,13 +34,12 @@
 
 #include "TRandom3.h"
 #include "Module.h"
-#include "SimParms.h"
 #include "AnalyzerVisitor.h"
 #include "Bag.h"
 #include "SummaryTable.h"
 #include "TagMaker.h"
-
-
+#include "hit.hh"
+#include "TrackNew.h"
 
 #include <TFile.h>
 #include <TProfile.h>
@@ -50,6 +48,9 @@
 #include <TCanvas.h>
 
 #include <AnalyzerTools.hh>
+
+// Forward declaration
+class TProfile;
 
 namespace insur {
 
@@ -84,7 +85,7 @@ namespace insur {
   // Move this to track.hh?
   typedef std::vector<Track> TrackCollection;
   //typedef double TrackCollectionKey;
-  typedef std::map<int, TrackCollection> TrackCollectionMap;
+  typedef std::map<int, TrackNewCollection> TrackNewCollectionMap;
 
 
   class Analyzer : private AnalyzerTools {
@@ -167,10 +168,22 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-			       bool isPixel,
-			       bool& debugResolution,
+                               bool isPixel,
+                               bool& debugResolution,
                                int etaSteps = 50,
-                               MaterialBudget* pm = NULL);
+                               MaterialBudget* pm = nullptr);
+    bool checkFile(const std::string& fileName, const std::string& filePath);
+    bool isTripletFromDifLayers(TrackNew& track, int iHit, bool propagOutIn);
+    bool analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConfig, int etaSteps = 50, MaterialBudget* pm = nullptr);
+    std::vector<TProfile*> hisPatternRecoInOutPt;//! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::vector<TProfile*> hisPatternRecoInOutP; //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::map<std::string, std::vector<TProfile*>> hisPtHitDProjInOut;     //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitDProjInOut;      //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitZProjInOut;     //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitZProjInOut;      //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
+    
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -268,8 +281,6 @@ namespace insur {
     inline double getEtaMaxTracker()  const { return insur::geom_max_eta_coverage;}
     inline double getEtaMaxTrigger()  const { return insur::geom_max_eta_coverage;}
 
-    void simParms(SimParms* sp) { simParms_ = sp; }
-    const SimParms& simParms() const { return *simParms_; }
     const std::string & getBillOfMaterials() { return billOfMaterials_ ; }
   protected:
     /**
@@ -340,7 +351,6 @@ namespace insur {
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
 
-
     SummaryTable processorConnectionSummary_;
     SummaryTable processorCommonConnectionSummary_;
     TH2I processorCommonConnectionMap_;
@@ -386,7 +396,7 @@ namespace insur {
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
     Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-                         double& eta, double& theta, double& phi, Track& track);
+                         double& eta, double& theta, double& phi, TrackNew& track);
 
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
@@ -396,27 +406,27 @@ namespace insur {
     int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
 
     virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
-                                     double eta, double theta, double phi, Track& t, bool isPixel = false);
-    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
+                                     double eta, double theta, double phi, TrackNew& t, bool isPixel = false);
+    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, TrackNew& t, bool isPixel = false);
 
     virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
     virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
                                              Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
-                                              Track& t, bool isPixel = false);
+                                              TrackNew& t, bool isPixel = false);
 
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
     void calculateGraphsConstPt(const int& aMomentum,
-                                const TrackCollection& aTrackCollection,
+                                const TrackNewCollection& aTrackCollection,
                                 int graphAttributes,
                                 const string& graphTag);
     void calculateGraphsConstP(const int& aMomentum,
-                               const TrackCollection& aTrackCollection,
+                               const TrackNewCollection& aTrackCollection,
                                int graphAttributes,
                                const string& graphTag);
-    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);    
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackNewCollectionMap>& taggedTrackPtCollectionMap);
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
@@ -458,7 +468,6 @@ namespace insur {
 
     static int bsCounter;
     
-    SimParms* simParms_;
     std::string billOfMaterials_;
   };
 }

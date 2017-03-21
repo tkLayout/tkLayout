@@ -40,7 +40,6 @@
 // Program constants
 #include <global_constants.h>
 // Custom objects
-#include <SimParms.h>
 #include <Tracker.h>
 #include <Analyzer.h>
 #include <TagMaker.h>
@@ -166,16 +165,17 @@ namespace insur {
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
-    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+    bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
+    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
+    bool patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
-                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
       bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);

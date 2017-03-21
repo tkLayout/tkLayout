@@ -31,10 +31,9 @@ private:
   TH2D sensorsIrradiationPowerMap;
   TH2D totalPowerConsumptionMap;
   Tracker& tracker;
-  SimParms& simParms_;
 public:
   // TODO: avoid this :-)
-  ReportIrradiation(Tracker& t, SimParms& sp) : tracker(t), simParms_(sp) {};
+  ReportIrradiation(Tracker& t) : tracker(t) {};
   void analyze();
   void visualizeTo(RootWSite&);
 };
