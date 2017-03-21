@@ -142,6 +142,7 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  phiOverlap     (       "phiOverlap"         , parsedOnly(), 1.),
  phiSegments    (       "phiSegments"        , parsedOnly(), 4),
  m_useMinMaxRCorrect(   "useMinMaxRCorrect"  , parsedAndChecked(), true),
+ numRods        ("numRods"        , parsedOnly()),
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
  buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
@@ -238,12 +239,12 @@ void Layer::setup()
 
 
 RodTemplate Layer::makeRodTemplate() {
-  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!m_ringNode.empty() ? m_ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   for (int i = 0; i < rodTemplate.size(); i++) {
     rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
     rodTemplate[i]->store(propertyTree());
-    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
+    if (m_ringNode.count(i+1) > 0) rodTemplate[i]->store(m_ringNode.at(i+1));
     rodTemplate[i]->build();
   }
   return rodTemplate;
@@ -416,7 +417,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       firstRod = rod;
 
       
-      if (!isFlatPart) { m_rods.push_back(rod); buildNumModulesFlat(rod->numModulesSide(1)); }
+      if (!isTilted()) { m_rods.push_back(rod); buildNumModulesFlat(rod->numModulesSide(1)); }
       else { m_flat_rods.push_back(rod); }
     }
 
@@ -429,7 +430,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
         RodPair* rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
         rod->buildClone(2, 2*bigDelta()*bigParity, rodPhiRotation);
 
-        if (!isFlatPart) { m_rods.push_back(rod); }
+        if (!isTilted()) { m_rods.push_back(rod); }
 	else { m_flat_rods.push_back(rod); }
       }
       else {
@@ -441,7 +442,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
         rod->build();
         secondRod = rod;
 
-        if (!isFlatPart) { m_rods.push_back(rod); }
+        if (!isTilted()) { m_rods.push_back(rod); }
 	else { m_flat_rods.push_back(rod); }
       }
 
@@ -458,7 +459,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
         rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
         rod->buildClone(i, shiftR, rodPhiRotation*(i-1));
 
-	if (!isFlatPart) { m_rods.push_back(rod); }
+	if (!isTilted()) { m_rods.push_back(rod); }
 	else { m_flat_rods.push_back(rod); }
 
       }
@@ -478,7 +479,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
           rod->buildClone(i, 2*bigDelta()*bigParity, rodPhiRotation*(i-1));
         }
 
-        if (!isFlatPart) { m_rods.push_back(rod); }
+        if (!isTilted()) { m_rods.push_back(rod); }
 	else { m_flat_rods.push_back(rod); }
       }
     }
@@ -495,7 +496,7 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
     TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
     tiltedRing->myid(i);
     tiltedRing->store(propertyTree());
-    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
+    if (m_ringNode.count(i) > 0) tiltedRing->store(m_ringNode.at(i));
     tiltedRing->numPhi(numRods());
 
     double lastThetaEnd;
@@ -591,7 +592,7 @@ void Layer::buildTilted() {
 
 	RectangularModule* flatPartrmod = GeometryFactory::make<RectangularModule>();
 	flatPartrmod->store(propertyTree());
-	if (ringNode.count(1) > 0) flatPartrmod->store(ringNode.at(1));
+	if (m_ringNode.count(1) > 0) flatPartrmod->store(m_ringNode.at(1));
 	flatPartrmod->build();
 	double width = flatPartrmod->width();
 	double dsDistance = flatPartrmod->dsDistance();

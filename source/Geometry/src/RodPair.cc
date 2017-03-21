@@ -700,8 +700,8 @@ void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<Tilt
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
-    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
+    buildModules(m_zPlusModules, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
+    buildModules(m_zMinusModules, rodTemplate, tmspecs, BuildDir::LEFT, flip);
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();
