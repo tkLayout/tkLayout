@@ -24,6 +24,17 @@ typedef PtrVector<RodPair> Rods;
 enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
 
+
+struct TiltedModuleSpecs {
+  double r, z, gamma;
+  bool valid() const {
+    return r > 0.0 && fabs(gamma) <= 2*M_PI;
+  }
+};
+
+typedef vector<unique_ptr<BarrelModule>> RodTemplate;
+
+
 /*
  * @class RodPair
  * @brief Base rod class -> use RodStraight or RodTilted
@@ -34,6 +45,7 @@ enum class StartZMode { MODULECENTER, MODULEEDGE };
 class RodPair : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 
  public:
+  typedef PtrVector<BarrelModule> Container;
 
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use number of modules to build rod
   RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, int numModules, const PropertyTree& treeProperty);
@@ -70,6 +82,16 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
 
   //! Get rod thickness - purely virtual method
   virtual double thickness() const = 0;
+  virtual bool isTilted() const = 0;
+
+  double Phi() const {
+    double phi;
+    if (m_zPlusModules.size() != 0) phi = m_zPlusModules.front().center().Phi();
+    else if (m_zMinusModules.size() != 0) phi = m_zMinusModules.front().center().Phi();
+    else phi = std::numeric_limits<double>::quiet_NaN();
+    return phi;
+  }
+
 
   ReadonlyProperty<double, Computable> maxZ;               //!< Maximum rod Z
   ReadonlyProperty<double, Computable> minZ;               //!< Minimum rod Z
@@ -79,6 +101,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   ReadonlyProperty<double, Computable> maxRAllMat;         //!< Maximum rod radius taking into account all material structures
   ReadonlyProperty<double, Computable> maxModuleThickness; //!< Calculated maximum module thickness in a rod
   Property<        bool  , Default>    beamSpotCover;      //!< Take into account beam spot size when positioning modules
+  Property<bool, NoDefault> isOuterRadiusRod;
 
  protected:
 
@@ -124,6 +147,26 @@ public:
   Property<double, NoDefault> zError;              //!< When positioning modules take into account beam spot spread in Z
   Property<bool  , Default>   compressed;          //!< Modules will be compressed in Z, if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
   Property<bool  , Default>   allowCompressionCuts;//!< During compression algorithm cut out modules behind outerZ first
+  const int smallParity() const { return m_smallParity; };
+  bool isTilted() const override { return false; }
+
+  double thetaEnd_REAL() const {
+    double thetaEnd;
+
+    if (m_zPlusModules.empty()) { thetaEnd = M_PI/2.; }
+    else {
+      // findMaxZModule as a function
+      auto lastMod = m_zPlusModules.back();
+
+      double dsDistance = lastMod.dsDistance();
+      double lastR = lastMod.center().Rho();
+      
+      double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
+
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ()));
+    }
+    return thetaEnd;
+  }
 
  private:
 
@@ -146,26 +189,20 @@ public:
   double m_bigDelta;       //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   int    m_bigParity;      //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
 
-}; // Class
-//
-//
-//struct TiltedModuleSpecs {
-//  double r, z, gamma;
-//  bool valid() const {
-//    return r > 0.0 && fabs(gamma) <= 2*M_PI;
-//  }
-//};
-//
-///*
-// * @class Tilted option of rod class
-// * @details Derived class from RodPair implementing tilted option verison of layer rod
-// */
-//class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
-//  void buildModules(BarrelModules& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
-//public:
-//  double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
-//  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
-//
-//};
+};
+
+
+
+class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
+ 
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
+
+ public :
+
+  double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
+  bool isTilted() const override { return true; }
+  void check() override;
+  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
+}; 
 
 #endif /* INCLUDE_RODPAIR_H_ */

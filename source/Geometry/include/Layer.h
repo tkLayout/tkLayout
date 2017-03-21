@@ -4,10 +4,13 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <limits.h>
 
+#include "math_functions.h"
 #include "ConversionStation.h"
 #include "Property.h"
 #include "RodPair.h"
+#include "Ring.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
 
@@ -19,6 +22,19 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 using material::ConversionStations;
+
+typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
+
+class FlatRingsGeometryInfo {
+ private:
+  std::map<int, double> zErrorInner_;
+  std::map<int, double> zErrorOuter_;
+ public:
+  FlatRingsGeometryInfo();
+  void calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, double bigParity);
+  std::map<int, double> zErrorInner() const { return zErrorInner_; }
+  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+};
 
 // Typedefs
 typedef PtrVector<Layer> Layers;
@@ -39,6 +55,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Constructor - parse geometry config file using boost property tree & read-in Layer parameters
   Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
         const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
+
 
   //! Build recursively individual subdetector systems: rods -> modules & conversion stations
   void build(int barrelNumLayers, double barrelMinR, double barrelMaxR);
@@ -110,7 +127,29 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
 
+  Property<int, NoDefault> buildNumModulesFlat;
+  Property<int, NoDefault> buildNumModulesTilted;
+  Property<bool, Default> isTilted;
+  Property<bool, NoDefault> isTiltedAuto;
+
+
  private:
+
+  class TiltedRingsGeometryInfo {
+  private:
+    std::map<int, double> deltaZInner_;
+    std::map<int, double> deltaZOuter_;
+    //std::map<int, double> covInner_;
+    std::map<int, double> zErrorInner_;
+    std::map<int, double> zErrorOuter_;
+  public:
+    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
+    std::map<int, double> deltaZInner() const { return deltaZInner_; }
+    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+    //std::map<int, double> covInner() const { return covInner_; }
+    std::map<int, double> zErrorInner() const { return zErrorInner_; }
+    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+  };
 
   //! Cross-check parameters provided from geometry configuration file
   void check() override;
@@ -119,7 +158,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   void buildStraight(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
   //! If tilted layer required, build() method internally calls buildTilted()
-  //void buildTilted();
+  void buildTilted();
 
   //! Helper function calculating optimal layer radius for straight option
   double calculateOptimalRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
@@ -128,6 +167,16 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   MaterialObject     m_materialObject;
   ConversionStation* m_flangeConversionStation;   //!< First order layer conversion unit
   ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
+  RodTemplate makeRodTemplate();
+
+  std::vector<RodPairStraight*> m_flat_rods;
+  double flatPartPhiOverlapSmallDeltaMinus_;
+  double flatPartPhiOverlapSmallDeltaPlus_;
+  double flatPartAverageR_;
+  FlatRingsGeometryInfo flatRingsGeometryInfo_;
+  TiltedRingsTemplate tiltedRingsGeometry_;
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
+  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
   Property<int   , Default>   m_smallParity;      //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
   Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
