@@ -645,7 +645,10 @@ namespace insur {
     if (mb) {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, *mb, debugServices, site, "outer");
-      if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+      if (pm) {
+	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.totalMaterialSummary(a, pixelAnalyzer, site);
+      }
       v.weigthSummart(a, weightDistributionTracker, site, "outer");
       if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
       stopTaskClock();
