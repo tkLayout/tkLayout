@@ -189,6 +189,7 @@ namespace insur {
     bool irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
+    bool patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);

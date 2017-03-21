@@ -13,6 +13,8 @@
 #ifndef _MODULECAP_H
 #define	_MODULECAP_H
 
+#include <string>
+
 //#include <module.hh>
 #include "Module.h"
 #include <MaterialProperties.h>
@@ -30,14 +32,20 @@ namespace insur {
      */
     class ModuleCap : public MaterialProperties {
     public:
-        ModuleCap(Module& mod);
+        ModuleCap(Module& mod, int id);
         virtual ~ModuleCap();
-        Module& getModule();
-        virtual double getSurface() const;
-        virtual double getLength() const;
+
+        Module&             getModule();
+        virtual double      getSurface() const;
+        virtual double      getLength() const;
+        virtual int         getLayerOrDiscID() const {return m_layerOrDiscID; }
+        virtual std::string getDetName() const {return m_detName;}
         virtual void print();
+        virtual void setDetName(const std::string& detName) {m_detName = detName;};
     protected:
-        Module* module;
+        Module* m_module;
+        int     m_layerOrDiscID; // Unique layer/disc ID, whether layer or disc can be found out from module tag: BARREL/ENDCAP
+        std::string m_detName;   // Unique barrel or disc name
     };
 }
 #endif	/* _MODULECAP_H */

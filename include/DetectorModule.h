@@ -68,6 +68,7 @@ protected:
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
+  const ModuleCap* getConstModuleCap() const { return myModuleCap_; }
 
   Property<int16_t, AutoDefault> side;
   

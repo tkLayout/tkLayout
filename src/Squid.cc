@@ -516,7 +516,7 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool debugResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool triggerPatternReco, bool debugResolution) {
     if (mb) {
 //      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
       // TODO: insert the creation of sample tracks here, to compute intersections only once
@@ -542,19 +542,27 @@ namespace insur {
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
-				false,
-				debugResolution,
+				                        false,
+				                        debugResolution,
                                 tracks, pm);
-	if (pm) {
-	  pixelAnalyzer.analyzeTaggedTracking(*pm,
-					      mainConfiguration.getMomenta(),
-					      mainConfiguration.getTriggerMomenta(),
-					      mainConfiguration.getThresholdProbabilities(),
-					      true,
-					      debugResolution,
-					      tracks, NULL);
-	}
+        if (pm) {
+          pixelAnalyzer.analyzeTaggedTracking(*pm,
+                                              mainConfiguration.getMomenta(),
+					                                    mainConfiguration.getTriggerMomenta(),
+					                                    mainConfiguration.getThresholdProbabilities(),
+					                                    true,
+					                                    debugResolution,
+					                                    tracks, nullptr);
+        }
         stopTaskClock();
+      }
+      if (triggerPatternReco) {
+        startTaskClock("Estimating pattern recognition");
+        bool analysisOK =a.analyzePatterReco(*mb,
+                                             mainConfiguration,
+                                             tracks, pm);
+        stopTaskClock();
+        if (!analysisOK) return false;
       }
       return true;
     } else {
@@ -670,6 +678,22 @@ namespace insur {
     }
   }
 
+  /**
+   * Produces the output of the pattern recognition studies
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportPatternRecoSite() {
+    if (mb) {
+      startTaskClock("Creating report on pattern recognition studies");
+      v.patternRecoSummary(a, mainConfiguration, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_matbudget);
+      return false;
+    }
+  }
 
   /**
    * Produces the output of the analysis of the material budget analysis

@@ -16,6 +16,7 @@ SimParms {
     referenceTemp 20          // °C
     alphaParam 4.28e-17       // A/cm, radiation damage constant
     magneticField 3.8         // T
+    pileUp 200
 
     triggerEtaCut 2.2
     triggerPtCut 2

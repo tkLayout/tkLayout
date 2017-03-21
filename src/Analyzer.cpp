@@ -5,6 +5,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <Analyzer.h>
+#include "mainConfigHandler.h"
 #include <HitNew.h>
 #include <TProfile.h>
 #include <TLegend.h>
@@ -12,6 +13,8 @@
 #include "SimParms.h"
 #include "AnalyzerVisitors/MaterialBillAnalyzer.h"
 #include <Units.h>
+#include "TProfile.h"
+#include "TMath.h"
 
 #undef MATERIAL_SHADOW
 
@@ -167,6 +170,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     //track.setTheta(theta);
     //track.setPhi(phi);
 
+    // Assign material to the track
     tmp = findAllHits(mb, pm, eta, theta, phi, track);
 
     // Debug: material amount
@@ -382,7 +386,316 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   }
 
+//
+// Check that a file can be opened
+//
+bool Analyzer::checkFile(const std::string& fileName, const std::string& filePath)
+{
+  fstream     file;
+  std::string fullFileName(filePath+"/"+fileName);
+  file.open(fullFileName);
+  if (file.is_open()) {
 
+    file.close();
+    return true;
+  }
+  else {
+
+    logERROR("Analyzer - failed opening file: " + fullFileName);
+    return false;
+  }
+}
+
+//
+// Is starting triplet from different layers (avoid using overlapping modules in one layer)
+//
+bool Analyzer::isTripletFromDifLayers(TrackNew& track, int iHit, bool propagOutIn) {
+
+  std::map<std::string, bool> hitIDs;
+
+  for (int i=0; i<=iHit; i++) {
+
+    std::string hitID = "";
+
+    if (!propagOutIn) hitID = track.getMeasurableOrIPHit(i)->getDetName() +
+                              std::string(track.getMeasurableOrIPHit(i)->isBarrel() ? "_L_" : "_D_") +
+                              any2str(track.getMeasurableOrIPHit(i)->getLayerOrDiscID());
+    else              hitID = track.getRMeasurableOrIPHit(i)->getDetName() +
+                              std::string(track.getRMeasurableOrIPHit(i)->isBarrel() ? "_L_" : "_D_") +
+                              any2str(track.getRMeasurableOrIPHit(i)->getLayerOrDiscID());
+
+    hitIDs[hitID] = true;
+  }
+
+  if (hitIDs.size()>=3) return true;
+  else                  return false;
+}
+
+//
+// Analyze tracker pattern recognition capabilities. The quantities used to qualify the pattern reco capabilities are meant for primary tracks only
+// rather than for secondary tracks, as one always starts in the innermost layer (+ IP contraint) or outermost layer in case of out-in approach.
+// The extrapolation part of pattern recognition uses formulae calculated in parabolic approximation and particle fluences (occupancies) scaled to
+// given pile-up scenario. The fluences are read in from an external file and are assumed to be simulated by Fluka for given p-p collision energies
+// & rough detector (material) setup.
+//
+bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConfig, int nTracks, MaterialBudget* pm) {
+
+  bool isAnalysisOK = true;
+
+  // Get fluence map
+  const auto& directory     = mainConfig.getIrradiationDirectory();
+  bool        fluenceMapOK  = false;
+  IrradiationMap* fluenceMap= nullptr;
+  int         nBins         = vis_n_bins*2;
+
+  fluenceMapOK = checkFile(default_fluence_file, directory);
+  std::cout << "Reading in: " << directory + "/" + default_fluence_file << std::endl;
+  if (fluenceMapOK) fluenceMap  = new IrradiationMap(directory + "/" + default_fluence_file);
+
+  // Set nTracks
+  if (nTracks<=0) {
+
+    std::ostringstream message;
+    message << "PatternReco: Number of simulation tracks zero or negative: " << nTracks << " or zero number of trackers to be initialized";
+    logERROR(message.str());
+  }
+  else {
+
+    // Prepare histograms
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      // In-Out
+      std::string name = "hisBkgContInOut_pT"+any2str(pIter/Units::GeV);
+      hisPatternRecoInOutPt.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+      name             = "hisBkgContInOut_p"+any2str(pIter/Units::GeV);
+      hisPatternRecoInOutP.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+    }
+  }
+
+  // Check that map available
+  if (!fluenceMapOK) isAnalysisOK = false;
+  else for (int iTrack = 0; iTrack <nTracks; iTrack++) {
+
+    // Define track
+    TrackNew matTrack;
+
+    double eta   = 0.0 + geom_max_eta_coverage/nTracks*(iTrack+0.5);
+    double theta = 2 * atan(exp(-eta));
+    double phi   = myDice.Rndm() * M_PI * 2.0;
+    double pT    = 100*Units::TeV; // Arbitrarily high number
+
+    matTrack.setThetaPhiPt(theta, phi, pT);
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
+
+    // Assign material to the track
+    findAllHits(mb, pm, eta, theta, phi, matTrack);
+
+    // Add beam-pipe
+    double rPos  = 23.*Units::mm;
+    double zPos  = rPos/tan(theta);
+
+    HitNewPtr hit(new HitNew(rPos, zPos));
+    hit->setAsPassive();
+
+    Material material;
+    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+
+    hit->setCorrectedMaterial(material);
+    hit->setBeamPipe(true);
+    matTrack.addHit(std::move(hit));
+
+    // For each momentum/transverse momentum compute
+    int iMomentum = 0;
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      // 2 options: pT & p
+      for (int pOption=0;pOption<2;pOption++) {
+
+        // InOut or OutIn approach -> TODO: currently only InOut approach
+        for (int approachOption=0; approachOption<1; approachOption++) {
+
+          bool propagOutIn = approachOption;
+
+          //if (!propagOutIn) std::cout << "InOut approach" << std::endl;
+          //else              std::cout << "OutIn approach" << std::endl;
+
+          // Reset track total probability & calculate p/pT based on option
+          double pNotContamTot      = 1;
+          double pNotContamTotInner = 1;
+
+          if (pOption==0) pT = pIter;             // pT option
+          else            pT = pIter*sin(theta);  // p option
+
+          // Set track & prune hits
+          TrackNew track(matTrack);
+          track.resetPt(pT);
+
+          //
+          // Pattern recognition procedure
+          bool useIP        = true;
+          int nMeasuredHits = 0;
+          if (!propagOutIn) nMeasuredHits = track.getNMeasuredHits("all", !useIP);
+          else              nMeasuredHits = track.getNMeasuredHits("all", !useIP);
+
+          //track.printHits();
+          //std::cout << ">> " << nMeasuredHits << " dD0=" << track.getDeltaD(0.0)/Units::um << " dZ0=" << track.getDeltaZ(0.0)/Units::um << std::endl;
+
+          // Start with first 3 hits and end with N-1 hits (C counting from zero)
+          bool testTriplet = true;
+          for (int iHit=2; iHit<nMeasuredHits-1; iHit++) {
+
+            // Start with triplet coming from 3 different layers -> avoid using 2 close measurements from overlapping modules in 1 layer
+            if (testTriplet && !isTripletFromDifLayers(track, iHit, propagOutIn)) continue;
+            else testTriplet = false;
+
+            int nHitsUsed = iHit+1; // (C counting from zero)
+
+            // Keep first/last N hits (based on approach) and find paramaters of the next hit
+            double nextRPos    = 0;
+            double nextZPos    = 0;
+            double nextHitTilt = 0;
+            double A           = 0; // r_i/2R
+            std::string iHitID = "";
+
+            if (!propagOutIn) {
+
+              nextRPos    = track.getMeasurableOrIPHit(iHit+1)->getRPos();
+              nextZPos    = track.getMeasurableOrIPHit(iHit+1)->getZPos();
+              nextHitTilt = track.getMeasurableOrIPHit(iHit+1)->getTilt();
+              if (SimParms::getInstance().isMagFieldConst()) A = track.getMeasurableOrIPHit(iHit+1)->getRPos()/2./track.getRadius(track.getMeasurableOrIPHit(iHit+1)->getZPos());  // r_i/2R
+
+              iHitID      = track.getMeasurableOrIPHit(iHit+1)->getDetName() +
+                            std::string(track.getMeasurableOrIPHit(iHit+1)->isBarrel() ? "_L_" : "_D_") +
+                            any2str(track.getMeasurableOrIPHit(iHit+1)->getLayerOrDiscID());
+            }
+            else {
+
+              nextRPos    = track.getRMeasurableOrIPHit(iHit+1)->getRPos();
+              nextZPos    = track.getRMeasurableOrIPHit(iHit+1)->getZPos();
+              nextHitTilt = track.getRMeasurableOrIPHit(iHit+1)->getTilt();
+              if (SimParms::getInstance().isMagFieldConst()) A = track.getRMeasurableOrIPHit(iHit+1)->getRPos()/2./track.getRadius(track.getRMeasurableOrIPHit(iHit+1)->getZPos());  // r_i/2R
+              iHitID      = track.getRMeasurableOrIPHit(iHit+1)->getDetName() +
+                            std::string(track.getRMeasurableOrIPHit(iHit+1)->isBarrel() ? "_L_" : "_D_") +
+                            any2str(track.getRMeasurableOrIPHit(iHit+1)->getLayerOrDiscID());
+            }
+
+            // Calculate dRPhi & dZ
+            int    nPU    = SimParms::getInstance().pileUp();
+            // TODO: Assumed that map on ZxR grid defined in cm -> needs to be fixed
+            double flux   = fluenceMap->calculateIrradiation(std::make_pair(nextZPos/Units::mm,nextRPos/Units::mm))*1/Units::cm2/Units::s * nPU;
+
+            double corrFactor = cos(nextHitTilt) + track.getCotgTheta()/sqrt(1-A*A)*sin(nextHitTilt);
+            double dZProj     = track.getDeltaZ(nextRPos,propagOutIn)/corrFactor;
+            double dDProj     = track.getDeltaD(nextRPos,propagOutIn);
+
+            // Print info
+            //std::cout << ">> " << iHitID << " R=" << nextRPos/Units::mm << " dD=" << dDProj/Units::um << " " << " Z=" << nextZPos/Units::mm << " dZ=" << dZProj/Units::um << std::endl;
+
+            // Calculate how many sigmas does one need to get in 2D Gauss. 5% coverge
+            // F(mu + n*sigma) - F(mu - n*sigma) = erf(n/sqrt(2))
+            // In 2D we assume independent measurement in r-phi & Z, hence 0.95 = erf(n/sqrt(2))*erf(n/sqrt(2)) assuming the same number of sigmas (n) in both r-phi & z
+            // Hence n = InverseErf(sqrt(0.95))*sqrt(2)
+            static double nSigmaFactor = TMath::ErfInverse(sqrt(0.95))*sqrt(2);
+
+            // Calculate errorEllipse multiplied by nSigmaFactor(RPhi)*nSigmaFactor(Z)
+            double errorEllipse = M_PI*dZProj*dDProj*nSigmaFactor*nSigmaFactor;
+
+            // Accumulate probibilites accross all hits not to be contaminated anywhere -> final probability of being contaminated is 1 - pContam
+            double pContam = flux*errorEllipse;
+            if (pContam>1) pContam = 1.0;
+            pNotContamTot *= 1-pContam;
+
+            //
+            // Fill d0proj, z0proj & pContam for individual layers/discs to histograms
+
+            // Probability of inner tracker only
+            if (iHitID.find("Inner")!=std::string::npos) pNotContamTotInner *= 1-pContam;
+
+            // Create artificial map identifier with extra characters to have innermost first, then outermost & then fwd
+            std::string iHitIDMap = "";
+            if      (iHitID.find("Inner")!=std::string::npos) iHitIDMap = "A_" + iHitID;
+            else if (iHitID.find("Outer")!=std::string::npos) iHitIDMap = "B_" + iHitID;
+            else                                              iHitIDMap = "C_" + iHitID;
+
+            // Pt & InOut
+            if (pOption==0 && approachOption==0) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPtHitDProjInOut.find(iHitIDMap)==hisPtHitDProjInOut.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
+                  hisPtHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjInOut";
+                  hisPtHitZProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamInOut";
+                  hisPtHitProbContamInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              hisPtHitDProjInOut[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPtHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPtHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
+            // P & InOut
+            if (pOption==1 && approachOption==0) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPHitDProjInOut.find(iHitIDMap)==hisPHitDProjInOut.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
+                  hisPHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjInOut";
+                  hisPHitZProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamInOut";
+                  hisPHitProbContamInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              // TODO: Check that above zero!!!
+              hisPHitDProjInOut[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
+          } // Pattern reco loop
+
+          //
+          // Calculate total contamination based on different options: p/pT, in-out/out-in
+          double pContamTot      = 1-pNotContamTot;
+          double pContamInnerTot = 1-pNotContamTotInner;
+          if (pOption==0) {
+
+            if (approachOption==0) {
+              hisPatternRecoInOutPt[iMomentum]->Fill(eta,pContamTot);
+            }
+            else {
+              // TODO: Implement
+            }
+          }
+          else  {
+
+            if (approachOption==0) {
+              hisPatternRecoInOutP[iMomentum]->Fill(eta,pContamTot);
+            }
+            else {
+              // TODO: Implement
+            }
+          }
+
+        } //In-Out, Out-In approach - options loop
+      } //pT/p option loop
+
+      iMomentum++;
+    } // Momenta loop
+
+  } // Tracks loop
+
+  return isAnalysisOK;
+}
 
 void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions) {
   double aSpacing;

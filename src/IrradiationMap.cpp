@@ -6,6 +6,7 @@
  */
 
 #include"IrradiationMap.h"
+#include"Units.h"
 
 IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
       rhoMin (0),
@@ -104,7 +105,7 @@ void IrradiationMap::ingest(std::string irradiationMapFile) {
     //find invFemUnit
     if (line.find(comp_invFemUnit) == 0) {
       line.erase(0,comp_invFemUnit.length());
-      invFemUnit = strtol(line.c_str(),NULL,10);
+      invFemUnit = strtod(line.c_str(),NULL);
       found_invFemUnit = true;
       continue;
     }
@@ -130,12 +131,12 @@ void IrradiationMap::ingest(std::string irradiationMapFile) {
   }
 
   //convert cm to mm
-  zMin *= 10;
-  zMax *= 10;
-  zBinWidth *= 10;
-  rhoMin *= 10;
-  rhoMax *= 10;
-  rhoBinWidth *=10;
+  zMin       *= Units::cm; //10;
+  zMax       *= Units::cm; //10;
+  zBinWidth  *= Units::cm; //10;
+  rhoMin     *= Units::cm; //10;
+  rhoMax     *= Units::cm; //10;
+  rhoBinWidth*= Units::cm; //10;
 
   //change the min and max values because we are interested in the center points of the bins
   zMin += zBinWidth / 2;

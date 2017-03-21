@@ -4846,6 +4846,365 @@ namespace insur {
     return true;
   }
 
+  bool Vizard::patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site) {
+
+    bool isVisOK = true;
+
+    std::string pageTitle   = "PatternReco";
+    std::string pageAddress = "patternReco.html";
+
+    RootWPage* myPage = new RootWPage(pageTitle);
+    myPage->setAddress(pageAddress);
+    site.addPage(myPage);
+
+    // Canvases
+    gStyle->SetGridStyle(style_grid);
+    gStyle->SetOptStat(0);
+
+    std::string pileUp = any2str(SimParms::getInstance().pileUp());
+
+    //
+    // Pt option
+    RootWContent& myContentPlotsPt = myPage->addContent("Pt: Track purity & probability of contamination by bkg hits when propagating track through tracker in PU="+pileUp, true);
+
+    // a) Bkg contamination probability -> In-Out approach
+    TCanvas canvasPtBkgContInOut("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPtBkgContInOut.SetGrid(1,1);
+    canvasPtBkgContInOut.SetLogy(0);
+    canvasPtBkgContInOut.SetFillColor(color_plot_background);
+    canvasPtBkgContInOut.SetObjectStat(false);
+
+    // For each momentum/transverse momentum compute
+    int iMomentum = 0;
+    gStyle->SetTitleW(0.9);
+    TLegend* legendPtInOut = new TLegend(0.11,0.66,0.36,0.89,"p_{T} options (InOut+IP, full TRK):");
+    legendPtInOut->SetTextSize(0.025);
+
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      a.hisPatternRecoInOutPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoInOutPt"+any2str(iMomentum)).c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoInOutPt[iMomentum]->SetLineWidth(2.);
+      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerSize(1.);
+      a.hisPatternRecoInOutPt[iMomentum]->SetLineColor(momentumColor(iMomentum));
+      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+      if (iMomentum==0) a.hisPatternRecoInOutPt[iMomentum]->Draw("PE1");
+      else              a.hisPatternRecoInOutPt[iMomentum]->Draw("SAME PE1");
+
+      a.hisPatternRecoInOutPt[iMomentum]->GetYaxis()->SetRangeUser(0,1.3);
+      legendPtInOut->AddEntry(a.hisPatternRecoInOutPt[iMomentum],std::string(any2str(pIter/Units::GeV)+"GeV").c_str(),"lp");
+
+      iMomentum++;
+    }
+    legendPtInOut->Draw("SAME");
+
+    RootWImage& myImagePtBkgContInOut = myContentPlotsPt.addImage(canvasPtBkgContInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImagePtBkgContInOut.setComment("In-Out approach for pT: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
+    myImagePtBkgContInOut.setName("bkg_pt_pContam_inout");
+
+    //
+    // Detail on pt in-out studies
+
+    // a) D0
+    RootWContent& myContentPlotsPtD0InOut = myPage->addContent("Pt in-out - D: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPtHitDProjInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPtD0InOut(std::string("canvasPtD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtD0InOut.SetGrid(1,1);
+      canvasPtD0InOut.SetLogy(0);
+      canvasPtD0InOut.SetFillColor(color_plot_background);
+      canvasPtD0InOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,1000);
+
+        iMomentum++;
+      }
+      legendPtInOut->SetX1(0.64);
+      legendPtInOut->SetX2(0.89);
+      legendPtInOut->SetEntryLabel("p_{T} options (InOut+IP, full TRK):");
+      legendPtInOut->Draw("SAME");
+
+      RootWImage& myImagePtD0InOut = myContentPlotsPtD0InOut.addImage(canvasPtD0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePtD0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in in-out approach.").c_str());
+      myImagePtD0InOut.setName(std::string("bkg_pt_d0_inout_"+name).c_str());
+    }
+
+    // b) Z0
+    RootWContent& myContentPlotsPtZ0InOut = myPage->addContent("Pt in-out - Z: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPtHitZProjInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPtZ0InOut(std::string("canvasPtZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtZ0InOut.SetGrid(1,1);
+      canvasPtZ0InOut.SetLogy(0);
+      canvasPtZ0InOut.SetFillColor(color_plot_background);
+      canvasPtZ0InOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,1000);
+
+        iMomentum++;
+      }
+      legendPtInOut->Draw("SAME");
+
+      RootWImage& myImagePtZ0InOut = myContentPlotsPtZ0InOut.addImage(canvasPtZ0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePtZ0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in in-out approach.").c_str());
+      myImagePtZ0InOut.setName(std::string("bkg_pt_z0_inout_"+name).c_str());
+    }
+
+    // c) pContamination
+    RootWContent& myContentPlotsPtProbContamInOut = myPage->addContent("Pt in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPtHitProbContamInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPtProbContamInOut(std::string("canvasPtProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtProbContamInOut.SetGrid(1,1);
+      canvasPtProbContamInOut.SetLogy(0);
+      canvasPtProbContamInOut.SetFillColor(color_plot_background);
+      canvasPtProbContamInOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamInOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,0.1);
+
+        iMomentum++;
+      }
+      legendPtInOut->SetX1(0.11);
+      legendPtInOut->SetX2(0.36);
+      legendPtInOut->Draw("SAME");
+
+      RootWImage& myImagePtProbContamInOut = myContentPlotsPtProbContamInOut.addImage(canvasPtProbContamInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePtProbContamInOut.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in in-out approach.").c_str());
+      myImagePtProbContamInOut.setName(std::string("bkg_pt_pContam_inout_"+name).c_str());
+    }
+
+
+    //
+    // P option
+    RootWContent& myContentPlotsP = myPage->addContent("P: Track purity & probability of contamination by bkg hits when propagating track through tracker in PU="+pileUp, true);
+
+    // a) Bkg contamination probability - In-Out approach
+    TCanvas canvasPBkgContInOut("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPBkgContInOut.SetGrid(1,1);
+    canvasPBkgContInOut.SetLogy(0);
+    canvasPBkgContInOut.SetFillColor(color_plot_background);
+    canvasPBkgContInOut.SetObjectStat(false);
+
+    // For each momentum/transverse momentum compute
+    iMomentum = 0;
+    gStyle->SetTitleW(0.9);
+    TLegend* legendPInOut = new TLegend(0.11,0.66,0.36,0.89,"p options (InOut+IP, full TRK):");
+    legendPInOut->SetTextSize(0.025);
+
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      a.hisPatternRecoInOutP[iMomentum]->SetNameTitle(std::string("hisPBkgContInOut"+any2str(iMomentum)).c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoInOutP[iMomentum]->SetLineWidth(2.);
+      a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutP[iMomentum]->SetMarkerSize(1.);
+      a.hisPatternRecoInOutP[iMomentum]->SetLineColor(momentumColor(iMomentum));
+      a.hisPatternRecoInOutP[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+      if (iMomentum==0) a.hisPatternRecoInOutP[iMomentum]->Draw("PE1");
+      else              a.hisPatternRecoInOutP[iMomentum]->Draw("SAME PE1");
+
+      a.hisPatternRecoInOutP[iMomentum]->GetYaxis()->SetRangeUser(0,1.3);
+      legendPInOut->AddEntry(a.hisPatternRecoInOutP[iMomentum],std::string(any2str(pIter/Units::GeV)+"GeV").c_str(),"lp");
+
+      iMomentum++;
+    }
+    legendPInOut->Draw("SAME");
+
+    RootWImage& myImagePBkgContInOut = myContentPlotsP.addImage(canvasPBkgContInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImagePBkgContInOut.setComment("In-Out approach for p: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
+    myImagePBkgContInOut.setName("bkg_p_pContam_inout");
+
+    //
+    // Detail on p in-out studies
+
+    // a) D0
+    RootWContent& myContentPlotsPD0InOut = myPage->addContent("P in-out - D: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPHitDProjInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPD0InOut(std::string("canvasPD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPD0InOut.SetGrid(1,1);
+      canvasPD0InOut.SetLogy(0);
+      canvasPD0InOut.SetFillColor(color_plot_background);
+      canvasPD0InOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPD0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,1000);
+
+        iMomentum++;
+      }
+      legendPInOut->SetX1(0.64);
+      legendPInOut->SetX2(0.89);
+      legendPInOut->SetEntryLabel("p options (InOut+IP, full TRK):");
+      legendPInOut->Draw("SAME");
+
+      RootWImage& myImagePD0InOut = myContentPlotsPD0InOut.addImage(canvasPD0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePD0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in in-out approach.").c_str());
+      myImagePD0InOut.setName(std::string("bkg_p_d0_inout_"+name).c_str());
+    }
+
+    // b) Z0
+    RootWContent& myContentPlotsPZ0InOut = myPage->addContent("P in-out - Z: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPHitZProjInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPZ0InOut(std::string("canvasPZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPZ0InOut.SetGrid(1,1);
+      canvasPZ0InOut.SetLogy(0);
+      canvasPZ0InOut.SetFillColor(color_plot_background);
+      canvasPZ0InOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,1000);
+
+        iMomentum++;
+      }
+      legendPInOut->SetX1(0.64);
+      legendPInOut->SetX2(0.89);
+      legendPInOut->Draw("SAME");
+
+      RootWImage& myImagePZ0InOut = myContentPlotsPZ0InOut.addImage(canvasPZ0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePZ0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in in-out approach.").c_str());
+      myImagePZ0InOut.setName(std::string("bkg_p_z0_inout_"+name).c_str());
+    }
+
+    // c) pContamination
+    RootWContent& myContentPlotsPProbContamInOut = myPage->addContent("P in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    for (auto const & iterMap : a.hisPHitProbContamInOut) {
+
+      // Get name -> remove first 2 artificial characters used to sort correctly map
+      std::string name = iterMap.first;
+      name = name.erase(0,2);
+
+      int         iMomentum = 0;
+
+      TCanvas canvasPProbContamInOut(std::string("canvasPProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPProbContamInOut.SetGrid(1,1);
+      canvasPProbContamInOut.SetLogy(0);
+      canvasPProbContamInOut.SetFillColor(color_plot_background);
+      canvasPProbContamInOut.SetObjectStat(false);
+
+      for (const auto& pIter : mainConfig.getMomenta()) {
+
+        auto & profHis = iterMap.second;
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamInOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetLineWidth(2.);
+        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerSize(1.);
+        profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
+        profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
+
+        if (iMomentum==0) profHis[iMomentum]->Draw("PE1");
+        else              profHis[iMomentum]->Draw("SAME PE1");
+
+        profHis[iMomentum]->GetYaxis()->SetRangeUser(0,1.1);
+
+        iMomentum++;
+      }
+      legendPInOut->SetX1(0.11);
+      legendPInOut->SetX2(0.36);
+      legendPInOut->Draw("SAME");
+
+      RootWImage& myImagePProbContamInOut = myContentPlotsPProbContamInOut.addImage(canvasPProbContamInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImagePProbContamInOut.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in in-out approach.").c_str());
+      myImagePProbContamInOut.setName(std::string("bkg_p_pContam_inout_"+name).c_str());
+    }
+
+    return isVisOK;
+  }
+
   bool Vizard::triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended) {
     //********************************//
     //*                              *//

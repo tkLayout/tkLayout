@@ -13,6 +13,7 @@
 #include "TrackNew.h"
 #include "DetectorModule.h"
 #include "messageLogger.h"
+#include "ModuleCap.h"
 #include "SimParms.h"
 
 //using namespace ROOT::Math;
@@ -62,8 +63,6 @@ HitNew::HitNew() {
     m_isIP             = false;
     m_isBeamPipe       = false;
     m_isPixel          = false;
-    m_layerID          = -1;
-    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
 }
@@ -86,8 +85,6 @@ HitNew::HitNew(const HitNew& h) {
     m_isIP              = h.m_isIP;
     m_isBeamPipe        = h.m_isBeamPipe;
     m_isPixel           = h.m_isPixel;
-    m_layerID           = h.m_layerID;
-    m_discID            = h.m_discID;
     m_resolutionRPhi    = h.m_resolutionRPhi;
     m_resolutionZ       = h.m_resolutionZ;
 }
@@ -108,8 +105,6 @@ HitNew::HitNew(double rPos, double zPos) {
     m_isIP             = false;
     m_isBeamPipe       = false;
     m_isPixel          = false;
-    m_layerID          = -1;
-    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
 
@@ -132,10 +127,10 @@ HitNew::HitNew(double rPos, double zPos, const DetectorModule* myModule, HitType
     m_isIP             = false;
     m_isBeamPipe       = false;
     m_isPixel          = false;
-    m_layerID          = -1;
-    m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
+
+    if (myModule && myModule->getConstModuleCap()!=nullptr) m_detName = myModule->getConstModuleCap()->getDetName();
 
 }
 
@@ -149,6 +144,15 @@ void HitNew::setHitModule(const DetectorModule* myModule) {
   if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
 }
+
+/*
+ * Get unique ID of layer or disc to which the hit belongs to (if not link return -1)
+ */
+int HitNew::getLayerOrDiscID() const {
+
+  if (m_hitModule && m_hitModule->getConstModuleCap()!=nullptr) return m_hitModule->getConstModuleCap()->getLayerOrDiscID(); else return -1;
+}
+
 
 /**
  * Get the track angle phi.

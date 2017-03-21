@@ -44,6 +44,7 @@ public:
   ReadonlyProperty<double, NoDefault> referenceTemp;
   ReadonlyProperty<double, NoDefault> alphaParam;
   ReadonlyProperty<double, NoDefault> magField;
+  ReadonlyProperty<int, NoDefault> pileUp;
 
   PropertyVector<std::string, ','> irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;

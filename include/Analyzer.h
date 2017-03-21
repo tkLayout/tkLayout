@@ -41,13 +41,14 @@
 #include "hit.hh"
 #include "TrackNew.h"
 
-
-
 #include <TFile.h>
 #include <TProfile.h>
 #include <TF1.h>
 #include <TAxis.h>
 #include <TCanvas.h>
+
+// Forward declaration
+class TProfile;
 
 
 namespace insur {
@@ -166,10 +167,22 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-			       bool isPixel,
-			       bool& debugResolution,
+                               bool isPixel,
+                               bool& debugResolution,
                                int etaSteps = 50,
-                               MaterialBudget* pm = NULL);
+                               MaterialBudget* pm = nullptr);
+    bool checkFile(const std::string& fileName, const std::string& filePath);
+    bool isTripletFromDifLayers(TrackNew& track, int iHit, bool propagOutIn);
+    bool analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConfig, int etaSteps = 50, MaterialBudget* pm = nullptr);
+    std::vector<TProfile*> hisPatternRecoInOutPt;//! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::vector<TProfile*> hisPatternRecoInOutP; //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::map<std::string, std::vector<TProfile*>> hisPtHitDProjInOut;     //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitDProjInOut;      //!< InOut approach: D0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitZProjInOut;     //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitZProjInOut;      //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
+    
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -341,7 +354,6 @@ namespace insur {
 
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
-
 
     SummaryTable processorConnectionSummary_;
     SummaryTable processorCommonConnectionSummary_;

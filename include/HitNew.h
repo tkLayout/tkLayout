@@ -72,11 +72,7 @@ public:
   void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
   void setResolutionRphi(double newRes)             { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
   void setResolutionZ(double newRes)                { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
-  void setResolutionY(double newRes)                { setResolutionZ(newRes); } // Used for compatibility only -> use setResolutionZ(double newRes) instead
-
-  void setDetName(std::string detName)              { m_detName = detName; }
-  void setLayerID(int layerID)                      { m_layerID = layerID; }
-  void setDiscID(int discID)                        { m_discID  = discID; }
+  void setResolutionY(double newRes)                { setResolutionZ(newRes); }    // Used for compatibility only -> use setResolutionZ(double newRes) instead
 
   // Getter methods
   const DetectorModule* getHitModule() const { return m_hitModule; };
@@ -95,7 +91,7 @@ public:
   double   getD();
 
   std::string getDetName()       const { return m_detName; };
-  int         getLayerOrDiscID() const { if(this->isBarrel()) return m_layerID; else if(this->isEndcap()) return m_discID; else return -1;}; //!< Return positive number for layer (barrel hit) or disc (end-cap hit), -1 for beam-pipe or IP
+  int         getLayerOrDiscID() const;
 
   bool     isBeamPipe() const  { return m_isBeamPipe; };
   bool     isIP() const        { return m_isIP; };
@@ -131,8 +127,6 @@ protected:
   bool m_isPixel;   //!< Hit coming from the pixel module
 
   std::string m_detName; //!< Detector name, in which the hit has been measured
-  int         m_layerID; //!< Corresponding layer ID
-  int         m_discID;  //!< Corresponding disc ID
 
 private:
   

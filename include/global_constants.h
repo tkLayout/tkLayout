@@ -145,6 +145,7 @@ namespace insur {
   static const std::string default_irradiationdir                = "config";
   static const std::vector<std::string> default_irradiationfiles = {"irradiation.map", "irradiationPixel.map"};
   //static const std::string default_irradiationfile = "irradiation.map";
+  static const std::string default_fluence_file                  = "fluencePer1ppCol.map";
   static const std::string default_materialsdir                  = "config";
   static const std::string default_tracker_materials_file        = "Materials.cfg";
   static const std::string default_pixel_materials_file          = "PixelMaterials.cfg";
