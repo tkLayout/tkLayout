@@ -84,10 +84,14 @@ void IrradiationPowerVisitor::postVisit() {
     std::vector<double>& irrads = it.second;
     std::sort(irrads.begin(), irrads.end());
     int nModules = irrads.size();
+    std::ostringstream irrad_Max("");
+    std::ostringstream irrad_95perc("");
+    irrad_Max    << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules-1);
+    irrad_95perc << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules*95/100-1);
     sensorsIrradiationPerType.setCell(iRow, 0, typeName);
     sensorsIrradiationPerType.setCell(iRow, 1, nModules);
-    sensorsIrradiationPerType.setCell(iRow, 2, irrads.at(nModules-1));
-    sensorsIrradiationPerType.setCell(iRow, 3, irrads.at(nModules*95/100-1));
+    sensorsIrradiationPerType.setCell(iRow, 2, irrad_Max.str());
+    sensorsIrradiationPerType.setCell(iRow, 3, irrad_95perc.str());
   }
   // Create summary tables of results. All tables are displayed on website.
   // All results are per module category, identified by ModuleRef.
