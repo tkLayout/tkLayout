@@ -2,29 +2,40 @@
 #include "messageLogger.h"
 #include "ConversionStation.h"
 
-const std::vector<double> Disk::getSmallDeltasFromTree() const {
-  std::vector<double> smallDeltas;
+const std::vector<double> Disk::scanSmallDeltas() const {
+  std::vector<double> ringsSmallDeltas;
 
   for (int i = 1; i <= numRings(); i++) {
     Ring* ringTemplate = GeometryFactory::make<Ring>();
     ringTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) ringTemplate->store(ringNode.at(i));
-    smallDeltas.push_back(ringTemplate->smallDelta());
+    ringsSmallDeltas.push_back(ringTemplate->smallDelta());
   }
-  return smallDeltas;
+  return ringsSmallDeltas;
 }
 
-const std::vector<double> Disk::getDsDistancesFromTree() const {
-  std::vector<double> dsDistances;
+
+const std::vector<double> Disk::scanDsDistances() const {
+  std::vector<double> ringsDsDistances;
 
   for (int i = 1; i <= numRings(); i++) {
     RectangularModule* modTemplate = GeometryFactory::make<RectangularModule>();
     modTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) modTemplate->store(ringNode.at(i));
-    dsDistances.push_back(modTemplate->dsDistance());
+    ringsDsDistances.push_back(modTemplate->dsDistance());
   }
-  return dsDistances;
+  return ringsDsDistances;
 }
+
+
+const ScanDiskInfo Disk::scanPropertyTree() const {
+
+  const std::vector<double>& ringsSmallDeltas = scanSmallDeltas();
+  const std::vector<double>& ringsDsDistances = scanDsDistances();
+  const ScanDiskInfo& diskInfo = std::make_pair(ringsSmallDeltas, ringsDsDistances);
+  return diskInfo; 
+}
+
 
 void Disk::check() {
   PropertyObject::check();
@@ -54,66 +65,19 @@ void Disk::cutAtEta(double eta) {
   maxR.clear();
 }
 
-/*void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
-//  auto childmap = propertyTree().getChildMap<int>("Ring");
-  double lastRho = 0;
-  double lastSmallDelta;
 
-  for (int i = 1, parity = -bigParity(); lastRho < outerRadius(); i++, parity *= -1) {
-    Ring* ring = GeometryFactory::make<Ring>();
-    ring->buildDirection(Ring::BOTTOMUP);
-    ring->buildCropRadius(outerRadius());
-    ring->store(propertyTree());
-    if (ringNode.count(i) > 0) ring->store(ringNode.at(i)); //childmap.count(i) > 0 ? childmap[i] : propertyTree()
-    if (i == 1) {
-      ring->buildStartRadius(innerRadius());
-    } else {
+void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-      // Calcaluate new and last position in Z
-      double newZ  = buildZ() + (parity > 0 ? + bigDelta() : - bigDelta()) - ring->smallDelta() - getDsDistance(buildDsDistances, i)/2;  
-      double lastZ = buildZ() + (parity > 0 ? - bigDelta() : + bigDelta()) + lastSmallDelta     + getDsDistance(buildDsDistances, i)/2;
-      //double originZ = parity > 0 ? -zError() : +zError();
+  const ScanDiskInfo& innermostDiskInfo = extremaDisksInfo.first;
+  const vector<double>& innermostDiskSmallDeltas = innermostDiskInfo.first;
+  const vector<double>& innermostDiskDsDistances = innermostDiskInfo.second;
+
+  const ScanDiskInfo& outermostDiskInfo = extremaDisksInfo.second;
+  const vector<double>& outermostDiskSmallDeltas = outermostDiskInfo.first;
+  const vector<double>& outermostDiskDsDistances = outermostDiskInfo.second;
 
 
 
-      // Calculate shift in Z position of extreme cases (either innemost or outermost disc)
-      // Remember that disc put always in to the centre of endcap
-      double shiftZ        = parity > 0 ? -zHalfLength() : +zHalfLength();
-
-      // Calculate shift in Z due to beam spot
-      double errorShiftZ   = parity > 0 ? -zError() : +zError();
-
-      // Calculate next rho taking into account overlap in extreme cases of innermost or outermost disc
-      double nextRhoWOverlap  = (lastRho - rOverlap())/(lastZ - shiftZ)*(newZ - shiftZ);
-      // Calculate next rho taking into account overlap zError in extreme cases of innermost or outermost disc
-      double nextRhoWZError   = (lastRho)/(lastZ - shiftZ - errorShiftZ)*(newZ - shiftZ - errorShiftZ);
-
-      // New next rho as a minimum
-      double nextRho = MIN(nextRhoWOverlap, nextRhoWZError);
-      ring->buildStartRadius(nextRho);
-
-       // For debug test only
-       //std::cout << ">>> noOverlap:        " << (lastRho)/lastZ * newZ              << " New [ ; ]: " << (lastRho)/(lastZ - zHalfLength()) * (newZ - zHalfLength()) << " " << (lastRho)/(lastZ + zHalfLength()) * (newZ + zHalfLength()) << std::endl;
-       //std::cout << ">>> yesOverlap:       " << (lastRho - rOverlap())/lastZ * newZ << " New [ ; ]: " << (lastRho - rOverlap())/(lastZ - zHalfLength()) * (newZ - zHalfLength()) << " " << (lastRho - rOverlap())/(lastZ + zHalfLength()) * (newZ + zHalfLength()) << std::endl;
-       //std::cout << ">>> yesZErr:          " << (lastRho)/lastZ * newZ              << " New [ ; ]: " << (lastRho)/(lastZ - zError() - zHalfLength()) * (newZ - zError() - zHalfLength()) << " " << (lastRho)/(lastZ + zError() + zHalfLength()) * (newZ + zError() + zHalfLength()) << std::endl;
-       //
-       //std::cout << ">>> ShiftZ: " << shiftZ << " ErrorZ: " << errorShiftZ << " nR: "<< nextRhoWOverlap << " nRShifted: " << nextRhoWZError << std::endl;
-    }
-    ring->myid(i);
-    ring->build();
-    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
-    rings_.push_back(ring);
-    //ringIndexMap_.insert(i, ring);
-    ringIndexMap_[i] = ring;
-
-    // Keep for next calculation
-    lastRho        = ring->maxR();
-    lastSmallDelta = ring->smallDelta();
-  }
-  numRings(rings_.size());
-}*/
-
-void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances) {
   double lastRho;
   
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
@@ -138,7 +102,7 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       double lastZ;          // Z of the most stringent point in Ring i+1
       double newZ;           // Z of the most stringent point in Ring i
       double lastSmallDelta; // smallDelta (Ring i+1)
-      double newSmalDelta;   // smallDelta (Ring i)
+      double newSmallDelta;   // smallDelta (Ring i)
       double lastDsDistance; // dsDistance (Ring i+1)
       double newDsDistance;  // dsDistance (Ring i)
      
@@ -146,10 +110,10 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       if (parity > 0) {
 	// In this case, the innermost disk of the Endcaps block is the most stringent.
 	// As a result, geometry information is taken from that disk.
-	lastSmallDelta = getSmallDelta(firstDiskSmallDeltas, i+1);
-	newSmallDelta = getSmallDelta(firstDiskSmallDeltas, i);
-	lastDsDistance = getDsDistance(firstDiskDsDistances, i+1);
-	newDsDistance = getDsDistance(firstDiskDsDistances, i);
+	lastSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i+1);
+	newSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i);
+	lastDsDistance = getDsDistance(innermostDiskDsDistances, i+1);
+	newDsDistance = getDsDistance(innermostDiskDsDistances, i);
 
 	// Calculates Z of the most stringent points
 	lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
@@ -160,10 +124,10 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       else {
 	// In this case, the outermost disk of the Endcaps block is the most stringent.
 	// As a result, geometry information is taken from that disk.
-	lastSmallDelta = getSmallDelta(lastDiskSmallDeltas, i+1);
-	newSmallDelta = getSmallDelta(lastDiskSmallDeltas, i);
-	lastDsDistance = getDsDistance(lastDiskDsDistances, i+1);
-	newDsDistance = getDsDistance(lastDiskDsDistances, i);
+	lastSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i+1);
+	newSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i);
+	lastDsDistance = getDsDistance(outermostDiskDsDistances, i+1);
+	newDsDistance = getDsDistance(outermostDiskDsDistances, i);
 
 	// Calculates Z of the most stringent points
 	lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
@@ -174,7 +138,8 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       // 2) CALCULATES RING RADIUSHIGH FOR RING (i) FROM RING (i+1)
       
       // Case A : Consider zError
-      double zError   = parity > 0 ? +zError() : -zError();
+      //double zError   = parity > 0 ? +zError() : -zError();
+      double zError   = 70.;
       double nextRhoWithZError   = lastRho / (lastZ - zError) * (newZ - zError);
 
       // Case B : Consider rOverlap
@@ -186,7 +151,7 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
       ring->buildStartRadius(nextRho);
     }
 
-    // NOW TAHT RADIUS HAS BEEN CALCULATED, FINISHES BUILDING THE RING AND STORE IT
+    // NOW THAT RADIUS HAS BEEN CALCULATED, FINISHES BUILDING THE RING AND STORE IT
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
@@ -198,15 +163,15 @@ void Disk::buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector
   }
 }
 
-void Disk::build(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances) {
+
+void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   ConversionStation* conversionStation;
   materialObject_.store(propertyTree());
   materialObject_.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
-    if (numRings.state()) buildTopDown(firstDiskSmallDeltas, lastDiskSmallDeltas, firstDiskDsDistances, lastDiskDsDistances);
-    //else buildBottomUp(buildDsDistances);
+    if (numRings.state()) buildTopDown(extremaDisksInfo);
     translateZ(placeZ());
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
