@@ -31,7 +31,6 @@ SimParms::SimParms() :
     referenceTemp("referenceTemp", parsedAndChecked()),
     alphaParam("alphaParam", parsedAndChecked()),    // radiation-damage coefficient, A/cm
     magField("magneticField", parsedAndChecked()),
-    pileUp("pileUp", parsedAndChecked()),
     irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
     minTracksEta("minTracksEta", parsedOnly()),
     maxTracksEta("maxTracksEta", parsedOnly()),

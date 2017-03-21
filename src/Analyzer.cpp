@@ -581,7 +581,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             }
 
             // Calculate dRPhi & dZ
-            int    nPU    = SimParms::getInstance().pileUp();
+            int    nPU    = SimParms::getInstance().numMinBiasEvents();
             // TODO: Assumed that map on ZxR grid defined in cm -> needs to be fixed
             double flux   = fluenceMap->calculateIrradiation(std::make_pair(nextZPos/Units::mm,nextRPos/Units::mm))*1/Units::cm2/Units::s * nPU;
 

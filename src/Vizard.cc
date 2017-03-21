@@ -4861,7 +4861,7 @@ namespace insur {
     gStyle->SetGridStyle(style_grid);
     gStyle->SetOptStat(0);
 
-    std::string pileUp = any2str(SimParms::getInstance().pileUp());
+    std::string pileUp = any2str(SimParms::getInstance().numMinBiasEvents());
 
     //
     // Pt option
