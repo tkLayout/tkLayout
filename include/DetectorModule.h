@@ -12,7 +12,6 @@
 #include <boost/accumulators/statistics/moment.hpp>
 #include <boost/accumulators/statistics/count.hpp>
 
-
 #include "Sensor.h"
 #include "ModuleBase.h"
 #include "GeometricModule.h"
@@ -94,6 +93,8 @@ public:
   ReadonlyProperty<double, AutoDefault> powerStripChip;
   Property<double, AutoDefault> sensorsIrradiationPowerMean;
   Property<double, AutoDefault> sensorsIrradiationPowerMax;
+  Property<double, AutoDefault> sensorsIrradiationMean;
+  Property<double, AutoDefault> sensorsIrradiationMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;

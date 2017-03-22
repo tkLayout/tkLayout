@@ -1,6 +1,6 @@
 @include-std CMS_Phase2/Pixel/Conversions/Components/1xTWP_6+1_HS_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/2xTWP_3+1_HS_to_1GBT  
 @include-std CMS_Phase2/Pixel/Conversions/Components/3xTWP_2+1_HS_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/7xTWP_1+1_HS_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/6xTWP_1+1_HS_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/14xTWP_1+1_LS_to_1GBT  
 @include-std CMS_Phase2/Pixel/Conversions/Components/Remove_Kapton

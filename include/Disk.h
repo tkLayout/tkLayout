@@ -44,9 +44,10 @@ private:
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
 
-  inline double getDsDistance(const vector<double>& buildDsDistances, int rindex) const;
-  void buildTopDown(const vector<double>& buildDsDistances);
-  void buildBottomUp(const vector<double>& buildDsDistances);
+  inline double getSmallDelta(const vector<double>& diskSmallDeltas, int ringIndex) const;
+  inline double getDsDistance(const vector<double>& buildDsDistances, int ringIndex) const;
+  void buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances);
+  //void buildBottomUp(const vector<double>& buildDsDistances);
 
   double averageZ_ = 0;
 public:
@@ -70,7 +71,7 @@ public:
     bigDelta(    "bigDelta"   , parsedAndChecked()),
     zError(      "zError"     , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
-    rOverlap(    "rOverlap"   , parsedOnly(), 1.),
+    rOverlap(    "rOverlap"   , parsedOnly(), 0.),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),
@@ -93,8 +94,11 @@ public:
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
 
+  const std::vector<double> getSmallDeltasFromTree() const;
+  const std::vector<double> getDsDistancesFromTree() const;
+
   void check() override;
-  void build(const vector<double>& buildDsDistances);
+  void build(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances);
   void translateZ(double z);
   void mirrorZ();
   void cutAtEta(double eta);
@@ -125,6 +129,7 @@ public:
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;
   const std::vector<ConversionStation*>& secondConversionStations() const;
-};
+  std::vector< std::set<const Module*> > getModuleSurfaces() const;
+ };
 
 #endif
