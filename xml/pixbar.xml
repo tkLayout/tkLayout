@@ -149,65 +149,17 @@
     <Rotation name="180D" thetaX="90*deg" phiX="180*deg" thetaY="90*deg" phiY="90*deg" thetaZ="180*deg" phiZ="0*deg"/>
   </RotationSection>
   <SolidSection label="pixbar.xml">
-    <!--<Polycone name="Barrel" startPhi="0*deg" deltaPhi="360*deg">
-      <ZSection z="-291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="-128.1*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="-128.1*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="-123.0*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="-123.0*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-120.2*cm" rMin="28.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-119.0*cm" rMin="28.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-119.0*cm" rMin="20.1*cm" rMax="120.0*cm"/>
-      <ZSection z="-29.12*cm" rMin="20.1*cm" rMax="120.0*cm"/>
-      <ZSection z="-29.12*cm" rMin="[Rin2]" rMax="120.0*cm"/>
-      <ZSection z="-28.70*cm" rMin="[Rin2]" rMax="120.0*cm"/>
-      <ZSection z="-28.70*cm" rMin="[Rin1]" rMax="120.0*cm"/>
-      <ZSection z="28.70*cm" rMin="[Rin1]" rMax="120.0*cm"/>
-      <ZSection z="28.70*cm" rMin="[Rin2]" rMax="120.0*cm"/>
-      <ZSection z="29.12*cm" rMin="[Rin2]" rMax="120.0*cm"/>
-      <ZSection z="29.12*cm" rMin="20.1*cm" rMax="120.0*cm"/>
-      <ZSection z="119.0*cm" rMin="20.1*cm" rMax="120.0*cm"/>
-      <ZSection z="119.0*cm" rMin="28.0*cm" rMax="120.0*cm"/>
-      <ZSection z="120.2*cm" rMin="28.0*cm" rMax="120.0*cm"/>
-      <ZSection z="120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="123.0*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="123.0*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="128.1*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="128.1*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-    </Polycone>
-    <Polycone name="Phase1PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
-      <ZSection z="-119.0*cm" rMin="20.1*cm" rMax="[Rout1]"/>
-      <ZSection z="-29.12*cm" rMin="20.1*cm" rMax="[Rout1]"/>
-      <ZSection z="-29.12*cm" rMin="[Rin2]" rMax="[Rout1]"/>
-      <ZSection z="-[Zv1]"         rMin="[Rin2]"          rMax="[Rout1]" />
-      <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
-      <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
-      <ZSection z="[Zv1]"          rMin="[Rin2]"          rMax="[Rout1]" />
-      <ZSection z="29.12*cm" rMin="[Rin2]" rMax="[Rout1]"/>
-      <ZSection z="29.12*cm" rMin="20.1*cm" rMax="[Rout1]"/>
-      <ZSection z="119.0*cm" rMin="20.1*cm" rMax="[Rout1]"/>
-    </Polycone>-->
     <Polycone name="Barrel" startPhi="0*deg" deltaPhi="360*deg">  <!-- TEMPORARY!! Should be defined automatically -->
-      <ZSection z="-291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="-128.1*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="-128.1*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="-123.0*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="-123.0*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-120.2*cm" rMin="19.65*cm" rMax="120.0*cm"/>
+      <ZSection z="-291.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
+      <ZSection z="-125.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
+      <ZSection z="-125.0*cm" rMin="19.65*cm" rMax="120.0*cm"/>
       <ZSection z="-[Zv1]" rMin="19.65*cm" rMax="120.0*cm"/>
       <ZSection z="-[Zv1]" rMin="[Rin1]" rMax="120.0*cm"/>
       <ZSection z="[Zv1]" rMin="[Rin1]" rMax="120.0*cm"/>
       <ZSection z="[Zv1]" rMin="19.65*cm" rMax="120.0*cm"/>
-      <ZSection z="120.2*cm" rMin="19.65*cm" rMax="120.0*cm"/>
-      <ZSection z="120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="123.0*cm" rMin="53.0*cm" rMax="120.0*cm"/>
-      <ZSection z="123.0*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="128.1*cm" rMin="113.5*cm" rMax="120.0*cm"/>
-      <ZSection z="128.1*cm" rMin="117.99*cm" rMax="120.0*cm"/>
-      <ZSection z="291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
+      <ZSection z="125.0*cm" rMin="19.65*cm" rMax="120.0*cm"/>
+      <ZSection z="125.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
+      <ZSection z="291.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
     </Polycone>
     <Polycone name="Phase1PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
@@ -218,33 +170,6 @@
       <rSolid name="Phase1PixelBarrel"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid> 
-    <!--
-    <Polycone name="PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
-      <RZPoint r="[Rin1]" z="-[Zv1]"/>
-      <RZPoint r="[Rin2]" z="-[Zv1]"/>
-      <RZPoint r="[Rin2]" z="-[ZvSupTubCab]"/>
-      <RZPoint r="[RinSupTubCab]" z="-[ZvSupTubCab]"/>
-      <RZPoint r="[Rout2]" z="-[Zv4]"/>
-      <RZPoint r="[Rout2]" z="-[Zv3]"/>
-      <RZPoint r="[Rout1]" z="-[Zv3]"/>
-      <RZPoint r="218*mm" z="0*mm"/>
-      <RZPoint r="218*mm" z="-1170*mm"/>
-      <RZPoint r="670*mm" z="-1170*mm"/>
-      <RZPoint r="1094.95*mm" z="-1189.44*mm"/>
-      
-      <RZPoint r="1094.95*mm" z="1189.44*mm"/>
-      <RZPoint r="670*mm" z="1189.44*mm"/>
-      <RZPoint r="670*mm" z="1170*mm"/>
-      <RZPoint r="218*mm" z="1170*mm"/>
-      <RZPoint r="[Rout1]" z="[Zv3]"/>
-      <RZPoint r="[Rout2]" z="[Zv3]"/>
-      <RZPoint r="[Rout2]" z="[Zv4]"/>
-      <RZPoint r="[RinSupTubCab]" z="[ZvSupTubCab]"/>
-      <RZPoint r="[Rin2]" z="[ZvSupTubCab]"/>
-      <RZPoint r="[Rin2]" z="[Zv1]"/>
-      <RZPoint r="[Rin1]" z="[Zv1]"/>
-    </Polycone>
-    -->
   </SolidSection>
   <LogicalPartSection label="pixbar.xml">
     <LogicalPart name="Phase1PixelBarrel" category="unspecified">

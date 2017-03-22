@@ -153,3 +153,28 @@ OT568_200_IT4025.cfg  OT Version 5.6.8 <- like version 5.6.7, but replacing one 
 OT577_200_IT4025.cfg  OT Version 5.7.7 <- like 5.6.7, but with overlap spread over first rings
 OT578_200_IT4025.cfg  OT Version 5.7.8 <- like 5.6.8, but with overlap spread over first rings
 OT377_200_IT4025.cfg  OT Version 3.7.7 <- like 3.6.7, but with overlap spread over first rings
+OT601_200_IT4025.cfg  OT Version 6.0.1 <- starting from 5.7.8 we solve PS->2S clash by shifting the PS rings instead of adding additional
+                                          smallDelta. This allows to reduce bigDelta to 14.15 mm
+                                          10,7 PS rings in TEDD1,2
+                                             5 2S rings in TEDD1&2
+                                          phioverlap = -2
+                                          gaps distributed with bigDelta. Plenty of room
+
+OT602_200_IT4025.cfg                       9,7 PS rings in TEDD1,2
+                                             6 2S rings in TEDD1&2
+                                           overlap mainly through bigDelta (and 2S)
+                                           phioverlap = -2
+
+OT603_200_IT4025.cfg                      like 602, but overlap mainly through PS modules
+
+OT611_200_IT4025.cfg                      TDR geometry
+
+OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paired-up layers:
+                                             Z coordinates in TEDD: 1356.8 1440 1854.67 1937.67 2567 2650
+                                             while keeping the radial positions as in 6.1.1
+                                          TB2D radii taken from 4.6.3
+                                          TBPS configuration as in 6.1.1, but reducing L2 radius to have 1 cm clearance (incl. hybrid) to L1
+
+
+                                          
+

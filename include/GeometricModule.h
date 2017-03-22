@@ -14,11 +14,13 @@
 
 #include <TVector.h>
 #include <TMatrixD.h>
+#include <Math/Point2D.h>
 
 #include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
 #include "ModuleBase.h"
+#include "ContourPoint.h"
 
 using std::vector;
 using std::string;
@@ -38,12 +40,17 @@ protected:
   bool flipped_ = false;
   int tiltAngle_ = 0., skewAngle_ = 0.;
   Polygon3d<4> basePoly_;
+  std::vector<XYZVector> contour_;
+
   double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
 public:
   Property<double, Default> dsDistance; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
   Property<double, Default> physicalLength;
+  PropertyNode<int> contourPointNode;
+
   GeometricModule() :
       dsDistance("dsDistance", parsedAndChecked(), 0.),
+      contourPointNode("ContourPoint", parsedOnly()),
       physicalLength("physicalLength", parsedOnly(), 0.)
   {}
   virtual ~GeometricModule() {}
@@ -51,6 +58,7 @@ public:
   virtual GeometricModule* clone() const = 0;
 
   const Polygon3d<4>& basePoly() const { return basePoly_; }
+  const std::vector<XYZVector>& contour() const { return contour_; }
   const XYZVector& center() const { return basePoly_.getCenter(); }
   const XYZVector& normal() const { return basePoly_.getNormal(); }
   virtual double area() const = 0;

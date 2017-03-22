@@ -89,7 +89,7 @@ struct Method {
 
 struct TypeAutoColor { // Auto-assign colors
   std::set<std::string> colorSet_;
-  double operator()(const Module& m) { 
+  double operator()(const Module& m) {
     std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
     return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
   }
@@ -97,7 +97,7 @@ struct TypeAutoColor { // Auto-assign colors
 
 
 struct Type { // Module-maintained color
-  double operator()(const Module& m) { 
+  double operator()(const Module& m) {
     return Palette::color(m.plotColor());
   }
 };
@@ -111,7 +111,7 @@ struct CoordZ {
 
 
 // =============================================================================================
-// Here be DRAWSTYLES 
+// Here be DRAWSTYLES
 // If possible, additional draw styles should be local to the plot drawer instantiation
 // =============================================================================================
 
@@ -127,8 +127,8 @@ public:
   double getMinValue() const { return minValue_; }
   double getMaxValue() const { return maxValue_; }
 
-  void setFramePalette(TPaletteAxis* framePalette) { 
-    framePalette_ = framePalette; 
+  void setFramePalette(TPaletteAxis* framePalette) {
+    framePalette_ = framePalette;
   }
 
   int getColor(double value) const {
@@ -162,7 +162,7 @@ public:
 
 
 // ===============================================================================================
-// Here be VALIDATORS 
+// Here be VALIDATORS
 // If possible, additional module validators should be local to the plot drawer instantiation
 // ===============================================================================================
 
@@ -222,8 +222,8 @@ struct YZ : public std::pair<int, int>, private Rounder {
     XYZVector normal = crossProduct(z, basePolyCenter); // normal of plane ((Z axis), moduleCenter).
     normal = normal.Unit(); // normalize.
 
-    vProjected = v - v.Dot(normal) * normal; // Calculate projected vector. TO DO : Introduce this as a method !!   
-    this->second = round(vProjected.Rho()); // Take the Rho() of the projected vector.    
+    vProjected = v - v.Dot(normal) * normal; // Calculate projected vector. TO DO : Introduce this as a method !!  
+    this->second = round(vProjected.Rho()); // Take the Rho() of the projected vector.   
   }
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
@@ -240,36 +240,76 @@ struct YZFull : public YZ {
 TPolyLine* drawMod();
 
 template<class CoordType> class LineGetter {
-  typedef typename CoordType::first_type CoordTypeX; 
+  typedef typename CoordType::first_type CoordTypeX;
   typedef typename CoordType::first_type CoordTypeY;
   CoordTypeX maxx_, minx_;
   CoordTypeY maxy_, miny_;
 public:
+  bool isContour = false;
   LineGetter() : maxx_(std::numeric_limits<CoordTypeX>::min()), minx_(std::numeric_limits<CoordTypeX>::max()), maxy_(std::numeric_limits<CoordTypeY>::min()), miny_(std::numeric_limits<CoordTypeY>::max()) {}
   CoordTypeX maxx() const { return double(maxx_)/Rounder::mmFraction; }
   CoordTypeX minx() const { return double(minx_)/Rounder::mmFraction; }
   CoordTypeY maxy() const { return double(maxy_)/Rounder::mmFraction; }
   CoordTypeY miny() const { return double(miny_)/Rounder::mmFraction; }
   TPolyLine* operator()(const Module& m) {
-    std::set<CoordType> xy; // duplicate detection
-    double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
-    int j=0;
-    for (int i=0; i<4; i++) {
-      CoordType c(m.basePoly().getVertex(i), m);
-      if (xy.insert(c).second == true) {
-        x[j] = double(c.first)/Rounder::mmFraction;
-        y[j++] = double(c.second)/Rounder::mmFraction;
-      } 
-      maxx_ = MAX(c.first, maxx_);
-      minx_ = MIN(c.first, minx_);
-      maxy_ = MAX(c.second, maxy_);
-      miny_ = MIN(c.second, miny_);
-    }
-    if (j==4) { // close the poly line in case it's made of 4 distinct points, to get the closing line drawn
-      x[j] = x[0]; 
+    if (!isContour) {
+      std::set<CoordType> xy; // duplicate detection
+      double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
+      int j=0;
+      for (int i=0; i<4; i++) {
+	CoordType c(m.basePoly().getVertex(i), m);
+	if (xy.insert(c).second == true) {
+	  x[j] = double(c.first)/Rounder::mmFraction;
+	  y[j++] = double(c.second)/Rounder::mmFraction;
+	}
+	maxx_ = MAX(c.first, maxx_);
+	minx_ = MIN(c.first, minx_);
+	maxy_ = MAX(c.second, maxy_);
+	miny_ = MIN(c.second, miny_);
+      }
+      if (j==4) { // close the poly line in case it's made of 4 distinct points, to get the closing line drawn
+	x[j] = x[0];
+	y[j++] = y[0];
+      }
+      return !g ? new TPolyLine(j, x, y) : drawMod();
+    } else {
+      // well... it's a contour! let's hack a drawing here
+
+      int contourSize = m.decorated().contour().size();
+      if (contourSize==0) return nullptr;
+     
+      // Our local axes in global coordinates
+      XYZVector ey = m.basePoly().getVertex(0) - m.basePoly().getVertex(1) ;
+      XYZVector ex = m.basePoly().getVertex(2) - m.basePoly().getVertex(1) ;
+      XYZVector center = m.center();
+      ex = ex / sqrt(ex.Mag2());
+      ey = ey / sqrt(ey.Mag2());
+      double x[contourSize+1];
+      double y[contourSize+1];
+      std::set<CoordType> xy; // duplicate detection
+
+      int j=0;
+      for (int i=0; i<contourSize; i++) {
+	const XYZVector& contourLocal = m.decorated().contour().at(i);
+	// std::cerr << contourLocal.X() << "," << contourLocal.Y() << " ";
+	XYZVector contourGlobal = ex * contourLocal.X() + ey * contourLocal.Y() + center;
+	
+	CoordType c(contourGlobal, m);
+	if (xy.insert(c).second == true) {
+	  x[j] = double(c.first)/Rounder::mmFraction;
+	  y[j++] = double(c.second)/Rounder::mmFraction;
+	}
+	maxx_ = MAX(c.first, maxx_);
+	minx_ = MIN(c.first, minx_);
+	maxy_ = MAX(c.second, maxy_);
+	miny_ = MIN(c.second, miny_);
+      }
+      x[j] = x[0];
       y[j++] = y[0];
+
+      // std::cerr << std::endl;
+      return new TPolyLine(j, x, y);
     }
-    return !g ? new TPolyLine(j, x, y) : drawMod();
   }
 };
 
@@ -287,10 +327,10 @@ class IdMaker {
   static int id;
 public:
   int nextId() const { return id++; }
-  std::string nextString() const { 
-    std::stringstream sid(""); 
+  std::string nextString() const {
+    std::stringstream sid("");
     sid << nextId();
-    return sid.str(); 
+    return sid.str();
   }
 protected:
   static const int nBinsZoom;
@@ -306,7 +346,7 @@ public:
 
 
 template<class CoordType> class SummaryFrameStyle {
-  void drawEtaTicks(double maxL, double maxR, 
+  void drawEtaTicks(double maxL, double maxR,
 		    double tickDistanceRRatio, double tickLengthRRatio, double textDistanceRRatio,
 		    double tickDistanceLRatio, double tickLengthLRatio, double textDistanceLRatio,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
@@ -322,10 +362,10 @@ struct HistogramFrameStyle {
     frame.SetMaximum(palette.getMaxValue());
     frame.SetMinimum(palette.getMinValue());
 
-    frame.Draw("colz");
+    frame.Draw("colz HIST");
     canvas.Update();
     palette.setFramePalette((TPaletteAxis*)frame.GetListOfFunctions()->FindObject("palette"));
-    frame.Draw("AXIS colz");
+    frame.Draw("AXIS HIST colz");
   }
 };
 
@@ -341,7 +381,7 @@ struct HistogramFrameStyle {
 /// Usage:
 /// 1) Construct a PlotDrawer object: PlotDrawer<CoordType, ValueGetterType, StatType> drawer(viewportMaxX, viewportMaxY, valueGetter);
 ///    - CoordType is the coordinate class: XY, YZ or YZFull (for Z- and Z+ sections together)
-///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a Module& and returning a double can be used here. 
+///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a Module& and returning a double can be used here.
 ///      Some ValueGetters are pre-defined. In case of user-defined ValueGetters, if possible use lambda or classes local to the instantiation of your PlotDrawer to avoid polluting this header with additional declarations
 ///    - StatType is the type of statistic to do on the module values obtained with the ValueGetters, in case two modules occupy the same map bin.
 ///      Default is NoStat, where values overwrite each other and the last one counts. Average, Max, Min, Sum are also available and custom statistics can be defined by the user.
@@ -349,13 +389,17 @@ struct HistogramFrameStyle {
 ///    - valueGetter is an instance of a ValueGetterType that can be used by the user to pass a custom valueGetter. Default is valueGetter().
 /// 2) Add modules to the internal maps, using either:
 ///    - void addModulesType(begin, end, moduleTypes); where the last argument moduleTypes can be the constants BARREL, ENDCAP or BARREL | ENDCAP, to restrict to one subdetector or both
-///    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type. 
+///    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type.
 ///      A ModuleValidator is a lambda or functor taking a const Module& and returning a bool, used to decide whether a module should be included or not in the plot
 /// 3) Draw the plot frame: void drawFrame<FrameStyleType>(canvas, frameStyle)
 ///   - FrameStyleType is the type of frame to draw. The predefined classes are SummaryFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - frameStyle is the instance of a FrameStyleType class, which can be used in case of custom frame styles. Default is FrameStyleType<CoordType>()
 /// 4) Draw the modules: void drawModules<DrawStyleType>(canvas, drawStyle)
+///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
+///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
+///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
+/// 5) Draw the modules with outer contour: void drawModuleContours<DrawStyleType>(canvas, drawStyle)
 ///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
@@ -369,19 +413,22 @@ class PlotDrawer {
   ValueGetterType getValue;
   FrameGetter<CoordType> getFrame;
   LineGetter<CoordType> getLine;
+  LineGetter<CoordType> getContour;
 
   DrawerPalette palette_;
 
   std::map<CoordType, StatType*> bins_;
   std::map<CoordType, TPolyLine*> lines_;
+  std::map<CoordType, TPolyLine*> contour_;
 
-public: 
-  PlotDrawer(CoordTypeX viewportMaxX = 0, CoordTypeY viewportMaxY = 0, const ValueGetterType& valueGetter = ValueGetterType()) : viewportMaxX_(viewportMaxX), viewportMaxY_(viewportMaxY), getValue(valueGetter) {}
+public:
+   PlotDrawer(CoordTypeX viewportMaxX = 0, CoordTypeY viewportMaxY = 0, const ValueGetterType& valueGetter = ValueGetterType()) : viewportMaxX_(viewportMaxX), viewportMaxY_(viewportMaxY), getValue(valueGetter) { getContour.isContour = true; }
 
   ~PlotDrawer();
 
   template<template<class> class FrameStyleType> void drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle = FrameStyleType<CoordType>());
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
+  template<class DrawStyleType> void drawModuleContours(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
   template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
@@ -396,9 +443,11 @@ template<class CoordType, class ValueGetterType, class StatType> PlotDrawer<Coor
   for (typename std::map<CoordType, StatType*>::iterator it = bins_.begin(); it != bins_.end(); ++it) {
     delete it->second;
     delete lines_[it->first];
+    if (contour_[it->first]) delete contour_[it->first];
   }
   bins_.clear();
   lines_.clear();
+  contour_.clear();
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
@@ -409,7 +458,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
     double value = it->second->get();
     minValue = value < minValue ? value : minValue;
-    maxValue = value > maxValue ? value : maxValue; 
+    maxValue = value > maxValue ? value : maxValue;
   }
   palette_.setMinMaxValues(minValue, maxValue);
   canvas.SetFillColor(kWhite);
@@ -420,16 +469,25 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   frameStyle(*frame, canvas, palette_);
 }
 
-
-
 template<class CoordType, class ValueGetterType, class StatType>
 template<class DrawStyleType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
   canvas.cd();
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
     StatType* bin = it->second;
     TPolyLine* line = lines_.at(it->first);
     drawStyle(*line, *bin, palette_);
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class DrawStyleType>
+  void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModuleContours(TCanvas& canvas, const DrawStyleType& drawStyle) {
+  canvas.cd();
+  for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
+    StatType* bin = it->second;
+    TPolyLine* contour = contour_.at(it->first);
+    if (contour) drawStyle(*contour, *bin, palette_);
   }
 }
 
@@ -440,6 +498,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   if (bins_[c] == NULL) {
     bins_[c] = new StatType();
     lines_[c] = getLine(m);
+    contour_[c] = getContour(m);
   }
   double value = getValue(m);
   bins_[c]->fill(value);
@@ -451,7 +510,7 @@ template<class CoordType, class ValueGetterType, class StatType>
   for (InputIterator it = begin; it != end; ++it) {
     int subDet = (*it)->subdet();
     if (subDet & moduleTypes) {
-      add(**it); 
+      add(**it);
     }
   }
 }

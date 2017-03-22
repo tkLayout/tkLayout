@@ -4,8 +4,11 @@
  */
 
 #include <Vizard.h>
-#include <TPolyLine.h>
 #include <Units.h>
+
+#include <TPolyLine.h>
+#include <TPaveText.h>
+#include <ReportModuleCount.hh>
 
 #include <boost/filesystem.hpp>
 
@@ -818,8 +821,6 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       rCompTrackingVolumeStack->Draw("hist");
-      // rCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myPad = myCanvas->GetPad(2);
@@ -842,8 +843,6 @@ namespace insur {
 	myTable->setContent(compIndexTrackingVolume++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
       }
       iCompTrackingVolumeStack->Draw("hist");
-      //iCompTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
-      //myCanvas->Modified();
       compLegendTrackingVolume->Draw();
 
       myContentDetails->addItem(myTable);
@@ -1089,45 +1088,6 @@ namespace insur {
         drawInactiveSurfacesSummary(materialBudget, *myPage);
     }
 
-  }
-
-  // private
-  /**
-   * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for
-   * visualisation. It loops through the provided module vectors, determining their modules' corners and position
-   * in space. Using that information, it adds a ROOT shape and a 3D transformation to a volume assembly
-   * note from the geometry tree for each module found in the vectors.
-   * @param layers A pointer to the list of layers or discs that is to be displayed
-   * @param v A pointer to a template volume that is to be adjusted to the module shape
-   * @param t A pointer to a transformation object that will describe the template volume's position in space
-   * @param a A pointer to the assembly node that the template volume will be added to
-   * @param counter The element counter that keeps track of how many volumes have been added to the geometry tree
-   * @return The new value of the element counter
-   */
-  int Vizard::detailedModules(std::vector<Layer*>* layers,
-                              TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter) {
-/*    Layer* current;
-    Module* mod;
-    if (!layers->empty()) {
-      //  init of volume object for modules
-      v = gm->MakeArb8("", medact, 0);
-      v->SetLineColor(kRed);
-      // layer loop
-      for (unsigned int i = 0; i < layers->size(); i++) {
-        current = layers->at(i);
-        // module loop
-        for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
-          mod = current->getModuleVector()->at(j);
-          // place volume v according to information in module mod
-          t = modulePlacement(mod, v);
-          // add volume v to scene graph using translation t
-          a->AddNode(v, counter, t);
-          counter++;
-        }
-      }
-    }
-    else std::cout << "detailedModules(): layers vector is empty." << std::endl;*/
-    return counter;
   }
 
   /**
@@ -2208,77 +2168,10 @@ namespace insur {
     //*   Module types breakdown     *//
     //*                              *//
     //********************************//
-    class ModuleSummaryType {
-       public:
-         double dsDistance;
-         std::string moduleType;
-         ModuleSummaryType(const DetectorModule& m) {
-           dsDistance = m.dsDistance();
-           moduleType = m.moduleType();
-         }
-         std::string toString() const {
-           std::string result;
-           result+=moduleType;
-           if (dsDistance!=0) result+=" "+any2str(dsDistance, 1)+" mm";
-           return result;
-         }
-    };
 
-    struct cmpModuleSummaryType {
-      bool operator()(const ModuleSummaryType& a, const ModuleSummaryType& b) const {
-        if (a.moduleType!=b.moduleType) return a.moduleType<b.moduleType;
-        return a.dsDistance < b.dsDistance;
-      }
-    };
-
-    class ModuleCounter {
-      public:
-        int barrel, endcap;
-        void add(const DetectorModule& m) {
-          if (m.subdet()==BARREL) barrel++;
-          else if (m.subdet()==ENDCAP) endcap++;
-        }
-    };
-
-    class ModuleTypesVisitor : public ConstGeometryVisitor {
-    public:
-      std::map<ModuleSummaryType, ModuleCounter, cmpModuleSummaryType> moduleTypeCount;
-      int totalCount = 0;
-      void visit(const DetectorModule& m) override {
-        ModuleSummaryType aType(m);
-        moduleTypeCount[aType].add(m);
-        totalCount++;
-      }
-    };
-
-    ModuleTypesVisitor aModuleTypesVisitor;
-    tracker.accept(aModuleTypesVisitor);
-    RootWTable* moduleTypeTable = new RootWTable(); myContent->addItem(moduleTypeTable);
-    int i=1;
-    moduleTypeTable->setContent(0, 0, "Module type");
-    moduleTypeTable->setContent(0, 1, "Barrel");
-    moduleTypeTable->setContent(0, 2, "Endcap");
-    moduleTypeTable->setContent(0, 3, "Total");
-    const auto& moduleTypeCountMap = aModuleTypesVisitor.moduleTypeCount;
-    int totalBarrelCount = 0;
-    int totalEndcapCount = 0;
-    for (const auto& aTypeCount : moduleTypeCountMap) {
-      int barCount = aTypeCount.second.barrel;
-      int endCount = aTypeCount.second.endcap;
-      int totalCount = barCount+endCount;
-      totalBarrelCount += barCount;
-      totalEndcapCount += endCount;
-      moduleTypeTable->setContent(i, 0, aTypeCount.first.toString());
-      moduleTypeTable->setContent(i, 1, barCount);
-      moduleTypeTable->setContent(i, 2, endCount);
-      moduleTypeTable->setContent(i, 3, totalCount);
-      i++;
-    }
-    moduleTypeTable->setContent(i, 0, "Total");
-    moduleTypeTable->setContent(i, 1, totalBarrelCount);
-    moduleTypeTable->setContent(i, 2, totalEndcapCount);
-    moduleTypeTable->setContent(i, 3, aModuleTypesVisitor.totalCount);
-
+    ReportModuleCount rmc;
+    rmc.analyze(tracker);
+    rmc.visualizeTo(*myContent);
 
     //********************************//
     //*                              *//
@@ -2471,28 +2364,6 @@ namespace insur {
       myContent->addItem(myImage);
     }
 
-    /*
-     * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padXY);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY Section of the tracker barrel");
-     * myContent->addItem(myImage);
-     * }
-     *
-     * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padEC);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY View of the tracker endcap");
-     * myContent->addItem(myImage);
-     * }
-     */
-
     // Eta profile big plot
     myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfiles(*myCanvas, analyzer);
@@ -2663,10 +2534,12 @@ namespace insur {
       myCanvas->cd();
 
 
-      TPad* upperPad = new TPad(Form("%s_upper", myCanvas->GetName()), "upper", 0, 0.4, 1, 1);
+      TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
+      TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
       TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
       myCanvas->cd();
-      upperPad->Draw();
+      upperLeftPad->Draw();
+      upperRightPad->Draw();
       lowerPad->Draw();
       aProfile.SetMinimum(0);
       aProfile.SetMaximum(1.05);
@@ -2674,12 +2547,26 @@ namespace insur {
       aProfile.SetLineColor(Palette::color(1));
       aProfile.SetMarkerStyle(1);
 
+      TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
+      efficiencyHistogram->SetXTitle("Inefficiency");
+      efficiencyHistogram->SetYTitle("Eta bins");
+      efficiencyHistogram->SetFillColor(Palette::color(1));
+      for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
+      TPaveText* tpt;
+      tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
+      tpt->SetBorderSize(1);
+      tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
+      tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
+      
       TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
       zoomedProfile->SetMinimum(0.9);
       zoomedProfile->SetMaximum(1.01);
       zoomedProfile->SetTitle("");
-      upperPad->cd();
+      upperLeftPad->cd();
       aProfile.Draw();
+      upperRightPad->cd();
+      efficiencyHistogram->Draw();
+      tpt->Draw();
       lowerPad->cd();
       zoomedProfile->Draw();
 
@@ -3449,23 +3336,29 @@ namespace insur {
     return true;
   }
 
-  bool Vizard::irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+  void Vizard::dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries,
+					 const std::string& title, std::string units) {
+    for (std::map<std::string, SummaryTable>::iterator it = radiationSummaries.begin(); it != radiationSummaries.end(); ++it) {
+      RootWContent& myContent = myPage.addContent(title+std::string(" (") + it->first + ")", false);
+      RootWTable* comments = new RootWTable();
+      comments->setContent(0, 0, "Values in table are average per module in irradiated sensor(s) ["+units+"]");
+      myContent.addItem(comments);
+      myContent.addTable().setContent(it->second.getContent());
+    }    
+  }
+  
+  bool Vizard::irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
     std::string trackerName = tracker.myid();
     std::string pageName = "Power (" + trackerName + ")";
     std::string pageAddress = "power_" + trackerName + ".html";
 
-    RootWPage* myPage = new RootWPage(pageName);
-    myPage->setAddress(pageAddress);
-    site.addPage(myPage);
+    RootWPage& myPage = site.addPage(pageName);
+    myPage.setAddress(pageAddress);
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getSensorsIrradiationPowerSummary();
-    for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      RootWContent& myContent = myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false);
-      RootWTable* comments = new RootWTable();
-      comments->setContent(0, 0, "Values in table are (average, max) per module of power dissipation in irradiated sensor(s).");
-      myContent.addItem(comments);
-      myContent.addTable().setContent(it->second.getContent());
-    }
+    std::map<std::string, SummaryTable>& irradiationSummaries = a.getSensorsIrradiationSummary();
+    dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
+    dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
 
     // Some helper string objects
     ostringstream tempSS;
@@ -3486,7 +3379,7 @@ namespace insur {
     yzSensorsPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
     yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
-    RootWContent& myContent = myPage->addContent("Power maps", true);
+    RootWContent& myContent = myPage.addContent("Power maps", true);
 
     TCanvas sensorsIrradiationPowerCanvas;
     TCanvas totalPowerCanvas;
@@ -3508,7 +3401,7 @@ namespace insur {
 
     // Add csv file with sensors irradiation handful info
     RootWContent* filesContent = new RootWContent("power csv files", false);
-    myPage->addContent(filesContent);
+    myPage.addContent(filesContent);
     RootWTextFile* myTextFile;
     myTextFile = new RootWTextFile(Form("sensorsIrradiation%s.csv", trackerName.c_str()), "Sensors irradiation file");
     myTextFile->addText(createSensorsIrradiationCsv(tracker));
@@ -6086,6 +5979,7 @@ namespace insur {
 	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
 	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+	  xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
 	  XYCanvasesEC.push_back(XYCanvasEC);
 	}
       }
@@ -6209,7 +6103,7 @@ namespace insur {
       bool isOuterRadiusRod_;
     public:
       void preVisit() {
-        output_ << "Section, Layer, Ring, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W" << std::endl;
+        output_ << "Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W, sensorsIrradiationMean_Hb, sensorsIrradiationMax_Hb" << std::endl;
       }
       void visit(const Barrel& b) { sectionName_ = b.myid(); }
       void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -6220,6 +6114,8 @@ namespace insur {
         output_ << sectionName_ << ", "
 		<< layerId_ << ", "
 		<< m.moduleRing() << ", "
+		<< m.moduleType() << ", "
+		<< m.dsDistance() << ", "
 		<< isOuterRadiusRod_ << ", "
 		<< std::fixed << std::setprecision(6)
 		<< m.operatingTemp() << ", "
@@ -6230,7 +6126,9 @@ namespace insur {
 		<< m.totalSensorsVolume() << ", "
 		<< std::fixed << std::setprecision(3)
 		<< m.sensorsIrradiationPowerMean() << ", "
-		<< m.sensorsIrradiationPowerMax()	
+		<< m.sensorsIrradiationPowerMax() << ", "
+		<< m.sensorsIrradiationMean() << ", "
+		<< m.sensorsIrradiationMax()	
 		<< std::endl;
       }
 
