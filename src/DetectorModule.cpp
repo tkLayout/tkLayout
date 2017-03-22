@@ -354,8 +354,14 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 }
 
 
-//double DetectorModule::calculateAlphaAndBeta(double hitRho, double trackR) const {
-  //}
+double DetectorModule::totalPower() const {
+  double result = powerPerModule();
+  for (const auto& sen : sensors()) {
+    result += sen.powerPerChannel() * sen.numChannels();
+  }
+  return result;
+}
+
 
 double DetectorModule::stripOccupancyPerEventBarrel() const {
   double rho = center().Rho()/10.;
@@ -423,6 +429,29 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
   if (ht != HitType::NONE) numHits_++;
   return std::make_pair(gc, ht);
+};
+
+std::string DetectorModule::summaryType() const  {
+  std::string result;
+  result+=moduleType();
+  if (dsDistance()!=0) result+=" "+any2str(dsDistance(), 1)+" mm";
+  return result;
+};
+
+std::string DetectorModule::summaryFullType() const  {
+  std::string result;
+  if (dsDistance()!=0) result=any2str(dsDistance(), 1)+" mm ";
+  result+=moduleType();
+  if (subdet()==BARREL) {
+    if (isTilted()) result += " Tilted";
+    else result += " Flat";
+    result += " Barrel";
+  } else if (subdet()==ENDCAP) {
+    result += " Endcap";
+  } else {
+    std::cerr << "HELP! I am a bit lost here..." << std::endl;
+  }
+  return result;
 };
 
 //BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {

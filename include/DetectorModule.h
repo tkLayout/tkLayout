@@ -88,10 +88,7 @@ public:
 
   ReadonlyProperty<double, NoDefault> operatingTemp;
   ReadonlyProperty<double, NoDefault> biasVoltage;
-  ReadonlyProperty<double, AutoDefault> powerModuleOptical;
-  ReadonlyProperty<double, AutoDefault> powerModuleChip;
-  ReadonlyProperty<double, AutoDefault> powerStripOptical;
-  ReadonlyProperty<double, AutoDefault> powerStripChip;
+  ReadonlyProperty<double, AutoDefault> powerPerModule;
   Property<double, AutoDefault> sensorsIrradiationPowerMean;
   Property<double, AutoDefault> sensorsIrradiationPowerMax;
   Property<double, AutoDefault> sensorsIrradiationMean;
@@ -137,10 +134,7 @@ public:
       triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
       operatingTemp            ("operatingTemp"            , parsedAndChecked()),
       biasVoltage              ("biasVoltage"              , parsedAndChecked()),
-      powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
-      powerModuleChip          ("powerModuleChip"          , parsedOnly()),
-      powerStripOptical        ("powerStripOptical"        , parsedOnly()),
-      powerStripChip           ("powerStripChip"           , parsedOnly()),
+      powerPerModule           ("powerPerModule"           , parsedOnly()),
       triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
       triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
       stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
@@ -294,11 +288,8 @@ public:
   int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
 
-  double totalPowerModule() const { return powerModuleOptical() + powerModuleChip(); }
-  double totalPowerStrip() const { return powerStripOptical() + powerStripChip(); }
-  double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
+  double totalPower() const;
 
-  
   int numStripsAcrossEstimate() const { return sensors().front().numStripsAcrossEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
   double pitch() const { return sensors().front().pitch(); }
 int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
@@ -324,6 +315,9 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
   void resetHits() { numHits_ = 0; }
+
+  std::string summaryType() const;
+  std::string summaryFullType() const;
 };
 
 

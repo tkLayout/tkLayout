@@ -10,9 +10,7 @@ zCorrelation samesegment
 
 numSensors 2
 
-powerStripChip 0
-powerModuleChip 4700
-powerModuleOptical 0
+powerPerModule 4700  // mW
 
 sensorThickness 0.2
 

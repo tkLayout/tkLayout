@@ -6,13 +6,6 @@
 #include <map>
 #include <string>
 
-std::string VisitorModuleCount::moduleSummaryType(const DetectorModule& m) const  {
-  std::string result;
-  result+=m.moduleType();
-  if (m.dsDistance()!=0) result+=" "+any2str(m.dsDistance(), 1)+" mm";
-  return result;
-};
-
 void VisitorModuleCount::sortTypesAndDetectors() {
   int iType=1;
   int iSub=1;
@@ -85,7 +78,7 @@ void VisitorModuleCount::visit(const Endcap& endcap) {
 }
 
 void VisitorModuleCount::visit(const DetectorModule& m) {
-  std::string modType = moduleSummaryType(m);
+  std::string modType = m.summaryType();
   if (firstVisit) {
     moduleTypes[modType]=1;
   } else {
