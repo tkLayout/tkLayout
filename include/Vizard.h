@@ -164,6 +164,7 @@ namespace insur {
     // and return true or false, depending if they created the output or not
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
@@ -263,9 +264,12 @@ namespace insur {
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     void stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
     void stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
+
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
+    std::vector<MaterialBudget*> materialBudgets_;
     TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutServicesRZ();
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);

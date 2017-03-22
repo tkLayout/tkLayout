@@ -435,6 +435,8 @@ namespace insur {
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
   void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+    materialBudgets_.push_back(&materialBudget);
+    
     // Initialize the page with the material budget
     RootWPage* myPage;
     RootWContent* myContent;
@@ -2463,9 +2465,10 @@ namespace insur {
     return true;
   }
 
+  static int nLayoutCanvases = 0;
+  
   TCanvas* Vizard::drawFullLayoutRZ() {
     TCanvas* result = nullptr;
-    std::string aClass;
     PlotDrawer<YZ, Type> yzDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -2475,7 +2478,7 @@ namespace insur {
 
     int rzCanvasX = vis_max_canvas_sizeX;
     int rzCanvasY = vis_min_canvas_sizeY;
-    result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
+    result = new TCanvas(Form("FullRZCanvas%d", nLayoutCanvases++), "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
     yzDrawer.drawModules<ContourStyle>(*result);
@@ -2483,9 +2486,33 @@ namespace insur {
     return result;
   }
 
+  TCanvas* Vizard::drawFullLayoutServicesRZ() {
+    TCanvas* result = drawFullLayoutRZ();
+    result->cd();
+    for (auto& matBud : materialBudgets_ ) {
+      std::vector<InactiveElement> allServices = matBud->getAllServices();
+      for (auto& iter : allServices) {
+	double z1 = iter.getZOffset();
+	double z2 = iter.getZOffset()+iter.getZLength();
+	double r1 = iter.getInnerRadius();
+	double r2 = iter.getInnerRadius()+iter.getRWidth();
+	if ((z1>=0)||(z2>0)) {
+	  TBox* myBox = new TBox(z1, r1, z2, r2);
+	  myBox->SetLineColor(kGray);
+	  myBox->SetFillColor(kGray);
+	  myBox->SetFillStyle(1);
+	  myBox->SetLineStyle(1);
+	  myBox->Draw("l");
+	}
+      }
+    }
+    
+    return result;
+  }
+
+  
   TCanvas* Vizard::drawFullLayoutBarrelXY() {
     TCanvas* result = nullptr;
-    std::string aClass;
     PlotDrawer<XY, Type> xyDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -2541,7 +2568,173 @@ namespace insur {
     }
   }
 
+  void Vizard::totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site) {
+    // Pointer to an image to create on the fly
+    RootWImage* myImage;
+    RootWPage& myPage = site.addPage("Material (total)");
+    
+    // Define web-page sections
+    RootWContent* materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)", true);
+    myPage.addContent(materialCategoriesContent);
+    RootWContent* materialOverviewContent   = new RootWContent("Full layout Material : 1d overview (tracking volume)", false);
+    myPage.addContent(materialOverviewContent);
+    RootWContent* materialComponentsContent = new RootWContent("Full layout Material : Components details (tracking volume)", false);
+    myPage.addContent(materialComponentsContent);
 
+    // COMPONENTS DETAILS (TRACKING VOLUME)
+    RootWTable* myTable = new RootWTable();
+    char titleString[256];
+    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
+    myTable->setContent(0, 1, "Radiation length");
+    myTable->setContent(0, 2, "Interaction length");
+
+    THStack* rCompBeamPipeStack = new THStack("rcompbeampipestack", "Radiation Length by Component in beam pipe");
+    THStack* iCompBeamPipeStack = new THStack("icompbeampipestack", "Interaction Length by Component in beam pipe");
+    THStack* rCompPixelIntersticeStack = new THStack("rcomppixelintersticestack", "Radiation Length by Component in pixel interstice");
+    THStack* iCompPixelIntersticeStack = new THStack("icomppixelintersticestack", "Interaction Length by Component in pixel interstice");
+    THStack* rCompPixelTrackingVolumeStack = new THStack("rcomppixeltrackingvolumestack", "Radiation Length by Component in pixel tracking volume");
+    THStack* iCompPixelTrackingVolumeStack = new THStack("icomppixeltrackingvolumestack", "Interaction Length by Component in pixel tracking volume");
+    THStack* rCompIntersticeStack = new THStack("rcompintersticestack", "Radiation Length by Component in interstice");
+    THStack* iCompIntersticeStack = new THStack("icompintersticestack", "Interaction Length by Component in interstice");
+    THStack* rCompOuterTrackingVolumeStack = new THStack("rcompoutertrackingvolumestack", "Radiation Length by Component in outer tracking volume");
+    THStack* iCompOuterTrackingVolumeStack = new THStack("icompoutertrackingvolumestack", "Interaction Length by Component in outer tracking volume");
+    THStack* rCompTotalTrackingVolumeStack = new THStack("rcomptotaltrackingvolumestack", "Radiation Length by Component in tracking volume");
+    THStack* iCompTotalTrackingVolumeStack = new THStack("icomptotaltrackingvolumestack", "Interaction Length by Component in tracking volume");
+
+    TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
+
+    TCanvas* myCanvas = new TCanvas("FullLayoutMaterialComponentsTrackingVolumeRI");
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    TVirtualPad* myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+    bool isRadiation = true;
+    int index = 1;
+    stackHistos(analyzer.getHistoBeamPipeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompBeamPipeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoPixelIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelIntersticeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoPixelTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
+    rCompTotalTrackingVolumeStack->Draw("hist");
+    compLegend->Draw();
+
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    isRadiation = false;
+    index = 1;
+    stackHistos(analyzer.getHistoBeamPipeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompBeamPipeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoPixelIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelIntersticeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoPixelTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelTrackingVolumeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
+    stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
+    iCompTotalTrackingVolumeStack->Draw("hist");
+    compLegend->Draw();
+
+    materialComponentsContent->addItem(myTable);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
+    myImage->setName("fullLayoutMatComponentsTrackingVolume");
+    materialComponentsContent->addItem(myImage);
+
+    // CATEGORIES DETAILS (TRACKING VOLUME)
+    myTable = new RootWTable();
+    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
+    myTable->setContent(0, 1, "Radiation length");
+    myTable->setContent(0, 2, "Interaction length");
+    compLegend = new TLegend(0.1,0.6,0.35,0.9);
+
+    std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
+    if (rCompBeamPipeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
+    if (iCompBeamPipeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
+    if (rCompPixelIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
+    if (iCompPixelIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
+    if (rCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
+    if (iCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
+    if (rCompIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
+    if (iCompIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
+    if (rCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
+    if (iCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
+    THStack* rCompCategoryTrackingVolumeStack = new THStack("rcompcategorytrackingvolumestack", "Radiation Length by Category in tracking volume");
+    THStack* iCompCategoryTrackingVolumeStack = new THStack("icompcategorytrackingvolumestack", "Interaction Length by Category in tracking volume");
+    THStack* dummy = new THStack("dummy", "dummy");
+
+    myCanvas = new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI");
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+    isRadiation = true;
+    index = 1;
+    stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
+    rCompCategoryTrackingVolumeStack->Draw("hist");
+    compLegend->Draw();
+
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    isRadiation = false;
+    index = 1;
+    stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
+    iCompCategoryTrackingVolumeStack->Draw("hist");
+    compLegend->Draw();
+
+    materialCategoriesContent->addItem(myTable);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Radiation and interaction length distribution in eta by category in total tracking volume");
+    myImage->setName("fullLayoutMatCategoriesTrackingVolume");
+    materialCategoriesContent->addItem(myImage);
+   
+    // 1D OVERVIEW (TRACKING VOLUME)
+    TH1D *cr = NULL, *ci = NULL;
+    TProfile *crProf, *ciProf;
+    // Work area re-init
+    myCanvas = new TCanvas("FullLayoutMaterialOverviewTrackingVolumeRI");
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+    // global plots in tracking volume: radiation length
+    if (rCompTotalTrackingVolumeStack->GetHists()) {
+      cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
+      crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+      crProf->SetFillColor(kGray + 2);
+      crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+      crProf->Draw("hist");
+    }
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    // global plots in tracking volume: interaction length
+    if (iCompTotalTrackingVolumeStack->GetHists()) {
+      ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
+      ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
+      ciProf->SetFillColor(kGray + 2);
+      ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->Draw("hist");
+    }
+    // Write global tracking volume plots to web pag
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Material in total tracking volume");
+    myImage->setName("fullLayoutMatOverviewTrackingVolume");
+    myTable = new RootWTable();
+    sprintf(titleString, "Average radiation length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    myTable->setContent(1, 1, titleString);
+    sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    myTable->setContent(2, 1, titleString);
+    if (cr) myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
+    if (ci) myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
+    materialOverviewContent->addItem(myTable);
+    materialOverviewContent->addItem(myImage);
+    
+  }
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site) {
@@ -2549,7 +2742,7 @@ namespace insur {
     myPage->setAddress("info.html");
 
     site.addPage(myPage, RootWeb::most_relevant);
-    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent, *materialOverviewContent, *materialCategoriesContent, *materialComponentsContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
 
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
@@ -2565,30 +2758,31 @@ namespace insur {
 
     // Detector full layout
     TCanvas* aLayout = drawFullLayoutRZ();
+    TCanvas* aLayoutServices = drawFullLayoutServicesRZ();
     TCanvas* aLayoutXY = drawFullLayoutBarrelXY();
-    if (aLayout||aLayoutXY) fullLayoutContent = new RootWContent("Full layout", true);
-    if (aLayout) {
+    if (aLayout||aLayoutXY) {
       fullLayoutContent = new RootWContent("Full layout Geometry", true);
-      RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
-      anImage->setComment("RZ position of the modules (full layout)");
-      anImage->setName("fullLayout");
-      fullLayoutContent->addItem(anImage);
+      myPage->addContent(fullLayoutContent);
+      if (aLayout) {
+	RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
+	anImage->setComment("RZ position of the modules (full layout)");
+	anImage->setName("fullLayout");
+	fullLayoutContent->addItem(anImage);
+      }
+      if (aLayoutXY) {
+	RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
+	anImage->setComment("XY position of the barrel modules (full layout)");
+	anImage->setName("fullLayoutBarrelXY");
+	fullLayoutContent->addItem(anImage);
+      }
+      if (aLayoutServices) {
+	RootWImage* anImage = new RootWImage(aLayoutServices, aLayoutServices->GetWindowWidth(), aLayoutServices->GetWindowHeight() );
+	anImage->setComment("RZ position of the modules (full layout with services)");
+	anImage->setName("fullLayout");
+	fullLayoutContent->addItem(anImage);
+      }
     }
-    if (aLayoutXY) {
-      RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
-      anImage->setComment("XY position of the barrel modules (full layout)");
-      anImage->setName("fullLayoutBarrelXY");
-      fullLayoutContent->addItem(anImage);
-    }
-    if (aLayout||aLayoutXY) myPage->addContent(fullLayoutContent);
 
-    // Define web-page sections
-    materialOverviewContent = new RootWContent("Full layout Material : 1d overview (tracking volume)");
-    myPage->addContent(materialOverviewContent);
-    materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)", false);
-    myPage->addContent(materialCategoriesContent);
-    materialComponentsContent = new RootWContent("Full layout Material : Components details (tracking volume)", false);
-    myPage->addContent(materialComponentsContent);
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
     summaryContent = new RootWContent("Summary");
@@ -2637,190 +2831,6 @@ namespace insur {
     myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
     if (fullLayoutContent) fullLayoutContent->addItem(myImageLayers);
     
-
-
-
-
-
-
-    // COMPONENTS DETAILS (TRACKING VOLUME)
-    RootWTable* myTable = new RootWTable();
-    char titleString[256];
-    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
-    myTable->setContent(0, 0, titleString);
-    myTable->setContent(0, 1, "Radiation length");
-    myTable->setContent(0, 2, "Interaction length");
-
-
-    THStack* rCompBeamPipeStack = new THStack("rcompbeampipestack", "Radiation Length by Component in beam pipe");
-    THStack* iCompBeamPipeStack = new THStack("icompbeampipestack", "Interaction Length by Component in beam pipe");
-    THStack* rCompPixelIntersticeStack = new THStack("rcomppixelintersticestack", "Radiation Length by Component in pixel interstice");
-    THStack* iCompPixelIntersticeStack = new THStack("icomppixelintersticestack", "Interaction Length by Component in pixel interstice");
-    THStack* rCompPixelTrackingVolumeStack = new THStack("rcomppixeltrackingvolumestack", "Radiation Length by Component in pixel tracking volume");
-    THStack* iCompPixelTrackingVolumeStack = new THStack("icomppixeltrackingvolumestack", "Interaction Length by Component in pixel tracking volume");
-    THStack* rCompIntersticeStack = new THStack("rcompintersticestack", "Radiation Length by Component in interstice");
-    THStack* iCompIntersticeStack = new THStack("icompintersticestack", "Interaction Length by Component in interstice");
-    THStack* rCompOuterTrackingVolumeStack = new THStack("rcompoutertrackingvolumestack", "Radiation Length by Component in outer tracking volume");
-    THStack* iCompOuterTrackingVolumeStack = new THStack("icompoutertrackingvolumestack", "Interaction Length by Component in outer tracking volume");
-    THStack* rCompTotalTrackingVolumeStack = new THStack("rcomptotaltrackingvolumestack", "Radiation Length by Component in tracking volume");
-    THStack* iCompTotalTrackingVolumeStack = new THStack("icomptotaltrackingvolumestack", "Interaction Length by Component in tracking volume");
-
-    TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
-
-    TCanvas* myCanvas = new TCanvas("FullLayoutMaterialComponentsTrackingVolumeRI");
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    TVirtualPad* myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    bool isRadiation = true;
-    int index = 1;
-    stackHistos(analyzer.getHistoBeamPipeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompBeamPipeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
-    rCompTotalTrackingVolumeStack->Draw("hist");
-    //rCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    //myCanvas->Modified();
-    compLegend->Draw();
-
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    isRadiation = false;
-    index = 1;
-    stackHistos(analyzer.getHistoBeamPipeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompBeamPipeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelTrackingVolumeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
-    iCompTotalTrackingVolumeStack->Draw("hist");
-    //iCompTotalTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    //myCanvas->Modified();
-    compLegend->Draw();
-
-    materialComponentsContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
-    myImage->setName("fullLayoutMatComponentsTrackingVolume");
-    materialComponentsContent->addItem(myImage);
-
-
-
-
-
-
-
-    // CATEGORIES DETAILS (TRACKING VOLUME)
-    myTable = new RootWTable();
-    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
-    myTable->setContent(0, 0, titleString);
-    myTable->setContent(0, 1, "Radiation length");
-    myTable->setContent(0, 2, "Interaction length");
-    compLegend = new TLegend(0.1,0.6,0.35,0.9);
-
-    std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
-    if (rCompBeamPipeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
-    if (iCompBeamPipeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Beam pipe", (TH1D*)iCompBeamPipeStack->GetStack()->Last()));
-    if (rCompPixelIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)rCompPixelIntersticeStack->GetStack()->Last()));
-    if (iCompPixelIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports under Pixel Tracking Volume", (TH1D*)iCompPixelIntersticeStack->GetStack()->Last()));
-    if (rCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)rCompPixelTrackingVolumeStack->GetStack()->Last()));
-    if (iCompPixelTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Pixel Tracking Volume", (TH1D*)iCompPixelTrackingVolumeStack->GetStack()->Last()));
-    if (rCompIntersticeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)rCompIntersticeStack->GetStack()->Last()));
-    if (iCompIntersticeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Services and Supports between Pixel and Outer Tracking Volumes", (TH1D*)iCompIntersticeStack->GetStack()->Last()));
-    if (rCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)rCompOuterTrackingVolumeStack->GetStack()->Last()));
-    if (iCompOuterTrackingVolumeStack->GetHists()) histoPerCategoryI.push_back(std::make_pair("Outer Tracking Volume", (TH1D*)iCompOuterTrackingVolumeStack->GetStack()->Last()));
-    THStack* rCompCategoryTrackingVolumeStack = new THStack("rcompcategorytrackingvolumestack", "Radiation Length by Category in tracking volume");
-    THStack* iCompCategoryTrackingVolumeStack = new THStack("icompcategorytrackingvolumestack", "Interaction Length by Category in tracking volume");
-    THStack* dummy = new THStack("dummy", "dummy");
-
-    myCanvas = new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI");
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    isRadiation = true;
-    index = 1;
-    stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
-    rCompCategoryTrackingVolumeStack->Draw("hist");
-    //rCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    //myCanvas->Modified();
-    compLegend->Draw();
-
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    isRadiation = false;
-    index = 1;
-    stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
-    iCompCategoryTrackingVolumeStack->Draw("hist");
-    //iCompCategoryTrackingVolumeStack->GetXaxis()->SetTitle("#eta");
-    //myCanvas->Modified();
-    compLegend->Draw();
-
-    materialCategoriesContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Radiation and interaction length distribution in eta by category in total tracking volume");
-    myImage->setName("fullLayoutMatCategoriesTrackingVolume");
-    materialCategoriesContent->addItem(myImage);
-
-
-
-
-   
-    // 1D OVERVIEW (TRACKING VOLUME)
-    TH1D *cr = NULL, *ci = NULL;
-    TProfile *crProf, *ciProf;
-    // Work area re-init
-    myCanvas = new TCanvas("FullLayoutMaterialOverviewTrackingVolumeRI");
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    // global plots in tracking volume: radiation length
-    if (rCompTotalTrackingVolumeStack->GetHists()) {
-      cr = (TH1D*)rCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-      crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
-      crProf->SetFillColor(kGray + 2);
-      crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
-      crProf->Draw("hist");
-    }
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    // global plots in tracking volume: interaction length
-    if (iCompTotalTrackingVolumeStack->GetHists()) {
-      ci = (TH1D*)iCompTotalTrackingVolumeStack->GetStack()->Last()->Clone();
-      ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
-      ciProf->SetFillColor(kGray + 2);
-      ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
-      ciProf->Draw("hist");
-    }
-    // Write global tracking volume plots to web pag
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Material in total tracking volume");
-    myImage->setName("fullLayoutMatOverviewTrackingVolume");
-    myTable = new RootWTable();
-    sprintf(titleString, "Average radiation length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
-    myTable->setContent(1, 1, titleString);
-    sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
-    myTable->setContent(2, 1, titleString);
-    if (cr) myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
-    if (ci) myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
-    materialOverviewContent->addItem(myTable);
-    materialOverviewContent->addItem(myImage);
-
-
-
-
-
-
-
     RootWInfo* cmdLineInfo;
     cmdLineInfo = new RootWInfo("Command line arguments");
     cmdLineInfo->setValue(commandLine_);
@@ -2882,7 +2892,7 @@ namespace insur {
     myGv->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myGv);
 
-    return true; // TODO: make this meaningful
+    return true;
   }
 
 
@@ -6407,23 +6417,12 @@ namespace insur {
     myEllipse->Draw();
   }
 
-
   void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
 
     RootWContent& myContent = myPage.addContent("Service details");
-
-    auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
-    auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();
-    auto& supports = materialBudget.getInactiveSurfaces().getSupports();
-
-    // We put all services inside the same container
-    std::vector<InactiveElement> allServices;
-    allServices.reserve( barrelServices.size() + endcapServices.size() + supports.size() ); // preallocate memory
-    allServices.insert( allServices.end(), barrelServices.begin(), barrelServices.end() );
-    allServices.insert( allServices.end(), endcapServices.begin(), endcapServices.end() );
-    allServices.insert( allServices.end(), supports.begin(), supports.end() );
 
     // Counting services with an ad-hoc index
     int serviceId = 0;
