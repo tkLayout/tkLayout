@@ -66,7 +66,10 @@ void Disk::cutAtEta(double eta) {
 }
 
 
-void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
+
+std::pair<double> Disk::computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo) {
+  double lastZ;     // Z of the most stringent point in Ring i+1
+  double newZ;      // Z of the most stringent point in Ring i
 
   const ScanDiskInfo& innermostDiskInfo = extremaDisksInfo.first;
   const vector<double>& innermostDiskSmallDeltas = innermostDiskInfo.first;
@@ -76,7 +79,44 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
   const vector<double>& outermostDiskSmallDeltas = outermostDiskInfo.first;
   const vector<double>& outermostDiskDsDistances = outermostDiskInfo.second;
 
+  double lastSmallDelta; // smallDelta (Ring i+1)
+  double newSmallDelta;   // smallDelta (Ring i)
+  double lastDsDistance; // dsDistance (Ring i+1)
+  double newDsDistance;  // dsDistance (Ring i)
+     
+  // Case where Ring (i+1) is the innermost ring, and Ring (i) is the outermost ring.
+  if (parity > 0) {
+    // In this case, the innermost disk of the Endcaps block is the most stringent.
+    // As a result, geometry information is taken from that disk.
+    lastSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i+1);
+    newSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i);
+    lastDsDistance = getDsDistance(innermostDiskDsDistances, i+1);
+    newDsDistance = getDsDistance(innermostDiskDsDistances, i);
 
+    // Calculates Z of the most stringent points
+    lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+    newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2.;
+  }
+
+  // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
+  else {
+    // In this case, the outermost disk of the Endcaps block is the most stringent.
+    // As a result, geometry information is taken from that disk.
+    lastSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i+1);
+    newSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i);
+    lastDsDistance = getDsDistance(outermostDiskDsDistances, i+1);
+    newDsDistance = getDsDistance(outermostDiskDsDistances, i);
+
+    // Calculates Z of the most stringent points
+    lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+    newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2.;
+  }
+
+  return std::make_pair(lastZ, newZ);
+}
+
+
+void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
   double lastRho;
   
@@ -98,48 +138,15 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     else {
 
       // 1) FIND THE Z OF THE MOST STRINGENT POINTS IN RING (i+1) AND RING (i)
-
-      double lastZ;          // Z of the most stringent point in Ring i+1
-      double newZ;           // Z of the most stringent point in Ring i
-      double lastSmallDelta; // smallDelta (Ring i+1)
-      double newSmallDelta;   // smallDelta (Ring i)
-      double lastDsDistance; // dsDistance (Ring i+1)
-      double newDsDistance;  // dsDistance (Ring i)
-     
-      // Case where Ring (i+1) is the innermost ring, and Ring (i) is the outermost ring.
-      if (parity > 0) {
-	// In this case, the innermost disk of the Endcaps block is the most stringent.
-	// As a result, geometry information is taken from that disk.
-	lastSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i+1);
-	newSmallDelta = getSmallDelta(innermostDiskSmallDeltas, i);
-	lastDsDistance = getDsDistance(innermostDiskDsDistances, i+1);
-	newDsDistance = getDsDistance(innermostDiskDsDistances, i);
-
-	// Calculates Z of the most stringent points
-	lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
-	newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2.;
-      }
-
-      // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
-      else {
-	// In this case, the outermost disk of the Endcaps block is the most stringent.
-	// As a result, geometry information is taken from that disk.
-	lastSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i+1);
-	newSmallDelta = getSmallDelta(outermostDiskSmallDeltas, i);
-	lastDsDistance = getDsDistance(outermostDiskDsDistances, i+1);
-	newDsDistance = getDsDistance(outermostDiskDsDistances, i);
-
-	// Calculates Z of the most stringent points
-	lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
-        newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2.;
-      }
-
+      std::pair<double> stringentZ = computeStringentZ(i, parity, extremaDisksInfo);
+      double lastZ = stringentZ.first;           // Z of the most stringent point in Ring i+1
+      double newZ = stringentZ.second;           // Z of the most stringent point in Ring i
+      
 
       // 2) CALCULATES RING RADIUSHIGH FOR RING (i) FROM RING (i+1)
       
       // Case A : Consider zError
-      //double zError   = parity > 0 ? +zError() : -zError();
-      double zError   = 70.;
+      double zError   = parity > 0 ? +zError() : -zError();
       double nextRhoWithZError   = lastRho / (lastZ - zError) * (newZ - zError);
 
       // Case B : Consider rOverlap
