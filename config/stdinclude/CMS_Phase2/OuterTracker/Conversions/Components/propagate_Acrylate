@@ -1,0 +1,19 @@
+// 1:1 conversion of Acrylate
+
+Conversion {
+  Input {
+    Element {
+      elementName Acrylate 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Acrylate
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

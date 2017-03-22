@@ -51,8 +51,9 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
       containedElement_(containedElement),
+      isBarrel_(isBarrel),
       outgoingSection_(nullptr),
       minZ_(minZ),
       maxZ_(maxZ),
@@ -60,7 +61,7 @@ namespace material {
       maxR_(maxR) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, 0, 0, 0, 0){}
+    Boundary(nullptr, true, 0, 0, 0, 0){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -314,8 +315,9 @@ namespace material {
     boundariesList_(boundariesList) {}
   Materialway::OuterUsher::~OuterUsher() {}
 
-  void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker, Direction direction) {
+  void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
+    Direction direction;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -325,7 +327,13 @@ namespace material {
 
     bool going=true;
     while (going) {
+      // compute direction along which external sections will be built
+      direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
+
+      // Look for a possible colision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
+
+      // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
 
       going = foundBoundaryCollision && noSectionCollision;
@@ -333,6 +341,38 @@ namespace material {
 
     boundary->outgoingSection(firstSection);
   }
+
+
+ /**
+   * This computes the direction along which the external sections will be built.
+   * @param startZ : Z coordinate of the starting point
+   * @param hasStepInEndcapsOuterRadius : Has the considered tracker a step in its outer radius, in the endcaps region ?
+   * @return direction : The direction along which the external sections will be built
+   */
+  Materialway::Direction Materialway::OuterUsher::buildDirection(const int& startZ, const int& startR, const bool& hasStepInEndcapsOuterRadius, const int& numBarrels) {
+    // By default, direction is vertical
+    Direction direction = VERTICAL;
+    if (boundariesList_.size() > 0) {
+
+      // Special case where there is a step in the outer radius in the endcaps
+      if (hasStepInEndcapsOuterRadius && (startZ <= (*boundariesList_.cbegin())->minZ())) {
+
+	// set direction to horizontal for the barrel and all the first endcaps
+	direction = HORIZONTAL;
+
+	// In case where there are several barrels, direction horizontal should only be set for the top of the outermost barrel.
+	if (numBarrels > 1) {
+	  // Get the outermost Barrel boundary (The Barrel which has the biggest value = (boundary->maxR() + boundary->maxZ()))
+	  auto biggestBarrelBoundary = std::find_if(boundariesList_.begin(), boundariesList_.end(), 
+						    [&](const Boundary* b) { return b->isBarrel(); } );
+	  if (startR < (*biggestBarrelBoundary)->maxR()) direction = VERTICAL;
+	}    	
+      }
+    }
+    else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
+    return direction;
+  }
+
 
   /**
    * Look for the nearest collision in every defined boundary, starting from the (startZ, startR) point.
@@ -346,8 +386,8 @@ namespace material {
    */
   bool Materialway::OuterUsher::findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction) {
     int hitCoord;
-    int globalMaxZ = discretize(tracker.maxZ()) + globalMaxZPadding;
-    int globalMaxR = discretize(tracker.maxR()) + globalMaxRPadding;
+    int globalMaxZ = discretize(tracker.maxZwithHybrids()) + globalMaxZPadding;
+    int globalMaxR = discretize(tracker.maxRwithHybrids()) + globalMaxRPadding;
     std::map<int, BoundariesSet::const_iterator> hitBoundariesCoords;
     bool foundCollision = false;
 
@@ -626,8 +666,8 @@ namespace material {
         //build section right to layers
         Boundary* boundary = barrelBoundaryAssociations_[&barrel];
 
-        int minZ = discretize(barrel.maxZ()) + layerSectionRightMargin + safetySpace + layerStationLenght;
-        int minR = discretize(barrel.minR());
+        int minZ = discretize(barrel.maxZwithHybrids()) + layerSectionRightMargin + safetySpace + layerStationLenght;
+        int minR = discretize(barrel.minRwithHybrids());
         int maxZ = minZ + sectionWidth;
         int maxR = boundary->maxR() - safetySpace;
 
@@ -655,7 +695,7 @@ namespace material {
 
         //split the right section
         section = startBarrel;
-        attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
+        attachPoint = discretize(layer.maxRwithHybrids()) + layerSectionMargin;        //discretize(layer.minRwithHybrids());
 
         while(section->maxR() < attachPoint + sectionTolerance) {
           if(!section->hasNextSection()) {
@@ -673,7 +713,7 @@ namespace material {
 
         sectionMinZ = safetySpace;
         sectionMinR = attachPoint;
-        //sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
+        //sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
         sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
         sectionMaxR = sectionMinR + sectionWidth;
 
@@ -774,10 +814,10 @@ namespace material {
 
         //if the module is in z plus
         if(module.maxZ() > 0) {
-          if(module.maxZ() <= currLayer_->maxZ()) {
+          if(module.maxZ() <= currLayer_->maxZwithHybrids()) {
             attachPoint = discretize(module.maxZ());
           } else {
-            attachPoint = discretize(currLayer_->maxZ());
+            attachPoint = discretize(currLayer_->maxZwithHybrids());
           }
           section = startLayer;
           while (section->maxZ() < attachPoint + sectionTolerance) {
@@ -814,13 +854,13 @@ namespace material {
 
       //For the endcaps ----------------------------------------------------
       void visit(Endcap& endcap) {
-        if (endcap.minZ() >= 0) {
+        if (endcap.minZwithHybrids() >= 0) {
           //currEndcapPosition = POSITIVE;
 
           //build section above the disks
           Boundary* boundary = endcapBoundaryAssociations_[&endcap];
-          int minZ = discretize(endcap.minZ());
-          int minR = discretize(endcap.maxR())  + diskSectionUpMargin + safetySpace;
+          int minZ = discretize(endcap.minZwithHybrids());
+          int minR = discretize(endcap.maxRwithHybrids())  + diskSectionUpMargin + safetySpace;
           int maxZ = boundary->maxZ() - safetySpace;
           int maxR = minR + sectionWidth;
           startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection());
@@ -839,10 +879,10 @@ namespace material {
 
         currDisk_ = &disk;
         //if(currEndcapPosition == POSITIVE) {
-        if (disk.minZ() >= 0) {
+        if (disk.minZwithHybrids() >= 0) {
           //split the right section
           section = startEndcap;
-          int attachPoint = discretize(disk.maxZ()) + diskSectionMargin;
+          int attachPoint = discretize(disk.maxZwithHybrids()) + diskSectionMargin;
 
           while(section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
@@ -859,9 +899,9 @@ namespace material {
           //built two main sections above the layer
 
           int sectionMinZ = attachPoint;
-          int sectionMinR = discretize(disk.minR());
+          int sectionMinR = discretize(disk.minRwithHybrids());
           int sectionMaxZ = sectionMinZ + sectionWidth;
-          //int sectionMaxR = discretize(disk.maxR()) + diskSectionUpMargin;
+          //int sectionMaxR = discretize(disk.maxRwithHybrids()) + diskSectionUpMargin;
           int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
 
           int stationMinZ = sectionMinZ - (layerStationWidth / 2);
@@ -1035,16 +1075,19 @@ namespace material {
   //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
-  const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
-  const int Materialway::boundaryPrincipalPadding = discretize(15.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
+  const int Materialway::boundaryPaddingBarrel = discretize(12.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
+  const int Materialway::boundaryPaddingEndcaps = discretize(10.0); 
+  const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
+  const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(16.0);
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
-  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
+  //const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
+  const int Materialway::globalMaxRPadding = discretize(25.0);
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
-  const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
+  const int Materialway::layerStationLenght = discretize(insur::geom_conversion_station_width);  /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
@@ -1154,22 +1197,22 @@ namespace material {
       virtual ~BarrelVisitor() {}
 
       void visit(const Barrel& barrel) {
-        int boundMinZ = discretize(barrel.minZ()) - boundaryPadding;
-        int boundMinR = discretize(barrel.minR()) - boundaryPadding;
-        int boundMaxZ = discretize(barrel.maxZ()) + boundaryPrincipalPadding;
-        int boundMaxR = discretize(barrel.maxR()) + boundaryPadding;
-        Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+        int boundMinZ = discretize(barrel.minZwithHybrids()) - boundaryPaddingBarrel;
+        int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
+        int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
+        int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
       }
 
       void visit(const Endcap& endcap) {
-        int boundMinZ = discretize(endcap.minZ()) - boundaryPadding;
-        int boundMinR = discretize(endcap.minR()) - boundaryPadding;
-        int boundMaxZ = discretize(endcap.maxZ()) + boundaryPadding;
-        int boundMaxR = discretize(endcap.maxR()) + boundaryPrincipalPadding;
-        Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+        int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPaddingEndcaps;
+        int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
+        int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
+        int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
+        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
@@ -1185,20 +1228,51 @@ namespace material {
     BarrelVisitor visitor (boundariesList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_);
     tracker.accept(visitor);
 
-    if (boundariesList_.size() > 0)
+    if (boundariesList_.size() > 0) {
+
+      // For a given tracker, in case of a step in the Outer Radius in the Endcaps : 
+      // This sets the maxR boundary of the outermost barrel to the value of the maxR of the closest-to-barrel Endcap.
+      // As a result, the services will be routed properly, directly from the outermost barrel to the closest-to-barrel Endcap.
+      if (tracker.hasStepInEndcapsOuterRadius() && barrelBoundaryAssociations_.size() > 0 && endcapBoundaryAssociations_.size() > 0) {
+	
+	// In boundariesList_, the boundaries are sorted by decreasing order of the value of (boundary->maxR() + boundary->maxZ()).
+	// As a result, one can define a comparaison relation between barrels (or between endcaps) : the comparaison relation that exists between their corresponding boundaries.
+	// This allows to get the "biggest barrel" and "smallest endcap" in the sense of this relation of comparaison. As a result, we have access to the outermost barrel, and the closest-to-barrel endcap, respectively.
+	
+	// This is TEMPORARY. A relation of comparaison for barrels and endcaps should be introduced much upper in the code.
+	// + Ugly to have boundariesList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_ all storing the same data !
+	// Convenient because allows to have both a relation of comparaison (1 set) and a sortage by key (2 maps), but should be optimized !!
+
+
+	// Get the closest-to-barrel Endcap boundary (The Endcap which has the smallest value = (boundary->maxR() + boundary->maxZ()))
+	auto smallestEndcapBoundary = std::find_if(boundariesList_.rbegin(), boundariesList_.rend(), 
+										  [&](const Boundary* b) { return !b->isBarrel(); } );
+	int smallestEndcapMaxR = (*smallestEndcapBoundary)->maxR(); // takes its maxR
+
+	// Get the outermost Barrel boundary (The Barrel which has the biggest value = (boundary->maxR() + boundary->maxZ()))
+	auto biggestBarrelBoundary = std::find_if(boundariesList_.begin(), boundariesList_.end(), 
+									 [&](const Boundary* b) { return b->isBarrel(); } );
+
+	// set the maxR for the outermost Barrel boundary, which is in barrelBoundaryAssociations_ 
+	for (auto& it : barrelBoundaryAssociations_) {
+	  if (*biggestBarrelBoundary == it.second) it.second->maxR(smallestEndcapMaxR);
+	}
+	// set the maxR for the outermost Barrel boundary, which is also in boundariesList_ ...
+	(*biggestBarrelBoundary)->maxR(smallestEndcapMaxR);
+      }
       retValue = true;
+    }
 
     return retValue;
   }
 
+
   void Materialway::buildExternalSections(const Tracker& tracker) {
-    //for(Boundary& boundary : boundariesList_) {
-    int i=0;
     for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
-      //if(i++==0)
-      outerUsher.go(const_cast<Boundary*>(*it), tracker, VERTICAL);
+      outerUsher.go(const_cast<Boundary*>(*it), tracker);
     }
   }
+
 
   void Materialway::buildInternalSections(Tracker& tracker) {
    innerUsher.go(tracker);
@@ -1271,7 +1345,7 @@ namespace material {
       void visit(const Layer& layer) {
         currLayer_ = &layer;
         firstRod = true;
-        if(layer.maxZ() > 0.) {
+        if(layer.maxZwithHybrids() > 0.) {
           int totalLength = 0;
           for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
             totalLength += currSection->maxZ() - currSection->minZ();
@@ -1383,7 +1457,7 @@ namespace material {
       void visit(const Disk& disk) {
         currDisk_ = &disk;
         //const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
-        if(disk.maxZ() > 0) {
+        if(disk.maxZwithHybrids() > 0) {
           firstRing = true;
           int totalLength = 0;
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
@@ -1396,7 +1470,7 @@ namespace material {
         }
 
         /*
-        if(currDisk_->minZ() > 0) {
+        if(currDisk_->minZwithHybrids() > 0) {
           //iterate for number of radial sectors (module in first ring of disk)
           for (int i = 0; i < currDisk_->rings()[0].modules().size() / 2; ++i) {
             for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
@@ -1433,7 +1507,7 @@ namespace material {
       /*
       void visit(const Ring& ring) {
         //route disk rod services
-        if(ring.minZ() > 0) {
+        if(ring.minZwithHybrids() > 0) {
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
             ring.materialObject().copyServicesTo(currSection->materialObject());
             ring.materialObject().copyLocalsTo(currSection->materialObject());
@@ -1585,7 +1659,6 @@ namespace material {
         //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
 
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
-
         /*
         double sectionMinZ = undiscretize(section->minZ());
         double sectionMinR = undiscretize(section->minR());

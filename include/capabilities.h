@@ -3,8 +3,10 @@
 
 #include <typeinfo>
 #include <string>
+#include <bitset>
 
 #include "GeometryFactory.h"
+#include "messageLogger.h"
 
 using std::string;
 
@@ -51,6 +53,28 @@ public:
 
 template<class T> string fullid(const T& o) { return string(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
 
+class DetIdentifiable {
+  uint32_t myDetId_ = 0;
+  std::map<int, uint32_t> detIdRef_;
+
+ public:
+  uint32_t myDetId() const { return myDetId_; }
+  std::bitset<32> myBinaryDetId() const { std::bitset<32> myBinaryDetId(myDetId_); return myBinaryDetId; }
+  std::map<int, uint32_t> detIdRef() const { return detIdRef_; }
+  // i will create a capabilities.cc and put that in it, sorry in the meantime ;p
+  void buildDetId(std::map<int, uint32_t> refs, std::vector<int> schemeShifts) {
+    detIdRef_ = refs;
+    for (int i = 0; i < schemeShifts.size(); i++) {
+      uint32_t ref = refs.at(i);
+      int shift = schemeShifts.at(i);
+      if (ref <= pow(2, shift) ) {
+	myDetId_ <<= shift;
+	myDetId_ |= ref;
+      }
+      else logWARNING("buildDetId : At rank " + any2str(i) + ", ref number " + any2str(ref) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
+    }
+  }
+};
 
 template<class T>
 class Clonable {

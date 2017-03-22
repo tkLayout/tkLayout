@@ -2,30 +2,6 @@
 #include "DetectorModule.h"
 #include "ModuleCap.h"
 
-/*
-DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m) {
-  using namespace boost::property_tree;
-  if (type.empty()) return new TypedModule(m); // CUIDADO default type should be NullTypeModule or something similar, not the parent class!
-  ptree pt;
-  TypedModule* tmod;
-  try {
-    info_parser::read_info(join<string>({Paths::stdconfig, Paths::moduleTypes, type}, Paths::sep), pt);
-    string layout = pt.get<string>("sensorLayout", "");
-    if (layout == "mono") tmod = new SingleSensorModule(m);
-    else if (layout == "pt") tmod = new PtModule(m);
-    else if (layout == "stereo") tmod = new StereoModule(m);
-    else throw InvalidPropertyValue("sensorLayout", layout);
-  } 
-  catch(info_parser::info_parser_error& e) { throw InvalidPropertyValue("moduleType", type); }
-  catch(ptree_bad_path& e) { throw CheckedPropertyMissing("sensorLayout"); }
-
-  tmod->store(pt);
-
-  return tmod;
-}
-*/
-
-
 void DetectorModule::build() {
   check();
   if (!decorated().builtok()) {
@@ -39,6 +15,12 @@ void DetectorModule::build() {
       s->myid(i+1);
       s->store(propertyTree());
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
+      if (numSensors() == 1) s->innerOuter(SensorPosition::NO);
+      else {
+	if (i == 0) s->innerOuter(SensorPosition::LOWER);
+	else if (i == 1) s->innerOuter(SensorPosition::UPPER);
+	else s->innerOuter(SensorPosition::NO);
+      }
       s->build();
       sensors_.push_back(s);
       materialObject_.sensorChannels[i+1]=s->numChannels();
@@ -47,6 +29,7 @@ void DetectorModule::build() {
     Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
     s->parent(this);
     s->myid(1);
+    s->innerOuter(SensorPosition::NO);
     s->build();
     sensors_.push_back(s);
   }
@@ -84,6 +67,227 @@ void DetectorModule::setup() {
     });
   for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
 };
+
+
+
+
+
+
+std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
+
+    std::map<std::string, double> extrema;
+
+    //                                                   OUTER TRACKER MODULE
+    //
+    //  Top View
+    //  ------------------------------
+    //  |            L(5)            |  
+    //  |----------------------------|     y
+    //  |     |                |     |     ^
+    //  |B(4) |     Between    | F(3)|     |
+    //  |     |       (7)      |     |     +----> x
+    //  |----------------------------|
+    //  |            R(6)            |     
+    //  ------------------------------     
+    //                                            z
+    //  Side View                                 ^
+    //         ---------------- OuterSensor(2)    |
+    //  ====== ================ ====== Hybrids    +----> x
+    //         ---------------- InnerSensor(1)
+    //  ============================== 
+    //          SupportPlate(8)                      
+    //
+    //  R(6) and L(5) are Front-End Hybrids.
+    //  B(4) and F(3) are Service Hybdrids.
+    //
+    //  SupportPlate(8) thickness is of course null for 2S modules.
+
+
+    //                                                      PIXEL MODULE
+    //
+    //  Top View 
+    //        ------------------           y
+    //        |                |           ^
+    //        |     Hybrid     |           |
+    //        |       (1)      |           +----> x
+    //        ------------------    
+    //                                             z
+    //                                             ^
+    //  Side View                                  |
+    //         ================ Hybrid  (1)        +----> x
+    //         ---------------- Sensor  (2)
+    //         ================ Chip    (3)
+    //
+    // Chip(3) volume can contain Bumps and any other material for simplification.
+
+
+
+    // =========================================================================================================
+    // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
+    // =========================================================================================================
+    //
+    // Module polygon
+    //   top view
+    //   v1                v2
+    //    *---------------*
+    //    |       ^ my    |
+    //    |       |   mx  |
+    //    |       *------>|
+    //    |     center    |
+    //    |               |
+    //    *---------------*
+    //   v0                v3
+    //  (v4)
+    //
+    //   side view
+    //    ----------------- top
+    //    ----------------- bottom
+
+
+    double         rmin;
+    double         rmax;
+    double         xmin;
+    double         xmax;
+    double         ymin;
+    double         ymax;
+    double         zmin;
+    double         zmax;
+    double         rminatzmin;
+    double         rmaxatzmax;
+    std::vector<XYZVector> vertex; 
+
+
+
+    double width = area() / length();
+    double expandedModWidth = width + 2 * serviceHybridWidth();
+    double expandedModLength = length() + 2 * frontEndHybridWidth();
+    double expandedModThickness;
+    if (!isPixelModule()) { expandedModThickness = dsDistance() + 2.0 * (supportPlateThickness() + sensorThickness()); }
+    //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
+    else { expandedModThickness = sensorThickness() + 2.0 * MAX(chipThickness(), hybridThickness()); }
+
+    
+    vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
+    vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
+    vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
+    vector<double> rv; // radius list (in global frame of reference) from which we will find min/max.
+    vector<double> ratzminv; // radius list (in global frame of reference) at zmin from which we will find min/max.
+    vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
+
+    // mx: (v2+v3)/2 - center(), my: (v1+v2)/2 - center()
+    XYZVector mx = 0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center() ;
+    XYZVector my = 0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center() ;
+
+    // new vertexes after expansion due to hybrid volumes
+    const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
+    XYZVector v[npoints-1];
+    v[0] = center() - (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+    v[1] = center() - (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[2] = center() + (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[3] = center() + (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+
+    // Calculate all vertex candidates (8 points)
+    XYZVector v_top[npoints];    // module's top surface
+    XYZVector v_bottom[npoints]; // module's bottom surface
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_top[ip]    = v[ip] + 0.5*expandedModThickness * normal();
+      v_bottom[ip] = v[ip] - 0.5*expandedModThickness * normal();
+
+      // for debuging
+      vertex.push_back(v_top[ip]);
+      vertex.push_back(v_bottom[ip]);
+
+      // Calculate xmin, xmax, ymin, ymax, zmin, zmax
+      xv.push_back(v_top[ip].X());
+      xv.push_back(v_bottom[ip].X());
+      yv.push_back(v_top[ip].Y());
+      yv.push_back(v_bottom[ip].Y());
+      zv.push_back(v_top[ip].Z());
+      zv.push_back(v_bottom[ip].Z());
+    }
+    // Find min and max
+    xmin = *std::min_element(xv.begin(), xv.end());
+    xmax = *std::max_element(xv.begin(), xv.end());
+    ymin = *std::min_element(yv.begin(), yv.end());
+    ymax = *std::max_element(yv.begin(), yv.end());
+    zmin = *std::min_element(zv.begin(), zv.end());
+    zmax = *std::max_element(zv.begin(), zv.end());
+
+
+    // Calculate module's mid-points (8 points)
+    XYZVector v_mid_top[npoints]; // module's top surface mid-points
+    XYZVector v_mid_bottom[npoints]; // module's bottom surface mid-points
+
+    v_top[npoints-1] = v_top[0]; // copy v0 as v4 for convenience
+    v_bottom[npoints-1] = v_bottom[0]; // copy v0 as v4 for convenience
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_mid_top[ip] = (v_top[ip] + v_top[ip+1]) / 2.0;
+      v_mid_bottom[ip] = (v_bottom[ip] + v_bottom[ip+1]) / 2.0;
+    }
+
+    // Calculate rmin, rmax, rminatzmin, rmaxatzmax...
+    for (int ip = 0; ip < npoints-1; ip++) {
+
+      // module's bottom surface
+      if (fabs(v_bottom[ip].Z() - zmin) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_bottom[ip].R());
+      }
+      if (fabs(v_bottom[ip].Z() - zmax) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_bottom[ip].R());
+      }
+      v_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_bottom[ip].R());
+
+      // module's top surface
+      if (fabs(v_top[ip].Z() - zmin) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_top[ip].R());
+      }
+      if (fabs(v_top[ip].Z() - zmax) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_top[ip].R());
+      }
+      v_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_top[ip].R());
+    
+      // module's bottom surface mid-points
+      if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
+	v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_bottom[ip].R());
+      }
+      v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_bottom[ip].R());
+    
+      // module's top surface mid-points
+      if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
+	v_mid_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_top[ip].R());
+      }
+      v_mid_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_top[ip].R());
+    }
+    // Find min and max
+    rmin = *std::min_element(rv.begin(), rv.end());
+    rmax = *std::max_element(rv.begin(), rv.end());
+    rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
+    rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
+
+
+    extrema["minZ"] = zmin;
+    extrema["maxZ"] = zmax;
+    extrema["minR"] = rmin;
+    extrema["maxR"] = rmax;
+
+    return extrema;
+
+  }
+
+
+
 
 
 
@@ -246,6 +450,7 @@ void BarrelModule::build() {
     rAxis_ = normal();
     tiltAngle_ = 0.;
     skewAngle_ = 0.;
+    for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();
@@ -276,6 +481,7 @@ void EndcapModule::build() {
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
     tiltAngle_ = M_PI/2.;
     skewAngle_ = 0.;
+    for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();

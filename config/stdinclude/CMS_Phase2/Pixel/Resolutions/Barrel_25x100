@@ -1,13 +1,13 @@
 // Small rectangular barrel pixels
-cotalphaLimit -0.15                    //if (cot(alpha) < cotalphaLimit), the 'Inf' parameters resolutionLocalXBarrelParamiInf are used, otherwise the 'Sup' parameters resolutionLocalXBarrelParamiSup are used.
-resolutionLocalXBarrelParam0Inf 0.004  // mm
-resolutionLocalXBarrelParam1Inf 0.     // mm
+cotalphaLimit -999                      //if (cot(alpha) < cotalphaLimit), the 'Inf' parameters resolutionLocalXBarrelParamiInf are used, otherwise the 'Sup' parameters resolutionLocalXBarrelParamiSup are used.
+resolutionLocalXBarrelParam0Inf 0.      // mm
+resolutionLocalXBarrelParam1Inf 0.      // mm
 resolutionLocalXBarrelParam2Inf 0.      // mm
 resolutionLocalXBarrelParam0Sup 0.0045  // mm
-resolutionLocalXBarrelParam1Sup 0.003  // mm
-resolutionLocalXBarrelParam2Sup 0.018  // mm
-resolutionLocalYBarrelParam0 0.0145  // mm
-resolutionLocalYBarrelParam1 0.020  // mm
-resolutionLocalYBarrelParam2 2.2
-resolutionLocalYBarrelParam3 -2.9
-resolutionLocalYBarrelParam4 1.0
+resolutionLocalXBarrelParam1Sup 0.0043  // mm
+resolutionLocalXBarrelParam2Sup 0.0082  // mm
+resolutionLocalYBarrelParam0    0.0145  // mm
+resolutionLocalYBarrelParam1    0.030   // mm
+resolutionLocalYBarrelParam2    2.2
+resolutionLocalYBarrelParam3    -2.9
+resolutionLocalYBarrelParam4    1.0

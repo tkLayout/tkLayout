@@ -183,8 +183,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     hit->setOrientation(Hit::Horizontal);
     hit->setObjectKind(Hit::Inactive);
     Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
+    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
 
@@ -575,7 +575,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     if (iComponents["Services"]==NULL) { 
       iComponents["Services"] = new TH1D();
       iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
+      }
     if (rComponents["Supports"]==NULL) { 
       rComponents["Supports"] = new TH1D();
       rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -584,19 +584,15 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       iComponents["Supports"] = new TH1D();
       iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
     }
+
+    std::map<std::string, Material> sumServicesComponentsRI;
+
     //      services, barrel
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::no_cat);
     rserfbarrel.Fill(eta, tmp.radiation);
     iserfbarrel.Fill(eta, tmp.interaction);
     rbarrelall.Fill(eta, tmp.radiation);
     ibarrelall.Fill(eta, tmp.interaction);
-    /*
-    if (eta<0.03) {
-      std::cout << "eta = " << eta << std::endl;
-      track.sort();
-      track.print();
-    }
-    */
     rserfall.Fill(eta, tmp.radiation);
     iserfall.Fill(eta, tmp.interaction);
     rglobal.Fill(eta, tmp.radiation);
@@ -604,7 +600,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Services"]->Fill(eta, tmp.radiation);
     iComponents["Services"]->Fill(eta, tmp.interaction);
     //      services, endcap
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::no_cat);
     rserfendcap.Fill(eta, tmp.radiation);
     iserfendcap.Fill(eta, tmp.interaction);
     rendcapall.Fill(eta, tmp.radiation);
@@ -615,8 +611,25 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iglobal.Fill(eta, tmp.interaction);
     rComponents["Services"]->Fill(eta, tmp.radiation);
     iComponents["Services"]->Fill(eta, tmp.interaction);
+
+
+    /*for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
+      if (rComponents[it->first]==NULL) { 
+        rComponents[it->first] = new TH1D();
+        rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      }
+      rComponents[it->first]->Fill(eta, it->second.radiation);
+      if (iComponents[it->first]==NULL) {
+        iComponents[it->first] = new TH1D();
+        iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      }
+      iComponents[it->first]->Fill(eta, it->second.interaction);
+      }*/
+
+
+
     //      supports, barrel
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::b_sup);
     rlazybarrel.Fill(eta, tmp.radiation);
     ilazybarrel.Fill(eta, tmp.interaction);
     rbarrelall.Fill(eta, tmp.radiation);
@@ -628,7 +641,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Supports"]->Fill(eta, tmp.radiation);
     iComponents["Supports"]->Fill(eta, tmp.interaction);
     //      supports, endcap
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::e_sup);
     rlazyendcap.Fill(eta, tmp.radiation);
     ilazyendcap.Fill(eta, tmp.interaction);
     rendcapall.Fill(eta, tmp.radiation);
@@ -640,7 +653,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Supports"]->Fill(eta, tmp.radiation);
     iComponents["Supports"]->Fill(eta, tmp.interaction);
     //      supports, tubes
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::o_sup);
     rlazytube.Fill(eta, tmp.radiation);
     ilazytube.Fill(eta, tmp.interaction);
     rlazyall.Fill(eta, tmp.radiation);
@@ -650,7 +663,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Supports"]->Fill(eta, tmp.radiation);
     iComponents["Supports"]->Fill(eta, tmp.interaction);
     //      supports, barrel tubes
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::t_sup);
     rlazybtube.Fill(eta, tmp.radiation);
     ilazybtube.Fill(eta, tmp.interaction);
     rlazyall.Fill(eta, tmp.radiation);
@@ -660,7 +673,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Supports"]->Fill(eta, tmp.radiation);
     iComponents["Supports"]->Fill(eta, tmp.interaction);
     //      supports, user defined
-    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
+    tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, sumServicesComponentsRI, MaterialProperties::u_sup);
     rlazyuserdef.Fill(eta, tmp.radiation);
     ilazyuserdef.Fill(eta, tmp.interaction);
     rlazyall.Fill(eta, tmp.radiation);
@@ -670,22 +683,24 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     rComponents["Supports"]->Fill(eta, tmp.radiation);
     iComponents["Supports"]->Fill(eta, tmp.interaction);
     //      pixels, if they exist
+    std::map<std::string, Material> ignoredPixelSumComponentsRI;
+    std::map<std::string, Material> ignoredPixelSumServicesComponentsRI;
     if (pm != NULL) {
-      std::map<std::string, Material> ignoredPixelSumComponentsRI;
       analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
       analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
-      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, true);
-      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
-      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
-    }
+      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
+      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
+      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, ignoredPixelSumServicesComponentsRI, MaterialProperties::b_sup, true);
+      }
 
     // Add the hit on the beam pipe
     Hit* hit = new Hit(23./sin(theta));
     hit->setOrientation(Hit::Horizontal);
     hit->setObjectKind(Hit::Inactive);
+    hit->setObjectCategory(Hit::BeamPipe);
     Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
+    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
     if (!track.noHits()) {
@@ -750,7 +765,270 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
         }
       }
     }
+
+
+
+
+
+
+    if (eta >= 0.) {
+
+      for (const auto& hit : track.getHitV()) {
+	// SERVICES DETAILS
+	if (!hit->isPixel() && hit->getObjectCategory() == Hit::Service) {
+	  
+	  InactiveElement* inactive = hit->getHitInactiveElement();
+	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+	  for (const auto& it : servicesComponentsRI) {
+	    Material res;
+	    res.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
+	    res.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+	    if (rComponentsServicesDetails[it.first]==NULL) {
+	      rComponentsServicesDetails[it.first] = new TH1D();
+	      rComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    rComponentsServicesDetails[it.first]->Fill(eta, res.radiation);
+	    if (iComponentsServicesDetails[it.first]==NULL) { 
+	      iComponentsServicesDetails[it.first] = new TH1D();
+	      iComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    iComponentsServicesDetails[it.first]->Fill(eta, res.interaction);
+	  }
+
+	  /*if (servicesComponentsRI.size() == 0) {
+	    if (rComponentsServicesDetails["Services : others"]==NULL) {
+	      rComponentsServicesDetails["Services : others"] = new TH1D();
+	      rComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    rComponentsServicesDetails["Services : others"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	    if (iComponentsServicesDetails["Services : others"]==NULL) {
+	      iComponentsServicesDetails["Services : others"] = new TH1D();
+	      iComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	    }
+	    iComponentsServicesDetails["Services : others"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	    }*/
+	}
+      }
+
+	  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    if (mb.getTracker().myid() == "Outer" && eta >= 0.) {
+      track.assignTrackingVolumesToHits();
+
+
+      
+      for (const auto& hit : track.getHitV()) {
+	if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
+	  if (rComponentsBeamPipe["Beam Pipe"]==NULL) {
+	    rComponentsBeamPipe["Beam Pipe"] = new TH1D();
+	    rComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsBeamPipe["Beam Pipe"]==NULL) { 
+	    iComponentsBeamPipe["Beam Pipe"] = new TH1D();
+	    iComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	}
+
+	if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
+	  if (rComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) {
+	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	}
+	}
+    
+
+
+
+     
+      for (const auto& it : ignoredPixelSumComponentsRI) {
+	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
+	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	rComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsPixelTrackingVolume[it.first]==NULL) {
+	  iComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+      }
+
+
+
+
+
+
+
+
+
+      // WRONG
+      /*for (const auto& it : ignoredPixelSumServicesComponentsRI) {
+	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
+	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	rComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsPixelTrackingVolume[it.first]==NULL) {
+	  iComponentsPixelTrackingVolume[it.first] = new TH1D();
+	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+	}*/
+
+
+      for (const auto& hit : track.getHitV()) {
+
+	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	  if (rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) {	   
+	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  }
+
+
+
+	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	  if (rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) {
+	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
+	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) { 
+	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
+	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	}
+
+
+	if (hit->isIntersticeVolume()) {
+	  if (rComponentsInterstice["Services and supports in interstice"]==NULL) {
+	    rComponentsInterstice["Services and supports in interstice"] = new TH1D();
+	    rComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsInterstice["Services and supports in interstice"]==NULL) { 
+	    iComponentsInterstice["Services and supports in interstice"] = new TH1D();
+	    iComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	}
+      }
+
+
+
+
+      for (const auto& it : sumComponentsRI) {
+	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
+	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	rComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsOuterTrackingVolume[it.first]==NULL) {
+	  iComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+	}
+
+      // WRONG
+      /*for (const auto& it : sumServicesComponentsRI) {
+	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
+	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	rComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.radiation);
+	if (iComponentsOuterTrackingVolume[it.first]==NULL) {
+	  iComponentsOuterTrackingVolume[it.first] = new TH1D();
+	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	}
+	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
+	}*/
+ 
+
+      for (const auto& hit : track.getHitV()) {
+
+	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	  if (rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) {	   
+	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
+	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) { 
+	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
+	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  }
+
+
+	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	  if (rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) {	    
+	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
+	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
+	  if (iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) { 
+	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
+	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+	  }
+	  iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  }
+      }
+
+
+
+    }
+
+
+
   }
+
+
 
 #ifdef MATERIAL_SHADOW       
   // integration over eta
@@ -767,7 +1045,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 }
 
 void Analyzer::analyzePower(Tracker& tracker) {
-  computeIrradiatedPowerConsumption(tracker);
+  computeIrradiationPowerConsumption(tracker);
   preparePowerHistograms();
   //fillPowerMap(tracker);
 }
@@ -817,12 +1095,14 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 }
 
 
-void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
+void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
   IrradiationPowerVisitor v;
+  v.preVisit();
   simParms_->accept(v);
   tracker.accept(v);
+  v.postVisit();
 
-  irradiatedPowerConsumptionSummaries_ = v.irradiatedPowerConsumptionSummaries;
+  sensorsIrradiationPowerSummary_ = v.sensorsIrradiationPowerSummary;
 }
 
 
@@ -1301,7 +1581,7 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
  */
 
 Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-                                           double theta, Track& t, MaterialProperties::Category cat, bool isPixel) {
+                                           double theta, Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat, bool isPixel) {
 
   /*
   for (InactiveElement& currElem : elements) {
@@ -1341,60 +1621,17 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           z = iter->getZOffset() + iter->getZLength() / 2.0;
           r = z * tan(theta);
           // 2D maps for vertical surfaces
-          fillMapRZ(r,z,iter->getMaterialLengths());
-          // special treatment for user-defined supports as they can be very close to z=0
-          if (cat == MaterialProperties::u_sup) {
-            s = iter->getZLength() / cos(theta);
-            if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() * s / iter->getZLength();
-              corr.interaction = iter->getInteractionLength() * s / iter->getZLength();
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() * s / iter->getZLength();
-                thisLength.interaction = iter->getInteractionLength() * s / iter->getZLength(); 
-                fillCell(r, eta, theta, thisLength); 
-              }
-            }
-            else {
-              if (!isPixel) {
-                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
-                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
-              }
-            }
-          }
-          else {
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() / cos(theta);
-              corr.interaction = iter->getInteractionLength() / cos(theta);
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() / cos(theta); 
-                thisLength.interaction = iter->getInteractionLength() / cos(theta);
-                fillCell(r, eta, theta, thisLength);
-              }
-            }
-            else {
-              if (!isPixel) {
-                if ((iter->getCategory() == MaterialProperties::b_ser)
-                    || (iter->getCategory() == MaterialProperties::e_ser)) {
-                  rextraservices.Fill(eta, iter->getRadiationLength() / cos(theta));
-                  iextraservices.Fill(eta, iter->getInteractionLength() / cos(theta));
-                }
-                else if ((iter->getCategory() == MaterialProperties::b_sup)
-                         || (iter->getCategory() == MaterialProperties::e_sup)
-                         || (iter->getCategory() == MaterialProperties::o_sup)
-                         || (iter->getCategory() == MaterialProperties::t_sup)) {
-                  rextrasupports.Fill(eta, iter->getRadiationLength() / cos(theta));
-                  iextrasupports.Fill(eta, iter->getInteractionLength() / cos(theta));
-                }
-              }
-            }
-          }
+          fillMapRZ(r,z,iter->getMaterialLengths());        
+         
+	  corr.radiation = iter->getRadiationLength() / cos(theta);
+	  corr.interaction = iter->getInteractionLength() / cos(theta);
+	  res += corr;
+	  if (!isPixel) {
+	    Material thisLength;
+	    thisLength.radiation = corr.radiation;
+	    thisLength.interaction = corr.interaction;
+	    fillCell(r, eta, theta, thisLength);
+	  }        
         }
         // radiation and interaction length scaling for horizontal volumes
         else {
@@ -1403,67 +1640,63 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           fillMapRT(r,theta,iter->getMaterialLengths());
           // special treatment for user-defined supports; should not be necessary for now
           // as all user-defined supports are vertical, but just in case...
-          if (cat == MaterialProperties::u_sup) {
-            s = iter->getZLength() / sin(theta);
-            if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() * s / iter->getZLength();
-              corr.interaction = iter->getInteractionLength() * s / iter->getZLength();
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() * s / iter->getZLength(); 
-                thisLength.interaction = iter->getInteractionLength() * s / iter->getZLength();
-                fillCell(r, eta, theta, thisLength);
-              }
-            }
-            else {
-              if (!isPixel) {
-                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
-                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
-              }
-            }
-          }
-          else {
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            if (iter->track()) {
-              corr.radiation = iter->getRadiationLength() / sin(theta);
-              corr.interaction = iter->getInteractionLength() / sin(theta);
-              res += corr;
-              if (!isPixel) {
-                Material thisLength;
-                thisLength.radiation = iter->getRadiationLength() / sin(theta);
-                thisLength.interaction =  iter->getInteractionLength() / sin(theta);
-                fillCell(r, eta, theta, thisLength); 
-              }
-            }
-            else {
-              if (!isPixel) {
-                if ((iter->getCategory() == MaterialProperties::b_ser)
-                    || (iter->getCategory() == MaterialProperties::e_ser)) {
-                  rextraservices.Fill(eta, iter->getRadiationLength() / sin(theta));
-                  iextraservices.Fill(eta, iter->getInteractionLength() / sin(theta));
-                }
-                else if ((iter->getCategory() == MaterialProperties::b_sup)
-                         || (iter->getCategory() == MaterialProperties::e_sup)
-                         || (iter->getCategory() == MaterialProperties::o_sup)
-                         || (iter->getCategory() == MaterialProperties::t_sup)) {
-                  rextrasupports.Fill(eta, iter->getRadiationLength() / sin(theta));
-                  iextrasupports.Fill(eta, iter->getInteractionLength() / sin(theta));
-                }
-              }
-            }
-          }
+
+	  corr.radiation = iter->getRadiationLength() / sin(theta);
+	  corr.interaction = iter->getInteractionLength() / sin(theta);
+	  res += corr;
+	  if (!isPixel) {
+	    Material thisLength;
+	    thisLength.radiation = corr.radiation;
+	    thisLength.interaction =  corr.interaction;
+	    fillCell(r, eta, theta, thisLength); 
+	  }             
         }
+
         // create Hit object with appropriate parameters, add to Track t
         Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+	hit->setHitInactiveElement(&(*iter));
         if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
         else hit->setOrientation(Hit::Horizontal);
         hit->setObjectKind(Hit::Inactive);
         hit->setCorrectedMaterial(corr);
         hit->setPixel(isPixel);
-        t.addHit(hit);
+
+
+	if ((iter->getCategory() != MaterialProperties::b_sup)
+	    && (iter->getCategory() != MaterialProperties::e_sup)
+	    && (iter->getCategory() != MaterialProperties::o_sup)
+	    && (iter->getCategory() != MaterialProperties::u_sup)
+	    && (iter->getCategory() != MaterialProperties::t_sup)) {
+	  /*std::map<std::string, Material> servicesComponentsRI = iter->getComponentsRI();
+          for (const auto& it : servicesComponentsRI) {
+            sumServicesComponentsRI[it.first].radiation += it.second.radiation / (iter->isVertical() ? cos(theta) : sin(theta));  
+            sumServicesComponentsRI[it.first].interaction += it.second.interaction / (iter->isVertical() ? cos(theta) : sin(theta));
+	    }*/
+	  sumServicesComponentsRI["Services : others"].radiation += corr.radiation;
+	  sumServicesComponentsRI["Services : others"].interaction += corr.interaction;
+
+	}
+
+
+	if ((iter->getCategory() == MaterialProperties::b_ser)
+	    || (iter->getCategory() == MaterialProperties::e_ser)) {
+	  hit->setObjectCategory(Hit::Service);
+	}
+	else if ((iter->getCategory() == MaterialProperties::b_sup)
+		 || (iter->getCategory() == MaterialProperties::e_sup)
+		 || (iter->getCategory() == MaterialProperties::o_sup)
+		 || (iter->getCategory() == MaterialProperties::t_sup)) {
+	  hit->setObjectCategory(Hit::Support);
+	}
+	else if (iter->getCategory() == MaterialProperties::no_cat) {
+	  hit->setObjectCategory(Hit::Service);
+	}
+	else {
+	  hit->setObjectCategory(Hit::Unknown);
+	}
+
+
+	t.addHit(hit);
       }
     }
     iter++;
@@ -1552,6 +1785,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
         hit->setCorrectedMaterial(corr);
         hit->setPixel(isPixel);
         t.addHit(hit);
+	// std::cout << "OLD USED" << std::endl;
       }
     }
     iter++;
@@ -2045,15 +2279,6 @@ void Analyzer::clearMaterialBudgetHistograms() {
   iserfall.SetNameTitle("iserfall", "Services Interaction Length");
   ilazyall.Reset();
   ilazyall.SetNameTitle("ilazyall", "Supports Interaction Length");
-  // outside tracking volume
-  rextraservices.Reset();
-  rextraservices.SetNameTitle("rextraservices", "Services Outside Tracking Volume: Radiation Length");
-  rextrasupports.Reset();
-  rextrasupports.SetNameTitle("rextrasupports", "Supports Outside Tracking Volume: Radiation Length");
-  iextraservices.Reset();
-  iextraservices.SetNameTitle("iextraservices", "Services Outside Tracking Volume: Interaction Length");
-  iextrasupports.Reset();
-  iextrasupports.SetNameTitle("iextrasupports", "Supports Outside Tracking Volume: Interaction Length");
   // global
   rglobal.Reset();
   rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
@@ -2192,17 +2417,17 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 /*
 void Analyzer::fillPowerMap(Tracker& tracker) {
-  TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum];
   TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-  for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
-    for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-      irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+  for (int i=1; i<=sensorsIrradiationPowerMap.GetNbinsX(); ++i) {
+    for (int j=1; j<=sensorsIrradiationPowerMap.GetNbinsY(); ++j) {
+      sensorsIrradiationPowerMap.SetBinContent(i,j,0);
       totalPowerConsumptionMap.SetBinContent(i,j,0);
     }
   }
 
-  IrradiatedPowerMapVisitor v(irradiatedPowerConsumptionMap, totalPowerConsumptionMap);
+  IrradiationPowerMapVisitor v(sensorsIrradiationPowerMap, totalPowerConsumptionMap);
   simParms_->accept(v);
   tracker.accept(v);
   v.postVisit();
@@ -2360,12 +2585,12 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
 
 
 void Analyzer::preparePowerHistograms() {
-  myMapBag.clearMaps(mapBag::irradiatedPowerConsumptionMap);
+  myMapBag.clearMaps(mapBag::sensorsIrradiationPowerMap);
   myMapBag.clearMaps(mapBag::totalPowerConsumptionMap);
-  TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
+  TH2D& sensorsIrradiationPowerMap = myMapBag.getMaps(mapBag::sensorsIrradiationPowerMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
   TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
-  prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in sensors (after irradiation)");
-  prepareTrackerMap(totalPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
+  prepareTrackerMap(sensorsIrradiationPowerMap, "sensorsIrradiationPowerMap", "Map of power dissipation in sensors (after irradiation)");
+  prepareTrackerMap(totalPowerConsumptionMap, "irradiationPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
 }
 
 void Analyzer::prepareTriggerProcessorHistograms() {
@@ -2468,11 +2693,6 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   iactiveall.SetBins(bins, min, max);
   iserfall.SetBins(bins, min, max);
   ilazyall.SetBins(bins, min, max);
-  // outside tracking volume
-  rextraservices.SetBins(bins, min, max);
-  rextrasupports.SetBins(bins, min, max);
-  iextraservices.SetBins(bins, min, max);
-  iextrasupports.SetBins(bins, min, max);
   // global
   rglobal.SetBins(bins, min, max);
   iglobal.SetBins(bins, min, max);
@@ -2869,6 +3089,15 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
   totalEtaProfileStubs.SetStats(0);
 
+  totalEtaProfileLayers.Reset();
+  totalEtaProfileLayers.SetName("totalEtaProfileLayers");
+  totalEtaProfileLayers.SetMarkerStyle(8);
+  totalEtaProfileLayers.SetMarkerColor(1);
+  totalEtaProfileLayers.SetMarkerSize(1.5);
+  totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
+  totalEtaProfileLayers.SetBins(100, 0, maxEta);
+  totalEtaProfileLayers.SetStats(0);
+
   std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
 
   //XYZVector dir(0, 1, 0);
@@ -2922,6 +3151,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubs); 
 
+      int nHitLayers = 0;
       for (auto layerName : layerNames.data) {
         int layerHit = 0;
         int layerStub = 0;
@@ -2935,8 +3165,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         }
         layerEtaCoverageProfile[layerName].Fill(aLine.second, layerHit);
         layerEtaCoverageProfileStubs[layerName].Fill(aLine.second, layerStub);
+	if (layerHit) nHitLayers++;
       }
 
+      totalEtaProfileLayers.Fill(fabs(aLine.second), nHitLayers);
     }
   }
 
@@ -3035,7 +3267,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     string aSensorType = aModule->moduleType();
     typeToCount[aSensorType] ++;
     typeToSurface[aSensorType] += aModule->area() / 1e6; // in mq
-    typeToPower[aSensorType] += aModule->sensorPowerConsumption() / 1e3; // in kW
+    typeToPower[aSensorType] += aModule->sensorsIrradiationPowerMean() / 1e3; // in kW
   }
 
   int iPoints = 0;

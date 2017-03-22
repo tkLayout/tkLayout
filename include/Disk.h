@@ -33,6 +33,7 @@ private:
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
+  int diskNumber_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -56,6 +57,7 @@ public:
   Property<double, NoDefault> placeZ;
 
   ReadonlyProperty<double, Computable> minZ, maxZ, minR, maxR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<int, Computable> totalModules;
   ReadonlyProperty<double, Computable> maxRingThickness;
 
@@ -81,6 +83,12 @@ public:
     maxZ.setup([this]() { double max = std::numeric_limits<double>::lowest(); for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
     minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
+
+    minZwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minZwithHybrids()); } return min; });
+    maxZwithHybrids.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZwithHybrids()); } return max; });
+    minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minRwithHybrids()); } return min; });
+    maxRwithHybrids.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxRwithHybrids()); } return max; });
+
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
@@ -92,18 +100,27 @@ public:
   void cutAtEta(double eta);
 
   double averageZ() const { return averageZ_; }
+  bool side() const { return averageZ_ > 0.; }
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
   const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
-  void accept(GeometryVisitor& v) { 
+  void diskNumber(int num) { diskNumber_ = num; }
+  int diskNumber() const { return diskNumber_; }
+  int numEmptyRings() const { return count_if(rings_.begin(), rings_.end(), [](const Ring& r) { return r.numModules() == 0; }); }
+
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }
   }
   void accept(ConstGeometryVisitor& v) const { 
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& r : rings_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;

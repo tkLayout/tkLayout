@@ -1,25 +1,42 @@
-// HV Power wires (currently 0.4mm^2)
-// 1 HV line only per power chain
+// HV: 2 wires (live and return: conservative assumption because of serial power)
+// PP0-SEH-HV (700067231 Rev 01)
 Component {
-  componentName "HV Power wires"
+  componentName "Sensor HV line"
   service true
   scaleOnSensor 0
-  // Two wires
+  Element {
+    elementName Al_HV
+    quantity 0.2295
+    unit g/m
+  }
   Element {
     elementName Cu
-    quantity 0.56
+    quantity 0.0817
     unit g/m
   }
-  // Two wires
   Element {
     elementName PE
-    quantity 0.44
+    quantity 0.825
     unit g/m
   }
-  // Two wires 0.4 mm^2
+}
+Component {
+  componentName "Sensor HV line"
+  service true
+  scaleOnSensor 0
   Element {
-    elementName Al
-    quantity 2.16
+    elementName Al_HV
+    quantity 0.2295
+    unit g/m
+  }
+  Element {
+    elementName Cu
+    quantity 0.0817
+    unit g/m
+  }
+  Element {
+    elementName PE
+    quantity 0.825
     unit g/m
   }
 }

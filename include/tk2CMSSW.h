@@ -51,7 +51,7 @@ namespace insur {
     public:
         tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
         virtual ~tk2CMSSW() {}
-        void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
+        void translate(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, std::string xmlDirectoryPath, std::string xmlOutputPath, std::string xmlOutputName = "", bool wt = false);
         struct ConfigFile { std::string name, content; };
         void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
     protected:

@@ -7,86 +7,58 @@ Station {
   stationName flangeTB2S
   type flange
 
-  // PE and Al
-  Conversion {
-    Input {
-      Element {
-        elementName PE
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName PE
-        quantity 10
-        unit g/m
-        service true
-      }
-    }  
-  }
+  // Optical fibres and twp propagation
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_PE
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Al
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Cu
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Glass
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Acrylate
 
+  // Power cables conversions
+  // As per Habia cables PP1-PP0 (700063813 Rev 03)
+  // (10% of one cable per module)
+  // Connectors same as 1-rod connector from http://cern.ch/go/P9bG
+  // Binder connectors: Micro-T connectors - series 910 
   Conversion {
+    // One module's worth of Al_MV
     Input {
       Element {
-        elementName Al
-        quantity 10
+        elementName Al_MV
+        quantity 0.612
         unit g/m
       }
     }
+    // Per module
     Output {
       Element {
         elementName Al
-        quantity 10
-        unit g/m
-        service true
-      }
-    }  
-  }
-
-  // Wires and cables one-to-one
-  Conversion {
-    Input {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-
-  Conversion {
-    Input {
-      Element {
-        elementName Cu_MV
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 10
+        quantity 2.91
         unit g/m
         service true
       }
       Element {
         elementName Cu
-        quantity 0.423
+        quantity 1.16
+        unit g/m
+        service true
+      }
+      // Insulator (50% for the MV)
+      Element {
+        elementName PE
+        quantity 4.5 
+        unit g/m
+        service true
+      }
+      // Connector
+      Element {
+        elementName Cu
+        quantity 0.27
         unit g
         service false
       }
       Element {
         elementName PE
-        quantity 0.371
+        quantity 0.22
         unit g
         service false
       }
@@ -94,29 +66,45 @@ Station {
   }
 
   Conversion {
+    // One module's worth of Al_HV
     Input {
       Element {
-        elementName Cu_HV
-        quantity 10
+        elementName Al_HV
+        quantity 0.2295
         unit g/m
       }
     }
+    // Per module
     Output {
       Element {
-        elementName Cu
-        quantity 10
+        elementName Al
+        quantity 0.91 
         unit g/m
         service true
       }
       Element {
         elementName Cu
-        quantity 1.692
+        quantity 0.32
+        unit g/m
+        service true
+      }
+      // Insulator (50% for the HV)
+      Element {
+        elementName PE
+        quantity 4.5
+        unit g/m
+        service true
+      }
+      // Connector
+      Element {
+        elementName Cu
+        quantity 0.18
         unit g
         service false
       }
       Element {
         elementName PE
-        quantity 1.485
+        quantity 0.16
         unit g
         service false
       }

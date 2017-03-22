@@ -42,10 +42,17 @@ Hit::Hit() {
     distance_ = 0;
     radius_ = 0;
     objectKind_ = Undefined;
+    objectCategory_ = Unknown;
     hitModule_ = NULL;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined;
     myTrack_ = NULL;
     isPixel_ = false;
+    isPixelIntersticeVolume_ = false;
+    isPixelTrackingVolume_ = false;
+    isIntersticeVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isTrigger_ = false;
     isIP_ = false;
     resolutionLocalX_ = 0;
@@ -64,10 +71,17 @@ Hit::Hit(const Hit& h) {
     radius_ = h.radius_;
     orientation_ = h.orientation_;
     objectKind_ = h.objectKind_;
+    objectCategory_ = h.objectCategory_;
     hitModule_ = h.hitModule_;
+    hitInactiveElement_ = h.hitInactiveElement_;
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
+    isPixelIntersticeVolume_ = h.isPixelIntersticeVolume_;
+    isPixelTrackingVolume_ = h.isPixelTrackingVolume_;
+    isIntersticeVolume_ = h.isIntersticeVolume_;
+    isOuterTrackingVolume_ = h.isOuterTrackingVolume_;
+    isTotalTrackingVolume_ = h.isTotalTrackingVolume_;
     isTrigger_ = h.isTrigger_;
     isIP_ = h.isIP_;
     resolutionLocalX_ = h.resolutionLocalX_;
@@ -84,10 +98,17 @@ Hit::Hit(const Hit& h) {
 Hit::Hit(double myDistance) {
     distance_ = myDistance;
     objectKind_ = Undefined;
+    objectCategory_ = Unknown;
     hitModule_ = NULL;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined;
     isTrigger_ = false;
     isPixel_ = false;
+    isPixelIntersticeVolume_ = false;
+    isPixelTrackingVolume_ = false;
+    isIntersticeVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isIP_ = false;
     myTrack_ = NULL;
     activeHitType_ = HitType::NONE;
@@ -101,9 +122,16 @@ Hit::Hit(double myDistance) {
 Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
     distance_ = myDistance;
     objectKind_ = Active;
+    objectCategory_ = Act;
+    hitInactiveElement_ = NULL;
     orientation_ = Undefined; 
     isTrigger_ = false;
     isPixel_ = false;
+    isPixelIntersticeVolume_ = false;
+    isPixelTrackingVolume_ = false;
+    isIntersticeVolume_ = false;
+    isOuterTrackingVolume_ = false;
+    isTotalTrackingVolume_ = false;
     isIP_ = false;
     setHitModule(myModule);
     myTrack_ = NULL;
@@ -122,6 +150,21 @@ void Hit::setHitModule(Module* myModule) {
             orientation_ = Horizontal;
         } else {
             orientation_ = Vertical;
+        }
+    }
+}
+
+/*
+ * Setter for the pointer to the inactive surface that caused the hit.
+ * @param myInactiveElement A pointer to an inactive element (service or support structure); may be <i>NULL</i>
+ */
+void Hit::setHitInactiveElement(InactiveElement* myInactiveElement) {
+    if (myInactiveElement) {
+        hitInactiveElement_ = myInactiveElement;
+        if (myInactiveElement->isVertical()) {
+            orientation_ = Vertical;
+        } else {
+            orientation_ = Horizontal;
         }
     }
 }
@@ -497,6 +540,56 @@ Hit* Track::addHit(Hit* newHit) {
 void Track::sort() {
     std::stable_sort(hitV_.begin(), hitV_.end(), sortSmallerR);
 }
+
+void Track::assignTrackingVolumesToHits() {
+  sort();
+
+  double firstActiveHitPixelDistance, firstActiveHitOuterDistance, lastActiveHitPixelDistance, lastActiveHitOuterDistance;
+  auto firstActiveHitPixel = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  if (firstActiveHitPixel != hitV_.end()) firstActiveHitPixelDistance = (*firstActiveHitPixel)->getDistance();
+  auto firstActiveHitOuter = std::find_if(hitV_.begin(), hitV_.end(), [&](Hit* hit) { return (!hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  if (firstActiveHitOuter != hitV_.end()) firstActiveHitOuterDistance = (*firstActiveHitOuter)->getDistance();
+
+  auto lastActiveHitPixel = std::find_if(hitV_.rbegin(), hitV_.rend(), [&](Hit* hit) { return (hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  if (lastActiveHitPixel != hitV_.rend()) lastActiveHitPixelDistance = (*lastActiveHitPixel)->getDistance();
+  auto lastActiveHitOuter = std::find_if(hitV_.rbegin(), hitV_.rend(), [&](Hit* hit) { return (!hit->isPixel() && hit->getObjectKind()==Hit::Active); } );
+  if (lastActiveHitOuter != hitV_.rend()) lastActiveHitOuterDistance = (*lastActiveHitOuter)->getDistance();
+
+
+  //std::vector<Hit*>::reverse_iterator lastActiveHitTotal = std::find_if(hitV_.rbegin(), hitV_.rend(), 
+  //[&](Hit* hit) { return (hit->getObjectKind()==Hit::Active); }
+  //);
+  //for (auto it = lastActiveHitTotal; it != hitV_.rend(); ++it) {
+  // (*it)->setTotalTrackingVolume(true);
+  //}
+
+
+  for (auto& it : hitV_) {
+    double distance = it->getDistance();
+    if (distance < firstActiveHitPixelDistance) it->setPixelIntersticeVolume(true);
+    if (distance >= firstActiveHitPixelDistance && distance <= lastActiveHitPixelDistance) it->setPixelTrackingVolume(true);
+    if (distance > lastActiveHitPixelDistance && distance < firstActiveHitOuterDistance) it->setIntersticeVolume(true);
+    if (distance >= firstActiveHitOuterDistance && distance <= lastActiveHitOuterDistance) it->setOuterTrackingVolume(true);
+    if (distance <= lastActiveHitPixelDistance || distance <= lastActiveHitOuterDistance) it->setTotalTrackingVolume(true);
+  }
+
+  
+ 
+
+}
+
+
+
+/*bool Track::isHitInTrackingVolume(double distance) {
+  sort();
+
+std::vector<Hit*>::reverse_iterator lastActiveHitTotal = std::find_if(hitV_.rbegin(), hitV_.rend(), 
+									[&](Hit* hit) { return (hit->getObjectKind()==Hit::Active); }
+									);
+
+									}*/
+
+
 
 /**
  * Compute the correlation matrices of the track hits for a series of different energies.

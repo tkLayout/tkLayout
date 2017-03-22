@@ -1,4 +1,4 @@
-// 
+//
 // File:   Vizard.h
 // Author: ndemaio
 //
@@ -87,13 +87,14 @@ namespace insur {
   static const std::string phiLetter  = "&phi;";
   static const std::string thetaLetter= "&theta;";
   static const std::string deltaLetter= "&delta;";
+  static const std::string tauLetter  = "&tau;";
 
   //clearStart="<tt>";
   //clearEnd="</tt>";
 
   // gStyle stuff
   static const int style_grid = 3;
-  static const int materialRebin = 2;
+  static const int materialNBins = 300;
 
   // Colors for plot background and such
   static const int color_plot_background       = kWhite;
@@ -111,6 +112,8 @@ namespace insur {
 
   // Formatting parameters
   static const int coordPrecision = 3;
+  static const int zOverlapPrecision = 5;
+  static const int anglePrecision = 1;
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
@@ -125,6 +128,8 @@ namespace insur {
   static const int powerPerUnitPrecision = 2;
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
+  static const int luminosityPrecision = 0;
+  static const int alphaParamPrecision = 4;
   static const int weightPrecision = 0;
 
   static const int tableResolutionPrecisionHigh = 5;
@@ -156,8 +161,8 @@ namespace insur {
    * It provides one to write a simplified geometry of active and inactive surfaces to a <i>ROOT</i> file, another to
    * save the neighbour relations between different inactive surfaces and layers/discs to a text file, and a third to print
    * the radiation and interaction length histograms to an image and embed that in HTML after a tracker layout has
-   * been analysed. 
-   * 
+   * been analysed.
+   *
    * A function to write the neighbour relations to a DOT file instead of the quick and dirty internal format that is
    * used now is planned but not implemented yet.
    */
@@ -182,12 +187,12 @@ namespace insur {
     bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
-    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
+    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
+    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
@@ -215,7 +220,9 @@ namespace insur {
     TGeoMaterial* matlazy;
   private:
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
-    bool geometry_created;
+    TProfile* totalEtaProfileLayers_ = 0, *totalEtaProfileLayersPixel_ = 0;
+    std::map<std::string, TH1D*> rCompsPixelTrackingVolume_, iCompsPixelTrackingVolume_;  
+  bool geometry_created;
     std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
                         TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
@@ -224,7 +231,7 @@ namespace insur {
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
-    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
@@ -238,6 +245,8 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
+    bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
     bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
     bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
@@ -249,11 +258,11 @@ namespace insur {
     double getDrawAreaX(const Tracker& tracker) const { return tracker.maxR()*1.1; }
     double getDrawAreaY(const Tracker& tracker) const { return tracker.maxR()*1.1; }
 
-    void fillPlotMap(std::string& plotName, 
+    void fillPlotMap(std::string& plotName,
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
                      std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
-    
+
     void fillTaggedPlotMap(GraphBag& gb,
                            const string& plotName,
                            int graphType,
@@ -277,16 +286,22 @@ namespace insur {
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
+    std::string createSensorsIrradiationCsv(const Tracker& t);
+    std::string createAllModulesCsv(const Tracker& t, bool& withHeader);
     std::string createBarrelModulesCsv(const Tracker& t);
     std::string createEndcapModulesCsv(const Tracker& t);
-    std::string createAllModulesCsv(const Tracker& t);
+    std::string createModulesDetIdListCsv();
+    std::string createSensorsDetIdListCsv();
 
-    TProfile* newProfile(TH1D* nn);
+    TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
+    void stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
+    void stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
-    TCanvas* drawFullLayout();
+    TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
   };
@@ -295,4 +310,3 @@ namespace insur {
 
 }
 #endif	/* _VIZARD_H */
-

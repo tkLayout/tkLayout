@@ -18,6 +18,7 @@
 #include "SupportStructure.h"
 #include "Visitor.h"
 #include "Visitable.h"
+#include "mainConfigHandler.h"
 
 using std::set;
 using material::SupportStructure;
@@ -46,10 +47,14 @@ public:
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
+  Property<double, Computable> maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
+  ReadonlyProperty<bool, Computable> hasStepInEndcapsOuterRadius;
   ReadonlyProperty<double, Default> etaCut;
   ReadonlyProperty<bool, Default> servicesForcedUp;
   ReadonlyProperty<bool, Default> skipAllServices;
   ReadonlyProperty<bool, Default> skipAllSupports;
+
+  std::map<std::string, std::vector<int> > detIdSchemes_;
 
 private:
   Barrels barrels_;
@@ -64,6 +69,11 @@ private:
 
   MultiProperty<set<string>, ','> containsOnly;
 
+  Property<std::string, AutoDefault> barrelDetIdScheme;
+  Property<std::string, AutoDefault> endcapDetIdScheme;
+
+  //std::map<std::string, std::vector<int> > detIdSchemes_;
+
   Tracker(const Tracker&) = default;
 public:
 
@@ -75,11 +85,13 @@ public:
       servicesForcedUp("servicesForcedUp", parsedOnly(), true),
       skipAllServices("skipAllServices", parsedOnly(), false),
       skipAllSupports("skipAllSupports", parsedOnly(), false),
-      containsOnly("containsOnly", parsedOnly())
+      containsOnly("containsOnly", parsedOnly()),
+      barrelDetIdScheme("barrelDetIdScheme", parsedOnly()),
+      endcapDetIdScheme("endcapDetIdScheme", parsedOnly())
   {}
 
   void setup() {
-      maxR.setup([this]() { 
+      maxR.setup([this]() {
         double max = 0; 
         for (const auto& b : barrels_) max = MAX(max, b.maxR());
         for (const auto& e : endcaps_) max = MAX(max, e.maxR());
@@ -97,6 +109,41 @@ public:
         for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
         return max;
      });
+
+
+
+      maxRwithHybrids.setup([this]() { 
+	  double max = 0; 
+	  for (const auto& b : barrels_) max = MAX(max, b.maxRwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxRwithHybrids());
+	  return max;
+	});
+      minRwithHybrids.setup([this]() {
+	  double min = std::numeric_limits<double>::max(); 
+	  for (const auto& b : barrels_) min = MIN(min, b.minRwithHybrids());
+	  for (const auto& e : endcaps_) min = MIN(min, e.minRwithHybrids());
+	  return min;
+	});
+      maxZwithHybrids.setup([this]() {
+	  double max = 0;
+	  for (const auto& b : barrels_) max = MAX(max, b.maxZwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxZwithHybrids());
+	  return max;
+	});
+
+
+      hasStepInEndcapsOuterRadius.setup([this]() {
+	  bool hasStep = false;
+	  if (endcaps().size() > 1) {
+	    // check whether all endcaps outer radii are identical with each other
+	    // if radii are not all identical, there is an endcap step !
+	    hasStep = !std::equal(endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(), 
+				  [&](const Endcap& e1, const Endcap& e2) { return (e1.maxRwithHybrids() == e2.maxRwithHybrids()); });
+	  }
+	  return hasStep;
+	});
+
+      detIdSchemes_ = detIdSchemes();
   }
 
   void build();
@@ -107,6 +154,10 @@ public:
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
   Modules& modules() { return moduleSetVisitor_.modules(); }
 
+  bool isPixelTracker() const { return myid() == "Pixels"; }
+
+  std::map<std::string, std::vector<int> > detIdSchemes();
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& b : barrels_) { b.accept(v); }
@@ -116,6 +167,11 @@ public:
     v.visit(*this); 
     for (const auto& b : barrels_) { b.accept(v); }
     for (const auto& e : endcaps_) { e.accept(v); }
+  }
+  void accept(SensorGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& b : barrels_) { b.accept(v); }
+    for (auto& e : endcaps_) { e.accept(v); }
   }
 
   std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)

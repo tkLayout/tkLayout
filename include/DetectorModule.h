@@ -28,8 +28,6 @@ using material::MaterialObject;
 // ======================================================= DETECTOR MODULES ===============================================================
 //
 
-
-enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
 enum SensorLayout { NOSENSORS, MONO, PT, STEREO };
 enum ZCorrelation { SAMESEGMENT, MULTISEGMENT }; 
 enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
@@ -48,7 +46,7 @@ namespace insur {
 using insur::ModuleCap;
 using material::ElementsVector;
 
-class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
+class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
 
   typedef PtrVector<Sensor> Sensors;
@@ -88,12 +86,14 @@ public:
   ReadonlyProperty<int, AutoDefault> numSparsifiedHeaderBits,  numSparsifiedPayloadBits;
   ReadonlyProperty<int, AutoDefault> numTriggerDataHeaderBits, numTriggerDataPayloadBits;
 
-  Property<double, AutoDefault> sensorPowerConsumption;  // CUIDADO provide also power per strip (see original module and moduleType methods)
+  ReadonlyProperty<double, NoDefault> operatingTemp;
+  ReadonlyProperty<double, NoDefault> biasVoltage;
   ReadonlyProperty<double, AutoDefault> powerModuleOptical;
   ReadonlyProperty<double, AutoDefault> powerModuleChip;
   ReadonlyProperty<double, AutoDefault> powerStripOptical;
   ReadonlyProperty<double, AutoDefault> powerStripChip;
-  Property<double, AutoDefault> irradiationPower;
+  Property<double, AutoDefault> sensorsIrradiationPowerMean;
+  Property<double, AutoDefault> sensorsIrradiationPowerMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
@@ -104,12 +104,15 @@ public:
 
   PropertyVector<string, ','> trackingTags;
 
-  Property<int8_t, Default> plotColor;
+  Property<int, Default> plotColor;
 
   Property<double, Default> serviceHybridWidth;
   Property<double, Default> frontEndHybridWidth;
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
+  Property<double, Default> chipThickness;
+
+  Property<bool, Default> removeModule;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -130,6 +133,8 @@ public:
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
       numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
       triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
+      operatingTemp            ("operatingTemp"            , parsedAndChecked()),
+      biasVoltage              ("biasVoltage"              , parsedAndChecked()),
       powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
       powerModuleChip          ("powerModuleChip"          , parsedOnly()),
       powerStripOptical        ("powerStripOptical"        , parsedOnly()),
@@ -142,10 +147,12 @@ public:
       nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
       nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
-      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
-      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
-      hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
-      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
+      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
+      hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
+      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
+      chipThickness            ("chipThickness"            , parsedOnly(), 0),
+      removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;
@@ -163,6 +170,11 @@ public:
     double area = module.area(); 
     return area;
   }
+  double totalSensorsVolume() const { // Calculate total volume occupied by sensors
+    double volume = 0.;
+    for (const auto& s : sensors()) volume += area() * s.sensorThickness();
+    return volume;
+  }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }
   double thickness() const { return dsDistance() + sensorThickness(); }
@@ -174,6 +186,7 @@ public:
 
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
+  bool isTilted() const { return tiltAngle_ != 0.; }
 
   double alpha (double trackPhi) const {
     double deltaPhi = center().Phi() + skewAngle() - trackPhi;
@@ -228,14 +241,26 @@ public:
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
   bool flipped() const { return decorated().flipped(); } 
-  bool flipped(bool newFlip) { return decorated().flipped(newFlip); } 
+  bool flipped(bool newFlip) {
+    if (newFlip && numSensors() > 1) {
+      sensors_.front().innerOuter(SensorPosition::UPPER);
+      sensors_.back().innerOuter(SensorPosition::LOWER);
+    }
+    return decorated().flipped(newFlip);
+  } 
   ModuleShape shape() const { return decorated().shape(); }
-////////
+  ////////
 
   double maxZ() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxZ); }
   double minZ() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minZ); }
   double maxR() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxR); }
   double minR() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minR); }
+
+  std::map<std::string, double> extremaWithHybrids() const;
+  double minZwithHybrids() const { return extremaWithHybrids()["minZ"]; }
+  double maxZwithHybrids() const { return extremaWithHybrids()["maxZ"]; }
+  double minRwithHybrids() const { return extremaWithHybrids()["minR"]; }
+  double maxRwithHybrids() const { return extremaWithHybrids()["maxR"]; }
 
   double planarMaxZ() const { return CoordinateOperations::computeMaxZ(basePoly()); }
   double planarMinZ() const { return CoordinateOperations::computeMinZ(basePoly()); }
@@ -289,6 +314,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual TableRef tableRef() const = 0;
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
+
+  bool isPixelModule() const { return (split<std::string>(moduleType(), "_")[0] == "pixel"); }
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
@@ -347,6 +374,11 @@ public:
     v.visit(*this);
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v);
+  }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
   }
 
   void setup() override {
@@ -451,7 +483,7 @@ public:
     double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
     if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
     else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
-    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2); 
+    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2);
 }
 
   double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
@@ -474,6 +506,8 @@ public:
   //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam3;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
 
@@ -481,11 +515,13 @@ public:
   DetectorModule(decorated),
     resolutionLocalXEndcapParam0            ("resolutionLocalXEndcapParam0"            , parsedOnly()),
     resolutionLocalXEndcapParam1            ("resolutionLocalXEndcapParam1"            , parsedOnly()),
+    resolutionLocalXEndcapParam2            ("resolutionLocalXEndcapParam2"            , parsedOnly()),
+    resolutionLocalXEndcapParam3            ("resolutionLocalXEndcapParam3"            , parsedOnly()),
     resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
     resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
       { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state() || resolutionLocalXEndcapParam2.state() || resolutionLocalXEndcapParam3.state()); }
   
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
@@ -624,6 +660,11 @@ public:
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
   }
+  void accept(SensorGeometryVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+    for (auto& s : sensors_) { s.accept(v); }
+  }
 
   //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
   //double maxZ() const { return center().Z(); } // ditto here
@@ -635,9 +676,13 @@ public:
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi)); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const {
+    return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * exp(-pow(1./tan(alpha(trackPhi)), 2.) / resolutionLocalXEndcapParam3()) * cos(resolutionLocalXEndcapParam2() * 1./tan(alpha(trackPhi)));    
+  }
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
+  double calculateParameterizedResolutionLocalY(double theta) const {
+    return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta)));
+  }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }

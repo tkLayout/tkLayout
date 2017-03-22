@@ -1,0 +1,87 @@
+// 1:1 conversion of CO2
+
+Conversion {
+  Input {
+    Element {
+      elementName CO2 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName CO2
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+Conversion {
+  Input {
+    Element {
+      elementName CO2_L1 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName CO2_L1
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+Conversion {
+  Input {
+    Element {
+      elementName CO2_L2 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName CO2_L2
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+Conversion {
+  Input {
+    Element {
+      elementName CO2_L3 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName CO2_L3
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+Conversion {
+  Input {
+    Element {
+      elementName CO2_L4 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName CO2_L4
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

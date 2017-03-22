@@ -1,0 +1,19 @@
+// 1:1 conversion of Kapton
+
+Conversion {
+  Input {
+    Element {
+      elementName Kapton 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Kapton
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

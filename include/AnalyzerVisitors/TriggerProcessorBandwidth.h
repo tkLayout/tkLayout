@@ -59,7 +59,6 @@ class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   const SimParms* simParms_;
 
   int accumulatedLayerOffset_ = 0;
-  int cntId_ = 0;
 public:
   SummaryTable processorConnectionSummary, processorInboundBandwidthSummary, processorInboundStubPerEventSummary;
   SummaryTable processorCommonConnectionSummary;
@@ -70,14 +69,16 @@ public:
 
   class ModuleConnectionData {
     int phiCpuConnections_, etaCpuConnections_;
+    uint32_t detId_;
   public:
     set<std::pair<int, int>> connectedProcessors;
-    int sebCoords;
     int phiCpuConnections() const { return phiCpuConnections_; }
     int etaCpuConnections() const { return etaCpuConnections_; }
+    uint32_t detId() const { return detId_; }
     int totalCpuConnections() const { return phiCpuConnections_*etaCpuConnections_; }
     void phiCpuConnections(int conn) { phiCpuConnections_ = conn; }
     void etaCpuConnections(int conn) { etaCpuConnections_ = conn; }
+    void detId (uint32_t detId) { detId_ = detId; }
     ModuleConnectionData() : phiCpuConnections_(0), etaCpuConnections_(0) {}
   };
   typedef map<const Module*,ModuleConnectionData> ModuleConnectionMap; 
@@ -85,13 +86,6 @@ public:
 
   ModuleConnectionMap moduleConnections;
   TriggerSectorMap sectorMap;
-
-  struct Sebifier {
-    std::map<std::pair<int,int>, int> numModsZMinus; // key is (cntId, layer)
-    std::map<int, int> layoffsets; // key is cntId
-    int sebifyBarrelCoords(const BarrelModule& m) const;
-    int sebifyEndcapCoords(const EndcapModule& m) const;
-  } seb_;
 
 private:
   int numProcEta, numProcPhi;
@@ -108,9 +102,7 @@ public:
 
   void preVisit();
   void visit(const SimParms& sp);
-  void visit(const Tracker& t); 
-  void visit(const Barrel& t); 
-  void visit(const Layer& l);
+  void visit(const Tracker& t);
   void visit(const DetectorModule& m);
   void postVisit();
 };

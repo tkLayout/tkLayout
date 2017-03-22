@@ -92,9 +92,22 @@ namespace insur {
     virtual ~Analyzer() {}
     std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
+    std::map<std::string, TH1D*>& getHistoBeamPipeR() { return rComponentsBeamPipe; }
+    std::map<std::string, TH1D*>& getHistoBeamPipeI() { return iComponentsBeamPipe; }
+    std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
+    std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
+    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
+    std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
+    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
+    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
+    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
+    //std::vector<std::string>& getComponentsTrackingVolume() { return componentsTotalTrackingVolumeOrder; }
     TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
     TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
-    TH1D& getHistoModulesEndcapsR() {return ractiveendcap; }
+    TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
     TH1D& getHistoModulesEndcapsI() { return iactiveendcap; }
     TH1D& getHistoServicesBarrelsR() { return rserfbarrel; }
     TH1D& getHistoServicesBarrelsI() { return iserfbarrel; }
@@ -120,10 +133,8 @@ namespace insur {
     TH1D& getHistoServicesAllI() { return iserfall; }
     TH1D& getHistoSupportsAllR() { return rlazyall; }
     TH1D& getHistoSupportsAllI() { return ilazyall; }
-    TH1D& getHistoExtraServicesR() { return rextraservices; }
-    TH1D& getHistoExtraServicesI() { return iextraservices; }
-    TH1D& getHistoExtraSupportsR() { return rextrasupports; }
-    TH1D& getHistoExtraSupportsI() { return iextrasupports; }
+    std::map<std::string, TH1D*>& getHistoServicesDetailsR() { return rComponentsServicesDetails; }
+    std::map<std::string, TH1D*>& getHistoServicesDetailsI() { return iComponentsServicesDetails; }
     TH1D& getHistoGlobalR() { return rglobal; }
     TH1D& getHistoGlobalI() { return iglobal; }
     TH2D& getHistoIsoR() { return isor; }
@@ -167,7 +178,7 @@ namespace insur {
     void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
-    void computeIrradiatedPowerConsumption(Tracker& tracker);
+    void computeIrradiationPowerConsumption(Tracker& tracker);
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
@@ -176,6 +187,7 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
+    TProfile& getTotalEtaProfileLayers() {return totalEtaProfileLayers; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
     std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
@@ -235,7 +247,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerEfficiencySummaries() { return triggerEfficiencySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
-    std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    std::map<std::string, SummaryTable>& getSensorsIrradiationPowerSummary() { return sensorsIrradiationPowerSummary_; }
     
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
     const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
@@ -277,12 +289,15 @@ namespace insur {
     TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
     TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
     TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
-    TH1D rextraservices, rextrasupports;
-    TH1D iextraservices, iextrasupports;
+    std::map<std::string, TH1D*> rComponentsServicesDetails, iComponentsServicesDetails;
     TH1D rglobal, iglobal;
 
     std::map<std::string, TH1D*> rComponents, iComponents;
-
+    std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
+    std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
+    std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
+    std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
+    std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
     TH2I mapRadiationCount, mapInteractionCount;
@@ -322,7 +337,7 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyMisfilteredSummaries_, triggerFrequencyCombinatorialSummaries_, triggerFrequencyInterestingSummaries_;
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
-    std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
+    std::map<std::string, SummaryTable> sensorsIrradiationPowerSummary_;
 
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
@@ -363,7 +378,7 @@ namespace insur {
     StubRateHistos trueStubRateHistos_;
 
     TGraph powerDensity;
-    TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs;
+    TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs, totalEtaProfileLayers;
     std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
     std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
 
@@ -389,7 +404,7 @@ namespace insur {
     virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
     virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
-                                             Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+                                             Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 

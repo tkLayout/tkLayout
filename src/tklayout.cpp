@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
     ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
-    ("power,p", "Report irradiated power analysis.")
+    ("power,p", "Report irradiation power analysis.")
     ("bandwidth,b", "Report base bandwidth analysis.")
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
     ("material,m", "Report materials and weights analyses.")
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
     ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
     ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
-    ("pixelxml", "Produce XML output files for pixel.\nThe config file name (minus extension)\nwill be used as subdir.");
+    ;
     
   po::options_description trackopt("Track simulation options");
   trackopt.add_options()
@@ -155,11 +155,12 @@ int main(int argc, char* argv[]) {
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
-    if (vm.count("pixelxml")) {
+    /*if (vm.count("pixelxml")) {
         squid.pixelExtraction(xmldir);
-    }
+	}*/
     
-    if( vm.count("xml") || vm.count("pixelxml") )    squid.createAdditionalXmlSite(xmldir);
+    //if( vm.count("xml") || vm.count("pixelxml") )    squid.createAdditionalXmlSite(xmldir);
+    if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
 
     if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;

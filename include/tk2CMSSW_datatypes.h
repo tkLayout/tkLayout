@@ -8,7 +8,9 @@
 
 #include <string>
 #include <vector>
-#include<map>
+#include <map>
+#include <math.h> 
+#include <tk2CMSSW_strings.h>
 
 namespace insur {
     /**
@@ -20,9 +22,10 @@ namespace insur {
      */
     enum ShapeType { bx, tb, co, tp, pc };
 
-    enum ShapeOperationType { uni, intersec };
+    enum ShapeOperationType { uni, intersec, substract };
 
     enum AlgoPartype { st,num,vec};
+
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -75,13 +78,31 @@ namespace insur {
      * @param name The name of the composite material
      * @param density The overall density of the composite material (in g/cm3)
      * @param method The type of mixture: by weight, by volume or by atomic proportion
-     * @param elements A list of pairs indicating the elements in the compound by name and fraction of the whole
+     * @param elements A list of elements in the compound, key = name of the element, value = massic fraction of the whole
      */
     struct Composite {
         std::string name;
         double density;
         CompType method;
-        std::vector<std::pair<std::string, double> > elements;
+        std::map<std::string, double> elements;
+
+        // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
+        // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
+        // No matter the name of the component !
+        bool operator==(const Composite& otherComp) const {
+	  if ((fabs(density - otherComp.density) > xml_composite_density_tolerance)  // not same density ?
+	      || (method != otherComp.method)  // not same mixture method ?
+	      || (elements.size() != otherComp.elements.size())) {  // not same number of elements ?
+	    return false;
+  	  }
+	  for (const auto& elem : otherComp.elements) {  // for a given element :
+	    if ((elements.find(elem.first) == elements.end())  // not found in the composite ?
+	        || (fabs(elements.at(elem.first) - elem.second) > xml_composite_ratio_tolerance)) { // not same massic ratio ?
+	      return false;
+	  }
+	}
+	return true;
+      }
     };
     /**
      * @struct LogicalInfo
@@ -139,12 +160,14 @@ namespace insur {
      * @param name_tag The name of the result volume of the operation
      * @param rSolid1 The name of one of the volume the operation is made on
      * @param rSolid2 The name of a second volume the operation is made on
+     * @param trans A translation applied to the child volume within the parent volume's coordinate system
      */
     struct ShapeOperationInfo {
         ShapeOperationType type;
         std::string name_tag;
         std::string rSolid1;
         std::string rSolid2;
+        Translation trans;
     };
     /**
      * @struct PosInfo
@@ -205,7 +228,6 @@ namespace insur {
         bool fw;
         bool isZPlus;
         bool fw_flipped;
-        double phi;
         int modules;
         double mthk;
         double rmin;
@@ -214,7 +236,9 @@ namespace insur {
         double zmin;
         double zmax;
         double zfw;
+        double startPhiAnglefw;  // in RAD
         double zbw;
+        double startPhiAnglebw;  // in RAD
     };
     /**
      * @struct BTiltedRingInfo
@@ -242,15 +266,16 @@ namespace insur {
         std::string name;
         std::string childname;
         bool isZPlus;
-        double tiltAngle;
+        double tiltAngle;      // in DEG
         bool bw_flipped;
-        bool fw_flipped;
-        double phi;
+        bool fw_flipped;  
         int modules;
         double r1;
         double z1;
+        double startPhiAngle1; // in RAD
         double r2;
         double z2;
+        double startPhiAngle2; // in RAD
         double rmin;
         double rmax;
         double zmin;

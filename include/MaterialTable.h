@@ -3,7 +3,7 @@
 // Author: ndemaio
 //
 // Created on October 14, 2008, 10:53 AM
-//
+// MaterialTable is nearly not used and was replaced by MaterialTab. This should be reworked.
 
 /**
  * @file MaterialTable.h

@@ -1,0 +1,18 @@
+Conversion {
+  Input {
+    Element {
+      elementName FPIX_Cu
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu
+      quantity 1000
+      unit g/m
+      service true
+    }
+  }
+}
+

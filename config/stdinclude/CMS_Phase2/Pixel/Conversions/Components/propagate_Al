@@ -1,0 +1,19 @@
+// 1:1 conversion of Al
+
+Conversion {
+  Input {
+    Element {
+      elementName Al 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Al
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

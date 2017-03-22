@@ -1,0 +1,14 @@
+// BPIX ROD material
+// In rod service true means that exit from the rod
+//        service false means that stay in the rod (but in the service cylinder)
+
+Materials tilted_BPIX_rod_L3 {
+  type rod
+
+  @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L3
+  @include-std CMS_Phase2/Pixel/Materials/Components/Power_1.6mm2
+  @include-std CMS_Phase2/Pixel/Materials/Components/HV_Wires
+  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_Support_Structure_0.2
+  @include-std CMS_Phase2/Pixel/Materials/rod_BPIX_Support_Structure_0.2
+}
+

@@ -33,6 +33,7 @@ namespace material {
     //double totalGrams = 0.0;
     double multiplier = 0.0;
     bool converted = false;
+    std::set<std::string> infoMaterials;
     std::set<std::string> warningMaterials;
     
     for (const MaterialObject::Element* currElement : serviceElements_) { //inputElements) {
@@ -48,7 +49,22 @@ namespace material {
               inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
           
             for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
+	      // newElement is the converted Element.
+	      // newElement is assigned the properties from OUTPUT Element.
+	      // Notably, in the rare case where outputElement has a componentName (see conversion station cfg file), 
+	      // that name is assigned to newElement.
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+
+	      // Here, new Element is assigned additional info from the INPUT Elements.
+	      // newElement is assigned the same componentName as in input
+	      // (except if outputElement has a componentName).
+	      if (currElement->componentName.state() && !outputElement->componentName.state()) {
+		newElement->componentName(currElement->componentName());
+	      }
+	      // If we end up with a converted element belonging to no component, there is a problem !
+	      if (!newElement->componentName.state()) {
+		logWARNING("Element " + newElement->elementName() + "which is at output of station" + stationName_() + "has no assigned componentName.");
+	      }
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
@@ -56,6 +72,8 @@ namespace material {
               if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
                 newElement->destination(currElement->destination());
               }
+
+	      // We now have our newElement :)
               if (newElement->service()) {
                 if (newElement->unit().compare("g") != 0) {
                   serviceOutput.addElement(newElement);
@@ -71,12 +89,28 @@ namespace material {
       }
       if (!converted) {
         serviceOutput.addElement(currElement);
-        warningMaterials.insert(currElement->elementName());
+        // We may want a warning or an info here
+        bool doWarning = false;
+        bool doInfo = false;
+        if (stationType_ != SECOND) {
+          // Always throw a warning for flange stations
+          doWarning=true;
+        } else {
+          // it's a SECOND-level station: let's not overwarn
+          // If I was the target of the failed conversion, then it's a warning, otherwise it's an info
+          if (currElement->destination.state() && currElement->destination().compare(stationName_()) == 0) doWarning=true;
+          else doInfo = true;
+        }
+        if (doWarning) warningMaterials.insert(currElement->elementName());
+        if (doInfo) infoMaterials.insert(currElement->elementName());
       }
     }
 
     for(auto& warningMaterial : warningMaterials) {
       logWARNING("Element \"" + warningMaterial + "\" ignored by station \"" + stationName_() + "\".");
+    }    
+    for(auto& infoMaterial : infoMaterials) {
+      logINFO("Element \"" + infoMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
 
     /*

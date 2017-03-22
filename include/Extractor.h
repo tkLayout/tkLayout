@@ -76,25 +76,26 @@ namespace insur {
       }
     };
   public:
-    void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt = false);
+    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
   protected:
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
-    void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+    void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
-    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, std::vector<std::pair<double, double> >& up,
+    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
-    void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
+    void analyseLayers(MaterialTable& mt, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p, 
 		       std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, 
 		       bool wt = false);
-    void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
-                      std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
-    void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
-    void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
-    void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+    void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
+                      std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p,
+		      std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri,
+		      bool wt = false);
+    void analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+			 std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+    void analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                          std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
   private:
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
@@ -110,7 +111,9 @@ namespace insur {
     double compositeDensity(ModuleCap& mc, bool nosensors = false);
     double compositeDensity(InactiveElement& ie);
     double fromRim(double r, double w);
-    int Z(double x0, double A);
+    std::pair<double, int> getAZ(double radiationLength, double interactionLength);
+    int findClosest_Z(double pA, double radiationLength);
+    double compute_X0(int pZ, double pA); 
   };
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
@@ -148,6 +151,7 @@ namespace insur {
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
     private :
+      static const double kmm3Tocm3;
       static const int HybridFBLR_0; // Front Back Left Right
       static const int InnerSensor;
       static const int OuterSensor;
@@ -157,12 +161,14 @@ namespace insur {
       static const int HybridRight;
       static const int HybridBetween;
       static const int SupportPlate;
-      static const int nTypes;
       static const int HybridFB;
       static const int HybridLR;
       static const int HybridFBLR_3456; // Front Back Left Right (ailias of HybridFBLR_0)
-      static const double kmm3Tocm3;
-
+      static const int PixelModuleNull;
+      static const int PixelModuleHybrid;
+      static const int PixelModuleSensor;
+      static const int PixelModuleChip;    
+      
       class Volume {
         public :
           Volume(std::string name, const int type, std::string pname, 
@@ -230,6 +236,7 @@ namespace insur {
       const double         serviceHybridWidth;
       const double         hybridThickness;
       const double         supportPlateThickness;
+      const double         chipThickness;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
@@ -247,11 +254,12 @@ namespace insur {
 	    double         rmaxatzmax;
 	    const double         expandedModWidth;
 	    const double         expandedModLength;
-	    const double         expandedModThickness; 
+	    double               expandedModThickness; 
 	    const XYZVector      center; 
 	    const XYZVector      normal; 
+	    int                  nTypes;
       std::vector<XYZVector> vertex; 
-      const std::string    prefix_xmlfile;
+      std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
 }

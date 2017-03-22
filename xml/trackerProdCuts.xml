@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
+  <!-- WARNING : ARE THE VALUES FOR ProdCutsForElectrons, ProdCutsForPositrons AND ProdCutsForGamma CORRECT IN THIS FILE ? -->
   <SpecParSection label="trackerProdCuts.xml" eval="true">
     <SpecPar name="tracker-dead">
       <PartSelector path="//Tracker"/>
       <Parameter name="CMSCutsRegion" value="TrackerDeadRegion" eval="false"/>
       <Parameter name="ProdCutsForElectrons" value="1*mm"/>
       <Parameter name="ProdCutsForPositrons" value="1*mm"/>
-      <Parameter name="ProdCutsForGamma" value="10*cm"/>
+      <Parameter name="ProdCutsForGamma" value="1*mm"/>
     </SpecPar>
     <SpecPar name="tracker-sens">
       <Parameter name="CMSCutsRegion" value="TrackerSensRegion" eval="false"/>
@@ -14,37 +15,23 @@
       <Parameter name="ProdCutsForPositrons" value="0.01*mm"/>
       <Parameter name="ProdCutsForGamma" value="0.01*mm"/>
     </SpecPar>
-    <SpecPar name="tracker-dead-pixel">
-      <PartSelector path="//PixelBarrel"/>
-      <PartSelector path="//PixelForward"/>
-      <Parameter name="CMSCutsRegion" value="TrackerPixelDeadRegion" eval="false"/>
+    <SpecPar name="tracker-dead-outer">
+      <PartSelector path="//Phase2OTBarrel"/>
+      <PartSelector path="//Phase2OTForward"/>
+      <Parameter name="CMSCutsRegion" value="TrackerOuterDeadRegion" eval="false"/>
       <Parameter name="ProdCutsForElectrons" value="1*mm"/>
       <Parameter name="ProdCutsForPositrons" value="1*mm"/>
       <Parameter name="ProdCutsForGamma" value="1*mm"/>
+    </SpecPar>   
+    <SpecPar name="tracker-sens-outer">
+      <!--mid point marker-->
+      <Parameter name="CMSCutsRegion" value="TrackerOuterSensRegion" eval="false"/>
+      <Parameter name="ProdCutsForElectrons" value="0.01*mm"/>
+      <Parameter name="ProdCutsForPositrons" value="0.01*mm"/>
+      <Parameter name="ProdCutsForGamma" value="0.01*mm"/>
     </SpecPar>
-    <SpecPar name="tracker-sens-pixel">
-      <PartSelector path="//PixelBarrelActiveFull0"/>
-      <PartSelector path="//PixelBarrelActiveFull1"/>
-      <PartSelector path="//PixelBarrelActiveFull2"/>
-      <PartSelector path="//PixelBarrelActiveFull3"/>
-      <PartSelector path="//PixelForwardSensor1"/>
-      <PartSelector path="//PixelForwardSensor2"/>
-      <PartSelector path="//PixelForwardSensor3"/>
-      <PartSelector path="//PixelForwardSensor4"/>
-      <PartSelector path="//PixelForwardSensor5"/>
-      <PartSelector path="//PixelForwardSensor6"/>
-      <PartSelector path="//PixelForwardSensor7"/>
-      <PartSelector path="//PixelForwardSensor8"/>
-      <PartSelector path="//PixelForwardSensor9"/>
-      <PartSelector path="//PixelForwardSensor10"/>
-    <!--mid point marker-->
-    <Parameter name="CMSCutsRegion" value="TrackerPixelSensRegion" eval="false"/>
-    <Parameter name="ProdCutsForElectrons" value="0.01*mm"/>
-    <Parameter name="ProdCutsForPositrons" value="0.01*mm"/>
-    <Parameter name="ProdCutsForGamma" value="0.01*mm"/>
-  </SpecPar>
 
-</SpecParSection>
+  </SpecParSection>
 </DDDefinition>
 
 

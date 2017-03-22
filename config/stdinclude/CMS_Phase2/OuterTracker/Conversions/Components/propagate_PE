@@ -1,0 +1,19 @@
+// 1:1 conversion of PE
+
+Conversion {
+  Input {
+    Element {
+      elementName PE 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName PE
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

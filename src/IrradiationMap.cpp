@@ -165,11 +165,11 @@ bool IrradiationMap::operator < (const IrradiationMap& confrontedMap) const{
   return (binArea() < confrontedMap.binArea());
 }
 
-bool IrradiationMap::isInRegion(std::pair<double,double> coordinates) const {
+bool IrradiationMap::isInRegion(const std::pair<double,double>& coordinates) const {
   return ((zMin <= coordinates.first) && (zMax >= coordinates.first) && (rhoMin <= coordinates.second) && (rhoMax >= coordinates.second));
 }
 
-double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates) const {
+double IrradiationMap::calculateIrradiation(const std::pair<double,double>& coordinates) const {
   double z = 0;
   double rho = 0;
   double z1 = 0;
@@ -206,7 +206,7 @@ double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho2)][int(z1)];
       //linear interpolation in rho
-      irrxy = irr1/(rho2-rho1) * (rho-rho1) + irr2/(rho2-rho1) * (rho2-rho);
+      irrxy = irr1/(rho2-rho1) * (rho2-rho) + irr2/(rho2-rho1) * (rho-rho1);
     }
 
     //if is in a rho line
@@ -214,7 +214,7 @@ double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho1)][int(z2)];
       //linear interpolation in z
-      irrxy = irr1/(z2-z1) * (z-z1) + irr2/(z2-z1) * (z2-z);
+      irrxy = irr1/(z2-z1) * (z2-z) + irr2/(z2-z1) * (z-z1);
     }
 
     //if is in the middle

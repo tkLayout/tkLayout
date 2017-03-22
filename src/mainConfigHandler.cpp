@@ -388,6 +388,11 @@ string mainConfigHandler::getDefaultMaterialsDirectory() {
   return getDefaultMaterialsDirectory_();
 }
 
+string mainConfigHandler::getDetIdSchemesDirectory() {
+  getConfiguration();
+  return getDetIdSchemesDirectory_();
+}
+
 string mainConfigHandler::getStandardIncludeDirectory() {
   getConfiguration();
   return getStandardIncludeDirectory_();
@@ -406,6 +411,7 @@ string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+ins
 string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
 string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
 string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
+string mainConfigHandler::getDetIdSchemesDirectory_() { return standardDirectory_+"/"+insur::default_detidschemesdir; }
 string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
 string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 

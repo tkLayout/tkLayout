@@ -1,19 +1,59 @@
+// Project includes
 #include <rootweb.hh>
+#include "global_funcs.h"
+
+// standard includes
+#include <limits>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+
+// ROOT includes
+#include <TCanvas.h>
+#include <TError.h>
+#include <time.h>
+#include <TView.h>
+#include <TFile.h>
+#include <vector>
+#include <TColor.h>
+#include <TROOT.h>
+
+// boost includes
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
+
+
 
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
+
+using namespace RootWeb;
 
 //*******************************************//
 // RootWeb                                   //
 //*******************************************//
 std::string RootWeb::cleanUpObjectName(const std::string& source) {
   std::string dest = "";
-  const std::string allowedChars = "abcdefghijklmnopqrstuvwxyz"   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"   "0123456789._-()";
+  const std::string allowedChars  = "abcdefghijklmnopqrstuvwxyz"
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                    "0123456789";
+  const std::string convertedChars = "._-() "; // including space here
   auto N=source.size();
   auto i=N;
+  bool pleaseConvert = false;
   for (i=0; i<N; ++i) {
-    if (source[i]==' ') dest+="_";
-    if (allowedChars.find(source[i])<allowedChars.size()) dest+=source[i];
+    if (allowedChars.find(source[i])<allowedChars.size()) {
+      dest+=source[i];
+      pleaseConvert = true;
+    }
+    else if (convertedChars.find(source[i])<allowedChars.size() && pleaseConvert) {
+      dest+="_";
+      // avoid converting many charachters in a row
+      pleaseConvert = false;
+    }
   }
   return dest;
 }
@@ -63,16 +103,16 @@ ostream& RootWTable::dump(ostream& output) {
   int myColorIndex;
 
   output << "<table>";
-  for (int iRow = minRow; iRow<=maxRow; ++iRow) { 
+  for (int iRow = minRow; iRow<=maxRow; ++iRow) {
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
       if ((iRow==minRow)&&(iRow==0)) myCellCode = "th";
       else myCellCode = "td";
       output << "<" << myCellCode;
       myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
-      if (myColorIndex!=0) { 
-	myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();        
-	output << " style=\"color:" << myColorCode << ";\" " << std::endl;
+      if (myColorIndex!=0) {
+	      myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();
+	      output << " style=\"color:" << myColorCode << ";\" " << std::endl;
       }
       output << ">";
       output << myTableContent[make_pair(iRow, iCol)];
@@ -81,7 +121,7 @@ ostream& RootWTable::dump(ostream& output) {
     output << "</tr>";
   }
   output << "</table>" << endl;
-  
+
   return output;
 }
 
@@ -229,7 +269,6 @@ void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   std::ostringstream canvasName("");
-  //int myNumber = imageNameCounter_[name_]++; //##########
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
   TView* myView = myCanvas->GetView();
@@ -286,7 +325,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
     return myText_[myImageSize];
   }
 
-  stringstream thisText;  
+  stringstream thisText;
   thisText.clear();
   if (relativeHtmlDirectory_ == "") relativeHtmlDirectory_ = ".";
   if (targetDirectory_ == "" ) targetDirectory_ = ".";
@@ -306,7 +345,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   int imgH = int (zoomedHeight_ * myScale);
   int canW = int(imgW * thumb_compression_);
   int canH = int(imgH * thumb_compression_);
-  
+
   string smallCanvasCompleteFileName = targetDirectory_+"/"+smallCanvasFileName;
   string largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + ".png";
 
@@ -325,9 +364,9 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
     if (it!=fileTypeV_.begin()) fileTypeList+="|";
     fileTypeList+=(*it);
   }
-  
+
   thisText << "<img class='wleftzoom' width='"<< imgW<<"' height='"<<imgH<<"' src='"<< relativeHtmlDirectory_ << "/" << smallCanvasFileName <<"' alt='"<< comment_ <<"' onclick=\"popupDiv('" << relativeHtmlDirectory_ << "/" << largeCanvasFileBaseName << "', "<< zoomedWidth_<<", "<< zoomedHeight_ << " , '"<< comment_ << "','"<<fileTypeList << "');\" />";
-  
+
   myText_[myImageSize] = thisText.str();
   fileSaved_[myImageSize] = true;
   lastSize_ = myImageSize;
@@ -404,7 +443,7 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TH2I") ||
 	       (myClass=="TH2F") ||
 	       (myClass=="TH2D") ||
-	       (myClass=="THStack") 
+	       (myClass=="THStack")
 	       ) {
       aNamed = (TNamed*) anObject;
       myTargetFile->cd();
@@ -421,8 +460,8 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
 	       (myClass=="TText") ||
-	       (myClass=="TArc") || 
-	       (myClass=="TBox") 
+	       (myClass=="TArc") ||
+	       (myClass=="TBox")
 	       ) {
     } else {
       std::cerr << Form("Unhandled class %s", myClass.c_str()) << std::endl;
@@ -479,8 +518,8 @@ void RootWContent::addParagraph(string parText) {
   newText->addText(parText);
   newText->addText("<br/>\n");
   //newText->addText("</p>\n");
-  
-  
+
+
   addItem(newText);
 }
 
@@ -602,7 +641,7 @@ ostream& RootWContent::dump(ostream& output) {
   std::string baseName="";
   if (page_ != nullptr) baseName = page_->getTitle() + ".";
 
-  //std::cerr << "Content: " << title_ <<endl; //debug 
+  //std::cerr << "Content: " << title_ <<endl; //debug
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
   if (visible_) {
     output << "<div class=\"hideable\"> ";
@@ -724,11 +763,11 @@ ostream& RootWPage::dump(ostream& output) {
     site_ = new RootWSite();
     site_->addPage(this);
   }
-  
+
   // Header standard part, with the menu list, etc...
   // up to opening the primaryContent div
   site_->dumpHeader(output, this);
-  
+
   vector<RootWContent*>::iterator it;
   RootWContent* myContent;
   for (it = contentList_.begin(); it != contentList_.end(); ++it) {
@@ -737,18 +776,18 @@ ostream& RootWPage::dump(ostream& output) {
     myContent->setPage(this);
     myContent->dump(output);
   }
-  
+
   // Header standard part, with copyright, etc...
   // starting from closing the primaryContent div
   site_->dumpFooter(output);
-  
+
   if (fakeSite) {
     delete site_;
     site_=NULL;
   }
-  
+
   return output;
-  
+
 }
 
 
@@ -847,10 +886,12 @@ void RootWSite::setRevision(string newRevision) {
   revision_ = newRevision;
 }
 
-void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */ ) {
+void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */) {
   newPage->setRelevance(relevance);
   if (relevance == least_relevant) {
     pageList_.push_back(newPage);
+  } else if (relevance == most_relevant) {
+    pageList_.insert(pageList_.begin(), newPage);
   } else {
     // Go through the vector to find the first element which has a
     // lower relevance than 'relevance'
@@ -860,8 +901,8 @@ void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */
     for (; it!=pageList_.end(); ++it) {
       aPage = *it;
       if (aPage->getRelevance()<relevance) {
-	beforeThis = it;
-	break;
+        beforeThis = it;
+        break;
       }
     }
     pageList_.insert(beforeThis, newPage);
@@ -957,7 +998,7 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
     if ((*it)->getAlert()>0) {
       ostringstream anAlarmColor;
       anAlarmColor.str("");
-      anAlarmColor << "rgb(255, " 
+      anAlarmColor << "rgb(255, "
 		   << int(255 * (*it)->getAlert())
 		   << ", 0)";
       output << " style = 'background:"
@@ -973,9 +1014,9 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "      <div id=\"content\">" << endl
 	 << "        <div id=\"primaryContentContainer\">" << endl
 	 << "          <div id=\"primaryContent\">" << endl;
-  
+
   return output;
-  
+
 }
 
 bool RootWSite::makeSite(bool verbose) {
@@ -998,13 +1039,7 @@ bool RootWSite::makeSite(bool verbose) {
       return false;
     }
   }
-  
-  // Recreate the style symlink
-  //if (boost::filesystem::exists( targetStyleDirectory )) {
-  //boost::filesystem::remove_all( targetStyleDirectory );
-  //}
-  //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
-  
+
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
     summaryFile_ = new TFile(Form("%s/%s",
@@ -1019,6 +1054,12 @@ bool RootWSite::makeSite(bool verbose) {
     myPage->setTargetDirectory(targetDirectory_);
     myPage->dump(myPageFile);
     myPageFile.close();
+    if (it==pageList_.begin()) {
+      namespace fs = boost::filesystem;
+      fs::path const from_path = myPageFileName;
+      fs::path const to_path = targetDirectory_+"/index.html";
+      fs::copy_file(from_path, to_path, fs::copy_option::overwrite_if_exists);
+    }
   }
   if (verbose) std::cout << " ";
   if (summaryFile_) summaryFile_->Close();
@@ -1106,7 +1147,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
   if ((originalFileName_=="")&&(!noCopy_)) {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
     return output;
-  } 
+  }
   if (fileName_=="") {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the destination file name" << endl;
     return output;
@@ -1139,7 +1180,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
   if (originalFileNames_.empty()) {
     cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the original file names" << endl;
     return output;
-  } 
+  }
   if (fileNames_.empty()) {
     cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the destination file names" << endl;
     return output;
@@ -1165,7 +1206,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
     catch (boost::filesystem::filesystem_error e) {
       cerr << e.what() << endl;
       return output;
-    }   
+    }
   }
 
   std::vector<std::string> cleanedUpFileNames;
@@ -1193,7 +1234,7 @@ string RootWInfo::setValue(string newText) {
   return newText;
 }
 
-string RootWInfo::setValue(int number) {  
+string RootWInfo::setValue(int number) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
@@ -1205,6 +1246,23 @@ string RootWInfo::setValue(double number, int precision) {
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
   return(setValue(myNum_.str()));
+}
+
+string RootWInfo::setValueSci(double number, int precision) {
+  stringstream myNum_;
+  myNum_.clear();
+  int nearestLog = floor(log10(number));
+  double mantissa = number/pow(10, nearestLog);
+  myNum_.unsetf(ios_base::floatfield);
+  myNum_.precision(5);
+  myNum_ << dec << mantissa;
+  myNum_ << "&times;10<sup>" << nearestLog << "</sup>";
+  return(setValue(myNum_.str()));
+}
+
+string RootWInfo::appendValue(string aString) {
+  stringstream myNum_;
+  return setValue(value_ + aString);
 }
 
 ostream& RootWInfo::dump(ostream& output) {
@@ -1236,4 +1294,3 @@ ostream& RootWGraphViz::dump(ostream& output) {
   }
   return output;
 }
-

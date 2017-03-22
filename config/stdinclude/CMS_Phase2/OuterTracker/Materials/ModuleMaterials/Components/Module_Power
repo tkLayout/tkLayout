@@ -1,37 +1,51 @@
 // Power lines for the module
 // LV for the DC/DC and HV for the sensor
+// Habia April 2016 as per SharePoint site
 
 // Power for the converter (10V)
+// PP0-SEH-LV (700067232 Rev 01)
 // 2 wires
+// Diameter 0.19 Al, 0.20 Cu
 Component {
   componentName "Hybrid Power lines"
   service true
   scaleOnSensor 1
   Element {
-    elementName Cu_MV
-    quantity 2.36
+    elementName Al_MV
+    quantity 0.612
+    unit g/m
+  }
+  Element {
+    elementName Cu
+    quantity 0.218
     unit g/m
   }
   Element {
     elementName PE
-    quantity 1.92
+    quantity 0.880
     unit g/m
   }
 }
 
 // HV: 1 wire
+// PP0-SEH-HV (700067231 Rev 01)
 Component {
   componentName "Sensor HV line"
   service true
   scaleOnSensor 0
   Element {
-    elementName Cu_HV
-    quantity 1.18
+    elementName Al_HV
+    quantity 0.2295
+    unit g/m
+  }
+  Element {
+    elementName Cu
+    quantity 0.082
     unit g/m
   }
   Element {
     elementName PE
-    quantity 0.96
+    quantity 0.825
     unit g/m
   }
 }

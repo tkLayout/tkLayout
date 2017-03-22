@@ -1,0 +1,40 @@
+// Cooling pipes : 3 -> 1
+
+  // Titanium pipe
+  Conversion {
+    Input {
+      Element {
+        elementName Ti_L2 
+        quantity 3
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Ti_L2
+        quantity 1
+        unit g/m
+        service true
+      }
+    }  
+  }
+  
+
+  // Coolant
+  Conversion {
+    Input {
+      Element {
+        elementName CO2_L2
+        quantity 3
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName CO2_L2
+        quantity 1
+        unit g/m
+        service true
+      }
+    }  
+  }

@@ -1,0 +1,155 @@
+// Pixel endcap disks material
+// Large disks (220 modules)
+// 2.41 times bigger than small disk
+
+Materials FPIX_2_disk {
+  type layer
+
+  // Cooling for the module
+  // Average on disk (scales on surface)
+  Component {
+    componentName Cooling
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Ti
+      quantity 24.94
+      unit g
+    }
+    Element {
+      elementName CO2
+      quantity 23.66
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 16 pipes per disk
+  Component {
+    componentName "Cooling"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Ti
+      quantity 0.0532
+      unit g/m
+    }
+    Element {
+      elementName FPIX_CO2
+      quantity 0.052
+      unit g/m
+    }
+  }
+
+// Power for the module
+// Average on disk
+// Rescaled on surface *2.41
+  Component {
+    componentName "Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 9.94
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 3.54
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 6.36
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  Component {
+    componentName "Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al
+      quantity 0.0527
+      unit g/m
+    }
+    Element {
+      elementName FPIX_Cu
+      quantity 0.0188
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.0329
+      unit g/m
+    }
+  }
+
+// HV power wires
+// Power for the module
+// Rescaled on surface *2.41
+// Proportional to PP0-SEH-HV (700067231 Rev 01)
+  Component {
+    componentName "Sensor HV line"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al_HV
+      quantity 3.34
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 1.19
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 12.01
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  // Proportional to PP0-SEH-HV (700067231 Rev 01)
+
+  Component {
+    componentName "Sensor HV line"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al_HV
+      quantity 0.0110
+      unit g/m
+    }
+    Element {
+      elementName FPIX_Cu
+      quantity 0.0039
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.0396
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName "Disk support mechanics"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.4
+      unit mm
+    }
+    Element {
+      elementName Airex
+      quantity 4
+      unit mm
+    }
+  }
+}
