@@ -67,7 +67,7 @@ void Disk::cutAtEta(double eta) {
 
 
 
-std::pair<double> Disk::computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo) {
+std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo) {
   double lastZ;     // Z of the most stringent point in Ring i+1
   double newZ;      // Z of the most stringent point in Ring i
 
@@ -116,13 +116,30 @@ std::pair<double> Disk::computeStringentZ(int i, int parity, const ScanEndcapInf
 }
 
 
+double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRho) {
+
+  // Case A : Consider zError
+  double zError   = (parity > 0 ? zError() : - zError());
+  double nextRhoWithZError   = lastRho / (lastZ - zError) * (newZ - zError);
+
+  // Case B : Consider rOverlap
+  double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+      
+  // Takes the most stringent of cases A and B
+  double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+  return nextRho;
+}
+
+
+
+
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
   double lastRho;
   
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
-    // CREATES RING
+    // CREATES RING (NOT PLACED AT ANY RADIUS YET)
     Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
@@ -138,23 +155,14 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     else {
 
       // 1) FIND THE Z OF THE MOST STRINGENT POINTS IN RING (i+1) AND RING (i)
-      std::pair<double> stringentZ = computeStringentZ(i, parity, extremaDisksInfo);
+      std::pair<double, double> stringentZ = computeStringentZ(i, parity, extremaDisksInfo);
       double lastZ = stringentZ.first;           // Z of the most stringent point in Ring i+1
       double newZ = stringentZ.second;           // Z of the most stringent point in Ring i
       
+      // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
+      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho);
 
-      // 2) CALCULATES RING RADIUSHIGH FOR RING (i) FROM RING (i+1)
-      
-      // Case A : Consider zError
-      double zError   = parity > 0 ? +zError() : -zError();
-      double nextRhoWithZError   = lastRho / (lastZ - zError) * (newZ - zError);
-
-      // Case B : Consider rOverlap
-      double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
-      
-      // Takes the most stringent of cases A and B
-      double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
-
+      // 3) NOW, CAN ASSIGN THE CALCULATED RADIUS TO RING (i) ! 
       ring->buildStartRadius(nextRho);
     }
 
@@ -166,7 +174,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
-    lastRho        = ring->minR();
+    lastRho = ring->minR();
   }
 }
 

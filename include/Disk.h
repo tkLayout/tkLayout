@@ -52,6 +52,8 @@ private:
   inline double getSmallDelta(const vector<double>& diskSmallDeltas, int ringNumber) const;
   inline double getDsDistance(const vector<double>& buildDsDistances, int ringNumber) const;
 
+  std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
+  double computeNextRho(int parity, double lastZ, double newZ, double lastRho);
   void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
   double averageZ_ = 0;
