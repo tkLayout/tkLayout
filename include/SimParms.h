@@ -27,7 +27,7 @@ public:
   ReadonlyProperty<int, NoDefault> bunchSpacingNs;
 
   ReadonlyProperty<int, NoDefault> zErrorCollider;
-  ReadonlyProperty<int, NoDefault> rError;
+  ReadonlyProperty<int, NoDefault> rphiErrorCollider;
   ReadonlyProperty<bool, NoDefault> useIPConstraint;
 
   ReadonlyProperty<int, NoDefault> ptCost;

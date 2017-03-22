@@ -79,26 +79,25 @@ namespace insur {
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    * @return the total crossed material amount
    */
-  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-                                 double& eta, double& theta, double& phi, TrackNew& track) {
+  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, TrackNew& track) {
     Material totalMaterial;
     //      active volumes, barrel
-    totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
+    totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), track);
     //      active volumes, endcap
-    totalMaterial += findHitsModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
+    totalMaterial += findHitsModules(mb.getEndcapModuleCaps(), track);
     //      services, barrel
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), track);
     //      services, endcap
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), track);
     //      supports
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track);
     //      pixels, if they exist
     if (pm != NULL) {
-      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, true);
+      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), track, true);
+      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), track, true);
     }
     return totalMaterial;
   }
@@ -141,7 +140,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
   materialTracksUsed = etaSteps;
 
   int nTracks;
-  double etaStep, eta, theta, phi;
+  double etaStep, eta, theta, phi, zPos;
 
   // prepare etaStep, phiStep, nTracks, nScans
   if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -167,11 +166,12 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
+    track.setOrigin(0., 0., 0.); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
     //track.setTheta(theta);
     //track.setPhi(phi);
 
     // Assign material to the track
-    tmp = findAllHits(mb, pm, eta, theta, phi, track);
+    tmp = findAllHits(mb, pm, track);
 
     // Debug: material amount
     // std::cerr << "eta = " << eta
@@ -203,7 +203,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         if (SimParms::getInstance().useIPConstraint()) {
 
           useIPConstraint = true;
-          track.addIPConstraint(SimParms::getInstance().rError(), SimParms::getInstance().zErrorCollider());
+          track.addIPConstraint(SimParms::getInstance().rphiErrorCollider(), SimParms::getInstance().zErrorCollider());
         }
         track.keepTaggedHitsOnly(tag,useIPConstraint);
         //track.sort();
@@ -485,10 +485,10 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
 
     // Assign material to the track
-    findAllHits(mb, pm, eta, theta, phi, matTrack);
+    findAllHits(mb, pm, matTrack);
 
     // Add beam-pipe
     double rPos  = 23.*Units::mm;
@@ -1749,14 +1749,14 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
  */
 Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
                                    // TODO: add z0 here and in the hit finder for inactive surfaces
-                                   double eta, double theta, double phi, TrackNew& t, bool isPixel) {
+                                   TrackNew& t, bool isPixel) {
   std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
   std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
   Material res, tmp;
   res.radiation= 0.0;
   res.interaction = 0.0;
   while (iter != guard) {
-    tmp = findHitsModuleLayer(*iter, eta, theta, phi, t, isPixel);
+    tmp = findHitsModuleLayer(*iter, t, isPixel);
     res.radiation = res.radiation + tmp.radiation;
     res.interaction = res.interaction + tmp.interaction;
     iter++;
@@ -1817,21 +1817,19 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
-                                       double eta, double theta, double phi, TrackNew& t, bool isPixel) {
+Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& t, bool isPixel) {
   std::vector<ModuleCap>::iterator iter = layer.begin();
   std::vector<ModuleCap>::iterator guard = layer.end();
   Material res, tmp;
   XYZVector origin, direction;
-  Polar3DVector dir;
+  origin    = t.getOrigin();
+  direction = t.getDirection();
   double distance;
   //double r;
   int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
-  dir.SetCoordinates(1, theta, phi);
-  direction = dir;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     if (iter->getModule().maxZ() > 0) {
@@ -1849,13 +1847,13 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
-            tmp.radiation = tmp.radiation / sin(theta);
-            tmp.interaction = tmp.interaction / sin(theta);
+            tmp.radiation = tmp.radiation / sin(t.getTheta());
+            tmp.interaction = tmp.interaction / sin(t.getTheta());
           }
           // radiation and interaction length scaling for endcaps
           else {
-            tmp.radiation = tmp.radiation / cos(theta);
-            tmp.interaction = tmp.interaction / cos(theta);
+            tmp.radiation = tmp.radiation / cos(t.getTheta());
+            tmp.interaction = tmp.interaction / cos(t.getTheta());
           }
           res += tmp;
           // Create Hit object with appropriate parameters, add to Track t
@@ -2025,8 +2023,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * @param t A reference to the current track object
  * @return The scaled and summed up crossed material amount
  */
-Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-                                            double theta, TrackNew& t, bool isPixel) {
+Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
   Material res, corr;
@@ -2040,17 +2037,17 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
       // collision detection: check eta range
       tmp = iter->getEtaMinMax();
       // Volume was hit if:
-      if ((tmp.first < eta) && (tmp.second > eta)) {
+      if ((tmp.first < t.getEta()) && (tmp.second > t.getEta())) {
         double r, z;
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) { // Element is vertical
           z = iter->getZOffset() + iter->getZLength() / 2.0;
-          r = z * tan(theta);
+          r = z * tan(t.getTheta());
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite radial size
-          s_normal = iter->getZLength() / cos(theta);
-          s_alternate = iter->getRWidth() / sin(theta);
+          s_normal = iter->getZLength() / cos(t.getTheta());
+          s_alternate = iter->getRWidth() / sin(t.getTheta());
           if (s_normal > s_alternate) { 
             // Special case: it's easier to cross the material by going left-to-right than
             // by going bottom-to-top, so I have to rescale the material amount computation
@@ -2059,8 +2056,8 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             res += corr;
           } else {
             // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / cos(theta);
-            corr.interaction = iter->getInteractionLength() / cos(theta);
+            corr.radiation = iter->getRadiationLength() / cos(t.getTheta());
+            corr.interaction = iter->getInteractionLength() / cos(t.getTheta());
             res += corr;
           }
         }
@@ -2070,8 +2067,8 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite z length
-          s_normal = iter->getRWidth() / sin(theta);
-          s_alternate = iter->getZLength() / cos(theta);
+          s_normal = iter->getRWidth() / sin(t.getTheta());
+          s_alternate = iter->getZLength() / cos(t.getTheta());
           if (s_normal > s_alternate) { 
             // Special case: it's easier to cross the material by going left-to-right than
             // by going bottom-to-top, so I have to rescale the material amount computation
@@ -2080,14 +2077,14 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             res += corr;
           } else {
             // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / sin(theta);
-            corr.interaction = iter->getInteractionLength() / sin(theta);
+            corr.radiation = iter->getRadiationLength() / sin(t.getTheta());
+            corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
             res += corr;
           }
         }
         // Create Hit object with appropriate parameters, add to Track t
         double rPos = r;
-        double zPos = r/tan(theta);
+        double zPos = r/tan(t.getTheta());
 
         HitNewPtr hit(new HitNew(rPos, zPos));
         hit->setAsPassive();
