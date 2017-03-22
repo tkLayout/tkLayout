@@ -11,6 +11,9 @@ void Endcap::cutAtEta(double eta) {
 }
 
 
+/** Scans the Disk property tree.
+    This info is needed to build any disk in the Endcap.
+*/
 const ScanDiskInfo Endcap::scanDiskPropertyTree(int diskNumber) const {
 
   Disk* diskTemplate = GeometryFactory::make<Disk>();
@@ -21,7 +24,9 @@ const ScanDiskInfo Endcap::scanDiskPropertyTree(int diskNumber) const {
   return diskInfo;
 }
 
-
+/** Scans the Endcap property tree and gathers info from the innermost and outermost disks in the Endcap.
+    This info is needed to build any disk in the Endcap.
+*/
 const ScanEndcapInfo Endcap::scanPropertyTree() const {
 
   const ScanDiskInfo& innermostDiskInfo = scanDiskPropertyTree(1);
@@ -39,6 +44,8 @@ void Endcap::build() {
     if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());
     else if(barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
 
+    // Before any disk is build, needs to take info from PropertyTree from innermost and outermost disks in the Endcap.
+    // (In +Z side, 'innermost' corresponds to 'lower Z', and 'outermost' corresponds to 'bigger Z').
     ScanEndcapInfo extremaDisksInfo = scanPropertyTree();
 
     vector<Disk*> tdisks;
