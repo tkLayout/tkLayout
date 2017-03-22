@@ -2,6 +2,9 @@ moduleType pixel
 
 numSensors 1
 
+powerPerModule 0 // mW
+
+sensorThickness 0.150
 hybridThickness 0.5
 chipThickness 0.5
 
@@ -11,6 +14,7 @@ Sensor 1 {
   numSegments 128
   numROCX 2
   numROCY 16
+  powerPerChannel 0.0 // mW
 }
 
 plotColor 4

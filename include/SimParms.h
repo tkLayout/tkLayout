@@ -68,8 +68,6 @@ public:
   void accept(GeometryVisitor& v) { v.visit(*this); }
   void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
 
-  double calcCost(int) { return 0.; } // CUIDADO FIX THIS does nothing
-
   double particleCurvatureR(double pt) const { return pt/(0.3*magField()) * 1e3; }
 
 private:

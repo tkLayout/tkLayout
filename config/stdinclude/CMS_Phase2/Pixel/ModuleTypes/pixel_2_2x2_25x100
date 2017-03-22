@@ -9,9 +9,7 @@ length 44.2
 
 numSensors 1
 
-powerStripChip 0
-powerModuleChip 0
-powerModuleOptical 0
+powerPerModule 0 // mW
 
 sensorThickness 0.150
 hybridThickness 0.5
@@ -23,6 +21,7 @@ Sensor 1 {
   stripLengthEstimate 0.100
   numROCX 2 
   numROCY 2
+  powerPerChannel 0.0 // mW
 }
 
 plotColor 10 

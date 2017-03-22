@@ -25,6 +25,7 @@ void IrradiationPowerVisitor::visit(Endcap& e) {
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
+  std::string modType = m.summaryFullType();
   operatingTemp_    = m.operatingTemp() + insur::celsius_to_kelvin;
   biasVoltage_ = m.biasVoltage();
   double volume = m.totalSensorsVolume() * Units::mm3 / Units::cm3; // Total volume occupied by sensors, converted to cm^3
@@ -65,10 +66,33 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   sensorsIrradiationMax_[moduleRef] = MAX(sensorsIrradiationMax_[moduleRef], irradiationMax);
   // counter
   modulesCounter_[moduleRef]++;
+  // The list of modules per irradiation type
+  mapTypeToIrradiation_[modType].push_back(irradiationMean);
 }
 
 
 void IrradiationPowerVisitor::postVisit() {
+  // Sort the irradiation and extract the max and 95% percentiles
+  sensorsIrradiationPerType.setCell(0, 0, "Type");
+  sensorsIrradiationPerType.setCell(0, 1, "# mods");
+  sensorsIrradiationPerType.setCell(0, 2, "Max. module average irrad [Hb]");
+  sensorsIrradiationPerType.setCell(0, 3, "95 percentile module average irrad [Hb]");
+  int iRow=0;
+  for (auto& it : mapTypeToIrradiation_ ) {
+    iRow++;
+    const std::string& typeName = it.first;
+    std::vector<double>& irrads = it.second;
+    std::sort(irrads.begin(), irrads.end());
+    int nModules = irrads.size();
+    std::ostringstream irrad_Max("");
+    std::ostringstream irrad_95perc("");
+    irrad_Max    << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules-1);
+    irrad_95perc << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules*95/100-1);
+    sensorsIrradiationPerType.setCell(iRow, 0, typeName);
+    sensorsIrradiationPerType.setCell(iRow, 1, nModules);
+    sensorsIrradiationPerType.setCell(iRow, 2, irrad_Max.str());
+    sensorsIrradiationPerType.setCell(iRow, 3, irrad_95perc.str());
+  }
   // Create summary tables of results. All tables are displayed on website.
   // All results are per module category, identified by ModuleRef.
   for (const auto& it : modulesCounter_) {  // for each module category

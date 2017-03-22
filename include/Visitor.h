@@ -2,7 +2,7 @@
 #define VISITOR_H
 
 
-class TrackerBundle;
+class Detector;
 class Tracker;
 class Barrel;
 class Endcap;
@@ -22,7 +22,7 @@ class SimParms;
 
 class GeometryVisitor { 
 public:
-  virtual void visit(TrackerBundle&) {}
+  virtual void visit(Detector&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
   virtual void visit(Endcap&) {}
@@ -42,7 +42,7 @@ public:
 
 class ConstGeometryVisitor {
 public:
-  virtual void visit(const TrackerBundle&) {}
+  virtual void visit(const Detector&) {}
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
   virtual void visit(const Endcap&) {}
@@ -62,7 +62,7 @@ public:
 
 class SensorGeometryVisitor { 
 public:
-  virtual void visit(TrackerBundle&) {}
+  virtual void visit(Detector&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
   virtual void visit(Endcap&) {}

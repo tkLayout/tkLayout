@@ -52,6 +52,7 @@
 #include <Palette.h>
 
 #include <PlotDrawer.h>
+#include "VizardTools.hh"
 
 namespace material {
   class WeightDistributionGrid;
@@ -70,23 +71,6 @@ namespace insur {
   static const std::string graph_wrong = "File stream reported error state: neighbour graph not written to file.";
   static const std::string exc_badalloc_graph = "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
   static const std::string graph_nowrite = "Neighbour graph was not written to file.";
-
-  // Some strings for the html formatting
-  static const std::string subStart   = "<sub>";      // These only should be needed
-  static const std::string subEnd     = "</sub>";
-  static const std::string superStart = "<sup>";
-  static const std::string superEnd   = "</sup>";
-  static const std::string smallStart = "<small>";
-  static const std::string smallEnd   = "</small>";
-  static const std::string emphStart  = "<b>";
-  static const std::string emphEnd    = "</b>";
-  static const std::string muLetter   = "&mu;";
-  static const std::string sigmaLetter= "&sigma;";
-  static const std::string etaLetter  = "&eta;";
-  static const std::string phiLetter  = "&phi;";
-  static const std::string thetaLetter= "&theta;";
-  static const std::string deltaLetter= "&delta;";
-  static const std::string tauLetter  = "&tau;";
 
   //clearStart="<tt>";
   //clearEnd="</tt>";
@@ -123,9 +107,7 @@ namespace insur {
   static const int totalPowerPrecision = 2;
   static const int modulePowerPrecision = 0;
   static const int powerPrecision = 1;
-  static const int costPrecision  = 1;
   static const int powerPerUnitPrecision = 2;
-  static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
   static const int luminosityPrecision = 0;
   static const int alphaParamPrecision = 4;
@@ -182,11 +164,11 @@ namespace insur {
     // and return true or false, depending if they created the output or not
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site);
@@ -196,8 +178,6 @@ namespace insur {
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
-    std::string getSummaryString();
-    std::string getSummaryLabelString();
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
       bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
@@ -268,25 +248,11 @@ namespace insur {
                            int graphType,
                            const string& tag,
                            std::map<graphIndex, TGraph*>& myPlotMap);
-    std::string summaryCsv_;
-    std::string summaryCsvLabels_;
-    std::string occupancyCsv_;
     std::string triggerSectorMapCsv_;
     std::string moduleConnectionsCsv_;
-    void setSummaryString(std::string);
-    void addSummaryElement(std::string element, bool first = false);
-    void setSummaryLabelString(std::string);
-    void addSummaryLabelElement(std::string element, bool first = false);
-    void addSummaryElement(double element, bool first = false);
-
-    void setOccupancyString(std::string newString) { occupancyCsv_ = newString; };
-    void addOccupancyElement(double element);
-    void addOccupancyElement(std::string element);
-    void addOccupancyEOL();
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
-    std::string createSensorsIrradiationCsv(const Tracker& t);
     std::string createAllModulesCsv(const Tracker& t, bool& withHeader);
     std::string createBarrelModulesCsv(const Tracker& t);
     std::string createEndcapModulesCsv(const Tracker& t);
@@ -298,13 +264,15 @@ namespace insur {
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     void stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
     void stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
+
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
+    std::vector<MaterialBudget*> materialBudgets_;
     TCanvas* drawFullLayoutRZ();
+    TCanvas* drawFullLayoutServicesRZ();
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
-    void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
 
   };
 

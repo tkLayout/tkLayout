@@ -8,6 +8,8 @@
 #include "Squid.h"
 #include "StopWatch.h"
 
+#include "ReportIrradiation.hh"
+
 namespace insur {
   // public
   /**
@@ -619,17 +621,23 @@ namespace insur {
   }
 
   bool Squid::reportPowerSite() {
+    bool done=false;
+    startTaskClock("Computing dissipated power and creating report");
     if (tr) {
-      startTaskClock("Computing dissipated power");
-      a.analyzePower(*tr);
-      if (px) pixelAnalyzer.analyzePower(*px);
-      stopTaskClock();
-      startTaskClock("Creating power report");
-      v.irradiationSummary(a, *tr, site);
-      if (px) v.irradiationSummary(pixelAnalyzer, *px, site);
-      stopTaskClock();
-      return true;
-    } else {
+      ReportIrradiation repIrr(*tr);
+      repIrr.analyze();
+      repIrr.visualizeTo(site);
+      done=true;
+    }
+    if (px) {
+      ReportIrradiation repIrrPx(*px);
+      repIrrPx.analyze();
+      repIrrPx.visualizeTo(site);
+      done=true;
+    }
+    stopTaskClock();
+    if (done) return true;
+    else {
       logERROR(err_no_tracker);
       return false;
     }
@@ -643,7 +651,10 @@ namespace insur {
     if (mb) {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, *mb, debugServices, site, "outer");
-      if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+      if (pm) {
+	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.totalMaterialSummary(a, pixelAnalyzer, site);
+      }
       v.weigthSummart(a, weightDistributionTracker, site, "outer");
       if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
       stopTaskClock();

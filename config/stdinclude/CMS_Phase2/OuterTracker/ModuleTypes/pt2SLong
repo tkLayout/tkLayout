@@ -6,9 +6,7 @@ zCorrelation samesegment
 
 numSensors 2
 
-powerStripChip 0.3
-powerModuleChip 1000
-powerModuleOptical 500
+powerPerModule 1500 // mW: 1000 in front-end chips + 500 in opto
 
 sensorThickness 0.2
 
@@ -18,6 +16,7 @@ Sensor 1 {
   numSegments 2
   numROCX 8
   numROCY 2
+  powerPerChannel 0.3 // mW
 }
 
 Sensor 2 {

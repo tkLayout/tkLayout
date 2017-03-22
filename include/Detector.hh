@@ -5,7 +5,7 @@
 
 class Tracker;
 
-class TrackerBundle : public Visitable {
+class Detector : public Visitable {
 private:
   std::vector<Tracker&> trackers_;
 public:

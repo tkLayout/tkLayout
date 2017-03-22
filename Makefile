@@ -93,15 +93,15 @@ $(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
 $(LIBDIR)/global_funcs.o: $(SRCDIR)/global_funcs.cpp $(INCDIR)/global_funcs.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/global_funcs.o $(SRCDIR)/global_funcs.cpp
 	
-$(LIBDIR)/HitNew.o: $(SRCDIR)/HitNew.cc $(INCDIR)/HitNew.h
-	@echo "Building target HitNew.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/HitNew.o $(SRCDIR)/HitNew.cc 
-	@echo "Built target HitNew.o"
-	
 $(LIBDIR)/TrackNew.o: $(SRCDIR)/TrackNew.cc $(INCDIR)/TrackNew.h
 	@echo "Building target TrackNew.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackNew.o $(SRCDIR)/TrackNew.cc 
 	@echo "Built target TrackNew.o"
+
+$(LIBDIR)/HitNew.o: $(SRCDIR)/HitNew.cc $(INCDIR)/HitNew.h
+	@echo "Building target HitNew.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/HitNew.o $(SRCDIR)/HitNew.cc 
+	@echo "Built target HitNew.o"
 
 $(LIBDIR)/Property.o: $(SRCDIR)/Property.cpp $(INCDIR)/Property.h
 	@echo "Building target Property.o..."
@@ -188,6 +188,16 @@ $(LIBDIR)/PtErrorAdapter.o: $(SRCDIR)/PtErrorAdapter.cpp $(INCDIR)/PtErrorAdapte
 	@echo "Building target PtErrorAdapter.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PtErrorAdapter.o $(SRCDIR)/PtErrorAdapter.cpp 
 	@echo "Built target PtErrorAdapter.o"
+
+$(LIBDIR)/AnalyzerTools.o: $(SRCDIR)/AnalyzerTools.cpp $(INCDIR)/AnalyzerTools.hh
+	@echo "Building target AnalyzerTools.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/AnalyzerTools.o $(SRCDIR)/AnalyzerTools.cpp
+	@echo "Built target AnalyzerTools.o"
+
+$(LIBDIR)/ReportIrradiation.o: $(SRCDIR)/ReportIrradiation.cpp $(INCDIR)/ReportIrradiation.hh
+	@echo "Building target ReportIrradiation.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ReportIrradiation.o $(SRCDIR)/ReportIrradiation.cpp
+	@echo "Built target ReportIrradiation.o"
 
 $(LIBDIR)/ReportModuleCount.o: $(SRCDIR)/ReportModuleCount.cpp $(INCDIR)/ReportModuleCount.hh
 	@echo "Building target ReportModuleCount.o..."
@@ -446,7 +456,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/ReportModuleCount.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/AnalyzerTools.o $(LIBDIR)/ReportIrradiation.o  $(LIBDIR)/ReportModuleCount.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o getRevisionDefine
 	#
@@ -463,7 +473,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/ReportModuleCount.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/AnalyzerTools.o $(LIBDIR)/ReportIrradiation.o $(LIBDIR)/ReportModuleCount.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o \
 	$(LIBDIR)/SvnRevision.o \

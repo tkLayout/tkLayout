@@ -47,9 +47,10 @@
 #include <TAxis.h>
 #include <TCanvas.h>
 
+#include <AnalyzerTools.hh>
+
 // Forward declaration
 class TProfile;
-
 
 namespace insur {
 
@@ -87,7 +88,7 @@ namespace insur {
   typedef std::map<int, TrackNewCollection> TrackNewCollectionMap;
 
 
-  class Analyzer {
+  class Analyzer : private AnalyzerTools {
   public:
     Analyzer();
     virtual ~Analyzer() {}
@@ -199,7 +200,6 @@ namespace insur {
     void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
-    void computeIrradiationPowerConsumption(Tracker& tracker);
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
@@ -268,8 +268,6 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerEfficiencySummaries() { return triggerEfficiencySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
-    std::map<std::string, SummaryTable>& getSensorsIrradiationPowerSummary() { return sensorsIrradiationPowerSummary_; }
-    std::map<std::string, SummaryTable>& getSensorsIrradiationSummary() { return sensorsIrradiationSummary_; }
     
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
     const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
@@ -357,8 +355,6 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyMisfilteredSummaries_, triggerFrequencyCombinatorialSummaries_, triggerFrequencyInterestingSummaries_;
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
-    std::map<std::string, SummaryTable> sensorsIrradiationPowerSummary_;
-    std::map<std::string, SummaryTable> sensorsIrradiationSummary_;
 
     std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
@@ -443,7 +439,6 @@ namespace insur {
     //void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();
     void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
-    void preparePowerHistograms();
     void prepareTriggerProcessorHistograms();
     void clearGeometryHistograms();
     void clearCells();
@@ -470,8 +465,6 @@ namespace insur {
     Color_t lastPickedColor;
     int geometryTracksUsed;
     int materialTracksUsed;
-    void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
-    void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     static constexpr double maximum_n_planes = 13.;
 

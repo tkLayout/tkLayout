@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class TrackerBundle;
+class Detector;
 class Tracker;
 class RootWSite;
 class RootWPage;
@@ -11,9 +11,10 @@ class RootWContent;
 
 class Report {
 public:
-  virtual void analyze(TrackerBundle&) { };
+  virtual void analyze() { };  
+  virtual void analyze(Detector&) { };
   virtual void analyze(Tracker&) { };
-  virtual void analyze(const TrackerBundle&) { };
+  virtual void analyze(const Detector&) { };
   virtual void analyze(const Tracker&) { };
   virtual void visualizeTo(RootWSite&) { };
   virtual void visualizeTo(RootWPage&) { };

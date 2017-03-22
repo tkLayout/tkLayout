@@ -46,6 +46,7 @@ namespace insur {
     InactiveSurfaces& getInactiveSurfaces();
     std::vector<std::vector<ModuleCap> >& getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& getEndcapModuleCaps();
+    std::vector<InactiveElement> getAllServices();
     void print();
   protected:
     Tracker* tracker;
