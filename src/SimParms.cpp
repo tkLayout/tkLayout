@@ -17,7 +17,7 @@ SimParms::SimParms() :
     numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
     bunchSpacingNs("bunchSpacingNs", parsedAndChecked()),
     zErrorCollider("zErrorCollider", parsedAndChecked()),
-    rError("rError", parsedAndChecked()),
+    rphiErrorCollider("rphiErrorCollider", parsedAndChecked()),
     useIPConstraint("useIPConstraint", parsedAndChecked()),
     ptCost("ptCost", parsedAndChecked()),
     stripCost("stripCost", parsedAndChecked()),
@@ -50,9 +50,21 @@ void SimParms::build() {
     builtok(true);
   } catch (PathfulException& pe) { pe.pushPath("SimParms"); throw; }
 
+  // Check that IP errors non-zero in R-Phi & Z if IP constraint will be used
+  bool nonZero = true;
+  if (useIPConstraint()) {
+
+    if (zErrorCollider()==0)    nonZero = false;
+    if (rphiErrorCollider()==0) nonZero = false;
+  }
+  if (!nonZero) throw PathfulException("IP constraint required, but errors on beam spot set to zero in R-Phi/Z!" , "SimParms");
+
 
   // Set expected default units
   magField.scaleByUnit(Units::T);
+
+  zErrorCollider.scaleByUnit(Units::mm);
+  rphiErrorCollider.scaleByUnit(Units::mm);
 }
 
 void SimParms::addIrradiationMapFile(std::string path) {

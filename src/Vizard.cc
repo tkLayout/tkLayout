@@ -4861,11 +4861,13 @@ namespace insur {
     gStyle->SetGridStyle(style_grid);
     gStyle->SetOptStat(0);
 
-    std::string pileUp = any2str(SimParms::getInstance().numMinBiasEvents());
-
     //
     // Pt option
-    RootWContent& myContentPlotsPt = myPage->addContent("Pt: Track purity & probability of contamination by bkg hits when propagating track through tracker in PU="+pileUp, true);
+    RootWContent& myContentPlotsPt = myPage->addContent("Pt: Track purity & probability of contamination by bkg hits when propagating track through tracker", true);
+
+    // Summary
+    RootWInfo& myInfoPt = myContentPlotsPt.addInfo("Number of minimum bias events per bunch crossing");
+    myInfoPt.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability -> In-Out approach
     TCanvas canvasPtBkgContInOut("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
@@ -4907,7 +4909,7 @@ namespace insur {
     // Detail on pt in-out studies
 
     // a) D0
-    RootWContent& myContentPlotsPtD0InOut = myPage->addContent("Pt in-out - D: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPtD0InOut = myPage->addContent("Pt in-out - D: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPtHitDProjInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map
@@ -4950,7 +4952,7 @@ namespace insur {
     }
 
     // b) Z0
-    RootWContent& myContentPlotsPtZ0InOut = myPage->addContent("Pt in-out - Z: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPtZ0InOut = myPage->addContent("Pt in-out - Z: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPtHitZProjInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map
@@ -4990,7 +4992,7 @@ namespace insur {
     }
 
     // c) pContamination
-    RootWContent& myContentPlotsPtProbContamInOut = myPage->addContent("Pt in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPtProbContamInOut = myPage->addContent("Pt in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPtHitProbContamInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map
@@ -5034,7 +5036,11 @@ namespace insur {
 
     //
     // P option
-    RootWContent& myContentPlotsP = myPage->addContent("P: Track purity & probability of contamination by bkg hits when propagating track through tracker in PU="+pileUp, true);
+    RootWContent& myContentPlotsP = myPage->addContent("P: Track purity & probability of contamination by bkg hits when propagating track through tracker", true);
+
+    // Summary
+    RootWInfo& myInfoP = myContentPlotsP.addInfo("Number of minimum bias events per bunch crossing");
+    myInfoP.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability - In-Out approach
     TCanvas canvasPBkgContInOut("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
@@ -5076,7 +5082,7 @@ namespace insur {
     // Detail on p in-out studies
 
     // a) D0
-    RootWContent& myContentPlotsPD0InOut = myPage->addContent("P in-out - D: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPD0InOut = myPage->addContent("P in-out - D: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPHitDProjInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map
@@ -5119,7 +5125,7 @@ namespace insur {
     }
 
     // b) Z0
-    RootWContent& myContentPlotsPZ0InOut = myPage->addContent("P in-out - Z: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPZ0InOut = myPage->addContent("P in-out - Z: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPHitZProjInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map
@@ -5161,7 +5167,7 @@ namespace insur {
     }
 
     // c) pContamination
-    RootWContent& myContentPlotsPProbContamInOut = myPage->addContent("P in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg in PU="+pileUp, false);
+    RootWContent& myContentPlotsPProbContamInOut = myPage->addContent("P in-out - Bkg contamination prob.: Details of track purity & probability of contamination by bkg", false);
     for (auto const & iterMap : a.hisPHitProbContamInOut) {
 
       // Get name -> remove first 2 artificial characters used to sort correctly map

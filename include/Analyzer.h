@@ -399,8 +399,7 @@ namespace insur {
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-                         double& eta, double& theta, double& phi, TrackNew& track);
+    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, TrackNew& track);
 
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
@@ -409,16 +408,14 @@ namespace insur {
 
     int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
 
-    virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
-                                     double eta, double theta, double phi, TrackNew& t, bool isPixel = false);
-    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, TrackNew& t, bool isPixel = false);
+    virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr, TrackNew& t, bool isPixel = false);
+    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& t, bool isPixel = false);
 
     virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
     virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
                                              Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
-    virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
-                                              TrackNew& t, bool isPixel = false);
+    virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel = false);
 
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
