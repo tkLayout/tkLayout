@@ -1604,21 +1604,46 @@ namespace material {
   void Materialway::createModuleCaps(Tracker& tracker) {
 
     class CapsVisitor : public GeometryVisitor {
+    private:
+      int m_layerID;
+      int m_discID;
+      std::string m_detName;
     public:
       //std::map<BarrelModule*, int> mappaB;
       //std::map<EndcapModule*, int> mappaE;
       //int totB = 0;
       //int totE = 0;
-      CapsVisitor() {}
+      CapsVisitor() {m_layerID=-1; m_discID=-1;}
+      virtual ~CapsVisitor() {};
+      void visit(Barrel& b)
+      {
+        m_detName = b.myid();
+      }
+      void visit(Endcap& e)
+      {
+        m_detName = e.myid();
+      }
+      void visit(Layer& l)
+      {
+        m_layerID = l.myid();
+        m_discID  = -1;
+      }
+      void visit(Disk& d)
+      {
+        m_layerID = -1;
+        m_discID  = d.myid();
+      }
       void visit(BarrelModule& m) {
-        ModuleCap* cap = new ModuleCap(m);
+        ModuleCap* cap = new ModuleCap(m,m_layerID);
         cap->setCategory(MaterialProperties::b_mod);
+        cap->setDetName(m_detName);
         //mappaB[&m] = 0;
         //totB ++;
       }
       void visit(EndcapModule& m) {
-        ModuleCap* cap = new ModuleCap(m);
+        ModuleCap* cap = new ModuleCap(m,m_discID);
         cap->setCategory(MaterialProperties::e_mod);
+        cap->setDetName(m_detName);
         //mappaE[&m] = 0;
         //totE ++;
       }

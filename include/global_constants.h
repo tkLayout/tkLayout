@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace insur {
-  static const double magnetic_field = 3.8;                // Tesla; CMS magnet field strength
+  //static const double magnetic_field = 3.8;                // Tesla; CMS magnet field strength -> Use definition in SimParms file
   static const double boltzmann_constant = 8.6173303E-05;  // eV/K
   static const double celsius_to_kelvin = 273.15;          // T(K) = T(°C) + celsius_to_kelvin
   static const double siliconEffectiveBandGap = 1.21;      // eV. Used in the Hamburg model (effect of temperature on sensor leakage current).
@@ -145,6 +145,7 @@ namespace insur {
   static const std::string default_irradiationdir                = "config";
   static const std::vector<std::string> default_irradiationfiles = {"irradiation.map", "irradiationPixel.map"};
   //static const std::string default_irradiationfile = "irradiation.map";
+  static const std::string default_fluence_file                  = "fluencePer1ppCol.map";
   static const std::string default_materialsdir                  = "config";
   static const std::string default_tracker_materials_file        = "Materials.cfg";
   static const std::string default_pixel_materials_file          = "PixelMaterials.cfg";

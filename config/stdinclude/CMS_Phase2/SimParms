@@ -1,9 +1,9 @@
 SimParms {
-    numMinBiasEvents 140
+    numMinBiasEvents 140      // Number of pile-up events
     bunchSpacingNs 25
     
-    zErrorCollider 70
-    rError 5
+    zErrorCollider 70         // mm
+    rphiErrorCollider 5       // mm
     useIPConstraint 0
     
     ptCost 0                  // CHF / cm^2

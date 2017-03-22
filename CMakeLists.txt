@@ -176,7 +176,7 @@ FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/inclu
 SET ( sources "" )
 FOREACH( file ${all_sources} )
  IF ( ${file} MATCHES "MaterialSection.cpp" OR ${file} MATCHES "HoughTrack.cpp" OR ${file} MATCHES "moduleType.cpp" OR
-      ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "tunePtParam.cpp" )
+      ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "tunePtParam.cpp" OR ${file} MATCHES "diskPlace.cpp")
    SET ( APPEND source_other ${file} )
    MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
  ELSEIF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )

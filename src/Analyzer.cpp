@@ -5,12 +5,16 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <Analyzer.h>
+#include "mainConfigHandler.h"
+#include <HitNew.h>
 #include <TProfile.h>
 #include <TLegend.h>
 #include <Palette.h>
-
+#include "SimParms.h"
 #include "AnalyzerVisitors/MaterialBillAnalyzer.h"
 #include <Units.h>
+#include "TProfile.h"
+#include "TMath.h"
 
 #undef MATERIAL_SHADOW
 
@@ -23,10 +27,6 @@ namespace insur {
 
   const double Analyzer::ZeroHitsRequired = 0;
   const double Analyzer::OneHitRequired = 0.0001;
-
-
-
-
 
 
 
@@ -79,26 +79,25 @@ namespace insur {
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    * @return the total crossed material amount
    */
-  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-                                 double& eta, double& theta, double& phi, Track& track) {
+  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, TrackNew& track) {
     Material totalMaterial;
     //      active volumes, barrel
-    totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
+    totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), track);
     //      active volumes, endcap
-    totalMaterial += findHitsModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
+    totalMaterial += findHitsModules(mb.getEndcapModuleCaps(), track);
     //      services, barrel
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), track);
     //      services, endcap
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), track);
     //      supports
-    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track);
     //      pixels, if they exist
     if (pm != NULL) {
-      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, true);
+      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), track, true);
+      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), track, true);
     }
     return totalMaterial;
   }
@@ -135,12 +134,13 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       int etaSteps,
 				       MaterialBudget* pm) {
 
-  double efficiency = simParms().efficiency();
+  auto& simParms = SimParms::getInstance();
+  double efficiency = simParms.efficiency();
 
   materialTracksUsed = etaSteps;
 
   int nTracks;
-  double etaStep, eta, theta, phi;
+  double etaStep, eta, theta, phi, zPos;
 
   // prepare etaStep, phiStep, nTracks, nScans
   if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -152,23 +152,26 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
   // reset the list of tracks
   //std::map<string, std::vector<Track>> tv;
   //std::map<string, std::vector<Track>> tvIdeal;
-  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMap;
-  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMap;
-  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMapIdeal;
-  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMapIdeal;
+  std::map<std::string, TrackNewCollectionMap> taggedTrackPtCollectionMap;
+  std::map<std::string, TrackNewCollectionMap> taggedTrackPCollectionMap;
+  std::map<std::string, TrackNewCollectionMap> taggedTrackPtCollectionMapIdeal;
+  std::map<std::string, TrackNewCollectionMap> taggedTrackPCollectionMapIdeal;
 
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * M_PI * 2.0;
     Material tmp;
-    Track track;
+    TrackNew track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
-    track.setTheta(theta);
-    track.setPhi(phi);
+    track.setThetaPhiPt(theta,phi,1*Units::TeV);
+    track.setOrigin(0., 0., 0.); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+    //track.setTheta(theta);
+    //track.setPhi(phi);
 
-    tmp = findAllHits(mb, pm, eta, theta, phi, track);
+    // Assign material to the track
+    tmp = findAllHits(mb, pm, track);
 
     // Debug: material amount
     // std::cerr << "eta = " << eta
@@ -179,74 +182,87 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
     // Add the hit on the beam pipe
-    Hit* hit = new Hit(23./sin(theta));
-    hit->setOrientation(Hit::Horizontal);
-    hit->setObjectKind(Hit::Inactive);
-    Material beamPipeMat;
-    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
-    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
-    hit->setCorrectedMaterial(beamPipeMat);
-    track.addHit(hit);
+    double rPos  = 23.*Units::mm;
+    double zPos  = rPos/tan(theta);
 
-    if (!track.noHits()) {
-      for (string tag : track.tags()) {
-        track.keepTaggedOnly(tag);
-        if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
-        track.sort();
-        track.setTriggerResolution(true); // TODO: remove this (?)
+    HitNewPtr hit(new HitNew(rPos, zPos));
+    hit->setAsPassive();
 
-        if (efficiency!=1) track.addEfficiency(efficiency, false);
+    Material material;
+    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+
+    hit->setCorrectedMaterial(material);
+    hit->setBeamPipe(true);
+    track.addHit(std::move(hit));
+
+    if (!track.hasNoHits()) {
+      for (string tag : track.getTags()) {
+
+        bool useIPConstraint = false;
+        if (SimParms::getInstance().useIPConstraint()) {
+
+          useIPConstraint = true;
+          track.addIPConstraint(SimParms::getInstance().rphiErrorCollider(), SimParms::getInstance().zErrorCollider());
+        }
+        track.keepTaggedHitsOnly(tag,useIPConstraint);
+        //track.sort();
+        //track.setTriggerResolution(true); // TODO: remove this (?)
+
+        if (efficiency!=1) track.addEfficiency(efficiency);
         // For each momentum/transverse momentum compute the tracks error
         for (const auto& pIter : momenta ) {
-          int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+          int    parameter = pIter/Units::MeV; // Store p or pT in MeV as int (key to the map)
           double momentum  = pIter;
 
           // Case I) Initial momentum is equal to pT
           double pT = momentum;
   
           // Active+passive material
-          Track trackPt(track);
-          trackPt.setTransverseMomentum(pT);        
-          trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
-          if (trackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
-            trackPt.computeErrors();
-            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
-            TrackCollection &myCollection = myMap[parameter];
-            myCollection.push_back(trackPt);
+          TrackNewPtr trackPt(new TrackNew(track));
+          trackPt->resetPt(pT);
+          //trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackPt->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
+            //trackPt.computeErrors();
+            TrackNewCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+            TrackNewCollection &myCollection = myMap[parameter];
+            myCollection.push_back(std::move(trackPt));
           }
 
           // Ideal (no material)
-          Track idealTrackPt(trackPt);
-          idealTrackPt.removeMaterial(); 
-          if (idealTrackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
-            idealTrackPt.computeErrors();
-            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-            myCollectionIdeal.push_back(idealTrackPt);
+          TrackNewPtr idealTrackPt(new TrackNew(track));
+          idealTrackPt->resetPt(pT);
+          idealTrackPt->removeMaterial();
+          if (idealTrackPt->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
+            //idealTrackPt.computeErrors();
+            TrackNewCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
+            TrackNewCollection &myCollectionIdeal = myMapIdeal[parameter];
+            myCollectionIdeal.push_back(std::move(idealTrackPt));
           }
 
           // Case II) Initial momentum is equal to p
           pT = momentum*sin(theta);
 
           // Active+passive material
-          Track trackP(track);
-          trackP.setTransverseMomentum(pT);
-          trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
-          if (trackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
-            trackP.computeErrors();
-            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
-            TrackCollection &myCollectionII = myMapII[parameter];
-            myCollectionII.push_back(trackP);
+          TrackNewPtr trackP(new TrackNew(track));
+          trackP->resetPt(pT);
+          //trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackP->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
+            //trackP.computeErrors();
+            TrackNewCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+            TrackNewCollection &myCollectionII = myMapII[parameter];
+            myCollectionII.push_back(std::move(trackP));
           }
 
           // Ideal (no material)
-          Track idealTrackP(trackP);
-          idealTrackP.removeMaterial();
-          if (idealTrackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
-            idealTrackP.computeErrors();
-            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
-            myCollectionIdealII.push_back(idealTrackP);
+          TrackNewPtr idealTrackP(new TrackNew(track));
+          idealTrackP->resetPt(pT);
+          idealTrackP->removeMaterial();
+          if (idealTrackP->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
+            //idealTrackP.computeErrors();
+            TrackNewCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+            TrackNewCollection &myCollectionIdealII = myMapIdealII[parameter];
+            myCollectionIdealII.push_back(std::move(idealTrackP));
           }
         }
       }
@@ -258,22 +274,22 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
       const string& myTag = ttcmIt.first;
       clearGraphsPt(GraphBag::RealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      /*const*/ TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
-	const int &parameter = tcmIt.first;
-	const TrackCollection& myCollection = tcmIt.second;
-	//std::cout << myCollection.size() << std::endl;
-	calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+      	const int &parameter = tcmIt.first;
+	      const TrackNewCollection& myCollection = tcmIt.second;
+	      //std::cout << myCollection.size() << std::endl;
+	      calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
       }
     }
     for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
       const string& myTag = ttcmIt.first;
       clearGraphsPt(GraphBag::IdealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      /*const*/ TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
-	const int &parameter = tcmIt.first;
-	const TrackCollection& myCollection = tcmIt.second;
-	calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
+	      const int &parameter = tcmIt.first;
+	      const TrackNewCollection& myCollection = tcmIt.second;
+	      calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
       }
     }
 
@@ -281,22 +297,22 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
       const string& myTag = ttcmIt.first;
       clearGraphsP(GraphBag::RealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      /*const*/ TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
-	const int &parameter = tcmIt.first;
-	const TrackCollection& myCollection = tcmIt.second;
-	//std::cout << myCollection.size() << std::endl;
-	calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
+	      const int &parameter = tcmIt.first;
+	      const TrackNewCollection& myCollection = tcmIt.second;
+	      //std::cout << myCollection.size() << std::endl;
+	      calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
       }
     }
     for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
       const string& myTag = ttcmIt.first;
       clearGraphsP(GraphBag::IdealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      /*const*/ TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
-	const int &parameter = tcmIt.first;
-	const TrackCollection& myCollection = tcmIt.second;
-	calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
+	      const int &parameter = tcmIt.first;
+	      const TrackNewCollection& myCollection = tcmIt.second;
+	      calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
       }
     }
   }
@@ -314,13 +330,14 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
                                           const std::vector<double>& thresholdProbabilities,
                                           int etaSteps) {
 
-    double efficiency = simParms().efficiency();
+    auto& simParms = SimParms::getInstance();
+    double efficiency = simParms.efficiency();
 
     materialTracksUsed = etaSteps;
 
     int nTracks;
     double etaStep, z0, eta, theta, phi;
-    double zError = simParms().zErrorCollider();
+    double zError = simParms.zErrorCollider();
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -340,7 +357,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
       Track track;
       eta = i_eta * etaStep;
       theta = 2 * atan(exp(-eta));
-      track.setTheta(theta);      
+      track.setTheta(theta);
       track.setPhi(phi);
 
       nHits = findHitsModules(tracker, z0, eta, theta, phi, track);
@@ -369,7 +386,316 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   }
 
+//
+// Check that a file can be opened
+//
+bool Analyzer::checkFile(const std::string& fileName, const std::string& filePath)
+{
+  fstream     file;
+  std::string fullFileName(filePath+"/"+fileName);
+  file.open(fullFileName);
+  if (file.is_open()) {
 
+    file.close();
+    return true;
+  }
+  else {
+
+    logERROR("Analyzer - failed opening file: " + fullFileName);
+    return false;
+  }
+}
+
+//
+// Is starting triplet from different layers (avoid using overlapping modules in one layer)
+//
+bool Analyzer::isTripletFromDifLayers(TrackNew& track, int iHit, bool propagOutIn) {
+
+  std::map<std::string, bool> hitIDs;
+
+  for (int i=0; i<=iHit; i++) {
+
+    std::string hitID = "";
+
+    if (!propagOutIn) hitID = track.getMeasurableOrIPHit(i)->getDetName() +
+                              std::string(track.getMeasurableOrIPHit(i)->isBarrel() ? "_L_" : "_D_") +
+                              any2str(track.getMeasurableOrIPHit(i)->getLayerOrDiscID());
+    else              hitID = track.getRMeasurableOrIPHit(i)->getDetName() +
+                              std::string(track.getRMeasurableOrIPHit(i)->isBarrel() ? "_L_" : "_D_") +
+                              any2str(track.getRMeasurableOrIPHit(i)->getLayerOrDiscID());
+
+    hitIDs[hitID] = true;
+  }
+
+  if (hitIDs.size()>=3) return true;
+  else                  return false;
+}
+
+//
+// Analyze tracker pattern recognition capabilities. The quantities used to qualify the pattern reco capabilities are meant for primary tracks only
+// rather than for secondary tracks, as one always starts in the innermost layer (+ IP contraint) or outermost layer in case of out-in approach.
+// The extrapolation part of pattern recognition uses formulae calculated in parabolic approximation and particle fluences (occupancies) scaled to
+// given pile-up scenario. The fluences are read in from an external file and are assumed to be simulated by Fluka for given p-p collision energies
+// & rough detector (material) setup.
+//
+bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConfig, int nTracks, MaterialBudget* pm) {
+
+  bool isAnalysisOK = true;
+
+  // Get fluence map
+  const auto& directory     = mainConfig.getIrradiationDirectory();
+  bool        fluenceMapOK  = false;
+  IrradiationMap* fluenceMap= nullptr;
+  int         nBins         = vis_n_bins*2;
+
+  fluenceMapOK = checkFile(default_fluence_file, directory);
+  std::cout << "Reading in: " << directory + "/" + default_fluence_file << std::endl;
+  if (fluenceMapOK) fluenceMap  = new IrradiationMap(directory + "/" + default_fluence_file);
+
+  // Set nTracks
+  if (nTracks<=0) {
+
+    std::ostringstream message;
+    message << "PatternReco: Number of simulation tracks zero or negative: " << nTracks << " or zero number of trackers to be initialized";
+    logERROR(message.str());
+  }
+  else {
+
+    // Prepare histograms
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      // In-Out
+      std::string name = "hisBkgContInOut_pT"+any2str(pIter/Units::GeV);
+      hisPatternRecoInOutPt.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+      name             = "hisBkgContInOut_p"+any2str(pIter/Units::GeV);
+      hisPatternRecoInOutP.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+    }
+  }
+
+  // Check that map available
+  if (!fluenceMapOK) isAnalysisOK = false;
+  else for (int iTrack = 0; iTrack <nTracks; iTrack++) {
+
+    // Define track
+    TrackNew matTrack;
+
+    double eta   = 0.0 + geom_max_eta_coverage/nTracks*(iTrack+0.5);
+    double theta = 2 * atan(exp(-eta));
+    double phi   = myDice.Rndm() * M_PI * 2.0;
+    double pT    = 100*Units::TeV; // Arbitrarily high number
+
+    matTrack.setThetaPhiPt(theta, phi, pT);
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+
+    // Assign material to the track
+    findAllHits(mb, pm, matTrack);
+
+    // Add beam-pipe
+    double rPos  = 23.*Units::mm;
+    double zPos  = rPos/tan(theta);
+
+    HitNewPtr hit(new HitNew(rPos, zPos));
+    hit->setAsPassive();
+
+    Material material;
+    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+
+    hit->setCorrectedMaterial(material);
+    hit->setBeamPipe(true);
+    matTrack.addHit(std::move(hit));
+
+    // For each momentum/transverse momentum compute
+    int iMomentum = 0;
+    for (const auto& pIter : mainConfig.getMomenta()) {
+
+      // 2 options: pT & p
+      for (int pOption=0;pOption<2;pOption++) {
+
+        // InOut or OutIn approach -> TODO: currently only InOut approach
+        for (int approachOption=0; approachOption<1; approachOption++) {
+
+          bool propagOutIn = approachOption;
+
+          //if (!propagOutIn) std::cout << "InOut approach" << std::endl;
+          //else              std::cout << "OutIn approach" << std::endl;
+
+          // Reset track total probability & calculate p/pT based on option
+          double pNotContamTot      = 1;
+          double pNotContamTotInner = 1;
+
+          if (pOption==0) pT = pIter;             // pT option
+          else            pT = pIter*sin(theta);  // p option
+
+          // Set track & prune hits
+          TrackNew track(matTrack);
+          track.resetPt(pT);
+
+          //
+          // Pattern recognition procedure
+          bool useIP        = true;
+          int nMeasuredHits = 0;
+          if (!propagOutIn) nMeasuredHits = track.getNMeasuredHits("all", !useIP);
+          else              nMeasuredHits = track.getNMeasuredHits("all", !useIP);
+
+          //track.printHits();
+          //std::cout << ">> " << nMeasuredHits << " dD0=" << track.getDeltaD(0.0)/Units::um << " dZ0=" << track.getDeltaZ(0.0)/Units::um << std::endl;
+
+          // Start with first 3 hits and end with N-1 hits (C counting from zero)
+          bool testTriplet = true;
+          for (int iHit=2; iHit<nMeasuredHits-1; iHit++) {
+
+            // Start with triplet coming from 3 different layers -> avoid using 2 close measurements from overlapping modules in 1 layer
+            if (testTriplet && !isTripletFromDifLayers(track, iHit, propagOutIn)) continue;
+            else testTriplet = false;
+
+            int nHitsUsed = iHit+1; // (C counting from zero)
+
+            // Keep first/last N hits (based on approach) and find paramaters of the next hit
+            double nextRPos    = 0;
+            double nextZPos    = 0;
+            double nextHitTilt = 0;
+            double A           = 0; // r_i/2R
+            std::string iHitID = "";
+
+            if (!propagOutIn) {
+
+              nextRPos    = track.getMeasurableOrIPHit(iHit+1)->getRPos();
+              nextZPos    = track.getMeasurableOrIPHit(iHit+1)->getZPos();
+              nextHitTilt = track.getMeasurableOrIPHit(iHit+1)->getTilt();
+              if (SimParms::getInstance().isMagFieldConst()) A = track.getMeasurableOrIPHit(iHit+1)->getRPos()/2./track.getRadius(track.getMeasurableOrIPHit(iHit+1)->getZPos());  // r_i/2R
+
+              iHitID      = track.getMeasurableOrIPHit(iHit+1)->getDetName() +
+                            std::string(track.getMeasurableOrIPHit(iHit+1)->isBarrel() ? "_L_" : "_D_") +
+                            any2str(track.getMeasurableOrIPHit(iHit+1)->getLayerOrDiscID());
+            }
+            else {
+
+              nextRPos    = track.getRMeasurableOrIPHit(iHit+1)->getRPos();
+              nextZPos    = track.getRMeasurableOrIPHit(iHit+1)->getZPos();
+              nextHitTilt = track.getRMeasurableOrIPHit(iHit+1)->getTilt();
+              if (SimParms::getInstance().isMagFieldConst()) A = track.getRMeasurableOrIPHit(iHit+1)->getRPos()/2./track.getRadius(track.getRMeasurableOrIPHit(iHit+1)->getZPos());  // r_i/2R
+              iHitID      = track.getRMeasurableOrIPHit(iHit+1)->getDetName() +
+                            std::string(track.getRMeasurableOrIPHit(iHit+1)->isBarrel() ? "_L_" : "_D_") +
+                            any2str(track.getRMeasurableOrIPHit(iHit+1)->getLayerOrDiscID());
+            }
+
+            // Calculate dRPhi & dZ
+            int    nPU    = SimParms::getInstance().numMinBiasEvents();
+            // TODO: Assumed that map on ZxR grid defined in cm -> needs to be fixed
+            double flux   = fluenceMap->calculateIrradiation(std::make_pair(nextZPos/Units::mm,nextRPos/Units::mm))*1/Units::cm2/Units::s * nPU;
+
+            double corrFactor = cos(nextHitTilt) + track.getCotgTheta()/sqrt(1-A*A)*sin(nextHitTilt);
+            double dZProj     = track.getDeltaZ(nextRPos,propagOutIn)/corrFactor;
+            double dDProj     = track.getDeltaD(nextRPos,propagOutIn);
+
+            // Print info
+            //std::cout << ">> " << iHitID << " R=" << nextRPos/Units::mm << " dD=" << dDProj/Units::um << " " << " Z=" << nextZPos/Units::mm << " dZ=" << dZProj/Units::um << std::endl;
+
+            // Calculate how many sigmas does one need to get in 2D Gauss. 5% coverge
+            // F(mu + n*sigma) - F(mu - n*sigma) = erf(n/sqrt(2))
+            // In 2D we assume independent measurement in r-phi & Z, hence 0.95 = erf(n/sqrt(2))*erf(n/sqrt(2)) assuming the same number of sigmas (n) in both r-phi & z
+            // Hence n = InverseErf(sqrt(0.95))*sqrt(2)
+            static double nSigmaFactor = TMath::ErfInverse(sqrt(0.95))*sqrt(2);
+
+            // Calculate errorEllipse multiplied by nSigmaFactor(RPhi)*nSigmaFactor(Z)
+            double errorEllipse = M_PI*dZProj*dDProj*nSigmaFactor*nSigmaFactor;
+
+            // Accumulate probibilites accross all hits not to be contaminated anywhere -> final probability of being contaminated is 1 - pContam
+            double pContam = flux*errorEllipse;
+            if (pContam>1) pContam = 1.0;
+            pNotContamTot *= 1-pContam;
+
+            //
+            // Fill d0proj, z0proj & pContam for individual layers/discs to histograms
+
+            // Probability of inner tracker only
+            if (iHitID.find("Inner")!=std::string::npos) pNotContamTotInner *= 1-pContam;
+
+            // Create artificial map identifier with extra characters to have innermost first, then outermost & then fwd
+            std::string iHitIDMap = "";
+            if      (iHitID.find("Inner")!=std::string::npos) iHitIDMap = "A_" + iHitID;
+            else if (iHitID.find("Outer")!=std::string::npos) iHitIDMap = "B_" + iHitID;
+            else                                              iHitIDMap = "C_" + iHitID;
+
+            // Pt & InOut
+            if (pOption==0 && approachOption==0) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPtHitDProjInOut.find(iHitIDMap)==hisPtHitDProjInOut.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
+                  hisPtHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjInOut";
+                  hisPtHitZProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamInOut";
+                  hisPtHitProbContamInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              hisPtHitDProjInOut[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPtHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPtHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
+            // P & InOut
+            if (pOption==1 && approachOption==0) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPHitDProjInOut.find(iHitIDMap)==hisPHitDProjInOut.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
+                  hisPHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjInOut";
+                  hisPHitZProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamInOut";
+                  hisPHitProbContamInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              // TODO: Check that above zero!!!
+              hisPHitDProjInOut[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
+          } // Pattern reco loop
+
+          //
+          // Calculate total contamination based on different options: p/pT, in-out/out-in
+          double pContamTot      = 1-pNotContamTot;
+          double pContamInnerTot = 1-pNotContamTotInner;
+          if (pOption==0) {
+
+            if (approachOption==0) {
+              hisPatternRecoInOutPt[iMomentum]->Fill(eta,pContamTot);
+            }
+            else {
+              // TODO: Implement
+            }
+          }
+          else  {
+
+            if (approachOption==0) {
+              hisPatternRecoInOutP[iMomentum]->Fill(eta,pContamTot);
+            }
+            else {
+              // TODO: Implement
+            }
+          }
+
+        } //In-Out, Out-In approach - options loop
+      } //pT/p option loop
+
+      iMomentum++;
+    } // Momenta loop
+
+  } // Tracks loop
+
+  return isAnalysisOK;
+}
 
 void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions) {
   double aSpacing;
@@ -395,7 +721,7 @@ void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spaci
 void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta) {
   TriggerDistanceTuningPlotsVisitor v(myProfileBag, 
                                       triggerMomenta);
-  simParms_->accept(v);
+  SimParms::getInstance().accept(v);
   tracker.accept(v);
   v.postVisit();
   optimalSpacingDistribution = v.optimalSpacingDistribution;
@@ -464,7 +790,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
              curAvgFake += pterr.getTriggerFrequencyTruePerEventBelow(*itMomentum);
              // ... plus the combinatorial background from occupancy (can be reduced using ptPS modules)
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
-             curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
+             curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*SimParms::getInstance().numMinBiasEvents() * bgReductionFactor;
 
              std::string layerName = hitModule->uniRef().cnt + "_" + any2str(hitModule->uniRef().layer);
              if (modAndType.second == HitType::STUB) {
@@ -504,8 +830,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
                                      MaterialBudget* pm) {
 
   Tracker& tracker = mb.getTracker();
-  double efficiency = simParms().efficiency();
-  double pixelEfficiency = simParms().pixelEfficiency();
+  double efficiency = SimParms::getInstance().efficiency();
+  double pixelEfficiency = SimParms::getInstance().pixelEfficiency();
   materialTracksUsed = etaSteps;
   int nTracks;
   double etaStep, eta, theta, phi;
@@ -1055,7 +1381,7 @@ void Analyzer::analyzePower(Tracker& tracker) {
 
 void Analyzer::computeTriggerFrequency(Tracker& tracker) {
   TriggerFrequencyVisitor v; 
-  simParms_->accept(v);
+  SimParms::getInstance().accept(v);
   tracker.accept(v);
 
   triggerFrequencyTrueSummaries_ = v.triggerFrequencyTrueSummaries;
@@ -1078,7 +1404,7 @@ void Analyzer::computeTriggerFrequency(Tracker& tracker) {
 void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   TriggerProcessorBandwidthVisitor v(triggerDataBandwidths_, triggerFrequenciesPerEvent_);
   v.preVisit();
-  simParms_->accept(v);
+  SimParms::getInstance().accept(v);
   tracker.accept(v);
   v.postVisit();
 
@@ -1098,7 +1424,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 void Analyzer::computeIrradiationPowerConsumption(Tracker& tracker) {
   IrradiationPowerVisitor v;
   v.preVisit();
-  simParms_->accept(v);
+  SimParms::getInstance().accept(v);
   tracker.accept(v);
   v.postVisit();
 
@@ -1442,14 +1768,14 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
  */
 Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
                                    // TODO: add z0 here and in the hit finder for inactive surfaces
-                                   double eta, double theta, double phi, Track& t, bool isPixel) {
+                                   TrackNew& t, bool isPixel) {
   std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
   std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
   Material res, tmp;
   res.radiation= 0.0;
   res.interaction = 0.0;
   while (iter != guard) {
-    tmp = findHitsModuleLayer(*iter, eta, theta, phi, t, isPixel);
+    tmp = findHitsModuleLayer(*iter, t, isPixel);
     res.radiation = res.radiation + tmp.radiation;
     res.interaction = res.interaction + tmp.interaction;
     iter++;
@@ -1497,7 +1823,6 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
   return hits;
 }
 
-
 /**
  * The module-level analysis function loops through all modules of a given layer, finds hits and connects them to the track.
  * If one is found, the radiation and interaction lengths are scaled with respect to theta, then summed up into a grand total,
@@ -1511,21 +1836,19 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
-                                       double eta, double theta, double phi, Track& t, bool isPixel) {
+Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& t, bool isPixel) {
   std::vector<ModuleCap>::iterator iter = layer.begin();
   std::vector<ModuleCap>::iterator guard = layer.end();
   Material res, tmp;
   XYZVector origin, direction;
-  Polar3DVector dir;
+  origin    = t.getOrigin();
+  direction = t.getDirection();
   double distance;
   //double r;
   int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
-  dir.SetCoordinates(1, theta, phi);
-  direction = dir;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     if (iter->getModule().maxZ() > 0) {
@@ -1543,23 +1866,24 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
-            tmp.radiation = tmp.radiation / sin(theta);
-            tmp.interaction = tmp.interaction / sin(theta);
+            tmp.radiation = tmp.radiation / sin(t.getTheta());
+            tmp.interaction = tmp.interaction / sin(t.getTheta());
           }
           // radiation and interaction length scaling for endcaps
           else {
-            tmp.radiation = tmp.radiation / cos(theta);
-            tmp.interaction = tmp.interaction / cos(theta);
+            tmp.radiation = tmp.radiation / cos(t.getTheta());
+            tmp.interaction = tmp.interaction / cos(t.getTheta());
           }
           res += tmp;
-          // create Hit object with appropriate parameters, add to Track t
-          Hit* hit = new Hit(distance, &(iter->getModule()), h.second);
-          //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
-          //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
-          //hit->setObjectKind(Hit::Active); // should not be necessary
+          // Create Hit object with appropriate parameters, add to Track t
+          auto hitRPos = h.first.rho();
+          auto hitZPos = h.first.z();
+          auto hitType = h.second;
+
+          HitNewPtr hit(new HitNew(hitRPos, hitZPos, &(iter->getModule()), hitType));
           hit->setCorrectedMaterial(tmp);
-          hit->setPixel(isPixel);
-          t.addHit(hit);
+          if (isPixel) hit->setAsPixel();
+          t.addHit(std::move(hit));
         }
     }
     iter++;
@@ -1718,8 +2042,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * @param t A reference to the current track object
  * @return The scaled and summed up crossed material amount
  */
-Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-                                            double theta, Track& t, bool isPixel) {
+Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
   Material res, corr;
@@ -1733,17 +2056,17 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
       // collision detection: check eta range
       tmp = iter->getEtaMinMax();
       // Volume was hit if:
-      if ((tmp.first < eta) && (tmp.second > eta)) {
+      if ((tmp.first < t.getEta()) && (tmp.second > t.getEta())) {
         double r, z;
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) { // Element is vertical
           z = iter->getZOffset() + iter->getZLength() / 2.0;
-          r = z * tan(theta);
+          r = z * tan(t.getTheta());
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite radial size
-          s_normal = iter->getZLength() / cos(theta);
-          s_alternate = iter->getRWidth() / sin(theta);
+          s_normal = iter->getZLength() / cos(t.getTheta());
+          s_alternate = iter->getRWidth() / sin(t.getTheta());
           if (s_normal > s_alternate) { 
             // Special case: it's easier to cross the material by going left-to-right than
             // by going bottom-to-top, so I have to rescale the material amount computation
@@ -1752,8 +2075,8 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             res += corr;
           } else {
             // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / cos(theta);
-            corr.interaction = iter->getInteractionLength() / cos(theta);
+            corr.radiation = iter->getRadiationLength() / cos(t.getTheta());
+            corr.interaction = iter->getInteractionLength() / cos(t.getTheta());
             res += corr;
           }
         }
@@ -1763,8 +2086,8 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite z length
-          s_normal = iter->getRWidth() / sin(theta);
-          s_alternate = iter->getZLength() / cos(theta);
+          s_normal = iter->getRWidth() / sin(t.getTheta());
+          s_alternate = iter->getZLength() / cos(t.getTheta());
           if (s_normal > s_alternate) { 
             // Special case: it's easier to cross the material by going left-to-right than
             // by going bottom-to-top, so I have to rescale the material amount computation
@@ -1773,19 +2096,27 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             res += corr;
           } else {
             // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / sin(theta);
-            corr.interaction = iter->getInteractionLength() / sin(theta);
+            corr.radiation = iter->getRadiationLength() / sin(t.getTheta());
+            corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
             res += corr;
           }
         }
-        // create Hit object with appropriate parameters, add to Track t
-        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
-        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
-        else hit->setOrientation(Hit::Horizontal);
-        hit->setObjectKind(Hit::Inactive);
+        // Create Hit object with appropriate parameters, add to Track t
+        double rPos = r;
+        double zPos = r/tan(t.getTheta());
+
+        HitNewPtr hit(new HitNew(rPos, zPos));
+        hit->setAsPassive();
         hit->setCorrectedMaterial(corr);
-        hit->setPixel(isPixel);
-        t.addHit(hit);
+        t.addHit(std::move(hit));
+
+//        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+//        else hit->setOrientation(Hit::Horizontal);
+//        hit->setObjectKind(Hit::Inactive);
+//        hit->setCorrectedMaterial(corr);
+//        hit->setPixel(isPixel);
+//        t.addHit(hit);
 	// std::cout << "OLD USED" << std::endl;
       }
     }
@@ -1846,7 +2177,7 @@ void Analyzer::clearGraphsP(int graphAttributes, const std::string& graphTag) {
  * @param parameter The list of different momenta that the error graphs are calculated for
  */
 void Analyzer::calculateGraphsConstPt(const int& parameter,
-                                      const TrackCollection& aTrackCollection,
+                                      const TrackNewCollection& aTrackCollection,
                                       int graphAttributes,
                                       const string& graphTag) {
 
@@ -1866,8 +2197,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   std::ostringstream aName;
 
   // Prepare plot for const pt across eta
-  double momentum = double(parameter)/1000.;
-  double magField = magnetic_field;
+  double momentum = double(parameter)*Units::MeV/Units::GeV;
 
   // Prepare plots: pt
   thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
@@ -1908,46 +2238,45 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
 
   // track loop
   double graphValue;
+  double rPos = 0.0; // At [0,0] point
   for ( const auto& myTrack : aTrackCollection ) {
-    const double& drho = myTrack.getDeltaRho();
-    const double& dphi = myTrack.getDeltaPhi();
-    const double& dd   = myTrack.getDeltaD();
-    const double& dctg = myTrack.getDeltaCtgTheta();
-    const double& dz0  = myTrack.getDeltaZ0();
-    const double& dp   = myTrack.getDeltaP();
-
+    const double& dpt  = myTrack->getDeltaPtOverPt(rPos);
+    const double& dphi0= myTrack->getDeltaPhi0();
+    const double& dd0  = myTrack->getDeltaD0();
+    const double& dctg = myTrack->getDeltaCtgTheta(rPos);
+    const double& dz0  = myTrack->getDeltaZ0();
+    const double& dp   = myTrack->getDeltaPOverP(rPos);
 
     /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
     if ( hitModules.at(0).first->getObjectKind() == Active) {
     std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
     }*/
 
-    std::vector<Hit*> hitModules = myTrack.getHitV();
-    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
-    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
-    for (auto& mh : hitModules) {
-    if ( mh->getObjectKind() == Hit::Active) {
-      if (mh->getHitModule()) {
-	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
-      }
-    }
-    }
+//    std::vector<Hit*> hitModules = myTrack.getHitV();
+//    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
+//    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
+//    for (auto& mh : hitModules) {
+//    if ( mh->getObjectKind() == Hit::Active) {
+//      if (mh->getHitModule()) {
+//	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+//      }
+//    }
+//    }
 
 
-    eta = myTrack.getEta();
-    double theta = myTrack.getTheta();
-    R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
-    if (drho>0) {
+    eta = myTrack->getEta();
+    double theta = myTrack->getTheta();
+    if (dpt>0) {
       // deltaRho / rho = deltaRho * R
-      graphValue = (drho * R) * 100; // in percent
+      graphValue = dpt*100; // in percent
       thisRhoGraph_Pt.SetPoint(thisRhoGraph_Pt.GetN(), eta, graphValue);
     }
-    if (dphi>0) {
-      graphValue = dphi / Units::deg; // in degrees
+    if (dphi0>0) {
+      graphValue = dphi0 / Units::deg; // in degrees
       thisPhiGraph_Pt.SetPoint(thisPhiGraph_Pt.GetN(), eta, graphValue);
     }
-    if (dd>0) {
-      graphValue = dd / Units::um ; // in um
+    if (dd0>0) {
+      graphValue = dd0 / Units::um ; // in um
       thisDGraph_Pt.SetPoint(thisDGraph_Pt.GetN(), eta, graphValue );
     }
     if (dctg>0) {
@@ -1962,16 +2291,16 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       graphValue = dp * 100.; // in percent
       thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
     }
-    if ((dd>0)&&(dz0>0)) {
-      double resolution = (cos(theta)*cos(theta)+1)/dd/dd + sin(theta)*sin(theta)/dz0/dz0;
+    if ((dd0>0)&&(dz0>0)) {
+      double resolution = (cos(theta)*cos(theta)+1)/dd0/dd0 + sin(theta)*sin(theta)/dz0/dz0;
       resolution = sqrt(2/resolution) / Units::um ; // resolution in um
       thisLGraph_Pt.SetPoint(thisLGraph_Pt.GetN(), eta, resolution);
 
-      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd*dd*dd);
+      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd0*dd0*dd0);
       beta = atan(beta);
       thisBetaGraph_Pt.SetPoint(thisBetaGraph_Pt.GetN(), eta, beta);
 
-      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd/dd)/dz0/dd;
+      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd0/dd0)/dz0/dd0;
       omega = atan(omega);
       thisOmegaGraph_Pt.SetPoint(thisOmegaGraph_Pt.GetN(), eta, omega);
     }
@@ -1984,7 +2313,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
  * @param parameter The list of different momenta that the error graphs are calculated for
  */
 void Analyzer::calculateGraphsConstP(const int& parameter,
-                                     const TrackCollection& aTrackCollection,
+                                     const TrackNewCollection& aTrackCollection,
                                      int graphAttributes,
                                      const string& graphTag) {
 
@@ -2004,8 +2333,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   std::ostringstream aName;
 
   // Prepare plot for const pt across eta
-  double momentum = double(parameter)/1000.;
-  double magField = simParms_->magneticField();
+  double momentum = double(parameter)*Units::MeV/Units::GeV;
 
   // Prepare plots: pt
   thisRhoGraph_P.SetTitle("p_{T} resolution versus #eta - const P across #eta;#eta;#delta p_{T}/p_{T} [%]");
@@ -2046,27 +2374,28 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
   // track loop
   double graphValue;
+  double rPos; // At [0,0] point
   for ( const auto& myTrack : aTrackCollection ) {
-    const double& drho = myTrack.getDeltaRho();
-    const double& dphi = myTrack.getDeltaPhi();
-    const double& dd   = myTrack.getDeltaD();
-    const double& dctg = myTrack.getDeltaCtgTheta();
-    const double& dz0  = myTrack.getDeltaZ0();
-    const double& dp   = myTrack.getDeltaP();
-    eta = myTrack.getEta();
-    double theta = myTrack.getTheta();
-    R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
-    if (drho>0) {
+    const double& dpt  = myTrack->getDeltaPtOverPt(rPos);
+    const double& dphi0= myTrack->getDeltaPhi0();
+    const double& dd0  = myTrack->getDeltaD0();
+    const double& dctg = myTrack->getDeltaCtgTheta(rPos);
+    const double& dz0  = myTrack->getDeltaZ0();
+    const double& dp   = myTrack->getDeltaPOverP(rPos);
+
+    eta = myTrack->getEta();
+    double theta = myTrack->getTheta();
+    if (dpt>0) {
       // deltaRho / rho = deltaRho * R
-      graphValue = (drho * R) * 100; // in percent
+      graphValue = dpt* 100; // in percent
       thisRhoGraph_P.SetPoint(thisRhoGraph_P.GetN(), eta, graphValue);
     }
-    if (dphi>0) {
-      graphValue = dphi/M_PI*180; // in degrees
+    if (dphi0>0) {
+      graphValue = dphi0/Units::deg; // in degrees
       thisPhiGraph_P.SetPoint(thisPhiGraph_P.GetN(), eta, graphValue);
     }
-    if (dd>0) {
-      graphValue = dd * 1000.; // in um
+    if (dd0>0) {
+      graphValue = dd0 / Units::um;
       thisDGraph_P.SetPoint(thisDGraph_P.GetN(), eta, graphValue );
     }
     if (dctg>0) {
@@ -2074,23 +2403,23 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       thisCtgThetaGraph_P.SetPoint(thisCtgThetaGraph_P.GetN(), eta, graphValue);
     }
     if (dz0>0) {
-      graphValue =  (dz0) * 1000.; // in um
+      graphValue =  (dz0) / Units::um;
       thisZ0Graph_P.SetPoint(thisZ0Graph_P.GetN(), eta, graphValue);
     }
     if ((dp>0)||true) {
       graphValue = dp * 100.; // in percent
       thisPGraph_P.SetPoint(thisPGraph_P.GetN(), eta, graphValue);
     }
-    if ((dd>0)&&(dz0>0)) {
-      double resolution = (cos(theta)*cos(theta)+1)/dd/dd + sin(theta)*sin(theta)/dz0/dz0;
+    if ((dd0>0)&&(dz0>0)) {
+      double resolution = (cos(theta)*cos(theta)+1)/dd0/dd0 + sin(theta)*sin(theta)/dz0/dz0;
       resolution = sqrt(2/resolution) / Units::um ; // resolution in um
       thisLGraph_P.SetPoint(thisLGraph_P.GetN(), eta, resolution);
 
-      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd*dd*dd);
+      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd0*dd0*dd0);
       beta = atan(beta);
       thisBetaGraph_P.SetPoint(thisBetaGraph_P.GetN(), eta, beta);
 
-      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd/dd)/dz0/dd;
+      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd0/dd0)/dz0/dd0;
       omega = atan(omega);
       thisOmegaGraph_P.SetPoint(thisOmegaGraph_P.GetN(), eta, omega);
     }
@@ -2102,11 +2431,11 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
    * Creates the modules' parametrized spatial resolution profiles and distributions
    * @param taggedTrackPtCollectionMap Tagged collections of tracks
    */
-  void Analyzer::calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap) {
+  void Analyzer::calculateParametrizedResolutionPlots(std::map<std::string, TrackNewCollectionMap>& taggedTrackPtCollectionMap) {
 
     for (auto& ttcmIt : taggedTrackPtCollectionMap) {
       const string& myTag = ttcmIt.first;
-      TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
 
       // Modules' parametrized spatial resolution maps
       parametrizedResolutionLocalXBarrelMap[myTag].Reset();
@@ -2172,24 +2501,24 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
  
       for (const auto& tcmIt : myTrackCollection) {
 	//const int &parameter = tcmIt.first;
-	const TrackCollection& myCollection = tcmIt.second;
+	const TrackNewCollection& myCollection = tcmIt.second;
 
  	// track loop
 	for ( const auto& myTrack : myCollection ) {
 
 	  // hit loop
-	  for (auto& hit : myTrack.getHitV()) {
+	  for (std::vector<std::unique_ptr<HitNew>>::const_iterator iHit=myTrack->getBeginHits(); iHit!=myTrack->getEndHits(); iHit++) {
 
 	    // In case the tag is "tracker", takes only the outer tracker
-	    if (myTag != "tracker" || (myTag == "tracker" && !hit->isPixel())) {
+	    if (myTag != "tracker" || (myTag == "tracker" && !(*iHit)->isPixel())) {
 	      // Consider hit modules	
-	      if ((hit->getObjectKind() == Hit::Active) && hit->getHitModule()) {
+	      if ((*iHit)->isActive() && (*iHit)->getHitModule()) {
 		
-		Module* hitModule = hit->getHitModule();
+		    const auto& hitModule = (*iHit)->getHitModule();
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
-		  double cotAlpha = 1./tan(hitModule->alpha(myTrack.getPhi()));
-		  double resolutionLocalX =  hit->getResolutionLocalX() / Units::um; // um
+		  double cotAlpha = 1./tan(hitModule->alpha(myTrack->getPhi()));
+		  double resolutionLocalX = hitModule->resolutionLocalX(myTrack->getPhi())/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
@@ -2201,8 +2530,8 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		}
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
-		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack.getTheta())));
-		  double resolutionLocalY = hit->getResolutionLocalY() / Units::um; // um
+		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack->getTheta())));
+		  double resolutionLocalY = hitModule->resolutionLocalY(myTrack->getTheta())/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalYBarrelMap[myTag].Fill(absCotBeta, resolutionLocalY);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
@@ -2375,7 +2704,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 
     TriggerEfficiencyMapVisitor temv(myMap, myPt);
-    simParms_->accept(temv);
+    SimParms::getInstance().accept(temv);
     tracker.accept(temv);
     temv.postVisit();
   }
@@ -2394,7 +2723,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 
     PtThresholdMapVisitor ptmv(myMap, myEfficiency);
-    simParms_->accept(ptmv);
+    SimParms::getInstance().accept(ptmv);
     tracker.accept(ptmv);
     ptmv.postVisit();
 
@@ -2411,7 +2740,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
   }
 
   SpacingCutVisitor scv(suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
-  simParms_->accept(scv);
+  SimParms::getInstance().accept(scv);
   tracker.accept(scv);
   scv.postVisit();
 }
@@ -2956,8 +3285,8 @@ int Analyzer::findCellIndexEta(double eta) {
 
 std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) const {
   std::pair <double, double> etaMinMax = t.computeMinMaxEta();
-  if (simParms().maxTracksEta.state()) etaMinMax.second = simParms().maxTracksEta();
-  if (simParms().minTracksEta.state()) etaMinMax.first = simParms().minTracksEta();
+  if (SimParms::getInstance().maxTracksEta.state()) etaMinMax.second = SimParms::getInstance().maxTracksEta();
+  if (SimParms::getInstance().minTracksEta.state()) etaMinMax.first = SimParms::getInstance().minTracksEta();
   return etaMinMax;
 }
 
@@ -3052,7 +3381,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
   //  ModuleVector allModules;
-  double zError = simParms().zErrorCollider();
+  double zError = SimParms::getInstance().zErrorCollider();
 
   // The real simulation
   std::pair <XYZVector, double> aLine;
@@ -3378,7 +3707,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-        if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
+        if (m->couldHit(direction, SimParms::getInstance().zErrorCollider()*BoundaryEtaSafetyMargin)) {
           auto h = m->checkTrackHits(origin, direction); 
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));
@@ -3419,7 +3748,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
     void Analyzer::computeBandwidth(Tracker& tracker) {
       BandwidthVisitor bv(chanHitDistribution, bandwidthDistribution, bandwidthDistributionSparsified);
-      simParms_->accept(bv);
+      SimParms::getInstance().accept(bv);
       tracker.accept(bv);
     }
 
