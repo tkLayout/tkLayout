@@ -93,16 +93,6 @@ $(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
 $(LIBDIR)/global_funcs.o: $(SRCDIR)/global_funcs.cpp $(INCDIR)/global_funcs.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/global_funcs.o $(SRCDIR)/global_funcs.cpp
 	
-$(LIBDIR)/HitNew.o: $(SRCDIR)/HitNew.cc $(INCDIR)/HitNew.h
-	@echo "Building target HitNew.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/HitNew.o $(SRCDIR)/HitNew.cc 
-	@echo "Built target HitNew.o"
-	
-$(LIBDIR)/TrackNew.o: $(SRCDIR)/TrackNew.cc $(INCDIR)/TrackNew.h
-	@echo "Building target TrackNew.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackNew.o $(SRCDIR)/TrackNew.cc 
-	@echo "Built target TrackNew.o"
-
 $(LIBDIR)/TrackNew.o: $(SRCDIR)/TrackNew.cc $(INCDIR)/TrackNew.h
 	@echo "Building target TrackNew.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackNew.o $(SRCDIR)/TrackNew.cc 
