@@ -182,6 +182,14 @@ namespace insur {
     std::map<std::string, std::vector<TProfile*>> hisPHitZProjInOut;      //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
     std::map<std::string, std::vector<TProfile*>> hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
     std::map<std::string, std::vector<TProfile*>> hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
+    std::vector<TProfile*> hisPatternRecoOutInPt;//! OutIn approach - tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::vector<TProfile*> hisPatternRecoOutInP; //! OutIn approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT
+    std::map<std::string, std::vector<TProfile*>> hisPtHitDProjOutIn;     //!< OutIn approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitDProjOutIn;      //!< OutIn approach: D0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitZProjOutIn;     //!< OutIn approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitZProjOutIn;      //!< OutIn approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
+    std::map<std::string, std::vector<TProfile*>> hisPtHitProbContamOutIn;//!< OutIn approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
+    std::map<std::string, std::vector<TProfile*>> hisPHitProbContamOutIn; //!< OutIn approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
     
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
