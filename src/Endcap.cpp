@@ -10,42 +10,31 @@ void Endcap::cutAtEta(double eta) {
   numDisks(disks_.size());
 }
 
-/*vector<double> Endcap::findMaxDsDistances() { // drill down into the property trees to find the maximum dsDistance
-  vector<double> maxDsDistances; 
-  double endcapDsDistance = propertyTree().get("dsDistance", 0.);
 
-  PropertyNode<int> ringNode("");
-  for (auto& tel : pair2range(propertyTree().equal_range("Ring"))) // scan Ring subtrees outside Disks
-    ringNode.fromPtree(tel.second);
-  for (auto& rnel : ringNode) {
-    Property<double, NoDefault> ringDsDistance; //endcapDsDistance);
-    for (auto& tel : pair2range(rnel.second.equal_range("dsDistance"))) ringDsDistance.fromPtree(tel.second);
-    if (ringDsDistance.state()) {
-      if (maxDsDistances.size() < rnel.first) maxDsDistances.resize(rnel.first);//, endcapDsDistance);
-      maxDsDistances[rnel.first-1] = MAX(maxDsDistances[rnel.first-1], ringDsDistance()); 
-    }
-  }
+/** Scans the Disk property tree.
+    This info is needed to build any disk in the Endcap.
+*/
+const ScanDiskInfo Endcap::scanDiskPropertyTree(int diskNumber) const {
 
-  for (auto& dnel : diskNode) {
-    double diskDsDistance = dnel.second.get("dsDistance", endcapDsDistance);
-    ringNode.clear();
-    for (auto& tel : pair2range(dnel.second.equal_range("Ring"))) ringNode.fromPtree(tel.second); // scan Ring subtrees inside Disks
-    for (auto& rnel : ringNode) {
-      Property<double, NoDefault> ringDsDistance; // (diskDsDistance);
-      for (auto& tel : pair2range(rnel.second.equal_range("dsDistance"))) ringDsDistance.fromPtree(tel.second);
-      if (maxDsDistances.size() < rnel.first) maxDsDistances.resize(rnel.first); //, diskDsDistance);
-      if (ringDsDistance.state()) {
-        maxDsDistances[rnel.first-1] = MAX(maxDsDistances[rnel.first-1], ringDsDistance()); 
-      } else {
-        maxDsDistances[rnel.first-1] = MAX(maxDsDistances[rnel.first-1], diskDsDistance);
-      }
-    }
-  }
-  maxDsDistances.push_back(endcapDsDistance); // adds a default element to be used in case disks need more rings than the vector specifies dsDistances for
-  return maxDsDistances;
-  }*/
+  Disk* diskTemplate = GeometryFactory::make<Disk>();
+  diskTemplate->myid(diskNumber);
+  diskTemplate->store(propertyTree());
+  if (diskNode.count(diskNumber) > 0) diskTemplate->store(diskNode.at(diskNumber));
+  const ScanDiskInfo& diskInfo = diskTemplate->scanPropertyTree();
+  return diskInfo;
+}
 
-//std::vector<double>, 
+/** Scans the Endcap property tree and gathers info from the innermost and outermost disks in the Endcap.
+    This info is needed to build any disk in the Endcap.
+*/
+const ScanEndcapInfo Endcap::scanPropertyTree() const {
+
+  const ScanDiskInfo& innermostDiskInfo = scanDiskPropertyTree(1);
+  const ScanDiskInfo& outermostDiskInfo = scanDiskPropertyTree(numDisks());
+  const ScanEndcapInfo& extremaDisksInfo = std::make_pair(innermostDiskInfo, outermostDiskInfo);
+  return extremaDisksInfo;
+}
+
 
 void Endcap::build() {
   try {
@@ -55,10 +44,10 @@ void Endcap::build() {
     if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());
     else if(barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
 
-    /*vector<double> maxDsDistances = findMaxDsDistances();
-    for (int i = 0; i < maxDsDistances.size(); i++) {
-      std::cout << maxDsDistances.at(i) << std::endl;
-      }*/
+    // Before any disk is build, needs to take info from PropertyTree from innermost and outermost disks in the Endcap.
+    // (In +Z side, 'innermost' corresponds to 'lower Z', and 'outermost' corresponds to 'bigger Z').
+    ScanEndcapInfo extremaDisksInfo = scanPropertyTree();
+
     vector<Disk*> tdisks;
 
     double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
@@ -78,29 +67,11 @@ void Endcap::build() {
       diskp->store(propertyTree());
       if (diskNode.count(i) > 0) diskp->store(diskNode.at(i));
 
-      std::vector<double> firstDiskSmallDeltas, firstDiskDsDistances, lastDiskSmallDeltas, lastDiskDsDistances;
-     
-      Disk* disk1 = GeometryFactory::make<Disk>();
-      disk1->myid(1);
-      disk1->store(propertyTree());
-      if (diskNode.count(1) > 0) disk1->store(diskNode.at(1));
-      firstDiskSmallDeltas = disk1->getSmallDeltasFromTree();
-      firstDiskDsDistances = disk1->getDsDistancesFromTree();
-      
-      Disk* diskL = GeometryFactory::make<Disk>();
-      diskL->myid(numDisks());
-      diskL->store(propertyTree());
-      if (diskNode.count(numDisks()) > 0) diskL->store(diskNode.at(numDisks()));
-      lastDiskSmallDeltas = diskL->getSmallDeltasFromTree();
-      lastDiskDsDistances = diskL->getDsDistancesFromTree();
-      
-      //std::cout << "FOUND ITTTTTTTTT " << lastDiskSmallDeltas.size() << std::endl;
-
       // To test the extreme cases -> one needs to test either first or last layer (based on parity)
       diskp->zHalfLength((outerZ()-innerZ())/2.);
 
       // Build
-      diskp->build(firstDiskSmallDeltas, lastDiskSmallDeltas, firstDiskDsDistances, lastDiskDsDistances);
+      diskp->build(extremaDisksInfo);
 
       // Mirror discs
       Disk* diskn = GeometryFactory::clone(*diskp);

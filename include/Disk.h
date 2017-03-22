@@ -21,6 +21,9 @@ namespace material {
 using material::MaterialObject;
 using material::ConversionStation;
 
+typedef std::pair<std::vector<double>, std::vector<double> > ScanDiskInfo;
+typedef std::pair<ScanDiskInfo, ScanDiskInfo> ScanEndcapInfo;
+
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<Ring> Container;
@@ -44,10 +47,13 @@ private:
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
 
-  inline double getSmallDelta(const vector<double>& diskSmallDeltas, int ringIndex) const;
-  inline double getDsDistance(const vector<double>& buildDsDistances, int ringIndex) const;
-  void buildTopDown(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances);
-  //void buildBottomUp(const vector<double>& buildDsDistances);
+  const std::vector<double> scanSmallDeltas() const;
+  const std::vector<double> scanDsDistances() const;
+  inline const double getRingInfo(const vector<double>& ringsInfo, int ringNumber) const;
+
+  std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
+  double computeNextRho(int parity, double lastZ, double newZ, double lastRho);
+  void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
   double averageZ_ = 0;
 public:
@@ -93,12 +99,10 @@ public:
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
-
-  const std::vector<double> getSmallDeltasFromTree() const;
-  const std::vector<double> getDsDistancesFromTree() const;
+  const std::pair<std::vector<double>, std::vector<double> > scanPropertyTree() const;
 
   void check() override;
-  void build(const vector<double>& firstDiskSmallDeltas, const vector<double>& lastDiskSmallDeltas, const vector<double>& firstDiskDsDistances, const vector<double>& lastDiskDsDistances);
+  void build(const ScanEndcapInfo& extremaDisksInfo);
   void translateZ(double z);
   void mirrorZ();
   void cutAtEta(double eta);
