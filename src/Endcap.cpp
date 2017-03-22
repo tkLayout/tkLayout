@@ -10,7 +10,7 @@ void Endcap::cutAtEta(double eta) {
   numDisks(disks_.size());
 }
 
-vector<double> Endcap::findMaxDsDistances() { // drill down into the property trees to find the maximum dsDistance
+/*vector<double> Endcap::findMaxDsDistances() { // drill down into the property trees to find the maximum dsDistance
   vector<double> maxDsDistances; 
   double endcapDsDistance = propertyTree().get("dsDistance", 0.);
 
@@ -43,7 +43,9 @@ vector<double> Endcap::findMaxDsDistances() { // drill down into the property tr
   }
   maxDsDistances.push_back(endcapDsDistance); // adds a default element to be used in case disks need more rings than the vector specifies dsDistances for
   return maxDsDistances;
-}
+  }*/
+
+//std::vector<double>, 
 
 void Endcap::build() {
   try {
@@ -53,7 +55,10 @@ void Endcap::build() {
     if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());
     else if(barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
 
-    vector<double> maxDsDistances = findMaxDsDistances();
+    /*vector<double> maxDsDistances = findMaxDsDistances();
+    for (int i = 0; i < maxDsDistances.size(); i++) {
+      std::cout << maxDsDistances.at(i) << std::endl;
+      }*/
     vector<Disk*> tdisks;
 
     double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
@@ -73,11 +78,29 @@ void Endcap::build() {
       diskp->store(propertyTree());
       if (diskNode.count(i) > 0) diskp->store(diskNode.at(i));
 
+      std::vector<double> firstDiskSmallDeltas, firstDiskDsDistances, lastDiskSmallDeltas, lastDiskDsDistances;
+     
+      Disk* disk1 = GeometryFactory::make<Disk>();
+      disk1->myid(1);
+      disk1->store(propertyTree());
+      if (diskNode.count(1) > 0) disk1->store(diskNode.at(1));
+      firstDiskSmallDeltas = disk1->getSmallDeltasFromTree();
+      firstDiskDsDistances = disk1->getDsDistancesFromTree();
+      
+      Disk* diskL = GeometryFactory::make<Disk>();
+      diskL->myid(numDisks());
+      diskL->store(propertyTree());
+      if (diskNode.count(numDisks()) > 0) diskL->store(diskNode.at(numDisks()));
+      lastDiskSmallDeltas = diskL->getSmallDeltasFromTree();
+      lastDiskDsDistances = diskL->getDsDistancesFromTree();
+      
+      //std::cout << "FOUND ITTTTTTTTT " << lastDiskSmallDeltas.size() << std::endl;
+
       // To test the extreme cases -> one needs to test either first or last layer (based on parity)
       diskp->zHalfLength((outerZ()-innerZ())/2.);
 
       // Build
-      diskp->build(maxDsDistances);
+      diskp->build(firstDiskSmallDeltas, lastDiskSmallDeltas, firstDiskDsDistances, lastDiskDsDistances);
 
       // Mirror discs
       Disk* diskn = GeometryFactory::clone(*diskp);
@@ -103,3 +126,5 @@ void Endcap::build() {
   cleanup();
   builtok(true);
 }
+
+

@@ -4,6 +4,7 @@
 
 void DetectorModule::build() {
   check();
+
   if (!decorated().builtok()) {
     decorated().store(propertyTree());
     decorated().build();
