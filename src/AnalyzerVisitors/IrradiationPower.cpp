@@ -86,15 +86,12 @@ void IrradiationPowerVisitor::postVisit() {
 
       // Obtain the mean and the max sensorsIrradiationPower and sensorsIrradiation for a given module category.
       double sensorsIrradiationPowerMean = sensorsIrradiationPowerMean_[it.first] / it.second;
-      double sensorsIrradiationPowerMax = sensorsIrradiationPowerMax_[it.first];
       double sensorsIrradiationMean = sensorsIrradiationMean_[it.first] / it.second;
-      double sensorsIrradiationMax = sensorsIrradiationMax_[it.first];
       std::ostringstream powerValues, irradiationValues;
       powerValues.str("");
       irradiationValues.str("");
-      powerValues << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean << "," << sensorsIrradiationPowerMax;
-      //irradiationValues << std::dec << std::scientific << std::setprecision(3) << sensorsIrradiationMean << "," << sensorsIrradiationMax;
-      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsIrradiationMax;
+      powerValues << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean;
+      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsIrradiationMean;
 
       // Store results in the power and irradiation summary tables
       if (isBarrel) {

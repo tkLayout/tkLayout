@@ -362,10 +362,10 @@ struct HistogramFrameStyle {
     frame.SetMaximum(palette.getMaxValue());
     frame.SetMinimum(palette.getMinValue());
 
-    frame.Draw("colz");
+    frame.Draw("colz HIST");
     canvas.Update();
     palette.setFramePalette((TPaletteAxis*)frame.GetListOfFunctions()->FindObject("palette"));
-    frame.Draw("AXIS colz");
+    frame.Draw("AXIS HIST colz");
   }
 };
 
