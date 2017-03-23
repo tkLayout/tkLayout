@@ -172,7 +172,7 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  phiOverlap     (       "phiOverlap"         , parsedOnly(), 1.),
  phiSegments    (       "phiSegments"        , parsedOnly(), 4),
  m_useMinMaxRCorrect(   "useMinMaxRCorrect"  , parsedAndChecked(), true),
- numRods        ("numRods"        , parsedOnly()),
+ numberRods        ("numberRods"        , parsedOnly()),
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
  buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
@@ -221,7 +221,7 @@ void Layer::check()
     if (buildNumModules() == 0 && !outerZ.state()) throw PathfulException("At least one between numModules and outerZ must be specified");
     if (!phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
     if (!phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
-    //if (numRods.state()) throw PathfulException("Flat layer : numRods should not be specified.");
+    if (numberRods.state()) throw PathfulException("Flat layer : numberRods should not be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
   }
 
@@ -243,7 +243,7 @@ void Layer::check()
 	  throw PathfulException("Tilted layer : numModules != (numModulesFlat + numModulesTilted). Anyway, for automatic placement, it is not needed to specify numModules. Please specify numModulesFlat and numModulesTilted only.");
 	}
       }
-      if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
+      if (!numberRods.state()) throw PathfulException("Tilted layer with automatic placement : numberRods must be specified.");
     }
   }
 
@@ -529,7 +529,7 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
     tiltedRing->myid(i);
     tiltedRing->store(propertyTree());
     if (m_ringNode.count(i) > 0) tiltedRing->store(m_ringNode.at(i));
-    tiltedRing->numPhi(numRods());
+    tiltedRing->numPhi(numberRods());
 
     double lastThetaEnd;
     if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
@@ -570,7 +570,7 @@ void Layer::buildTilted() {
 	if (tokens[2] == 0. && tokens[5] == 0.) numModulesFlat++;
 	else numModulesTilted++;
       }
-      numRods(tokens[6]); // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
+      numberRods(tokens[6]); // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
     }
     buildNumModulesFlat(numModulesFlat);
     buildNumModulesTilted(numModulesTilted);
@@ -628,7 +628,7 @@ void Layer::buildTilted() {
 	flatPartrmod->build();
 	double width = flatPartrmod->width();
 	double dsDistance = flatPartrmod->dsDistance();
-	double T = tan(2.*M_PI / numRods());
+	double T = tan(2.*M_PI / numberRods());
 	double A = 1. / (2. * flatPartrInnerSmall);
 	double B = 1. / (2. * flatPartrOuterSmall);
 	double a = T * A * B;
@@ -695,7 +695,7 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodPhiRotation = 2*M_PI/numRods();
+  float rodPhiRotation = 2*M_PI/numberRods();
 
   //TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(1, 0., propertyTree());
@@ -713,7 +713,7 @@ void Layer::buildTilted() {
   //second->rotateZ(rodPhiRotation);
   m_rods.push_back(second);
 
-  for (int i = 2; i < numRods(); i++) {
+  for (int i = 2; i < numberRods(); i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));

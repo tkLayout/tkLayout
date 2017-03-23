@@ -85,7 +85,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   void accept(ConstGeometryVisitor& v) const;
 
   //! Get number of rods in a layer
-  //int numRods() const { return m_rods.size(); }
+  int numRods() const { return m_rods.size(); }
 
   //! Get number of modules per rod
   int numModulesPerRod() const { return m_rods.front().numModules(); }
@@ -127,7 +127,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
 
-  Property<int, NoDefault> numRods;
+  Property<int, NoDefault> numberRods;
 
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
