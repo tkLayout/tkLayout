@@ -221,7 +221,7 @@ void Layer::check()
     if (buildNumModules() == 0 && !outerZ.state()) throw PathfulException("At least one between numModules and outerZ must be specified");
     if (!phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
     if (!phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
-    if (numRods.state()) throw PathfulException("Flat layer : numRods should not be specified.");
+    //if (numRods.state()) throw PathfulException("Flat layer : numRods should not be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
   }
 
