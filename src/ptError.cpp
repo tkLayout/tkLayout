@@ -4,12 +4,12 @@
 #include <ptError.h>
 #include <global_constants.h>
 #include "SimParms.h"
+#include "Units.h"
 
 using namespace std;
 
 // Default values for gloabl parameters
 double ptError::IP_length = 70;     // mm
-//double ptError::B = SimParms::getInstance().magField[0]; // T
 
 void ptError::defaultParameters() {
   Module_pitch = defaultModulePitch;
@@ -24,7 +24,7 @@ void ptError::defaultParameters() {
 }
 
 double ptError::computeErrorBE(double p) {
-  double A = 0.3 * SimParms::getInstance().magField() * Module_r / 1000. / 2.; // GeV
+  double A = 0.3 * SimParms::getInstance().magField() * Module_r / 2.;
   double a = pow(p/A,2);
   double g = 1/a;
   //std::cout << "g = " << g << std::endl;
@@ -64,7 +64,7 @@ double ptError::computeErrorBE(double p) {
     // and then I should use the distance between two hits [larger lever arm]
     // to obtain the error on phi. But the two effects cancel, so I can directly use pT
     // and deltaR of the hits
-    scatteringAngle = (13.6) / (1000 * p) * sqrt(material.radiation) * (1 + 0.038 * log(material.radiation));
+    scatteringAngle = (13.6*Units::MeV) / (p/Units::MeV) * sqrt(material.radiation) * (1 + 0.038 * log(material.radiation));
     deltaPhi = scatteringAngle;
 
     // Endcap modules:
