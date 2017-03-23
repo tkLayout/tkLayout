@@ -17,6 +17,7 @@ namespace material {
   class SupportStructure;
 }
 
+
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
  private:
   typedef boost::ptr_vector<Disk>                       Container;
@@ -29,7 +30,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   PropertyNode<int>               diskNode;
   PropertyNodeUnique<std::string> supportNode;
 
-  //vector<double> findMaxDsDistances();
+  const ScanDiskInfo scanDiskPropertyTree(int diskNumber) const;
+  const ScanEndcapInfo scanPropertyTree() const;
 
  public:
   Endcap() :
