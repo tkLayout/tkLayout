@@ -100,7 +100,7 @@ void mainConfigHandler::askTriggerMomenta() {
   getline(cin,tempString2);
   tempString+=tempString2;
   triggerMomenta_ = parseDoubleList(tempString);
-  for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
+  for (double& iMom : triggerMomenta_) iMom *= Units::MeV;
 }
 
 void mainConfigHandler::askThresholdProbabilities() {
@@ -170,7 +170,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << TRIGGERMOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
       if (it!=triggerMomenta_.begin()) configFile << ", ";
-      configFile << std::fixed << std::setprecision(2) << (*it)/Units::GeV;
+      configFile << std::fixed << std::setprecision(2) << (*it)/Units::MeV;
     }
     configFile << "\"" << std::endl;
 
@@ -244,7 +244,7 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
         momentaFound = true;
       } else if (parameter==TRIGGERMOMENTADEFINITION) {
         triggerMomenta_ = parseDoubleList(value);
-        for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
+        for (double& iMom : triggerMomenta_) iMom *= Units::MeV;
         triggerMomentaFound = true;
       } else if (parameter==THRESHOLDPROBABILITIESDEFINITION) {
         thresholdProbabilities_ = parseDoubleList(value);
