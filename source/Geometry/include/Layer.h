@@ -171,7 +171,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
   RodTemplate makeRodTemplate();
 
-  std::vector<RodPairStraight*> m_flat_rods;
+  Rods m_flat_rods;
   double flatPartPhiOverlapSmallDeltaMinus_;
   double flatPartPhiOverlapSmallDeltaPlus_;
   double flatPartAverageR_;

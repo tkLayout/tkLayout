@@ -175,6 +175,14 @@ public:
   void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = RotationZ(angle)(m_rAxis); }
   void tilt(double angle)                 { rotateX(-angle); m_moduleGeom->tiltAngle(angle); } // Atention: Tilt can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void skew(double angle)                 { rotateY(-angle); m_moduleGeom->skewAngle(angle); } // Atention: Skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  bool flipped() const { return m_moduleGeom->flipped(); } 
+  bool flipped(bool newFlip) {
+    if (newFlip && numSensors() > 1) {
+      m_sensors_.front().innerOuter(SensorPosition::UPPER);
+      m_sensors_.back().innerOuter(SensorPosition::LOWER);
+    }
+    return m_moduleGeom->flipped(newFlip);
+  } 
   void dsDistance(double d)               { m_moduleGeom->dsDistance(d); }
 
   // Properties

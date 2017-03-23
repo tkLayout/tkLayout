@@ -77,6 +77,12 @@ void RodPair::cutAtEta(double eta)
   m_zMinusModules.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; });
 }
 
+void RodPair::rotateZ(double angle) {
+  for (auto& m : m_zPlusModules) { m.rotateZ(angle); }
+  for (auto& m : m_zMinusModules) { m.rotateZ(angle); }
+  //clearComputables();
+}
+
 //! GeometryVisitor pattern -> rod visitable
 void RodPair::accept(GeometryVisitor& v)
 {

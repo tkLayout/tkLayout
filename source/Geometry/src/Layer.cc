@@ -688,9 +688,11 @@ void Layer::buildTilted() {
     }
 
   // computing the layer's place radius as the average of all the modules' radii
-  placeRadius_  = std::accumulate(tmspecsi.begin(), tmspecsi.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
-  placeRadius_ += std::accumulate(tmspecso.begin(), tmspecso.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
-  placeRadius_ /= tmspecsi.size() + tmspecso.size();
+  double placeRadius;
+  placeRadius  = std::accumulate(tmspecsi.begin(), tmspecsi.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius += std::accumulate(tmspecso.begin(), tmspecso.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius /= tmspecsi.size() + tmspecso.size();
+  avgBuildRadius(placeRadius);
 
 }
 
