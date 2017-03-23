@@ -17,6 +17,7 @@
 #include <sys/types.h>
 
 #include <mainConfigHandler.h>
+#include "Units.h"
 
 using namespace std;
 using namespace boost;
@@ -85,6 +86,7 @@ void mainConfigHandler::askMomenta() {
   getline(cin,tempString2);
   tempString+=tempString2;
   momenta_ = parseDoubleList(tempString);
+  for (double& iMom : momenta_) iMom *= Units::GeV;
 }
 
 void mainConfigHandler::askTriggerMomenta() {
@@ -98,6 +100,7 @@ void mainConfigHandler::askTriggerMomenta() {
   getline(cin,tempString2);
   tempString+=tempString2;
   triggerMomenta_ = parseDoubleList(tempString);
+  for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
 }
 
 void mainConfigHandler::askThresholdProbabilities() {
@@ -160,14 +163,14 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << MOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
       if (it!=momenta_.begin()) configFile << ", ";
-      configFile << std::fixed << std::setprecision(2) << (*it);
+      configFile << std::fixed << std::setprecision(2) << (*it)/Units::GeV;
     }
     configFile << "\"" << std::endl;
 
     configFile << TRIGGERMOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
       if (it!=triggerMomenta_.begin()) configFile << ", ";
-      configFile << std::fixed << std::setprecision(2) << (*it);
+      configFile << std::fixed << std::setprecision(2) << (*it)/Units::GeV;
     }
     configFile << "\"" << std::endl;
 
@@ -237,9 +240,11 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
         xmlFound = true;
       } else if (parameter==MOMENTADEFINITION) {
         momenta_ = parseDoubleList(value);
+        for (double& iMom : momenta_) iMom *= Units::GeV;
         momentaFound = true;
       } else if (parameter==TRIGGERMOMENTADEFINITION) {
         triggerMomenta_ = parseDoubleList(value);
+        for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
         triggerMomentaFound = true;
       } else if (parameter==THRESHOLDPROBABILITIESDEFINITION) {
         thresholdProbabilities_ = parseDoubleList(value);
