@@ -56,6 +56,32 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
 }
 
 //
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
+//
+RodPair::RodPair(int id, double rotation, const PropertyTree& treeProperty) :
+ minZ              (string("minZ")              ),
+ maxZ              (string("maxZ")              ),
+ minR              (string("minR")              ),
+ maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
+ maxModuleThickness(string("maxModuleThickness")),
+ beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
+ m_materialObject(MaterialObject::ROD),
+ m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
+ m_nModules     (0),
+ //m_outerZ       (0),
+ //m_optimalRadius(radius),
+ //m_minRadius(    minRadius),
+ //m_maxRadius(    maxRadius),
+ m_rotation(     rotation)
+{
+ // Set the geometry config parameters
+ this->myid(id);
+ this->store(treeProperty);
+}
+
+//
 // Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
 //
 void RodPair::buildClone(int id, double shiftR, double rotation)
@@ -670,6 +696,27 @@ void RodPairStraight::compressToZ(double zLimit) {
 //}
 
 
+
+//
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
+//
+TiltedRodPair::TiltedRodPair(int id, double rotation, const PropertyTree& treeProperty) :
+ RodPair(id, rotation, treeProperty)
+ //forbiddenRange(      "forbiddenRange"      , parsedOnly()),
+ //zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
+ //zError(              "zError"              , parsedAndChecked()),
+ //compressed(          "compressed"          , parsedOnly(), true),
+ //allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
+ //m_ringNode(          "Ring"                , parsedOnly())
+{
+  // Set the geometry config parameters (id set through base class)
+  this->store(treeProperty);
+}
+
+
+
+
+
 void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip) {
   auto it = rodTemplate.begin();
   int side = (direction == BuildDir::RIGHT ? 1 : -1);
@@ -695,13 +742,13 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
 void TiltedRodPair::check() {
   PropertyObject::check();
 
-  if (startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
+  if (m_startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
 }
 
 
 void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
-  materialObject_.store(propertyTree());
-  materialObject_.build();
+  m_materialObject.store(propertyTree());
+  m_materialObject.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));

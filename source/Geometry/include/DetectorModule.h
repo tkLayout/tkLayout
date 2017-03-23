@@ -178,8 +178,8 @@ public:
   bool flipped() const { return m_moduleGeom->flipped(); } 
   bool flipped(bool newFlip) {
     if (newFlip && numSensors() > 1) {
-      m_sensors_.front().innerOuter(SensorPosition::UPPER);
-      m_sensors_.back().innerOuter(SensorPosition::LOWER);
+      m_sensors.front().innerOuter(SensorPosition::UPPER);
+      m_sensors.back().innerOuter(SensorPosition::LOWER);
     }
     return m_moduleGeom->flipped(newFlip);
   } 

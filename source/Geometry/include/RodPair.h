@@ -53,6 +53,8 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
   RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, double outerZ , const PropertyTree& treeProperty);
 
+  RodPair(int id, double rotation, const PropertyTree& treeProperty);
+
   //! Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
    void buildClone(int id, double shiftR, double rotation);
 
@@ -175,7 +177,7 @@ public:
   //! Helper method calculating module optimal Z position taking into account small/bigDelta, beam spot sizes etc. -> to fully cover eta region
   double computeNextZ(double lastRPos, double newRPos, double lastZPos, double moduleLength, double lastDsDistance, double newDsDistance, BuildDir direction, int parity);
 
-  //! Helper method compressing modules in Z direction (symmetrically from minus/plus Z) such as they fit into -outerZ, +outerZ region
+  //! Helper method compressing modules in Z direction (symmetrically from minus/plus Z) such as the fit into -outerZ, +outerZ region
   //! The algorithm first cuts out modules completely exceeding outerZ limit. Later on calculates (+ or -) shift of the last module with
   //! respect to the outerZ position. Finally each module is shifted by a fraction given as shift/moduleCentreZ. To avoid clashes of
   //! of newly positioned modules after their shift, cross-check between neighbouring modules is done.
@@ -200,7 +202,7 @@ class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 
  public :
-
+  TiltedRodPair(int id, double rotation, const PropertyTree& treeProperty);
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   bool isTilted() const override { return true; }
   void check() override;

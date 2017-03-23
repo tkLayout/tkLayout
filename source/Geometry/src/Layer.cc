@@ -7,9 +7,9 @@ using std::string;
 
 define_enum_strings(RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
 
+FlatRingsGeometryInfo::FlatRingsGeometryInfo() {}
 
-
-void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, double bigParity) {
+void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, int bigParity) {
  
   RodPairStraight* minusBigDeltaRod = (bigParity > 0 ? flatPartRods.at(1) : flatPartRods.front());
   const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
@@ -113,6 +113,36 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<RodPairSt
   }  
 }
 
+
+Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
+  for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
+
+    if (i == (numModulesFlat + 1)) {
+      deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - flatPartzEnd;
+      deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - flatPartzEnd;
+
+      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - flatPartrEndInner) / (tiltedRingsGeometry[i]->zStartInner_REAL() - flatPartzEnd_REAL) );
+      zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
+
+      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - flatPartrEndOuter) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - flatPartzEnd_REAL) );
+      zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
+
+    }
+
+    else {
+      deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - tiltedRingsGeometry[i-1]->zInner();
+      deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
+
+      //covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
+
+      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - tiltedRingsGeometry[i-1]->rEndInner_REAL()) / (tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i-1]->zEndInner_REAL()) );
+      zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
+
+      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i-1]->zEndOuter_REAL()) );
+      zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
+    }
+  }
+}
 
 
 
@@ -242,9 +272,10 @@ RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!m_ringNode.empty() ? m_ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   for (int i = 0; i < rodTemplate.size(); i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
-    rodTemplate[i]->store(propertyTree());
-    if (m_ringNode.count(i+1) > 0) rodTemplate[i]->store(m_ringNode.at(i+1));
+    int ringNumber = i+1;
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(ringNumber, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree() )));
+    //rodTemplate[i]->store(propertyTree());
+    //if (m_ringNode.count(i+1) > 0) rodTemplate[i]->store(m_ringNode.at(i+1));
     rodTemplate[i]->build();
   }
   return rodTemplate;
@@ -411,7 +442,8 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       RodPairStraight* rod = nullptr;
 
       if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, buildNumModules(), propertyTree());
-      else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, outerZ(), propertyTree());
+      else rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, outerZ(), propertyTree());
+
       rod->build();
       
       firstRod = rod;
@@ -427,7 +459,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       // If same rods or sameParityRods required, each even/odd rod are the same -> useful from engineering point of view
       if (m_sameRods || sameParityRods()) {
 
-        RodPair* rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
+        RodPairStraight* rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
         rod->buildClone(2, 2*bigDelta()*bigParity, rodPhiRotation);
 
         if (!isTilted()) { m_rods.push_back(rod); }
@@ -450,7 +482,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
     // Clone prototypes to speed-up building -> need for buildClone() call to update new id and rotate cloned rod by respective angle
     else {
 
-      RodPair*  rod = nullptr;
+      RodPairStraight*  rod = nullptr;
       double shiftR = 0.0;
 
       // Build odd rod -> Rotation with respect to first rod, no shift in R
@@ -665,19 +697,20 @@ void Layer::buildTilted() {
 
   float rodPhiRotation = 2*M_PI/numRods();
 
-  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
-  first->myid(1);
+  //TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
+  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(1, 0., propertyTree());
+  //first->myid(1);
   first->isOuterRadiusRod(false);
-  first->store(propertyTree());
+  //first->store(propertyTree());
   first->build(rodTemplate, tmspecsi, 1);
   m_rods.push_back(first);
 
-  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
-  second->myid(2);
+  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(2, rodPhiRotation, propertyTree());
+  //second->myid(2);
   second->isOuterRadiusRod(true);
-  second->store(propertyTree());
+  //second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
-  second->rotateZ(rodPhiRotation);
+  //second->rotateZ(rodPhiRotation);
   m_rods.push_back(second);
 
   for (int i = 2; i < numRods(); i++) {

@@ -31,7 +31,7 @@ class FlatRingsGeometryInfo {
   std::map<int, double> zErrorOuter_;
  public:
   FlatRingsGeometryInfo();
-  void calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, double bigParity);
+  void calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, int bigParity);
   std::map<int, double> zErrorInner() const { return zErrorInner_; }
   std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
 };
@@ -171,7 +171,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
   RodTemplate makeRodTemplate();
 
-  Rods m_flat_rods;
+  std::vector<RodPairStraight*> m_flat_rods;
   double flatPartPhiOverlapSmallDeltaMinus_;
   double flatPartPhiOverlapSmallDeltaPlus_;
   double flatPartAverageR_;
