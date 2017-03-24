@@ -233,7 +233,7 @@ void Layer::check()
   if (isTilted()) {
     if (outerZ.state()) logERROR("Tilted layer : outerZ was specified. Routing of services will be forced to be at Z = outerZ.");
     if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
-    if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
+    //if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Tilted layer : phiSegments should not be specified.");
     if (isTiltedAuto()) {    
       if (!buildNumModulesFlat.state()) throw PathfulException("Tilted layer with automatic placement : numModulesFlat must be specified.");
