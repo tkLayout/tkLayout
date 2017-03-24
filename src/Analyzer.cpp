@@ -469,6 +469,12 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
       hisPatternRecoInOutPt.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
       name             = "hisBkgContInOut_p"+any2str(pIter/Units::GeV);
       hisPatternRecoInOutP.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+      // Out-In
+      name             = "hisBkgContOutIn_pT"+any2str(pIter/Units::GeV);
+      hisPatternRecoOutInPt.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+      name             = "hisBkgContOutIn_p"+any2str(pIter/Units::GeV);
+      hisPatternRecoOutInP.push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
     }
   }
 
@@ -512,8 +518,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
       // 2 options: pT & p
       for (int pOption=0;pOption<2;pOption++) {
 
-        // InOut or OutIn approach -> TODO: currently only InOut approach
-        for (int approachOption=0; approachOption<1; approachOption++) {
+        // InOut or OutIn approach
+        for (int approachOption=0; approachOption<2; approachOption++) {
 
           bool propagOutIn = approachOption;
 
@@ -661,6 +667,49 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
               hisPHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
               hisPHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
             }
+            // Pt & OutIn
+            if (pOption==0 && approachOption==1) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPtHitDProjOutIn.find(iHitIDMap)==hisPtHitDProjOutIn.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
+                  hisPtHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjOutIn";
+                  hisPtHitZProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisPt" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamOutIn";
+                  hisPtHitProbContamOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              hisPtHitDProjOutIn[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPtHitZProjOutIn[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPtHitProbContamOutIn[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
+            // P & OutIn
+            if (pOption==1 && approachOption==1) {
+
+              // Create profile histograms if don't exist yet
+              if (hisPHitDProjOutIn.find(iHitIDMap)==hisPHitDProjOutIn.end()) {
+                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+
+                  std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
+                  hisPHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ZProjOutIn";
+                  hisPHitZProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+
+                  name = "hisP" + any2str(iMom) + "_Hit_" + iHitID + "_ProbContamOutIn";
+                  hisPHitProbContamOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
+                }
+              }
+              // TODO: Check that above zero!!!
+              hisPHitDProjOutIn[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
+              hisPHitZProjOutIn[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
+              hisPHitProbContamOutIn[iHitIDMap][iMomentum]->Fill(eta, pContam);
+            }
           } // Pattern reco loop
 
           //
@@ -673,7 +722,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
               hisPatternRecoInOutPt[iMomentum]->Fill(eta,pContamTot);
             }
             else {
-              // TODO: Implement
+              hisPatternRecoOutInPt[iMomentum]->Fill(eta,pContamTot);
             }
           }
           else  {
@@ -682,7 +731,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
               hisPatternRecoInOutP[iMomentum]->Fill(eta,pContamTot);
             }
             else {
-              // TODO: Implement
+              hisPatternRecoOutInP[iMomentum]->Fill(eta,pContamTot);
             }
           }
 
