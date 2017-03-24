@@ -11,6 +11,8 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
  maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
  beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
@@ -35,6 +37,8 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
  maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
  beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
@@ -92,10 +96,12 @@ void RodPair::accept(ConstGeometryVisitor& v) const
 //! Setup: link lambda functions to various rod related properties (use setup functions for ReadOnly Computable properties)
 void RodPair::setup() {
 
-  minZ.setup([&]() { return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
-  maxZ.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
-  minR.setup([&]() { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
-  maxR.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR); });
+  minZ.setup([&]()       { return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
+  maxZ.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
+  minR.setup([&]()       { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
+  maxR.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR);  });
+  minRAllMat.setup([&]() { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minRAllMat); });
+  maxRAllMat.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxRAllMat); });
   maxModuleThickness.setup([&]() { return maxget2(m_zPlusModules.begin(), m_zPlusModules.end(), &DetectorModule::thickness); });
 }
 
@@ -161,7 +167,7 @@ void RodPairStraight::build()
     m_materialObject.store(propertyTree());
     m_materialObject.build();
 
-    logINFO(Form("Building %s protot // TODO: Put it to constructorype", fullid(*this).c_str()));
+    logINFO(Form("Building %s prototype", fullid(*this).c_str()));
     check();
 
     // Get module length from a tree
@@ -231,7 +237,7 @@ void RodPairStraight::build()
       int    targetMods = m_nModules;
       double targetZ    = m_outerZ;
       int    iIter      = 0;
-      while (iMod<=targetMods || abs(newZPos)<targetZ) {
+      while (iMod<=targetMods || (fabs(newZPos)+moduleLength()/2.)<targetZ) {
 
         iIter++;
         if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in positive Z, number of iterations exceeded allowed limit! Quitting!!!");
@@ -262,14 +268,14 @@ void RodPairStraight::build()
 
       //
       // Build modules in negative Z
-      targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : m_zPlusModules.size(); //m_nModules-1 : m_nModules;
+      targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : std::numeric_limits<int>::max(); // For module-edge option, number of negative modules given by balancing algorithm, i.e. by targetZ only
       parity     = -m_smallParity;
       iMod       = 1;
       newZPos    = (m_startZMode()==StartZMode::MODULECENTER) ? 0.0 : startZPos + moduleLength()/2. - zUnbalance;
       lastZPos   = newZPos;
       iIter      = 0;
       //std::cout << "TargeMods " << targetMods << std::endl;
-      while (iMod<=targetMods) {// || abs(newZPos)<targetZ) {
+      while (iMod<=targetMods && (fabs(newZPos)+moduleLength()/2.)<targetZ) {
 
         iIter++;
         if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in negative Z, number of iterations exceeded allowed limit! Quitting!!!");
@@ -309,7 +315,7 @@ void RodPairStraight::build()
         zUnbalance     = (maxZPls + minZMin)/2.; // balancing uneven pos/neg stringsdouble
 
         //std::cout << "Modules: " << m_zPlusModules.size() << " + " << m_zMinusModules.size() << std::endl;
-        //std::cout << ">Balancing +Z x -Z> " << maxZPls << " "<< minZMin << std::endl;
+        //if (this->myid()==1) std::cout << ">Balancing +Z x -Z> " << maxZPls << " "<< minZMin << " diff: " << zUnbalance << " " << startZPos << " " << startZPos + moduleLength()/2. - zUnbalance << std::endl;
       }
       else {
 

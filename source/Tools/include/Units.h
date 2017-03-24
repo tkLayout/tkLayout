@@ -38,7 +38,7 @@ namespace Units {
 
   static const float s   = 1.0;
 
-  static const int     b   = 1.0;
+  static const float   b   = 1.0;
   static const float   B   = 8.0;
   static const float   kb  = 1.0 * 1024;
   static const double  Mb  = 1.0 * 1024 * 1024;

@@ -5,84 +5,109 @@
  *      Author: smartina
  */
 
-
+// System include files
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
+
+// tkLayout include files
 #include "MaterialTab.h"
 #include "global_constants.h"
 #include "MainConfigHandler.h"
-#include <MessageLogger.h>
-#include <stdexcept>
+#include "MessageLogger.h"
+#include "Units.h"
 
-namespace material {
 
-  const std::string MaterialTab::msg_no_mat_file = "Material tab file does not exist.";
-  const std::string MaterialTab::msg_no_mat_file_entry1 = "Material '";
-  const std::string MaterialTab::msg_no_mat_file_entry2 = "' not found in Material tab file.";
+const std::string MaterialTab::msg_no_mat_file        = "Material tab file does not exist.";
+const std::string MaterialTab::msg_no_mat_file_entry1 = "Material '";
+const std::string MaterialTab::msg_no_mat_file_entry2 = "' not found in Material tab file.";
 
-  MaterialTab::MaterialTab() {
-    std::string mattabFile(MainConfigHandler::getInstance().getMattabDirectory() + "/" + default_mattabfile);
-    std::ifstream mattabStream(MainConfigHandler::getInstance().getMattabDirectory() + "/" + default_mattabfile);
-    std::string line;
-    std::string material;
-    std::istringstream lineStream;
-    double density, radiationLength, interactionLength;
+//
+// Singleton private constructor -> reads-in default file, where all materials are defined, converts quantities into tkLayout natural units
+//
+MaterialTab::MaterialTab()
+{
+  std::string mattabFile(MainConfigHandler::getInstance().getMattabDirectory() + "/" + default_mattabfile);
+  std::ifstream mattabStream(MainConfigHandler::getInstance().getMattabDirectory() + "/" + default_mattabfile);
+  std::string line;
+  std::string material;
+  std::istringstream lineStream;
 
-    if (mattabStream.good()) {
-      while (!mattabStream.eof()) {
-        std::getline(mattabStream, line);
-        lineStream.str(line);
-        lineStream >> material;
+  double density, radLength, intLength;
 
-        //check if is a comment
-        if (material[0] != '#') {
-          lineStream >> density >> radiationLength >> interactionLength;
-          density /= 1000; // convert g/cm3 in g/mm3
-          insert(make_pair(material, make_tuple(density, radiationLength, interactionLength)));
-        }
+  if (mattabStream.good()) {
 
-        lineStream.clear();
+    while (!mattabStream.eof()) {
+      std::getline(mattabStream, line);
+      lineStream.str(line);
+      lineStream >> material;
+
+      //check if is a comment
+      if (material[0] != '#') {
+        lineStream >> density >> radLength >> intLength;
+
+        // Convert to natural tkLayout units
+        density   *= Units::g/Units::cm3; // Quantities expected in g/cm3 on the input
+        radLength *= Units::g/Units::cm2; // Quantities expected in g/cm2 on the input
+        intLength *= Units::g/Units::cm2; // Quantities expected in g/cm2 on the input
+
+        insert(make_pair(material, make_tuple(density, radLength, intLength)));
       }
-    } else {
-      logERROR(msg_no_mat_file);
-    }
-  }
 
-  const MaterialTab& MaterialTab::instance() {
-    static MaterialTab instance_;
-    return instance_;
-  }
-
-  double MaterialTab::density(std::string material) const {
-    double val = 0;
-    try {
-      val = std::get<0>(at(material));
-    } catch (const std::out_of_range& ex) {
-      logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
-      val = -1;
+      lineStream.clear();
     }
-    return val;
+  } else {
+    logERROR(msg_no_mat_file);
   }
+}
 
-  double MaterialTab::radiationLength(std::string material) const {
-    double val = 0;
-    try {
-      val = std::get<1>(at(material));
-    } catch (const std::out_of_range& ex) {
-      logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
-      val = -1;
-    }
-    return val;
-  }
+//
+// Material access method -> get instance of singleton class SimParms
+//
+const MaterialTab& MaterialTab::getInstance() {
 
-  double MaterialTab::interactionLength(std::string material) const {
-    double val = 0;
-    try {
-      val = std::get<2>(at(material));
-    } catch (const std::out_of_range& ex) {
-      logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
-      val = -1;
-    }
-    return val;
+  static MaterialTab s_instance;
+  return s_instance;
+}
+
+//
+// Get material info - density
+//
+double MaterialTab::density(std::string material) const {
+  double val = 0;
+  try {
+    val = std::get<0>(at(material));
+  } catch (const std::out_of_range& ex) {
+    logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
+    val = -1;
   }
-} /* namespace material */
+  return val;
+}
+
+//
+// Get material info - rad. length
+//
+double MaterialTab::radiationLength(std::string material) const {
+  double val = 0;
+  try {
+    val = std::get<1>(at(material));
+  } catch (const std::out_of_range& ex) {
+    logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
+    val = -1;
+  }
+  return val;
+}
+
+//
+// Get material info - rad. length
+//
+double MaterialTab::interactionLength(std::string material) const {
+  double val = 0;
+  try {
+    val = std::get<2>(at(material));
+  } catch (const std::out_of_range& ex) {
+    logERROR(msg_no_mat_file_entry1 + material + msg_no_mat_file_entry2);
+    val = -1;
+  }
+  return val;
+}

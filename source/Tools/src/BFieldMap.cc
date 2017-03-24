@@ -12,6 +12,7 @@
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TArrow.h"
+#include "TList.h"
 
 BFieldMap::BFieldMap(std::string bFieldMapFile) :
       m_fileName(bFieldMapFile),
@@ -500,11 +501,12 @@ std::vector<double> BFieldMap::calculateBField(double xPos, double yPos, double 
   return bField;
 }
 
-bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ)
+bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ)
 {
-  if (xzCanvas!=nullptr && m_bFieldOK) {
 
-    xzCanvas->cd();
+  if (m_bFieldOK) {
+
+    xzCanvas.cd();
 
     maxX = ceil((maxX - m_xMin)/m_xBinWidth)*m_xBinWidth + m_xMin;
     maxZ = ceil((maxZ - m_zMin)/m_zBinWidth)*m_zBinWidth + m_zMin;
@@ -544,6 +546,7 @@ bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double min
 
     // Draw histogram
     TH2D* his = new TH2D(name.c_str(), std::string("XZ view of B field ["+m_dataUnit+"] (Y=0)").c_str(), nBinsZ, 0, maxZ, nBinsX, 0, maxX);
+    his->SetStats(kFALSE);
     his->Draw("COLZ");
 
     // Get min & max values
@@ -607,16 +610,17 @@ bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double min
     his->GetXaxis()->SetTitleOffset(1.2);
     his->GetYaxis()->SetTitle(std::string("X ["+m_xUnit+"]").c_str());
     his->GetYaxis()->SetTitleOffset(1.2);
+
     return true;
   }
   else return false;
 }
 
-bool BFieldMap::drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ)
+bool BFieldMap::drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ)
 {
-  if (yzCanvas!=nullptr && m_bFieldOK) {
+  if (m_bFieldOK) {
 
-    yzCanvas->cd();
+    yzCanvas.cd();
 
     maxY = ceil((maxY - m_yMin)/m_yBinWidth)*m_yBinWidth + m_yMin;
     maxZ = ceil((maxZ - m_zMin)/m_zBinWidth)*m_zBinWidth + m_zMin;
@@ -652,6 +656,7 @@ bool BFieldMap::drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double min
 
     // Draw histogram
     TH2D* his = new TH2D(name.c_str(), std::string("YZ view of B field ["+m_dataUnit+"] (X=0)").c_str(), nBinsZ, 0, maxZ, nBinsY, 0, maxY);
+    his->SetStats(kFALSE);
     his->Draw("COLZ");
 
     // Get min & max values

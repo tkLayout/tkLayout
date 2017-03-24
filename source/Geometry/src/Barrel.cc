@@ -4,8 +4,6 @@
 #include "MessageLogger.h"
 #include "SupportStructure.h"
 
-using material::SupportStructure;
-
 //
 // Constructor - parse geometry config file using boost property tree & read-in Layer, Support nodes
 //
@@ -84,10 +82,12 @@ void Barrel::build()
 //
 void Barrel::setup()
 {
-  maxR.setup([&]() { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxR()); } return max; });
-  minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); } return min; });
-  maxZ.setup([&]() { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); } return max; });
-  minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); } return min; });
+  maxR.setup([&]()       { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxR()); }       return max; });
+  minR.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); }       return min; });
+  maxRAllMat.setup([&]() { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxRAllMat()); } return max; });
+  minRAllMat.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minRAllMat()); } return min; });
+  maxZ.setup([&]()       { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); }       return max; });
+  minZ.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); }       return min; });
 }
 
 //
@@ -100,12 +100,21 @@ void Barrel::check() {
 }
 
 //
+// Add barrel service line
+//
+void Barrel::addServiceLine(InactiveElement* service)
+{
+  m_services.push_back(service);
+}
+
+//
 // GeometryVisitor pattern -> barrel visitable
 //
 void Barrel::accept(GeometryVisitor& v)
 {
   v.visit(*this);
   for (auto& l : m_layers) { l.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -115,4 +124,5 @@ void Barrel::accept(ConstGeometryVisitor& v) const
 {
   v.visit(*this);
   for (const auto& l : m_layers) { l.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }

@@ -68,7 +68,7 @@ void IrradiationMap::ingest(std::string fileName) {
       line.erase(0,comp_dataUnit.length());
       m_dataUnit = line;
       m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscLine.c_str() ), m_dataUnit.end());
-      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscSpace.c_str()), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), ' '), m_dataUnit.end());
       m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscValue.c_str()), m_dataUnit.end());
       continue;
     }
@@ -77,7 +77,7 @@ void IrradiationMap::ingest(std::string fileName) {
       line.erase(0,comp_rUnit.length());
       m_rUnit = line;
       m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscLine.c_str() ), m_rUnit.end());
-      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscSpace.c_str()), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), ' '), m_rUnit.end());
       m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscValue.c_str()), m_rUnit.end());
       continue;
     }
@@ -114,7 +114,7 @@ void IrradiationMap::ingest(std::string fileName) {
       line.erase(0,comp_zUnit.length());
       m_zUnit = line;
       m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscLine.c_str() ), m_zUnit.end());
-      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscSpace.c_str()), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), ' '), m_zUnit.end());
       m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscValue.c_str()), m_zUnit.end());
       continue;
     }

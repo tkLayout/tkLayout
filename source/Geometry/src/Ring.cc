@@ -9,10 +9,10 @@ define_enum_strings(BuildDirection) = { "topdown", "bottomup" };
 Ring::Ring(int id, BuildDirection direction, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
       m_materialObject(MaterialObject::ROD),
       m_moduleShape           ("moduleShape"           , parsedAndChecked()),
-      m_phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
+      phiOverlap              ("phiOverlap"            , parsedOnly(), 1.),
       m_buildDirection        ("buildDirection"        , parsedOnly(), direction),
       m_requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
-      m_phiSegments           ("phiSegments"           , parsedOnly(), 4),
+      phiSegments             ("phiSegments"           , parsedOnly(), 4),
       m_additionalModules     ("additionalModules"     , parsedOnly(), 0),
       m_alignEdges            ("alignEdges"            , parsedOnly(), true),
       m_ringGap               ("ringGap"               , parsedOnly(), 0.),
@@ -64,10 +64,12 @@ void Ring::build(double ringRadius, double ringOffset) {
 //
 void Ring::setup() {
 
-  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZ()); return min; });
-  maxZ.setup([this]() { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZ()); return max; });
-  minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minR()); return min; });
-  maxR.setup([this]() { double max = 0;                                  for (const auto& m : m_modules) max = MAX(max, m.maxR()); return max; });
+  minZ.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZ()); return min; });
+  maxZ.setup([this]()       { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZ()); return max; });
+  minZAllMat.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minZAllMat()); return min; });
+  maxZAllMat.setup([this]() { double max = -std::numeric_limits<double>::max();for (const auto& m : m_modules) max = MAX(max, m.maxZAllMat()); return max; });
+  minR.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& m : m_modules) min = MIN(min, m.minR()); return min; });
+  maxR.setup([this]()       { double max = 0;                                  for (const auto& m : m_modules) max = MAX(max, m.maxR()); return max; });
 
   maxModuleThickness.setup([this]() {
     double max = 0;
@@ -190,6 +192,10 @@ void Ring::buildBottomUp(double radius) {
   emod->build();
   emod->translate(XYZVector(startRadius + modLength/2, 0, 0));
 
+  // Update ring inner/outer radius
+  ringInnerRadius(radius);
+  ringOuterRadius(radius + modLength);
+
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
   buildModules(emod, numMods, smallDelta());
@@ -222,6 +228,10 @@ void Ring::buildTopDown(double radius) {
   EndcapModule* emod = GeometryFactory::make<EndcapModule>(1, rmod, propertyTree());
   emod->build();
   emod->translate(XYZVector(startRadius - rmod->length()/2, 0, 0));
+
+  // Update ring inner/outer radius
+  ringOuterRadius(radius);
+  ringInnerRadius(radius + rmod->length());
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
@@ -305,12 +315,12 @@ double Ring::computeTentativePhiAperture(double moduleWaferDiameter, double minR
 // Helper method computing ring optimal parameters when wedge-shaped modules used
 //
 std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius) {
-  double delta = m_phiOverlap()/minRadius;// SM: The needed overlap becomes an angle delta by
+  double delta = phiOverlap()/minRadius;// SM: The needed overlap becomes an angle delta by
   //     checking the unsafest point (r=r_min)
 
   double tentativeAlpha   = computeTentativePhiAperture(moduleWaferDiameter, minRadius) - delta;
   float  tentativeNumMods = 2*M_PI / tentativeAlpha;
-  int    optimalNumMods   = (!m_requireOddModsPerSlice()? round(tentativeNumMods/m_phiSegments() + m_additionalModules()) : roundToOdd(tentativeNumMods/m_phiSegments()) + m_additionalModules()) * m_phiSegments();
+  int    optimalNumMods   = (!m_requireOddModsPerSlice()? round(tentativeNumMods/phiSegments() + m_additionalModules()) : roundToOdd(tentativeNumMods/phiSegments()) + m_additionalModules()) * phiSegments();
   float  optimalAlpha     = 2*M_PI/optimalNumMods + delta;
 
   return std::make_pair(optimalAlpha, optimalNumMods);
@@ -321,13 +331,13 @@ std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWafe
 //
 std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius) {
 
-  double delta            = m_phiOverlap()/maxRadius;
+  double delta            = phiOverlap()/maxRadius;
   double optimalAlpha     = 2*asin(moduleWidth/2. / maxRadius) - delta;
   double tentativeNumMods = 2*M_PI/optimalAlpha;
-  int modsPerSlice        = ceil(tentativeNumMods/m_phiSegments());
+  int modsPerSlice        = ceil(tentativeNumMods/phiSegments());
 
   if ((modsPerSlice % 2) == 0 && m_requireOddModsPerSlice()) modsPerSlice++;
-  int optimalNumMods = modsPerSlice * m_phiSegments();
+  int optimalNumMods = modsPerSlice * phiSegments();
 
   return std::make_pair(optimalAlpha, optimalNumMods);
 }

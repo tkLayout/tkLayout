@@ -16,6 +16,8 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  maxZ           (string("maxZ")              ),
  minR           (string("minR")              ),
  maxR           (string("maxR")              ),
+ minRAllMat     (string("minRAllMat")        ),
+ maxRAllMat     (string("maxRAllMat")        ),
  buildNumModules(       "numModules"         , parsedOnly()),
  outerZ         (       "outerZ"             , parsedOnly()),
  radiusMode     (       "radiusMode"         , parsedAndChecked(), RadiusMode::AUTO),
@@ -24,12 +26,13 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  sameParityRods (       "sameParityRods"     , parsedAndChecked(), true),
  layerRotation  (       "layerRotation"      , parsedOnly()      , 0.),
  tiltedLayerSpecFile(   "tiltedLayerSpecFile", parsedOnly()),
- m_smallDelta   (       "smallDelta"         , parsedAndChecked()),
+ smallDelta     (       "smallDelta"         , parsedAndChecked()),
  m_smallParity  (       "smallParity"        , parsedAndChecked(),-1),
- m_bigDelta     (       "bigDelta"           , parsedAndChecked()),
+ bigDelta       (       "bigDelta"           , parsedAndChecked()),
  m_bigParity    (       "bigParity"          , parsedOnly()      ,-1),
- m_phiOverlap   (       "phiOverlap"         , parsedAndChecked(), 1.),
- m_phiSegments  (       "phiSegments"        , parsedAndChecked(), 4),
+ phiOverlap     (       "phiOverlap"         , parsedAndChecked(), 1.),
+ phiSegments    (       "phiSegments"        , parsedAndChecked(), 4),
+ m_useMinMaxRCorrect(   "useMinMaxRCorrect"  , parsedAndChecked(), true),
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
  m_materialObject(MaterialObject::LAYER),
@@ -49,8 +52,8 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
   this->layerRotation(layerRotation()+barrelRotation);
 
   // Set radius mode if not default value set or not defined from barrel level
-  if ( (myid()==1)               && barrelMinRFixed ) this->radiusMode(RadiusMode::FIXED);
-  if ( (myid()==barrelNumLayers) && barrelMaxRFixed ) this->radiusMode(RadiusMode::FIXED);
+  if ( (myid()==1)               && barrelMinRFixed) this->radiusMode(RadiusMode::FIXED);
+  if ( (myid()==barrelNumLayers) && barrelMaxRFixed) this->radiusMode(RadiusMode::FIXED);
 }
 
 //
@@ -72,9 +75,9 @@ void Layer::check()
   if      (buildNumModules()>0  &&  outerZ.state()) throw PathfulException("Only one between numModules and outerZ can be specified");
   else if (buildNumModules()==0 && !outerZ.state()) throw PathfulException("At least one between numModules and outerZ must be specified");
 
-  if (m_bigDelta()  <0)            throw PathfulException("Big delta parameter must be positive!");
-  if (m_smallDelta()<0)            throw PathfulException("Small delta parameter must be positive!");
-  if (m_bigDelta()<m_smallDelta()) throw PathfulException("Big delta parameter is expected to be bigger in size than small delta parameter!");
+  if (bigDelta()  <0)            throw PathfulException("Big delta parameter must be positive!");
+  if (smallDelta()<0)            throw PathfulException("Small delta parameter must be positive!");
+  if (bigDelta()<smallDelta()) throw PathfulException("Big delta parameter is expected to be bigger in size than small delta parameter!");
 }
 
 //
@@ -129,6 +132,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   // Optimization algorithm
 
   // Calculate minimum/maximum R boundary taking into account modules layout (+/-bigDelta +-smallDelta +-dsDistance)
+  // TODO: Still not taking into account all materials, just the active thickness, not the passive
   ReadonlyProperty<double, NoDefault> moduleWidth( "width", parsedOnly());
   evaluateProperty(moduleWidth);
   ReadonlyProperty<double, Default> maxDsDistance( "dsDistance", parsedOnly(), 0.0);
@@ -136,9 +140,15 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   ReadonlyProperty<double, Default> sensorThickness( "sensorThickness", parsedOnly(), 0.1);
   evaluateProperty(sensorThickness);
 
-  double updatedMinR = barrelMinR + m_bigDelta() + m_smallDelta() + maxDsDistance()/2. + sensorThickness()/2.;
-  double updatedMaxR = barrelMaxR - m_bigDelta() - m_smallDelta() - maxDsDistance()/2. - sensorThickness()/2.;
+  double updatedMinR = barrelMinR + bigDelta() + smallDelta() + maxDsDistance()/2. + sensorThickness()/2.;
+  double updatedMaxR = barrelMaxR - bigDelta() - smallDelta() - maxDsDistance()/2. - sensorThickness()/2.;
          updatedMaxR = sqrt(updatedMaxR*updatedMaxR - moduleWidth()/2.*moduleWidth()/2.); // Need to take the outer envelope, i.e. the module width into account
+
+  // For backwards compatibility with older versions of sofware
+  if (!m_useMinMaxRCorrect()) {
+    updatedMinR = barrelMinR;
+    updatedMaxR = barrelMaxR;
+  }
 
   // Calculate expected radius
   double layerRadius = 0;
@@ -159,9 +169,9 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
   //
   // Calculate optimal layer parameters: pessimistic scenario is with bigDelta + smallDelta + dsDistance versus -bigDelta + smallDelta + dsDistance (with -smallDelta it's always better)
-  float halfWidthWoOverlap = moduleWidth()/2 - m_phiOverlap()/2;
-  float gamma              = atan(halfWidthWoOverlap/(requestedAvgRadius() + m_bigDelta() + m_smallDelta() + maxDsDistance()/2)) + atan(halfWidthWoOverlap/(requestedAvgRadius() - m_bigDelta() + m_smallDelta() + maxDsDistance()/2));
-  float modsPerSegment     = 2*M_PI/(gamma * m_phiSegments());
+  float halfWidthWoOverlap = moduleWidth()/2 - phiOverlap()/2;
+  float gamma              = atan(halfWidthWoOverlap/(requestedAvgRadius() + bigDelta() + smallDelta() + maxDsDistance()/2)) + atan(halfWidthWoOverlap/(requestedAvgRadius() - bigDelta() + smallDelta() + maxDsDistance()/2));
+  float modsPerSegment     = 2*M_PI/(gamma * phiSegments());
 
   float optimalRadius;
   int   optimalModsPerSegment;
@@ -169,11 +179,11 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   switch (radiusMode()) {
   case SHRINK:
     optimalModsPerSegment = floor(modsPerSegment);
-    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*m_phiSegments(), m_bigDelta(), m_smallDelta(), maxDsDistance(), moduleWidth(), m_phiOverlap());
+    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
     break;
   case ENLARGE:
     optimalModsPerSegment = ceil(modsPerSegment);
-    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*m_phiSegments(), m_bigDelta(), m_smallDelta(), maxDsDistance(), moduleWidth(), m_phiOverlap());
+    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
     break;
   case FIXED:
     optimalModsPerSegment = ceil(modsPerSegment);
@@ -182,8 +192,8 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   case AUTO: {
     int modsPerSegLo = floor(modsPerSegment);
     int modsPerSegHi = ceil(modsPerSegment);
-    float radiusLo   = calculateOptimalRadius(modsPerSegLo*m_phiSegments(), m_bigDelta(), m_smallDelta(), maxDsDistance(), moduleWidth(), m_phiOverlap());
-    float radiusHi   = calculateOptimalRadius(modsPerSegHi*m_phiSegments(), m_bigDelta(), m_smallDelta(), maxDsDistance(), moduleWidth(), m_phiOverlap());
+    float radiusLo   = calculateOptimalRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+    float radiusHi   = calculateOptimalRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
 
     if (fabs(radiusHi - requestedAvgRadius()) < fabs(radiusLo - requestedAvgRadius())) {
       optimalRadius         = radiusHi;
@@ -203,7 +213,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   // Set rod properties
   avgBuildRadius(optimalRadius);
 
-  int   optimalNumRods = optimalModsPerSegment*m_phiSegments();
+  int   optimalNumRods = optimalModsPerSegment*phiSegments();
   float rodPhiRotation = 2*M_PI/optimalNumRods;
 
   // Rod pair corresponds to an odd/even rod (shifted by bigDelta & rotated by rod phi rotation angle - given by total number of rods in a layer).
@@ -217,13 +227,13 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   double maxRadius = 0.;
   if (m_sameRods) {
 
-    minRadius = updatedMinR - m_bigDelta();
-    maxRadius = updatedMaxR + m_bigDelta();
+    minRadius = updatedMinR - bigDelta();
+    maxRadius = updatedMaxR + bigDelta();
   }
   // Not same rods -> extreme given by optimal radius +-bigDelta
   else {
-    minRadius = optimalRadius - m_bigDelta();
-    maxRadius = optimalRadius + m_bigDelta();
+    minRadius = optimalRadius - bigDelta();
+    maxRadius = optimalRadius + bigDelta();
   }
 
   for (int i=1; i<=optimalNumRods; i++) {
@@ -242,8 +252,8 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
       RodPairStraight* rod = nullptr;
 
-      if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
-      else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
+      if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, buildNumModules(), propertyTree());
+      else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, outerZ(), propertyTree());
       rod->build();
       firstRod = rod;
 
@@ -256,7 +266,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       if (m_sameRods || sameParityRods()) {
 
         RodPair* rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
-        rod->buildClone(2, 2*m_bigDelta()*bigParity, rodPhiRotation);
+        rod->buildClone(2, 2*bigDelta()*bigParity, rodPhiRotation);
 
         m_rods.push_back(rod);
       }
@@ -264,8 +274,8 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
         RodPairStraight* rod = nullptr;
 
-        if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
-        else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
+        if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, buildNumModules(), propertyTree());
+        else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, bigDelta(), bigParity, smallDelta(), smallParity, outerZ(), propertyTree());
         rod->build();
         secondRod = rod;
 
@@ -301,7 +311,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
         // Clone odd to even -> Rotation with respect to first rod, shift by 2*bigDelta
         else  {
           rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
-          rod->buildClone(i, 2*m_bigDelta()*bigParity, rodPhiRotation*(i-1));
+          rod->buildClone(i, 2*bigDelta()*bigParity, rodPhiRotation*(i-1));
         }
 
         m_rods.push_back(rod);
@@ -315,10 +325,12 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 //
 void Layer::setup()
 {
-  maxZ.setup([&]() { return m_rods.front().maxZ(); });
-  minZ.setup([&]() { return m_rods.front().minZ(); });
-  maxR.setup([&]() { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxR()); } return max; });
-  minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minR()); } return min; });
+  maxZ.setup([&]()       { if (m_rods.size()>0) return m_rods.front().maxZ(); else return 0.0; });
+  minZ.setup([&]()       { if (m_rods.size()>0) return m_rods.front().minZ(); else return 0.0; });
+  maxR.setup([&]()       { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxR()); } return max; });
+  minR.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minR()); } return min; });
+  maxRAllMat.setup([&]() { double max = 0;                                  for (const auto& r : m_rods) { max = MAX(max, r.maxRAllMat()); } return max; });
+  minRAllMat.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& r : m_rods) { min = MIN(min, r.minRAllMat()); } return min; });
 }
 
 //

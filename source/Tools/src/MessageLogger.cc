@@ -12,15 +12,12 @@ std::vector<LogMessage> MessageLogger::s_logMessages;
 int                     MessageLogger::s_messageCounter[NumberOfLevels];
 
 //
-// Static instance of this class
-//
-MessageLogger* MessageLogger::s_instance = nullptr;
-
-//
 // Message logger access method -> get instance of singleton class Message logger
 //
-MessageLogger* MessageLogger::getInstance() {
-  return s_instance ? s_instance : (s_instance = new MessageLogger);
+MessageLogger& MessageLogger::getInstance() {
+
+  static MessageLogger s_instance;
+  return s_instance;
 }
 
 //

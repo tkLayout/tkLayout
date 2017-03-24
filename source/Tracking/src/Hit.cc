@@ -5,14 +5,18 @@
 
 #include "Hit.h"
 
-#include "Track.h"
-//#include "module.hh"
 #include <global_constants.h>
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
 
-using namespace ROOT::Math;
+#include "DetectorModule.h"
+#include "InactiveElement.h"
+#include "MessageLogger.h"
+#include "SimParms.h"
+#include "Track.h"
+
+//using namespace ROOT::Math;
 using namespace std;
 
 // bool Track::debugRemoval = false; // debug
@@ -23,14 +27,20 @@ using namespace std;
 //#endif
 
 /**
- * This is a comparator for two Hit objects.
+ * This is a comparator for two Hit objects based on smaller radius.
  * @param h1 A pointer to the first hit
  * @param h2 A pointer to the second hit
  * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
  */
-bool sortSmallerR(Hit* h1, Hit* h2) {
-    return (h1->getDistance() < h2->getDistance());
-}
+bool Hit::sortSmallerR(const HitPtr& h1, const HitPtr& h2) { return (h1->getRPos() < h2->getRPos()); }
+
+/**
+ * This is a comparator for two Hit objects based on higher radius
+ * @param h1 A pointer to the first hit
+ * @param h2 A pointer to the second hit
+ * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
+ */
+bool Hit::sortHigherR(const HitPtr& h1, const HitPtr& h2) { return (h1->getRPos() > h2->getRPos()); }
 
 /**
  * Nothing to do for the destructor, as a hit never owns any objects it has pointers to...
@@ -41,18 +51,22 @@ Hit::~Hit() {}
  * The default constructor sets the internal parameters to default values.
  */
 Hit::Hit() {
-    distance_   = 0;
-    radius_     = 0;
-    objectKind_ = Undefined;
-    hitModule_  = NULL;
-    orientation_= Undefined;
-    myTrack_    = NULL;
-    isPixel_    = false;
-    isTrigger_  = false;
-    isIP_       = false;
-    myResolutionRphi_ = 0;
-    myResolutionY_    = 0;
-    activeHitType_    = HitType::NONE;
+    m_detName          = "Undefined";
+    m_distance         = 0;
+    m_rPos             = 0;
+    m_zPos             = 0;
+    m_activity         = HitActivity::Undefined;
+    m_activeHitType    = HitType::NONE;
+    m_hitModule        = nullptr;
+    m_track            = nullptr;
+    m_isTrigger        = false;
+    m_passiveHitType   = HitPassiveType::Undefined;
+    m_hitPassiveElem   = nullptr;
+    m_isPixel          = false;
+    m_layerID          = -1;
+    m_discID           = -1;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
 }
 
 /**
@@ -60,52 +74,74 @@ Hit::Hit() {
  * be set explicitly later). The pointer to the module, on the other hand, stays the same as that of the original.
  */
 Hit::Hit(const Hit& h) {
-    distance_    = h.distance_;
-    radius_      = h.radius_;
-    orientation_ = h.orientation_;
-    objectKind_  = h.objectKind_;
-    hitModule_   = h.hitModule_;
-    correctedMaterial_ = h.correctedMaterial_;
-    myTrack_     = NULL;
-    isPixel_     = h.isPixel_;
-    isTrigger_   = h.isTrigger_;
-    isIP_        = h.isIP_;
-    myResolutionRphi_ = h.myResolutionRphi_;
-    myResolutionY_    = h.myResolutionY_;
-    activeHitType_    = h.activeHitType_;
+    m_detName           = h.m_detName;
+    m_distance          = h.m_distance;
+    m_rPos              = h.m_rPos;
+    m_zPos              = h.m_zPos;
+    m_activity          = h.m_activity;
+    m_activeHitType     = h.m_activeHitType;
+    m_hitModule         = h.m_hitModule;
+    m_track             = nullptr;
+    m_correctedMaterial = h.m_correctedMaterial;
+    m_isTrigger         = h.m_isTrigger;
+    m_passiveHitType    = h.m_passiveHitType;
+    m_hitPassiveElem    = h.m_hitPassiveElem;
+    m_isPixel           = h.m_isPixel;
+    m_layerID           = h.m_layerID;
+    m_discID            = h.m_discID;
+    m_resolutionRPhi    = h.m_resolutionRPhi;
+    m_resolutionZ       = h.m_resolutionZ;
 }
 
-/**
- * Constructor for a hit with no module at a given distance from the origin
- * @param myDistance distance from the origin
+/*
+ * Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
  */
-Hit::Hit(double myDistance) {
-    distance_    = myDistance;
-    objectKind_  = Undefined;
-    hitModule_   = NULL;
-    orientation_ = Undefined;
-    isTrigger_   = false;
-    isPixel_     = false;
-    isIP_        = false;
-    myTrack_     = NULL;
-    activeHitType_ = HitType::NONE;
+Hit::Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType) {
+    m_detName           = "Undefined";
+    m_distance          = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos              = rPos;
+    m_zPos              = zPos;
+    m_activity          = HitActivity::Inactive;
+    m_activeHitType     = HitType::NONE;
+    m_hitModule         = nullptr;
+    m_track             = nullptr;
+    m_isTrigger         = false;
+    m_passiveHitType    = passiveHitType;
+    setHitPassiveElement(myPassiveElem);
+    m_isPixel           = false;
+    m_layerID           = -1;
+    m_discID            = -1;
+    m_resolutionRPhi    = 0;
+    m_resolutionZ       = 0;
+
+    if (m_passiveHitType==HitPassiveType::BeamPipe) m_detName = "BeamPipe";
+    if (m_passiveHitType==HitPassiveType::IP)       m_detName = "IP";
+    if (m_passiveHitType==HitPassiveType::Support)  m_detName = "Support";
+    if (m_passiveHitType==HitPassiveType::Service)  m_detName = "Service";
 }
 
+
 /**
- * Constructor for a hit on a given module at a given distance from the origin
- * @param myDistance distance from the origin
+ * //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
  * @param myModule pointer to the module with the hit 
  */
-Hit::Hit(double myDistance, DetectorModule* myModule, HitType activeHitType) {
-    distance_    = myDistance;
-    objectKind_  = Active;
-    orientation_ = Undefined; 
-    isTrigger_   = false;
-    isPixel_     = false;
-    isIP_        = false;
+Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+    m_detName          = "Undefined";
+    m_distance         = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos             = rPos;
+    m_zPos             = zPos;
+    m_activity         = HitActivity::Active;
+    m_activeHitType    = activeHitType;
     setHitModule(myModule);
-    myTrack_       = NULL;
-    activeHitType_ = activeHitType;
+    m_track            = nullptr;
+    m_isTrigger        = false;
+    m_passiveHitType   = HitPassiveType::Undefined;
+    m_hitPassiveElem   = nullptr;
+    m_isPixel          = false;
+    m_layerID          = -1;
+    m_discID           = -1;
+    m_resolutionRPhi   = 0;
+    m_resolutionZ      = 0;
 }
 
 
@@ -113,15 +149,19 @@ Hit::Hit(double myDistance, DetectorModule* myModule, HitType activeHitType) {
  * Setter for the pointer to the active surface that caused the hit.
  * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
  */
-void Hit::setHitModule(DetectorModule* myModule) {
-    if (myModule) {
-        hitModule_ = myModule;
-        if (myModule->subdet() == BARREL) {
-            orientation_ = Horizontal;
-        } else {
-            orientation_ = Vertical;
-        }
-    }
+void Hit::setHitModule(const DetectorModule* myModule) {
+
+  if (myModule) m_hitModule = myModule;
+  else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
+}
+
+/*
+ * Setter for the pointer to the inactive surface that caused the hit.
+ */
+void Hit::setHitPassiveElement(const insur::InactiveElement* myPassiveElem) {
+
+  if (myPassiveElem) m_hitPassiveElem = myPassiveElem;
+  //else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");
 }
 
 /**
@@ -129,8 +169,13 @@ void Hit::setHitModule(DetectorModule* myModule) {
  * @return The angle from the z-axis of the entire track
  */
 double Hit::getTrackTheta() {
-    if (myTrack_==NULL) return 0;
-    return (myTrack_->getTheta());
+
+  if (m_track==nullptr) {
+
+    logWARNING("Hit::getTrackTheta -> no track assigned, will return zero!");
+    return 0;
+  }
+  return (m_track->getTheta());
 };
 
 /**
@@ -138,7 +183,7 @@ double Hit::getTrackTheta() {
  * @return A copy of the pair containing the requested values; radiation length first, interaction length second
  */
 RILength Hit::getCorrectedMaterial() {
-    return correctedMaterial_;
+    return m_correctedMaterial;
 }
 
 /**
@@ -149,18 +194,39 @@ RILength Hit::getCorrectedMaterial() {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionRphi(double trackR) {
-  if (objectKind_!=Active) {
-    std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
+double Hit::getResolutionRphi(double trackRadius) {
+
+  if (!(this->isActive())) {
+
+    logERROR("Hit::getResolutionRphi called on a non-active hit");
     return -1;
-  } else {
-    if (hitModule_) {
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR);
-     // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
-     // else return hitModule_->resolutionRPhi();
-    } else {
-      return myResolutionRphi_;
+  }
+  else {
+
+    // Module hit
+    if (m_hitModule) {
+
+      // R-Phi-resolution calculated as for a barrel-type module -> transform local R-Phi res. to a true module orientation (rotation by theta angle, skew, tilt)
+      // In detail, take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+      // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+      // approach as for local resolutions)
+      // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+      // (hence correction not applied in such case)
+      double A = 0;
+      if (SimParms::getInstance().isMagFieldConst()) A = getRPos()/(2*trackRadius); // r_i / 2R
+      double B         = A/sqrt(1-A*A);
+      double tiltAngle = m_hitModule->tiltAngle();
+      double skewAngle = m_hitModule->skewAngle();
+      double resLocalX = m_hitModule->resolutionLocalX();
+      double resLocalY = m_hitModule->resolutionLocalY();
+
+      // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+      double resolutionRPhi = sqrt(pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resLocalX,2) + pow(B*sin(tiltAngle) * resLocalY,2));
+
+      return resolutionRPhi;
     }
+    // IP or beam-constraint etc. hit
+    else return m_resolutionRPhi;
   }
 }
 
@@ -173,18 +239,47 @@ double Hit::getResolutionRphi(double trackR) {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionZ(double trackR) {
-  if (objectKind_!=Active) {
-    std::cerr << "ERROR: Hit::getResolutionZ called on a non-active hit" << std::endl;
+double Hit::getResolutionZ(double trackRadius) {
+
+  if (!(this->isActive())) {
+
+    logERROR("Hit::getResolutionZ called on a non-active hit");
     return -1;
-  } else {
-    if (hitModule_) {
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta());
-      //if (isTrigger_) return hitModule_->resolutionYTrigger();
-      //else return hitModule_->resolutionY();
-    } else {
-      return myResolutionY_;
+  }
+  else {
+
+    // Module hit
+    if (m_hitModule) {
+
+      if (m_track==nullptr) {
+
+        logWARNING("Hit::getResolutionZ -> no track assigned, will return zero!");
+        return 0;
+      }
+      else {
+
+        // Z-resolution calculated as for a barrel-type module -> transform local Z res. to a true module orientation (rotation by theta angle, skew, tilt)
+        // In detail, take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
+        // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
+        // approach as for local resolutions)
+        // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
+        // (hence correction not applied in such case)
+        double A = 0;
+        if (SimParms::getInstance().isMagFieldConst()) A = getRPos()/(2*trackRadius);
+        double D         = m_track->getCotgTheta()/sqrt(1-A*A);
+        double tiltAngle = m_hitModule->tiltAngle();
+        double skewAngle = m_hitModule->skewAngle();
+        double resLocalX = m_hitModule->resolutionLocalX();
+        double resLocalY = m_hitModule->resolutionLocalY();
+
+        // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+        double resolutionZ = sqrt(pow(((D*cos(tiltAngle) + sin(tiltAngle))*sin(skewAngle)) * resLocalX,2) + pow((D*sin(tiltAngle) + cos(tiltAngle)) * resLocalY,2));
+
+        return resolutionZ;
+      }
     }
+    // IP or beam-constraint etc. hit
+    else return m_resolutionZ;
   }
 }
 
@@ -194,19 +289,24 @@ double Hit::getResolutionZ(double trackR) {
  * @return true if the module is in outer endcap and square
  */
 bool Hit::isSquareEndcap() {
-  bool result = false;
-  if (isPixel_) return false;
+
   //std::cout << "Hit::isSquareEndcap() "; //debug
-  if (hitModule_) {
+
+  if (m_hitModule) {
     //std::cout << " hitModule_!= NULL "; //debug
-    if (hitModule_->subdet() == ENDCAP && hitModule_->shape() == RECTANGULAR) {
+    if (m_hitModule->subdet() == ENDCAP && m_hitModule->shape() == RECTANGULAR) {
       //std::cout << " getSubdetectorType()==Endcap "; //debug
        //std::cout << " getShape()==Rectangular "; //debug
-       result = true;
+       return true;
     }
   }
   //std::cout << std::endl; // debug
-  return result;
+  return false;
+}
+
+bool Hit::isStub() const
+{
+  return m_activeHitType == HitType::STUB;
 }
 
 /*
@@ -215,16 +315,21 @@ bool Hit::isSquareEndcap() {
  * @return Modules half width
  */
 double Hit::getD() {
+
   double result = 0;
   //std::cout << "Hit::getD() "; //debug
-  if (hitModule_) {
+  if (m_hitModule) {
     //std::cout << " hitModule_!= NULL "; //debug
-    EndcapModule* myECModule = hitModule_->as<EndcapModule>();
-    if (myECModule) {
-      //std::cout << " myECModule!= NULL "; //debug
-      result = (myECModule->minWidth() + myECModule->maxWidth()) / 2. / 2.;
-      //std::cout << " result = " << result; //debug
+    try {
+
+      const EndcapModule* myECModule = dynamic_cast<const EndcapModule*>(m_hitModule);//->as<EndcapModule>();
+      if (myECModule) {
+        //std::cout << " myECModule!= NULL "; //debug
+        result = (myECModule->minWidth() + myECModule->maxWidth()) / 2. / 2.;
+        //std::cout << " result = " << result; //debug
+      }
     }
+    catch (exception& e) {}
   }
   //std::cout << std::endl; // debug
   return result;

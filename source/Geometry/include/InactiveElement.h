@@ -36,7 +36,7 @@ namespace insur {
     virtual double getSurface() const;
     bool isVertical() const;
     void setVertical(bool vertical);
-    bool isFinal();
+    bool isFinal() const;
     void setFinal(bool final);
     double getZOffset() const;
     void setZOffset(double zoffset);
@@ -48,12 +48,12 @@ namespace insur {
     void setRWidth(double width);
     virtual double getLength() const;
     double getVolume() const;
-    int getFeederIndex();
+    int getFeederIndex() const;
     void setFeederIndex(int layer);
-    InType getFeederType();
+    InType getFeederType() const;
     void setFeederType(InType type);
-    int getNeighbourIndex();
-    InType getNeighbourType();
+    int getNeighbourIndex() const;
+    InType getNeighbourType() const;
     void setNeighbourType(InType type);
     void setNeighbourIndex(int previous);
     void setTotalMass(double mass);
@@ -61,7 +61,7 @@ namespace insur {
     void setExitingMass(double mass);
     void setRadiationLength(double rlength);
     void setInteractionLength(double ilength);
-    std::pair<double, double> getEtaMinMax();
+    std::pair<double, double> getEtaMinMax() const;
     virtual void print();
   protected:
     bool is_vertical, is_final;

@@ -1,24 +1,20 @@
 #ifndef INCLUDE_ENDCAP_H_
 #define INCLUDE_ENDCAP_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
+#include "Disk.h"
 #include "Property.h"
 #include "Visitable.h"
 
-#include "Disk.h"
-
-namespace material {
-  class SupportStructure;
-}
+// Forward declaration
+class SupportStructure;
 
 // Typedefs
-typedef PtrVector<Disk>                       Disks;
-typedef PtrVector<material::SupportStructure> EndcapSupportStructures;
+typedef PtrVector<Endcap>           Endcaps;
+typedef PtrVector<SupportStructure> EndcapSupportStructures;
 
 /*
  * @class Endcap
@@ -45,8 +41,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   //! Return endcap disks
   const Disks& disks() const { return m_disks; }
 
-  //! Return endcap supports which can be updated
-  EndcapSupportStructures& supportStructures() { return m_supportStructures; }
+  //! Return endcap supports
+  const EndcapSupportStructures& supports() const { return m_supportStructures; }
 
   //! GeometryVisitor pattern -> endcap visitable
   void accept(GeometryVisitor& v);
@@ -59,6 +55,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   Property<        double, NoDefault>  outerZ;       //!< End building disks at outerZ
   ReadonlyProperty<double, Computable> minZ;         //!< Minimum Z position of an endcap
   ReadonlyProperty<double, Computable> maxZ;         //!< Maximum Z position of an endcap
+  ReadonlyProperty<double, Computable> minZAllMat;   //!< Minimum Z position of an endcap taking into account all material structures
+  ReadonlyProperty<double, Computable> maxZAllMat;   //!< Maximum Z position of an endcap taking into account all material structures
   ReadonlyProperty<double, Computable> minR;         //!< Minimum radius of an endcap
   ReadonlyProperty<double, Computable> maxR;         //!< Maximum radius of an endcap
   ReadonlyProperty<bool  , Default>    skipServices; // TODO: Comment
