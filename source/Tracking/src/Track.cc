@@ -461,8 +461,7 @@ void Track::addIPConstraint(double dr, double dz) {
   // This modeling of the IP constraint was validated:
   // By placing dr = 0.5 mm and dz = 1 mm one obtains
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
-  HitPtr newHit(new Hit(0,0)); //(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
-  newHit->setIP(true);
+  HitPtr newHit(new Hit(0,0,nullptr,HitPassiveType::IP));
 
   RILength emptyMaterial;
   emptyMaterial.radiation   = 0;
@@ -551,6 +550,24 @@ bool Track::pruneHits() {
   for (auto& iHit : newHits) m_hits.push_back(std::move(iHit));
 
   return isPruned;
+}
+
+//
+// Set active only trigger hits, so all other hits are made as inactive
+//
+void Track::keepTriggerHitsOnly() {
+
+  for (auto& iHit : m_hits) {
+
+    // Hit needs to be measurable, i.e. is linked to module
+    if (iHit->isMeasurable()) {
+
+      if (iHit->isActive()) {
+        if      (iHit->isPixel()) iHit->setAsPassive();
+        else if (iHit->getHitModule()->sensorLayout()!=PT) iHit->setAsPassive();
+      }
+    }
+  } // For
 }
 
 //

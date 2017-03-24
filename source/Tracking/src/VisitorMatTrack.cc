@@ -50,15 +50,12 @@ void VisitorMatTrack::visit(const BeamPipe& bp)
   double rPos  = (bp.radius()+bp.thickness()/2.);
   double zPos  = rPos/tan(theta);
 
-  HitPtr hit(new Hit(rPos, zPos));
-  hit->setAsPassive();
+  HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
   material.interaction = bp.intLength()/sin(theta);
-
   hit->setCorrectedMaterial(material);
-  hit->setBeamPipe(true);
   m_matTrack.addHit(std::move(hit));
 }
 
@@ -299,10 +296,22 @@ void VisitorMatTrack::analyzeInactiveElement(const insur::InactiveElement& e)
         }
 
         // Create Hit object with appropriate parameters, add to Track t
-        HitPtr hit(new Hit(rPos, zPos));
-        hit->setAsPassive();
-        hit->setCorrectedMaterial(material);
-        m_matTrack.addHit(std::move(hit));
+        if (e.getCategory() == MaterialProperties::b_sup ||
+            e.getCategory() == MaterialProperties::e_sup ||
+            e.getCategory() == MaterialProperties::u_sup ||
+            e.getCategory() == MaterialProperties::t_sup ) {
+
+          HitPtr hit(new Hit(rPos, zPos, &e, HitPassiveType::Support));
+          hit->setCorrectedMaterial(material);
+          m_matTrack.addHit(std::move(hit));
+        }
+        else if (e.getCategory() == MaterialProperties::b_ser ||
+                 e.getCategory() == MaterialProperties::e_ser ) {
+
+          HitPtr hit(new Hit(rPos, zPos, &e, HitPassiveType::Service));
+          hit->setCorrectedMaterial(material);
+          m_matTrack.addHit(std::move(hit));
+        }
 
       } // Eta min max
     } // +Z check

@@ -13,6 +13,7 @@
 #include "Palette.h"
 #include "RootWContent.h"
 #include "RootWImage.h"
+#include "RootWInfo.h"
 #include "RootWPage.h"
 #include "RootWSite.h"
 #include "SimParms.h"
@@ -135,7 +136,7 @@ bool AnalyzerPatternReco::analyze()
     //std::cout << "Eta: " << eta << std::endl;
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
 
     // Assign material to the track
     VisitorMatTrack matVisitor(matTrack);
@@ -218,14 +219,13 @@ bool AnalyzerPatternReco::analyze()
               nextZPos    = track.getRMeasurableOrIPHit(iHit+1)->getZPos();
               nextHitTilt = track.getRMeasurableOrIPHit(iHit+1)->getTilt();
               if (SimParms::getInstance().isMagFieldConst()) A = track.getRMeasurableOrIPHit(iHit+1)->getRPos()/2./track.getRadius(track.getRMeasurableOrIPHit(iHit+1)->getZPos());  // r_i/2R
-
               iHitID      = track.getRMeasurableOrIPHit(iHit+1)->getDetName() +
                             std::string(track.getRMeasurableOrIPHit(iHit+1)->isBarrel() ? "_L_" : "_D_") +
                             any2str(track.getRMeasurableOrIPHit(iHit+1)->getLayerOrDiscID());
             }
 
             // Calculate dRPhi & dZ
-            int    nPU    = 1000;
+            int    nPU    = SimParms::getInstance().numMinBiasEvents();
             double flux   = m_chargedMap->calculateIrradiationZR(nextZPos,nextRPos)*nPU;
 
             double corrFactor = cos(nextHitTilt) + track.getCotgTheta()/sqrt(1-A*A)*sin(nextHitTilt);
@@ -299,6 +299,7 @@ bool AnalyzerPatternReco::analyze()
                   m_hisPHitProbContamInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),c_nBins, 0, SimParms::getInstance().getMaxEtaCoverage()));
                 }
               }
+              // TODO: Check that above zero!!!
               m_hisPHitDProjInOut[iHitIDMap][iMomentum]->Fill(eta, dDProj/Units::um);
               m_hisPHitZProjInOut[iHitIDMap][iMomentum]->Fill(eta, dZProj/Units::um);
               m_hisPHitProbContamInOut[iHitIDMap][iMomentum]->Fill(eta, pContam);
@@ -369,6 +370,10 @@ bool AnalyzerPatternReco::visualize(RootWSite& webSite)
   //
   // Pt option
   RootWContent& myContentPlotsPt = myPage.addContent("Pt: Track purity & probability of contamination by bkg hits when propagating track through tracker", true);
+
+  // Summary
+  RootWInfo& myInfoPt = myContentPlotsPt.addInfo("Number of minimum bias events per bunch crossing");
+  myInfoPt.setValue(SimParms::getInstance().numMinBiasEvents(), 0);
 
   // a) Bkg contamination probability -> In-Out approach
   TCanvas canvasPtBkgContInOut("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
@@ -610,6 +615,10 @@ bool AnalyzerPatternReco::visualize(RootWSite& webSite)
   // P option
   RootWContent& myContentPlotsP = myPage.addContent("P: Track purity & probability of contamination by bkg hits when propagating track through tracker", true);
 
+  // d) Summary
+  RootWInfo& myInfoP = myContentPlotsP.addInfo("Number of minimum bias events per bunch crossing");
+  myInfoP.setValue(SimParms::getInstance().numMinBiasEvents(), 0);
+
   // a) Bkg contamination probability - In-Out approach
   TCanvas canvasPBkgContInOut("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
   canvasPBkgContInOut.SetGrid(1,1);
@@ -681,7 +690,7 @@ bool AnalyzerPatternReco::visualize(RootWSite& webSite)
   myImagePBkgContInnerInOut.setComment("In-Out approach for p & inner tracker only: Bkg contamination prob. in 95% area of 2D error ellipse");
   myImagePBkgContInnerInOut.setName("bkg_p_pContam_inner_inout");
 
-  // b) Bkg contamination probability - Out-In approach
+  // c) Bkg contamination probability - Out-In approach
   TCanvas canvasPBkgContOutIn("canvasPBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
   canvasPBkgContOutIn.SetGrid(1,1);
   canvasPBkgContOutIn.SetLogy(0);

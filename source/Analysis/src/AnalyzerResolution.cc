@@ -117,7 +117,7 @@ bool AnalyzerResolution::analyze()
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution
+    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
 
     // Assign material to the track
     VisitorMatTrack matVisitor(matTrack);
@@ -603,7 +603,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       if (varType=="cotgTheta") yVal = track->getDeltaCtgTheta(rPos);
       if (varType=="ctau")      yVal = track->getDeltaCTau()/Units::um;
 
-      profHis->Fill(xVal, yVal);
+      if (yVal>0) profHis->Fill(xVal, yVal);
 
     } // For tracks
 

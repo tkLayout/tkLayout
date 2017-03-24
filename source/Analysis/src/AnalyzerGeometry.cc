@@ -241,7 +241,7 @@ bool AnalyzerGeometry::analyze()
 
       double zErrorIP = 0.;
       if (SimParms::getInstance().useIPConstraint()) zErrorIP = SimParms::getInstance().zErrorIP();
-      double zPos     = myDice.Rndm()*2 - 1;
+      double zPos  = (myDice.Rndm()*2 - 1)*zErrorIP;
 
       ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
 

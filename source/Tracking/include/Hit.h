@@ -14,6 +14,9 @@
 // Forward declaration
 class DetectorModule;
 class Hit;
+namespace insur {
+  class InactiveElement;
+}
 class Track;
 
 #undef HIT_DEBUG
@@ -23,7 +26,8 @@ class Track;
 typedef std::unique_ptr<Hit> HitPtr;
 typedef std::vector<HitPtr>  HitCollection;
 
-enum class HitActivity    : short { Undefined, Active, Inactive };     // Hit defined as pure material (inactive) or measurement point (active)
+enum class HitActivity    : short { Undefined, Active, Inactive };               //!< Hit defined as pure material (inactive) or measurement point (active)
+enum class HitPassiveType : short { Undefined, BeamPipe, IP, Service, Support }; //!< Hit defined as IP or pure material hit coming from: support, service, etc.
 
 /**
  * @class Hit
@@ -42,8 +46,8 @@ public:
   //! Copy constructor
   Hit(const Hit& h);
 
-  //! Constructor for a hit with no module (for passive materials) at [rPos, zPos] (cylindrical position) from the origin
-  Hit(double rPos, double zPos);
+  //! Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
+  Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType);
 
   //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
   Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType);
@@ -58,27 +62,26 @@ public:
   static bool sortHigherR(const HitPtr& h1, const HitPtr& h2);
 
   // Setter methods
-  void setHitModule(const DetectorModule* myModule);
-  void setTrack(const Track* newTrack)              { m_track = newTrack;};
+  void setTrack(const Track* newTrack)            { m_track = newTrack;};
 
-  void setAsActive()                                { m_activity = HitActivity::Active;};
-  void setAsPassive()                               { m_activity = HitActivity::Inactive;};
-  void setActiveHitType(HitType activeHitType)      { m_activeHitType = activeHitType; }
-  void setCorrectedMaterial(RILength newMaterial)   { m_correctedMaterial = newMaterial;};
+  void setAsActive()                              { m_activity = HitActivity::Active;};
+  void setAsPassive()                             { m_activity = HitActivity::Inactive;};
+  void setAsPixel()                               { m_isPixel    = true;}
+  void setActiveHitType(HitType activeHitType)    { m_activeHitType = activeHitType; }
+  void setCorrectedMaterial(RILength newMaterial) { m_correctedMaterial = newMaterial;};
 
-  void setBeamPipe(bool isBeamPipe)                 { m_detName = "BeamPipe"; m_isBeamPipe = isBeamPipe;}
-  void setIP(bool newIP)                            { m_detName = "IP";       m_isIP = newIP; }
-  void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
-  void setResolutionRphi(double newRes)             { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
-  void setResolutionZ(double newRes)                { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
-  void setResolutionY(double newRes)                { setResolutionZ(newRes); } // Used for compatibility only -> use setResolutionZ(double newRes) instead
+  void setTrigger(bool isTrigger)                 { m_isTrigger = isTrigger;}
+  void setResolutionRphi(double newRes)           { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionZ(double newRes)              { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
+  void setResolutionY(double newRes)              { setResolutionZ(newRes); } // Used for compatibility only -> use setResolutionZ(double newRes) instead
 
-  void setDetName(std::string detName)              { m_detName = detName; }
-  void setLayerID(int layerID)                      { m_layerID = layerID; }
-  void setDiscID(int discID)                        { m_discID  = discID; }
+  void setDetName(std::string detName)            { m_detName = detName; }
+  void setLayerID(int layerID)                    { m_layerID = layerID; }
+  void setDiscID(int discID)                      { m_discID  = discID; }
 
   // Getter methods
-  const DetectorModule* getHitModule() { return m_hitModule; };
+  const DetectorModule*         getHitModule() const         { return m_hitModule; };
+  const insur::InactiveElement* getHitPassiveElement() const { return m_hitPassiveElem; }
 
   double   getDistance() const         { return m_distance;};
   double   getRPos() const             { return m_rPos;};
@@ -96,8 +99,11 @@ public:
   std::string getDetName()       const { return m_detName; };
   int         getLayerOrDiscID() const { if(this->isBarrel()) return m_layerID; else if(this->isEndcap()) return m_discID; else return -1;}; //!< Return positive number for layer (barrel hit) or disc (end-cap hit), -1 for beam-pipe or IP
 
-  bool     isBeamPipe() const  { return m_isBeamPipe; };
-  bool     isIP() const        { return m_isIP; };
+  bool     isBeamPipe() const  { if (m_passiveHitType==HitPassiveType::BeamPipe) return true; else return false; };
+  bool     isService() const   { if (m_passiveHitType==HitPassiveType::Service) return true; else return false; };
+  bool     isSupport() const   { if (m_passiveHitType==HitPassiveType::Support) return true; else return false; };
+  bool     isIP() const        { if (m_passiveHitType==HitPassiveType::IP) return true; else return false; };
+  bool     isPixel() const     { return m_isPixel; };
   bool     isBarrel() const    { if (m_hitModule && (m_hitModule->subdet()==BARREL)) return true; else return false;};
   bool     isEndcap() const    { if (m_hitModule && (m_hitModule->subdet()==ENDCAP)) return true; else return false;};
   bool     isMeasurable() const{ if (m_hitModule!=nullptr) return true; else return false;};
@@ -112,20 +118,27 @@ protected:
   //! Default constructor
   Hit();
 
+  //! Set pointer to hit module in the constructor
+  void setHitModule(const DetectorModule* myModule);
+
+  //! Set pointer to inactive element in the constructor
+  void setHitPassiveElement(const insur::InactiveElement* myPassiveElem);
+
   double         m_distance;      //!< Distance of hit from origin in 3D = sqrt(rPos*rPos + zPos*zPos)
   double         m_rPos;          //!< Distance of hit from origin in the x/y plane (cylindrical coordinates -> r)
   double         m_zPos;          //!< Distance of hit from origin in z (cylindrical coordinates -> z)
   HitActivity    m_activity;      //!< Hit defined as pure material (inactive) or measurement point (active)
   HitType        m_activeHitType; //!< Hit coming from inner, outer, stub, ... module
+  HitPassiveType m_passiveHitType;//!< Hit coming from which passive part: beam-pipe, service, support etc.
   
-  const DetectorModule* m_hitModule;  //!< Const pointer to the hit module
-  const Track*          m_track;      //!< Const pointer to the track, into which the hit was assigned
+  const DetectorModule*         m_hitModule;     //!< Const pointer to the hit module
+  const insur::InactiveElement* m_hitPassiveElem;//!< Const pointer to the hit inactive element
+  const Track*                  m_track;         //!< Const pointer to the track, into which the hit was assigned
   
   RILength m_correctedMaterial; //!< Material in the way of particle shot at m_track direction, i.e. theta, module tilt angles corrected
   
-  bool m_isBeamPipe;//!< An artificial hit, simulating colision with beam-pipe?
-  bool m_isIP;      //!< An artificial hit, simulating IP constraint?
   bool m_isTrigger; //!< Hit comint from the trigger module?
+  bool m_isPixel;   //!< Hit coming from the pixel module?
 
   std::string m_detName; //!< Detector name, in which the hit has been measured
   int         m_layerID; //!< Corresponding layer ID

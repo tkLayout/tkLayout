@@ -265,7 +265,7 @@ bool AnalyzerMatBudget::analyze()
 
       Track matTrack;
       matTrack.setThetaPhiPt(theta, phi, pT);
-      matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when calculating Material budget
+      matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
 
       // Study beam pipe -> fill only once
       if (iTracker==*m_trackers.begin()) {
@@ -1106,14 +1106,12 @@ void VisitorMatBudget::visit(const BeamPipe& bp)
   double eta      = m_matTrack.getEta();
   double rPos  = (bp.radius()+bp.thickness()/2.);
   double zPos  = rPos/tan(theta);
-  HitPtr hit(new Hit(rPos, zPos));
-  hit->setAsPassive();
+  HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
   material.interaction = bp.intLength()/sin(theta);
   hit->setCorrectedMaterial(material);
-  hit->setBeamPipe(true);
   m_matTrack.addHit(std::move(hit));
 }
 
@@ -1378,10 +1376,22 @@ void VisitorMatBudget::analyzeInactiveElement(std::string tag, const insur::Inac
         }
 
         // Create Hit object with appropriate parameters, add to Track t
-        HitPtr hit(new Hit(rPos, zPos));
-        hit->setAsPassive();
-        hit->setCorrectedMaterial(material);
-        m_matTrack.addHit(std::move(hit));
+        if (e.getCategory() == MaterialProperties::b_sup ||
+            e.getCategory() == MaterialProperties::e_sup ||
+            e.getCategory() == MaterialProperties::u_sup ||
+            e.getCategory() == MaterialProperties::t_sup ) {
+
+          HitPtr hit(new Hit(rPos, zPos, &e, HitPassiveType::Support));
+          hit->setCorrectedMaterial(material);
+          m_matTrack.addHit(std::move(hit));
+        }
+        else if (e.getCategory() == MaterialProperties::b_ser ||
+                 e.getCategory() == MaterialProperties::e_ser ) {
+
+          HitPtr hit(new Hit(rPos, zPos, &e, HitPassiveType::Service));
+          hit->setCorrectedMaterial(material);
+          m_matTrack.addHit(std::move(hit));
+        }
 
       } // Eta min max
     } // +Z check

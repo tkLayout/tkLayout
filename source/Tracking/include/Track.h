@@ -79,6 +79,9 @@ public:
   //! Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
   void resetPt(double newPt);
 
+  //! Set active only trigger hits, so all other hits are made as inactive
+  void keepTriggerHitsOnly();
+
   //! Set active only hits with the given tag. If tag="all" all hits coming from measurement planes or IP will be set as active
   void keepTaggedHitsOnly(const string& tag, bool useIP = true);
 
