@@ -1012,8 +1012,8 @@ void VisitorLayerDiscSummary::postVisit() {
     const EndcapModule* module = iterMap.second;
 
     m_ringTable->setContent(0, ring, ring);
-    m_ringTable->setContent(1, ring, module->minR()                 , c_coordPrecision);
-    m_ringTable->setContent(2, ring, module->minR()+module->length(), c_coordPrecision);
+    m_ringTable->setContent(1, ring, module->minR(), c_coordPrecision);
+    m_ringTable->setContent(2, ring, module->maxR(), c_coordPrecision);
     m_ringTable->setContent(3, ring, m_ringNModules[ring-1]);
   }
 }

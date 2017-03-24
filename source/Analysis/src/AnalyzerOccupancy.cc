@@ -74,7 +74,7 @@ bool AnalyzerOccupancy::analyze()
 
   // Make & fill all flux histograms
   fillHistogram(m_chargedMap,   m_hisChargedFlux,   "ChargedFluxPerPP",   "Flux of charged particles [cm^{-2}] per pp collision");
-  fillHistogram(m_photonsMap,   m_hisPhotonsFlux,   "PhotonsFluxPerPP",   "Flux of photons [cm^{-2}] per pp collision");
+  //fillHistogram(m_photonsMap,   m_hisPhotonsFlux,   "PhotonsFluxPerPP",   "Flux of photons [cm^{-2}] per pp collision");
 
   m_isAnalysisOK = true;
   return m_isAnalysisOK;
@@ -118,18 +118,18 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageYZBField.setComment("YZ view of B field [T] (X=0)");
   }
 
-  // Draw plots - photons
-  RootWContent& plotsPhotonsContent = myPage.addContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
-
-  TCanvas canvasPhotons;
-
-  if (drawHistogram(canvasPhotons, m_hisPhotonsFlux, m_photonsMap, "PhotonsCanvas", "RZ view of photons flux")) {
-    canvasPhotons.SetLogz();
-    m_hisPhotonsFlux->SetMinimum(c_fluxMin);
-    m_hisPhotonsFlux->SetMaximum(c_fluxMax);
-    RootWImage& anImagePhotons = plotsPhotonsContent.addImage(canvasPhotons);
-    anImagePhotons.setComment("RZ view of photons flux [cm^-2] in a tracker");
-  }
+//  // Draw plots - photons
+//  RootWContent& plotsPhotonsContent = myPage.addContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
+//
+//  TCanvas canvasPhotons;
+//
+//  if (drawHistogram(canvasPhotons, m_hisPhotonsFlux, m_photonsMap, "PhotonsCanvas", "RZ view of photons flux")) {
+//    canvasPhotons.SetLogz();
+//    m_hisPhotonsFlux->SetMinimum(c_fluxMin);
+//    m_hisPhotonsFlux->SetMaximum(c_fluxMax);
+//    RootWImage& anImagePhotons = plotsPhotonsContent.addImage(canvasPhotons);
+//    anImagePhotons.setComment("RZ view of photons flux [cm^-2] in a tracker");
+//  }
 
   // Draw plots - charged
   RootWContent& plotsChargedContent = myPage.addContent("Fluka simulation - charged particles fluxes per pp collision -> adding individual effects:", false);
