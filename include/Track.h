@@ -73,7 +73,7 @@ public:
   //! Simulate efficiency by changing some active hits to non-active hits (passive)
   void addEfficiency(double efficiency);
 
-  //! Simulate non-pixel efficiency by changing some active pixel hits to non-active hits (passive)
+  //! Simulate non-pixel efficiency by changing some active non-pixel hits to non-active hits (passive)
   void addNonPixelEfficiency(double efficiency);
 
   //! Simulate pixel efficiency by changing some active pixel hits to non-active hits (passive)
