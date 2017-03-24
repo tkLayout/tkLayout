@@ -5381,7 +5381,7 @@ namespace insur {
         if ((miny==0)&&(maxy==0)) continue;
 
         if (myPt!=0) {
-          tempSS << tempString.c_str() << myPt; tempString = ", ";
+          tempSS << tempString.c_str() << any2str(myPt/Units::GeV,2); tempString = ", ";
         }
 
         npointsProfile.SetMinimum(1E-2);
@@ -5400,7 +5400,8 @@ namespace insur {
         plotOption = "E1 same";
         //plotOption = "same";
       }
-
+      tempSS << " GeV";
+      
       RootWImage& npointsImage = myContent.addImage(pointsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       npointsImage.setComment(tempSS.str().c_str());
       npointsImage.setName("ntrigpoints");
@@ -5444,7 +5445,7 @@ namespace insur {
         //std::cerr << "maxy = " << maxy << std::endl; // debug
 
         if (myPt!=0) {
-          tempSS << tempString.c_str() << myPt; tempString = ", ";
+          tempSS << tempString.c_str() << any2str(myPt/Units::GeV,2) ; tempString = ", ";
         }
 
         fractionProfile.SetMinimum(1E-2);
@@ -5466,7 +5467,7 @@ namespace insur {
         //if (aValue<miny) miny=aValue;
         //std::cerr << "Fraction plots between " << miny << " and " << maxy << std::endl;
       }
-
+      tempSS << " GeV";
 
       RootWImage& fractionImage = myContent.addImage(fractionCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       fractionImage.setComment(tempSS.str().c_str());
@@ -5507,7 +5508,7 @@ namespace insur {
         //std::cerr << "maxy = " << maxy << std::endl; // debug
 
         if (myPt!=0) {
-          tempSS << tempString.c_str() << myPt; tempString = ", ";
+          tempSS << tempString.c_str() << any2str(myPt/Units::GeV,2) ; tempString = ", ";
         }
 
         purityProfile.SetMinimum(1E-2);
@@ -5529,7 +5530,7 @@ namespace insur {
         //if (aValue<miny) miny=aValue;
         //std::cerr << "Purity plots between " << miny << " and " << maxy << std::endl;
       }
-
+      tempSS << " GeV";
 
       RootWImage& purityImage = myContent.addImage(purityCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       purityImage.setComment(tempSS.str().c_str());
