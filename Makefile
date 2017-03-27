@@ -154,17 +154,17 @@ install:
 all_exes: ${EXEFILES}
 
 clean_exes:
-	rm -f ${EXEFILES} ${EXELIBFILES}
+	@rm -f ${EXEFILES} ${EXELIBFILES}
 
 all_objects: ${OBJECTFILES}
 
 clean_objects:
-	rm -f ${OBJECTFILES} lib/SvnRevision.o
+	@rm -f ${OBJECTFILES} lib/SvnRevision.o
 
 all_analyzerVisitors: ${ANALYZERVISITORFILES}
 
 clean_analyzerVisitors:
-	rm -f ${ANALYZERVISITORFILES}
+	@rm -f ${ANALYZERVISITORFILES}
 
 # General rule to build objects
 $(LIBDIR)/%.o: $(SRCDIR)/%.cc $(INCDIR)/%.hh
