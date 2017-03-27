@@ -213,12 +213,6 @@ doxydoc:
 
 
 # Other stuff for testing
-testObjects: $(TESTDIR)/testObjects
-$(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cc $(LIBDIR)/module.o $(LIBDIR)/layer.o
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/messageLogger.o $(TESTDIR)/testObjects.cc \
-	$(LIBDIR)/ptError.o $(LIBDIR)/moduleType.o \
-	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o $(TESTDIR)/testObjects
-
 testGraphVizCreator: $(TESTDIR)/testGraphVizCreator
 $(TESTDIR)/testGraphVizCreator: $(TESTDIR)/testGraphVizCreator.cc $(LIBDIR)/GraphVizCreator.o
 	g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(LIBDIR)/GraphVizCreator.o $(TESTDIR)/testGraphVizCreator.cc -o $(TESTDIR)/testGraphVizCreator
