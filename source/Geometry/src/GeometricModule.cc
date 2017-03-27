@@ -2,7 +2,7 @@
 
 define_enum_strings(ModuleShape) = { "rectangular", "wedge" };
 
-double ModuleHelpers::polygonAperture(const Polygon3d<4>& poly) { 
+double ModuleHelpers::polygonAperture(const Polygon3D<4>& poly) {
   auto minmax = std::minmax_element(poly.begin(), poly.end(), [](const XYZVector& v1, const XYZVector& v2) { return v1.Phi() < v2.Phi(); }); 
   return minmax.second->Phi() - minmax.first->Phi(); 
 }

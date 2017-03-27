@@ -195,10 +195,10 @@ void DetectorModule::setup() {
   maxRAllMat.setup([&]() {return maxget2(m_sensors.begin(), m_sensors.end(), &Sensor::maxRAllMat); });
   minRAllMat.setup([&]() {return minget2(m_sensors.begin(), m_sensors.end(), &Sensor::minRAllMat); });
 
-  planarMaxZ.setup([&]() { return CoordinateOperations::computeMaxZ(basePoly()); });
-  planarMinZ.setup([&]() { return CoordinateOperations::computeMinZ(basePoly()); });
-  planarMaxR.setup([&]() { return CoordinateOperations::computeMaxR(basePoly()); });
-  planarMinR.setup([&]() { return CoordinateOperations::computeMinR(basePoly()); });
+  planarMaxZ.setup([&]() { return basePoly().computeMaxZ(); });
+  planarMinZ.setup([&]() { return basePoly().computeMinZ(); });
+  planarMaxR.setup([&]() { return basePoly().computeMaxR(); });
+  planarMinR.setup([&]() { return basePoly().computeMinR(); });
 
   maxSegments.setup([&]()  { int segm = 0;                               for (const auto& s : m_sensors) { segm = MAX(segm, s.numSegments()); } return segm; });
   minSegments.setup([&]()  { int segm = std::numeric_limits<int>::max(); for (const auto& s : m_sensors) { segm = MIN(segm, s.numSegments()); } return segm; });
@@ -398,7 +398,7 @@ void BarrelModule::setup()
     // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
     else {
 
-      Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+      Polygon3D<4> polygon = Polygon3D<4>(basePoly());
       polygon.rotateZ(M_PI);
 
       min = MIN(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
@@ -426,7 +426,7 @@ void BarrelModule::setup()
     // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
     else {
 
-      Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+      Polygon3D<4> polygon = Polygon3D<4>(basePoly());
       polygon.rotateZ(M_PI);
 
       max = MAX(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
@@ -528,7 +528,7 @@ void EndcapModule::setup()
       // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
       else {
 
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        Polygon3D<4> polygon = Polygon3D<4>(basePoly());
         polygon.rotateZ(M_PI);
 
         min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
@@ -584,7 +584,7 @@ void EndcapModule::setup()
       // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
       else {
 
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        Polygon3D<4> polygon = Polygon3D<4>(basePoly());
         polygon.rotateZ(M_PI);
 
         max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);

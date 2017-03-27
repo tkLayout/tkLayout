@@ -3,7 +3,6 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "CoordinateOperations.h"
 #include "GeometricModule.h"
 #include "GeometryFactory.h"
 #include "MaterialObject.h"
@@ -93,7 +92,7 @@ public:
   const ModuleCap& getModuleCap() const { return *m_moduleCap; }
 
   //! Geometric module interface -> return reference to a geometrical representation of a module
-  const Polygon3d<4>& basePoly() const { return m_moduleGeom->basePoly(); }
+  const Polygon3D<4>& basePoly() const { return m_moduleGeom->basePoly(); }
 
   //! Could track at this direction hit the module? (fast method)
   bool couldHit(const XYZVector& direction, double zError) const;
@@ -172,7 +171,7 @@ public:
   void mirrorZ();
   void rotateX(double angle)              { m_moduleGeom->rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle)              { m_moduleGeom->rotateY(angle); clearSensorPolys(); }
-  void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = RotationZ(angle)(m_rAxis); }
+  void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = ROOT::Math::RotationZ(angle)(m_rAxis); }
   void tilt(double angle)                 { rotateX(-angle); m_moduleGeom->tiltAngle(angle); } // Atention: Tilt can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void skew(double angle)                 { rotateY(-angle); m_moduleGeom->skewAngle(angle); } // Atention: Skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void dsDistance(double d)               { m_moduleGeom->dsDistance(d); }
