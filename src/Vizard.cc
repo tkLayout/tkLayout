@@ -3,8 +3,8 @@
  * @brief This class takes care of visualisation for both geometry and analysis results
  */
 
-#include <Vizard.h>
-#include <Units.h>
+#include <Vizard.hh>
+#include <Units.hh>
 
 #include <TPolyLine.h>
 #include <TPaveText.h>
@@ -12,7 +12,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "mainConfigHandler.h"
+#include "MainConfigHandler.hh"
 
 namespace insur {
   // public

@@ -4,9 +4,9 @@
 #include <string>
 #include <map>
 
-#include <Visitor.h>
+#include <Visitor.hh>
 #include <Report.hh>
-#include "rootweb.hh"
+#include "RootWeb.hh"
 
 class DetectorModule;
 class Tracker;

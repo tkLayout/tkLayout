@@ -4,15 +4,15 @@
 #include <string>
 #include <map>
 
-#include <Visitor.h>
+#include <Visitor.hh>
 #include <Report.hh>
-#include "rootweb.hh"
-#include "SummaryTable.h"
+#include "RootWeb.hh"
+#include "SummaryTable.hh"
 #include "VizardTools.hh"
-#include "AnalyzerVisitors/IrradiationPower.h"
+#include "AnalyzerVisitors/IrradiationPower.hh"
 #include <TH2D.h>
 #include "AnalyzerTools.hh"
-#include "SimParms.h"
+#include "SimParms.hh"
 
 class DetectorModule;
 class Tracker;

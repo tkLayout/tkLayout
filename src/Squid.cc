@@ -4,9 +4,9 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
-#include "SvnRevision.h"
-#include "Squid.h"
-#include "StopWatch.h"
+#include "SvnRevision.hh"
+#include "Squid.hh"
+#include "StopWatch.hh"
 
 #include "ReportIrradiation.hh"
 
