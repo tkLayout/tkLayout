@@ -1,5 +1,5 @@
 /**
- * @file SupportStructure.cpp
+ * @file SupportStructure.cc
  *
  * @date 25/Nov/2014
  * @author Stefano Martina

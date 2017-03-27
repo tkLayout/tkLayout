@@ -1,5 +1,5 @@
 /**
- * @file setup.cpp
+ * @file setup.cc
  * @brief called by the install.sh script, use mainConfigHandler for reading config file
  */
 #include <global_constants.hh>

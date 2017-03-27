@@ -1,5 +1,5 @@
 /**
- * @file MaterialObject.cpp
+ * @file MaterialObject.cc
  *
  * @date 19/jun/2014
  * @author Stefano Martina

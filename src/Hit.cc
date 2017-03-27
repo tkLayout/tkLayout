@@ -1,5 +1,5 @@
 /**
- * @file hit.cpp
+ * @file Hit.cc
  * @brief This file implements the hit and track classes used for internal analysis
  */
 

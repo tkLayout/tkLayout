@@ -1,5 +1,5 @@
 /**
- * @file Materialway.cpp
+ * @file Materialway.cc
  *
  * @date 31/mar/2014
  * @author Stefano Martina

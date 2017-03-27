@@ -1,5 +1,5 @@
 /**
- * @file mainConfigHandler.cpp
+ * @file MainConfigHandler.cc
  * @brief implementation of class that take care of creating and reading the configuration file .tkgeometryrc
  */
 #include <iostream>
