@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
 <SpecParSection label="spec-pars2.xml">
-  <SpecPar name="ROUHitsTrackerPhase1PixelBarrel">
+  <SpecPar name="ROUHitsTrackerPhase2PixelBarrel">
     <!--mid point marker-->
     <Parameter name="SensitiveDetector" value="TkAccumulatingSensitiveDetector" />
     <Parameter name="ReadOutName" value="TrackerHitsPixelBarrel" />
