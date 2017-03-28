@@ -69,6 +69,14 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Return layer rods
   const Rods& rods() const { return m_rods; }
 
+  std::vector<RodPairStraight*> flatPartRods() const { return m_flat_rods; }
+  double flatPartPhiOverlapSmallDeltaMinus() const { return flatPartPhiOverlapSmallDeltaMinus_; }
+  double flatPartPhiOverlapSmallDeltaPlus() const { return flatPartPhiOverlapSmallDeltaPlus_; }
+  double flatPartAverageR() const { return flatPartAverageR_; }
+  FlatRingsGeometryInfo flatRingsGeometryInfo() const { return flatRingsGeometryInfo_; }
+  TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
+
   //! Return layer as a material object
   const MaterialObject& materialObject() const { return m_materialObject; }
 
