@@ -8,7 +8,7 @@
 //#define __FLIPSENSORS_OUT__
 //#define __FLIPSENSORS_IN__
 
-#include <Extractor.h>
+#include <Extractor.hh>
 #include <cstdlib>
 
 namespace insur {

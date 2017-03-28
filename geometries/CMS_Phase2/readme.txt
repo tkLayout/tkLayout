@@ -177,4 +177,14 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
 
 
                                           
+OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
+
+OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
+                         Zd=29.7mm or bigDelta=14.85
+                         New geometry 6.1.3 with slight adjustment in TEDD1 and TEDD2: bigDeelta moved from 14.15mm to 14.85mm
+                         this would cause a movement of 1.243mm and 1.351mm in innermost rings of TEDD1 and TEDD2 respectively
+                         and add 4 modules in one ring of TEDD2.
+                        Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
+                        xy plane is exactly the same
+
 

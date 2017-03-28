@@ -1,21 +1,21 @@
 /**
+<<<<<<< HEAD:src/Hit.cc:src/Hit.cc
  * @file Hit.cpp
  * @brief This file implements the hit and track classes used for internal analysis
  */
 
-#include "Hit.h"
+#include "Hit.hh"
 
-#include <global_constants.h>
+#include <global_constants.hh>
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
 
-#include "Track.h"
-#include "DetectorModule.h"
-#include "InactiveElement.h"
-#include "messageLogger.h"
-#include "ModuleCap.h"
-#include "SimParms.h"
+#include "Track.hh"
+#include "DetectorModule.hh"
+#include "MessageLogger.hh"
+#include "ModuleCap.hh"
+#include "SimParms.hh"
 
 //using namespace ROOT::Math;
 using namespace std;

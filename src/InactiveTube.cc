@@ -3,7 +3,7 @@
  * @brief This is the derived class implementation of a single tube-shaped inactive element
  */
 
-#include <InactiveTube.h>
+#include <InactiveTube.hh>
 namespace insur {
     /**
      * The constructors make sure the UP/DOWN flag is set correctly (it is provided by the parent class, but not set).

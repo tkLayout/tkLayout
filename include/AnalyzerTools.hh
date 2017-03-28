@@ -1,7 +1,7 @@
 #ifndef ANALYZERTOOLS_HH
 #define ANALYZERTOOLS_HH
 
-#include "global_constants.h"
+#include "global_constants.hh"
 
 #include <TH2D.h>
 #include <string>

@@ -3,7 +3,7 @@
  * @brief This class bundles the material properties of an active module.
  */
 
-#include <ModuleCap.h>
+#include <ModuleCap.hh>
 
 namespace insur {
 
