@@ -157,12 +157,6 @@ namespace insur {
 
       // Read simulation parameters
       auto& simParms = SimParms::getInstance();
-
-      //iter between the default irradiation files vector and add each to simParm
-      for (auto singleIrradiationFile : insur::default_irradiationfiles) {
-        simParms.addIrradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + singleIrradiationFile);
-      }
-      //simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       simParms.store(getChild(pt, "SimParms"));
       simParms.build();
 

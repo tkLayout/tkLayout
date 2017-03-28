@@ -1,5 +1,6 @@
 #include "SimParms.hh"
 #include "Units.hh"
+#include "MainConfigHandler.hh"
 
 //
 // Method constructing static instance of this class
@@ -41,9 +42,11 @@ void SimParms::build() {
   try {
     check();
 
+    std::string irradiationMapDirectory_ = mainConfigHandler::instance().getIrradiationDirectory();
     //iter between irradiation map file names and feed the irradiationMapsManager
     for(std::vector<std::string>::const_iterator iterMapFile = irradiationMapFiles.begin(); iterMapFile != irradiationMapFiles.end(); ++ iterMapFile) {
-      irradiationMapsManager_.addIrradiationMap((*iterMapFile).c_str());
+      std::string fullPath = irradiationMapDirectory_ + "/" + (*iterMapFile);
+      irradiationMapsManager_.addIrradiationMap(fullPath.c_str());
     }
 
     cleanup();

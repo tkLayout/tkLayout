@@ -46,7 +46,6 @@ public:
   ReadonlyProperty<double, NoDefault> magField;
 
   PropertyVector<std::string, ','> irradiationMapFiles;
-  //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
   Property<double, NoDefault> minTracksEta, maxTracksEta;
 
