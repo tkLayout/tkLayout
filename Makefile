@@ -130,8 +130,8 @@ ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 
 EXES+=tklayout
-#EXES+=setup
-#EXES+=diskPlace
+EXES+=setup
+EXES+=diskPlace
 
 OBJECTFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${OBJS}))
 ANALYZERVISITORFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/AnalyzerVisitors/,${ANALYZERVISITORS}))
