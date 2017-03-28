@@ -141,6 +141,7 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
       
   // Takes the most stringent of cases A and B
   double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+
   return nextRho;
 }
 
@@ -151,7 +152,7 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-  double lastRho;
+  double lastRho, lastZ, newZ, monkLastZ;
   
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
@@ -171,8 +172,8 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
       // 1) FIND THE Z OF THE MOST STRINGENT POINTS IN RING (i+1) AND RING (i)
       std::pair<double, double> stringentZ = computeStringentZ(i, parity, extremaDisksInfo);
-      double lastZ = stringentZ.first;           // Z of the most stringent point in Ring (i+1)
-      double newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
+      lastZ = stringentZ.first;           // Z of the most stringent point in Ring (i+1)
+      newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
       
       // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
       double nextRho = computeNextRho(parity, lastZ, newZ, lastRho);
@@ -185,11 +186,31 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
+
+    if (i != numRings()) {
+      // Calculate the coverage in Z of ring (i) with respect to ring (i+1)
+      //double monkNewZ = ring->maxZ();
+      double newRho = ring->buildStartRadius();
+
+      double coeff = (newRho - lastRho) / (newZ - lastZ);
+      double zErrorCoverage = newZ - newRho / coeff;
+      if (parity < 0) zErrorCoverage *= -1.;
+
+      if (coeff < 0.) {
+	if (parity > 0) { zErrorCoverage = -std::numeric_limits<double>::infinity(); }
+	else zErrorCoverage = std::numeric_limits<double>::infinity();
+      }
+      
+      std::cout << "RESULT = " << zErrorCoverage << std::endl;
+      ring->zErrorInfo(zErrorCoverage);
+    }
+
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
     lastRho = ring->minR();
+    //monkLastZ = ring->minZ();
   }
 }
 

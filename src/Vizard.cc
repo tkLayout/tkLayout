@@ -1331,7 +1331,8 @@ namespace insur {
 	ringTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
         ringTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
         ringTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
-	ringTable->setContent(6, 0, "# mods");
+	ringTable->setContent(6, 0, "zError (Ring i & i+1)");
+	ringTable->setContent(7, 0, "# mods");
 	ringTables.push_back(ringTable);
       }
 
@@ -1350,7 +1351,8 @@ namespace insur {
 	++nRings;
 	diskTable->setContent(3, nDisks, nRings);
 	ringTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
-	ringTables.at(nEndcaps-1)->setContent(6, nRings, r.numModules());
+	ringTables.at(nEndcaps-1)->setContent(6, nRings, r.zErrorInfo(), coordPrecision);
+	ringTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
       }
 
       void visit(const Module& m) override {
