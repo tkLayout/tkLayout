@@ -67,7 +67,7 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // counter
   modulesCounter_[moduleRef]++;
   // The list of modules per irradiation type
-  mapTypeToIrradiation_[modType].push_back(&m);
+  mapTypeToIrradiation_[modType].push_back(m);
 }
 
 
@@ -83,10 +83,10 @@ void IrradiationPowerVisitor::postVisit() {
   for (auto& it : mapTypeToIrradiation_ ) {
     iRow++;
     const std::string& typeName = it.first;
-    std::vector<const DetectorModule*>& irrads = it.second;
+    std::vector<const DetectorModule&>& irrads = it.second;
     std::sort(irrads.begin(), irrads.end(),
-	      [] (const DetectorModule* a, const DetectorModule* b) {
-		return a->sensorsIrradiationMean() < b->sensorsIrradiationMean();
+	      [] (const DetectorModule& a, const DetectorModule& b) {
+		return a.sensorsIrradiationMean() < b.sensorsIrradiationMean();
 	      });
     int nModules = irrads.size();
     std::ostringstream irrad_Max("");
