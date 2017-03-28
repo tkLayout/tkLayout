@@ -437,11 +437,11 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     class TiltedLayersVisitor : public ConstGeometryVisitor {
     public:
       virtual ~TiltedLayersVisitor() {};
-      std::vector<std::unique_ptr<RootWTable> > tiltedLayerNames;
-      std::vector<std::unique_ptr<RootWTable> > flatPartNames;
-      std::vector<std::unique_ptr<RootWTable> > tiltedPartNames;
-      std::vector<std::unique_ptr<RootWTable> > flatPartTables;
-      std::vector<std::unique_ptr<RootWTable> > tiltedPartTables;
+      std::vector<std::unique_ptr<RootWTable>> tiltedLayerNames;
+      std::vector<std::unique_ptr<RootWTable>> flatPartNames;
+      std::vector<std::unique_ptr<RootWTable>> tiltedPartNames;
+      std::vector<std::unique_ptr<RootWTable>> flatPartTables;
+      std::vector<std::unique_ptr<RootWTable>> tiltedPartTables;
       int nTiltedLayers = 0;
 
 
@@ -582,12 +582,12 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
       spacer->setContent(3, 0, " ");
 
       for (int i = 0; i < tv.nTiltedLayers; i++) {
-	myContent.addItem(std::move(tv.tiltedLayerNames.at(i)));
-	myContent.addItem(std::move(tv.flatPartNames.at(i)));
-	myContent.addItem(std::move(tv.flatPartTables.at(i)));
-	myContent.addItem(std::move(tv.tiltedPartNames.at(i)));
-	myContent.addItem(std::move(tv.tiltedPartTables.at(i)));
-	if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }
+	//myContent.addItem(std::move(tv.tiltedLayerNames.at(i)));
+	//myContent.addItem(std::move(tv.flatPartNames.at(i)));
+	//myContent.addItem(std::move(tv.flatPartTables.at(i)));
+	//myContent.addItem(std::move(tv.tiltedPartNames.at(i)));
+	//myContent.addItem(std::move(tv.tiltedPartTables.at(i)));
+	//if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }
       }
     }
 
