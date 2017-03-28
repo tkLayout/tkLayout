@@ -3,7 +3,7 @@
  * @brief
  */
 
-#include <MaterialBudget.h>
+#include <MaterialBudget.hh>
 namespace insur {
   /**
    * The constructor registers a tracker and a collection of inactive surfaces with the material budget before 

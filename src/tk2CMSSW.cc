@@ -3,8 +3,8 @@
  * @brief This class provides the interface to analyse a tracker and write the results to XML files for CMSSW
  */
 
-#include <SvnRevision.h>
-#include <tk2CMSSW.h>
+#include <SvnRevision.hh>
+#include <tk2CMSSW.hh>
 
 namespace insur {
 

@@ -3,7 +3,7 @@
  * @brief This class implements the output functions that turn a set of previously collected tracker information into a series of CMSSW XML files
  */
 
-#include <XMLWriter.h>
+#include <XMLWriter.hh>
 #include <stdlib.h> // Because atoi() is used
 
 

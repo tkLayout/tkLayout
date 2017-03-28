@@ -1,19 +1,19 @@
 /**
- * @file Track.cpp
+ * @file TrackNew.cc
  * @brief This file implements the hit and track classes used for internal analysis
  */
 
-#include "TrackNew.h"
+#include "TrackNew.hh"
 
 #include <algorithm>
 #include <cstdlib>
 
-#include <global_constants.h>
-#include "HitNew.h"
-#include "messageLogger.h"
-#include "MaterialProperties.h"
-#include "SimParms.h"
-#include "Units.h"
+#include <global_constants.hh>
+#include "HitNew.hh"
+#include "MessageLogger.hh"
+#include "MaterialProperties.hh"
+#include "SimParms.hh"
+#include "Units.hh"
 
 
 using namespace ROOT::Math;
