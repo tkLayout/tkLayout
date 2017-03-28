@@ -426,29 +426,22 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
 
 
-
-
-
-
-
-
-
-
     //***************************************//
     //*                                     *//
     //* Automatic-placement tilted layers : *//
     //*            Additional info          *//
     //*                                     *//
     //***************************************//
-    RootWContent* myContent = new RootWContent("Tilted layers with automatic placement : additional info", false);
+    RootWContent& myContent = myPage.addContent("Tilted layers with automatic placement : additional info");
 
     class TiltedLayersVisitor : public ConstGeometryVisitor {
     public:
-      std::vector<RootWTable*> tiltedLayerNames;
-      std::vector<RootWTable*> flatPartNames;
-      std::vector<RootWTable*> tiltedPartNames;
-      std::vector<RootWTable*> flatPartTables;
-      std::vector<RootWTable*> tiltedPartTables;
+      virtual ~TiltedLayersVisitor() {};
+      std::vector<std::unique_ptr<RootWTable> > tiltedLayerNames;
+      std::vector<std::unique_ptr<RootWTable> > flatPartNames;
+      std::vector<std::unique_ptr<RootWTable> > tiltedPartNames;
+      std::vector<std::unique_ptr<RootWTable> > flatPartTables;
+      std::vector<std::unique_ptr<RootWTable> > tiltedPartTables;
       int nTiltedLayers = 0;
 
 
@@ -457,18 +450,18 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 	if (l.isTilted() && l.isTiltedAuto()) {
 	  nTiltedLayers++;
 
-	  RootWTable* tiltedLayerName = new RootWTable();
+	  std::unique_ptr<RootWTable> tiltedLayerName = std::unique_ptr<RootWTable>(new RootWTable());
 	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
-	  tiltedLayerNames.push_back(tiltedLayerName);
+	  tiltedLayerNames.push_back(std::move(tiltedLayerName));
 
-	  RootWTable* flatPartName = new RootWTable();
+	  std::unique_ptr<RootWTable> flatPartName = std::unique_ptr<RootWTable>(new RootWTable());
 	  flatPartName->setContent(0, 0, "Flat part :");
-	  flatPartNames.push_back(flatPartName);
-	  RootWTable* tiltedPartName = new RootWTable();
+	  flatPartNames.push_back(std::move(flatPartName));
+	  std::unique_ptr<RootWTable> tiltedPartName = std::unique_ptr<RootWTable>(new RootWTable());
 	  tiltedPartName->setContent(0, 0, "Tilted part :");
-	  tiltedPartNames.push_back(tiltedPartName);
+	  tiltedPartNames.push_back(std::move(tiltedPartName));
 
-	  RootWTable* tiltedPartTable = new RootWTable();
+	  std::unique_ptr<RootWTable> tiltedPartTable = std::unique_ptr<RootWTable>(new RootWTable());
 	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
 	    int ringNumber = l.buildNumModulesFlat() + 1 + i;
 	    tiltedPartTable->setContent(0, 0, "Ring");
@@ -516,10 +509,10 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 	    if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter, coordPrecision);
 	    else tiltedPartTable->setContent(19, i+1, "n/a");
 	  }
-	  tiltedPartTables.push_back(tiltedPartTable);
+	  tiltedPartTables.push_back(std::move(tiltedPartTable));
 
 
-	  RootWTable* flatPartTable = new RootWTable();
+	  std::unique_ptr<RootWTable> flatPartTable = std::unique_ptr<RootWTable>(new RootWTable());
 
 	  RodPairStraight* minusBigDeltaRod = (l.m_bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
 	  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
@@ -571,30 +564,30 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision);
 	    i++;
 	  }
-	  flatPartTables.push_back(flatPartTable);
+	  flatPartTables.push_back(std::move(flatPartTable));
 	}
       }
     };
 
     TiltedLayersVisitor tv;
-    iTracker.accept(tv);
+    iTracker->accept(tv);
 
     if (tv.nTiltedLayers > 0) {
-      myPage.addContent(myContent);
+      //myPage.addContent(myContent);
 
-      RootWTable* spacer = new RootWTable();
+      std::unique_ptr<RootWTable> spacer = std::unique_ptr<RootWTable>(new RootWTable());
       spacer->setContent(0, 0, " ");
       spacer->setContent(1, 0, " ");
       spacer->setContent(2, 0, " ");
       spacer->setContent(3, 0, " ");
 
       for (int i = 0; i < tv.nTiltedLayers; i++) {
-	myContent->addItem(tv.tiltedLayerNames.at(i));
-	myContent->addItem(tv.flatPartNames.at(i));
-	myContent->addItem(tv.flatPartTables.at(i));
-	myContent->addItem(tv.tiltedPartNames.at(i));
-	myContent->addItem(tv.tiltedPartTables.at(i));
-	if (i < tv.nTiltedLayers - 1) { myContent->addItem(spacer); }
+	myContent.addItem(std::move(tv.tiltedLayerNames.at(i)));
+	myContent.addItem(std::move(tv.flatPartNames.at(i)));
+	myContent.addItem(std::move(tv.flatPartTables.at(i)));
+	myContent.addItem(std::move(tv.tiltedPartNames.at(i)));
+	myContent.addItem(std::move(tv.tiltedPartTables.at(i)));
+	if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }
       }
     }
 

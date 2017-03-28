@@ -50,6 +50,24 @@ enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
  */
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 
+ private:
+
+  class TiltedRingsGeometryInfo {
+  private:
+    std::map<int, double> deltaZInner_;
+    std::map<int, double> deltaZOuter_;
+    //std::map<int, double> covInner_;
+    std::map<int, double> zErrorInner_;
+    std::map<int, double> zErrorOuter_;
+  public:
+    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
+    std::map<int, double> deltaZInner() const { return deltaZInner_; }
+    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+    //std::map<int, double> covInner() const { return covInner_; }
+    std::map<int, double> zErrorInner() const { return zErrorInner_; }
+    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+  };
+
  public:
 
   //! Constructor - parse geometry config file using boost property tree & read-in Layer parameters
@@ -78,6 +96,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
   //! Return layer as a material object
+
   const MaterialObject& materialObject() const { return m_materialObject; }
 
   //! Return first order conversion station -> TODO: check if needed to be updatable, use PtrVector instead
@@ -134,6 +153,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<int       , NoDefault>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
   Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
+  Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
 
   Property<int, NoDefault> numberRods;
 
@@ -144,22 +164,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 
 
  private:
-
-  class TiltedRingsGeometryInfo {
-  private:
-    std::map<int, double> deltaZInner_;
-    std::map<int, double> deltaZOuter_;
-    //std::map<int, double> covInner_;
-    std::map<int, double> zErrorInner_;
-    std::map<int, double> zErrorOuter_;
-  public:
-    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
-    std::map<int, double> deltaZInner() const { return deltaZInner_; }
-    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
-    //std::map<int, double> covInner() const { return covInner_; }
-    std::map<int, double> zErrorInner() const { return zErrorInner_; }
-    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
-  };
 
   //! Cross-check parameters provided from geometry configuration file
   void check() override;
@@ -189,7 +193,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
   Property<int   , Default>   m_smallParity;      //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
-  Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
   Property<bool  , Default>   m_useMinMaxRCorrect;//!< Apply smallDelta, bigDelta, detThickness, etc. when calculating minR/maxR for first/last layer? For backwards compatibility of lite version (on) versus older version (off)
 
   bool   m_sameRods;                              //! Build same geometrical rods across the whole barrel
