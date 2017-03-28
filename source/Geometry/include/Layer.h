@@ -122,8 +122,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double    , Default>     layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
   Property<string    , AutoDefault> tiltedLayerSpecFile; //!< Configuration file for tilted option
 
-  Property<double    , Default>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
-  Property<int       , Default>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+  Property<double    , NoDefault>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
+  Property<int       , NoDefault>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
   Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
 

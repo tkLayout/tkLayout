@@ -132,6 +132,7 @@ public:
 
   double thickness()        const { return dsDistance() + sensorThickness(); }
   double thicknessAllMat()  const { double modThick = 0; for (auto& elem : m_materialObject.getLocalElements()) modThick += elem->quantity(); return modThick; }
+  double flatMaxZ()         const { double ans = center().Z() + length() / 2.; return ans; }
   double length()           const { return m_moduleGeom->length(); }
   double maxWidth()         const { return m_moduleGeom->maxWidth(); }
   double minWidth()         const { return m_moduleGeom->minWidth(); }

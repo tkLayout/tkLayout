@@ -1,4 +1,4 @@
 #include <GitRevision.h>
 
 //GitRevision.cc - written by cmake. changes will be lost!
-const std::string GitRevision::revisionNumber = "devLite-894 on git@github.com:ghugo83/tkLayout.git";
+const std::string GitRevision::revisionNumber = "devLite_copy-888 on git@github.com:ghugo83/tkLayout.git";

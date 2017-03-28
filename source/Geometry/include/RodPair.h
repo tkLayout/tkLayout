@@ -166,8 +166,9 @@ public:
       double lastR = lastMod.center().Rho();
       
       double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
-
-      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ()));
+      
+      //thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ())); !!!!!!!!!!!!
+      thetaEnd = atan(rH2ppUP / (lastMod.flatMaxZ()));
     }
     return thetaEnd;
   }

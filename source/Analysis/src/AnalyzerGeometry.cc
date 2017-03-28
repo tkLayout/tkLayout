@@ -720,6 +720,8 @@ VisitorLayerDiscSummary::~VisitorLayerDiscSummary() {};
 //
 void VisitorLayerDiscSummary::preVisit() {
 
+  std::cout << "Started visitor !!" << std::endl;
+
   // Initialize
   m_nBarrelLayers      = 0;
   m_nDisks             = 0;

@@ -60,7 +60,8 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<RodPairSt
 
     }
 
-    zEndInner_REAL = m.planarMaxZ();
+    //zEndInner_REAL = m.planarMaxZ();
+    zEndInner_REAL = m.flatMaxZ();
     rEndInner = m.center().Rho() + 0.5 * m.dsDistance();
    
     i++;
@@ -105,7 +106,8 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<RodPairSt
 
     }
  
-    zEndOuter_REAL = m.planarMaxZ();
+    //zEndOuter_REAL = m.planarMaxZ();
+    zEndOuter_REAL = m.flatMaxZ();
     rEndOuter = m.center().Rho() + 0.5 * m.dsDistance();
 
     i++;
@@ -169,8 +171,8 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  m_smallParity  (       "smallParity"        , parsedAndChecked(),-1),
  bigDelta       (       "bigDelta"           , parsedAndChecked()),
  m_bigParity    (       "bigParity"          , parsedOnly()      ,-1),
- phiOverlap     (       "phiOverlap"         , parsedOnly(), 1.),
- phiSegments    (       "phiSegments"        , parsedOnly(), 4),
+ phiOverlap     (       "phiOverlap"         , parsedOnly()),   // used to be default value = 1.
+ phiSegments    (       "phiSegments"        , parsedOnly()),   // used to be default value = 4.
  m_useMinMaxRCorrect(   "useMinMaxRCorrect"  , parsedAndChecked(), true),
  numberRods        ("numberRods"        , parsedOnly()),
  m_ringNode     (       "Ring"               , parsedOnly()),
@@ -337,71 +339,85 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
     updatedMaxR = barrelMaxR;
   }
 
-  // Calculate expected radius
-  double layerRadius = 0;
-  if      ((myid() == 1)              ) layerRadius = updatedMinR;
-  else if ((myid() == barrelNumLayers)) layerRadius = updatedMaxR;
-  else                                  layerRadius = updatedMinR + (updatedMaxR - updatedMinR)/(barrelNumLayers-1)*(myid()-1);
-
-  // Requested radius out of barrel region -> will use automated algorithm instead
-  if (requestedAvgRadius.state() && (requestedAvgRadius()< updatedMinR || requestedAvgRadius()>updatedMaxR)) {
-
-    std::ostringstream message;
-    message << "Layer requested to be built on R: " << requestedAvgRadius() <<", which is out of defined barrel region (taking intou account bigDelta & small delta parameters): [";
-    message << updatedMinR << ";" << barrelMaxR << "] -> ignoring, will use automated algorithm instead!";
-    logWARNING(message);
-    this->requestedAvgRadius(layerRadius);
-  }
-  if (!requestedAvgRadius.state()) requestedAvgRadius(layerRadius);
-
-  //
-  // Calculate optimal layer parameters: pessimistic scenario is with bigDelta + smallDelta + dsDistance versus -bigDelta + smallDelta + dsDistance (with -smallDelta it's always better)
-  float halfWidthWoOverlap = moduleWidth()/2 - phiOverlap()/2;
-  float gamma              = atan(halfWidthWoOverlap/(requestedAvgRadius() + bigDelta() + smallDelta() + maxDsDistance()/2)) + atan(halfWidthWoOverlap/(requestedAvgRadius() - bigDelta() + smallDelta() + maxDsDistance()/2));
-  float modsPerSegment     = 2*M_PI/(gamma * phiSegments());
 
   float optimalRadius;
-  int   optimalModsPerSegment;
+  int numLayerRods;
+  if (!isTilted()) {
+    // Calculate expected radius
+    double layerRadius = 0;
+    if      ((myid() == 1)              ) layerRadius = updatedMinR;
+    else if ((myid() == barrelNumLayers)) layerRadius = updatedMaxR;
+    else                                  layerRadius = updatedMinR + (updatedMaxR - updatedMinR)/(barrelNumLayers-1)*(myid()-1);
 
-  switch (radiusMode()) {
-  case SHRINK:
-    optimalModsPerSegment = floor(modsPerSegment);
-    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
-    break;
-  case ENLARGE:
-    optimalModsPerSegment = ceil(modsPerSegment);
-    optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
-    break;
-  case FIXED:
-    optimalModsPerSegment = ceil(modsPerSegment);
-    optimalRadius         = requestedAvgRadius();
-    break;
-  case AUTO: {
-    int modsPerSegLo = floor(modsPerSegment);
-    int modsPerSegHi = ceil(modsPerSegment);
-    float radiusLo   = calculateOptimalRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
-    float radiusHi   = calculateOptimalRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+    // Requested radius out of barrel region -> will use automated algorithm instead
+    if (requestedAvgRadius.state() && (requestedAvgRadius()< updatedMinR || requestedAvgRadius()>updatedMaxR)) {
 
-    if (fabs(radiusHi - requestedAvgRadius()) < fabs(radiusLo - requestedAvgRadius())) {
-      optimalRadius         = radiusHi;
-      optimalModsPerSegment = modsPerSegHi;
-    } else {
-      optimalRadius         = radiusLo;
-      optimalModsPerSegment = modsPerSegLo;
+      std::ostringstream message;
+      message << "Layer requested to be built on R: " << requestedAvgRadius() <<", which is out of defined barrel region (taking intou account bigDelta & small delta parameters): [";
+      message << updatedMinR << ";" << barrelMaxR << "] -> ignoring, will use automated algorithm instead!";
+      logWARNING(message);
+      this->requestedAvgRadius(layerRadius);
+    }
+    if (!requestedAvgRadius.state()) requestedAvgRadius(layerRadius);
+
+    //
+    // Calculate optimal layer parameters: pessimistic scenario is with bigDelta + smallDelta + dsDistance versus -bigDelta + smallDelta + dsDistance (with -smallDelta it's always better)
+    float halfWidthWoOverlap = moduleWidth()/2 - phiOverlap()/2;
+    float gamma              = atan(halfWidthWoOverlap/(requestedAvgRadius() + bigDelta() + smallDelta() + maxDsDistance()/2)) + atan(halfWidthWoOverlap/(requestedAvgRadius() - bigDelta() + smallDelta() + maxDsDistance()/2));
+    float modsPerSegment     = 2*M_PI/(gamma * phiSegments());
+
+    int   optimalModsPerSegment;
+
+    switch (radiusMode()) {
+    case SHRINK:
+      optimalModsPerSegment = floor(modsPerSegment);
+      optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+      break;
+    case ENLARGE:
+      optimalModsPerSegment = ceil(modsPerSegment);
+      optimalRadius         = calculateOptimalRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+      break;
+    case FIXED:
+      optimalModsPerSegment = ceil(modsPerSegment);
+      optimalRadius         = requestedAvgRadius();
+      break;
+    case AUTO: {
+      int modsPerSegLo = floor(modsPerSegment);
+      int modsPerSegHi = ceil(modsPerSegment);
+      float radiusLo   = calculateOptimalRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+      float radiusHi   = calculateOptimalRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance(), moduleWidth(), phiOverlap());
+
+      if (fabs(radiusHi - requestedAvgRadius()) < fabs(radiusLo - requestedAvgRadius())) {
+	optimalRadius         = radiusHi;
+	optimalModsPerSegment = modsPerSegHi;
+      } else {
+	optimalRadius         = radiusLo;
+	optimalModsPerSegment = modsPerSegLo;
+      }
+
+      break;
+    }
+    default:
+      throw PathfulException("Invalid value for enum radiusMode");
     }
 
-    break;
-  }
-  default:
-    throw PathfulException("Invalid value for enum radiusMode");
+    //
+    // Set rod properties
+    avgBuildRadius(optimalRadius);
+
+    numLayerRods = optimalModsPerSegment*phiSegments();
   }
 
-  //
-  // Set rod properties
-  avgBuildRadius(optimalRadius);
+  else {
+    optimalRadius = requestedAvgRadius();
+    avgBuildRadius(requestedAvgRadius());
+    numLayerRods = numberRods();
+  }
 
-  int   optimalNumRods = optimalModsPerSegment*phiSegments();
-  float rodPhiRotation = 2*M_PI/optimalNumRods;
+
+
+
+  float rodPhiRotation = 2. * M_PI / numLayerRods;
 
   // Rod pair corresponds to an odd/even rod (shifted by bigDelta & rotated by rod phi rotation angle - given by total number of rods in a layer).
   // The pair stands for a pair of modules in positive/negative Z. Odd/even rod is prototyped as first/second, others are cloned to speed-up building.
@@ -423,7 +439,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
     maxRadius = optimalRadius + bigDelta();
   }
 
-  for (int i=1; i<=optimalNumRods; i++) {
+  for (int i=1; i<=numLayerRods; i++) {
 
     // Set current rod rotation & big parity value
     double rotation    = rodPhiRotation*(i-1) + layerRotation();
@@ -619,7 +635,8 @@ void Layer::buildTilted() {
 	flatPartrEndInner = (m_bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());
 	flatPartrEndOuter = (m_bigParity() > 0 ? lastMod1.center().Rho() + 0.5* lastMod1.dsDistance() : lastMod2.center().Rho() + 0.5* lastMod2.dsDistance());
 	flatPartzEnd = (m_bigParity() > 0 ? lastMod2.center().Z() : lastMod1.center().Z());	
-	flatPartzEnd_REAL = (m_bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());	//TAKE CAREEEEEE : REMOVE FLAT PART OVERLAP ?
+	//flatPartzEnd_REAL = (m_bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());	//TAKE CAREEEEEE : REMOVE FLAT PART OVERLAP ?
+	flatPartzEnd_REAL = (m_bigParity() > 0 ? lastMod1.flatMaxZ() : lastMod2.flatMaxZ());
 
 
 	RectangularModule* flatPartrmod = GeometryFactory::make<RectangularModule>();
