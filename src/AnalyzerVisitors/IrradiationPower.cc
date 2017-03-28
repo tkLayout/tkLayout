@@ -67,7 +67,7 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // counter
   modulesCounter_[moduleRef]++;
   // The list of modules per irradiation type
-  mapTypeToIrradiation_[modType].push_back(irradiationMean);
+  mapTypeToIrradiation_[modType].push_back(&m);
 }
 
 
@@ -75,23 +75,36 @@ void IrradiationPowerVisitor::postVisit() {
   // Sort the irradiation and extract the max and 95% percentiles
   sensorsIrradiationPerType.setCell(0, 0, "Type");
   sensorsIrradiationPerType.setCell(0, 1, "# mods");
-  sensorsIrradiationPerType.setCell(0, 2, "Max. module average irrad [Hb]");
-  sensorsIrradiationPerType.setCell(0, 3, "95 percentile module average irrad [Hb]");
+  sensorsIrradiationPerType.setCell(0, 2, "Max. module irrad (avg) [Hb]");
+  sensorsIrradiationPerType.setCell(0, 3, "95% module irrad (avg) [Hb]");
+  sensorsIrradiationPerType.setCell(0, 4, "z_max [mm]");
+  sensorsIrradiationPerType.setCell(0, 5, "r_max [mm]");
   int iRow=0;
   for (auto& it : mapTypeToIrradiation_ ) {
     iRow++;
     const std::string& typeName = it.first;
-    std::vector<double>& irrads = it.second;
-    std::sort(irrads.begin(), irrads.end());
+    std::vector<const DetectorModule*>& irrads = it.second;
+    std::sort(irrads.begin(), irrads.end(),
+	      [] (const DetectorModule* a, const DetectorModule* b) {
+		return a->sensorsIrradiationMean() < b->sensorsIrradiationMean();
+	      });
     int nModules = irrads.size();
     std::ostringstream irrad_Max("");
     std::ostringstream irrad_95perc("");
-    irrad_Max    << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules-1);
-    irrad_95perc << std::dec << std::scientific << std::setprecision(2) << irrads.at(nModules*95/100-1);
+    std::ostringstream max_z("");
+    std::ostringstream max_r("");
+    auto& hottestModule =  irrads.at(nModules-1);
+    auto& hottest95Module = irrads.at(nModules*95/100-1);
+    irrad_Max    << std::dec << std::scientific << std::setprecision(2) << hottestModule->sensorsIrradiationMean();
+    irrad_95perc << std::dec << std::scientific << std::setprecision(2) <<  hottest95Module->sensorsIrradiationMean();
+    max_z << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Z();
+    max_r << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Rho();
     sensorsIrradiationPerType.setCell(iRow, 0, typeName);
     sensorsIrradiationPerType.setCell(iRow, 1, nModules);
     sensorsIrradiationPerType.setCell(iRow, 2, irrad_Max.str());
     sensorsIrradiationPerType.setCell(iRow, 3, irrad_95perc.str());
+    sensorsIrradiationPerType.setCell(iRow, 4, max_z.str());
+    sensorsIrradiationPerType.setCell(iRow, 5, max_r.str());
   }
   // Create summary tables of results. All tables are displayed on website.
   // All results are per module category, identified by ModuleRef.
