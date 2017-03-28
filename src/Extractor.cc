@@ -1955,7 +1955,7 @@ namespace insur {
 
 	      // Barrel part
 	      shape.name_tag = shapenameBarrel.str();
-	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0;
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);
@@ -1969,7 +1969,7 @@ namespace insur {
 
 	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz;
+	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
 	      p.push_back(pos);
 	      pos.copy = 2;
 	      pos.trans.dz = -pos.trans.dz;
@@ -1982,7 +1982,7 @@ namespace insur {
 
 	      // Endcaps part
 	      shape.name_tag = shapenameEndcaps.str();
-	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0;
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);    
@@ -1996,7 +1996,7 @@ namespace insur {
 
 	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = startEndcaps + shape.dz - xml_z_pixfwd;
+	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
 	      p.push_back(pos);
 
 
