@@ -2,8 +2,8 @@
 
 moduleType pt2S
 // Active silicon size
-width 91.44
-length 100.5
+width 91.44  // 91.440 precisely
+length 100.5 // 100.548 actually
 
 sensorLayout pt
 zCorrelation samesegment
