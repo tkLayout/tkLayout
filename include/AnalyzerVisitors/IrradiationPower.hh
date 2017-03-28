@@ -36,7 +36,7 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
   std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
   std::map<ModuleRef, int> modulesCounter_;
-  std::map<std::string, std::vector<const DetectorModule&> > mapTypeToIrradiation_;
+  std::map<std::string, std::vector<const DetectorModule*> > mapTypeToIrradiation_;
 
  public:
   MultiSummaryTable sensorsIrradiationPowerSummary;
