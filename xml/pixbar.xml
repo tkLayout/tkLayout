@@ -161,19 +161,19 @@
       <ZSection z="125.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
       <ZSection z="291.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
     </Polycone>
-    <Polycone name="Phase2PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
+    <Polycone name="Phase1PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
       <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
     </Polycone>
     <SubtractionSolid name="Phase2OTBarrel">
       <rSolid name="Barrel"/>
-      <rSolid name="Phase2PixelBarrel"/>
+      <rSolid name="Phase1PixelBarrel"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid> 
   </SolidSection>
   <LogicalPartSection label="pixbar.xml">
-    <LogicalPart name="Phase2PixelBarrel" category="unspecified">
-      <rSolid name="Phase2PixelBarrel"/>
+    <LogicalPart name="Phase1PixelBarrel" category="unspecified">
+      <rSolid name="Phase1PixelBarrel"/>
       <rMaterial name="materials:Air"/>
     </LogicalPart>
     <LogicalPart name="Phase2OTBarrel" category="unspecified">
