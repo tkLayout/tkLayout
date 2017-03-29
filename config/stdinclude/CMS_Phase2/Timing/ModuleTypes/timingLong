@@ -3,7 +3,7 @@
 moduleType timingLong
 // Active silicon size
 width 48
-length 92
+length 96
 
 sensorLayout mono
 
@@ -24,8 +24,8 @@ reduceCombinatorialBackground true
 
 Sensor 1 {
   sensorType pad
-  numStripsAcross 24  // 48mm/2mm
-  numSegments 46 // 92mm/2mm
+  numStripsAcross 48  // 48mm/1mm
+  numSegments 32 // 96mm/3mm
   numROCX 2
   numROCY 4
 }
