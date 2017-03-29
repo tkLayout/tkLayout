@@ -779,7 +779,11 @@ namespace insur {
 	      xml_base_lowerupper = xml_base_lower;
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	    }	    
-	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	    else {
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      else if (iiter->getModule().moduleType() == "timingLong") shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }
 
 	    // SolidSection
             shape.name_tag = shape.name_tag;
@@ -847,8 +851,9 @@ namespace insur {
 
 	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else if (iiter->getModule().moduleType() == "timingLong") shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	    else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	    else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 
 	    // SolidSection
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
@@ -888,7 +893,7 @@ namespace insur {
 	      // SolidSection
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
               s.push_back(shape);
 
 	      // LogicalPartSection
@@ -1552,8 +1557,12 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) {
 	      xml_base_lowerupper = xml_base_lower;
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-	    }	    
-	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;	     
+	    }
+	    else {
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      else if (iiter->getModule().moduleType() == "timingLong") shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }     
 
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
 	      //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
@@ -1617,8 +1626,9 @@ namespace insur {
 	      
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else if (iiter->getModule().moduleType() == "timingLong") shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
@@ -1650,7 +1660,7 @@ namespace insur {
 
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-		else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;

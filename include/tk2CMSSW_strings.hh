@@ -173,6 +173,7 @@ namespace insur {
     static const std::string xml_base_2s = "2S";
     static const std::string xml_OT = "OuterTracker";
     static const std::string xml_PX = "InnerPixel";
+    static const std::string xml_timing = "Timing";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
