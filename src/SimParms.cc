@@ -21,8 +21,6 @@ SimParms::SimParms() :
     useIPConstraint("useIPConstraint", parsedAndChecked()),
     ptCost("ptCost", parsedAndChecked()),
     stripCost("stripCost", parsedAndChecked()),
-    efficiency("efficiency", parsedAndChecked()),
-    pixelEfficiency("pixelEfficiency", parsedAndChecked()),
     triggerEtaCut("triggerEtaCut", parsedAndChecked()),
     triggerPtCut("triggerPtCut", parsedAndChecked()),
     numTriggerTowersEta("numTriggerTowersEta", parsedAndChecked()),

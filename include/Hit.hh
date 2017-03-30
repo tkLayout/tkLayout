@@ -217,7 +217,7 @@ public:
   int nActiveHits(bool usePixels = false, bool useIP = true) const;
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
-  void addEfficiency(double efficiency, bool alsoPixel = false);
+  void addEfficiency();
   void keepTriggerOnly();
   void keepTaggedOnly(const string& tag);
   void setTriggerResolution(bool isTrigger);

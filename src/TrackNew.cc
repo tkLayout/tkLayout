@@ -487,10 +487,9 @@ void TrackNew::addIPConstraint(double dr, double dz) {
 //
 // Simulate efficiency by changing some active hits to non-active hits (passive)
 //
-void TrackNew::addEfficiency(double efficiency) {
-
+void TrackNew::addEfficiency() {
   for (auto& iHit : m_hits) {
-
+    double efficiency = iHit->getHitModule()->singleHitEfficiency();
     if (iHit->isActive()) {
       if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
     }

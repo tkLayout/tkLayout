@@ -33,9 +33,6 @@ public:
   ReadonlyProperty<int, NoDefault> ptCost;
   ReadonlyProperty<int, NoDefault> stripCost;
 
-  ReadonlyProperty<double, NoDefault> efficiency;
-  ReadonlyProperty<double, NoDefault> pixelEfficiency;
-
   ReadonlyProperty<double, NoDefault> triggerEtaCut;
   ReadonlyProperty<double, NoDefault> triggerPtCut;
   ReadonlyProperty<int, NoDefault> numTriggerTowersEta, numTriggerTowersPhi;
