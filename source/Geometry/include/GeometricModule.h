@@ -57,6 +57,8 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   void rotateZ(double angle)           { m_basePoly.rotateZ(angle); }
   void tiltAngle(double angle)         { m_tiltAngle += angle; }
   void skewAngle(double angle)         { m_skewAngle += angle; }
+  bool flipped() const { return flipped_; }
+  bool flipped(bool newFlip) { flipped_=newFlip; return flipped_; }
 
   //! GeometryVisitor pattern (purely virtual method) -> module needs to be visitable
   virtual void accept(GeometryVisitor& v) = 0;
@@ -96,6 +98,7 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   //double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
   //int          m_numHits   = 0;
 
+  bool flipped_ = false;
   double       m_tiltAngle = 0.; //!< Module tilt, i.e. rotation in RZ plane
   double       m_skewAngle = 0.; //!< Module skew, i.e. rotation in XY plane
   Polygon3d<4> m_basePoly;
