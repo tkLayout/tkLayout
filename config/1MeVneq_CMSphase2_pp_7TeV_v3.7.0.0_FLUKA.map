@@ -34,7 +34,7 @@
 # Z number of bins: 301
 # Z bin width: 2.0
 # simulation author: BRIL Rad Sim 
-# file creation: 2017-01-11_17:13:45
+# file creation: 2017-03-28_18:19:36
 # Every row in the data corresponds to one bin in R starting accordingly from left-most to right-most bin in Z.
 # Numbers are separated by a tabulator "\t" and every row ends with new line "\n".
 # 
