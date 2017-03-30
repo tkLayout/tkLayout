@@ -19,9 +19,9 @@ void ReportIrradiation::computeIrradiationPowerConsumption() {
   tracker.accept(irradiation_);
   irradiation_.postVisit();
 
-  powerSummaries = irradiation_.sensorsIrradiationPowerSummary;
-  irradiationSummaries = irradiation_.sensorsIrradiationSummary;
-  irradiationSummaryPerType = irradiation_.sensorsIrradiationPerType;
+  powerSummaries = irradiation_.sensorsPowerSummary;
+  fluenceSummaries = irradiation_.sensorsFluenceSummary;
+  fluenceSummaryPerType = irradiation_.sensorsFluencePerType;
 }
 
 void ReportIrradiation::computeChipPowerConsumptionTable() {
@@ -63,7 +63,7 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     bool isOuterRadiusRod_;
   public:
     void preVisit() {
-      output_ << "Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsIrradiationMean_W, sensorsIrradiationMax_W, sensorsIrradiationMean_Hb, sensorsIrradiationMax_Hb" << std::endl;
+      output_ << "Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsPowerMean_W, sensorsPowerMax_W, sensorsFluenceMean_Hb, sensorsFluenceMax_Hb" << std::endl;
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -124,7 +124,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   // Irradiation on each module type (fine grained)
   RootWContent& summaryContent = myPage.addContent("Irradiation summary per module type");
   RootWTable& summaryTable = summaryContent.addTable();
-  summaryTable.setContent(irradiationSummaryPerType.getContent());
+  summaryTable.setContent(fluenceSummaryPerType.getContent());
 
   // Power consumption per module tpye (coarse grained)
   RootWContent& chipContent = myPage.addContent("Chip power consumption per module type", false);
@@ -132,7 +132,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   typesTable.setContent(chipPowerPerType.getContent());
   
   dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
-  dumpRadiationTableSummary(myPage, irradiationSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
+  dumpRadiationTableSummary(myPage, fluenceSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
 
   // Some helper string objects
   ostringstream tempSS;

@@ -25,23 +25,23 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double alphaParam_;
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
-  std::pair<double, double> getModuleIrradiationMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
-  const double computeSensorsIrradiationPower(const double& totalFluence,
-					      const double& alphaParam, const double& volume, const double& referenceTemp,
-					      const double& operatingTemp, const double& biasVoltage) const;
+  std::pair<double, double> getModuleFluenceMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
+  const double computeSensorsPower(const double& totalFluence,
+				   const double& alphaParam, const double& volume, const double& referenceTemp,
+				   const double& operatingTemp, const double& biasVoltage) const;
   bool isBarrel_;
   bool isOuterRadiusRod_;
-  std::map<ModuleRef, double> sensorsIrradiationMean_;
-  std::map<ModuleRef, double> sensorsIrradiationMax_;
-  std::map<ModuleRef, double> sensorsIrradiationPowerMean_;
-  std::map<ModuleRef, double> sensorsIrradiationPowerMax_;
+  std::map<ModuleRef, double> sensorsFluenceMean_;
+  std::map<ModuleRef, double> sensorsFluenceMax_;
+  std::map<ModuleRef, double> sensorsPowerMean_;
+  std::map<ModuleRef, double> sensorsPowerMax_;
   std::map<ModuleRef, int> modulesCounter_;
-  std::map<std::string, std::vector<const DetectorModule*> > mapTypeToIrradiation_;
+  std::map<std::string, std::vector<const DetectorModule*> > mapTypeToFluence_;
 
  public:
-  MultiSummaryTable sensorsIrradiationPowerSummary;
-  MultiSummaryTable sensorsIrradiationSummary;
-  SummaryTable sensorsIrradiationPerType;
+  MultiSummaryTable sensorsPowerSummary;
+  MultiSummaryTable sensorsFluenceSummary;
+  SummaryTable sensorsFluencePerType;
   
   void preVisit();
   void visit(SimParms& sp);

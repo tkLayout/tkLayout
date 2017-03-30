@@ -20,8 +20,8 @@ class Tracker;
 class ReportIrradiation : public Report, private insur::AnalyzerTools {
 private:
   std::map<std::string, SummaryTable> powerSummaries;
-  std::map<std::string, SummaryTable> irradiationSummaries;
-  SummaryTable irradiationSummaryPerType;
+  std::map<std::string, SummaryTable> fluenceSummaries;
+  SummaryTable fluenceSummaryPerType;
   SummaryTable chipPowerPerType;
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();

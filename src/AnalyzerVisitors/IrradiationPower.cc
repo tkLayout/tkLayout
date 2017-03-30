@@ -1,27 +1,29 @@
 #include "AnalyzerVisitors/IrradiationPower.hh"
 
 void IrradiationPowerVisitor::preVisit() {
-  sensorsIrradiationPowerSummary.clear();   
+  sensorsPowerSummary.clear();
+  sensorsFluenceSummary.clear();
+  sensorsFluencePerType.clear();
 }
 
 void IrradiationPowerVisitor::visit(SimParms& sp) {
   timeIntegratedLumi_ = sp.timeIntegratedLumi();
-  referenceTemp_    = sp.referenceTemp() + insur::celsius_to_kelvin;   
+  referenceTemp_    = sp.referenceTemp() + insur::celsius_to_kelvin;
   alphaParam_       = sp.alphaParam();
   irradiationMap_  = &sp.irradiationMapsManager();
 }
 
 void IrradiationPowerVisitor::visit(Barrel& b) {
-  isBarrel_ = true;     
+  isBarrel_ = true;
 }
 
 void IrradiationPowerVisitor::visit(RodPair& r) {
-  isOuterRadiusRod_ = r.isOuterRadiusRod();     
+  isOuterRadiusRod_ = r.isOuterRadiusRod();
 }
 
 void IrradiationPowerVisitor::visit(Endcap& e) {
   isBarrel_ = false;
-  isOuterRadiusRod_ = false; // false by default, since no rod here.   
+  isOuterRadiusRod_ = false; // false by default, since no rod here.
 }
 
 void IrradiationPowerVisitor::visit(DetectorModule& m) {
@@ -29,12 +31,12 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   operatingTemp_    = m.operatingTemp() + insur::celsius_to_kelvin;
   biasVoltage_ = m.biasVoltage();
   double volume = m.totalSensorsVolume() * Units::mm3 / Units::cm3; // Total volume occupied by sensors, converted to cm^3
-  
+
   // A) FOR A GIVEN MODULE, GET THE FLUENCE VALUES (IRRADIATIONS) ON ITS SENSOR(S), FROM THE irradiationmap_.
   // The irradiationMap_ was obtained with FLUKA simulation.
   // The irradiationMap_ values are 1 MeV-neutrons-equivalent fluence, for an integrated luminosity = 1 fb-1 .
   // The values are the mean and the max on different points on the module's sensor(s).
-  std::pair<double, double> irradiationMeanMax = getModuleIrradiationMeanMax(irradiationMap_, m);
+  std::pair<double, double> irradiationMeanMax = getModuleFluenceMeanMax(irradiationMap_, m);
   double irradiationMean = irradiationMeanMax.first * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
   double irradiationMax = irradiationMeanMax.second * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
 
@@ -42,45 +44,45 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // B) FOR A GIVEN MODULE, CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
   // This use the irradiation on sensors from FLUKA maps, which has just been obtained : irradiationMean, irradiationMax.
   // Many other parameters are used (see below).
-  const double sensorsIrradiationPowerMean = computeSensorsIrradiationPower(irradiationMean, alphaParam_,
+  const double sensorsPowerMean = computeSensorsPower(irradiationMean, alphaParam_,
 									    volume, referenceTemp_, operatingTemp_, biasVoltage_);
-  const double sensorsIrradiationPowerMax = computeSensorsIrradiationPower(irradiationMax, alphaParam_,
+  const double sensorsPowerMax = computeSensorsPower(irradiationMax, alphaParam_,
 									   volume, referenceTemp_, operatingTemp_, biasVoltage_);
 
   // C) STORE RESULTS
   // Results for each module
   m.sensorsIrradiationMean(irradiationMean); // 1MeV-equiv-neutrons / cm^2
   m.sensorsIrradiationMax(irradiationMax);   // 1MeV-equiv-neutrons / cm^2
-  m.sensorsIrradiationPowerMean(sensorsIrradiationPowerMean);  // W
-  m.sensorsIrradiationPowerMax(sensorsIrradiationPowerMax);    // W
+  m.sensorsIrradiationPowerMean(sensorsPowerMean);  // W
+  m.sensorsIrradiationPowerMax(sensorsPowerMax);    // W
 
   // Also gather results for all modules of a given type, identified by ModuleRef.
   // This will be used for summary tables.
   TableRef tableRef = m.tableRef();
   ModuleRef moduleRef = std::make_tuple(isBarrel_, isOuterRadiusRod_, tableRef.table, tableRef.row, tableRef.col);
   // mean
-  sensorsIrradiationPowerMean_[moduleRef] += sensorsIrradiationPowerMean;
-  sensorsIrradiationMean_[moduleRef] += irradiationMean;
+  sensorsPowerMean_[moduleRef] += sensorsPowerMean;
+  sensorsFluenceMean_[moduleRef] += irradiationMean;
   // max
-  sensorsIrradiationPowerMax_[moduleRef] = MAX(sensorsIrradiationPowerMax_[moduleRef], sensorsIrradiationPowerMax);
-  sensorsIrradiationMax_[moduleRef] = MAX(sensorsIrradiationMax_[moduleRef], irradiationMax);
+  sensorsPowerMax_[moduleRef] = MAX(sensorsPowerMax_[moduleRef], sensorsPowerMax);
+  sensorsFluenceMax_[moduleRef] = MAX(sensorsFluenceMax_[moduleRef], irradiationMax);
   // counter
   modulesCounter_[moduleRef]++;
   // The list of modules per irradiation type
-  mapTypeToIrradiation_[modType].push_back(&m);
+  mapTypeToFluence_[modType].push_back(&m);
 }
 
 
 void IrradiationPowerVisitor::postVisit() {
   // Sort the irradiation and extract the max and 95% percentiles
-  sensorsIrradiationPerType.setCell(0, 0, "Type");
-  sensorsIrradiationPerType.setCell(0, 1, "# mods");
-  sensorsIrradiationPerType.setCell(0, 2, "Max. module irrad (avg) [Hb]");
-  sensorsIrradiationPerType.setCell(0, 3, "95% module irrad (avg) [Hb]");
-  sensorsIrradiationPerType.setCell(0, 4, "z_max [mm]");
-  sensorsIrradiationPerType.setCell(0, 5, "r_max [mm]");
+  sensorsFluencePerType.setCell(0, 0, "Type");
+  sensorsFluencePerType.setCell(0, 1, "# mods");
+  sensorsFluencePerType.setCell(0, 2, "Max. module irrad (avg) [Hb]");
+  sensorsFluencePerType.setCell(0, 3, "95% module irrad (avg) [Hb]");
+  sensorsFluencePerType.setCell(0, 4, "z_max [mm]");
+  sensorsFluencePerType.setCell(0, 5, "r_max [mm]");
   int iRow=0;
-  for (auto& it : mapTypeToIrradiation_ ) {
+  for (auto& it : mapTypeToFluence_ ) {
     iRow++;
     const std::string& typeName = it.first;
     std::vector<const DetectorModule*>& irrads = it.second;
@@ -99,12 +101,12 @@ void IrradiationPowerVisitor::postVisit() {
     irrad_95perc << std::dec << std::scientific << std::setprecision(2) <<  hottest95Module->sensorsIrradiationMean();
     max_z << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Z();
     max_r << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Rho();
-    sensorsIrradiationPerType.setCell(iRow, 0, typeName);
-    sensorsIrradiationPerType.setCell(iRow, 1, nModules);
-    sensorsIrradiationPerType.setCell(iRow, 2, irrad_Max.str());
-    sensorsIrradiationPerType.setCell(iRow, 3, irrad_95perc.str());
-    sensorsIrradiationPerType.setCell(iRow, 4, max_z.str());
-    sensorsIrradiationPerType.setCell(iRow, 5, max_r.str());
+    sensorsFluencePerType.setCell(iRow, 0, typeName);
+    sensorsFluencePerType.setCell(iRow, 1, nModules);
+    sensorsFluencePerType.setCell(iRow, 2, irrad_Max.str());
+    sensorsFluencePerType.setCell(iRow, 3, irrad_95perc.str());
+    sensorsFluencePerType.setCell(iRow, 4, max_z.str());
+    sensorsFluencePerType.setCell(iRow, 5, max_r.str());
   }
   // Create summary tables of results. All tables are displayed on website.
   // All results are per module category, identified by ModuleRef.
@@ -121,40 +123,40 @@ void IrradiationPowerVisitor::postVisit() {
       int row = std::get<3>(it.first);
       int col = std::get<4>(it.first);
 
-      // Obtain the mean and the max sensorsIrradiationPower and sensorsIrradiation for a given module category.
-      double sensorsIrradiationPowerMean = sensorsIrradiationPowerMean_[it.first] / it.second;
-      double sensorsIrradiationMean = sensorsIrradiationMean_[it.first] / it.second;
+      // Obtain the mean and the max sensorsPower and sensorsFluence for a given module category.
+      double sensorsPowerMean = sensorsPowerMean_[it.first] / it.second;
+      double sensorsFluenceMean = sensorsFluenceMean_[it.first] / it.second;
       std::ostringstream powerValues, irradiationValues;
       powerValues.str("");
       irradiationValues.str("");
-      powerValues << std::dec << std::fixed << std::setprecision(3) << sensorsIrradiationPowerMean;
-      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsIrradiationMean;
+      powerValues << std::dec << std::fixed << std::setprecision(3) << sensorsPowerMean;
+      irradiationValues << std::dec << std::scientific << std::setprecision(2) << sensorsFluenceMean;
 
       // Store results in the power and irradiation summary tables
       if (isBarrel) {
-	sensorsIrradiationPowerSummary[name].setHeader("Layer", "Ring");
-	sensorsIrradiationSummary[name].setHeader("Layer", "Ring");
+	sensorsPowerSummary[name].setHeader("Layer", "Ring");
+	sensorsFluenceSummary[name].setHeader("Layer", "Ring");
       }
       else {
-	sensorsIrradiationPowerSummary[name].setHeader("Disk", "Ring");
-	sensorsIrradiationSummary[name].setHeader("Disk", "Ring");
+	sensorsPowerSummary[name].setHeader("Disk", "Ring");
+	sensorsFluenceSummary[name].setHeader("Disk", "Ring");
       }
-      sensorsIrradiationPowerSummary[name].setPrecision(3);   
-      sensorsIrradiationPowerSummary[name].setCell(row, col, powerValues.str());
-      sensorsIrradiationSummary[name].setPrecision(3);   
-      sensorsIrradiationSummary[name].setCell(row, col, irradiationValues.str());
+      sensorsPowerSummary[name].setPrecision(3);
+      sensorsPowerSummary[name].setCell(row, col, powerValues.str());
+      sensorsFluenceSummary[name].setPrecision(3);
+      sensorsFluenceSummary[name].setCell(row, col, irradiationValues.str());
     }
-    else logERROR("Tried to access values from sensorsIrradiationPowerMean_, sensorsIrradiationPowerMax_, but no module in modulesCounter_.");
-  }  
+    else logERROR("Tried to access values from sensorsPowerMean_, sensorsPowerMax_, but no module in modulesCounter_.");
+  }
 }
 
 
-/** 
+/**
     Get, for a given module, the fluence values (irradiations) on its sensor(s), from an irradiationmap.
     Several points on the module's sensor(s) are considered.
     @return : pair (mean, max) of the irradiation values on the different points.
 */
-std::pair<double, double> IrradiationPowerVisitor::getModuleIrradiationMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m) {
+std::pair<double, double> IrradiationPowerVisitor::getModuleFluenceMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m) {
 
   // Get the irradiation from irradiationMap at differents points of the modules's sensor(s).
   std::vector<double> irradiationValues;
@@ -189,7 +191,7 @@ std::pair<double, double> IrradiationPowerVisitor::getModuleIrradiationMeanMax(c
 }
 
 
-/** 
+/**
     Calculate, for a given module, the power dissipated within the sensors, due to the leakage current effect.
     * @param totalFluence : time-integrated fluence on the module's sensors (1MeV-equiv-neutrons / cm^2)
     * @param alphaParam : radiation-damage constant (A.cm-1)
@@ -198,8 +200,8 @@ std::pair<double, double> IrradiationPowerVisitor::getModuleIrradiationMeanMax(c
     * @param operatingTemp : operating temperature (°C)
     * @param biasVoltage : bias voltage (V)
     */
-const double IrradiationPowerVisitor::computeSensorsIrradiationPower(const double& totalFluence, 
-								     const double& alphaParam, const double& volume, const double& referenceTemp, 
+const double IrradiationPowerVisitor::computeSensorsPower(const double& totalFluence,
+								     const double& alphaParam, const double& volume, const double& referenceTemp,
 								     const double& operatingTemp, const double& biasVoltage) const {			
   // Calculate the leakage current at the reference temperature
   double leakageCurrentAtReferenceTemp = alphaParam * totalFluence * volume;  // A
@@ -208,7 +210,7 @@ const double IrradiationPowerVisitor::computeSensorsIrradiationPower(const doubl
   double leakageCurrent = leakageCurrentAtReferenceTemp * pow(operatingTemp / referenceTemp , 2) * exp(-insur::siliconEffectiveBandGap / (2 * insur::boltzmann_constant) * (1 / operatingTemp - 1 / referenceTemp)); // A
 
   // Calculate the heat power dissipated within the silicon sensors due to leakage current
-  double sensorsIrradiationPower = leakageCurrent * biasVoltage; // W
+  double sensorsPower = leakageCurrent * biasVoltage; // W
 
-  return sensorsIrradiationPower;
+  return sensorsPower;
 }
