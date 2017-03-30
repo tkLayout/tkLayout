@@ -573,21 +573,14 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     iTracker->accept(tv);
 
     if (tv.nTiltedLayers > 0) {
-      //myPage.addContent(myContent);
-
-      std::unique_ptr<RootWTable> spacer = std::unique_ptr<RootWTable>(new RootWTable());
-      spacer->setContent(0, 0, " ");
-      spacer->setContent(1, 0, " ");
-      spacer->setContent(2, 0, " ");
-      spacer->setContent(3, 0, " ");
 
       for (int i = 0; i < tv.nTiltedLayers; i++) {
-	//myContent.addItem(std::move(tv.tiltedLayerNames.at(i)));
-	//myContent.addItem(std::move(tv.flatPartNames.at(i)));
-	//myContent.addItem(std::move(tv.flatPartTables.at(i)));
-	//myContent.addItem(std::move(tv.tiltedPartNames.at(i)));
-	//myContent.addItem(std::move(tv.tiltedPartTables.at(i)));
-	//if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }
+	myContent.addItem(std::move(tv.tiltedLayerNames.at(i)));
+	myContent.addItem(std::move(tv.flatPartNames.at(i)));
+	myContent.addItem(std::move(tv.flatPartTables.at(i)));
+	myContent.addItem(std::move(tv.tiltedPartNames.at(i))); 
+	myContent.addItem(std::move(tv.tiltedPartTables.at(i)));
+	//if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }  // seg fault
       }
     }
 
