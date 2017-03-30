@@ -489,9 +489,11 @@ void TrackNew::addIPConstraint(double dr, double dz) {
 //
 void TrackNew::addEfficiency() {
   for (auto& iHit : m_hits) {
-    double efficiency = iHit->getHitModule()->singleHitEfficiency();
     if (iHit->isActive()) {
-      if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
+      double efficiency = iHit->getHitModule()->singleHitEfficiency();
+      if (efficiency!=1) {
+        if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
+      }
     }
   }
 }

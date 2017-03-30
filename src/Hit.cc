@@ -930,8 +930,10 @@ void Track::addEfficiency() {
   for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
     if ((*it)->getObjectKind() == Hit::Active) {
       double efficiency = (*it)->getHitModule()->singleHitEfficiency();
-      if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
-	(*it)->setObjectKind(Hit::Inactive);
+      if (efficiency!=1) {
+        if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
+          (*it)->setObjectKind(Hit::Inactive);
+        }
       }
     }
   }
