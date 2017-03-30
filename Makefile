@@ -197,6 +197,11 @@ $(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) getRevisionDef
 $(BINDIR)/diskPlace: $(SRCDIR)/diskPlace.cc
 	$(COMP) $(SRCDIR)/diskPlace.cc -lm -o $(BINDIR)/diskPlace
 
+$(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc
+	$(COMP) $(LINKERFLAGS) $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/setup
+
 # Clean and documentation
 clean: clean_exes clean_objects clean_analyzerVisitors
 
@@ -218,8 +223,8 @@ $(TESTDIR)/testGraphVizCreator: $(TESTDIR)/testGraphVizCreator.cc $(LIBDIR)/Grap
 	g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(LIBDIR)/GraphVizCreator.o $(TESTDIR)/testGraphVizCreator.cc -o $(TESTDIR)/testGraphVizCreator
 
 rootwebTest: $(TESTDIR)/rootwebTest
-$(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cc $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cc $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
+$(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cc $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/rootweb.o
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cc $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
 test: $(TESTDIR)/ModuleTest
 
