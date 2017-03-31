@@ -1985,7 +1985,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       	    || (iter->getCategory() == MaterialProperties::e_ser)) {
 
           HitPtr hit(new Hit(rPos, zPos, &(*iter), HitPassiveType::Service));
-          hit->setAsPixel();
+          if (isPixel) hit->setAsPixel();
           hit->setCorrectedMaterial(corr);
           track.addHit(std::move(hit));
 	      }
@@ -1995,14 +1995,14 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
 		        || (iter->getCategory() == MaterialProperties::t_sup)) {
 
 	        HitPtr hit(new Hit(rPos, zPos, &(*iter), HitPassiveType::Support));
-          hit->setAsPixel();
+	        if (isPixel) hit->setAsPixel();
           hit->setCorrectedMaterial(corr);
           track.addHit(std::move(hit));
 	      }
 	      else if (iter->getCategory() == MaterialProperties::no_cat) {
 
 	        HitPtr hit(new Hit(rPos, zPos, &(*iter), HitPassiveType::Service));
-          hit->setAsPixel();
+	        if (isPixel) hit->setAsPixel();
           hit->setCorrectedMaterial(corr);
           track.addHit(std::move(hit));
 	      }
@@ -2092,6 +2092,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 
         HitPtr hit(new Hit(rPos, zPos, &(*iter), HitPassiveType::Undefined));
         hit->setCorrectedMaterial(corr);
+        if (isPixel) hit->setAsPixel();
         t.addHit(std::move(hit));
 
 //        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
