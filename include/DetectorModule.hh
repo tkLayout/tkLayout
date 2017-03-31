@@ -309,15 +309,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
 
-  bool isPixelModule() const { 
-    bool ans = (split<std::string>(moduleType(), "_")[0] == "pixel");
-    bool test = (moduleType().find(insur::type_pixel) != std::string::npos);
-    if (ans != test) std::cout << "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
-    return ans;
-  }
-
-
-  bool isTimingModule() const { return (split<std::string>(moduleType(), "_")[0] == insur::type_timing); }
+  inline bool isPixelModule() const { return (moduleType().find(insur::type_pixel) != std::string::npos); }
+  inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
