@@ -779,7 +779,11 @@ namespace insur {
 	      xml_base_lowerupper = xml_base_lower;
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	    }	    
-	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	    else {
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }
 
 	    // SolidSection
             shape.name_tag = shape.name_tag;
@@ -847,8 +851,9 @@ namespace insur {
 
 	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	    else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	    else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 
 	    // SolidSection
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
@@ -864,7 +869,11 @@ namespace insur {
 
 	    // PosPart section
 	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	    else pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+	    else {
+	      if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+	      else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+	      else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }
             pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
@@ -888,7 +897,7 @@ namespace insur {
 	      // SolidSection
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
               s.push_back(shape);
 
 	      // LogicalPartSection
@@ -1552,8 +1561,12 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) {
 	      xml_base_lowerupper = xml_base_lower;
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-	    }	    
-	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;	     
+	    }
+	    else {
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }     
 
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
 	      //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
@@ -1617,8 +1630,9 @@ namespace insur {
 	      
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
@@ -1627,7 +1641,12 @@ namespace insur {
 	      l.push_back(logic);
 
 	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	      else pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+	      else {
+		if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      }
+
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
@@ -1650,7 +1669,7 @@ namespace insur {
 
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-		else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
+		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
@@ -1955,7 +1974,7 @@ namespace insur {
 
 	      // Barrel part
 	      shape.name_tag = shapenameBarrel.str();
-	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0;
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);
@@ -1969,7 +1988,7 @@ namespace insur {
 
 	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz;
+	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
 	      p.push_back(pos);
 	      pos.copy = 2;
 	      pos.trans.dz = -pos.trans.dz;
@@ -1982,7 +2001,7 @@ namespace insur {
 
 	      // Endcaps part
 	      shape.name_tag = shapenameEndcaps.str();
-	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0;
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);    
@@ -1996,7 +2015,7 @@ namespace insur {
 
 	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = startEndcaps + shape.dz - xml_z_pixfwd;
+	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
 	      p.push_back(pos);
 
 

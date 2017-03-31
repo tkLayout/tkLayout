@@ -122,7 +122,13 @@ OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adju
                                         2S 1.8mm rings (11-15) 14.90/2 =  7.45 mm
                                         PS 4.0mm all rings     14.84/2 =  7.42 mm
                                      IT version 4.0.2.5
-
+                                     
+                       Geometries with timing layer              
+OT400_200_IT4026.cfg   Lindsey Gray version
+                       OT Version 4.0.0 <- like 3.6.5 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.6 (standard)
 OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           with the last TEDD disk moved inwards by 10 cm and an additional timing layer
                           covering η 1.8 → 2.8

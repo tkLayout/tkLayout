@@ -1,6 +1,6 @@
-// Generic PS module properties
+// timing long vertical
 
-moduleType timingLong
+moduleType timing_2x4_1000x4000  // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size
 width 48
 length 92
@@ -24,8 +24,8 @@ reduceCombinatorialBackground true
 
 Sensor 1 {
   sensorType pad
-  numStripsAcross 24  // 48mm/2mm
-  numSegments 46 // 92mm/2mm
+  numStripsAcross 48  // 48mm/1mm
+  numSegments 23 // 92mm/4mm
   numROCX 2
   numROCY 4
 }

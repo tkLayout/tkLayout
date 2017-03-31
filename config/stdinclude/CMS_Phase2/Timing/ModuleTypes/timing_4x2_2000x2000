@@ -1,6 +1,6 @@
-// Generic PS module properties
+// timing wide
 
-moduleType timingWide
+moduleType timing_4x2_2000x2000  // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size
 width 92
 length 48
