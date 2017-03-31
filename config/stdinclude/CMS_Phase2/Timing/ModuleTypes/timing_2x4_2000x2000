@@ -18,7 +18,7 @@ frontEndHybridWidth 1.0 // 10.05 hybrid + 1.45 inactive silicon // OK
 hybridThickness 1.0
 supportPlateThickness 1.0
 
-physicalLength 96        // to avoid collisions with previous module in barrels
+physicalLength 92        // to avoid collisions with previous module in barrels
 
 reduceCombinatorialBackground true 
 
