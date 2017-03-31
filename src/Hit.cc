@@ -926,18 +926,14 @@ void Track::print() {
  * @param efficiency the modules active fraction
  * @param alsoPixel true if the efficiency removal applies to the pixel hits also
  */
-void Track::addEfficiency(double efficiency, bool pixel /* = false */ ) {
+void Track::addEfficiency() {
   for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
     if ((*it)->getObjectKind() == Hit::Active) {
-      if ((pixel)&&(*it)->isPixel()) {
-	if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
-	  (*it)->setObjectKind(Hit::Inactive);
-	}
-      }
-      if ((!pixel)&&(!(*it)->isPixel())) {
-	if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
-	  (*it)->setObjectKind(Hit::Inactive);
-	}
+      double efficiency = (*it)->getHitModule()->singleHitEfficiency();
+      if (efficiency!=1) {
+        if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
+          (*it)->setObjectKind(Hit::Inactive);
+        }
       }
     }
   }

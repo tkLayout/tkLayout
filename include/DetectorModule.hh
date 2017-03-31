@@ -81,6 +81,7 @@ public:
   ReadonlyProperty<ZCorrelation, NoDefault> zCorrelation;
   ReadonlyProperty<ReadoutMode, Default> readoutMode;
   ReadonlyProperty<ReadoutType, Default> readoutType;
+  ReadonlyProperty<double, Default> singleHitEfficiency;
 
   ReadonlyProperty<int, Default> triggerWindow;
 
@@ -126,6 +127,7 @@ public:
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
       readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP), 
+      singleHitEfficiency      ("singleHitEfficiency"      , parsedOnly() , 1.),
       readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
       zCorrelation             ("zCorrelation"             , parsedOnly()),
       numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),

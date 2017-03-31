@@ -135,7 +135,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       MaterialBudget* pm) {
 
   auto& simParms = SimParms::getInstance();
-  double efficiency = simParms.efficiency();
 
   materialTracksUsed = etaSteps;
 
@@ -209,7 +208,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         //track.sort();
         //track.setTriggerResolution(true); // TODO: remove this (?)
 
-        if (efficiency!=1) track.addEfficiency(efficiency);
+        track.addEfficiency();
         // For each momentum/transverse momentum compute the tracks error
         for (const auto& pIter : momenta ) {
           int    parameter = pIter/Units::MeV; // Store p or pT in MeV as int (key to the map)
@@ -331,7 +330,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
                                           int etaSteps) {
 
     auto& simParms = SimParms::getInstance();
-    double efficiency = simParms.efficiency();
 
     materialTracksUsed = etaSteps;
 
@@ -371,7 +369,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
         // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
 
-        if (efficiency!=1) track.addEfficiency(efficiency, false);
+        track.addEfficiency();
         if (track.nActiveHits(true)>0) { // At least 3 points are needed to measure the arrow
           tv.push_back(track);
         }    
@@ -879,8 +877,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
                                      MaterialBudget* pm) {
 
   Tracker& tracker = mb.getTracker();
-  double efficiency = SimParms::getInstance().efficiency();
-  double pixelEfficiency = SimParms::getInstance().pixelEfficiency();
   materialTracksUsed = etaSteps;
   int nTracks;
   double etaStep, eta, theta, phi;
@@ -1080,8 +1076,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     track.addHit(hit);
     if (!track.noHits()) {
       track.sort();
-      if (efficiency!=1) track.addEfficiency(efficiency, false);
-      if (pixelEfficiency!=1) track.addEfficiency(efficiency, true);
+      track.addEfficiency();
+      track.addEfficiency();
 
       // @@ Hadrons
       int nActive = track.nActiveHits();
