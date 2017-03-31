@@ -96,7 +96,7 @@ void IrradiationPowerVisitor::postVisit() {
     std::ostringstream max_z("");
     std::ostringstream max_r("");
     auto& hottestModule =  irrads.at(nModules-1);
-    auto& hottest95Module = irrads.at(ceil(nModules*95/100-1));
+    auto& hottest95Module = irrads.at(ceil(double(nModules)*95/100-1));
     irrad_Max    << std::dec << std::scientific << std::setprecision(2) << hottestModule->sensorsIrradiationMean();
     irrad_95perc << std::dec << std::scientific << std::setprecision(2) <<  hottest95Module->sensorsIrradiationMean();
     max_z << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Z();
