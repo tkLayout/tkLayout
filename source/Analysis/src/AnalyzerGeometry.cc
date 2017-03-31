@@ -15,6 +15,7 @@
 #include <global_constants.h>
 #include <Endcap.h>
 #include <Layer.h>
+#include "MaterialProperties.h"
 #include <Math/Vector3D.h>
 #include <PlotDrawer.h>
 #include "RootWContent.h"
@@ -239,11 +240,11 @@ bool AnalyzerGeometry::analyze()
 
       ROOT::Math::XYZVector direction = ROOT::Math::XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
 
+      // Use uniform distribution to simulate position of primary interaction (rphi negligible). May be also triangular or gaussian (depends on accelerator design)!
       double zErrorIP = 0.;
-      if (SimParms::getInstance().useIPConstraint()) zErrorIP = SimParms::getInstance().zErrorIP();
-      double zPos  = (myDice.Rndm()*2 - 1)*zErrorIP;
-
-      ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
+      if (SimParms::getInstance().useLumiRegInAnalysis()) zErrorIP = SimParms::getInstance().zErrorIP();
+      double zPos = (myDice.Rndm()*2 - 1)*zErrorIP;
+      auto origin = ROOT::Math::XYZVector(0, 0, zPos);
 
       // Check whether generated track hits a module -> collect the list of hit modules
       std::vector<std::pair<DetectorModule*, HitType>> hitModules;
@@ -259,8 +260,13 @@ bool AnalyzerGeometry::analyze()
         if (module->couldHit(direction, zErrorIP*zErrorSafetyMargin)) {
 
           // Get hit
-          auto hit = module->checkTrackHits(origin, direction);
-          if (hit.second != HitType::NONE) hitModules.push_back(std::make_pair(module,hit.second));
+          XYZVector hitPos;
+          Material  hitMaterial;
+          HitType   hitType;
+          if (module->checkTrackHits(origin, direction, hitMaterial, hitType, hitPos)) {
+
+            hitModules.push_back(std::make_pair(module,hitType));;
+          }
         }
       }
 

@@ -316,33 +316,85 @@ double DetectorModule::effectiveDsDistance() const {
 }
 
 //
-// Check if track hit the module. If yes, return the intersection point of 2D plane & track as a hit + its type (which module sensor(s) was/were hit)
+// Check if track hit the module -> if yes, return true with passed material, hit position vector & hitType (which module sensor(s) was/were hit)
 //
-std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const {
+bool DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, HitType& hitType, XYZVector& hitPos) const {
 
-  HitType ht = HitType::NONE;
-  XYZVector gc; // global coordinates of the hit
+  // Initialize: hit was found, material, hitPos & relative hit path length wrt perpendicular passage
+  hitMaterial.radiation   = 0.;
+  hitMaterial.interaction = 0.;
+  hitType                 = HitType::NONE;
+  hitPos.SetX(0.);
+  hitPos.SetY(0.);
+  hitPos.SetZ(0.);
 
+  bool hitFound = false;
+
+  // Detector module consists of 1 sensor
   if (numSensors() == 1) {
 
     auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
-    // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
-    if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; } 
+    if (segm.second > -1) {
+
+      hitPos  = segm.first;
+      hitType = HitType::INNER; // The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting
+      hitFound= true;
+    }
   }
+  // 2 sensors detector module
   else {
 
     auto inSegm  = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
+
+    // Hit found in both sensors -> use inner sensor coordinates as a hit position
     if (inSegm.second > -1 && outSegm.second > -1) { 
-      gc = inSegm.first; // in case of both sensors are hit, the inner sensor hit coordinate is returned
-      ht = ((zCorrelation() == SAMESEGMENT && (inSegm.second / (maxSegments()/minSegments()) == outSegm.second)) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
+
+      hitPos  = inSegm.first;
+      hitType = ((zCorrelation() == SAMESEGMENT && (inSegm.second / (maxSegments()/minSegments()) == outSegm.second)) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
+      hitFound= true;
     }
-    else if (inSegm.second > -1)  { gc = inSegm.first;  ht = HitType::INNER; }
-    else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
+    // Hit found in inner sensor only
+    else if (inSegm.second > -1)  {
+
+      hitPos  = inSegm.first;
+      hitType = HitType::INNER;
+      hitFound= true;
+    }
+    // Hit found in outer sensor only
+    else if (outSegm.second > -1) {
+
+      hitPos  = outSegm.first;
+      hitType = HitType::OUTER;
+      hitFound= true;
+    }
   }
-  //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
-  // if (ht != HitType::NONE) m_numHits++; // TODO: correct -> don't change it's content!!!
-  return std::make_pair(gc, ht);
+
+  // Update material
+  if (hitFound) {
+
+    double theta = trackDir.theta();
+    hitMaterial.radiation   = getModuleCap().getRadiationLength();
+    hitMaterial.interaction = getModuleCap().getInteractionLength();
+
+    if (subdet() == BARREL) {
+
+      hitMaterial.radiation   /= sin(theta + tiltAngle());
+      hitMaterial.interaction /= sin(theta + tiltAngle());
+
+    }
+    else if (subdet() == ENDCAP) {
+
+      hitMaterial.radiation   /= cos(theta + tiltAngle() - M_PI/2); // Endcap has tiltAngle = pi/2
+      hitMaterial.interaction /= cos(theta + tiltAngle() - M_PI/2); // Endcap has tiltAngle = pi/2
+
+    }
+    else {
+      logWARNING("DetectorModule::checkTrackHits -> incorrectly scaled material, unknown module type. Neither barrel or endcap");
+    }
+  }
+
+  return hitFound;
 };
 
 BarrelModule::BarrelModule(int id, GeometricModule* moduleGeom, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :

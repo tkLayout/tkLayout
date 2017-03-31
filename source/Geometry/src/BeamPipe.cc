@@ -43,14 +43,9 @@ void BeamPipe::build()
     double zLength = 2*maxZ();
     double zOffset = 0.0;
 
-    m_tube.reset(new insur::InactiveTube);
-    m_tube->setZLength(zLength);
-    m_tube->setZOffset(0.0);
-    m_tube->setInnerRadius(radius());
-    m_tube->setRWidth(thickness());
+    m_tube.reset(new InactiveTube(-zLength/2.,zLength,radius(),thickness()));
     m_tube->setRadiationLength(radLength());
     m_tube->setInteractionLength(intLength());
-    m_tube->setFinal(true);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
 
@@ -77,8 +72,8 @@ void BeamPipe::accept(ConstGeometryVisitor& v) const
 //
 // Get beam pipe as inactive tube
 //
-const insur::InactiveTube* BeamPipe::getMaterial() const
+const InactiveTube* BeamPipe::getMaterial() const
 {
-  const insur::InactiveTube* tube = m_tube.get();
+  const InactiveTube* tube = m_tube.get();
   return tube;
 }

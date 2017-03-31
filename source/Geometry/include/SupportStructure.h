@@ -17,15 +17,10 @@
 #include "InactiveElement.h"
 #include "Visitable.h"
 
-namespace insur {
-  class MaterialProperties;
-}
-using insur::MaterialProperties;
-using insur::InactiveElement;
-
 class Barrel;
 class Endcap;
 class MaterialTab;
+class MaterialProperties;
 
 class SupportStructure : public PropertyObject, Visitable {
 

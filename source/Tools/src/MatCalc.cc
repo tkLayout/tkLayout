@@ -4,7 +4,7 @@
  */
 
 #include <MatCalc.h>
-namespace insur {
+
     // public
     /**
      * This function returns the initialisation status.
@@ -1218,4 +1218,3 @@ namespace insur {
         dest.addExitingMass(it->first, tmp);
       }
     }
-}

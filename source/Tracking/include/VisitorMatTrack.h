@@ -11,10 +11,8 @@
 #include <string>
 #include <Visitor.h>
 
+class InactiveElement;
 class Track;
-namespace insur {
-  class InactiveElement;
-}
 
 //! Visitor pattern class - checks that modules, beam-pipe etc. hit by a track -> assigns all active or passive hits to the track
 class VisitorMatTrack : public ConstGeometryVisitor {
@@ -61,7 +59,7 @@ private:
   void analyzeModuleMB(const DetectorModule& m);
 
   //! Helper method - analyse inactive element & estimate how much material is in the way
-  void analyzeInactiveElement(const insur::InactiveElement& e);
+  void analyzeInactiveElement(const InactiveElement& e);
 
   Track& m_matTrack;   //!< Shooting direction + origin encapsulated in a track class -> update track with hits once found
 

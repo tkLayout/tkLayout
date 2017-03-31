@@ -6,6 +6,7 @@
 #include "GeometricModule.h"
 #include "GeometryFactory.h"
 #include "MaterialObject.h"
+#include "MaterialProperties.h"
 #include "math_functions.h"
 #include "MessageLogger.h"
 #include "Property.h"
@@ -97,8 +98,8 @@ public:
   //! Could track at this direction hit the module? (fast method)
   bool couldHit(const XYZVector& direction, double zError) const;
 
-  //! Check if track hit the module. If yes, return the intersection point of 2D plane & track as a hit  + its type (which module sensor(s) was/were hit)
-  std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const;
+  //! Check if track hit the module -> if yes, return true with passed material, hit position vector & hitType (which module sensor(s) was/were hit)
+  bool checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, HitType& hitType, XYZVector& hitPos) const;
 
   //! Calculate min & max module eta coverage taking into account error on beam Z position
   std::pair<double, double> minMaxEtaWithError(double zError) const;

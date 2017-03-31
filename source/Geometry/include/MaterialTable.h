@@ -25,7 +25,6 @@
 
 #include <string_functions.h>
 
-namespace insur {
     /**
      * Error messages that may be included in exceptions
      */
@@ -133,6 +132,5 @@ namespace insur {
       std::string toXML() { return std::string(); }
       void fromCfg(std::string);
     };
-}
 #endif	/* _MATERIALTABLE_H */
 

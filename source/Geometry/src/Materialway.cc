@@ -158,20 +158,11 @@ namespace material {
     double rWidth = undiscretize(other.maxR() - other.minR());
 
     if (other.bearing() == HORIZONTAL) {
-      InactiveTube* tube = new InactiveTube;
-      tube->setZLength(zLength);
-      tube->setZOffset(zOffset);
-      tube->setInnerRadius(innerRadius);
-      tube->setRWidth(rWidth);
-      tube->setFinal(true);
+      InactiveTube* tube = new InactiveTube(zOffset,zLength,innerRadius,rWidth);
       inactiveElement(tube);
-    } else {
-      InactiveRing* ring = new InactiveRing;
-      ring->setZLength(zLength);
-      ring->setZOffset(zOffset);
-      ring->setInnerRadius(innerRadius);
-      ring->setRWidth(rWidth);
-      ring->setFinal(true);
+    }
+    else {
+      InactiveRing* ring = new InactiveRing(zOffset,zLength,innerRadius,rWidth);
       inactiveElement(ring);
     }
   }
@@ -1216,22 +1207,13 @@ namespace material {
         rWidth = undiscretize(section->maxR() - section->minR());
 
         if (section->bearing() == HORIZONTAL) {
-          InactiveTube* tube = new InactiveTube;
-          tube->setZLength(zLength);
-          tube->setZOffset(zOffset);
-          tube->setInnerRadius(innerRadius);
-          tube->setRWidth(rWidth);
-          tube->setFinal(true);
+          InactiveTube* tube = new InactiveTube(zOffset,zLength,innerRadius,rWidth);
           section->inactiveElement(tube);
           //tube->addLocalMass("Steel", 1000.0*zLength);
           //inactiveSurface.addBarrelServicePart(tube);
-        } else {
-          InactiveRing* ring = new InactiveRing;
-          ring->setZLength(zLength);
-          ring->setZOffset(zOffset);
-          ring->setInnerRadius(innerRadius);
-          ring->setRWidth(rWidth);
-          ring->setFinal(true);
+        }
+        else {
+          InactiveRing* ring = new InactiveRing(zOffset,zLength,innerRadius,rWidth);
           section->inactiveElement(ring);
           //ring->addLocalMass("Steel", 1000.0*rWidth);
           //inactiveSurface.addBarrelServicePart(ring);

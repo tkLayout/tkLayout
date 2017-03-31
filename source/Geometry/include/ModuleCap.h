@@ -10,10 +10,10 @@
  * @brief This is the add-on class that collects material properties for a module
  */
 
-#ifndef _MODULECAP_H_
-#define	_MODULECAP_H_
+#ifndef INCLUDE_MODULECAP_H_
+#define INCLUDE_MODULECAP_H_
 
-#include <MaterialProperties.h>
+#include "MaterialProperties.h"
 
 // Fwd declaration
 class DetectorModule;
@@ -27,7 +27,7 @@ class DetectorModule;
 * to a previously created module. The combination will then include the geometry information in the <i>Module</i>
 * class and the information to calculate the material budget in this one.
 */
-class ModuleCap : public insur::MaterialProperties {
+class ModuleCap : public MaterialProperties {
 
 public:
 
@@ -54,5 +54,5 @@ protected:
 
 }; // Class
 
-#endif	/* _MODULECAP_H_ */
+#endif	/* INCLUDE_MODULECAP_H_ */
 

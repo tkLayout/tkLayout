@@ -117,7 +117,11 @@ bool AnalyzerResolution::analyze()
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+
+    // Use uniform distribution to simulate position of primary interaction (rphi negligible). May be also triangular or gaussian (depends on accelerator design)!
+    double zPos = 0.;
+    if (SimParms::getInstance().useLumiRegInAnalysis()) zPos = (myDice.Rndm()*2 - 1)*SimParms::getInstance().zErrorIP();
+    matTrack.setOrigin(0, 0, zPos);
 
     // Assign material to the track
     VisitorMatTrack matVisitor(matTrack);

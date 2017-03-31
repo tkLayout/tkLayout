@@ -4,6 +4,7 @@
  */
 
 #include "ModuleCap.h"
+
 #include "DetectorModule.h"
 #include <global_constants.h>
 
@@ -49,6 +50,6 @@ double ModuleCap::getLength() const {
  * This function prints a summary of the object to <i>cout</i>
  */
 void ModuleCap::print() {
-      insur::MaterialProperties::print();
+      MaterialProperties::print();
       std::cout << "Associated module is of type " << module.moduleType() << "." << std::endl;
   }

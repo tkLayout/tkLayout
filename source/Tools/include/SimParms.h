@@ -106,10 +106,12 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   const IrradiationMapsManager& irradiationMapsManager() const { return *m_irradiationMapsManager;}
 
   // Variables to be read in by SimParms class from a configuration file
-  ReadonlyProperty<int   , NoDefault> numMinBiasEvents;
-  ReadonlyProperty<double, NoDefault> zErrorIP;
-  ReadonlyProperty<double, NoDefault> rphiErrorIP;
-  ReadonlyProperty<bool  , NoDefault> useIPConstraint;
+  ReadonlyProperty<int   , NoDefault> numMinBiasEvents;     //!< Number of minimum bias events in p-p collision (#pile-ups)
+  ReadonlyProperty<double, NoDefault> zErrorIP;             //!< Defines typical size of luminous region in Z, typically sigmaZ_bunch/sqrt(2)
+  ReadonlyProperty<double, NoDefault> rphiErrorIP;          //!< Defines typical size of luminous region in R-Phi
+  ReadonlyProperty<bool  , Default>   useLumiRegInGeomBuild;//!< Apply luminous region constraints, when building geometry (build hermetic detector using z+-zErrorIP, rphiErrorIP negligible)
+  ReadonlyProperty<bool  , Default>   useLumiRegInAnalysis; //!< Apply luminous region constraints, when analysing geometry (resolution, pattern reco, etc.)
+  ReadonlyProperty<bool  , NoDefault> useIPConstraint;      //!< Use IP constraint in track fitting
   ReadonlyProperty<int   , NoDefault> ptCost;
   ReadonlyProperty<int   , NoDefault> stripCost;
   ReadonlyProperty<double, NoDefault> efficiency;

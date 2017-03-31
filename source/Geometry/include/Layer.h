@@ -99,11 +99,16 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zError), are always passing through edges of layer modules.
   //! The positioning algorithm starts at Z=0 and takes then into consideration the extreme cases, taking into account all parameters: bigDelta, smallDelta, zError, z/phiOverlap
   Property<RadiusMode, Default>     radiusMode;
-  Property<double    , NoDefault>   requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
-  Property<double    , Computable>  avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
-  Property<bool      , Default>     sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
-  Property<double    , Default>     layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
-  Property<string    , AutoDefault> tiltedLayerSpecFile; //!< Configuration file for tilted option
+  Property<double    , NoDefault>   requestedAvgRadius;   //!< Requested radius at which the layer should be positioned
+  Property<double    , Computable>  avgBuildRadius;       //!< Average layer radius (central value) calculated based on position algorithm
+  Property<bool      , Default>     sameParityRods;       //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
+  Property<double    , Default>     layerRotation;        //!< Layer rotated by general barrel rotation + this value in R-Phi
+
+  Property<bool      , Default>     isTilted;             //!< Does the layer consists of tilted modules
+  Property<bool      , NoDefault>   isTiltedAuto;         //!< Is modules tilt calculated automatically, using internal algorithm? If not, use configuration file
+  Property<string    , AutoDefault> tiltedLayerSpecFile;  //!< Configuration file for tilted option
+  Property<int       , NoDefault>   buildNumModulesFlat;  //!< A number of modules to be build straight (tilt=0) in the layer
+  Property<int       , NoDefault>   buildNumModulesTilted;//!< A number of modules to be tilted in the layer
 
   Property<double    , Default>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
   Property<int       , Default>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
@@ -119,7 +124,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   void buildStraight(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
   //! If tilted layer required, build() method internally calls buildTilted()
-  //void buildTilted();
+  void buildTilted(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
   //! Helper function calculating optimal layer radius for straight option
   double calculateOptimalRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
