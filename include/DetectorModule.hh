@@ -12,13 +12,14 @@
 #include <boost/accumulators/statistics/moment.hpp>
 #include <boost/accumulators/statistics/count.hpp>
 
+#include "global_constants.hh"
+#include "MessageLogger.hh"
 #include "Sensor.hh"
 #include "ModuleBase.hh"
 #include "GeometricModule.hh"
 #include "CoordinateOperations.hh"
 #include "Visitable.hh"
 #include "MaterialObject.hh"
-#include "MessageLogger.hh"
 
 using namespace boost::accumulators;
 using material::MaterialObject;
@@ -308,7 +309,15 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
 
-  bool isPixelModule() const { return (split<std::string>(moduleType(), "_")[0] == "pixel"); }
+  bool isPixelModule() const { 
+    bool ans = (split<std::string>(moduleType(), "_")[0] == "pixel");
+    bool test = (moduleType().find(insur::type_pixel) != std::string::npos);
+    if (ans != test) std::cout << "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
+    return ans;
+  }
+
+
+  bool isTimingModule() const { return (split<std::string>(moduleType(), "_")[0] == insur::type_timing); }
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }

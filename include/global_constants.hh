@@ -124,6 +124,11 @@ namespace insur {
   static const std::string type_rphi   = "rphi";
   static const std::string type_stereo = "stereo";
 
+  /**
+   * Internal string constants for modules types.
+   */
+  static const std::string type_pixel   = "pixel";
+  static const std::string type_timing = "timing";
 
   /**
    * Filename and path constants
