@@ -136,7 +136,12 @@ OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           active pads are 2×2mm² (x×y)
                        IT Version 4.0.2.5 (standard)
 OT467_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 1×4mm² (x×y)
-OT468_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 4×1mm² (x×y)
+OT468_200_IT4025.cfg   OT Version 4.6.8 <- like 4.6.6 but with 4×1mm² (x×y)
+OT469_200_IT4025.cfg   Lindsey Gray timing layer plugged on TDR layout
+                       OT Version 4.6.9 <- like 6.1.3 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.5 (standard)
 
 OT367_200_IT4025.cfg  OT Version 3.6.7 <- like version 3.6.6, but with small adjustments from Nick (WORK IN PROGRESS!!!)
                                             Outer Radius reduced from 1103 mm to 1100 mm
