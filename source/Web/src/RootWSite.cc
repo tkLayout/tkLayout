@@ -171,27 +171,32 @@ bool RootWSite::makeSite(bool verbose) {
 //
 ostream& RootWSite::dumpHeader(ostream& output, const RootWPage& thisPage) const {
 
+  time_t rawtime;
+  time ( &rawtime );
+  char timeBuffer [80];
+  strftime (timeBuffer,80,"%a, %b %d %G %T",gmtime(&rawtime));
+
   output << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl
-         << "  <head>" << std::endl
-         << "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />" << std::endl
-         << "    <title>"<< m_title << " - " << thisPage.getTitle() <<"</title>" << std::endl
-         << "    <meta http-equiv=\"cache-control\" content=\"max-age=0\" />" << std::endl
-         << "    <meta http-equiv=\"cache-control\" content=\"no-cache\" />" << std::endl
-         << "    <meta http-equiv=\"expires\" content=\"0\" />" << std::endl
-         << "    <meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />" << std::endl
-         << "    <meta http-equiv=\"pragma\" content=\"no-cache\" />" << std::endl
-         << "    <meta name=\"keywords\" content=\"CERN CMS tracker upgrade\" />" << std::endl
-         << "    <meta name=\"description\" content=\"CMS Tracker upgrade summary page\" />" << std::endl
-         << "    <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << std::endl
-         << "    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << std::endl
+         << " <head>" << std::endl
+         << "  <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />" << std::endl
+         << "  <title>"<< m_title << " - " << thisPage.getTitle() <<"</title>" << std::endl
+         << "  <meta http-equiv=\"cache-control\" content=\"max-age=0\" />" << std::endl
+         << "  <meta http-equiv=\"cache-control\" content=\"no-cache\" />" << std::endl
+         << "  <meta http-equiv=\"expires\" content=\"0\" />" << std::endl
+         << "  <meta http-equiv=\"expires\" content=\""<< timeBuffer<< " GMT\" />" << std::endl
+         << "  <meta http-equiv=\"pragma\" content=\"no-cache\" />" << std::endl
+         << "  <meta name=\"keywords\" content=\"CERN "+m_tkLayoutProjectName+" tracker design\" />" << std::endl
+         << "  <meta name=\"description\" content=\""+m_tkLayoutProjectName+" Tracker design summary page\" />" << std::endl
+         << "  <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << std::endl
+         << "  <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << std::endl
          << " </head>" << std::endl
-         << "  <script type=\"text/javascript\" src=\"../style/functions.js\"></script>" << std::endl
-         << "  <body onload=\"preparePageGoodies();\">" << std::endl
-         << "    <div id=\"outer\">" << std::endl
-         << "      <div id=\"header\">" << std::endl
-         << "        <h1>" << std::endl
-         << "    <a href=\"index.html\">" << m_title << "</a>" << std::endl
-         << "        </h1>" << std::endl;
+         << " <script type=\"text/javascript\" src=\"../style/functions.js\"></script>" << std::endl
+         << " <body onload=\"preparePageGoodies();\">" << std::endl
+         << "  <div id=\"outer\">" << std::endl
+         << "   <div id=\"header\">" << std::endl
+         << "    <h1>" << std::endl
+         << "     <a href=\"index.html\">" << m_title << "</a>" << std::endl
+         << "    </h1>" << std::endl;
 
   if (m_commentLink=="") {
     output << "    <h2>"<<m_comment<<"</h2>" << std::endl;
@@ -203,16 +208,16 @@ ostream& RootWSite::dumpHeader(ostream& output, const RootWPage& thisPage) const
            << "</a>"
            << "</h2>" << std::endl;
   }
-  output << "      </div>" << std::endl
-         << "      <div id=\"menu\">" << std::endl
-         << "        <ul>" << std::endl;
+  output << "   </div>" << std::endl
+         << "   <div id=\"menu\">" << std::endl
+         << "    <ul>" << std::endl;
 
   for (auto& iPage : m_pageList) {
 
-    output << "          <li";
+    output << "     <li";
     if (iPage.get()==&thisPage) output << " class=\"current\"";
-    output << ">";
-    output << "    <a href=\"" << iPage->getAddress() << "\" ";
+    output << "> ";
+    output << "<a href=\"" << iPage->getAddress() << "\"";
     if (iPage->getAlert()>0) {
       std::ostringstream anAlarmColor;
       anAlarmColor.str("");
@@ -225,13 +230,13 @@ ostream& RootWSite::dumpHeader(ostream& output, const RootWPage& thisPage) const
     }
     output << ">";
     output << iPage->getTitle();
-    output <<"</a>" << "          </li>" << std::endl;
+    output <<"</a>" << " </li>" << std::endl;
   }
-  output << "        </ul>" << std::endl
-   << "      </div>" << std::endl
-   << "      <div id=\"content\">" << std::endl
-   << "        <div id=\"primaryContentContainer\">" << std::endl
-   << "          <div id=\"primaryContent\">" << std::endl;
+  output << "    </ul>" << std::endl
+         << "   </div>" << std::endl
+         << "   <div id=\"content\">" << std::endl
+         << "    <div id=\"primaryContentContainer\">" << std::endl
+         << "     <div id=\"primaryContent\">" << std::endl;
 
   return output;
 }
@@ -240,11 +245,11 @@ ostream& RootWSite::dumpHeader(ostream& output, const RootWPage& thisPage) const
 //! Dump method - printing footer in the html format using the general web-site info
 //
 ostream& RootWSite::dumpFooter(ostream& output) const {
-  output  << "          </div>" << std::endl
-          << "        </div>" << std::endl
-          << "        <div class=\"clear\"></div>" << std::endl
-          << "      </div>" << std::endl
-          << "      <div id=\"footer\">" << std::endl;
+  output << "     </div>" << std::endl
+         << "    </div>" << std::endl
+         << "    <div class=\"clear\"></div>" << std::endl
+         << "   </div>" << std::endl
+         << "   <div id=\"footer\">" << std::endl;
 
   // Add the list of authors if any
   bool firstAuthorFound=false;
@@ -252,7 +257,7 @@ ostream& RootWSite::dumpFooter(ostream& output) const {
 
     if (!firstAuthorFound) {
       firstAuthorFound = true;
-      output << "        <p>&copy; ";
+      output << "    <p>&copy; ";
       output << iAuthor;
     }
     else {
@@ -263,15 +268,18 @@ ostream& RootWSite::dumpFooter(ostream& output) const {
 
   time_t rawtime;
   time ( &rawtime );
-  output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << std::endl
-         << "        <p>By <a href=\""<< m_programSite <<"\">"<<m_programName<<"</a>" << " (" << m_tkLayoutProjectName << ": " << m_tkLayoutResultsAuthor << ")";
+  char timeBuffer [80];
+  strftime (timeBuffer,80,"%a, %b %d %G, %T",gmtime(&rawtime));
+
+  output << "    <p>Page created on "<< timeBuffer << " GMT</p>" << std::endl
+         << "    <p>By <a href=\""<< m_programSite <<"\">"<<m_programName<<"</a>" << " (" << m_tkLayoutProjectName << ": " << m_tkLayoutResultsAuthor << ")";
 
   if (m_revision!="") output << ", revision " << m_revision;
 
-  output << "</p>" << std::endl
-         << "      </div>" << std::endl
-         << "    </div>" << std::endl
-         << "  </body>" << std::endl
+  output << "    </p>" << std::endl
+         << "   </div>" << std::endl
+         << "  </div>" << std::endl
+         << " </body>" << std::endl
          << "</html>" << std::endl;
 
   return output;
