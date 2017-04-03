@@ -4,10 +4,12 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <limits.h>
 
 using std::vector;
 using std::string;
 
+#include "math_functions.h"
 #include "Property.h"
 #include "DetectorModule.h"
 #include "Visitable.h"
@@ -18,6 +20,105 @@ typedef std::map<int, const Ring*> RingIndexMap;
 
 // Enums
 enum BuildDirection { TOPDOWN, BOTTOMUP };
+
+
+
+
+
+class TiltedRing : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+
+ public:
+  typedef PtrVector<BarrelModule> Container;
+ private :
+  Container modules_;
+  //MaterialObject materialObject_;
+  
+  double thetaOuterUP_, thetaOuterDOWN_, thetaOuter_, tiltAngleIdealOuter_, deltaTiltIdealOuter_;
+  double thetaInner_, tiltAngleIdealInner_, deltaTiltIdealInner_;
+
+  double thetaStart_, thetaEnd_;
+
+  double thetaStartInner_, thetaEndInner_;
+
+  double numPhi_, phiOverlap_;
+
+  double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
+  double rStartInner_REAL_, zStartInner_REAL_, rEndInner_REAL_, zEndInner_REAL_;
+
+
+ public:
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
+  Property<double, NoDefault> zInner;
+  Property<double, NoDefault> zOuter;
+  Property<double, NoDefault> tiltAngle;
+  Property<double, NoDefault> theta_g;
+  Property<double, NoDefault> ringZOverlap;
+
+  const Container& modules() const { return modules_; }
+
+ TiltedRing() :
+    innerRadius           ("ringInnerRadius"       , parsedAndChecked()),
+    outerRadius           ("ringOuterRadius"       , parsedAndChecked()),
+    zInner                ("ringInnerZ"            , parsedOnly()),
+    zOuter                ("ringOuterZ"            , parsedOnly()),
+    tiltAngle             ("tiltAngle"             , parsedAndChecked()),
+    theta_g               ("theta_g"               , parsedAndChecked()),
+    ringZOverlap          ("ringZOverlap"          , parsedOnly())
+      {}
+
+  void build(double lastThetaEnd);
+  void buildLeftRight(double lastThetaEnd);
+  void check() override;
+
+  void accept(GeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& m : modules_) { m.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const {
+    v.visit(*this); 
+    for (const auto& m : modules_) { m.accept(v); }
+    }
+
+  double thetaOuter() const { return thetaOuter_; }
+  double thetaInner() const { return thetaInner_; }
+  double thetaEnd() const { return thetaEnd_; }
+
+
+  double tiltAngleIdealOuter() const { return tiltAngleIdealOuter_; }
+  double deltaTiltIdealOuter() const { return deltaTiltIdealOuter_; }
+
+  double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
+  double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
+
+  double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
+  double averageZ() const { return (zInner() + zOuter()) / 2.; }
+
+  double deltaR() const { return outerRadius() - innerRadius(); }
+  double gapR() const { return (outerRadius() - innerRadius()) / sin(theta_g() * M_PI / 180.); }
+  double deltaZ() const { return zOuter() - zInner(); }
+
+  void numPhi(double numPhi) { numPhi_ = numPhi; }
+  double numPhi() const { return numPhi_; }
+  double phiOverlap() const { return  phiOverlap_; }
+
+  double rStartOuter_REAL() const { return rStartOuter_REAL_; }
+  double zStartOuter_REAL() const { return zStartOuter_REAL_; } 
+  double rEndOuter_REAL() const { return rEndOuter_REAL_; }
+  double zEndOuter_REAL() const { return zEndOuter_REAL_; }
+  double thetaEndOuter_REAL () const { return atan(rEndOuter_REAL_ / zEndOuter_REAL_); }
+
+  double rStartInner_REAL() const { return rStartInner_REAL_; }
+  double zStartInner_REAL() const { return zStartInner_REAL_; } 
+  double rEndInner_REAL() const { return rEndInner_REAL_; }
+  double zEndInner_REAL() const { return zEndInner_REAL_; }
+  double thetaEndInner_REAL () const { return atan(rEndInner_REAL_ / zEndInner_REAL_); }
+
+};
+
+
+
+
 
 /*
  * @class Ring

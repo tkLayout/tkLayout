@@ -57,6 +57,7 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   void rotateZ(double angle)           { m_basePoly.rotateZ(angle); }
   void tiltAngle(double angle)         { m_tiltAngle += angle; }
   void skewAngle(double angle)         { m_skewAngle += angle; }
+  void flip()                          { m_flipped ? m_flipped=false : m_flipped=true; }
 
   //! GeometryVisitor pattern (purely virtual method) -> module needs to be visitable
   virtual void accept(GeometryVisitor& v) = 0;
@@ -78,8 +79,9 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   virtual double meanWidth()     const = 0;
   //double thickness()             const { return dsDistance() + 0.1; } // Defined at the level of detector module (for Geometric modules it is assumed they have a 0.1 mm thick generic sensor)
 
-  double tiltAngle()             const { return m_tiltAngle; }
-  double skewAngle()             const { return m_skewAngle; }
+  bool    isFlipped()            const { return m_flipped;   }
+  double  tiltAngle()            const { return m_tiltAngle; }
+  double  skewAngle()            const { return m_skewAngle; }
   virtual ModuleShape shape()    const = 0;
 
   // ??? TODO: Still needed?
@@ -96,8 +98,9 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   //double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
   //int          m_numHits   = 0;
 
-  double       m_tiltAngle = 0.; //!< Module tilt, i.e. rotation in RZ plane
-  double       m_skewAngle = 0.; //!< Module skew, i.e. rotation in XY plane
+  bool         m_flipped   = false; //!< TODO: Document 
+  double       m_tiltAngle = 0.;    //!< Module tilt, i.e. rotation in RZ plane
+  double       m_skewAngle = 0.;    //!< Module skew, i.e. rotation in XY plane
   Polygon3D<4> m_basePoly;
 
 }; // Class

@@ -79,8 +79,8 @@ class AnalyzerGeometry : public AnalyzerUnit {
   double m_etaMin;      //!< Minimum eta value;
   double m_etaMax;      //!< Maximum eta value
 
-  const float c_etaSafetyMargin = 0.01;
-  const int   c_nBinsProfile    = 100;
+  const float c_etaSafetyMargin   = 0.01;
+  const int   c_nBinsProfile      = 100;
 
   std::unique_ptr<VisitorLayerName> m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
 
@@ -193,6 +193,33 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   const int   c_occupancyPrecision = 1;
   const int   c_resolutionPrecision= 1;
   const int   c_channelPrecision   = 2;
+}; // Helper Class
+
+/*
+ *  Helper class to display detailed parameters of tilted detector layout - gather information for geometry tables
+ */
+class TiltedLayersVisitor : public ConstGeometryVisitor {
+
+ public:
+
+  virtual ~TiltedLayersVisitor();
+
+  virtual void visit(const Layer& l) override;
+
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedLayerNames;
+  std::vector<std::unique_ptr<RootWTable>> m_flatPartNames;
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartNames;
+  std::vector<std::unique_ptr<RootWTable>> m_flatPartTables;
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartTables;
+
+  int m_nTiltedLayers = 0;
+
+ private:
+
+  const int   c_coordPrecision    = 3;
+  const int   c_zOverlapPrecision = 5;
+  const int   c_anglePrecision    = 1;
+
 }; // Helper Class
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */
