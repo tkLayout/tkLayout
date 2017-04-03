@@ -135,20 +135,25 @@ Hit::Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, 
  * @param myModule pointer to the module with the hit 
  */
 Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
-    m_detName          = "Undefined";
-    m_distance         = sqrt(rPos*rPos + zPos*zPos);
-    m_rPos             = rPos;
-    m_zPos             = zPos;
-    m_activity         = HitActivity::Active;
-    m_activeHitType    = activeHitType;
+    m_detName             = "Undefined";
+    m_distance            = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos                = rPos;
+    m_zPos                = zPos;
+    m_activity            = HitActivity::Active;
+    m_activeHitType       = activeHitType;
     setHitModule(myModule);
-    m_track            = nullptr;
-    m_isTrigger        = false;
-    m_passiveHitType   = HitPassiveType::Undefined;
-    m_hitPassiveElem   = nullptr;
-    m_isPixel          = false;
-    m_resolutionRPhi   = 0;
-    m_resolutionZ      = 0;
+    m_track               = nullptr;
+    m_isTrigger           = false;
+    m_passiveHitType      = HitPassiveType::Undefined;
+    m_hitPassiveElem      = nullptr;
+    m_isPixel             = false;
+    m_resolutionRPhi      = 0;
+    m_resolutionZ         = 0;
+    m_isPixelIntersticeVol= false;
+    m_isPixelTrackingVol  = false;
+    m_isIntersticeVol     = false;
+    m_isOuterTrackingVol  = false;
+    m_isTotalTrackingVol  = false;
 
     if (myModule && myModule->getConstModuleCap()!=nullptr) m_detName = myModule->getConstModuleCap()->getDetName();
 }
