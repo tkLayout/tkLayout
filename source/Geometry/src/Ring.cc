@@ -341,3 +341,288 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 
   return std::make_pair(optimalAlpha, optimalNumMods);
 }
+
+
+
+
+
+
+
+void TiltedRing::check() {
+  PropertyObject::check();
+  if (ringZOverlap.state()) {
+    if (zInner.state() || zOuter.state()) throw PathfulException("Only one parameter among ringZOverlap, ringInnerZ, and ringOuterZ can be specified.");
+  }
+  else {
+    if (!zInner.state() && !zOuter.state()) throw PathfulException("At least one parameter among ringZOverlap, ringInnerZ, and ringOuterZ must be specified.");
+    if (zInner.state() && zOuter.state()) throw PathfulException("Only one parameter among ringZOverlap, ringInnerZ, and ringOuterZ can be specified.");
+  }
+}
+
+
+
+
+void TiltedRing::buildLeftRight(double lastThetaEnd) {
+
+  thetaStart_ = lastThetaEnd;
+  double tilt = tiltAngle() * M_PI / 180.;
+  double theta_gRad = theta_g() * M_PI / 180.;
+
+  RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
+  rmod->store(propertyTree());
+  rmod->build();
+  double dsDistance = rmod->dsDistance();
+  double length = rmod->length();
+  double lengthEff;
+  double width = rmod->width();
+  
+
+  
+
+  if (thetaStart_ == (M_PI / 2.)) {
+    throw PathfulException("Start building tilted rings at thetaStart = M_PI/2.");
+    //thetaOuterUP_ = M_PI / 2.;
+    //thetaOuterDOWN_ = M_PI / 2.;
+    //thetaOuter_ = M_PI / 2.;
+    //zOuter(0.0);
+    //zInner(0.0);
+  }
+
+  else {
+
+    // CASE A : ZOVERLAP IS SPECIFIED IN INPUT
+    if (ringZOverlap.state()) {
+
+      // Calculate lengthEff
+      lengthEff = length - 2.*ringZOverlap();
+
+      // Calculate thetaOuter
+      thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tilt) + lengthEff/2.*cos(tilt) ));
+
+      thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) + dsDistance/2.*sin(tilt) + lengthEff/2.*cos(tilt) ));
+
+      thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
+
+      // Calculate zOuter
+      zOuter(outerRadius() / tan(thetaOuter_));
+    
+      /*std::cout << "thetaStart_ * 180. / M_PI = " << thetaStart_ * 180. / M_PI << std::endl;
+	std::cout << "outerRadius() = " << outerRadius() << std::endl;
+	std::cout << "lengthEff = " << lengthEff << std::endl;
+	std::cout << "ringZOverlap() = " << ringZOverlap() << std::endl;
+	std::cout << "thetaOuterUP_  * 180. / M_PI = " << thetaOuterUP_  * 180. / M_PI << std::endl;
+	std::cout << "thetaOuterDOWN_  * 180. / M_PI = " << thetaOuterDOWN_  * 180. / M_PI << std::endl;
+	std::cout << "thetaOuter_  * 180. / M_PI = " << thetaOuter_  * 180. / M_PI << std::endl;
+	std::cout << "zOuter() = " << zOuter() << std::endl;*/
+
+      // Calculate zInner
+      zInner( zOuter() - (outerRadius() - innerRadius()) / tan(theta_gRad));
+    }
+
+
+    // CASE B : ZINNER OR ZOUTER IS SPECIFIED IN INPUT
+    else {
+
+      // If zOuter is set, calculate zInner
+      if (zOuter.state()) {
+	if (zOuter() == 0.) throw PathfulException("Start building tilted rings at zOuter = 0.");
+	zInner( zOuter() - (outerRadius() - innerRadius()) / tan(theta_gRad));
+      }
+
+      // If zInner is set, calculate zOuter
+      if (zInner.state()) zOuter( zInner() + (outerRadius() - innerRadius()) / tan(theta_gRad));
+
+      // Calculate thetaOuter
+      thetaOuter_ = atan( outerRadius() / zOuter());
+
+      // Calculate ringZOverlap
+      double ringZOverlapUP = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
+
+      double ringZOverlapDOWN = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) - dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
+
+      //std::cout << " ringZOverlapUP = " <<  ringZOverlapUP <<  "ringZOverlapDOWN = " << ringZOverlapDOWN << std::endl;
+      
+      ringZOverlap( MIN(ringZOverlapUP, ringZOverlapDOWN) );
+
+      // Calculate lengthEff
+      lengthEff = length - 2.*ringZOverlap();
+    }
+     
+  }
+
+
+
+
+  // MODULE 2 (OUTER MODULE)
+
+  tiltAngleIdealOuter_ = 90. - thetaOuter_ * 180. / M_PI;
+  deltaTiltIdealOuter_ = tiltAngle() - tiltAngleIdealOuter_;
+
+  //std::cout << "zOuter() = " << zOuter() << std::endl;
+  //std::cout << "zInner() = " << zInner() << std::endl;
+
+
+  double zH2p = zOuter() - 0.5 * lengthEff * cos(tilt);
+  double rH2p = outerRadius() + 0.5 * lengthEff * sin(tilt);
+  //double zH2pp = zOuter() + 0.5 * lengthEff * cos(tilt);
+  //double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tilt);
+
+  double zH2UP = zOuter() + 0.5 * dsDistance * sin(tilt);
+  double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tilt);
+  double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tilt);
+  double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tilt);
+  //double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
+  //double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
+
+  double zH2DOWN = zOuter() - 0.5 * dsDistance * sin(tilt);
+  double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tilt);
+  double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tilt);
+  double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tilt);
+  //double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
+  //double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
+
+
+  /*std::cout << "zH2ppUP = " << zH2ppUP << " zH2ppDOWN = " << zH2ppDOWN << std::endl;
+  std::cout << "rH2ppUP = " << rH2ppUP <<" rH2ppDOWN = " << rH2ppDOWN << std::endl; 
+  std::cout << "atan(rH2ppUP / zH2ppUP) = " << atan(rH2ppUP / zH2ppUP) << std::endl;
+  std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;*/
+  
+
+  //thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+  //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
+
+
+
+
+
+  // MODULE 1 (INNER MODULE)
+
+  thetaInner_ = atan( innerRadius() / zInner() );
+  tiltAngleIdealInner_ = 90. - thetaInner_ * 180. / M_PI;
+  deltaTiltIdealInner_ = tiltAngle() - tiltAngleIdealInner_;
+
+
+  double zH1p = zInner() - 0.5 * lengthEff * cos(tilt);
+  double rH1p = innerRadius() + 0.5 * lengthEff * sin(tilt);
+  //double zH1pp = zInner() + 0.5 * lengthEff * cos(tilt);
+  //double rH1pp = innerRadius() - 0.5 * lengthEff * sin(tilt);
+
+  double zH1UP = zInner() + 0.5 * dsDistance * sin(tilt);
+  double rH1UP = innerRadius() + 0.5 * dsDistance * cos(tilt);
+  double zH1pUP = zH1UP - 0.5 * lengthEff * cos(tilt);
+  double rH1pUP = rH1UP + 0.5 * lengthEff * sin(tilt);
+  //double zH1ppUP = zH1UP + 0.5 * lengthEff * cos(tilt);
+  //double rH1ppUP = rH1UP - 0.5 * lengthEff * sin(tilt);
+
+  double zH1DOWN = zInner() - 0.5 * dsDistance * sin(tilt);
+  double rH1DOWN = innerRadius() - 0.5 * dsDistance * cos(tilt);
+  double zH1pDOWN = zH1DOWN - 0.5 * lengthEff * cos(tilt);
+  double rH1pDOWN = rH1DOWN + 0.5 * lengthEff * sin(tilt);
+  //double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
+  //double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
+
+  //thetaStartInner_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
+  //thetaEndInner_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
+
+
+
+
+
+  // FOR INFO
+
+  //phiOverlapDEG_ = atan(width / (2.* rH2pUP)) + atan(width / (2.* rH1pUP)) - 2. * M_PI / numPhi();
+
+  double T = tan(2.*M_PI / numPhi());
+  double A = 1. / (2. * rH1pUP);
+  double B = 1. / (2. * rH2pUP);
+
+  double a = T * A * B;
+  double b = - (A + B);
+  double c = - T;
+
+  double s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+
+  phiOverlap_ = width + s;
+
+
+
+  // REAL COORDS (MODULE LENGTH WITH NO Z OVERLAP)
+
+  double zH2pUP_REAL = zH2UP - 0.5 * length * cos(tilt);
+  double rH2pUP_REAL = rH2UP + 0.5 * length * sin(tilt);
+  double zH2ppUP_REAL = zH2UP + 0.5 * length * cos(tilt);
+  double rH2ppUP_REAL = rH2UP - 0.5 * length * sin(tilt);
+
+  double zH2pDOWN_REAL = zH2DOWN - 0.5 * length * cos(tilt);
+  double rH2pDOWN_REAL = rH2DOWN + 0.5 * length * sin(tilt);
+  double zH2ppDOWN_REAL = zH2DOWN + 0.5 * length * cos(tilt);
+  double rH2ppDOWN_REAL = rH2DOWN - 0.5 * length * sin(tilt);
+
+  if ( fabs(rH2pUP_REAL / zH2pUP_REAL) < fabs(rH2pDOWN_REAL / zH2pDOWN_REAL) ) { 
+    rStartOuter_REAL_ = rH2pUP_REAL; 
+    zStartOuter_REAL_ = zH2pUP_REAL;
+  }
+  else { 
+    rStartOuter_REAL_ = rH2pDOWN_REAL;
+    zStartOuter_REAL_ = zH2pDOWN_REAL;
+  }
+  if ( fabs(rH2ppUP_REAL / zH2ppUP_REAL) > fabs(rH2ppDOWN_REAL / zH2ppDOWN_REAL) ) { 
+    rEndOuter_REAL_ = rH2ppUP_REAL; 
+    zEndOuter_REAL_ = zH2ppUP_REAL;
+  }
+  else { 
+    rEndOuter_REAL_ = rH2ppDOWN_REAL; 
+    zEndOuter_REAL_ = zH2ppDOWN_REAL;
+  }
+
+
+  double zH1pUP_REAL = zH1UP - 0.5 * length * cos(tilt);
+  double rH1pUP_REAL = rH1UP + 0.5 * length * sin(tilt);
+  double zH1ppUP_REAL = zH1UP + 0.5 * length * cos(tilt);
+  double rH1ppUP_REAL = rH1UP - 0.5 * length * sin(tilt);
+
+  double zH1pDOWN_REAL = zH1DOWN - 0.5 * length * cos(tilt);
+  double rH1pDOWN_REAL = rH1DOWN + 0.5 * length * sin(tilt);
+  double zH1ppDOWN_REAL = zH1DOWN + 0.5 * length * cos(tilt);
+  double rH1ppDOWN_REAL = rH1DOWN - 0.5 * length * sin(tilt);
+
+  if ( (rH1pUP_REAL / zH1pUP_REAL) < (rH1pDOWN_REAL / zH1pDOWN_REAL) ) { 
+    rStartInner_REAL_ = rH1pUP_REAL; 
+    zStartInner_REAL_ = zH1pUP_REAL;
+  }
+  else { 
+    rStartInner_REAL_ = rH1pDOWN_REAL; 
+    zStartInner_REAL_ = zH1pDOWN_REAL;
+  }
+  if ( (rH1ppUP_REAL / zH1ppUP_REAL) > (rH1ppDOWN_REAL / zH1ppDOWN_REAL) ) { 
+    rEndInner_REAL_ = rH1ppUP_REAL; 
+    zEndInner_REAL_ = zH1ppUP_REAL;
+  }
+  else { 
+    rEndInner_REAL_ = rH1ppDOWN_REAL; 
+    zEndInner_REAL_ = zH1ppDOWN_REAL;
+  }
+
+
+}
+
+
+void TiltedRing::build(double lastThetaEnd) {
+  //materialObject_.store(propertyTree());
+  //materialObject_.build();
+
+
+  try {
+    logINFO(Form("Building %s", fullid(*this).c_str()));
+    check();
+    buildLeftRight(lastThetaEnd);
+
+  } catch (PathfulException& pe) {
+    std::cout << pe.what() << std::endl; // TO DO : should not be necessary to specify pe.what() !! Problem in fullid from capabilities.h ?
+    pe.pushPath(fullid(*this)); 
+    throw;
+  }
+
+  cleanup();
+  builtok(true);
+}
