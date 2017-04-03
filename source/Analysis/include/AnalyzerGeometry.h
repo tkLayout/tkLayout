@@ -37,8 +37,6 @@ class TProfile;
 class Ring;
 class RootWTable;
 
-
-
 /*
  * @class AnalyzerGeometry
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.

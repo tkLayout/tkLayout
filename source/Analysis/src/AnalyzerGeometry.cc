@@ -414,18 +414,6 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     //***************************************//
     //*                                     *//
     //* Automatic-placement tilted layers : *//
@@ -588,40 +576,6 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 	//if (i < tv.nTiltedLayers - 1) { myContent.addItem(std::move(spacer)); }  // seg fault
       }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //
     // Modules

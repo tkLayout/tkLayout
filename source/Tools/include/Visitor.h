@@ -13,7 +13,6 @@ class GeometricModule;
 class Layer;
 class RectangularModule;
 class Ring;
-class TiltedRing;
 class RodPair;
 class WedgeModule;
 class SimParms;
@@ -36,7 +35,6 @@ public:
   virtual void visit(Layer&) {}
   virtual void visit(Disk&) {}
   virtual void visit(Ring&) {}
-  virtual void visit(TiltedRing&) {}
   virtual void visit(RodPair&) {}
   virtual void visit(BarrelModule&) {}
   virtual void visit(EndcapModule&) {}
@@ -63,7 +61,6 @@ public:
   virtual void visit(const Layer&) {}
   virtual void visit(const Disk&) {}
   virtual void visit(const Ring&) {}
-  virtual void visit(const TiltedRing&) {}
   virtual void visit(const RodPair&) {}
   virtual void visit(const BarrelModule&) {}
   virtual void visit(const EndcapModule&) {}
