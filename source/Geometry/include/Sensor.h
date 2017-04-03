@@ -16,7 +16,6 @@ class Sensor;
 // Typedefs
 typedef PtrVector<Sensor> Sensors;
 
-enum SensorPosition { NO, LOWER, UPPER };
 enum class SensorType { Pixel, Largepix, Strip, None };
 
 /*
@@ -75,9 +74,6 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   int numROCCols() const { return numSegments() / numROCY(); }
   int totalROCs()  const { return numROCX() * numROCY(); }
 
-  SensorPosition innerOuter(SensorPosition pos) { innerOuter_ = pos; }
-  SensorPosition innerOuter() const { return innerOuter_; }
-
   ReadonlyProperty<int   , NoDefault         > numSegments;      //TODO: Number of channels in RPhi -> Rename to number of readout channels in correct direction, is it R-Phi or Z?
   ReadonlyProperty<int   , NoDefault         > numStripsAcross;  //TODO: Number of channels in Z -> Rename to number of readout channels in correct direction, is it R-Phi or Z?
   ReadonlyProperty<int   , NoDefault         > numROCX, numROCY; //!< Number of read-out chips in given direction
@@ -99,7 +95,6 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
 
   //! Build sensor geometrical representation based on detector module geometrical representation shifted by offset (i.e. by +-thickness/2. to get outer/inner envelope etc.)
   Polygon3d<4>* buildOwnPoly(double polyOffset) const;
-  SensorPosition innerOuter_ = SensorPosition::NO;
 
   mutable const Polygon3d<4>* m_hitPoly            = nullptr;
   mutable const Polygon3d<4>* m_lowerEnvPoly       = nullptr; //! Lower envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)

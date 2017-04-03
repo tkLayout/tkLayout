@@ -206,7 +206,7 @@ const BeamPipe* Detector::getBeamPipe() const
 {
   const BeamPipe* beamPipe = m_beamPipe.get();
 
-  //if (beamPipe==nullptr) throw std::invalid_argument( "Detector::getBeamPipe() - beam pipe not defined (null pointer), check!!!" );
+  if (beamPipe==nullptr) throw std::invalid_argument( "Detector::getBeamPipe() - beam pipe not defined (null pointer), check!!!" );
 
   return beamPipe;
 }
