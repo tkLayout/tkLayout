@@ -56,6 +56,32 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
 }
 
 //
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
+//
+RodPair::RodPair(int id, double rotation, const PropertyTree& treeProperty) :
+ minZ              (string("minZ")              ),
+ maxZ              (string("maxZ")              ),
+ minR              (string("minR")              ),
+ maxR              (string("maxR")              ),
+ minRAllMat        (string("minRAllMat")        ),
+ maxRAllMat        (string("maxRAllMat")        ),
+ maxModuleThickness(string("maxModuleThickness")),
+ beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
+ m_materialObject(MaterialObject::ROD),
+ m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
+ m_nModules     (0),
+ //m_outerZ       (0),
+ //m_optimalRadius(radius),
+ //m_minRadius(    minRadius),
+ //m_maxRadius(    maxRadius),
+ m_rotation(     rotation)
+{
+ // Set the geometry config parameters
+ this->myid(id);
+ this->store(treeProperty);
+}
+
+//
 // Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
 //
 void RodPair::buildClone(int id, double shiftR, double rotation)
@@ -75,6 +101,12 @@ void RodPair::cutAtEta(double eta)
 {
   m_zPlusModules.erase_if([eta](BarrelModule& m)  { return fabs(m.center().Eta()) > eta; });
   m_zMinusModules.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; });
+}
+
+void RodPair::rotateZ(double angle) {
+  for (auto& m : m_zPlusModules) { m.rotateZ(angle); }
+  for (auto& m : m_zMinusModules) { m.rotateZ(angle); }
+  //clearComputables();
 }
 
 //! GeometryVisitor pattern -> rod visitable
@@ -664,38 +696,70 @@ void RodPairStraight::compressToZ(double zLimit) {
 //}
 
 
-////
-////void TiltedRodPair::buildModules(BarrelModules& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction) {
-////  auto it = rodTemplate.begin();
-////  int side = (direction == BuildDir::RIGHT ? 1 : -1);
-////  if (tmspecs.empty()) return;
-////  int i = (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
-////  for (; i < tmspecs.size(); i++, ++it) {
-////    BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
-////    mod->myid(i+1);
-////    mod->side(side);
-////    mod->tilt(side * tmspecs[i].gamma);
-////    mod->translateR(tmspecs[i].r);
-////    mod->translateZ(side * tmspecs[i].z);
-////    modules.push_back(mod);
-////  }
-////}
-////
-////
-////void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
-////  materialObject_.store(propertyTree());
-////  materialObject_.build();
-////
-////  try {
-////    logINFO(Form("Building %s", fullid(*this).c_str()));
-////    check();
-////    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT);
-////    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT);
-////
-////  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
-////  cleanup();
-////  builtok(true);
-////}
+
 //
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
 //
-//
+TiltedRodPair::TiltedRodPair(int id, double rotation, const PropertyTree& treeProperty) :
+ RodPair(id, rotation, treeProperty)
+ //forbiddenRange(      "forbiddenRange"      , parsedOnly()),
+ //zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
+ //zError(              "zError"              , parsedAndChecked()),
+ //compressed(          "compressed"          , parsedOnly(), true),
+ //allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
+ //m_ringNode(          "Ring"                , parsedOnly())
+{
+  // Set the geometry config parameters (id set through base class)
+  this->store(treeProperty);
+}
+
+
+
+
+
+void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip) {
+  auto it = rodTemplate.begin();
+  int side = (direction == BuildDir::RIGHT ? 1 : -1);
+  if (tmspecs.empty()) return;
+  int i = 0;
+  if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
+  for (; i < tmspecs.size(); i++, ++it) {
+    //std::cout << "i = " << i << std::endl;
+    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
+    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
+    BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
+    mod->myid(i+1);
+    mod->side(side);
+    mod->tilt(side * tmspecs[i].gamma);
+    mod->translateR(tmspecs[i].r);
+    if (tmspecs[i].gamma == 0) { mod->flipped(i%2); } // flat part of the tilted rod, i is the ring number
+    else { mod->flipped(flip); } // tilted part of the tilted rod
+    mod->translateZ(side * tmspecs[i].z);
+    modules.push_back(mod);
+  }
+}
+
+void TiltedRodPair::check() {
+  PropertyObject::check();
+
+  if (m_startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
+}
+
+
+void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
+  m_materialObject.store(propertyTree());
+  m_materialObject.build();
+
+  try {
+    logINFO(Form("Building %s", fullid(*this).c_str()));
+    check();
+    buildModules(m_zPlusModules, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
+    buildModules(m_zMinusModules, rodTemplate, tmspecs, BuildDir::LEFT, flip);
+
+  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+  cleanup();
+  builtok(true);
+}
+
+
+

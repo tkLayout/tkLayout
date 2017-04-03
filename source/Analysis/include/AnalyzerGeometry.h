@@ -37,6 +37,16 @@ class TProfile;
 class Ring;
 class RootWTable;
 
+
+// Formatting parameters
+static const int coordPrecision = 3;
+static const int zOverlapPrecision = 5;
+static const int anglePrecision = 1;
+// Some strings for the html formatting
+static const std::string subStart   = "<sub>";      // These only should be needed
+static const std::string subEnd     = "</sub>";
+
+
 /*
  * @class AnalyzerGeometry
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
