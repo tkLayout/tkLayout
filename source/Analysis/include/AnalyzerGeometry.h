@@ -38,14 +38,6 @@ class Ring;
 class RootWTable;
 
 
-// Formatting parameters
-static const int coordPrecision = 3;
-static const int zOverlapPrecision = 5;
-static const int anglePrecision = 1;
-// Some strings for the html formatting
-static const std::string subStart   = "<sub>";      // These only should be needed
-static const std::string subEnd     = "</sub>";
-
 
 /*
  * @class AnalyzerGeometry
@@ -197,12 +189,11 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   std::vector<int>                   m_ringNModules;  //!< Number of modules in a given ring
 
  private:
-
-  const int   c_coordPrecision     = 1;
-  const int   c_areaPrecision      = 1;
-  const int   c_occupancyPrecision = 1;
-  const int   c_resolutionPrecision= 1;
-  const int   c_channelPrecision   = 2;
+  const int   c_coordPrecision       = 1;
+  const int   c_areaPrecision        = 1;
+  const int   c_occupancyPrecision   = 1;
+  const int   c_resolutionPrecision  = 1;
+  const int   c_channelPrecision     = 2;
 }; // Helper Class
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */
