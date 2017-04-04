@@ -128,6 +128,7 @@ ANALYZERVISITORS+=MaterialBillAnalyzer
 ANALYZERVISITORS+=TriggerDistanceTuningPlots
 ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
+ANALYZERVISITORS+=ModuleCount
 
 EXES+=tklayout
 EXES+=setup
