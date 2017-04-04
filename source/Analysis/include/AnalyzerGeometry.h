@@ -128,6 +128,7 @@ class VisitorLayerName : public ConstGeometryVisitor {
   void visit(const Disk& d);
 }; // Helper Class
 
+
 /*
  *  Helper class: Layer/disk summary visitor (visitor pattern) - gather information for geometry tables
  */
@@ -195,5 +196,29 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   const int   c_resolutionPrecision  = 1;
   const int   c_channelPrecision     = 2;
 }; // Helper Class
+
+
+/*
+ *  Helper class: Visit tilted layers for info on website.
+ */
+class TiltedLayersVisitor : public ConstGeometryVisitor {
+ public:
+  void visit(const Layer& l) override;
+
+  // tilted info containers
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedLayerNames;
+  std::vector<std::unique_ptr<RootWTable>> m_flatPartNames;
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartNames;
+  std::vector<std::unique_ptr<RootWTable>> m_flatPartTables;
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartTables;
+
+  // counters
+  int m_nTiltedLayers = 0; 
+
+ private:
+  const int   c_tiltedCoordPrecision = 3;
+  const int   c_zOverlapPrecision    = 5;
+  const int   c_anglePrecision       = 1;
+};
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */
