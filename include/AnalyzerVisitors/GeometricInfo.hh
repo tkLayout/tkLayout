@@ -2,9 +2,10 @@
 #define	_GEOMETRICINFO_HH
 
 #include <global_constants.hh>
-#include "VizardTools.hh"
+#include <VizardTools.hh>
 #include <Tracker.hh>
-#include <Analyzer.hh>
+#include <SimParms.hh>
+#include <TagMaker.hh>
 #include <RootWeb.hh>
 
 
