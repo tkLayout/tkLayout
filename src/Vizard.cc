@@ -4136,7 +4136,7 @@ namespace insur {
         label.str("");
 
         std::string color = "Unknow";
-        if (iMom<insur::color_names.size()) color = color_names[iMom];
+        if (iMom<color_names.size()) color = color_names[iMom];
 
         if (iMom!=momentum.size()-1) label << momentum[iMom]/Units::GeV << " (" << color << "),";
         else                         label << momentum[iMom]/Units::GeV << " (" << color << ").";

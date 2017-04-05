@@ -1,7 +1,10 @@
 #ifndef VIZARDTOOLS_HH
 #define VIZARDTOOLS_HH
 
-#include <PlotDrawer.hh>
+#include <string>
+#include <cmath>
+#include <vector>
+#include <Palette.hh>
 
 /*
  * Assorted messages that may pop up
@@ -24,7 +27,7 @@ static const int color_plot_background       = kWhite;
 static const int color_pad_background        = kGray;
 static const int color_grid                  = kGreen-10;
 static const int color_hard_grid             = kGray;
-static const std::vector<string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
+static const std::vector<std::string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
 
 
 // Pads to plot the tracker ortho views

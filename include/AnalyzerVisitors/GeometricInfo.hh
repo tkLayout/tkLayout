@@ -5,9 +5,6 @@
 #include "VizardTools.hh"
 #include <Tracker.hh>
 #include <Analyzer.hh>
-
-//#include <Palette.hh>
-#include <PlotDrawer.hh>
 #include <RootWeb.hh>
 
 
