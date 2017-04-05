@@ -1,5 +1,5 @@
-#ifndef _GEOMETRYVISITORS_HH
-#define	_GEOMETRYVISITORS_HH
+#ifndef _GEOMETRICINFO_HH
+#define	_GEOMETRICINFO_HH
 
 #include <global_constants.hh>
 #include "VizardTools.hh"
@@ -185,4 +185,4 @@ public:
   std::string output() const;
 };
 
-#endif // _GEOMETRYVISITORS_HH
+#endif // _GEOMETRICINFO_HH

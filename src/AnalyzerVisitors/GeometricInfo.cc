@@ -1,4 +1,4 @@
-#include <AnalyzerVisitors/GeometryVisitors.hh>
+#include <AnalyzerVisitors/GeometricInfo.hh>
 
 
    //**************************************//

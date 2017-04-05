@@ -123,7 +123,7 @@ OBJS+=WeightDistributionGrid
 OBJS+=XMLWriter
 
 ANALYZERVISITORS+=Bandwidth
-ANALYZERVISITORS+=GeometryVisitors
+ANALYZERVISITORS+=GeometricInfo
 ANALYZERVISITORS+=IrradiationPower
 ANALYZERVISITORS+=MaterialBillAnalyzer
 ANALYZERVISITORS+=TriggerDistanceTuningPlots
