@@ -131,12 +131,6 @@ namespace insur {
   static const std::string type_timing = "timing";
 
   /**
-   * Web variables
-   */
-
-
-
-  /**
    * Filename and path constants
    * @param default_mattabdir Relative path to the list of materials
    * @param default_mattabfile List of materials and of their properties as required by <i>MaterialTable</i>

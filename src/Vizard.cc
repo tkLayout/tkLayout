@@ -1463,7 +1463,7 @@ namespace insur {
     tracker.accept(tv);
 
     // If the layer is tilted, print flat and tilted parts tables.
-    if (tv.nTiltedLayers > 0) {
+    if (tv.numTiltedLayers > 0) {
       myPage->addContent(myContent);
 
       // TO DO : replace this with a better spacer

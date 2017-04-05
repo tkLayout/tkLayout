@@ -52,6 +52,7 @@
 #include <Palette.hh>
 
 #include <PlotDrawer.hh>
+#include <AnalyzerVisitors/GeometryVisitors.hh>
 #include "VizardTools.hh"
 
 namespace material {
