@@ -43,15 +43,14 @@
 #include "VizardTools.hh"
 
 
-
-
-
     //**************************************//
     //*             Visitor                *//
     //*  Layers and disks : global info    *//
     //*                                    *//
     //**************************************//
 
+    // Build the module type maps
+    // with a pointer to a sample module
 class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
 public:
   // info
@@ -132,6 +131,90 @@ public:
   int numTiltedLayers = 0;
 
   void visit(const Layer& l) override;     
+};
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            AllModulesCsv          //
+    //*                                   //
+    //************************************//
+class TrackerVisitor : public ConstGeometryVisitor {
+  std::stringstream output_;
+  string sectionName_;
+  int layerId_;
+
+public:
+  void preVisit();
+  void visit(const Barrel& b);
+  void visit(const Endcap& e);
+  void visit(const Layer& l);
+  void visit(const Disk& d);
+  void visit(const Module& m);
+  std::string output() const { return output_.str(); }
+};
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            BarrelModulesCsv       //
+    //*                                   //
+    //************************************//
+class BarrelVisitor : public ConstGeometryVisitor {
+  std::stringstream output_;
+  string barName_;
+  int layId_;
+  int numRods_;
+
+public:
+  void preVisit();
+  void visit(const Barrel& b);
+  void visit(const Layer& l);
+  void visit(const BarrelModule& m);
+  std::string output() const;
+};
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            EndcapModulesCsv       //
+    //*                                   //
+    //************************************//
+class EndcapVisitor : public ConstGeometryVisitor {
+  std::stringstream output_;
+  string endcapName_;
+  int diskId_;
+
+public:
+  void preVisit();
+  void visit(const Endcap& e);
+  void visit(const Disk& d);
+  void visit(const EndcapModule& m);
+
+  std::string output() const;
+};
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            Sensors DetIds         //
+    //*                                   //
+    //************************************//
+class TrackerSensorVisitor : public SensorGeometryVisitor {
+  std::stringstream output_;
+  string sectionName_;
+  int layerId_;
+  int moduleRing_;
+
+public:
+  void visit(Barrel& b);
+  void visit(Endcap& e);
+  void visit(Layer& l);
+  void visit(Disk& d);
+  void visit(Module& m);
+  void visit(Sensor& s);
+
+  std::string output() const;
 };
 
 #endif // _GEOMETRYVISITORS_HH

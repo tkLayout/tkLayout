@@ -289,3 +289,164 @@ void TiltedLayersVisitor::visit(const Layer& l) {
     flatPartTables.push_back(flatPartTable);
   } // end of 'fills flat part table'
 }
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            AllModulesCsv          //
+    //*                                   //
+    //************************************//
+void TrackerVisitor::preVisit() {
+  //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
+  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+}
+
+void TrackerVisitor::visit(const Barrel& b) {
+  sectionName_ = b.myid();
+}
+
+void TrackerVisitor::visit(const Endcap& e) {
+  sectionName_ = e.myid();
+}
+
+void TrackerVisitor::visit(const Layer& l) {
+  layerId_ = l.myid();
+}
+
+void TrackerVisitor::visit(const Disk& d) {
+  layerId_ = d.myid();
+}
+
+void TrackerVisitor::visit(const Module& m) {
+  output_ << m.myDetId() << ","
+	  << m.myBinaryDetId() << ","
+	  << sectionName_ << ", "
+	  << layerId_ << ", "
+	  << m.moduleRing() << ", "
+	  << std::fixed << std::setprecision(6)
+	  << m.center().Rho() << ", "
+	  << m.center().Z() << ", "
+	  << m.tiltAngle() * 180. / M_PI << ", "
+	  << m.center().Phi() * 180. / M_PI << ", "
+	  << m.meanWidth() << ", "
+	  << m.length() << ", "
+	  << m.dsDistance() << ", "
+	  << m.sensorThickness()
+	  << std::endl;
+}
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            BarrelModulesCsv       //
+    //*                                   //
+    //************************************//
+void BarrelVisitor::preVisit() {
+  output_ << "DetId, BinaryDetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+}
+void BarrelVisitor::visit(const Barrel& b) {
+  barName_ = b.myid();
+}
+void BarrelVisitor::visit(const Layer& l) {
+  layId_ = l.myid();
+  numRods_ = l.numRods();
+}
+void BarrelVisitor::visit(const BarrelModule& m) {
+  if (m.posRef().phi > 2) return;
+  output_ << m.myDetId() << ", "
+	  << m.myBinaryDetId() << ","
+	  << barName_ << "-L" << layId_ << ", "
+	  << std::fixed << std::setprecision(6)
+	  << m.center().Rho() << ", "
+	  << m.center().Z() << ", "
+	  << m.tiltAngle() * 180. / M_PI << ", "
+	  << numRods_/2. << ", "
+	  << m.meanWidth() << ", "
+	  << m.length() << ", "
+	  << m.dsDistance() << ", "
+	  << m.sensorThickness()
+	  << std::endl;
+}
+
+std::string BarrelVisitor::output() const { return output_.str(); }
+ 
+
+    //************************************//
+    //*               Visitor             //
+    //*            EndcapModulesCsv       //
+    //*                                   //
+    //************************************//
+void EndcapVisitor::preVisit() {
+  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+}
+
+void EndcapVisitor::visit(const Endcap& e) {
+  endcapName_ = e.myid();
+}
+
+void EndcapVisitor::visit(const Disk& d)  {
+  diskId_ = d.myid();
+}
+
+void EndcapVisitor::visit(const EndcapModule& m) {
+  if (m.minZ() < 0.) return;
+
+  output_	<< m.myDetId() << ", "
+		<< m.myBinaryDetId() << ","
+		<< endcapName_ << "-D" << diskId_ << ", "
+		<< m.ring() << ", "
+		<< std::fixed << std::setprecision(6)
+		<< m.center().Rho() << ", "
+		<< m.center().Z() << ", "
+		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< m.center().Phi() * 180. / M_PI << ", "
+		<< m.meanWidth() << ", "
+		<< m.length() << ", "
+		<< m.dsDistance() << ", "
+		<< m.sensorThickness()
+		<< std::endl;
+}
+
+std::string EndcapVisitor::output() const { return output_.str(); }
+    
+
+    //************************************//
+    //*               Visitor             //
+    //*            Sensors DetIds         //
+    //*                                   //
+    //************************************//
+void TrackerSensorVisitor::visit(Barrel& b) {
+  sectionName_ = b.myid();
+}
+
+void TrackerSensorVisitor::visit(Endcap& e) {
+  sectionName_ = e.myid();
+}
+
+void TrackerSensorVisitor::visit(Layer& l)  {
+  layerId_ = l.myid();
+}
+
+void TrackerSensorVisitor::visit(Disk& d)  {
+  layerId_ = d.myid();
+}
+
+void TrackerSensorVisitor::visit(Module& m)  {
+  moduleRing_ = m.moduleRing();
+}
+
+void TrackerSensorVisitor::visit(Sensor& s) {
+  output_ << s.myDetId() << ","
+	  << s.myBinaryDetId() << ","
+	  << sectionName_ << ", "
+	  << layerId_ << ", "
+	  << moduleRing_ << ", "
+	  << std::fixed << std::setprecision(6)
+	  << s.hitPoly().getCenter().Rho() << ", "
+	  << s.hitPoly().getCenter().Z() << ", "
+	  << s.hitPoly().getCenter().Phi() * 180. / M_PI
+	  << std::endl;
+}
+
+std::string TrackerSensorVisitor::output() const { return output_.str(); }
+   
