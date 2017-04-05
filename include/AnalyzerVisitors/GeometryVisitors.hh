@@ -1,46 +1,14 @@
 #ifndef _GEOMETRYVISITORS_HH
 #define	_GEOMETRYVISITORS_HH
 
-#include <fstream>
-#include <sstream>
-// ROOT objects
-#include <TGeoManager.h>
-#include <TGeoMedium.h>
-#include <TGeoMaterial.h>
-#include <TGeoVolume.h>
-#include <TGeoArb8.h>
-#include <TGeoMatrix.h>
-#include <TFile.h>
-#include <THStack.h>
-#include <TStyle.h>
-#include <TText.h>
-#include <TLatex.h>
-#include <TColor.h>
-#include <TLine.h>
-#include <TView.h>
-#include <TLegend.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
-#include <TPaletteAxis.h>
-#include <TProfile.h>
-#include <TPolyLine3D.h>
-#include <TArc.h>
-// Program constants
 #include <global_constants.hh>
-// Custom objects
+#include "VizardTools.hh"
 #include <Tracker.hh>
 #include <Analyzer.hh>
-#include <TagMaker.hh>
 
-#include <InactiveSurfaces.hh>
-#include "Module.hh"
-#include <RootWeb.hh>
-#include <vector>
-#include <set>
-#include <Palette.hh>
-
+//#include <Palette.hh>
 #include <PlotDrawer.hh>
-#include "VizardTools.hh"
+#include <RootWeb.hh>
 
 
     //**************************************//

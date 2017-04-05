@@ -1,6 +1,8 @@
 #ifndef VIZARDTOOLS_HH
 #define VIZARDTOOLS_HH
 
+#include <PlotDrawer.hh>
+
 /*
  * Assorted messages that may pop up
  */
