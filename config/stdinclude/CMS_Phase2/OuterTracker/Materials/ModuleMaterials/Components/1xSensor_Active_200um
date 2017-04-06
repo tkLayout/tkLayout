@@ -1,0 +1,14 @@
+// Sensor
+Component {
+  componentName "Sensors"
+  service false
+  scaleOnSensor 0
+  targetVolume 1
+  Element {
+    elementName SenSi
+    quantity 0.2
+    unit mm
+  }
+}
+
+
