@@ -2750,7 +2750,7 @@ namespace insur {
 
       posx = 0.;
       posy = -(modLength+frontEndHybridWidth)/2.;
-      posz = 0.;
+      posz = sensorThickness / 2. + hybridThickness / 2.; 
       // Hybrid RightSide Volume
       vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
