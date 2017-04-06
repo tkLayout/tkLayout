@@ -4,10 +4,13 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <limits.h>
 
+#include "math_functions.h"
 #include "ConversionStation.h"
 #include "Property.h"
 #include "RodPair.h"
+#include "Ring.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
 
@@ -19,6 +22,19 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 using material::ConversionStations;
+
+typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
+
+class FlatRingsGeometryInfo {
+ private:
+  std::map<int, double> zErrorInner_;
+  std::map<int, double> zErrorOuter_;
+ public:
+  FlatRingsGeometryInfo();
+  void calculateFlatRingsGeometryInfo(std::vector<RodPairStraight*> flatPartRods, int bigParity);
+  std::map<int, double> zErrorInner() const { return zErrorInner_; }
+  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+};
 
 // Typedefs
 typedef PtrVector<Layer> Layers;
@@ -34,11 +50,30 @@ enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
  */
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 
+ private:
+
+  class TiltedRingsGeometryInfo {
+  private:
+    std::map<int, double> deltaZInner_;
+    std::map<int, double> deltaZOuter_;
+    //std::map<int, double> covInner_;
+    std::map<int, double> zErrorInner_;
+    std::map<int, double> zErrorOuter_;
+  public:
+    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
+    std::map<int, double> deltaZInner() const { return deltaZInner_; }
+    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+    //std::map<int, double> covInner() const { return covInner_; }
+    std::map<int, double> zErrorInner() const { return zErrorInner_; }
+    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+  };
+
  public:
 
   //! Constructor - parse geometry config file using boost property tree & read-in Layer parameters
   Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
         const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
+
 
   //! Build recursively individual subdetector systems: rods -> modules & conversion stations
   void build(int barrelNumLayers, double barrelMinR, double barrelMaxR);
@@ -52,7 +87,16 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Return layer rods
   const Rods& rods() const { return m_rods; }
 
+  std::vector<RodPairStraight*> flatPartRods() const { return m_flat_rods; }
+  double flatPartPhiOverlapSmallDeltaMinus() const { return flatPartPhiOverlapSmallDeltaMinus_; }
+  double flatPartPhiOverlapSmallDeltaPlus() const { return flatPartPhiOverlapSmallDeltaPlus_; }
+  double flatPartAverageR() const { return flatPartAverageR_; }
+  FlatRingsGeometryInfo flatRingsGeometryInfo() const { return flatRingsGeometryInfo_; }
+  TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
+
   //! Return layer as a material object
+
   const MaterialObject& materialObject() const { return m_materialObject; }
 
   //! Return first order conversion station -> TODO: check if needed to be updatable, use PtrVector instead
@@ -110,10 +154,13 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<int       , NoDefault>   buildNumModulesFlat;  //!< A number of modules to be build straight (tilt=0) in the layer
   Property<int       , NoDefault>   buildNumModulesTilted;//!< A number of modules to be tilted in the layer
 
-  Property<double    , Default>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
-  Property<int       , Default>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+  Property<double    , NoDefault>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
+  Property<int       , NoDefault>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
   Property<double    , NoDefault>   bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   Property<double    , NoDefault>   smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
+  Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
+
+  Property<int, NoDefault> numberRods;
 
  private:
 
@@ -124,7 +171,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   void buildStraight(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
   //! If tilted layer required, build() method internally calls buildTilted()
-  void buildTilted(int barrelNumLayers, double barrelMinR, double barrelMaxR);
+  void buildTilted();
 
   //! Helper function calculating optimal layer radius for straight option
   double calculateOptimalRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
@@ -133,9 +180,18 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   MaterialObject     m_materialObject;
   ConversionStation* m_flangeConversionStation;   //!< First order layer conversion unit
   ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
+  RodTemplate makeRodTemplate();
+
+  std::vector<RodPairStraight*> m_flat_rods;
+  double flatPartPhiOverlapSmallDeltaMinus_;
+  double flatPartPhiOverlapSmallDeltaPlus_;
+  double flatPartAverageR_;
+  FlatRingsGeometryInfo flatRingsGeometryInfo_;
+  TiltedRingsTemplate tiltedRingsGeometry_;
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
+  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
   Property<int   , Default>   m_smallParity;      //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
-  Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
   Property<bool  , Default>   m_useMinMaxRCorrect;//!< Apply smallDelta, bigDelta, detThickness, etc. when calculating minR/maxR for first/last layer? For backwards compatibility of lite version (on) versus older version (off)
 
   bool   m_sameRods;                              //! Build same geometrical rods across the whole barrel
