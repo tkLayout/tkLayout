@@ -768,22 +768,23 @@ void VisitorLayerDiscSummary::preVisit() {
   m_ringTable->setContent(2, 0, "R-max [mm]                   : ");
   m_ringTable->setContent(3, 0, "Number of modules per ring   : ");
 
-  m_moduleTable->setContent( 0, 0, "Module in:                                   ");
-  m_moduleTable->setContent( 1, 0, "Position:                                    ");
-  m_moduleTable->setContent( 2, 0, "Type:                                        ");
+  m_moduleTable->setContent( 0, 0, "Module in:                  ");
+  m_moduleTable->setContent( 1, 0, "Position:                   ");
+  m_moduleTable->setContent( 2, 0, "Type:                       ");
   m_moduleTable->setContent( 3, 0, "Sensor area [mm"+web_superStart+"2"+web_superEnd+"]: ");
   m_moduleTable->setContent( 4, 0, "Total area [m"+web_superStart+"2"+web_superEnd+"]:   ");
 //  m_moduleTable->setContent( 5, 0, "Service Weight [kg]:                         ");
 //  m_moduleTable->setContent( 6, 0, "Total Weight [kg]:                           ");
-  m_moduleTable->setContent( 5, 0, "Number of modules:                           ");
-  m_moduleTable->setContent( 6, 0, "Number of sensors:                           ");
-  m_moduleTable->setContent( 7, 0, "Number of channels (M):                      ");
-//  m_moduleTable->setContent(10, 0, "Number of channels (R-Phi 1.side):           ");
-//  m_moduleTable->setContent(11, 0, "Number of channels (R-Phi 2.side):           ");
+  m_moduleTable->setContent( 5, 0, "Number of modules:          ");
+  m_moduleTable->setContent( 6, 0, "Number of sensors:          ");
+  m_moduleTable->setContent( 7, 0, "Number of channels (M):     ");
+  m_moduleTable->setContent( 8, 0, "Channels per module (R-Phi): ");
+  m_moduleTable->setContent( 9, 0, "Channels per module (Z):     ");
+  m_moduleTable->setContent(10, 0, "Read-out chips per module:  ");
 //  m_moduleTable->setContent(12, 0, "Number of channels (Z 1.side):               ");
 //  m_moduleTable->setContent(13, 0, "Number of channels (Z 2.side):               ");
-  m_moduleTable->setContent( 8, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m):    ");
-  m_moduleTable->setContent( 9, 0, "Min-Max Z(R) resolution ("+web_muLetter+"m):        ");
+  m_moduleTable->setContent(11, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m): ");
+  m_moduleTable->setContent(12, 0, "Min-Max Z(R) resolution ("+web_muLetter+"m):  ");
 }
 
 //
@@ -877,6 +878,9 @@ void VisitorLayerDiscSummary::visit(const DetectorModule& m) {
   m_moduleMaxZResolution[tag]     = MAX(m.resolutionLocalY(), m_moduleMaxZResolution[tag]);
   m_moduleMinZResolution[tag]     = MIN(m.resolutionLocalY(), m_moduleMaxZResolution[tag]);
   m_moduleAvgZResolution[tag]    += m.resolutionLocalY();
+  m_moduleAvgChannelsRPhi[tag]   += m.innerSensor().numStripsAcross();
+  m_moduleAvgChannelsZ[tag]      += m.innerSensor().numSegments();
+  m_moduleAvgROCs[tag]           += m.innerSensor().numROCX()*m.innerSensor().numROCY();
   m_moduleMaxPower[tag]           = MAX(m.irradiationPower(), m_moduleMaxPower[tag]);
   m_moduleAvgPower[tag]          += m.irradiationPower();
 
@@ -896,8 +900,8 @@ void VisitorLayerDiscSummary::visit(const DetectorModule& m) {
 //
 void VisitorLayerDiscSummary::visit(const EndcapModule& m) {
 
-  // All disks symmetric - visit only the first one
-  if (m.disk() != 1 && m.side() != 1) return;
+  // All disks symmetric - visit only the first one (+-z symmetry -> check only positive discs)
+  if (m.disk() != 1 || m.side() != 1) return;
 
   // Get all end-cap module types for given ring - if not find -> assign
   if (m_ringModuleMap.find(m.ring())==m_ringModuleMap.end()) m_ringModuleMap[m.ring()] = &m;
@@ -923,6 +927,9 @@ void VisitorLayerDiscSummary::postVisit() {
       m_moduleAvgRphiResolution[tag] /= normFactor;
       m_moduleAvgZResolution[tag]    /= normFactor;
       m_moduleAvgPower[tag]          /= normFactor;
+      m_moduleAvgChannelsRPhi[tag]   /= normFactor;
+      m_moduleAvgChannelsZ[tag]      /= normFactor;
+      m_moduleAvgROCs[tag]           /= normFactor;
     }
   }
 
@@ -982,6 +989,11 @@ void VisitorLayerDiscSummary::postVisit() {
     std::string numberChan = any2str(m_moduleChannels[moduleType]/ 1e6, c_channelPrecision);
     trkTotNumChannels += m_moduleChannels[moduleType]/ 1e6 ;
 
+    // Number of channels per module
+    std::string numberChanRPhi = any2str(m_moduleAvgChannelsRPhi[moduleType]);
+    std::string numberChanZ    = any2str(m_moduleAvgChannelsZ[moduleType]);
+    std::string numberROCs     = any2str(m_moduleAvgROCs[moduleType]);
+
     // Fill
     m_moduleTable->setContent(0, iType, position.str());
     m_moduleTable->setContent(1, iType, tag.str());
@@ -991,8 +1003,11 @@ void VisitorLayerDiscSummary::postVisit() {
     m_moduleTable->setContent(5, iType, numberMod);
     m_moduleTable->setContent(6, iType, numberSens);
     m_moduleTable->setContent(7, iType, numberChan);
-    m_moduleTable->setContent(8, iType, rphiResolution);
-    m_moduleTable->setContent(9, iType, zResolution);
+    m_moduleTable->setContent(8, iType, numberChanRPhi);
+    m_moduleTable->setContent(9, iType, numberChanZ);
+    m_moduleTable->setContent(10,iType, numberROCs);
+    m_moduleTable->setContent(11,iType, rphiResolution);
+    m_moduleTable->setContent(12,iType, zResolution);
   }
 
   // Finalize tables

@@ -166,6 +166,9 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   std::map<std::string, const DetectorModule*> m_modulePtrMap;            //!< Module (by tag) to module pointer map -> to get module properties
   std::map<std::string, int>                   m_moduleCount;             //!< Number of modules of given module type (by tag)
   std::map<std::string, long>                  m_moduleChannels;          //!< Number of channels of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsRPhi;   //!< Number of channels in R-Phi of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsZ;      //!< Number of channels in Z of given module type
+  std::map<std::string, long>                  m_moduleAvgROCs;           //!< Number of read-out chips per module type
   std::map<std::string, double>                m_moduleMaxStripOccupancy; //!< Maximum strip occupancy of given module type
   std::map<std::string, double>                m_moduleAvgStripOccupancy; //!< Average hit occupancy of given module type
   std::map<std::string, double>                m_moduleMaxHitOccupancy;   //!< Maximum hit occupancy of given module type
