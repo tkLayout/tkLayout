@@ -6,7 +6,7 @@ Component {
   targetVolume 1
   Element {
     elementName SenSi
-    quantity 0.2
+    quantity 0.3
     unit mm
   }
 }

@@ -1,0 +1,8 @@
+// timing module
+// GBT on the module
+
+Materials timing_300 {
+  type module
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/timing_300_components
+}
+

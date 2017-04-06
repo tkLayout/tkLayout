@@ -1,10 +1,10 @@
-// Timing 200 um sensor
+// Timing 300 um sensor
 // WARNING : MATERIAL TEMPORARY COPIED FROM ptPS_200_40, with one active sensor deleted + hybrids and sensors spacers deleted.
 // All the rest is exact copy of what is in ptPS_200_40.
 
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/timing_referenceSensor
-@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/1xSensor_Active_200um
-@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_Inactive_Silicon_200um
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/1xSensor_Active_300um
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_Inactive_Silicon_200um  // needs for sure to be updated (among others)
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/MPA_and_bumps
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_Hybrid_Circuits
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/Module_Fibers
