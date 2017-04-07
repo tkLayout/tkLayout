@@ -1,5 +1,6 @@
 #include "Barrel.h"
 
+#include "InactiveElement.h"
 #include "Layer.h"
 #include "MessageLogger.h"
 #include "SupportStructure.h"

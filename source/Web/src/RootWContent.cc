@@ -247,11 +247,11 @@ std::ostream& RootWContent::dump(std::ostream& output) {
   RootWFileList* myFileList = nullptr;
 
   //std::cerr << "Content: " << m_title <<std::endl;; //debug
-  output << "<h2 class=\"hidingTitle\">"<<m_title<<"</h2>" << std::endl;;
+  output << "      <h2 class=\"hidingTitle\">"<<m_title<<"</h2>" << std::endl;;
   if (m_visible) {
-    output << "<div class=\"hideable\"> ";
+    output << "      <div class=\"hideable\"> ";
   } else {
-    output << "<div class=\"hidden\"> ";
+    output << "      <div class=\"hidden\"> ";
   }
   for (auto& myItem : m_itemList) {
 
@@ -267,8 +267,8 @@ std::ostream& RootWContent::dump(std::ostream& output) {
     }
     myItem->dump(output);
   }
-  output << "<div class=\"clearer\">&nbsp;</div>";
-  output << "</div>" << std::endl;;
+  output << "      <div class=\"clearer\">&nbsp;</div>";
+  output << "      </div>" << std::endl;;
   return output;
 }
 

@@ -4,9 +4,8 @@
 #include <exception>
 #include <string>
 
-#include "CoordinateOperations.h"
 #include "GeometryFactory.h"
-#include "Polygon3d.h"
+#include "Polygon3D.h"
 #include "Property.h"
 
 // Forward declaration
@@ -51,13 +50,13 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   void parent(const DetectorModule* parent);
 
   // Get geometry properties
-  const Polygon3d<4>& hitPoly() const;
+  const Polygon3D<4>& hitPoly() const;
 
   //! Get upper envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
-  const Polygon3d<4>& upperEnvelopePoly(bool applyAllMaterial=false) const;
+  const Polygon3D<4>& upperEnvelopePoly(bool applyAllMaterial=false) const;
 
   //! Get lower envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
-  const Polygon3d<4>& lowerEnvelopePoly(bool applyAllMaterial=false) const;
+  const Polygon3D<4>& lowerEnvelopePoly(bool applyAllMaterial=false) const;
 
   //! Get standard offset wrt module average position -> +-dsDistance if dsDistance defined
   double normalOffset() const;
@@ -75,8 +74,8 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   int numROCCols() const { return numSegments() / numROCY(); }
   int totalROCs()  const { return numROCX() * numROCY(); }
 
-  SensorPosition innerOuter(SensorPosition pos) { innerOuter_ = pos; }
-  SensorPosition innerOuter() const { return innerOuter_; }
+  SensorPosition innerOuter(SensorPosition pos) { m_innerOuter = pos; return m_innerOuter; }
+  SensorPosition innerOuter() const             { return m_innerOuter; }
 
   ReadonlyProperty<int   , NoDefault         > numSegments;      //TODO: Number of channels in RPhi -> Rename to number of readout channels in correct direction, is it R-Phi or Z?
   ReadonlyProperty<int   , NoDefault         > numStripsAcross;  //TODO: Number of channels in Z -> Rename to number of readout channels in correct direction, is it R-Phi or Z?
@@ -98,14 +97,14 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   const DetectorModule* m_parent; //!< Const pointer to parent detector module
 
   //! Build sensor geometrical representation based on detector module geometrical representation shifted by offset (i.e. by +-thickness/2. to get outer/inner envelope etc.)
-  Polygon3d<4>* buildOwnPoly(double polyOffset) const;
-  SensorPosition innerOuter_ = SensorPosition::NO;
+  Polygon3D<4>* buildOwnPoly(double polyOffset) const;
+  SensorPosition m_innerOuter = SensorPosition::NO;
 
-  mutable const Polygon3d<4>* m_hitPoly            = nullptr;
-  mutable const Polygon3d<4>* m_lowerEnvPoly       = nullptr; //! Lower envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
-  mutable const Polygon3d<4>* m_upperEnvPoly       = nullptr; //! Upper envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
-  mutable const Polygon3d<4>* m_lowerEnvPolyAllMat = nullptr; //! Lower envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
-  mutable const Polygon3d<4>* m_upperEnvPolyAllMat = nullptr; //! Upper envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3D<4>* m_hitPoly            = nullptr;
+  mutable const Polygon3D<4>* m_lowerEnvPoly       = nullptr; //! Lower envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3D<4>* m_upperEnvPoly       = nullptr; //! Upper envelope of sensor geometrical representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3D<4>* m_lowerEnvPolyAllMat = nullptr; //! Lower envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
+  mutable const Polygon3D<4>* m_upperEnvPolyAllMat = nullptr; //! Upper envelope of sensor full material representation -> if taking min/max take min/max(lower, upper)
 
 };
 

@@ -66,14 +66,14 @@ void Sensor::build() {
 //
 void Sensor::setup() {
 
-  minR.setup([&]()       { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly()), CoordinateOperations::computeMinR(upperEnvelopePoly()) ); });
-  maxR.setup([&]()       { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly()), CoordinateOperations::computeMaxR(upperEnvelopePoly()) ); });
-  minRAllMat.setup([&]() { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly(true)), CoordinateOperations::computeMinR(upperEnvelopePoly(true)) ); });
-  maxRAllMat.setup([&]() { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly(true)), CoordinateOperations::computeMaxR(upperEnvelopePoly(true)) ); });
-  minZ.setup([&]()       { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly()), CoordinateOperations::computeMinZ(upperEnvelopePoly()) ); });
-  maxZ.setup([&]()       { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly()), CoordinateOperations::computeMaxZ(upperEnvelopePoly()) ); });
-  minZAllMat.setup([&]() { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly(true)), CoordinateOperations::computeMinZ(upperEnvelopePoly(true)) ); });
-  maxZAllMat.setup([&]() { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly(true)), CoordinateOperations::computeMaxZ(upperEnvelopePoly(true)) ); });
+  minR.setup([&]()       { return MIN( lowerEnvelopePoly().computeMinR()    , upperEnvelopePoly().computeMinR() );     });
+  maxR.setup([&]()       { return MAX( lowerEnvelopePoly().computeMaxR()    , upperEnvelopePoly().computeMaxR() );     });
+  minRAllMat.setup([&]() { return MIN( lowerEnvelopePoly(true).computeMinR(), upperEnvelopePoly(true).computeMinR() ); });
+  maxRAllMat.setup([&]() { return MAX( lowerEnvelopePoly(true).computeMaxR(), upperEnvelopePoly(true).computeMaxR() ); });
+  minZ.setup([&]()       { return MIN( lowerEnvelopePoly().computeMinZ()    , upperEnvelopePoly().computeMinZ() );     });
+  maxZ.setup([&]()       { return MAX( lowerEnvelopePoly().computeMaxZ()    , upperEnvelopePoly().computeMaxZ() );     });
+  minZAllMat.setup([&]() { return MIN( lowerEnvelopePoly(true).computeMinZ(), upperEnvelopePoly(true).computeMinZ() ); });
+  maxZAllMat.setup([&]() { return MAX( lowerEnvelopePoly(true).computeMaxZ(), upperEnvelopePoly(true).computeMaxZ() ); });
 }
 
 //
@@ -91,8 +91,8 @@ double Sensor::normalOffset() const {
 //
 // Build sensor geometrical representation based on detector module geometrical representation shifted by offset (i.e. by +-thickness/2. to get outer/inner envelope etc.)
 //
-Polygon3d<4>* Sensor::buildOwnPoly(double polyOffset) const {
-  Polygon3d<4>* p = new Polygon3d<4>(m_parent->basePoly());
+Polygon3D<4>* Sensor::buildOwnPoly(double polyOffset) const {
+  Polygon3D<4>* p = new Polygon3D<4>(m_parent->basePoly());
   p->translate(p->getNormal()*polyOffset);
   return p;
 }
@@ -110,7 +110,7 @@ void Sensor::clearPolys() {
 //
 // Get upper envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module)
 //
-const Polygon3d<4>& Sensor::upperEnvelopePoly(bool applyAllMaterial) const {
+const Polygon3D<4>& Sensor::upperEnvelopePoly(bool applyAllMaterial) const {
 
   if (!applyAllMaterial) {
     if (m_upperEnvPoly==nullptr) m_upperEnvPoly = buildOwnPoly(normalOffset() + sensorThickness()/2.);
@@ -125,7 +125,7 @@ const Polygon3d<4>& Sensor::upperEnvelopePoly(bool applyAllMaterial) const {
 //
 // Get lower envelope of the sensor (taking into all material if required or just correct sensor Thickness and dsDistance of the module)
 //
-const Polygon3d<4>& Sensor::lowerEnvelopePoly(bool applyAllMaterial) const {
+const Polygon3D<4>& Sensor::lowerEnvelopePoly(bool applyAllMaterial) const {
 
   if (!applyAllMaterial) {
     if (m_lowerEnvPoly==nullptr) m_lowerEnvPoly = buildOwnPoly(normalOffset() - sensorThickness()/2.);
@@ -140,7 +140,7 @@ const Polygon3d<4>& Sensor::lowerEnvelopePoly(bool applyAllMaterial) const {
 //
 // Get geometry properties
 //
-const Polygon3d<4>& Sensor::hitPoly() const {
+const Polygon3D<4>& Sensor::hitPoly() const {
   if (m_hitPoly == nullptr) m_hitPoly = buildOwnPoly(normalOffset());
   return *m_hitPoly;
 }
@@ -149,7 +149,7 @@ const Polygon3d<4>& Sensor::hitPoly() const {
 // Check whether sensor hitted by a track (coming from trackOrig & shot at given direction)
 //
 std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const {
-  const Polygon3d<4>& poly = hitPoly();
+  const Polygon3D<4>& poly = hitPoly();
   XYZVector p;
   if (poly.isLineIntersecting(trackOrig, trackDir, p)) {
     XYZVector v = p - poly.getVertex(0);

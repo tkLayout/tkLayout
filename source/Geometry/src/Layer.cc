@@ -166,6 +166,10 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  avgBuildRadius (       "avgBuildRadius"     , parsedOnly()),
  sameParityRods (       "sameParityRods"     , parsedAndChecked(), true),
  layerRotation  (       "layerRotation"      , parsedOnly()      , 0.),
+ buildNumModulesFlat(   "numModulesFlat"     , parsedOnly()),
+ buildNumModulesTilted( "numModulesTilted"   , parsedOnly()),
+ isTilted       (       "isTilted"           , parsedOnly(), false),
+ isTiltedAuto   (       "isTiltedAuto"       , parsedOnly()),
  tiltedLayerSpecFile(   "tiltedLayerSpecFile", parsedOnly()),
  smallDelta     (       "smallDelta"         , parsedAndChecked()),
  m_smallParity  (       "smallParity"        , parsedAndChecked(),-1),
@@ -177,10 +181,6 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  numberRods        ("numberRods"        , parsedOnly()),
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
- buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
- buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
- isTilted       ("isTilted"       , parsedOnly(), false),
- isTiltedAuto   ("isTiltedAuto"   , parsedOnly()),
  m_materialObject(MaterialObject::LAYER),
  m_flangeConversionStation(nullptr),
  m_sameRods(sameRods)
@@ -218,6 +218,7 @@ void Layer::check()
 {
   PropertyObject::check();
 
+  // Non-tilted geometry
   if (!isTilted()) {
     if (buildNumModules() > 0 && outerZ.state()) throw PathfulException("Only one between numModules and outerZ can be specified");
     if (buildNumModules() == 0 && !outerZ.state()) throw PathfulException("At least one between numModules and outerZ must be specified");
@@ -248,9 +249,48 @@ void Layer::check()
       if (!numberRods.state()) throw PathfulException("Tilted layer with automatic placement : numberRods must be specified.");
     }
   }
+//    if (buildNumModules() > 0  && outerZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+//    if (buildNumModules() == 0 &&!outerZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+//    if (!phiOverlap.state())                      throw PathfulException("Flat layer: phiOverlap must be specified.");
+//    if (!phiSegments.state())                     throw PathfulException("Flat layer: phiSegments must be specified.");
+//    //if (numRods.state())                          throw PathfulException("Flat layer : numRods should not be specified.");
+//
+//    if (isTiltedAuto.state())          logERROR("Layer " + std::to_string(myid()) + ": doesn't make sense to specify isTiltedAuto. Not being used.");
+//    if (buildNumModulesFlat.state())   logERROR("Layer " + std::to_string(myid()) + ": doesn't make sense to specify numModulesFlat. Not being used.");
+//    if (buildNumModulesTilted.state()) logERROR("Layer " + std::to_string(myid()) + ": doesn't make sense to specify numModulesTilted. Not being used.");
+//  }
+//  // Tilted geometry
+//  else {
+//
+//    if (!isTiltedAuto.state()) throw PathfulException("Tilted layer: isTiltedAuto must be specified.");
+//    if (phiOverlap.state())    throw PathfulException("Tilted layer: phiOverlap should not be specified.");
+//    if (phiSegments.state())   throw PathfulException("Tilted layer: phiSegments should not be specified.");
+//
+//    // Automatic tilt algorithm applied
+//    if (isTiltedAuto()) {
+//      if (!buildNumModulesFlat.state())   throw PathfulException("Tilted layer with automatic placement: numModulesFlat must be specified.");
+//      if (!buildNumModulesTilted.state()) throw PathfulException("Tilted layer with automatic placement: numModulesTilted must be specified.");
+//      if (buildNumModules() > 0 && buildNumModulesFlat.state() && buildNumModulesTilted.state()) {
+//        if (buildNumModules() !=  (buildNumModulesFlat() + buildNumModulesTilted())) {
+//          throw PathfulException("Tilted layer : numModules != (numModulesFlat + numModulesTilted). Specify numModulesFlat and numModulesTilted only, don't specify numModules.");
+//        }
+//      }
+//      //if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
+//    }
+//    // Config file for tilting used instead
+//    else {
+//      // TODO: Not implemented
+//      throw PathfulException("Tilted geometry built on configuration file not implemented. Use automatic build instead!");
+//
+//      if (buildNumModulesFlat.state())   logERROR("Tilted layer " + std::to_string(myid()) + ": doesn't make sense to specify numModulesFlat. Not being used.");
+//      if (buildNumModulesTilted.state()) logERROR("Tilted layer " + std::to_string(myid()) + ": doesn't make sense to specify numModulesTilted. Not being used.");
+//    }
+//
+//    if (outerZ.state()) logERROR("Tilted layer: outerZ was specified. Routing of services will be forced to be at Z = outerZ.");
+//  }
 
-  if (bigDelta()  <0)            throw PathfulException("Big delta parameter must be positive!");
-  if (smallDelta()<0)            throw PathfulException("Small delta parameter must be positive!");
+  if (bigDelta()  <0)          throw PathfulException("Big delta parameter must be positive!");
+  if (smallDelta()<0)          throw PathfulException("Small delta parameter must be positive!");
   if (bigDelta()<smallDelta()) throw PathfulException("Big delta parameter is expected to be bigger in size than small delta parameter!");
 }
 
@@ -269,7 +309,6 @@ void Layer::setup()
 }
 
 
-
 RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!m_ringNode.empty() ? m_ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
@@ -282,7 +321,6 @@ RodTemplate Layer::makeRodTemplate() {
   }
   return rodTemplate;
 }
-
 
 //
 // Helper function calculating optimal layer radius for straight option
@@ -561,7 +599,9 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
 }
 
 
-
+//
+// If tilted layer required, build() method internally calls buildTilted()
+//
 void Layer::buildTilted() {
 
   vector<TiltedModuleSpecs> tmspecsi, tmspecso;
@@ -747,6 +787,171 @@ void Layer::buildTilted() {
 }
 
 
+
+
+
+//  // Tilted geometry built as described in config file
+//  if (!isTiltedAuto()) {
+//    //TODO: NOT IMPLEMENTED NOW
+//  }
+//  // Tilted part built based on automatic algorithm
+//  else {
+//
+//    double flatEndTheta  = M_PI / 2.;
+//    double flatInnerEndR = 0;
+//    double flatOuterEndR = 0;
+//    double flatEndCentreZ= 0;
+//    double flatEndMaxZ   = 0;
+//
+//    double flatInnerMinR = std::numeric_limits<double>::max();
+//    double flatOuterMinR = std::numeric_limits<double>::max();
+//    double flatInnerMaxR = 0;
+//    double flatOuterMaxR = 0;
+//    double flatAvgR      = 0;
+//
+//    double flatPhiOverlapMin = 0;
+//    double flatPhiOverlapMax = 0;
+//
+//    std::vector<double> outerModsR; // List of radii of modules positioned at R + bigDelta
+//    std::vector<double> innerModsR; // List of radii of modules positioned at R - bigDelta
+//
+//    // Build first the flat part of the layer
+//    if (buildNumModulesFlat()!=0) {
+//
+//      // Update first the total number of modules & use this value in buildStraight method to built the flat part
+//      buildNumModules(buildNumModulesFlat());
+//      buildStraight(barrelNumLayers, barrelMinR, barrelMaxR);
+//
+//      // Calculate flat part properties
+//      if (numRods()>=2) {
+//
+//        // Calculate min/max R of the flat part & of its last module
+//        for (const auto& m : m_rods[0].m_zPlusModules) {
+//          (m_bigParity()>0 ? flatOuterMinR = MIN(flatOuterMinR,m.center().Rho()+0.5*m.dsDistance()) : flatInnerMinR = MIN(flatInnerMinR,m.center().Rho()+0.5*m.dsDistance()));
+//          (m_bigParity()>0 ? flatOuterMaxR = MAX(flatOuterMaxR,m.center().Rho()+0.5*m.dsDistance()) : flatInnerMaxR = MAX(flatInnerMaxR,m.center().Rho()+0.5*m.dsDistance()));
+//        }
+//
+//        for (const auto& m : m_rods[1].m_zPlusModules) {
+//          (m_bigParity()>0 ? flatInnerMinR = MIN(flatInnerMinR,m.center().Rho()+0.5*m.dsDistance()) : flatOuterMinR = MIN(flatOuterMinR,m.center().Rho()+0.5*m.dsDistance()));
+//          (m_bigParity()>0 ? flatInnerMaxR = MAX(flatInnerMaxR,m.center().Rho()+0.5*m.dsDistance()) : flatOuterMaxR = MAX(flatOuterMaxR,m.center().Rho()+0.5*m.dsDistance()));
+//        }
+//
+//        // Calculate theta of the last module in the flat part
+//        if (m_bigParity()>0) {
+//          auto lastMod = m_rods[0].m_zPlusModules.back()
+//          flatEndTheta = atan( (lastMod.center().Rho()+0.5*lastMod.dsDistance())/lastMod.planarMaxZ() );
+//        }
+//        else {
+//          auto lastMod = m_rods[1].m_zPlusModules.back()
+//          flatEndTheta = atan( (lastMod.center().Rho()+0.5*lastMod.dsDistance())/lastMod.planarMaxZ() );
+//        }
+//
+//        // Calculate R & Z of the last module in the flat part
+//        auto lastMod0 = m_rods[0].m_zPlusModules.back();
+//        auto lastMod1 = m_rods[1].m_zPlusModules.back();
+//        flatInnerEndR = (m_bigParity()>0 ? lastMod1.center().Rho()+0.5*lastMod1.dsDistance() : lastMod0.center().Rho()+0.5* lastMod0.dsDistance());
+//        flatOuterEndR = (m_bigParity()>0 ? lastMod0.center().Rho()+0.5*lastMod0.dsDistance() : lastMod1.center().Rho()+0.5* lastMod1.dsDistance());
+//        flatEndCentreZ= (m_bigParity()>0 ? lastMod1.center().Z() : lastMod0.center().Z());
+//        flatEndMaxZ   = (m_bigParity()>0 ? lastMod0.planarMaxZ() : lastMod1.planarMaxZ());  // TODO: Remove module overlap?
+//
+//        // Calculate overlaps of flat part in phi
+//        double modWidth   = lastMod0.meanWidth(); // All modules in the layer assumed to be the same
+//        double dsDistance = lastMod0.dsDistance();
+//
+//        double T = tan(2.*M_PI/numRods());
+//        double A = 0.5/flatInnerMinR;
+//        double B = 0.5/flatOuterMinR;
+//        double a = T * A * B;
+//        double b = - (A + B);
+//        double c = - T;
+//        double s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+//        flatPhiOverlapMin = modWidth + s;
+//
+//        A = 0.5/flatInnerMaxR;
+//        B = 0.5/flatOuterMaxR;
+//        a = T * A * B;
+//        b = - (A + B);
+//        c = - T;
+//        s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+//        flatPhiOverlapMax = modWidth + s;
+//
+//        flatAvgR = (flatInnerMinR + flatInnerMaxR + flatOuterMinR + flatOuterMaxR)/4. - 0.5*dsDistance;
+//
+//  flatRingsGeometryInfo_.calculateFlatRingsGeometryInfo(flatPartRods_, bigParity());
+//      }
+//      else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }
+//    }
+//
+//
+//    if (tmspecsi.size() != buildNumModulesFlat()) {
+//      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part inner rod has " + to_string(tmspecsi.size()) + " module(s).");
+//    }
+//    if (tmspecso.size() != buildNumModulesFlat()) {
+//      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part outer rod has " + to_string(tmspecso.size()) + " module(s).");
+//    }
+//
+//
+//
+//
+//    tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
+//
+//    if (tiltedRingsGeometry_.size() == buildNumModulesTilted()) {
+//      for (int i = 0; i < buildNumModulesTilted(); i++) {
+//  int ringNumber = buildNumModulesFlat() + 1 + i;
+//  TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+//  TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+//
+//  if (ti.valid()) tmspecsi.push_back(ti);
+//  if (to.valid()) tmspecso.push_back(to);
+//      }
+//      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), flatPartrEndInner, flatPartrEndOuter, flatPartzEnd,  flatPartzEnd_REAL, tiltedRingsGeometry_);
+//    }
+//    else {
+//      logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
+//    }
+//
+//
+//    buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
+//
+//    if (tmspecsi.size() != buildNumModules()) {
+//      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
+//    }
+//    if (tmspecso.size() != buildNumModules()) {
+//      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
+//    }
+//
+//  }
+//
+//  RodTemplate rodTemplate = makeRodTemplate();
+//
+//  float rodPhiRotation = 2*M_PI/numRods();
+//
+//  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
+//  first->myid(1);
+//  first->isOuterRadiusRod(false);
+//  first->store(propertyTree());
+//  first->build(rodTemplate, tmspecsi, 1);
+//  rods_.push_back(first);
+//
+//  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
+//  second->myid(2);
+//  second->isOuterRadiusRod(true);
+//  second->store(propertyTree());
+//  second->build(rodTemplate, tmspecso, 0);
+//  second->rotateZ(rodPhiRotation);
+//  rods_.push_back(second);
+//
+//  for (int i = 2; i < numRods(); i++) {
+//    RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
+//    rod->myid(i+1);
+//    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+//    rods_.push_back(rod);
+//    }
+//
+//  // computing the layer's place radius as the average of all the modules' radii
+//  placeRadius_  = std::accumulate(tmspecsi.begin(), tmspecsi.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+//  placeRadius_ += std::accumulate(tmspecso.begin(), tmspecso.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+//  placeRadius_ /= tmspecsi.size() + tmspecso.size();
 
 
 //

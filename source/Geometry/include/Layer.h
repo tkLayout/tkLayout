@@ -143,11 +143,16 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zError), are always passing through edges of layer modules.
   //! The positioning algorithm starts at Z=0 and takes then into consideration the extreme cases, taking into account all parameters: bigDelta, smallDelta, zError, z/phiOverlap
   Property<RadiusMode, Default>     radiusMode;
-  Property<double    , NoDefault>   requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
-  Property<double    , Computable>  avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
-  Property<bool      , Default>     sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
-  Property<double    , Default>     layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
-  Property<string    , AutoDefault> tiltedLayerSpecFile; //!< Configuration file for tilted option
+  Property<double    , NoDefault>   requestedAvgRadius;   //!< Requested radius at which the layer should be positioned
+  Property<double    , Computable>  avgBuildRadius;       //!< Average layer radius (central value) calculated based on position algorithm
+  Property<bool      , Default>     sameParityRods;       //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
+  Property<double    , Default>     layerRotation;        //!< Layer rotated by general barrel rotation + this value in R-Phi
+
+  Property<bool      , Default>     isTilted;             //!< Does the layer consists of tilted modules
+  Property<bool      , NoDefault>   isTiltedAuto;         //!< Is modules tilt calculated automatically, using internal algorithm? If not, use configuration file
+  Property<string    , AutoDefault> tiltedLayerSpecFile;  //!< Configuration file for tilted option
+  Property<int       , NoDefault>   buildNumModulesFlat;  //!< A number of modules to be build straight (tilt=0) in the layer
+  Property<int       , NoDefault>   buildNumModulesTilted;//!< A number of modules to be tilted in the layer
 
   Property<double    , NoDefault>     phiOverlap;       //!< Required module overlap in R-Phi (in length units)
   Property<int       , NoDefault>     phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
@@ -156,12 +161,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
 
   Property<int, NoDefault> numberRods;
-
-  Property<int, NoDefault> buildNumModulesFlat;
-  Property<int, NoDefault> buildNumModulesTilted;
-  Property<bool, Default> isTilted;
-  Property<bool, NoDefault> isTiltedAuto;
-
 
  private:
 

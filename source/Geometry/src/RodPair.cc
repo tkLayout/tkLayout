@@ -1,5 +1,7 @@
 #include "RodPair.h"
+
 #include "MessageLogger.h"
+#include "SimParms.h"
 
 define_enum_strings(StartZMode) = { "modulecenter", "moduleedge" };
 
@@ -145,7 +147,7 @@ RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, dou
  RodPair(id, minRadius, maxRadius, radius, rotation, numModules, treeProperty),
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
- zError(              "zError"              , parsedAndChecked()),
+ zError(              "zError"              , parsedAndChecked() , SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
  compressed(          "compressed"          , parsedOnly(), true),
  allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
  m_ringNode(          "Ring"                , parsedOnly()),
@@ -166,7 +168,7 @@ RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, dou
  RodPair(id, minRadius, maxRadius, radius, rotation, outerZ, treeProperty),
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
- zError(              "zError"              , parsedAndChecked()),
+ zError(              "zError"              , parsedAndChecked() , SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
  compressed(          "compressed"          , parsedOnly(), true),
  allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
  m_ringNode(          "Ring"                , parsedOnly()),

@@ -25,10 +25,6 @@ class RootWContent;
 class RootWPage;
 class TProfile;
 
-namespace insur {
-  class InactiveElement;
-}
-
 /*
  * @class AnalyzerResolution
  * Analyze tracker resolution for various combination of tracker layers/discs, tagged with given name: pixel (pixel only),

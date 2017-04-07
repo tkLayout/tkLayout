@@ -4,29 +4,26 @@
 //
 // Created on October 13, 2008, 2:53 PM
 //
+#ifndef INCLUDE_INACTIVERING_H_
+#define INCLUDE_INACTIVERING_H_
+
+#include "InactiveElement.h"
 
 /**
- * @file InactiveRing.h
- * @brief This is the derived class header file for a single ring-shaped inactive element
+ * @class InactiveRing
+ * @brief The only thing that this class adds to its parent is a check that it is a ring rather than a tube.
  */
+class InactiveRing : public InactiveElement {
 
-#ifndef _INACTIVERING_H
-#define	_INACTIVERING_H
+ public:
+  InactiveRing(double zOffset, double zLength, double rInner, double rWidth) : InactiveElement(zOffset, zLength, rInner, rWidth, true) {};
+  InactiveRing(InactiveElement& element) : InactiveElement(element) {};
+  virtual ~InactiveRing() {};
 
-#include <InactiveElement.h>
-namespace insur {
-  /**
-   * @class InactiveRing
-   * @brief The only thing that this class adds to its parent is a check that it is a ring rather than a tube.
-   */
-  class InactiveRing : public InactiveElement {
-  public:
-    InactiveRing();
-    InactiveRing(InactiveElement& previous);
-    virtual ~InactiveRing();
-    virtual void print();
-    virtual bool sanityCheck();
-  };
-}
-#endif	/* _INACTIVERING_H */
+  virtual void print();
+  virtual bool sanityCheck();
+
+}; // Class
+
+#endif	/* INCLUDE_INACTIVERING_H_ */
 

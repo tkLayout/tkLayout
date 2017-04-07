@@ -37,8 +37,6 @@ class TProfile;
 class Ring;
 class RootWTable;
 
-
-
 /*
  * @class AnalyzerGeometry
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
@@ -128,7 +126,6 @@ class VisitorLayerName : public ConstGeometryVisitor {
   void visit(const Disk& d);
 }; // Helper Class
 
-
 /*
  *  Helper class: Layer/disk summary visitor (visitor pattern) - gather information for geometry tables
  */
@@ -169,6 +166,9 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   std::map<std::string, const DetectorModule*> m_modulePtrMap;            //!< Module (by tag) to module pointer map -> to get module properties
   std::map<std::string, int>                   m_moduleCount;             //!< Number of modules of given module type (by tag)
   std::map<std::string, long>                  m_moduleChannels;          //!< Number of channels of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsRPhi;   //!< Number of channels in R-Phi of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsZ;      //!< Number of channels in Z of given module type
+  std::map<std::string, long>                  m_moduleAvgROCs;           //!< Number of read-out chips per module type
   std::map<std::string, double>                m_moduleMaxStripOccupancy; //!< Maximum strip occupancy of given module type
   std::map<std::string, double>                m_moduleAvgStripOccupancy; //!< Average hit occupancy of given module type
   std::map<std::string, double>                m_moduleMaxHitOccupancy;   //!< Maximum hit occupancy of given module type
@@ -202,6 +202,7 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
  *  Helper class: Visit tilted layers for info on website.
  */
 class TiltedLayersVisitor : public ConstGeometryVisitor {
+ 
  public:
   void visit(const Layer& l) override;
 
@@ -219,6 +220,6 @@ class TiltedLayersVisitor : public ConstGeometryVisitor {
   const int   c_tiltedCoordPrecision = 3;
   const int   c_zOverlapPrecision    = 5;
   const int   c_anglePrecision       = 1;
-};
+}; // Helper Class
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */

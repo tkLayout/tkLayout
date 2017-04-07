@@ -31,7 +31,6 @@ public:
 typedef RILength Material;
 
 
-namespace insur {
     /**
      * Errors and messages that may be reported during operations on member variables
      */
@@ -152,6 +151,5 @@ namespace insur {
 //        bool newExitingComp(std::string comp);
 
     };
-}
 #endif	/* _MATERIALPROPERTIES_H */
 

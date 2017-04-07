@@ -12,7 +12,7 @@
 #include <TVector.h>
 #include <TMatrixD.h>
 
-#include "Polygon3d.h"
+#include "Polygon3D.h"
 #include "Property.h"
 #include "Visitor.h"
 #include "Visitable.h"
@@ -24,7 +24,7 @@ using std::array;
 
 // Definition of global function
 namespace ModuleHelpers {
-  double polygonAperture(const Polygon3d<4>& poly); 
+  double polygonAperture(const Polygon3D<4>& poly);
 };
 
 // Enum definition related to geometrical shape of modules
@@ -57,8 +57,8 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   void rotateZ(double angle)           { m_basePoly.rotateZ(angle); }
   void tiltAngle(double angle)         { m_tiltAngle += angle; }
   void skewAngle(double angle)         { m_skewAngle += angle; }
-  bool flipped() const { return flipped_; }
-  bool flipped(bool newFlip) { flipped_=newFlip; return flipped_; }
+  bool flipped() const                 { return m_flipped; }
+  bool flipped(bool newFlip)           { m_flipped=newFlip; return m_flipped; }
 
   //! GeometryVisitor pattern (purely virtual method) -> module needs to be visitable
   virtual void accept(GeometryVisitor& v) = 0;
@@ -70,7 +70,7 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   virtual void build() = 0;
 
   // Getter methods
-  const Polygon3d<4>& basePoly() const { return m_basePoly; }
+  const Polygon3D<4>& basePoly() const { return m_basePoly; }
   const XYZVector& center()      const { return m_basePoly.getCenter(); }
   const XYZVector& normal()      const { return m_basePoly.getNormal(); }
   virtual double area()          const = 0;
@@ -98,10 +98,10 @@ class GeometricModule : public PropertyObject, public Buildable, public Placeabl
   //double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
   //int          m_numHits   = 0;
 
-  bool flipped_ = false;
+  bool         m_flipped   = false;
   double       m_tiltAngle = 0.; //!< Module tilt, i.e. rotation in RZ plane
   double       m_skewAngle = 0.; //!< Module skew, i.e. rotation in XY plane
-  Polygon3d<4> m_basePoly;
+  Polygon3D<4> m_basePoly;
 
 }; // Class
 

@@ -15,6 +15,7 @@
 #include <global_constants.h>
 #include <Endcap.h>
 #include <Layer.h>
+#include "MaterialProperties.h"
 #include <Math/Vector3D.h>
 #include <PlotDrawer.h>
 #include "RootWContent.h"
@@ -239,11 +240,11 @@ bool AnalyzerGeometry::analyze()
 
       ROOT::Math::XYZVector direction = ROOT::Math::XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
 
+      // Use uniform distribution to simulate position of primary interaction (rphi negligible). May be also triangular or gaussian (depends on accelerator design)!
       double zErrorIP = 0.;
-      if (SimParms::getInstance().useIPConstraint()) zErrorIP = SimParms::getInstance().zErrorIP();
-      double zPos     = myDice.Rndm()*2 - 1;
-
-      ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
+      if (SimParms::getInstance().useLumiRegInAnalysis()) zErrorIP = SimParms::getInstance().zErrorIP();
+      double zPos = (myDice.Rndm()*2 - 1)*zErrorIP;
+      auto origin = ROOT::Math::XYZVector(0, 0, zPos);
 
       // Check whether generated track hits a module -> collect the list of hit modules
       std::vector<std::pair<DetectorModule*, HitType>> hitModules;
@@ -259,8 +260,13 @@ bool AnalyzerGeometry::analyze()
         if (module->couldHit(direction, zErrorIP*zErrorSafetyMargin)) {
 
           // Get hit
-          auto hit = module->checkTrackHits(origin, direction);
-          if (hit.second != HitType::NONE) hitModules.push_back(std::make_pair(module,hit.second));
+          XYZVector hitPos;
+          Material  hitMaterial;
+          HitType   hitType;
+          if (module->checkTrackHits(origin, direction, hitMaterial, hitType, hitPos)) {
+
+            hitModules.push_back(std::make_pair(module,hitType));;
+          }
         }
       }
 
@@ -412,25 +418,21 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     myContentLayout.addItem(std::move(geometryVisitor.m_diskTable));
     myContentLayout.addItem(std::move(geometryVisitor.m_ringTable));
 
-
-    //***************************************//
-    //*                                     *//
-    //* Automatic-placement tilted layers : *//
-    //*            Additional info          *//
-    //*                                     *//
-    //***************************************//
-    RootWContent& myContent = myPage.addContent("Tilted layers with automatic placement : additional info");
-    TiltedLayersVisitor tv;
-    iTracker->accept(tv);
+    // Print out detailed info about tilted layers
+    RootWContent& myContent = myPage.addContent("Details on tilted layout",false);
+    TiltedLayersVisitor tiltLayerVisitor;
+    iTracker->accept(tiltLayerVisitor);
 
     // If the layer is tilted, print flat and tilted parts tables
-    if (tv.m_nTiltedLayers > 0) {
-      for (int i = 0; i < tv.m_nTiltedLayers; i++) {
-	myContent.addItem(std::move(tv.m_tiltedLayerNames.at(i)));
-	myContent.addItem(std::move(tv.m_flatPartNames.at(i)));
-	myContent.addItem(std::move(tv.m_flatPartTables.at(i)));
-	myContent.addItem(std::move(tv.m_tiltedPartNames.at(i))); 
-	myContent.addItem(std::move(tv.m_tiltedPartTables.at(i)));
+    if (tiltLayerVisitor.m_nTiltedLayers > 0) {
+
+      for (int i = 0; i < tiltLayerVisitor.m_nTiltedLayers; i++) {
+
+        myContent.addItem(std::move(tiltLayerVisitor.m_tiltedLayerNames[i]));
+        myContent.addItem(std::move(tiltLayerVisitor.m_flatPartNames[i]));
+        myContent.addItem(std::move(tiltLayerVisitor.m_flatPartTables[i]));
+        myContent.addItem(std::move(tiltLayerVisitor.m_tiltedPartNames[i]));
+        myContent.addItem(std::move(tiltLayerVisitor.m_tiltedPartTables[i]));
       }
     }
 
@@ -784,22 +786,23 @@ void VisitorLayerDiscSummary::preVisit() {
   m_ringTable->setContent(2, 0, "R-max [mm]                   : ");
   m_ringTable->setContent(3, 0, "Number of modules per ring   : ");
 
-  m_moduleTable->setContent( 0, 0, "Module in:                                   ");
-  m_moduleTable->setContent( 1, 0, "Position:                                    ");
-  m_moduleTable->setContent( 2, 0, "Type:                                        ");
+  m_moduleTable->setContent( 0, 0, "Module in:                  ");
+  m_moduleTable->setContent( 1, 0, "Position:                   ");
+  m_moduleTable->setContent( 2, 0, "Type:                       ");
   m_moduleTable->setContent( 3, 0, "Sensor area [mm"+web_superStart+"2"+web_superEnd+"]: ");
   m_moduleTable->setContent( 4, 0, "Total area [m"+web_superStart+"2"+web_superEnd+"]:   ");
 //  m_moduleTable->setContent( 5, 0, "Service Weight [kg]:                         ");
 //  m_moduleTable->setContent( 6, 0, "Total Weight [kg]:                           ");
-  m_moduleTable->setContent( 5, 0, "Number of modules:                           ");
-  m_moduleTable->setContent( 6, 0, "Number of sensors:                           ");
-  m_moduleTable->setContent( 7, 0, "Number of channels (M):                      ");
-//  m_moduleTable->setContent(10, 0, "Number of channels (R-Phi 1.side):           ");
-//  m_moduleTable->setContent(11, 0, "Number of channels (R-Phi 2.side):           ");
+  m_moduleTable->setContent( 5, 0, "Number of modules:          ");
+  m_moduleTable->setContent( 6, 0, "Number of sensors:          ");
+  m_moduleTable->setContent( 7, 0, "Number of channels (M):     ");
+  m_moduleTable->setContent( 8, 0, "Channels per module (R-Phi): ");
+  m_moduleTable->setContent( 9, 0, "Channels per module (Z):     ");
+  m_moduleTable->setContent(10, 0, "Read-out chips per module:  ");
 //  m_moduleTable->setContent(12, 0, "Number of channels (Z 1.side):               ");
 //  m_moduleTable->setContent(13, 0, "Number of channels (Z 2.side):               ");
-  m_moduleTable->setContent( 8, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m):    ");
-  m_moduleTable->setContent( 9, 0, "Min-Max Z(R) resolution ("+web_muLetter+"m):        ");
+  m_moduleTable->setContent(11, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m): ");
+  m_moduleTable->setContent(12, 0, "Min-Max Z(R) resolution ("+web_muLetter+"m):  ");
 }
 
 //
@@ -893,6 +896,9 @@ void VisitorLayerDiscSummary::visit(const DetectorModule& m) {
   m_moduleMaxZResolution[tag]     = MAX(m.resolutionLocalY(), m_moduleMaxZResolution[tag]);
   m_moduleMinZResolution[tag]     = MIN(m.resolutionLocalY(), m_moduleMaxZResolution[tag]);
   m_moduleAvgZResolution[tag]    += m.resolutionLocalY();
+  m_moduleAvgChannelsRPhi[tag]   += m.innerSensor().numStripsAcross();
+  m_moduleAvgChannelsZ[tag]      += m.innerSensor().numSegments();
+  m_moduleAvgROCs[tag]           += m.innerSensor().numROCX()*m.innerSensor().numROCY();
   m_moduleMaxPower[tag]           = MAX(m.irradiationPower(), m_moduleMaxPower[tag]);
   m_moduleAvgPower[tag]          += m.irradiationPower();
 
@@ -912,8 +918,8 @@ void VisitorLayerDiscSummary::visit(const DetectorModule& m) {
 //
 void VisitorLayerDiscSummary::visit(const EndcapModule& m) {
 
-  // All disks symmetric - visit only the first one
-  if (m.disk() != 1 && m.side() != 1) return;
+  // All disks symmetric - visit only the first one (+-z symmetry -> check only positive discs)
+  if (m.disk() != 1 || m.side() != 1) return;
 
   // Get all end-cap module types for given ring - if not find -> assign
   if (m_ringModuleMap.find(m.ring())==m_ringModuleMap.end()) m_ringModuleMap[m.ring()] = &m;
@@ -939,6 +945,9 @@ void VisitorLayerDiscSummary::postVisit() {
       m_moduleAvgRphiResolution[tag] /= normFactor;
       m_moduleAvgZResolution[tag]    /= normFactor;
       m_moduleAvgPower[tag]          /= normFactor;
+      m_moduleAvgChannelsRPhi[tag]   /= normFactor;
+      m_moduleAvgChannelsZ[tag]      /= normFactor;
+      m_moduleAvgROCs[tag]           /= normFactor;
     }
   }
 
@@ -998,6 +1007,11 @@ void VisitorLayerDiscSummary::postVisit() {
     std::string numberChan = any2str(m_moduleChannels[moduleType]/ 1e6, c_channelPrecision);
     trkTotNumChannels += m_moduleChannels[moduleType]/ 1e6 ;
 
+    // Number of channels per module
+    std::string numberChanRPhi = any2str(m_moduleAvgChannelsRPhi[moduleType]);
+    std::string numberChanZ    = any2str(m_moduleAvgChannelsZ[moduleType]);
+    std::string numberROCs     = any2str(m_moduleAvgROCs[moduleType]);
+
     // Fill
     m_moduleTable->setContent(0, iType, position.str());
     m_moduleTable->setContent(1, iType, tag.str());
@@ -1007,8 +1021,11 @@ void VisitorLayerDiscSummary::postVisit() {
     m_moduleTable->setContent(5, iType, numberMod);
     m_moduleTable->setContent(6, iType, numberSens);
     m_moduleTable->setContent(7, iType, numberChan);
-    m_moduleTable->setContent(8, iType, rphiResolution);
-    m_moduleTable->setContent(9, iType, zResolution);
+    m_moduleTable->setContent(8, iType, numberChanRPhi);
+    m_moduleTable->setContent(9, iType, numberChanZ);
+    m_moduleTable->setContent(10,iType, numberROCs);
+    m_moduleTable->setContent(11,iType, rphiResolution);
+    m_moduleTable->setContent(12,iType, zResolution);
   }
 
   // Finalize tables
@@ -1034,8 +1051,8 @@ void VisitorLayerDiscSummary::postVisit() {
     const EndcapModule* module = iterMap.second;
 
     m_ringTable->setContent(0, ring, ring);
-    m_ringTable->setContent(1, ring, module->minR()                 , c_coordPrecision);
-    m_ringTable->setContent(2, ring, module->minR()+module->length(), c_coordPrecision);
+    m_ringTable->setContent(1, ring, module->minR(), c_coordPrecision);
+    m_ringTable->setContent(2, ring, module->maxR(), c_coordPrecision);
     m_ringTable->setContent(3, ring, m_ringNModules[ring-1]);
   }
 }
@@ -1145,23 +1162,25 @@ void TiltedLayersVisitor::visit(const Layer& l) {
       // As a result, it is interesting to display zOverlap !
       int extraLine = 0;
       if (!l.flatPartRods().front()->beamSpotCover()) {
-	extraLine = 1;
-	flatPartTable->setContent(8, 0, "zOverlap");
-	flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap(), c_tiltedCoordPrecision);
-	// WARNING : zOverlap, in the geometry construction process, is one value common for all flat part (or straight rod)
+        extraLine = 1;
+        flatPartTable->setContent(8, 0, "zOverlap");
+        flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap(), c_tiltedCoordPrecision);
+	      // WARNING : zOverlap, in the geometry construction process, is one value common for all flat part (or straight rod)
       }
       // calculates zError for ring (i) with respect to ring (i-1)
       if (i > 0) {
-	// Inner modules in the tilted rings
-	double zErrorInner = l.flatRingsGeometryInfo().zErrorInner()[i];
-	flatPartTable->setContent(8 + extraLine, 0, "zError" + web_subStart + "Inner" + web_subEnd + " (Ring i & i-1)");
-	if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner, c_tiltedCoordPrecision);
-	else flatPartTable->setContent(8 + extraLine, i+1, "n/a");
-	// Outer modules in the tilted rings
-	double zErrorOuter = l.flatRingsGeometryInfo().zErrorOuter()[i];
-	flatPartTable->setContent(9 + extraLine, 0, "zError" + web_subStart + "Outer" + web_subEnd + " (Ring i & i-1)");
-	if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter, c_tiltedCoordPrecision);
-	else flatPartTable->setContent(9 + extraLine, i+1, "n/a");
+
+        // Inner modules in the tilted rings
+        double zErrorInner = l.flatRingsGeometryInfo().zErrorInner()[i];
+        flatPartTable->setContent(8 + extraLine, 0, "zError" + web_subStart + "Inner" + web_subEnd + " (Ring i & i-1)");
+        if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner, c_tiltedCoordPrecision);
+        else flatPartTable->setContent(8 + extraLine, i+1, "n/a");
+
+        // Outer modules in the tilted rings
+        double zErrorOuter = l.flatRingsGeometryInfo().zErrorOuter()[i];
+        flatPartTable->setContent(9 + extraLine, 0, "zError" + web_subStart + "Outer" + web_subEnd + " (Ring i & i-1)");
+        if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter, c_tiltedCoordPrecision);
+        else flatPartTable->setContent(9 + extraLine, i+1, "n/a");
       }
       i++;
     }

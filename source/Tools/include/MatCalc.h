@@ -23,7 +23,6 @@
 #include <MaterialTable.h>
 #include <InactiveElement.h>
 #include <DetectorModule.h>
-namespace insur {
   /**
    * Messages that may appear during the calculations
    */
@@ -199,6 +198,5 @@ namespace insur {
     void adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s);
     void adjacentSameCategory(InactiveElement& source, InactiveElement& dest);
   };
-}
 #endif	/* _MATCALC_H */
 

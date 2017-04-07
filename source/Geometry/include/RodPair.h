@@ -148,11 +148,12 @@ public:
   RangeProperty<std::vector<double> > forbiddenRange;
 
   Property<double, Default>   zOverlap;            //!< Required overlap of modules in Z (in length units)
-  Property<double, NoDefault> zError;              //!< When positioning modules take into account beam spot spread in Z
+  Property<double, Default>   zError;              //!< When positioning modules take into account beam spot spread in Z
   Property<bool  , Default>   compressed;          //!< Modules will be compressed in Z, if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
   Property<bool  , Default>   allowCompressionCuts;//!< During compression algorithm cut out modules behind outerZ first
-  const int smallParity() const { return m_smallParity; };
-  bool isTilted() const override { return false; }
+
+  const int smallParity() const          { return m_smallParity; };
+  bool      isTilted()    const override { return false; }
 
   double thetaEnd_REAL() const {
     double thetaEnd;

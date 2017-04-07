@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "DetectorModule.h"
+#include "InactiveElement.h"
 #include "MessageLogger.h"
 #include "SimParms.h"
 #include "Track.h"
@@ -59,8 +60,9 @@ Hit::Hit() {
     m_hitModule        = nullptr;
     m_track            = nullptr;
     m_isTrigger        = false;
-    m_isIP             = false;
-    m_isBeamPipe       = false;
+    m_passiveHitType   = HitPassiveType::Undefined;
+    m_hitPassiveElem   = nullptr;
+    m_isPixel          = false;
     m_layerID          = -1;
     m_discID           = -1;
     m_resolutionRPhi   = 0;
@@ -82,35 +84,42 @@ Hit::Hit(const Hit& h) {
     m_track             = nullptr;
     m_correctedMaterial = h.m_correctedMaterial;
     m_isTrigger         = h.m_isTrigger;
-    m_isIP              = h.m_isIP;
-    m_isBeamPipe        = h.m_isBeamPipe;
+    m_passiveHitType    = h.m_passiveHitType;
+    m_hitPassiveElem    = h.m_hitPassiveElem;
+    m_isPixel           = h.m_isPixel;
     m_layerID           = h.m_layerID;
     m_discID            = h.m_discID;
     m_resolutionRPhi    = h.m_resolutionRPhi;
     m_resolutionZ       = h.m_resolutionZ;
 }
 
-/**
- * Constructor for a hit with no module at a given [rPos, zPos] from the origin
+/*
+ * Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
  */
-Hit::Hit(double rPos, double zPos) {
-    m_detName          = "Undefined";
-    m_distance         = sqrt(rPos*rPos + zPos*zPos);
-    m_rPos             = rPos;
-    m_zPos             = zPos;
-    m_activity         = HitActivity::Undefined;
-    m_activeHitType    = HitType::NONE;
-    m_hitModule        = nullptr;
-    m_track            = nullptr;
-    m_isTrigger        = false;
-    m_isIP             = false;
-    m_isBeamPipe       = false;
-    m_layerID          = -1;
-    m_discID           = -1;
-    m_resolutionRPhi   = 0;
-    m_resolutionZ      = 0;
+Hit::Hit(double rPos, double zPos, const InactiveElement* myPassiveElem, HitPassiveType passiveHitType) {
+    m_detName           = "Undefined";
+    m_distance          = sqrt(rPos*rPos + zPos*zPos);
+    m_rPos              = rPos;
+    m_zPos              = zPos;
+    m_activity          = HitActivity::Inactive;
+    m_activeHitType     = HitType::NONE;
+    m_hitModule         = nullptr;
+    m_track             = nullptr;
+    m_isTrigger         = false;
+    m_passiveHitType    = passiveHitType;
+    setHitPassiveElement(myPassiveElem);
+    m_isPixel           = false;
+    m_layerID           = -1;
+    m_discID            = -1;
+    m_resolutionRPhi    = 0;
+    m_resolutionZ       = 0;
 
+    if (m_passiveHitType==HitPassiveType::BeamPipe) m_detName = "BeamPipe";
+    if (m_passiveHitType==HitPassiveType::IP)       m_detName = "IP";
+    if (m_passiveHitType==HitPassiveType::Support)  m_detName = "Support";
+    if (m_passiveHitType==HitPassiveType::Service)  m_detName = "Service";
 }
+
 
 /**
  * //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
@@ -126,13 +135,13 @@ Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activ
     setHitModule(myModule);
     m_track            = nullptr;
     m_isTrigger        = false;
-    m_isIP             = false;
-    m_isBeamPipe       = false;
+    m_passiveHitType   = HitPassiveType::Undefined;
+    m_hitPassiveElem   = nullptr;
+    m_isPixel          = false;
     m_layerID          = -1;
     m_discID           = -1;
     m_resolutionRPhi   = 0;
     m_resolutionZ      = 0;
-
 }
 
 
@@ -144,6 +153,15 @@ void Hit::setHitModule(const DetectorModule* myModule) {
 
   if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
+}
+
+/*
+ * Setter for the pointer to the inactive surface that caused the hit.
+ */
+void Hit::setHitPassiveElement(const InactiveElement* myPassiveElem) {
+
+  if (myPassiveElem) m_hitPassiveElem = myPassiveElem;
+  //else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");
 }
 
 /**

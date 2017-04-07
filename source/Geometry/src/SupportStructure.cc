@@ -18,9 +18,6 @@
 #include "Endcap.h"
 #include "Units.h"
 
-using insur::InactiveTube;
-using insur::InactiveRing;
-
   //=============== begin class SupportStructure
   const std::map<std::string, SupportStructure::Type> SupportStructure::typeStringMap = {
     {"custom", CUSTOM},
@@ -189,7 +186,7 @@ using insur::InactiveRing;
                                MAX(0, endcap.minZ()),
                                endcap.maxR() + autoLayerMarginLower,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap top support structure horizontally oriented");
       break;
     case BOTTOM :
@@ -199,7 +196,7 @@ using insur::InactiveRing;
                                MAX(0, endcap.minZ()),
                                endcap.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap bottom support structure horizontally oriented");
       break;
     default :
@@ -253,41 +250,21 @@ using insur::InactiveRing;
     InactiveElement* zNegativeElement;
 
     if(direction == HORIZONTAL) {
-      zPositiveElement = new InactiveTube;
-      zPositiveElement->setZLength(length);
-      zPositiveElement->setZOffset(startZ);
-      zPositiveElement->setInnerRadius(startR);
-      zPositiveElement->setRWidth(inactiveElementWidth);
-      zPositiveElement->setFinal(true);
-      //zPositiveElement->setCategory(insur::MaterialProperties::o_sup);      
-      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);      
+      zPositiveElement = new InactiveTube(startZ,length,startR,inactiveElementWidth);
+      //zPositiveElement->setCategory(MaterialProperties::o_sup);
+      zPositiveElement->setCategory(MaterialProperties::b_sup);
 
-      zNegativeElement = new InactiveTube;
-      zNegativeElement->setZLength(length);
-      zNegativeElement->setZOffset(-1 * startZ - length);
-      zNegativeElement->setInnerRadius(startR);
-      zNegativeElement->setRWidth(inactiveElementWidth);
-      zNegativeElement->setFinal(true);
-      //zNegativeElement->setCategory(insur::MaterialProperties::o_sup);      
-      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);      
+      zNegativeElement = new InactiveTube(-1*startZ-length,length,startR,inactiveElementWidth);
+      //zNegativeElement->setCategory(MaterialProperties::o_sup);
+      zNegativeElement->setCategory(MaterialProperties::b_sup);
     } else {
-      zPositiveElement = new InactiveRing;
-      zPositiveElement->setZLength(inactiveElementWidth);
-      zPositiveElement->setZOffset(startZ);
-      zPositiveElement->setInnerRadius(startR);
-      zPositiveElement->setRWidth(length);
-      zPositiveElement->setFinal(true);
-      //zPositiveElement->setCategory(insur::MaterialProperties::u_sup);
-      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);
+      zPositiveElement = new InactiveRing(startZ,inactiveElementWidth,startR,length);
+      //zPositiveElement->setCategory(MaterialProperties::u_sup);
+      zPositiveElement->setCategory(MaterialProperties::b_sup);
 
-      zNegativeElement = new InactiveRing;
-      zNegativeElement->setZLength(inactiveElementWidth);
-      zNegativeElement->setZOffset(-1 * startZ - inactiveElementWidth);
-      zNegativeElement->setInnerRadius(startR);
-      zNegativeElement->setRWidth(length);
-      zNegativeElement->setFinal(true);
-      //zNegativeElement->setCategory(insur::MaterialProperties::u_sup);
-      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);
+      zNegativeElement = new InactiveRing(-1*startZ-inactiveElementWidth,inactiveElementWidth,startR,length);
+      //zNegativeElement->setCategory(MaterialProperties::u_sup);
+      zNegativeElement->setCategory(MaterialProperties::b_sup);
     }
 
       populateMaterialProperties(*zPositiveElement);

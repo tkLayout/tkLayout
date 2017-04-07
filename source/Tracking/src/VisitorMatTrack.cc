@@ -50,15 +50,12 @@ void VisitorMatTrack::visit(const BeamPipe& bp)
   double rPos  = (bp.radius()+bp.thickness()/2.);
   double zPos  = rPos/tan(theta);
 
-  HitPtr hit(new Hit(rPos, zPos));
-  hit->setAsPassive();
+  HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
   Material material;
   material.radiation   = bp.radLength()/sin(theta);
   material.interaction = bp.intLength()/sin(theta);
-
   hit->setCorrectedMaterial(material);
-  hit->setBeamPipe(true);
   m_matTrack.addHit(std::move(hit));
 }
 
@@ -145,48 +142,22 @@ void VisitorMatTrack::visit(const SupportStructure& s)
 //
 void VisitorMatTrack::analyzeModuleMB(const DetectorModule& m)
 {
-  // Collision detection: material tracks being shot in z+ only, so consider only modules that lie on +Z side
-  if (m.maxZ() > 0) {
+  // Collision detection: material tracks being shot in z+ only, so consider only modules that lie on +Z side after correction on primary vertex origin
+  if ((m.maxZ()-m_matTrack.getOrigin().Z())>0) {
 
     XYZVector direction(m_matTrack.getDirection());
+    Material  hitMaterial;
+    XYZVector hitPosition;
+    HitType   hitType;
 
-    auto pair    = m.checkTrackHits(m_matTrack.getOrigin(), direction);
-    //auto hitDistance = pair.first.R();
-    auto hitRPos = pair.first.rho();
-    auto hitZPos = pair.first.z();
-    auto hitType = pair.second;
+    if (m.checkTrackHits(m_matTrack.getOrigin(), direction, hitMaterial, hitType, hitPosition)) {
 
-    if (hitType!=HitType::NONE) {
-
-      Material material;
-      material.radiation   = m.getModuleCap().getRadiationLength();
-      material.interaction = m.getModuleCap().getInteractionLength();
-
-      // Fill material map
-      double theta = m_matTrack.getTheta();
-
-      // Treat barrel & endcap modules separately
-      double tiltAngle = m.tiltAngle();
-
-      if (m.subdet() == BARREL) {
-
-        material.radiation   /= sin(theta + tiltAngle);
-        material.interaction /= sin(theta + tiltAngle);
-
-      }
-      else if (m.subdet() == ENDCAP) {
-
-        material.radiation   /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
-        material.interaction /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
-
-      }
-      else {
-        logWARNING("VisitorMatTrack::analyzeModuleMB -> incorrectly scaled material, unknown module type. Neither barrel or endcap");
-      }
+      auto hitRPos = hitPosition.rho();
+      auto hitZPos = hitPosition.z();
 
       // Create Hit object with appropriate parameters, add to Track t
       HitPtr hit(new Hit(hitRPos, hitZPos, &m, hitType));
-      hit->setCorrectedMaterial(material);
+      hit->setCorrectedMaterial(hitMaterial);
       if (m.subdet() == BARREL) {
         hit->setDetName(m_detName+"_"+m_brlName);
         hit->setLayerID(m_layerID);
@@ -197,116 +168,43 @@ void VisitorMatTrack::analyzeModuleMB(const DetectorModule& m)
       }
       m_matTrack.addHit(std::move(hit));
     }
-  } // Z>0
+  } // (module_Z-orig_Z)>0
 }
 
 //
 // Helper method - analyse inactive element & estimate how much material is in the way
 //
-void VisitorMatTrack::analyzeInactiveElement(const insur::InactiveElement& e)
+void VisitorMatTrack::analyzeInactiveElement(const InactiveElement& e)
 {
-  // Work-out only if inactive element has non-zero material assigned, otherwise no effect of inactive material
-  if (e.getRadiationLength()!=0 || e.getInteractionLength()!=0) {
 
-    // Collision detection: rays are shot in z+ only, so only volumes in z+ need to be considered
-    // only volumes of the requested category, or those without one (which should not exist) are examined
-    if ((e.getZOffset() + e.getZLength()) > 0) {
+  XYZVector direction(m_matTrack.getDirection());
+  Material  hitMaterial;
+  XYZVector hitPosition;
 
-      // collision detection: check eta range
-      auto etaMinMax = e.getEtaMinMax();
+  // Hit found -> create
+  if (e.checkTrackHits(m_matTrack.getOrigin(),direction, hitMaterial, hitPosition)) {
 
-      // Volume hit
-      double eta   = m_matTrack.getEta();
-      double theta = m_matTrack.getTheta();
+    auto hitRPos = hitPosition.rho();
+    auto hitZPos = hitPosition.z();
 
-      if ((etaMinMax.first < eta) && (etaMinMax.second > eta)) {
+    // Create Hit object with appropriate parameters, add to Track t
+    if (e.getCategory() == MaterialProperties::b_sup ||
+        e.getCategory() == MaterialProperties::e_sup ||
+        e.getCategory() == MaterialProperties::u_sup ||
+        e.getCategory() == MaterialProperties::t_sup ) {
 
-        /*
-        if (eta<0.01) {
-          std::cout << "Hitting an inactive surface at z=("
-                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
-                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
-          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
-          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-        }
-        */
+      HitPtr hit(new Hit(hitRPos, hitZPos, &e, HitPassiveType::Support));
+      hit->setCorrectedMaterial(hitMaterial);
+      m_matTrack.addHit(std::move(hit));
+    }
+    else if (e.getCategory() == MaterialProperties::b_ser ||
+             e.getCategory() == MaterialProperties::e_ser ) {
 
-        // Initialize
-        Material material;
-        material.radiation   = 0.0;
-        material.interaction = 0.0;
-
-        double rPos = 0.0;
-        double zPos = 0.0;
-
-        // Radiation and interaction lenth scaling for vertical volumes
-        if (e.isVertical()) {
-
-          zPos = e.getZOffset() + e.getZLength() / 2.0;
-          rPos = zPos * tan(theta);
-
-          material.radiation   = e.getRadiationLength();
-          material.interaction = e.getInteractionLength();
-
-          // Special treatment for user-defined supports as they can be very close to z=0
-          if (e.getCategory() == MaterialProperties::u_sup) {
-
-            double s = e.getZLength() / cos(theta);
-            if (s > (e.getRWidth() / sin(theta))) s = e.getRWidth() / sin(theta);
-
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            //if (e.track()) {}
-
-            material.radiation  *= s / e.getZLength();
-            material.interaction*= s / e.getZLength();
-          }
-          else {
-
-            material.radiation   /= cos(theta);
-            material.interaction /= cos(theta);
-          }
-        }
-        // Radiation and interaction length scaling for horizontal volumes
-        else {
-
-          rPos = e.getInnerRadius() + e.getRWidth() / 2.0;
-          zPos = rPos/tan(theta);
-
-          material.radiation   = e.getRadiationLength();
-          material.interaction = e.getInteractionLength();
-
-          // Special treatment for user-defined supports; should not be necessary for now
-          // as all user-defined supports are vertical, but just in case...
-          if (e.getCategory() == MaterialProperties::u_sup) {
-
-            double s = e.getZLength() / sin(theta);
-
-            if (s > (e.getRWidth()/cos(theta))) s = e.getRWidth() / cos(theta);
-
-            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
-            //if (e.track()) {}
-
-            material.radiation  *= s / e.getZLength();
-            material.interaction*= s / e.getZLength();
-          }
-          else {
-
-            material.radiation   /= sin(theta);
-            material.interaction /= sin(theta);
-          }
-        }
-
-        // Create Hit object with appropriate parameters, add to Track t
-        HitPtr hit(new Hit(rPos, zPos));
-        hit->setAsPassive();
-        hit->setCorrectedMaterial(material);
-        m_matTrack.addHit(std::move(hit));
-
-      } // Eta min max
-    } // +Z check
-  } // Non-zero material assigned
+      HitPtr hit(new Hit(hitRPos, hitZPos, &e, HitPassiveType::Service));
+      hit->setCorrectedMaterial(hitMaterial);
+      m_matTrack.addHit(std::move(hit));
+    }
+  } // Hit found
 }
 
 
