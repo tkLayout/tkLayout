@@ -204,21 +204,22 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
 class TiltedLayersVisitor : public ConstGeometryVisitor {
  
  public:
+
+  void visit(const Tracker& t) override;
   void visit(const Layer& l) override;
 
   // tilted info containers
   std::vector<std::unique_ptr<RootWTable>> m_tiltedLayerNames;
-  std::vector<std::unique_ptr<RootWTable>> m_flatPartNames;
-  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartNames;
   std::vector<std::unique_ptr<RootWTable>> m_flatPartTables;
   std::vector<std::unique_ptr<RootWTable>> m_tiltedPartTables;
 
   // counters
-  int m_nTiltedLayers = 0; 
+  int m_nTiltedLayers;
+  int m_nLayers;
 
  private:
-  const int   c_tiltedCoordPrecision = 3;
-  const int   c_zOverlapPrecision    = 5;
+  const int   c_tiltedCoordPrecision = 2;
+  const int   c_zOverlapPrecision    = 3;
   const int   c_anglePrecision       = 1;
 }; // Helper Class
 

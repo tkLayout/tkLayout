@@ -7,24 +7,24 @@
 #include <AnalyzerGeometry.h>
 
 // Include files
-#include <Barrel.h>
-#include <BeamPipe.h>
+#include "Barrel.h"
+#include "BeamPipe.h"
 #include "Detector.h"
-#include <DetectorModule.h>
-#include <Disk.h>
-#include <global_constants.h>
-#include <Endcap.h>
-#include <Layer.h>
+#include "DetectorModule.h"
+#include "Disk.h"
+#include "global_constants.h"
+#include "Endcap.h"
+#include "Layer.h"
 #include "MaterialProperties.h"
 #include <Math/Vector3D.h>
-#include <PlotDrawer.h>
+#include "PlotDrawer.h"
 #include "RootWContent.h"
 #include "RootWImage.h"
 #include "RootWPage.h"
 #include "RootWSite.h"
 #include "RootWTable.h"
 #include <ostream>
-#include <TagMaker.h>
+#include "TagMaker.h"
 #include <TColor.h>
 #include <TEllipse.h>
 #include <TH1D.h>
@@ -32,9 +32,10 @@
 #include <TH2I.h>
 #include <TPad.h>
 #include <TProfile.h>
-#include <Tracker.h>
+#include "Tracker.h"
 #include <TRandom3.h>
-#include <SimParms.h>
+#include "Units.h"
+#include "SimParms.h"
 
 //
 // AnalyzerGeometry constructor
@@ -419,19 +420,17 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     myContentLayout.addItem(std::move(geometryVisitor.m_ringTable));
 
     // Print out detailed info about tilted layers
-    RootWContent& myContent = myPage.addContent("Details on tilted layout",false);
     TiltedLayersVisitor tiltLayerVisitor;
     iTracker->accept(tiltLayerVisitor);
 
     // If the layer is tilted, print flat and tilted parts tables
     if (tiltLayerVisitor.m_nTiltedLayers > 0) {
 
+      RootWContent& myContent = myPage.addContent("Modules layout details",false);
       for (int i = 0; i < tiltLayerVisitor.m_nTiltedLayers; i++) {
 
         myContent.addItem(std::move(tiltLayerVisitor.m_tiltedLayerNames[i]));
-        myContent.addItem(std::move(tiltLayerVisitor.m_flatPartNames[i]));
         myContent.addItem(std::move(tiltLayerVisitor.m_flatPartTables[i]));
-        myContent.addItem(std::move(tiltLayerVisitor.m_tiltedPartNames[i]));
         myContent.addItem(std::move(tiltLayerVisitor.m_tiltedPartTables[i]));
       }
     }
@@ -821,11 +820,11 @@ void VisitorLayerDiscSummary::visit(const Layer& l) {
 
   // Set table
   m_layerTable->setContent(0, m_nBarrelLayers, m_nBarrelLayers);
-  m_layerTable->setContent(1, m_nBarrelLayers, l.avgBuildRadius(), c_coordPrecision+1);
-  m_layerTable->setContent(2, m_nBarrelLayers, l.minRAllMat(), c_coordPrecision+1);
-  m_layerTable->setContent(3, m_nBarrelLayers, l.maxRAllMat(), c_coordPrecision+1);
-  m_layerTable->setContent(4, m_nBarrelLayers, l.minZ(), c_coordPrecision);
-  m_layerTable->setContent(5, m_nBarrelLayers, l.maxZ(), c_coordPrecision);
+  m_layerTable->setContent(1, m_nBarrelLayers, l.avgBuildRadius()/Units::mm, c_coordPrecision+1);
+  m_layerTable->setContent(2, m_nBarrelLayers, l.minRAllMat()/Units::mm, c_coordPrecision+1);
+  m_layerTable->setContent(3, m_nBarrelLayers, l.maxRAllMat()/Units::mm, c_coordPrecision+1);
+  m_layerTable->setContent(4, m_nBarrelLayers, l.minZ()/Units::mm, c_coordPrecision);
+  m_layerTable->setContent(5, m_nBarrelLayers, l.maxZ()/Units::mm, c_coordPrecision);
   m_layerTable->setContent(6, m_nBarrelLayers, l.numRods());
   m_layerTable->setContent(7, m_nBarrelLayers, l.numModulesPerRod());
   m_layerTable->setContent(8, m_nBarrelLayers, l.totalModules());
@@ -849,11 +848,11 @@ void VisitorLayerDiscSummary::visit(const Disk& d) {
 
   // Set table
   m_diskTable->setContent(0, m_nDisks, d.myid());
-  m_diskTable->setContent(1, m_nDisks, d.minR(),       c_coordPrecision);
-  m_diskTable->setContent(2, m_nDisks, d.maxR(),       c_coordPrecision);
-  m_diskTable->setContent(3, m_nDisks, d.averageZ(),   c_coordPrecision);
-  m_diskTable->setContent(4, m_nDisks, d.minZAllMat(), c_coordPrecision);
-  m_diskTable->setContent(5, m_nDisks, d.maxZAllMat(), c_coordPrecision);
+  m_diskTable->setContent(1, m_nDisks, d.minR()/Units::mm,       c_coordPrecision);
+  m_diskTable->setContent(2, m_nDisks, d.maxR()/Units::mm,       c_coordPrecision);
+  m_diskTable->setContent(3, m_nDisks, d.averageZ()/Units::mm,   c_coordPrecision);
+  m_diskTable->setContent(4, m_nDisks, d.minZAllMat()/Units::mm, c_coordPrecision);
+  m_diskTable->setContent(5, m_nDisks, d.maxZAllMat()/Units::mm, c_coordPrecision);
   m_diskTable->setContent(6, m_nDisks, d.numRings());
   m_diskTable->setContent(7, m_nDisks, nModules);
 }
@@ -984,17 +983,17 @@ void VisitorLayerDiscSummary::postVisit() {
     std::string thickness = any2str(module->dsDistance());
 
     // Area
-    std::string sensorArea = any2str(module->area(), c_areaPrecision);
-    std::string totalArea  = any2str(module->area()*module->numSensors()*m_moduleCount[moduleType]* 1e-6, c_areaPrecision);
-    trkTotArea += module->area()*module->numSensors()*m_moduleCount[moduleType]* 1e-6;
+    std::string sensorArea = any2str(module->area()/Units::mm2, c_areaPrecision);
+    std::string totalArea  = any2str(module->area()/Units::m2*module->numSensors()*m_moduleCount[moduleType], c_areaPrecision);
+    trkTotArea += module->area()/Units::m2*module->numSensors()*m_moduleCount[moduleType];
 
     // Occupancy (in percent)
-    std::string stripOccupancy = any2str(m_moduleMaxStripOccupancy[moduleType]*100, c_occupancyPrecision) + "/" + any2str(m_moduleAvgStripOccupancy[moduleType]*100, c_occupancyPrecision); // Percent
-    std::string hitOccupancy   = any2str(m_moduleMaxHitOccupancy[moduleType]*100  , c_occupancyPrecision) + "/" + any2str(m_moduleAvgHitOccupancy[moduleType]*100  , c_occupancyPrecision); // Percent
+    std::string stripOccupancy = any2str(m_moduleMaxStripOccupancy[moduleType]/Units::percent, c_occupancyPrecision) + "/" + any2str(m_moduleAvgStripOccupancy[moduleType]/Units::percent, c_occupancyPrecision); // Percent
+    std::string hitOccupancy   = any2str(m_moduleMaxHitOccupancy[moduleType]/Units::percent  , c_occupancyPrecision) + "/" + any2str(m_moduleAvgHitOccupancy[moduleType]/Units::percent  , c_occupancyPrecision); // Percent
 
     // Resolution (in um)
-    std::string rphiResolution = any2str(m_moduleMinRphiResolution[moduleType]*1000, c_resolutionPrecision) + "-" + any2str(m_moduleMaxRphiResolution[moduleType]*1000, c_resolutionPrecision); // mm -> um
-    std::string zResolution    = any2str(m_moduleMinZResolution[moduleType]*1000   , c_resolutionPrecision) + "-" + any2str(m_moduleMaxZResolution[moduleType]*1000   , c_resolutionPrecision); // mm -> um
+    std::string rphiResolution = any2str(m_moduleMinRphiResolution[moduleType]/Units::um, c_resolutionPrecision) + "-" + any2str(m_moduleMaxRphiResolution[moduleType]/Units::um, c_resolutionPrecision);
+    std::string zResolution    = any2str(m_moduleMinZResolution[moduleType]/Units::um   , c_resolutionPrecision) + "-" + any2str(m_moduleMaxZResolution[moduleType]/Units::um   , c_resolutionPrecision);
 
     // Number of modules
     std::string numberMod = any2str(m_moduleCount[moduleType]);
@@ -1004,8 +1003,8 @@ void VisitorLayerDiscSummary::postVisit() {
     std::string numberSens = any2str(m_moduleCount[moduleType] * module->numSensors());
 
     // Number of channels (in millions)
-    std::string numberChan = any2str(m_moduleChannels[moduleType]/ 1e6, c_channelPrecision);
-    trkTotNumChannels += m_moduleChannels[moduleType]/ 1e6 ;
+    std::string numberChan = any2str(m_moduleChannels[moduleType]/Units::M, c_channelPrecision);
+    trkTotNumChannels     += m_moduleChannels[moduleType]/Units::M;
 
     // Number of channels per module
     std::string numberChanRPhi = any2str(m_moduleAvgChannelsRPhi[moduleType]);
@@ -1051,16 +1050,28 @@ void VisitorLayerDiscSummary::postVisit() {
     const EndcapModule* module = iterMap.second;
 
     m_ringTable->setContent(0, ring, ring);
-    m_ringTable->setContent(1, ring, module->minR(), c_coordPrecision);
-    m_ringTable->setContent(2, ring, module->maxR(), c_coordPrecision);
+    m_ringTable->setContent(1, ring, module->minR()/Units::mm, c_coordPrecision);
+    m_ringTable->setContent(2, ring, module->maxR()/Units::mm, c_coordPrecision);
     m_ringTable->setContent(3, ring, m_ringNModules[ring-1]);
   }
+}
+
+//
+// Visit tilted tracker and initialize variables
+//
+void TiltedLayersVisitor::visit(const Tracker& t) {
+
+  m_nTiltedLayers = 0;
+  m_nLayers       = 0;
 }
 
 //
 // Visit tilted layers and gathers info on its flat and tilted parts.
 //
 void TiltedLayersVisitor::visit(const Layer& l) {
+
+  m_nLayers++;
+
   // Only for tilted layers with automatic placement.
   if (l.isTilted() && l.isTiltedAuto()) {
 
@@ -1068,126 +1079,126 @@ void TiltedLayersVisitor::visit(const Layer& l) {
 
     // Initializes layer name
     std::unique_ptr<RootWTable> tiltedLayerName = std::unique_ptr<RootWTable>(new RootWTable());
-    tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
+    tiltedLayerName->setContent(0, 0, "Layer " + any2str(m_nLayers) + " :");
     m_tiltedLayerNames.push_back(std::move(tiltedLayerName));
 
-    // Initializes flat part name
-    std::unique_ptr<RootWTable> flatPartName = std::unique_ptr<RootWTable>(new RootWTable());
-    flatPartName->setContent(0, 0, "Flat part :");
-    m_flatPartNames.push_back(std::move(flatPartName));
-
-    // Initializes tilted part name
-    std::unique_ptr<RootWTable> tiltedPartName = std::unique_ptr<RootWTable>(new RootWTable());
-    tiltedPartName->setContent(0, 0, "Tilted part :");
-    m_tiltedPartNames.push_back(std::move(tiltedPartName));
-
-    // FILLS TILTED PART TABLE
+    //
+    // Table summarizing tilted part
     std::unique_ptr<RootWTable> tiltedPartTable = std::unique_ptr<RootWTable>(new RootWTable());
     for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
+
       int ringNumber = l.buildNumModulesFlat() + 1 + i;
-      tiltedPartTable->setContent(0, 0, "Ring");
-      tiltedPartTable->setContent(0, i+1, ringNumber);
-      tiltedPartTable->setContent(1, 0, "tiltAngle (°)");
-      tiltedPartTable->setContent(1, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngle(), c_anglePrecision);
-      tiltedPartTable->setContent(2, 0, "tiltAngleIdeal" + web_subStart + "Inner" + web_subEnd + " (°)");
-      tiltedPartTable->setContent(2, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealInner(), c_anglePrecision);
-      tiltedPartTable->setContent(3, 0, "deltaTiltIdeal" + web_subStart + "Inner" + web_subEnd + " (°)");
-      tiltedPartTable->setContent(3, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealInner(), c_anglePrecision);
-      tiltedPartTable->setContent(4, 0, "tiltAngleIdeal" + web_subStart + "Outer" + web_subEnd + " (°)");
-      tiltedPartTable->setContent(4, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealOuter(), c_anglePrecision);
-      tiltedPartTable->setContent(5, 0, "deltaTiltIdeal" + web_subStart + "Outer" + web_subEnd + " (°)");
-      tiltedPartTable->setContent(5, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealOuter(), c_anglePrecision);
-      tiltedPartTable->setContent(6, 0, "theta_g (°)");
-      tiltedPartTable->setContent(6, i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g(), c_anglePrecision);
-      tiltedPartTable->setContent(7, 0, "r" + web_subStart + "Inner" + web_subEnd);
-      tiltedPartTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(8, 0, "r" + web_subStart + "Outer" + web_subEnd);
-      tiltedPartTable->setContent(8, i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(9, 0, "averageR (on Ring)");
-      tiltedPartTable->setContent(9, i+1, l.tiltedRingsGeometry()[ringNumber]->averageR(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(10, 0, "gapR");
-      tiltedPartTable->setContent(10, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(11, 0, "z" + web_subStart + "Inner" + web_subEnd);
-      tiltedPartTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(12, 0, "z" + web_subStart + "Outer" + web_subEnd);
-      tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(13, 0, "averageZ (on Ring)");
-      tiltedPartTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(14, 0, "deltaZ" + web_subStart + "Inner" + web_subEnd + " (Ring i & i-1)");
-      tiltedPartTable->setContent(14, i+1, l.tiltedRingsGeometryInfo().deltaZInner()[ringNumber], c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(15, 0, "deltaZ" + web_subStart + "Outer" + web_subEnd + " (Ring i & i-1)");
-      tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(16, 0, "phiOverlap");
-      tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), c_tiltedCoordPrecision);
-      tiltedPartTable->setContent(17, 0, "zOverlap" + web_subStart + "Outer" + web_subEnd);
-      tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->ringZOverlap(), c_zOverlapPrecision);
+
+      tiltedPartTable->setContent(0 , 0  , "Tilted part - Rings :");
+      tiltedPartTable->setContent(0 , i+1, ringNumber);
+      tiltedPartTable->setContent(1 , 0  , web_thetaLetter + web_subStart + "tilt" + web_subEnd + " [deg] :");
+      tiltedPartTable->setContent(1 , i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngle(), c_anglePrecision);
+      tiltedPartTable->setContent(2 , 0  , "Ideal " + web_thetaLetter + web_subStart + "tilt" + web_subEnd + "-inner [deg] : ");
+      tiltedPartTable->setContent(2 , i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealInner(), c_anglePrecision);
+      tiltedPartTable->setContent(3 , 0  , "Ideal " + web_thetaLetter + web_subStart + "tilt" + web_subEnd + "-outer [deg] : ");
+      tiltedPartTable->setContent(3 , i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealOuter(), c_anglePrecision);
+      tiltedPartTable->setContent(4 , 0  , web_DeltaLetter + web_thetaLetter + web_subStart + "tilt" + web_subEnd +"-inner [deg] :");
+      tiltedPartTable->setContent(4 , i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealInner(), c_anglePrecision);
+      tiltedPartTable->setContent(5 , 0  , web_DeltaLetter + web_thetaLetter + web_subStart + "tilt" + web_subEnd +"-outer [deg] :");
+      tiltedPartTable->setContent(5 , i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealOuter(), c_anglePrecision);
+      tiltedPartTable->setContent(6 , 0  , web_thetaLetter + web_subStart + "g" + web_subEnd + " (centre"+web_subStart+"inner"+web_subEnd+"->center"+web_subStart+"outer"+web_subEnd+") [deg] :");
+      tiltedPartTable->setContent(6 , i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g(), c_anglePrecision);
+      tiltedPartTable->setContent(7 , 0  , "R"+web_subStart + "centre" + web_subEnd + "-inner [mm] :");
+      tiltedPartTable->setContent(7 , i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(8 , 0  , "R"+web_subStart + "centre" + web_subEnd + "-outer [mm] :");
+      tiltedPartTable->setContent(8 , i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(9 , 0  , "R"+web_subStart + "centre" + web_subEnd + "-avg [mm] :");
+      tiltedPartTable->setContent(9 , i+1, l.tiltedRingsGeometry()[ringNumber]->averageR()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(10, 0  , web_DeltaLetter +"/2 (R+-"+web_DeltaLetter+" @"+web_thetaLetter + web_subStart + "tilt" + web_subEnd + "=0) [mm] :");
+      tiltedPartTable->setContent(10, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(11, 0  , "Z" + web_subStart + "centre" + web_subEnd +"-inner [mm] :");
+      tiltedPartTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(12, 0  , "Z" + web_subStart + "centre" + web_subEnd +"-outer [mm] :");
+      tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(13, 0  , "Z"+web_subStart + "centre" + web_subEnd + "-avg [mm] :");
+      tiltedPartTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(14, 0  , web_DeltaLetter + "Z-inner (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+      tiltedPartTable->setContent(14, i+1, l.tiltedRingsGeometryInfo().deltaZInner()[ringNumber]/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(15, 0  , web_DeltaLetter + "Z-outer (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+      tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber]/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(16, 0  , "Overlap in R-"+ web_phiLetter + " [mm] :");
+      tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap()/Units::mm, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(17, 0  , "Overlap in Z [mm] :");
+      tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometry()[ringNumber]->ringZOverlap()/Units::mm, c_zOverlapPrecision);
+
+      // Inner modules in the tilted rings
       double zErrorInner = l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber];
-      tiltedPartTable->setContent(18, 0, "zError" + web_subStart + "Inner" + web_subEnd + " (Ring i & i-1)");
-      if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(18, 0, "zError-inner (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+      if (!std::isnan(zErrorInner)) tiltedPartTable->setContent(18, i+1, zErrorInner/Units::mm, c_tiltedCoordPrecision);
       else tiltedPartTable->setContent(18, i+1, "n/a");
+
+      // Outer modules in the tilted rings
       double zErrorOuter = l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber];
-      tiltedPartTable->setContent(19, 0, "zError" + web_subStart + "Outer" + web_subEnd + " (Ring i & i-1)");
-      if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter, c_tiltedCoordPrecision);
+      tiltedPartTable->setContent(19, 0, "zError-outer (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+      if (!std::isnan(zErrorOuter)) tiltedPartTable->setContent(19, i+1, zErrorOuter/Units::mm, c_tiltedCoordPrecision);
       else tiltedPartTable->setContent(19, i+1, "n/a");
     }
     m_tiltedPartTables.push_back(std::move(tiltedPartTable));
 
-    // FILLS FLAT PART TABLE
+    //
+    // Table summarizing flat part
     std::unique_ptr<RootWTable> flatPartTable = std::unique_ptr<RootWTable>(new RootWTable());
 
-    RodPairStraight* minusBigDeltaRod = (l.m_bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
+    const auto* minusBigDeltaRod     = l.m_bigParity() > 0 ? l.flatPartRods()[1] : l.flatPartRods()[0];
     const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
-    RodPairStraight* plusBigDeltaRod = (l.m_bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
-    const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
+    const auto* plusBigDeltaRod      = (l.m_bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
+    const auto& plusBigDeltaModules  = plusBigDeltaRod->modules().first;
 
     int i = 0;
     for (const auto& m : minusBigDeltaModules) {
+
       int ringNumber = i + 1;
-      flatPartTable->setContent(0, 0, "Ring");
+
+      flatPartTable->setContent(0, 0  , "Flat part - Rings:");
       flatPartTable->setContent(0, i+1, ringNumber);
-      flatPartTable->setContent(1, 0, "r" + web_subStart + "Inner" + web_subEnd);
-      flatPartTable->setContent(1, i+1, m.center().Rho(), c_tiltedCoordPrecision);
-      flatPartTable->setContent(3, 0, "averageR (on Flat part)");
-      flatPartTable->setContent(3, i+1, l.flatPartAverageR(), c_tiltedCoordPrecision);
-      flatPartTable->setContent(4, 0, "bigDelta");
-      flatPartTable->setContent(4, i+1, l.bigDelta(), c_tiltedCoordPrecision);
-      flatPartTable->setContent(5, 0, "smallDelta");
-      flatPartTable->setContent(5, i+1, l.smallDelta(), c_tiltedCoordPrecision);
-      flatPartTable->setContent(6, 0, "z");
-      flatPartTable->setContent(6, i+1, m.center().Z(), c_tiltedCoordPrecision);
-      flatPartTable->setContent(7, 0, "phiOverlap");
-      flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->smallParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), c_tiltedCoordPrecision);
+      flatPartTable->setContent(1, 0  , "R"+web_subStart + "centre" + web_subEnd + "-inner [mm] :");
+      flatPartTable->setContent(1, i+1, m.center().Rho()/Units::mm, c_tiltedCoordPrecision);
+      flatPartTable->setContent(3, 0  , "R"+web_subStart + "centre" + web_subEnd + "-avg [mm] :");
+      flatPartTable->setContent(3, i+1, l.flatPartAverageR()/Units::mm, c_tiltedCoordPrecision);
+      flatPartTable->setContent(4, 0  , web_DeltaLetter +" (R+-"+web_DeltaLetter+" in R-Phi) [mm] :");
+      flatPartTable->setContent(4, i+1, l.bigDelta()/Units::mm, c_tiltedCoordPrecision);
+      flatPartTable->setContent(5, 0  , web_deltaLetter +" (R+-"+web_deltaLetter+" in Z) [mm] :");
+      flatPartTable->setContent(5, i+1, l.smallDelta()/Units::mm, c_tiltedCoordPrecision);
+      flatPartTable->setContent(6, 0  , "Z"+web_subStart + "centre" + web_subEnd + "-avg [mm] :");
+      flatPartTable->setContent(6, i+1, m.center().Z()/Units::mm, c_tiltedCoordPrecision);
+      flatPartTable->setContent(7, 0  , "Overlap in R-"+ web_phiLetter + " [mm] :");
+      flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->smallParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus()/Units::mm : l.flatPartPhiOverlapSmallDeltaMinus()/Units::mm), c_tiltedCoordPrecision);
+
       // In case beamSpotCover == false, zOverlap is the only parameter used as a Z-coverage constraint in the geometry construction process.
-      // (There is then no zError taken into account).
-      // As a result, it is interesting to display zOverlap !
-      int extraLine = 0;
-      if (!l.flatPartRods().front()->beamSpotCover()) {
-        extraLine = 1;
-        flatPartTable->setContent(8, 0, "zOverlap");
-        flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap(), c_tiltedCoordPrecision);
+      // (There is then no zError taken into account) -> As a result, it is interesting to display zOverlap !
+      if (SimParms::getInstance().useLumiRegInGeomBuild()) {
+        flatPartTable->setContent(8, 0  , "Overlap in Z [mm] :");
+        flatPartTable->setContent(8, i+1, l.flatPartRods().front()->zOverlap()/Units::mm, c_tiltedCoordPrecision);
 	      // WARNING : zOverlap, in the geometry construction process, is one value common for all flat part (or straight rod)
       }
       // calculates zError for ring (i) with respect to ring (i-1)
       if (i > 0) {
 
+        int extraLine = SimParms::getInstance().useLumiRegInGeomBuild() ? 1 : 0;
+
         // Inner modules in the tilted rings
         double zErrorInner = l.flatRingsGeometryInfo().zErrorInner()[i];
-        flatPartTable->setContent(8 + extraLine, 0, "zError" + web_subStart + "Inner" + web_subEnd + " (Ring i & i-1)");
-        if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner, c_tiltedCoordPrecision);
-        else flatPartTable->setContent(8 + extraLine, i+1, "n/a");
+        flatPartTable->setContent(8 + extraLine, 0, "zError-inner (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+        if (!std::isnan(zErrorInner)) flatPartTable->setContent(8 + extraLine, i+1, zErrorInner/Units::mm, c_tiltedCoordPrecision);
+        else                          flatPartTable->setContent(8 + extraLine, i+1, "n/a");
 
         // Outer modules in the tilted rings
         double zErrorOuter = l.flatRingsGeometryInfo().zErrorOuter()[i];
-        flatPartTable->setContent(9 + extraLine, 0, "zError" + web_subStart + "Outer" + web_subEnd + " (Ring i & i-1)");
-        if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter, c_tiltedCoordPrecision);
-        else flatPartTable->setContent(9 + extraLine, i+1, "n/a");
+        flatPartTable->setContent(9 + extraLine, 0, "zError-outer (Ring"+web_subStart+"i"+web_subEnd+"-Ring"+web_subStart+"i-1"+web_subEnd+") [mm] :");
+        if (!std::isnan(zErrorOuter)) flatPartTable->setContent(9 + extraLine, i+1, zErrorOuter/Units::mm, c_tiltedCoordPrecision);
+        else                          flatPartTable->setContent(9 + extraLine, i+1, "n/a");
       }
       i++;
     }
     i = 0;
     for (const auto& m : plusBigDeltaModules) {
-      flatPartTable->setContent(2, 0, "r" + web_subStart + "Outer" + web_subEnd);
-      flatPartTable->setContent(2, i+1, m.center().Rho(), c_tiltedCoordPrecision);
+      flatPartTable->setContent(2, 0  , "R"+web_subStart + "centre" + web_subEnd + "-outer [mm] :");
+      flatPartTable->setContent(2, i+1, m.center().Rho()/Units::mm, c_tiltedCoordPrecision);
       i++;
     }
     m_flatPartTables.push_back(std::move(flatPartTable));

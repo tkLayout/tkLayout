@@ -48,6 +48,8 @@ namespace Units {
   static const float   MB  = 8.0 * 1024 * 1024;
   static const double  GB  = 8.0 * 1024 * 1024 * 1024;
   static const double  TB  = 8.0 * 1024 * 1024 * 1024 * 1024;
+
+  static const double percent = 1E-2;
 } // Namespace
 
 #endif /* INCLUDE_UNITS_H_ */
