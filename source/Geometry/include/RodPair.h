@@ -53,7 +53,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
   RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, double outerZ , const PropertyTree& treeProperty);
 
-  RodPair(int id, double rotation, const PropertyTree& treeProperty);
+  RodPair(int id, const PropertyTree& treeProperty);
 
   //! Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
    void buildClone(int id, double shiftR, double rotation);
@@ -204,7 +204,7 @@ class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 
  public :
-  TiltedRodPair(int id, double rotation, const PropertyTree& treeProperty);
+  TiltedRodPair(int id, const PropertyTree& treeProperty);
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   bool isTilted() const override { return true; }
   void check() override;
