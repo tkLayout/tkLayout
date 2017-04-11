@@ -715,19 +715,15 @@ void Layer::buildTilted() {
   float rodPhiRotation = 2*M_PI/numberRods();
 
   //TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
-  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(1, 0., propertyTree());
-  //first->myid(1);
+  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(1, propertyTree());
   first->isOuterRadiusRod(false);
-  //first->store(propertyTree());
   first->build(rodTemplate, tmspecsi, 1);
   m_rods.push_back(first);
 
-  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(2, rodPhiRotation, propertyTree());
-  //second->myid(2);
+  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(2, propertyTree());
   second->isOuterRadiusRod(true);
-  //second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
-  //second->rotateZ(rodPhiRotation);
+  second->rotateZ(rodPhiRotation);
   m_rods.push_back(second);
 
   for (int i = 2; i < numberRods(); i++) {
@@ -735,7 +731,7 @@ void Layer::buildTilted() {
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
     m_rods.push_back(rod);
-    }
+  }
 
   // computing the layer's place radius as the average of all the modules' radii
   double placeRadius;

@@ -58,7 +58,7 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
 //
-RodPair::RodPair(int id, double rotation, const PropertyTree& treeProperty) :
+RodPair::RodPair(int id, const PropertyTree& treeProperty) :
  minZ              (string("minZ")              ),
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
@@ -69,12 +69,11 @@ RodPair::RodPair(int id, double rotation, const PropertyTree& treeProperty) :
  beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
  m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
- m_nModules     (0),
+ m_nModules     (0)
  //m_outerZ       (0),
  //m_optimalRadius(radius),
  //m_minRadius(    minRadius),
- //m_maxRadius(    maxRadius),
- m_rotation(     rotation)
+ //m_maxRadius(    maxRadius)
 {
  // Set the geometry config parameters
  this->myid(id);
@@ -700,8 +699,8 @@ void RodPairStraight::compressToZ(double zLimit) {
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
 //
-TiltedRodPair::TiltedRodPair(int id, double rotation, const PropertyTree& treeProperty) :
- RodPair(id, rotation, treeProperty)
+TiltedRodPair::TiltedRodPair(int id, const PropertyTree& treeProperty) :
+ RodPair(id, treeProperty)
  //forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  //zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
  //zError(              "zError"              , parsedAndChecked()),
