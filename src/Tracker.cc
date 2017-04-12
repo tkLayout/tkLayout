@@ -118,6 +118,7 @@ void Tracker::build() {
 
   class BarrelDetIdBuilder : public SensorGeometryVisitor {
   private:
+    bool isPixelTracker;
     std::string schemeName;
     std::vector<int> schemeShifts;
     std::map< std::pair<std::string, int>, int > sortedLayersIds;
@@ -133,14 +134,15 @@ void Tracker::build() {
     uint32_t phiRef;
 
   public:
-    BarrelDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
+    BarrelDetIdBuilder(bool isPixelTracker, std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : isPixelTracker(isPixelTracker), schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
 
     void visit(Barrel& b) {
       barrelName = b.myid();
 
       detIdRefs[0] = 1;
 
-      detIdRefs[1] = 205 % 100;
+      if (!isPixelTracker) { detIdRefs[1] = 205 % 100; }
+      else { detIdRefs[1] = 201 % 100; }
 			   
       detIdRefs[2] = 0;
     }
@@ -171,34 +173,47 @@ void Tracker::build() {
       uint32_t ringRef;
 
       if (!m.isTilted()) {
-	detIdRefs[4] = 3;
-	detIdRefs[5] = phiRef;
+	if (!isPixelTracker) {
+	  detIdRefs[4] = 3;
+	  detIdRefs[5] = phiRef;
+	}
+	else { detIdRefs[4] = phiRef; }
 
 	if (isCentered) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
 	else ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings) : (1 + numFlatRings - m.uniRef().ring));
-	detIdRefs[6] = ringRef;
+	if (!isPixelTracker) { detIdRefs[6] = ringRef; }
+	else { detIdRefs[5] = ringRef; }
       }
 
+
       else {
-	uint32_t category = (side > 0 ? 2 : 1);
-	detIdRefs[4] = category;
+	if (!isPixelTracker) {
+	  uint32_t category = (side > 0 ? 2 : 1);
+	  detIdRefs[4] = category;
 
-	ringRef = (side > 0 ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
-	detIdRefs[5] = ringRef;
+	  ringRef = (side > 0 ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
+	  detIdRefs[5] = ringRef;
 
-	detIdRefs[6] = phiRef;
+	  detIdRefs[6] = phiRef;
+	}
+	else { std::cout << "Tilted Pixel DetIds not supported yet." << std::endl; }
       }
 
       uint32_t sensorRef = 0;
-      detIdRefs[7] = sensorRef;
+      if (!isPixelTracker) { detIdRefs[7] = sensorRef; }
+      else { detIdRefs[6] = sensorRef; };
 
       m.buildDetId(detIdRefs, schemeShifts);
     }
 
     void visit(Sensor& s) {
-      uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
       if (s.subdet() == ModuleSubdetector::BARREL) {
-	detIdRefs[7] = sensorRef;
+
+	if (!isPixelTracker) {
+	  uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
+	  detIdRefs[7] = sensorRef;
+	}
+	else { detIdRefs[6] = 0; }
 
 	s.buildDetId(detIdRefs, schemeShifts);
       }  
@@ -209,6 +224,7 @@ void Tracker::build() {
 
   class EndcapDetIdBuilder : public SensorGeometryVisitor {
   private:
+    bool isPixelTracker;
     std::string schemeName;
     std::vector<int> schemeShifts;
     std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
@@ -220,14 +236,15 @@ void Tracker::build() {
     int numModules;
 
   public:
-    EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
+    EndcapDetIdBuilder(bool isPixelTracker, std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
 
     void visit(Endcap& e) {
       endcapName = e.myid();
 
       detIdRefs[0] = 1;
 
-      detIdRefs[1] = 204 % 100;
+      if (!isPixelTracker) { detIdRefs[1] = 204 % 100; }
+      else { detIdRefs[1] = 202 % 100; }
     }
 
     void visit(Disk& d) {
@@ -269,11 +286,14 @@ void Tracker::build() {
       //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
-    void visit(Sensor& s) {
-      uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
+    void visit(Sensor& s) {  
       if (s.subdet() == ModuleSubdetector::ENDCAP) {
-	detIdRefs[8] = sensorRef;
 
+	if (!isPixelTracker) {
+	  uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
+	  detIdRefs[8] = sensorRef;
+	}
+	else { detIdRefs[8] = 0; }
 
 	/*for (int a = 0; a < detIdRefs.size(); a++) {
 	  std::cout << "values = " << std::endl;
@@ -292,19 +312,18 @@ void Tracker::build() {
   };
 
 
-  if (!isPixelTracker()) {
-    if (barrelDetIdScheme() == "Phase2Subdetector5" && detIdSchemes_.count("Phase2Subdetector5") != 0) {
-      BarrelDetIdBuilder v(barrelDetIdScheme(), detIdSchemes_["Phase2Subdetector5"], sortedLayersIds);
-      accept(v);
-    }
-    else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
-
-    if (endcapDetIdScheme() == "Phase2Subdetector4" && detIdSchemes_.count("Phase2Subdetector4") != 0) {
-      EndcapDetIdBuilder v(endcapDetIdScheme(), detIdSchemes_["Phase2Subdetector4"], sortedDisksIds);
-      accept(v);
-    }
-    else logWARNING("endcapDetIdScheme = " + endcapDetIdScheme() + ". This endcap detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Endcap sensors will be calculated.");
+  if (detIdSchemes_.count(barrelDetIdScheme()) != 0) {
+    BarrelDetIdBuilder v(isPixelTracker(), barrelDetIdScheme(), detIdSchemes_[barrelDetIdScheme()], sortedLayersIds);
+    accept(v);
   }
+  else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
+
+  //if (endcapDetIdScheme() == "Phase2Subdetector4" && detIdSchemes_.count("Phase2Subdetector4") != 0) {
+  if (detIdSchemes_.count(endcapDetIdScheme()) != 0) {
+    EndcapDetIdBuilder v(isPixelTracker(), endcapDetIdScheme(), detIdSchemes_[endcapDetIdScheme()], sortedDisksIds);
+    accept(v);
+  }
+  else logWARNING("endcapDetIdScheme = " + endcapDetIdScheme() + ". This endcap detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Endcap sensors will be calculated.");
 
 
   cleanup();
