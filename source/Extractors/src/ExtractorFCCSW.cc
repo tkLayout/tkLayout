@@ -296,8 +296,9 @@ bool ExtractorFCCSW::analyze()
         // Rods general info
         auto xmlBrlRods = m_xmlDefinitionsDoc->NewElement("rods");
 
-        // Add detailed info about rods
-        for (const auto& iRod : iLayer.rods()) {
+        // Add detailed info about straight rods
+        // TODO: Add tilted rods
+        for (const auto& iRod : iLayer.flatRods()) {
 
           // Odd rods
           if (iRod.myid()==1) {
