@@ -1,6 +1,6 @@
 // timing long
 
-moduleType timing_2x4_1000x3000  // timing modules should always have a type starting with keyword 'timing_'
+moduleType timing_2x4_2000x2000  // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size
 width 48
 length 92
