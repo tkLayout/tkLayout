@@ -318,7 +318,6 @@ void Tracker::build() {
   }
   else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
 
-  //if (endcapDetIdScheme() == "Phase2Subdetector4" && detIdSchemes_.count("Phase2Subdetector4") != 0) {
   if (detIdSchemes_.count(endcapDetIdScheme()) != 0) {
     EndcapDetIdBuilder v(isPixelTracker(), endcapDetIdScheme(), detIdSchemes_[endcapDetIdScheme()], sortedDisksIds);
     accept(v);
