@@ -196,7 +196,7 @@ void Tracker::build() {
 
 	  detIdRefs[6] = phiRef;
 	}
-	else { std::cout << "Tilted Pixel DetIds not supported yet." << std::endl; }
+	else { logWARNING("Tilted Pixel DetIds not supported yet."); }
       }
 
       uint32_t sensorRef = 0;
