@@ -1,0 +1,8 @@
+// timing module
+// GBT on the module
+
+Materials timing_300_48StripsAcross {
+  type module
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/timing_300_48StripsAcross_components
+}
+
