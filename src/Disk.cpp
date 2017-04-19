@@ -246,7 +246,7 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 }
 
 
-void Disk::computeActualCoverage() {
+void Disk::computeActualZError() {
 
   double lastRho;
   double lastZ;
@@ -281,6 +281,12 @@ void Disk::computeActualCoverage() {
 
 }
 
+void Disk::computeActualCoverage() {
+  // Calculate zError
+  computeActualZError();
+  // Calculate phiOverlap
+  for (auto& r : rings_) r.computeActualPhiOverlap();
+}
 
 void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 

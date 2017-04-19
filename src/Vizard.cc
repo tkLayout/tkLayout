@@ -1367,7 +1367,7 @@ namespace insur {
 	++nRings;
 	diskTable->setContent(3, nDisks, nRings);
 	endcapTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
-	//endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.phiOverlap(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.actualPhiOverlap(), coordPrecision);
 	endcapTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
 	zErrorTables.at(nDisks-1)->setContent(0, nRings, r.myid());
 	zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualzError(), coordPrecision);
@@ -1471,7 +1471,7 @@ namespace insur {
       myContent->addItem(v.endcapTables.at(i));
     }
     for (int i = 0; i < v.nDisks; i++) {
-      if (i > 0) myContent->addItem(spacer);
+      myContent->addItem(spacer);
       myContent->addItem(v.diskNames.at(i));
       myContent->addItem(v.zErrorTables.at(i));
     }

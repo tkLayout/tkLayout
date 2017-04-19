@@ -219,6 +219,16 @@ void Ring::mirrorZ() {
   }
 }
 
+void Ring::computeActualPhiOverlap() {
+  double width = modules_.at(0).minWidth();
+  double radiusHigh = modules_.at(0).minR() + modules_.at(0).length();
+  int numMod = numModules();
+
+  double phiOverlap = width - 2. * radiusHigh * tan(M_PI / numMod);
+
+  actualPhiOverlap(phiOverlap);
+}
+
 const MaterialObject& Ring::materialObject() const{
   return materialObject_;
 }

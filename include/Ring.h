@@ -172,7 +172,9 @@ public:
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
+
   Property<double, AutoDefault> actualzError;
+  Property<double, AutoDefault> actualPhiOverlap;
 
   double minR()      const { return minRadius_; }
   double maxR()      const { return maxRadius_; }
@@ -232,6 +234,8 @@ public:
   void cutAtEta(double eta);
 
   void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); numModules(modules_.size()); }
+
+  void computeActualPhiOverlap();
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
