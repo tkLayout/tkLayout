@@ -3,7 +3,7 @@
  * @brief This class implements the output functions that turn a set of previously collected tracker information into a series of CMSSW XML files
  */
 
-#include <XMLWriter.h>
+#include <XMLWriter.hh>
 #include <stdlib.h> // Because atoi() is used
 
 
@@ -1000,7 +1000,7 @@ namespace insur {
 		    }
 
 		    else
-		      if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		      if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
 		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
 
 		    paths.push_back(prefix + "/" + postfix);
@@ -1087,7 +1087,7 @@ namespace insur {
 		  }
         
 		  else
-		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
 		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
         
 		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;

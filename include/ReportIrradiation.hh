@@ -4,15 +4,15 @@
 #include <string>
 #include <map>
 
-#include <Visitor.h>
+#include <Visitor.hh>
 #include <Report.hh>
-#include "rootweb.hh"
-#include "SummaryTable.h"
+#include "RootWeb.hh"
+#include "SummaryTable.hh"
 #include "VizardTools.hh"
-#include "AnalyzerVisitors/IrradiationPower.h"
+#include "AnalyzerVisitors/IrradiationPower.hh"
 #include <TH2D.h>
 #include "AnalyzerTools.hh"
-#include "SimParms.h"
+#include "SimParms.hh"
 
 class DetectorModule;
 class Tracker;
@@ -20,8 +20,8 @@ class Tracker;
 class ReportIrradiation : public Report, private insur::AnalyzerTools {
 private:
   std::map<std::string, SummaryTable> powerSummaries;
-  std::map<std::string, SummaryTable> irradiationSummaries;
-  SummaryTable irradiationSummaryPerType;
+  std::map<std::string, SummaryTable> fluenceSummaries;
+  SummaryTable fluenceSummaryPerType;
   SummaryTable chipPowerPerType;
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();

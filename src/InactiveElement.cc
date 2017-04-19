@@ -6,7 +6,7 @@
  * @brief This is the base class implementation of a single inactive element
  */
 
-#include <InactiveElement.h>
+#include <InactiveElement.hh>
 namespace insur {
     /*-----public functions-----*/
     /**

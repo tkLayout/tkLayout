@@ -1,0 +1,34 @@
+// timing long
+
+moduleType timing_2x4_1000x3000  // timing modules should always have a type starting with keyword 'timing_'
+// Active silicon size
+width 48
+length 92
+
+sensorLayout mono
+
+numSensors 1
+
+powerPerModule 0 
+
+sensorThickness 0.3
+
+serviceHybridWidth 1.0  // 10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 1.0 // 10.05 hybrid + 1.45 inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 1.0
+
+physicalLength 92        // to avoid collisions with previous module in barrels
+
+reduceCombinatorialBackground true 
+
+Sensor 1 {
+  sensorType pad
+  numStripsAcross 24  // 48mm/2mm
+  numSegments 46 // 92mm/2mm
+  numROCX 2
+  numROCY 4
+}
+
+plotColor 8
+

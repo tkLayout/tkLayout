@@ -122,7 +122,13 @@ OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adju
                                         2S 1.8mm rings (11-15) 14.90/2 =  7.45 mm
                                         PS 4.0mm all rings     14.84/2 =  7.42 mm
                                      IT version 4.0.2.5
-
+                                     
+                       Geometries with timing layer              
+OT400_200_IT4026.cfg   Lindsey Gray version
+                       OT Version 4.0.0 <- like 3.6.5 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.6 (standard)
 OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           with the last TEDD disk moved inwards by 10 cm and an additional timing layer
                           covering η 1.8 → 2.8
@@ -130,7 +136,12 @@ OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           active pads are 2×2mm² (x×y)
                        IT Version 4.0.2.5 (standard)
 OT467_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 1×4mm² (x×y)
-OT468_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 4×1mm² (x×y)
+OT468_200_IT4025.cfg   OT Version 4.6.8 <- like 4.6.6 but with 4×1mm² (x×y)
+OT469_200_IT4025.cfg   Lindsey Gray timing layer plugged on TDR layout
+                       OT Version 4.6.9 <- like 6.1.3 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.5 (standard)
 
 OT367_200_IT4025.cfg  OT Version 3.6.7 <- like version 3.6.6, but with small adjustments from Nick (WORK IN PROGRESS!!!)
                                             Outer Radius reduced from 1103 mm to 1100 mm
@@ -177,4 +188,14 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
 
 
                                           
+OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
+
+OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
+                         Zd=29.7mm or bigDelta=14.85
+                         New geometry 6.1.3 with slight adjustment in TEDD1 and TEDD2: bigDeelta moved from 14.15mm to 14.85mm
+                         this would cause a movement of 1.243mm and 1.351mm in innermost rings of TEDD1 and TEDD2 respectively
+                         and add 4 modules in one ring of TEDD2.
+                        Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
+                        xy plane is exactly the same
+
 

@@ -1,4 +1,4 @@
-#include <Palette.h>
+#include <Palette.hh>
 
 bool Palette::initialized = false;  
 std::map<std::string, int> Palette::colorPickMap;
