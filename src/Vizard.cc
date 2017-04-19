@@ -1370,7 +1370,7 @@ namespace insur {
 	endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.actualPhiOverlap(), coordPrecision);
 	endcapTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
 	zErrorTables.at(nDisks-1)->setContent(0, nRings, r.myid());
-	zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualzError(), coordPrecision);
+	zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualZError(), coordPrecision);
       }
 
       void visit(const Module& m) override {
