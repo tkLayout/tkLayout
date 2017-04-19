@@ -173,7 +173,7 @@ public:
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
 
-  Property<double, AutoDefault> actualzError;
+  Property<double, AutoDefault> actualZError;
   Property<double, AutoDefault> actualPhiOverlap;
 
   double minR()      const { return minRadius_; }
@@ -235,7 +235,7 @@ public:
 
   void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); numModules(modules_.size()); }
 
-  void computeActualPhiOverlap();
+  void computeActualPhiCoverage();
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
