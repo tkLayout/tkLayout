@@ -1242,10 +1242,12 @@ namespace insur {
 
     class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
     public:
-      RootWTable* layerTable = new RootWTable();
+      RootWTable* layerTable = new RootWTable();  
       RootWTable* diskTable = new RootWTable();
+      std::vector<RootWTable*> endcapNames;
+      std::vector<RootWTable*> endcapTables;
       std::vector<RootWTable*> diskNames;
-      std::vector<RootWTable*> ringTables;
+      std::vector<RootWTable*> zErrorTables;
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
       std::map<std::string, long> tagMapCountChan;
@@ -1270,6 +1272,9 @@ namespace insur {
       std::map<std::string, double> tagMapSensorPowerAvg;
       std::map<std::string, double> tagMapSensorPowerMax;
       std::map<std::string, const DetectorModule*> tagMap;
+
+      std::string endcapId;
+      std::string diskId;
 
       int nBarrelLayers=0;
       int nEndcaps=0;
@@ -1318,22 +1323,23 @@ namespace insur {
 
       void visit(const Endcap& e) override {
 	nEndcaps++;
-	diskTable->setContent(0, 1 + nDisks, e.myid());
+	endcapId = e.myid();
+	diskTable->setContent(0, 1 + nDisks, endcapId);
 
-	RootWTable* diskName = new RootWTable();
-	diskName->setContent(0, 0, e.myid() + ",  Disc 1 :");
-	diskNames.push_back(diskName);
+	RootWTable* endcapName = new RootWTable();
+	endcapName->setContent(0, 0, endcapId + ",  Disc 1 :");
+	endcapNames.push_back(endcapName);
 
-	RootWTable* ringTable = new RootWTable();
-	ringTable->setContent(0, 0, "Ring :");
-        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
-	ringTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
-        ringTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
-        ringTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
-	ringTable->setContent(6, 0, "zError (Ring i & i+1)");
-	ringTable->setContent(7, 0, "# mods");
-	ringTables.push_back(ringTable);
+	RootWTable* endcapTable = new RootWTable();
+	endcapTable->setContent(0, 0, "Ring :");
+        endcapTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        endcapTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+	endcapTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
+        endcapTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
+        endcapTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
+	endcapTable->setContent(6, 0, "phiOverlap");
+	endcapTable->setContent(7, 0, "# mods");
+	endcapTables.push_back(endcapTable);
       }
 
       void visit(const Disk& d) override {
@@ -1344,15 +1350,27 @@ namespace insur {
         diskTable->setContent(1, nDisks, d.myid());
         diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
 	diskTable->setContent(4, nDisks, d.totalModules());
+
+	RootWTable* diskName = new RootWTable();
+	diskId = endcapId + ",  Disc " + std::to_string(d.myid()) + " :";
+	diskName->setContent(0, 0, diskId);
+	diskNames.push_back(diskName);
+
+	RootWTable* zErrorTable = new RootWTable();
+	zErrorTable->setContent(0, 0, "Ring :");
+	zErrorTable->setContent(1, 0, "zError (Ring i & i+1)");
+	zErrorTables.push_back(zErrorTable);
       }
 
       void visit(const Ring& r) override {
 	if (r.averageZ() < 0. || r.numModules() == 0) return;
 	++nRings;
 	diskTable->setContent(3, nDisks, nRings);
-	ringTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
-	ringTables.at(nEndcaps-1)->setContent(6, nRings, r.zErrorInfo(), coordPrecision);
-	ringTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
+	endcapTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
+	//endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.phiOverlap(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
+	zErrorTables.at(nDisks-1)->setContent(0, nRings, r.myid());
+	zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualzError(), coordPrecision);
       }
 
       void visit(const Module& m) override {
@@ -1414,11 +1432,11 @@ namespace insur {
       void visit(const EndcapModule& m) override {
         if (m.side() != 1 || m.disk() != 1) return;
 
-	ringTables.at(nEndcaps-1)->setContent(1, nRings, m.minR(), coordPrecision);
-	ringTables.at(nEndcaps-1)->setContent(2, nRings, sqrt(pow(m.minR(),2)+pow(m.minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
-	ringTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
-	ringTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
-	ringTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(1, nRings, m.minR(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(2, nRings, sqrt(pow(m.minR(),2)+pow(m.minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+	endcapTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
+	endcapTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
       }
 
       void postVisit() {
@@ -1449,8 +1467,13 @@ namespace insur {
     myPage->addContent(myContent);
     for (int i = 0; i < v.nEndcaps; i++) {
       if (i > 0) myContent->addItem(spacer);
+      myContent->addItem(v.endcapNames.at(i));
+      myContent->addItem(v.endcapTables.at(i));
+    }
+    for (int i = 0; i < v.nDisks; i++) {
+      if (i > 0) myContent->addItem(spacer);
       myContent->addItem(v.diskNames.at(i));
-      myContent->addItem(v.ringTables.at(i));
+      myContent->addItem(v.zErrorTables.at(i));
     }
 
 

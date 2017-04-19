@@ -172,7 +172,7 @@ public:
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
-  Property<double, AutoDefault> zErrorInfo;
+  Property<double, AutoDefault> actualzError;
 
   double minR()      const { return minRadius_; }
   double maxR()      const { return maxRadius_; }

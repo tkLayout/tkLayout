@@ -118,6 +118,8 @@ public:
   int diskNumber() const { return diskNumber_; }
   int numEmptyRings() const { return count_if(rings_.begin(), rings_.end(), [](const Ring& r) { return r.numModules() == 0; }); }
 
+  void computeActualCoverage();
+
   void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }

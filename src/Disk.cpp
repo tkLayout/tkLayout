@@ -152,7 +152,7 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-  double lastRho, lastZ, newZ, monkLastZ;
+  double lastRho, lastZ, newZ;
   
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
@@ -187,30 +187,30 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
 
-    if (i != numRings()) {
+    /*if (i != numRings()) {
       // Calculate the coverage in Z of ring (i) with respect to ring (i+1)
-      //double monkNewZ = ring->maxZ();
       double newRho = ring->buildStartRadius();
 
       double coeff = (newRho - lastRho) / (newZ - lastZ);
-      double zErrorCoverage = newZ - newRho / coeff;
-      if (parity < 0) zErrorCoverage *= -1.;
 
-      if (coeff < 0.) {
-	if (parity > 0) { zErrorCoverage = -std::numeric_limits<double>::infinity(); }
-	else zErrorCoverage = std::numeric_limits<double>::infinity();
+      double zErrorCoverage;
+      if (coeff > 0.) {
+	zErrorCoverage = newZ - newRho / coeff;
+	if (parity < 0) zErrorCoverage *= -1.;
+      } else {
+	if (parity > 0) zErrorCoverage = -std::numeric_limits<double>::infinity();
+	else zErrorCoverage = std::numeric_limits<double>::infinity(); // !!! Actually, lastZ of the disk that is considered !!!!
       }
       
-      std::cout << "RESULT = " << zErrorCoverage << std::endl;
+      //std::cout << "RESULT = " << zErrorCoverage << std::endl;
       ring->zErrorInfo(zErrorCoverage);
-    }
+      }*/
 
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
     lastRho = ring->minR();
-    //monkLastZ = ring->minZ();
   }
 }
 
@@ -243,6 +243,42 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 
   cleanup();
   builtok(true);
+}
+
+
+void Disk::computeActualCoverage() {
+
+  double lastRho;
+  double lastZ;
+
+  for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
+
+    if (i != numRings()) {
+      // Calculate the coverage in Z of ring (i) with respect to ring (i+1)
+      double newRho = rings_.at(i-1).buildStartRadius();
+      double newZ = rings_.at(i-1).maxZ();   
+
+      double coeff = (newRho - lastRho) / (newZ - lastZ);
+
+      double zErrorCoverage;
+      if (coeff > 0.) {
+	zErrorCoverage = newZ - newRho / coeff;
+	if (parity < 0) zErrorCoverage *= -1.;
+      } else {
+	if (parity > 0) zErrorCoverage = -std::numeric_limits<double>::infinity();
+	else zErrorCoverage = lastZ;
+      }
+      
+      //std::cout << "RESULT = " << zErrorCoverage << std::endl;
+      rings_.at(i-1).actualzError(zErrorCoverage);
+      ringIndexMap_[i]->actualzError(zErrorCoverage);
+    }
+
+
+    lastRho = rings_.at(i-1).minR();
+    lastZ = rings_.at(i-1).minZ();
+  }
+
 }
 
 
