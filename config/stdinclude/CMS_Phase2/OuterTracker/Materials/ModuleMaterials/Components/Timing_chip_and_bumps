@@ -1,14 +1,14 @@
-// Timing chip and bumps for a timing module with numStripsAcross = 48.
+// Timing chip and bumps.
 
 Component {
    componentName "Timing chip and Bumps"
    service false
-   scaleOnSensor 0
    //Chip on sensors
    Element {
      elementName Si
      quantity 2.069
      unit g
+     scaleOnSensor 0
      targetVolume 7
    }
    //Chip periphery
@@ -16,6 +16,7 @@ Component {
      elementName Si
      quantity 0.256
      unit g
+     scaleOnSensor 0
      targetVolume 56
    }
    // Underfill
@@ -23,13 +24,15 @@ Component {
      elementName Epoxy
      quantity 0.874
      unit g
+     scaleOnSensor 0
      targetVolume 7
    }
    // Bumps
    Element {
      elementName Sn95Ag5
-     quantity 0.020  // Guess from the PS. Quantity from PS divided by 20, because numStripsAcross = 960 in PS.
+     quantity 0.020  // Guess from the PS. Quantity from PS divided by 20 (numStripsAcross = 960 in PS and reference numStripsAcross = 48).
      unit g
+     scaleOnSensor 1  // Quantity gets adjusted in case timing module has different number of channels from reference sensor.
      targetVolume 7
    }
 }
