@@ -255,8 +255,17 @@ void Disk::computeActualZCoverage() {
       else {  // Particular case where the top of ring (i) is higher in radius than the botom of ring (i+1).
 	if (parity > 0) zErrorCoverage = -std::numeric_limits<double>::infinity();  // Case where Ring (i+1) is the innermost ring, 
 	                                                                            // and Ring (i) is the outermost ring.
-	else zErrorCoverage = lastZ;  // Case where Ring (i+1) is the outermost ring, 
-	                              // and Ring (i) is the innermost ring.
+	else { // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
+	  // Find the radius and Z of the most stringent points in ring (i).
+	  double minRho = rings_.at(i-1).minR();
+	  double minZ = rings_.at(i-1).minZ();
+
+	  // Coeff of the line that binds the most stringent points of ring (i) and ring (i+1).
+	  double coeff = (minRho - lastRho) / (minZ - lastZ);
+
+	  // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
+	  zErrorCoverage = minZ - minRho / coeff;  // Intersection of the line with (Z) axis.
+	}
       }
       
       // STORE THE RESULT
