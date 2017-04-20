@@ -2730,7 +2730,7 @@ namespace insur {
       double dz = hybridThickness;  
       double posx = (modWidth+serviceHybridWidth)/2.;
       double posy = 0.;
-      double posz = 0.;
+      double posz = sensorThickness / 2. + hybridThickness / 2.;
       // Hybrid FrontSide Volume
       vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
