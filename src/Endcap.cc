@@ -77,6 +77,9 @@ void Endcap::build() {
       Disk* diskn = GeometryFactory::clone(*diskp);
       diskn->mirrorZ();
 
+      // Compute coverage on +Z side after built (TO DO : adapt for -Z side, and add a Tracker::computeActualCoverage(), completely independant from build() )
+      diskp->computeActualCoverage();
+
       tdisks.push_back(diskp);
       tdisks.push_back(diskn);
     }
