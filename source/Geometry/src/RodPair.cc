@@ -16,7 +16,6 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  minRAllMat        (string("minRAllMat")        ),
  maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
- beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
  m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
  m_nModules     (numModules),
@@ -42,7 +41,6 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
  minRAllMat        (string("minRAllMat")        ),
  maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
- beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
  m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
  m_nModules     (0),
@@ -58,9 +56,9 @@ RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, doub
 }
 
 //
-//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters
 //
-RodPair::RodPair(int id, const PropertyTree& treeProperty) :
+RodPair::RodPair(int id, double rotation, const PropertyTree& treeProperty) :
  minZ              (string("minZ")              ),
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
@@ -68,14 +66,14 @@ RodPair::RodPair(int id, const PropertyTree& treeProperty) :
  minRAllMat        (string("minRAllMat")        ),
  maxRAllMat        (string("maxRAllMat")        ),
  maxModuleThickness(string("maxModuleThickness")),
- beamSpotCover(            "beamSpotCover"      , parsedAndChecked(), true),
  m_materialObject(MaterialObject::ROD),
  m_startZMode(             "startZMode"         , parsedOnly(), StartZMode::MODULECENTER),
- m_nModules     (0)
- //m_outerZ       (0),
- //m_optimalRadius(radius),
- //m_minRadius(    minRadius),
- //m_maxRadius(    maxRadius)
+ m_nModules     (0),
+ m_outerZ       (0),
+ m_optimalRadius(0),
+ m_minRadius(    0),
+ m_maxRadius(    0),
+ m_rotation(     rotation)
 {
  // Set the geometry config parameters
  this->myid(id);
@@ -129,13 +127,13 @@ void RodPair::accept(ConstGeometryVisitor& v) const
 //! Setup: link lambda functions to various rod related properties (use setup functions for ReadOnly Computable properties)
 void RodPair::setup() {
 
-  minZ.setup([&]()       { return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
-  maxZ.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
-  minR.setup([&]()       { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
-  maxR.setup([&]()       { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR);  });
-  minRAllMat.setup([&]() { return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minRAllMat); });
-  maxRAllMat.setup([&]() { return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxRAllMat); });
-  maxModuleThickness.setup([&]() { return maxget2(m_zPlusModules.begin(), m_zPlusModules.end(), &DetectorModule::thickness); });
+  minZ.setup([&]()       { if (m_zMinusModules.size()==0) return std::numeric_limits<double>::max(); else return minget2(m_zMinusModules.begin(), m_zMinusModules.end(), &DetectorModule::minZ); }); // One needs the minZ so don't bother with scanning the zPlus vector
+  maxZ.setup([&]()       { if (m_zPlusModules.size()==0)  return std::numeric_limits<double>::min(); else return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxZ); });
+  minR.setup([&]()       { if (m_zPlusModules.size()==0)  return std::numeric_limits<double>::max(); else return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minR); }); // MinR and maxR can be found just by scanning the zPlus vector, since the rod pair is symmetrical in R
+  maxR.setup([&]()       { if (m_zPlusModules.size()==0)  return 0.0                               ; else return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxR);  });
+  minRAllMat.setup([&]() { if (m_zPlusModules.size()==0)  return std::numeric_limits<double>::max(); else return minget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::minRAllMat); });
+  maxRAllMat.setup([&]() { if (m_zPlusModules.size()==0)  return 0.0                               ; else return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::maxRAllMat); });
+  maxModuleThickness.setup([&]() { if (m_zPlusModules.size()==0) return 0.0                        ; else return maxget2(m_zPlusModules.begin() , m_zPlusModules.end() , &DetectorModule::thickness); });
 }
 
 //
@@ -147,7 +145,8 @@ RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, dou
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
  zError(              "zError"              , parsedAndChecked() , SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
- compressed(          "compressed"          , parsedOnly(), true),
+ useCompression(      "useCompressionInZ"   , parsedOnly(), true),
+ useBalancing(        "useBalancingInZ"     , parsedOnly(), false),
  allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
  m_ringNode(          "Ring"                , parsedOnly()),
  m_smallDelta(smallDelta),
@@ -168,7 +167,8 @@ RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, dou
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
  zError(              "zError"              , parsedAndChecked() , SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
- compressed(          "compressed"          , parsedOnly(), true),
+ useCompression(      "useCompressionInZ"   , parsedOnly(), true),
+ useBalancing(        "useBalancingInZ"     , parsedOnly(), false),
  allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
  m_ringNode(          "Ring"                , parsedOnly()),
  m_smallDelta(smallDelta),
@@ -178,6 +178,14 @@ RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, dou
 {
   // Set the geometry config parameters (id set through base class)
   this->store(treeProperty);
+}
+
+//
+// Cross-check parameters provided from geometry configuration file
+//
+void RodPairStraight::check() {
+
+  if (useBalancing() && m_nModules!=0) throw PathfulException("Balancing algorithm can't be used if number of modules specified, instead of outerZ!!!");;
 }
 
 //
@@ -300,15 +308,19 @@ void RodPairStraight::build()
       }
 
       //
-      // Build modules in negative Z
-      targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : std::numeric_limits<int>::max(); // For module-edge option, number of negative modules given by balancing algorithm, i.e. by targetZ only
+      // Build modules in negative Z -> balancing can be used only if outerZ defined, not if numModules specified!
+
+      // For module-edge option, number of negative modules given by balancing algorithm -> usable only if outerZ defined, not if the number of modules specified
+      if (useBalancing()) targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : std::numeric_limits<int>::max();
+      else                targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : m_zPlusModules.size();
+
       parity     = -m_smallParity;
       iMod       = 1;
       newZPos    = (m_startZMode()==StartZMode::MODULECENTER) ? 0.0 : startZPos + moduleLength()/2. - zUnbalance;
       lastZPos   = newZPos;
       iIter      = 0;
       //std::cout << "TargeMods " << targetMods << std::endl;
-      while (iMod<=targetMods && (fabs(newZPos)+moduleLength()/2.)<targetZ) {
+      while ((iMod<=targetMods && (fabs(newZPos)+moduleLength()/2.)<targetZ) || (!useBalancing() && iMod<=targetMods)) {
 
         iIter++;
         if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in negative Z, number of iterations exceeded allowed limit! Quitting!!!");
@@ -356,7 +368,9 @@ void RodPairStraight::build()
         zUnbalance = 0.0;
       }
 
-      bIter++; // Number of allowed iterations in balancing procedure
+
+      if (!useBalancing()) break; // Do build iteration only once if balancing not needed
+      bIter++;                    // Number of allowed iterations in balancing procedure
     } // Balancing
 
     // Print warning if balancing failed
@@ -435,12 +449,16 @@ void RodPairStraight::build()
     //
     // Compress modules if outerZ defined (to get maximum z position, use reverse operators)
     double curMaxZ = (m_zPlusModules.size()>1) ? MAX(m_zPlusModules.rbegin()->planarMaxZ(),(m_zPlusModules.rbegin()+1)->planarMaxZ()) : (!m_zPlusModules.empty() ? m_zPlusModules.rbegin()->planarMaxZ() : 0.);
-    if (compressed() && (m_nModules==0) && (curMaxZ>m_outerZ)) compressToZ(m_outerZ);
+    if (useCompression() && (m_nModules==0) && (curMaxZ>m_outerZ)) compressToZ(m_outerZ);
 
     //
     // Rotate all modules -> needs to follow after translation!!!
     for (auto& m : m_zPlusModules)  { m.rotateZ(m_rotation); }
     for (auto& m : m_zMinusModules) { m.rotateZ(m_rotation); }
+
+    //
+    // Set geometry info needed to build tilted part (if required to be built)
+    setGeometryInfo();
   }
   catch (PathfulException& pe) {
 
@@ -462,7 +480,7 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
   double newZ  = lastZ;
 
   // Cover beam spot
-  double dz = (beamSpotCover()) ? zError() : 0.0;
+  double dz = zError();
 
   // Building in positive Z direction
   if (direction == BuildDir::RIGHT) {
@@ -473,8 +491,8 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
     // Take worse from 2 effects: beam spot size or required overlap in Z
     double newZorigin  = (newZ - zOverlap()) * newRPos/lastRPos;
     double newZshifted = (newZ - originZ) * newRPos/lastRPos + originZ;
-    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
-    else                 newZ = newZorigin;
+    if (SimParms::getInstance().useLumiRegInGeomBuild()) newZ = MIN(newZorigin, newZshifted);
+    else                                                 newZ = newZorigin;
 
     // Transfor back to module central position
     newZ = newZ + moduleLength/2.;
@@ -489,8 +507,8 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
     // Take worse from 2 effects: beam spot size or required overlap in Z
     double newZorigin  = (newZ + zOverlap()) * newRPos/lastRPos;
     double newZshifted = (newZ - originZ) * newRPos/lastRPos + originZ;
-    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
-    else                 newZ = newZorigin;
+    if (SimParms::getInstance().useLumiRegInGeomBuild()) newZ = MAX(newZorigin, newZshifted);
+    else                                                 newZ = newZorigin;
 
     // Transfor back to module central position
     newZ = newZ - moduleLength/2.;
@@ -663,104 +681,96 @@ void RodPairStraight::compressToZ(double zLimit) {
 
 }
 
-////
-////
-//template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
-//  bool fixedStartZ = true;
-//  vector<double> zPlusList = computeZList(begin, end, startZ, BuildDir::RIGHT, smallParity(), fixedStartZ);
-//  vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -smallParity(), !fixedStartZ);
-//
-//  double zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); // balancing uneven pos/neg strings
-//
-//  if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge
-//    std::ostringstream tempSS;
-//    tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " didn't converge!! Layer is skewed";
-//    tempSS << "Unbalance is " << zUnbalance << " mm";
-//    logWARNING(tempSS);
-//
-//    return std::make_pair(zPlusList, zMinusList);
-//  }
-//
-//  if (fabs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
-//    return computeZListPair(begin, end,
-//                            startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
-//                            recursionCounter);
-//  } else {
-//    std::ostringstream tempSS;
-//    tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " converged after " << recursionCounter << " step(s).\n"
-//           << "   Residual Z unbalance is " << zUnbalance << ".\n"
-//           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n"
-//           << "   Z+ rod starts at " << zPlusList.front() << ", Z- rod starts at " << zMinusList.front() << ".";
-//    logINFO(tempSS);
-//    return std::make_pair(zPlusList, zMinusList);
-//  }
-//}
+//! Helper method calculating geometry properties needed for building the tilted part of the rod after the straight rod: thetaEnd, phiOverlap, rEndInner, rEndOuter
+void RodPairStraight::setGeometryInfo() {
 
+  // Calculate theta end
+  if (m_zPlusModules.empty()) { thetaEnd(M_PI/2.); }
+  else {
 
+    // Find last module
+    auto lastMod = m_zPlusModules.back();
+
+    double dsDistance = lastMod.dsDistance();
+    double lastR      = lastMod.center().Rho();
+
+    double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
+
+    thetaEnd( atan(rH2ppUP/(lastMod.flatMaxZ())) );
+  }
+}
 
 //
-//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
+//  Constructor - parse geometry config file using boost property tree & read-in Rod parameters
 //
-TiltedRodPair::TiltedRodPair(int id, const PropertyTree& treeProperty) :
- RodPair(id, treeProperty)
- //forbiddenRange(      "forbiddenRange"      , parsedOnly()),
- //zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
- //zError(              "zError"              , parsedAndChecked()),
- //compressed(          "compressed"          , parsedOnly(), true),
- //allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
- //m_ringNode(          "Ring"                , parsedOnly())
+RodPairTilted::RodPairTilted(int id, double rotation, bool outerRadiusRod, const PropertyTree& treeProperty) :
+ RodPair(id, rotation, treeProperty),
+ isOuterRadiusRod("isOuterRadiusRod", parsedAndChecked(), outerRadiusRod)
 {
   // Set the geometry config parameters (id set through base class)
   this->store(treeProperty);
 }
 
-
-
-
-
-void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip) {
-  auto it = rodTemplate.begin();
-  int side = (direction == BuildDir::RIGHT ? 1 : -1);
-  if (tmspecs.empty()) return;
-  int i = 0;
-  if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
-  for (; i < tmspecs.size(); i++, ++it) {
-    //std::cout << "i = " << i << std::endl;
-    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
-    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
-    BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
-    mod->myid(i+1);
-    mod->side(side);
-    mod->tilt(side * tmspecs[i].gamma);
-    mod->translateR(tmspecs[i].r);
-    if (tmspecs[i].gamma == 0) { mod->flipped(i%2); } // flat part of the tilted rod, i is the ring number
-    else { mod->flipped(flip); } // tilted part of the tilted rod
-    mod->translateZ(side * tmspecs[i].z);
-    modules.push_back(mod);
-  }
-}
-
-void TiltedRodPair::check() {
+//
+// Cross-check parameters provided from geometry configuration file
+//
+void RodPairTilted::check() {
   PropertyObject::check();
 
   if (m_startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
 }
 
+//
+// Build tilted rods based on
+//
+void RodPairTilted::build(const RodTemplate& rodTemplate, const TiltedRings& tiltedRings, bool isFlipped) {
 
-void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
   m_materialObject.store(propertyTree());
   m_materialObject.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    buildModules(m_zPlusModules, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
-    buildModules(m_zMinusModules, rodTemplate, tmspecs, BuildDir::LEFT, flip);
+    buildModules(m_zPlusModules , rodTemplate, tiltedRings, BuildDir::RIGHT, isFlipped);
+    buildModules(m_zMinusModules, rodTemplate, tiltedRings, BuildDir::LEFT , isFlipped);
 
-  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+    //
+    // Rotate all modules -> needs to follow after translation!!!
+    for (auto& m : m_zPlusModules)  { m.rotateZ(m_rotation); }
+    for (auto& m : m_zMinusModules) { m.rotateZ(m_rotation); }
+  }
+  catch (PathfulException& pe) {
+
+    pe.pushPath(fullid(*this));
+    throw;
+  }
+
   cleanup();
   builtok(true);
 }
 
+//
+// Build modules in given direction (+Z or -Z)
+//
+void RodPairTilted::buildModules(BarrelModules& modules, const RodTemplate& rodTemplate, const TiltedRings& tiltedRings, BuildDir direction, bool isFlipped) {
 
+  // Build if not empty
+  if (!tiltedRings.empty()) {
 
+    int iMod = 0;
+    auto iterMod = rodTemplate.begin();
+    for (; iMod<tiltedRings.size(); iMod++, ++iterMod) {
+
+      BarrelModule* mod = GeometryFactory::make<BarrelModule>(*iterMod);
+      mod->myid(iMod+1);
+      mod->side(short(direction));
+      mod->tilt(tiltedRings[iMod].tiltAngle() * short(direction));
+      if (isOuterRadiusRod()) mod->translateR(tiltedRings[iMod].outerRadius());
+      else                    mod->translateR(tiltedRings[iMod].innerRadius());
+      mod->flipped(isFlipped);
+      if (isOuterRadiusRod()) mod->translateZ(tiltedRings[iMod].zOuter() * short(direction));
+       else                   mod->translateZ(tiltedRings[iMod].zInner() * short(direction));
+      modules.push_back(mod);
+    }
+  }
+}

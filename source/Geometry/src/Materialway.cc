@@ -24,9 +24,6 @@
 
 #include <ctime>
 
-#include "../../../include/WeightDistributionGrid.h"
-
-
 namespace material {
 
   Materialway::RodSectionsStation::RodSectionsStation() {}
