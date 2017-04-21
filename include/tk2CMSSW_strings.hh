@@ -192,6 +192,7 @@ namespace insur {
     static const std::string xml_hybrid_comp = "hybridcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_sensor_silicon = "SenSi";
+    static const std::string xml_sensor_LYSO = "SenLYSO";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";

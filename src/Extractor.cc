@@ -854,7 +854,7 @@ namespace insur {
 	    else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	    else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
 	    else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-
+	    
 	    // SolidSection
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
@@ -864,7 +864,7 @@ namespace insur {
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_silicon;
+            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + ( iiter->getModule().moduleType() == "timingBarrel"  ? xml_sensor_LYSO : xml_sensor_silicon );
             l.push_back(logic);
 
 	    // PosPart section
@@ -2210,7 +2210,7 @@ namespace insur {
     comp.method = wt;
     double m = 0.0;
     for (const auto& it : mp.getLocalMasses()) {   
-      if (!nosensors || (it.first.compare(xml_sensor_silicon) != 0)) { // SenSi element is not treated here. 
+      if (!nosensors || ( (it.first.compare(xml_sensor_silicon) != 0) && (it.first.compare(xml_sensor_LYSO) != 0)) ) { // SenSi element is not treated here. 
 	if (comp.elements.find(it.first) != comp.elements.end()) { // should not be necessary, but better safe than sorry
 	  throw PathfulException("Tried to insert several times " + it.first + " in component " + comp.name);
         } 
@@ -2358,7 +2358,7 @@ namespace insur {
     double t = 0.0;
     double m = 0.0, d = 0.0;
     for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
-      if (it->first.compare(xml_sensor_silicon) == 0) m += it->second;
+      if (it->first.compare(xml_sensor_silicon) == 0 || it->first.compare(xml_sensor_LYSO) == 0) m += it->second;
     }
     try { d = mt.getMaterial(xml_sensor_silicon).density; }
     catch (std::exception& e) { return 0.0; }
@@ -2415,7 +2415,7 @@ namespace insur {
     if (nosensors) {
       double m = 0.0;
       for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
-        if (it->first.compare(xml_sensor_silicon) != 0) m += it->second;
+        if (it->first.compare(xml_sensor_silicon) != 0 && it->first.compare(xml_sensor_LYSO) != 0) m += it->second;
       }
       d = 1000 * m / d;
     }
