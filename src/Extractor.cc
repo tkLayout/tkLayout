@@ -864,7 +864,7 @@ namespace insur {
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + ( iiter->getModule().moduleType() == "timingBarrel"  ? xml_sensor_LYSO : xml_sensor_silicon );
+            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + ( iiter->getModule().isTimingModule() && iiter->getModule().moduleType().find("Barrel") != std::string::npos  ? xml_sensor_LYSO : xml_sensor_silicon );
             l.push_back(logic);
 
 	    // PosPart section
