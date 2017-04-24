@@ -227,6 +227,8 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 }
 
 
+/** Binds the 2 points which are provided as arguments, and returns corresponding zError (intersection with (Z) axis).
+ */
 const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, double lastRho, double newZ, double newRho) const {
   // Slope of the line that binds the most stringent points of ring (i) and ring (i+1).
   double slope = (newRho - lastRho) / (newZ - lastZ);
@@ -251,30 +253,35 @@ void Disk::computeActualZCoverage() {
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     if (i != numRings()) {
-      // Find the radius and Z of the most stringent points in ring (i).
-      double newMaxRho = rings_.at(i-1).buildStartRadius();
-      double newMaxZ = rings_.at(i-1).maxZ();
-
       // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
       double zErrorCoverage;
+
+      // Calculation A : Min coordinates of ring (i+1) with max coordinates of ring (i)
+      // Find the radii and Z of the most stringent points in ring (i).
+      double newMaxRho = rings_.at(i-1).buildStartRadius();
+      double newMaxZ = rings_.at(i-1).maxZ();
 
       std::pair<double, bool> intersectionWithZAxisA = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
       double zErrorCoverageA = intersectionWithZAxisA.first;
       bool isPositiveSlopeA = intersectionWithZAxisA.second;
       
-      if (parity > 0.) { // Case where Ring (i+1) is the innermost ring, 
-	                 // and Ring (i) is the outermost ring.
-	zErrorCoverage = zErrorCoverageA;
-	if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;
+      // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
+      if (parity > 0.) {
+	zErrorCoverage = zErrorCoverageA; // Only consider calculation A
+	if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;  // doesn't really make sense to have negative zError!
       }
+
+      // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
       else {
-	// Find the radius and Z of the most stringent points in ring (i).
+	// Calculation B : Max coordinates of ring (i+1) with min coordinates of ring (i)
+	// Find the radii and Z of the most stringent points in ring (i).
 	double newMinRho = rings_.at(i-1).minR();
 	double newMinZ = rings_.at(i-1).minZ();
 
 	std::pair<double, bool> intersectionWithZAxisB = computeIntersectionWithZAxis(lastMaxZ, lastMaxRho, newMinZ, newMinRho);
 	double zErrorCoverageB = intersectionWithZAxisB.first;
 
+	// Consider the most stringent of calculations A and B
 	if (zErrorCoverageA * zErrorCoverageB < 0. || !isPositiveSlopeA) zErrorCoverage = MIN( fabs(zErrorCoverageA), fabs(zErrorCoverageB));
 	else zErrorCoverage = 0.;
       }
@@ -284,7 +291,7 @@ void Disk::computeActualZCoverage() {
       ringIndexMap_[i]->actualZError(zErrorCoverage);
     }
 
-    // Keep for next calculation : radius and Z of the most stringent points in ring (i+1).
+    // Keep for next calculation : radii and Z of the most stringent points in ring (i+1).
     lastMinRho = rings_.at(i-1).minR();
     lastMinZ = rings_.at(i-1).minZ();
 
