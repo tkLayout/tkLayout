@@ -60,6 +60,7 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
 
 void LayerDiskSummaryVisitor::visit(const Disk& d) {
   nRings = 0;
+  nRingsTotal = d.numRings() - d.numEmptyRings();
   if (d.averageZ() < 0.) return;
   ++nDisks;
   totalEndcapModules += d.totalModules();
@@ -86,7 +87,7 @@ void LayerDiskSummaryVisitor::visit(const Ring& r) {
   endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.actualPhiOverlap(), coordPrecision);
   endcapTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
   zErrorTables.at(nDisks-1)->setContent(0, nRings, r.myid());
-  if (r.actualZError() != 0.) zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualZError(), coordPrecision);
+  if (nRings != nRingsTotal) zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualZError(), coordPrecision);
 }
 
 void LayerDiskSummaryVisitor::visit(const Module& m) {
