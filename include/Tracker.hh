@@ -72,7 +72,10 @@ private:
   Property<std::string, AutoDefault> barrelDetIdScheme;
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
-  //std::map<std::string, std::vector<int> > detIdSchemes_;
+  std::map<uint32_t, Module> modules_;
+  std::map<uint32_t, Ribbon> ribbons_;
+  std::map<uint32_t, Cable> cables_;
+  std::map<uint32_t, DTC> DTCs_;
 
   Tracker(const Tracker&) = default;
 public:
@@ -147,6 +150,7 @@ public:
   }
 
   void build();
+  void buildCabling();
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

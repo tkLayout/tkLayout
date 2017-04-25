@@ -126,6 +126,7 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
+	if (!t->isPixelTracker()) t->buildCabling();
         //CoordExportVisitor v(t->myid());
         //ModuleDataVisitor v1(t->myid());
         //t->accept(v);

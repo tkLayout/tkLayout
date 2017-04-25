@@ -193,6 +193,8 @@ void Tracker::build() {
       detIdRefs[7] = sensorRef;
 
       m.buildDetId(detIdRefs, schemeShifts);
+
+      modules_[m.myDetId()] = m;
     }
 
     void visit(Sensor& s) {
@@ -266,6 +268,7 @@ void Tracker::build() {
       detIdRefs[8] = sensorRef;
       m.buildDetId(detIdRefs, schemeShifts);
 
+      modules_[m.myDetId()] = m;
       //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
@@ -340,4 +343,74 @@ std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
   } else logWARNING("No file defining a detId scheme has been found.");
 
   return schemes;
+}
+
+
+
+
+
+
+
+void Tracker::buildCabling() {
+  try {
+    
+    class ModulesToRibbonsBuilder : public GeometryVisitor {  
+      std::string barrelName;     
+      int side;
+
+    public:
+      void visit(Barrel& b) {
+	isTB2S = false;
+	barrelName = b.myid();	
+	if (barrelName == "TB2S") isTB2S = true;
+
+      }
+
+      void visit(Endcap& e) {  }
+
+      void visit(Layer& l)  {
+	
+      }
+
+      void visit(Disk& d)   {}
+
+
+
+      void visit(RodPair& r){
+	//isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
+      }
+
+      void visit(Ring& r)   { }
+
+      void visit(Module& m) {
+	int side = m.uniRef().side;
+      }
+
+
+
+
+      void visit(BarrelModule& m) { 
+	if (isTB2S) {
+
+
+	}
+
+
+ }
+      void visit(EndcapModule& m) { }
+    };
+
+
+
+ ModulesToRibbonsBuilder ribbonsBuilder;
+ accept(ribbonsBuilder);
+
+
+
+
+
+
+    }
+
+  catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 }
