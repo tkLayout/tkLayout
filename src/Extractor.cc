@@ -864,7 +864,7 @@ namespace insur {
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + ( iiter->getModule().isTimingModule() && iiter->getModule().moduleType().find("Barrel") != std::string::npos  ? xml_sensor_LYSO : xml_sensor_silicon );
+            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + (iiter->getModule().isTimingModule() && iiter->getModule().subdet() == BARREL ? xml_sensor_LYSO : xml_sensor_silicon);
             l.push_back(logic);
 
 	    // PosPart section
@@ -2358,7 +2358,7 @@ namespace insur {
     double t = 0.0;
     double m = 0.0, d = 0.0;
     for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
-      if (it->first.compare(xml_sensor_silicon) == 0 || it->first.compare(xml_sensor_LYSO) == 0) m += it->second;
+      if (it->first.compare(xml_sensor_silicon) == 0) m += it->second;
     }
     try { d = mt.getMaterial(xml_sensor_silicon).density; }
     catch (std::exception& e) { return 0.0; }
