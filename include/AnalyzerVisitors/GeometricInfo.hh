@@ -20,10 +20,12 @@
 class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
 public:
   // info
-  RootWTable* layerTable = new RootWTable();
+  RootWTable* layerTable = new RootWTable();  
   RootWTable* diskTable = new RootWTable();
+  std::vector<RootWTable*> endcapNames;
+  std::vector<RootWTable*> endcapTables;
   std::vector<RootWTable*> diskNames;
-  std::vector<RootWTable*> ringTables;
+  std::vector<RootWTable*> zErrorTables;
   std::map<std::string, std::set<std::string> > tagMapPositions;
   std::map<std::string, int> tagMapCount;
   std::map<std::string, long> tagMapCountChan;
@@ -48,6 +50,9 @@ public:
   std::map<std::string, double> tagMapSensorPowerAvg;
   std::map<std::string, double> tagMapSensorPowerMax;
   std::map<std::string, const DetectorModule*> tagMap;
+
+  std::string endcapId;
+  std::string diskId;
 
   // counters
   int nBarrelLayers=0;

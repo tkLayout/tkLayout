@@ -39,21 +39,23 @@ void LayerDiskSummaryVisitor::visit(const Layer& l) {
 
 void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   nEndcaps++;
-  diskTable->setContent(0, 1 + nDisks, e.myid());
+  endcapId = e.myid();
+  diskTable->setContent(0, 1 + nDisks, endcapId);
 
-  RootWTable* diskName = new RootWTable();
-  diskName->setContent(0, 0, e.myid() + ",  Disc 1 :");
-  diskNames.push_back(diskName);
+  RootWTable* endcapName = new RootWTable();
+  endcapName->setContent(0, 0, endcapId + ",  Disc 1 :");
+  endcapNames.push_back(endcapName);
 
-  RootWTable* ringTable = new RootWTable();
-  ringTable->setContent(0, 0, "Ring :");
-  ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-  ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
-  ringTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
-  ringTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
-  ringTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
-  ringTable->setContent(6, 0, "# mods");
-  ringTables.push_back(ringTable);
+  RootWTable* endcapTable = new RootWTable();
+  endcapTable->setContent(0, 0, "Ring :");
+  endcapTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+  endcapTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+  endcapTable->setContent(3, 0, "r"+subStart+"centre"+subEnd);
+  endcapTable->setContent(4, 0, "r"+subStart+"high"+subEnd);
+  endcapTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
+  endcapTable->setContent(6, 0, "phiOverlap");
+  endcapTable->setContent(7, 0, "# mods");
+  endcapTables.push_back(endcapTable);
 }
 
 void LayerDiskSummaryVisitor::visit(const Disk& d) {
@@ -64,14 +66,27 @@ void LayerDiskSummaryVisitor::visit(const Disk& d) {
   diskTable->setContent(1, nDisks, d.myid());
   diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
   diskTable->setContent(4, nDisks, d.totalModules());
+
+  RootWTable* diskName = new RootWTable();
+  diskId = endcapId + ",  Disc " + std::to_string(d.myid()) + " :";
+  diskName->setContent(0, 0, diskId);
+  diskNames.push_back(diskName);
+
+  RootWTable* zErrorTable = new RootWTable();
+  zErrorTable->setContent(0, 0, "Ring :");
+  zErrorTable->setContent(1, 0, "zError (Ring i & i+1)");
+  zErrorTables.push_back(zErrorTable);
 }
 
 void LayerDiskSummaryVisitor::visit(const Ring& r) {
   if (r.averageZ() < 0. || r.numModules() == 0) return;
   ++nRings;
   diskTable->setContent(3, nDisks, nRings);
-  ringTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
-  ringTables.at(nEndcaps-1)->setContent(6, nRings, r.numModules());
+  endcapTables.at(nEndcaps-1)->setContent(0, nRings, r.myid());
+  endcapTables.at(nEndcaps-1)->setContent(6, nRings, r.actualPhiOverlap(), coordPrecision);
+  endcapTables.at(nEndcaps-1)->setContent(7, nRings, r.numModules());
+  zErrorTables.at(nDisks-1)->setContent(0, nRings, r.myid());
+  if (r.actualZError() != 0.) zErrorTables.at(nDisks-1)->setContent(1, nRings, r.actualZError(), coordPrecision);
 }
 
 void LayerDiskSummaryVisitor::visit(const Module& m) {
@@ -133,11 +148,11 @@ void LayerDiskSummaryVisitor::visit(const Module& m) {
 void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
   if (m.side() != 1 || m.disk() != 1) return;
 
-  ringTables.at(nEndcaps-1)->setContent(1, nRings, m.minR(), coordPrecision);
-  ringTables.at(nEndcaps-1)->setContent(2, nRings, sqrt(pow(m.minR(),2)+pow(m.minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
-  ringTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
-  ringTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
-  ringTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
+  endcapTables.at(nEndcaps-1)->setContent(1, nRings, m.minR(), coordPrecision);
+  endcapTables.at(nEndcaps-1)->setContent(2, nRings, sqrt(pow(m.minR(),2)+pow(m.minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+  endcapTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
+  endcapTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
+  endcapTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
 }
 
 void LayerDiskSummaryVisitor::postVisit() {

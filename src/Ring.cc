@@ -219,6 +219,20 @@ void Ring::mirrorZ() {
   }
 }
 
+/** This computes the actual coverage in Phi of a disk (after it is built).
+    It calcualtes the actual phiOverlap, using the relevant coordinates of the disk.
+ */
+void Ring::computeActualPhiCoverage() {
+  double width = modules_.at(0).minWidth();
+  double radiusHigh = modules_.at(0).minR() + modules_.at(0).length();
+  int numMods = numModules();
+
+  double phiOverlap = width - 2. * radiusHigh * tan(M_PI / numMods);
+
+  // STORE THE RESULT
+  actualPhiOverlap(phiOverlap);
+}
+
 const MaterialObject& Ring::materialObject() const{
   return materialObject_;
 }

@@ -1255,8 +1255,13 @@ namespace insur {
     myPage->addContent(myContent);
     for (int i = 0; i < v.nEndcaps; i++) {
       if (i > 0) myContent->addItem(spacer);
+      myContent->addItem(v.endcapNames.at(i));
+      myContent->addItem(v.endcapTables.at(i));
+    }
+    for (int i = 0; i < v.nDisks; i++) {
+      myContent->addItem(spacer);
       myContent->addItem(v.diskNames.at(i));
-      myContent->addItem(v.ringTables.at(i));
+      myContent->addItem(v.zErrorTables.at(i));
     }
 
 

@@ -173,6 +173,9 @@ public:
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
 
+  Property<double, AutoDefault> actualZError;
+  Property<double, AutoDefault> actualPhiOverlap;
+
   double minR()      const { return minRadius_; }
   double maxR()      const { return maxRadius_; }
   double thickness() const { return smallDelta()*2 + maxModuleThickness(); }
@@ -231,6 +234,8 @@ public:
   void cutAtEta(double eta);
 
   void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); numModules(modules_.size()); }
+
+  void computeActualPhiCoverage();
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

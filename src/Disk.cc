@@ -141,6 +141,7 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
       
   // Takes the most stringent of cases A and B
   double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+
   return nextRho;
 }
 
@@ -185,6 +186,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
+
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
 
@@ -224,6 +226,69 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   builtok(true);
 }
 
+
+/** This computes the actual coverage in Z of a disk (after it is built).
+    It calcualtes the actual zError, using the relevant coordinates of the disk.
+ */
+void Disk::computeActualZCoverage() {
+
+  double lastRho;
+  double lastZ;
+
+  for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
+
+    if (i != numRings()) {
+      // Find the radius and Z of the most stringent points in ring (i).
+      double newRho = rings_.at(i-1).buildStartRadius();
+      double newZ = rings_.at(i-1).maxZ();   
+
+      // Coeff of the line that binds the most stringent points of ring (i) and ring (i+1).
+      double coeff = (newRho - lastRho) / (newZ - lastZ);
+
+      // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
+      double zErrorCoverage;
+      if (coeff > 0.) {
+	zErrorCoverage = newZ - newRho / coeff;  // Intersection of the line with (Z) axis.
+	if (parity < 0) zErrorCoverage *= -1.;   // Case where Ring (i+1) is the outermost ring, 
+	                                         // and Ring (i) is the innermost ring.
+      } 
+      else {  // Particular case where the top of ring (i) is higher in radius than the botom of ring (i+1).
+	if (parity > 0) zErrorCoverage = -std::numeric_limits<double>::infinity();  // Case where Ring (i+1) is the innermost ring, 
+	                                                                            // and Ring (i) is the outermost ring.
+	else { // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
+	  // Find the radius and Z of the most stringent points in ring (i).
+	  double minRho = rings_.at(i-1).minR();
+	  double minZ = rings_.at(i-1).minZ();
+
+	  // Coeff of the line that binds the most stringent points of ring (i) and ring (i+1).
+	  double coeff = (minRho - lastRho) / (minZ - lastZ);
+
+	  // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
+	  zErrorCoverage = minZ - minRho / coeff;  // Intersection of the line with (Z) axis.
+	}
+      }
+      
+      // STORE THE RESULT
+      rings_.at(i-1).actualZError(zErrorCoverage);
+      ringIndexMap_[i]->actualZError(zErrorCoverage);
+    }
+
+    // Keep for next calculation : radius and Z of the most stringent points in ring (i+1).
+    lastRho = rings_.at(i-1).minR();
+    lastZ = rings_.at(i-1).minZ();
+  }
+}
+
+
+/** This computes the actual coverage of a disk (after it is built).
+ */
+void Disk::computeActualCoverage() {
+  // Actual coverage in Z
+  computeActualZCoverage();
+
+  // Actual coverage in Phi
+  for (auto& r : rings_) r.computeActualPhiCoverage();
+}
 
 void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 
