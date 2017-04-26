@@ -360,23 +360,22 @@ void Tracker::buildCabling() {
 
     public:
       void visit(Barrel& b) {
-	isTB2S = false;
 	barrelName = b.myid();	
-	if (barrelName == "TB2S") isTB2S = true;
+	 
 
       }
 
       void visit(Endcap& e) {  }
 
-      void visit(Layer& l)  {
+      void visit(Layer& l) {
 	
       }
 
-      void visit(Disk& d)   {}
+      void visit(Disk& d) {}
 
 
 
-      void visit(RodPair& r){
+      void visit(RodPair& r) {
 	//isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
       }
 
@@ -390,7 +389,7 @@ void Tracker::buildCabling() {
 
 
       void visit(BarrelModule& m) { 
-	if (isTB2S) {
+	if (barrelName == "TB2S") {
 
 
 	}

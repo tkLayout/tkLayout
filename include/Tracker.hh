@@ -18,6 +18,7 @@
 #include "SupportStructure.hh"
 #include "Visitor.hh"
 #include "Visitable.hh"
+#include "Cabling/DTC.hh"
 #include "MainConfigHandler.hh"
 
 using std::set;

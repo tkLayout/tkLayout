@@ -38,6 +38,7 @@ LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 OUT_DIR+=$(LIBDIR)
 OUT_DIR+=$(BINDIR)
 OUT_DIR+=$(LIBDIR)/AnalyzerVisitors
+OUT_DIR+=$(LIBDIR)/Cabling
 MKDIR_P = mkdir -p
 .PHONY: directories
 
@@ -131,12 +132,17 @@ ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 ANALYZERVISITORS+=ModuleCount
 
+CABLING+=DTC
+CABLING+=Cable
+CABLING+=Ribbon
+
 EXES+=tklayout
 EXES+=setup
 EXES+=diskPlace
 
 OBJECTFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${OBJS}))
 ANALYZERVISITORFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/AnalyzerVisitors/,${ANALYZERVISITORS}))
+CABLINGFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/Cabling/,${CABLING}))
 EXEFILES=$(addprefix ${BINDIR}/,${EXES})
 EXELIBFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${EXES}))
 
@@ -168,6 +174,11 @@ all_analyzerVisitors: ${ANALYZERVISITORFILES}
 clean_analyzerVisitors:
 	@rm -f ${ANALYZERVISITORFILES}
 
+all_cabling: ${CABLINGFILES}
+
+clean_cabling:
+	@rm -f ${CABLINGFILES}	
+
 # General rule to build objects
 $(LIBDIR)/%.o: $(SRCDIR)/%.cc $(INCDIR)/%.hh
 	$(COMP) $(ROOTFLAGS) -o $@ -c $<
@@ -179,6 +190,13 @@ $(LIBDIR)/AnalyzerVisitors/%.o: $(SRCDIR)/AnalyzerVisitors/%.cc $(INCDIR)/Analyz
 	mkdir -p $(LIBDIR)/AnalyzerVisitors
 	$(COMP) $(ROOTFLAGS) -c -o $@ $<
 	@echo "Built AnalyzerVisitor $@"
+	
+# Cabling in its own directory
+$(LIBDIR)/Cabling/%.o: $(SRCDIR)/Cabling/%.cc $(INCDIR)/Cabling/%.hh
+	@echo "Building Cabling $@..."
+	mkdir -p $(LIBDIR)/Cabling
+	$(COMP) $(ROOTFLAGS) -c -o $@ $<
+	@echo "Built Cabling $@"
 
 # Special rule for objects with a "main"
 $(EXELIBFILES): $(LIBDIR)/%.o: $(SRCDIR)/%.cc
@@ -205,7 +223,7 @@ $(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR
 	-o $(BINDIR)/setup
 
 # Clean and documentation
-clean: clean_exes clean_objects clean_analyzerVisitors
+clean: clean_exes clean_objects clean_analyzerVisitors clean_cabling
 
 doc: doxydoc
 
