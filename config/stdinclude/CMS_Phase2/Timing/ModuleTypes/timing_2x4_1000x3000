@@ -1,4 +1,4 @@
-// Lindsey Gray version
+// Lindsey Gray version : Endcap Timing module
 
 moduleType timing_2x4_1000x3000  // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size

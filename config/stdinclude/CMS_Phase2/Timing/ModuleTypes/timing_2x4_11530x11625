@@ -1,13 +1,11 @@
-// Generic PS module properties
+// Lindsey Gray version : Barrel Timing module
 
-moduleType timingBarrel
+moduleType timing_2x4_11530x11625 // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size
 width 184.48
 length 46.5
 
-
 sensorLayout mono
-// zCorrelation samesegment
 
 numSensors 1
 
@@ -28,8 +26,8 @@ reduceCombinatorialBackground true
 
 Sensor 1 {
   sensorType largepix
-  numStripsAcross 16  // 
-  numSegments 4 // 
+  numStripsAcross 16  // 184.48mm / 11.53mm
+  numSegments 4 // 46.5mm / 11.625mm
   numROCX 2
   numROCY 4
 }
