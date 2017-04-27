@@ -1092,7 +1092,7 @@ void TiltedLayersVisitor::visit(const Layer& l) {
       tiltedPartTable->setContent(0 , 0  , "Tilted part - Rings :");
       tiltedPartTable->setContent(0 , iRing+1, totRingNumber);
       tiltedPartTable->setContent(1 , 0  , web_thetaLetter + web_subStart + "tilt" + web_subEnd + " [deg] :");
-      tiltedPartTable->setContent(1 , iRing+1, l.tiltedRing(iRing).tiltAngle(), c_anglePrecision);
+      tiltedPartTable->setContent(1 , iRing+1, l.tiltedRing(iRing).tiltAngle()/Units::degrees, c_anglePrecision);
       tiltedPartTable->setContent(2 , 0  , "Ideal " + web_thetaLetter + web_subStart + "tilt" + web_subEnd + "-inner [deg] : ");
       tiltedPartTable->setContent(2 , iRing+1, l.tiltedRing(iRing).tiltAngleIdealInner()/Units::degrees, c_anglePrecision);
       tiltedPartTable->setContent(3 , 0  , "Ideal " + web_thetaLetter + web_subStart + "tilt" + web_subEnd + "-outer [deg] : ");
@@ -1102,7 +1102,7 @@ void TiltedLayersVisitor::visit(const Layer& l) {
       tiltedPartTable->setContent(5 , 0  , web_DeltaLetter + web_thetaLetter + web_subStart + "tilt" + web_subEnd +"-outer [deg] :");
       tiltedPartTable->setContent(5 , iRing+1, l.tiltedRing(iRing).deltaTiltIdealOuter()/Units::degrees, c_anglePrecision);
       tiltedPartTable->setContent(6 , 0  , web_thetaLetter + web_subStart + "g" + web_subEnd + " (centre"+web_subStart+"inner"+web_subEnd+"->center"+web_subStart+"outer"+web_subEnd+") [deg] :");
-      tiltedPartTable->setContent(6 , iRing+1, l.tiltedRing(iRing).theta_g(), c_anglePrecision);
+      tiltedPartTable->setContent(6 , iRing+1, l.tiltedRing(iRing).theta_g()/Units::degrees, c_anglePrecision);
       tiltedPartTable->setContent(7 , 0  , "R"+web_subStart + "centre" + web_subEnd + "-inner [mm] :");
       tiltedPartTable->setContent(7 , iRing+1, l.tiltedRing(iRing).innerRadius()/Units::mm, c_tiltedCoordPrecision);
       tiltedPartTable->setContent(8 , 0  , "R"+web_subStart + "centre" + web_subEnd + "-outer [mm] :");
