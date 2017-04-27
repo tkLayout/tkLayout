@@ -217,7 +217,14 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   float moduleWidth = (*rodTemplate.rbegin())->minWidth();
   float f = moduleWidth/2 - phiOverlap()/2;
   float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
-  float tentativeModsPerSegment = 2*M_PI/(gamma * phiSegments());
+
+  float totalCircumference = 2 * M_PI;
+  if (phiForbiddenRanges.state()) {
+    phiForbiddenLength(phiForbiddenRanges.at(1) - phiForbiddenRanges.at(0) + phiForbiddenRanges.at(3) - phiForbiddenRanges.at(2));
+    totalCircumference -= phiForbiddenLength();
+  }
+
+  float tentativeModsPerSegment = totalCircumference/(gamma * phiSegments());
 
   float optimalRadius;
   int optimalModsPerSegment;
@@ -317,7 +324,8 @@ void Layer::buildStraight(bool isFlatPart) {
     maxBuildRadius(placeRadius_);
   }
 
-  float rodPhiRotation = 2*M_PI/numRods();
+  double rodPhiRotation = 2*M_PI/numRods();
+  if (phiForbiddenRanges.state()) rodPhiRotation = (2*M_PI - phiForbiddenLength()) / numRods();
 
   // FIRST ROD : assign common properties
   StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
@@ -341,6 +349,7 @@ void Layer::buildStraight(bool isFlatPart) {
   first->isOuterRadiusRod(isPlusBigDeltaRod);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
+  if (phiForbiddenRanges.state()) first->rotateZ(phiForbiddenRanges.at(1));
   if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
@@ -358,7 +367,11 @@ void Layer::buildStraight(bool isFlatPart) {
   for (int i = 2; i < numRods(); i++) {
     StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    double phiRot = rodPhiRotation*(i%2 ? i-1 : i);
+    if (phiForbiddenRanges.state() && femod(phiRot, 2.*M_PI) >= femod(phiForbiddenRanges.at(2), 2.*M_PI)) {
+      phiRot += (phiForbiddenRanges.at(3) - phiForbiddenRanges.at(2));
+    }
+    rod->rotateZ(phiRot);
     if (!isFlatPart) { rods_.push_back(rod); }
     else { flatPartRods_.push_back(rod); }
   }

@@ -84,6 +84,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //Property<int, Default> bigParity;
   Property<double, NoDefault> phiOverlap;
   Property<int, NoDefault> phiSegments;
+  Property<float, NoDefault> phiForbiddenLength;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
   PropertyNodeUnique<std::string> stationsNode;
@@ -111,6 +112,7 @@ public:
   Property<double, Default> layerRotation;
 
   Property<int, NoDefault> numRods;
+  FixedSizeMultiProperty<std::vector<double>, 4,','> phiForbiddenRanges;
 
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
@@ -127,6 +129,7 @@ public:
 	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
 	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
 	    numRods        ("numRods"        , parsedOnly()),
+	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
             stationsNode   ("Station"        , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),
