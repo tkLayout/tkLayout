@@ -74,7 +74,9 @@ private:
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
   //std::map<uint32_t, Module> modules_;
-  std::map<int, Ribbon*> ribs_;
+  std::map<int, Ribbon*> ribbons_;
+  std::map<int, Cable*> cables_;
+  std::map<int, DTC*> DTCs_;
 
   Tracker(const Tracker&) = default;
 public:

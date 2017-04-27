@@ -356,30 +356,31 @@ void Tracker::buildCabling() {
       std::string barrelName;
       int layerNumber;
       int numRods;
+      int numFlatRings;
       int phiRef;
-      int ribbonId;
+      int phiSelect;
       int side;
 
+      int ribbonId;
+      int ribbonFlatId;
+      int ribbonFlatIdB;
+      int ribbonTiltedId;
+
       std::map<int, Ribbon*> ribbons_;
-      std::map<int, Cable*> cables_;
-      std::map<int, DTC*> DTCs_;
 
     public:
       void visit(Barrel& b) {
 	barrelName = b.myid();	
-	 
-
+	
       }
 
-      void visit(Endcap& e) {  }
 
       void visit(Layer& l) {
 	layerNumber = l.layerNumber();
 	numRods = l.numRods();
+
+	numFlatRings = l.buildNumModulesFlat();
       }
-
-      void visit(Disk& d) {}
-
 
 
       void visit(RodPair& r) {
@@ -387,42 +388,112 @@ void Tracker::buildCabling() {
 	double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
 	phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
 
+	std::string type;
 
-
+	// Create 2S ribbons
 	if (barrelName == "TB2S") {
-	  ribbonId = 1000 + layerNumber * 100 + phiRef;
-	  std::string type = "2S";
+	  ribbonId = 10000 + layerNumber * 1000 + phiRef * 10;
+	  type = "2S";
 	  Ribbon ribbon(ribbonId, type);
 	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
 	}
+
+	// Create PS ribbons
+	if (barrelName == "TBPS") {
+	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
+
+	  // Flat part
+	  phiSelect = layerNumber % 2;
+	  // standard case
+	  if (phiRef % 2 == phiSelect) {
+	    ribbonFlatId = 10000 + layerNumber * 1000 + phiRef * 10 + 1;
+	    Ribbon ribbonFlat(ribbonFlatId, type);
+	    ribbons_.insert(std::make_pair(ribbonFlatId, &ribbonFlat));
+
+	    // For layer 3, need to add a second ribbon for flat part
+	    if (numFlatRings > 12) {
+	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiRef * 10 + 2;
+	      Ribbon ribbonFlatB(ribbonFlatIdB, type);
+	      ribbons_.insert(std::make_pair(ribbonFlatIdB, &ribbonFlatB));
+	    }
+	  }
+
+	  // Tilted part
+	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiRef * 10;	  
+	  Ribbon ribbonTilted(ribbonTiltedId, type);
+	  ribbons_.insert(std::make_pair(ribbonTiltedId, &ribbonTilted));	 
+	}
      
 
-
-
       }
-
-
-      void visit(Ring& r)   { }
+      
 
       void visit(Module& m) {
 	side = m.uniRef().side;
       }
 
 
-
-
       void visit(BarrelModule& m) {
 
+	// Connect modules to 2S ribbons
 	if (barrelName == "TB2S") {
 	  if (side > 0) {
-	    //m->setRibbonNumber(ribbonId);
+	    m.setRibbonId(ribbonId);
 	    ribbons_[ribbonId]->addModule(m);
 	  }
 	}
 
+	// Connect modules to PS ribbons
+	if (barrelName == "TBPS") {
+
+	  // flat modules
+	  if (!m.isTilted() && (phiRef % 2 == phiSelect)) {
+	    // standard case
+	    if (numFlatRings <= 12) {
+	      m.setRibbonId(ribbonFlatId);
+	      ribbons_[ribbonFlatId]->addModule(m);
+	    }
+	    // For layer 3, need to add a second ribbon for flat part
+	    else {
+	      if (side > 0) {
+		m.setRibbonId(ribbonFlatId);
+		ribbons_[ribbonFlatId]->addModule(m);
+	      } else {
+		m.setRibbonId(ribbonFlatIdB);
+		ribbons_[ribbonFlatIdB]->addModule(m);
+	      }
+	    }
+	  }
+
+	  // tilted modules
+	  if (m.isTilted() && side > 0) {
+	    m.setRibbonId(ribbonTiltedId);
+	    ribbons_[ribbonTiltedId]->addModule(m);
+	  }
+
+
+
+
+	}
+
+
+
+
+
       }
 
+
+
+
+
+      void visit(Endcap& e) {  }
+
+      void visit(Disk& d) {}
+
+      void visit(Ring& r)   { }
+
       void visit(EndcapModule& m) { }
+
 
       std::map<int, Ribbon*> getRibbons() { return ribbons_; }
     };
@@ -430,8 +501,8 @@ void Tracker::buildCabling() {
 
 
  ModulesToRibbonsBuilder ribbonsBuilder;
- ribs_ = ribbonsBuilder.getRibbons();
  accept(ribbonsBuilder);
+ ribbons_ = ribbonsBuilder.getRibbons();
 
 
 

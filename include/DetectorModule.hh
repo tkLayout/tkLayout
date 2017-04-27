@@ -52,6 +52,8 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
+
+  int ribbonId_ = 0;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -322,6 +324,9 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
   std::string summaryType() const;
   std::string summaryFullType() const;
+
+  void setRibbonId(int id) {ribbonId_ = id; }
+  int getRibbonId() {return ribbonId_; }
 };
 
 
