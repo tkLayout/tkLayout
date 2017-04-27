@@ -194,7 +194,7 @@ void Tracker::build() {
 
       m.buildDetId(detIdRefs, schemeShifts);
 
-      modules_[m.myDetId()] = m;
+      //modules_.insert(std::make_pair(m.myDetId(), m));
     }
 
     void visit(Sensor& s) {
@@ -268,7 +268,7 @@ void Tracker::build() {
       detIdRefs[8] = sensorRef;
       m.buildDetId(detIdRefs, schemeShifts);
 
-      modules_[m.myDetId()] = m;
+      //modules_.insert(std::make_pair(m.myDetId(), m));
       //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
     }
 
@@ -349,14 +349,20 @@ std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
 
 
 
-
-
 void Tracker::buildCabling() {
   try {
     
     class ModulesToRibbonsBuilder : public GeometryVisitor {  
-      std::string barrelName;     
+      std::string barrelName;
+      int layerNumber;
+      int numRods;
+      int phiRef;
+      int ribbonId;
       int side;
+
+      std::map<int, Ribbon*> ribbons_;
+      std::map<int, Cable*> cables_;
+      std::map<int, DTC*> DTCs_;
 
     public:
       void visit(Barrel& b) {
@@ -368,7 +374,8 @@ void Tracker::buildCabling() {
       void visit(Endcap& e) {  }
 
       void visit(Layer& l) {
-	
+	layerNumber = l.layerNumber();
+	numRods = l.numRods();
       }
 
       void visit(Disk& d) {}
@@ -377,31 +384,53 @@ void Tracker::buildCabling() {
 
       void visit(RodPair& r) {
 	//isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
+	double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
+	phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
+
+
+
+	if (barrelName == "TB2S") {
+	  ribbonId = 1000 + layerNumber * 100 + phiRef;
+	  std::string type = "2S";
+	  Ribbon ribbon(ribbonId, type);
+	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
+	}
+     
+
+
+
       }
+
 
       void visit(Ring& r)   { }
 
       void visit(Module& m) {
-	int side = m.uniRef().side;
+	side = m.uniRef().side;
       }
 
 
 
 
-      void visit(BarrelModule& m) { 
+      void visit(BarrelModule& m) {
+
 	if (barrelName == "TB2S") {
-
-
+	  if (side > 0) {
+	    //m->setRibbonNumber(ribbonId);
+	    ribbons_[ribbonId]->addModule(m);
+	  }
 	}
 
+      }
 
- }
       void visit(EndcapModule& m) { }
+
+      std::map<int, Ribbon*> getRibbons() { return ribbons_; }
     };
 
 
 
  ModulesToRibbonsBuilder ribbonsBuilder;
+ ribs_ = ribbonsBuilder.getRibbons();
  accept(ribbonsBuilder);
 
 

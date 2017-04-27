@@ -17,13 +17,29 @@ using std::unique_ptr;*/
 
 //class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Ribbon : public PropertyObject, public Identifiable<int> {
+  std::string type_;
 
   //typedef PtrVector<Module> Container;
-  //Container detectormodules_;
+  typedef std::vector<Module*> Container;
+  Container modules_;
 
   //Property<int, Default> nModulesPerRibbon;
 
 public:
+  Ribbon(int id, std::string type) {
+    myid(id);
+    type_ = type;
+  };
+
+  std::string getType() { return type_; }
+
+  void addModule(Module& m) { modules_.push_back(&m); }
+  const Container& modules() const { return modules_; }
+
+
+
+
+
 
   /*Ribbon() :
             nModulesPerRibbon      ("nModulesPerRibbon"      , parsedAndChecked(), 6)
