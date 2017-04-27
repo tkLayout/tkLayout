@@ -182,4 +182,4 @@ void Tracker::accept(ConstGeometryVisitor& v) const {
 //
 // Return all tracker modules
 //
-const set<DetectorModule*>& Tracker::modules() const { return m_modulesSetVisitor->modules(); }
+const std::vector<DetectorModule*>& Tracker::modules() const { return m_modulesSetVisitor->modules(); }
