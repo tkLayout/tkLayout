@@ -550,6 +550,8 @@ void Tracker::buildCabling() {
 
 
       void postVisit() {
+
+	// STAGGER RIBBONS
 	for (auto& r : ribbons_) {
 	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
 
@@ -565,6 +567,7 @@ void Tracker::buildCabling() {
 	      double startPhi = r.second->startPhi();
 	      double phiRegionWidth = r.second->phiRegionWidth();
 	      int numPhiRegions = round(2 * M_PI / phiRegionWidth);
+	      std::cout << round(3.9) << std::endl;
 
 	      int phiRegionRef = r.second->phiRegionRef();
 	      int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
@@ -574,43 +577,44 @@ void Tracker::buildCabling() {
 	      int nextRibbonId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
 	      int previousRibbonId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
-
-	      
-
 	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) - startPhi );
 	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
 
 
-	      if (ribbons_[previousRibbonId]->numModules() > 12 && ribbons_[nextRibbonId]->numModules() > 12) {
-		std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
-			  << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
-			  << std::endl;
+	      if (ribbons_.count(previousRibbonId) != 0 && ribbons_.count(nextRibbonId) != 0) {
+		// Cannot assign the extra module : both neighbouring phi regions are full !
+		if (ribbons_[previousRibbonId]->numModules() > 12 && ribbons_[nextRibbonId]->numModules() > 12) {
+		  std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
+			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
+			    << std::endl;
+		}
+
+		// Assign the module with the biggest phi to the next phi region
+		else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
+
+		  Module* maxPhiMod = r.second->maxPhiModule();
+		  ribbons_[ribbonId]->removeModule(maxPhiMod);
+		  ribbons_[nextRibbonId]->addModule(maxPhiMod);
+		  maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+		}
+
+		// Assign the module with the lowest phi to the previous phi region
+		else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
+
+		  Module* minPhiMod = r.second->minPhiModule();
+		  ribbons_[ribbonId]->removeModule(minPhiMod);
+		  ribbons_[previousRibbonId]->addModule(minPhiMod);
+		  minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+		}
 	      }
-
-	      // Assign the module with the biggest phi to the next phi region
-	      else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
-
-		Module* maxPhiMod = r.second->maxPhiModule();
-		ribbons_[ribbonId]->removeModule(maxPhiMod);
-		ribbons_[nextRibbonId]->addModule(maxPhiMod);
-		maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
-	      }
-
-	      // Assign the module with the lowest phi to the previous phi region
-	      else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
-
-		Module* minPhiMod = r.second->minPhiModule();
-		ribbons_[ribbonId]->removeModule(minPhiMod);
-		ribbons_[previousRibbonId]->addModule(minPhiMod);
-		minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
-	      }
+	      else { std::cout << "Error building previousRibbonId or nextRibbonId" << std::endl; }
 
 	    }
 	  }
 	}
 
 
-
+	// CHECK
 	for (auto& r : ribbons_) {
 	  if (r.second->numModules() > 12) {
 	    std::cout << "There was an error while staggering ribbons. Rbbon " 
