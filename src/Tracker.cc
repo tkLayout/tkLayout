@@ -364,9 +364,11 @@ void Tracker::buildCabling() {
 
       std::string type;
       int typeIndex;
-      int phiRef;
+      int phiRegionRef;
       int phiSelect;
       int side;
+
+      const double phiSectorWidth = 40. * M_PI / 180.;
   
       int ribbonId;
       int ribbonFlatId;
@@ -388,15 +390,16 @@ void Tracker::buildCabling() {
       }
 
       void visit(RodPair& r) {
-	//isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
-	double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
-	phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);	
+	double startPhi = femod( r.Phi(), (2 * M_PI / numRods));
+	double phiRegionWidth = (2*M_PI) / numRods;
+	phiRegionRef = round(femod(r.Phi() - startPhi, 2*M_PI) / phiRegionWidth);
+	int phiSectorRef = round(femod(r.Phi() - startPhi, 2*M_PI) / phiSectorWidth);	
 
 	// Create 2S ribbons
 	if (barrelName == "TB2S") {
-	  ribbonId = 10000 + layerNumber * 1000 + phiRef * 10;
+	  ribbonId = 10000 + layerNumber * 1000 + phiRegionRef * 10;
 	  type = "2S";
-	  Ribbon ribbon(ribbonId, type);
+	  Ribbon ribbon(ribbonId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
 	}
 
@@ -407,22 +410,22 @@ void Tracker::buildCabling() {
 	  // Flat part
 	  phiSelect = layerNumber % 2;
 	  // standard case
-	  if (phiRef % 2 == phiSelect) {
-	    ribbonFlatId = 10000 + layerNumber * 1000 + phiRef * 10 + 1;
-	    Ribbon ribbonFlat(ribbonFlatId, type);
+	  if ( (phiRegionRef + 1) % 2 == phiSelect) {
+	    ribbonFlatId = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 1;
+	    Ribbon ribbonFlat(ribbonFlatId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    ribbons_.insert(std::make_pair(ribbonFlatId, &ribbonFlat));
 
 	    // For layer 3, need to add a second ribbon for flat part
 	    if (numFlatRings > 12) {
-	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiRef * 10 + 2;
-	      Ribbon ribbonFlatB(ribbonFlatIdB, type);
+	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 2;
+	      Ribbon ribbonFlatB(ribbonFlatIdB, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	      ribbons_.insert(std::make_pair(ribbonFlatIdB, &ribbonFlatB));
 	    }
 	  }
 
 	  // Tilted part
-	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiRef * 10;	  
-	  Ribbon ribbonTilted(ribbonTiltedId, type);
+	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiRegionRef * 10;	  
+	  Ribbon ribbonTilted(ribbonTiltedId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbons_.insert(std::make_pair(ribbonTiltedId, &ribbonTilted));	 
 	}
       }
@@ -445,7 +448,7 @@ void Tracker::buildCabling() {
 	else if (barrelName == "TBPS") {
 
 	  // flat modules
-	  if (!m.isTilted() && (phiRef % 2 == phiSelect)) {
+	  if (!m.isTilted() && ( (phiRegionRef + 1) % 2 == phiSelect)) {
 	    // standard case
 	    if (numFlatRings <= 12) {
 	      m.setRibbonId(ribbonFlatId);
@@ -510,29 +513,31 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	double startAngle;
+	double startPhi;
 	double phiRegionWidth;
 
 	if (type == "PS10G" || type == "PS5GA") {
-	  startAngle = 0.;
+	  startPhi = 0.;
 	  phiRegionWidth = 40. * M_PI / 180.;
 	}
 
 	else if (type == "PS5GB") {
-	  startAngle = 0.;
+	  startPhi = 0.;
 	  phiRegionWidth = 20. * M_PI / 180.;
 	}
 
 	else if (type == "2S") {
-	  startAngle = 0.;
+	  startPhi = 0.;
 	  phiRegionWidth = 360. / 27. * M_PI / 180.;
 	}
 
-	phiRef = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / phiRegionWidth);	  
-	ribbonId = 20000 + diskNumber * 1000 + phiRef * 10 + typeIndex;
+	phiRegionRef = round(femod(m.center().Phi() - startPhi, 2*M_PI) / phiRegionWidth);	  
+	ribbonId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+
+	int phiSectorRef = round(femod(m.center().Phi() - startPhi, 2*M_PI) / phiSectorWidth);
 
 	if (ribbons_.count(ribbonId) == 0) {
-	  Ribbon ribbon(ribbonId, type);
+	  Ribbon ribbon(ribbonId, type, endcapName, diskNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbon.addModule(m);
 	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
 	}
@@ -541,7 +546,80 @@ void Tracker::buildCabling() {
       }
 
 
-      
+
+
+
+      void postVisit() {
+	for (auto& r : ribbons_) {
+	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
+
+	    while (r.second->numModules() > 12) {
+	      diskNumber = r.second->layerDiskNumber();
+
+	      type = r.second->type();
+	      if (type == "PS10G") typeIndex = 0;
+	      else if (type == "PS5GA") typeIndex = 1;
+	      else if (type == "PS5GB") typeIndex = 2;
+	      else if (type == "2S") typeIndex = 3;
+
+	      int phiRegionRef = r.second->phiRegionRef();
+	      int nextPhiRegionRef = phiRegionRef + 1;
+	      int previousPhiRegionRef = phiRegionRef - 1;
+
+	      int ribbonId = r.first;
+	      int nextRibbonId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
+	      int previousRibbonId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
+
+
+	      double startPhi = r.second->startPhi();
+	      double phiRegionWidth = r.second->phiRegionWidth();
+
+	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) - startPhi );
+	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
+
+
+	      if (ribbons_[previousRibbonId]->numModules() > 12 && ribbons_[nextRibbonId]->numModules() > 12) {
+		std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
+			  << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
+			  << std::endl;
+	      }
+
+	      // Assign the module with the biggest phi to the next phi region
+	      else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
+
+		Module& maxPhiMod = r.second->maxPhiModule();
+		ribbons_[ribbonId]->removeModule(maxPhiMod);
+		ribbons_[nextRibbonId]->addModule(maxPhiMod);
+		maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+	      }
+
+	      // Assign the module with the lowest phi to the previous phi region
+	      else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
+
+		Module& minPhiMod = r.second->minPhiModule();
+		ribbons_[ribbonId]->removeModule(minPhiMod);
+		ribbons_[previousRibbonId]->addModule(minPhiMod);
+		minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+	      }
+
+	    }
+	  }
+	}
+
+
+
+	for (auto& r : ribbons_) {
+	  if (r.second->numModules() > 12) {
+	    std::cout << "There was an error while staggering ribbons. Rbbon " 
+		      << r.first << " is connected to " << r.second->numModules() << " modules." 
+		      << std::endl;
+	  }
+	}
+
+
+
+      }
+
 
 
 
@@ -552,6 +630,7 @@ void Tracker::buildCabling() {
 
  ModulesToRibbonsBuilder ribbonsBuilder;
  accept(ribbonsBuilder);
+ ribbonsBuilder.postVisit();
  ribbons_ = ribbonsBuilder.getRibbons();
 
 
