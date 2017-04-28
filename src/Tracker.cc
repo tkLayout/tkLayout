@@ -440,7 +440,7 @@ void Tracker::buildCabling() {
 	if (barrelName == "TB2S") {
 	  if (side > 0) {
 	    m.setRibbonId(ribbonId);
-	    ribbons_[ribbonId]->addModule(m);
+	    ribbons_[ribbonId]->addModule(&m);
 	  }
 	}
 
@@ -452,16 +452,16 @@ void Tracker::buildCabling() {
 	    // standard case
 	    if (numFlatRings <= 12) {
 	      m.setRibbonId(ribbonFlatId);
-	      ribbons_[ribbonFlatId]->addModule(m);
+	      ribbons_[ribbonFlatId]->addModule(&m);
 	    }
 	    // For layer 3, need to add a second ribbon for flat part
 	    else {
 	      if (side > 0) {
 		m.setRibbonId(ribbonFlatId);
-		ribbons_[ribbonFlatId]->addModule(m);
+		ribbons_[ribbonFlatId]->addModule(&m);
 	      } else {
 		m.setRibbonId(ribbonFlatIdB);
-		ribbons_[ribbonFlatIdB]->addModule(m);
+		ribbons_[ribbonFlatIdB]->addModule(&m);
 	      }
 	    }
 	  }
@@ -469,7 +469,7 @@ void Tracker::buildCabling() {
 	  // tilted modules
 	  else if (m.isTilted() && side > 0) {
 	    m.setRibbonId(ribbonTiltedId);
-	    ribbons_[ribbonTiltedId]->addModule(m);
+	    ribbons_[ribbonTiltedId]->addModule(&m);
 	  }
 
 	}
@@ -538,10 +538,10 @@ void Tracker::buildCabling() {
 
 	if (ribbons_.count(ribbonId) == 0) {
 	  Ribbon ribbon(ribbonId, type, endcapName, diskNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbon.addModule(m);
+	  ribbon.addModule(&m);
 	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
 	}
-	else ribbons_[ribbonId]->addModule(m);	 
+	else ribbons_[ribbonId]->addModule(&m);	 
 	m.setRibbonId(ribbonId);
       }
 
@@ -554,25 +554,28 @@ void Tracker::buildCabling() {
 	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
 
 	    while (r.second->numModules() > 12) {
-	      diskNumber = r.second->layerDiskNumber();
+	      int diskNumber = r.second->layerDiskNumber();
 
-	      type = r.second->type();
+	      std::string type = r.second->type();
 	      if (type == "PS10G") typeIndex = 0;
 	      else if (type == "PS5GA") typeIndex = 1;
 	      else if (type == "PS5GB") typeIndex = 2;
 	      else if (type == "2S") typeIndex = 3;
 
+	      double startPhi = r.second->startPhi();
+	      double phiRegionWidth = r.second->phiRegionWidth();
+	      int numPhiRegions = round(2 * M_PI / phiRegionWidth);
+
 	      int phiRegionRef = r.second->phiRegionRef();
-	      int nextPhiRegionRef = phiRegionRef + 1;
-	      int previousPhiRegionRef = phiRegionRef - 1;
+	      int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
+	      int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
 	      int ribbonId = r.first;
 	      int nextRibbonId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
 	      int previousRibbonId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
 
-	      double startPhi = r.second->startPhi();
-	      double phiRegionWidth = r.second->phiRegionWidth();
+	      
 
 	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) - startPhi );
 	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
@@ -587,7 +590,7 @@ void Tracker::buildCabling() {
 	      // Assign the module with the biggest phi to the next phi region
 	      else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
 
-		Module& maxPhiMod = r.second->maxPhiModule();
+		Module* maxPhiMod = r.second->maxPhiModule();
 		ribbons_[ribbonId]->removeModule(maxPhiMod);
 		ribbons_[nextRibbonId]->addModule(maxPhiMod);
 		maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
@@ -596,7 +599,7 @@ void Tracker::buildCabling() {
 	      // Assign the module with the lowest phi to the previous phi region
 	      else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
 
-		Module& minPhiMod = r.second->minPhiModule();
+		Module* minPhiMod = r.second->minPhiModule();
 		ribbons_[ribbonId]->removeModule(minPhiMod);
 		ribbons_[previousRibbonId]->addModule(minPhiMod);
 		minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
