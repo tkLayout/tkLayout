@@ -31,14 +31,38 @@ public:
     type_ = type;
   };
 
-  std::string getType() { return type_; }
+  const std::string getType() const { return type_; }
 
   void addModule(Module& m) { modules_.push_back(&m); }
   const Container& modules() const { return modules_; }
 
+  //void removeModule(int detId) { modules_.erase_if([&](Module* m) { return (m->myDetId() == detId); } ); }
 
+  int numModules() const { return modules_.size(); }
 
+  const double minPhi() const { 
+    double min = std::numeric_limits<double>::max();
+    for (const auto& m : modules_) { min = MIN(min, femod(m->center().Phi(), 2. * M_PI) ); } return min;
+  }
 
+  const double maxPhi() const { 
+    double max = 0.;
+    for (const auto& m : modules_) { max = MAX(max, femod(m->center().Phi(), 2. * M_PI) ); } return max;
+  }
+
+  const Module* minPhiModule() const {
+    return *std::min_element(modules_.begin(), modules_.end(), [&](Module* a, Module* b) {
+	return (femod(a->center().Phi(), 2. * M_PI) < femod(b->center().Phi(), 2. * M_PI));
+      });
+  }
+
+  const Module* maxPhiModule() const {
+    return *std::max_element(modules_.begin(), modules_.end(), [&](Module* a, Module* b) {
+	return (femod(a->center().Phi(), 2. * M_PI) < femod(b->center().Phi(), 2. * M_PI));
+      });
+  }
+
+  
 
 
   /*Ribbon() :

@@ -353,14 +353,21 @@ void Tracker::buildCabling() {
   try {
     
     class ModulesToRibbonsBuilder : public GeometryVisitor {  
-      std::string barrelName;
+      std::string barrelName;     
       int layerNumber;
       int numRods;
-      int numFlatRings;
+      int numFlatRings;   
+
+      std::string endcapName;
+      int diskNumber;
+      int ringNumber;
+
+      std::string type;
+      int typeIndex;
       int phiRef;
       int phiSelect;
       int side;
-
+  
       int ribbonId;
       int ribbonFlatId;
       int ribbonFlatIdB;
@@ -371,9 +378,7 @@ void Tracker::buildCabling() {
     public:
       void visit(Barrel& b) {
 	barrelName = b.myid();	
-	
       }
-
 
       void visit(Layer& l) {
 	layerNumber = l.layerNumber();
@@ -382,13 +387,10 @@ void Tracker::buildCabling() {
 	numFlatRings = l.buildNumModulesFlat();
       }
 
-
       void visit(RodPair& r) {
 	//isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
 	double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
-	phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
-
-	std::string type;
+	phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);	
 
 	// Create 2S ribbons
 	if (barrelName == "TB2S") {
@@ -399,7 +401,7 @@ void Tracker::buildCabling() {
 	}
 
 	// Create PS ribbons
-	if (barrelName == "TBPS") {
+	else if (barrelName == "TBPS") {
 	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
 
 	  // Flat part
@@ -423,16 +425,12 @@ void Tracker::buildCabling() {
 	  Ribbon ribbonTilted(ribbonTiltedId, type);
 	  ribbons_.insert(std::make_pair(ribbonTiltedId, &ribbonTilted));	 
 	}
-     
-
       }
       
-
       void visit(Module& m) {
 	side = m.uniRef().side;
       }
-
-
+     
       void visit(BarrelModule& m) {
 
 	// Connect modules to 2S ribbons
@@ -444,7 +442,7 @@ void Tracker::buildCabling() {
 	}
 
 	// Connect modules to PS ribbons
-	if (barrelName == "TBPS") {
+	else if (barrelName == "TBPS") {
 
 	  // flat modules
 	  if (!m.isTilted() && (phiRef % 2 == phiSelect)) {
@@ -466,33 +464,85 @@ void Tracker::buildCabling() {
 	  }
 
 	  // tilted modules
-	  if (m.isTilted() && side > 0) {
+	  else if (m.isTilted() && side > 0) {
 	    m.setRibbonId(ribbonTiltedId);
 	    ribbons_[ribbonTiltedId]->addModule(m);
 	  }
 
-
-
-
 	}
-
-
-
-
-
       }
 
 
 
 
 
-      void visit(Endcap& e) {  }
+      void visit(Endcap& e) { 
+	endcapName = e.myid();
+      }
 
-      void visit(Disk& d) {}
+      void visit(Disk& d) {
+	diskNumber = d.diskNumber();
+      }
 
-      void visit(Ring& r)   { }
+      void visit(Ring& r)   { 
+	ringNumber = r.myid();
 
-      void visit(EndcapModule& m) { }
+	if (endcapName == "TEDD_1") {
+	  if (ringNumber <= 4) type = "PS10G";
+	  else if (ringNumber >= 5 && ringNumber <= 7) type = "PS5GA";
+	  else if (ringNumber >= 8 && ringNumber <= 10) type = "PS5GB";
+	  else if (ringNumber >= 11) type = "2S";
+	}
+
+	else if (endcapName == "TEDD_2") {
+	  if (ringNumber <= 3) type = "null";
+	  else if (ringNumber >= 4 && ringNumber <= 6) type = "PS5GA";
+	  else if (ringNumber >= 7 && ringNumber <= 10) type = "PS5GB";
+	  else if (ringNumber >= 11) type = "2S";
+	}
+
+	if (type == "PS10G") typeIndex = 0;
+	else if (type == "PS5GA") typeIndex = 1;
+	else if (type == "PS5GB") typeIndex = 2;
+	else if (type == "2S") typeIndex = 3;
+
+      }
+
+
+      void visit(EndcapModule& m) {
+	double startAngle;
+	double phiRegionWidth;
+
+	if (type == "PS10G" || type == "PS5GA") {
+	  startAngle = 0.;
+	  phiRegionWidth = 40. * M_PI / 180.;
+	}
+
+	else if (type == "PS5GB") {
+	  startAngle = 0.;
+	  phiRegionWidth = 20. * M_PI / 180.;
+	}
+
+	else if (type == "2S") {
+	  startAngle = 0.;
+	  phiRegionWidth = 360. / 27. * M_PI / 180.;
+	}
+
+	phiRef = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / phiRegionWidth);	  
+	ribbonId = 20000 + diskNumber * 1000 + phiRef * 10 + typeIndex;
+
+	if (ribbons_.count(ribbonId) == 0) {
+	  Ribbon ribbon(ribbonId, type);
+	  ribbon.addModule(m);
+	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
+	}
+	else ribbons_[ribbonId]->addModule(m);	 
+	m.setRibbonId(ribbonId);
+      }
+
+
+      
+
 
 
       std::map<int, Ribbon*> getRibbons() { return ribbons_; }
