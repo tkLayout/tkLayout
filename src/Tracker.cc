@@ -583,7 +583,7 @@ void Tracker::buildCabling() {
 
 	      if (ribbons_.count(previousRibbonId) != 0 && ribbons_.count(nextRibbonId) != 0) {
 		// Cannot assign the extra module : both neighbouring phi regions are full !
-		if (ribbons_[previousRibbonId]->numModules() > 12 && ribbons_[nextRibbonId]->numModules() > 12) {
+		if (ribbons_[previousRibbonId]->numModules() >= 12 && ribbons_[nextRibbonId]->numModules() >= 12) {
 		  std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
 			    << std::endl;
@@ -591,22 +591,28 @@ void Tracker::buildCabling() {
 		}
 
 		// Assign the module with the biggest phi to the next phi region
-		else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << "from phiRegionRef " << phiRegionRef 
+		else if (ribbons_[previousRibbonId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
+		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
 			    << ", adding it to the next region." 
 			    << std::endl;
+		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
+		  std::cout << "ribbons_[nextRibbonId]->numModules = " << ribbons_[nextRibbonId]->numModules() << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
+		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;
 		  ribbons_[ribbonId]->removeModule(maxPhiMod);		  
 		  ribbons_[nextRibbonId]->addModule(maxPhiMod);
 		  maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
-		else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << "from phiRegionRef " << phiRegionRef 
+		else if (ribbons_[nextRibbonId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
+		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
 			    << ", adding it to the previous region." 
 			    << std::endl;
+		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
+		  std::cout << "ribbons_[previousRibbonId]->numModules = " << ribbons_[previousRibbonId]->numModules() << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
+		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;
 		  ribbons_[ribbonId]->removeModule(minPhiMod);
 		  ribbons_[previousRibbonId]->addModule(minPhiMod);
 		  minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
