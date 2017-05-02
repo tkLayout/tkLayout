@@ -547,11 +547,17 @@ void Tracker::buildCabling() {
 
 
 
-
-
       void postVisit() {
-
 	// STAGGER RIBBONS
+	staggerRibbons();
+
+	// CHECK
+	checkModulesToRibbonsConnections();
+      }
+
+
+      void staggerRibbons() {
+
 	for (auto& r : ribbons_) {
 	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
 
@@ -601,7 +607,7 @@ void Tracker::buildCabling() {
 		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;
 		  ribbons_[ribbonId]->removeModule(maxPhiMod);		  
 		  ribbons_[nextRibbonId]->addModule(maxPhiMod);
-		  maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+		  maxPhiMod->setRibbonId(nextRibbonId);
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
@@ -615,7 +621,7 @@ void Tracker::buildCabling() {
 		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;
 		  ribbons_[ribbonId]->removeModule(minPhiMod);
 		  ribbons_[previousRibbonId]->addModule(minPhiMod);
-		  minPhiMod->setRibbonId(previousRibbonId); // !!!!!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
+		  minPhiMod->setRibbonId(previousRibbonId);
 		}
 	      }
 	      else { std::cout << "Error building previousRibbonId or nextRibbonId" << std::endl; }
@@ -624,39 +630,46 @@ void Tracker::buildCabling() {
 	  }
 	}
 
+      }
 
-	// CHECK
+
+
+      void checkModulesToRibbonsConnections() {
 	for (auto& r : ribbons_) {
 	  if (r.second->numModules() > 12) {
-	    std::cout << "There was an error while staggering ribbons. Rbbon " 
+	    std::cout << "There was an error while staggering ribbons. Ribbon " 
 		      << r.first << " is connected to " << r.second->numModules() << " modules." 
 		      << std::endl;
 	  }
 	}
-
-
-
-	}
-
-
+      }
 
 
       std::map<int, Ribbon*> getRibbons() { return ribbons_; }
     };
 
 
-
- ModulesToRibbonsBuilder ribbonsBuilder;
- accept(ribbonsBuilder);
- ribbonsBuilder.postVisit();
- ribbons_ = ribbonsBuilder.getRibbons();
-
-
+    // MODULES TO RIBBONS
+    ModulesToRibbonsBuilder ribbonsBuilder;
+    accept(ribbonsBuilder);
+    ribbonsBuilder.postVisit();
+    ribbons_ = ribbonsBuilder.getRibbons();
 
 
+    // RIBBONS TO CABLES
+    connectRibbonsToCables();
 
-
-    }
+  }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+}
+
+
+
+
+
+void Tracker::connectRibbonsToCables() {
+
+
+
 }

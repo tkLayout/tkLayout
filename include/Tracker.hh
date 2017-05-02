@@ -152,6 +152,7 @@ public:
 
   void build();
   void buildCabling();
+  void connectRibbonsToCables();
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }
