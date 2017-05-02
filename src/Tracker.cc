@@ -549,7 +549,7 @@ void Tracker::buildCabling() {
 
 
 
-      /* void postVisit() {
+      void postVisit() {
 
 	// STAGGER RIBBONS
 	for (auto& r : ribbons_) {
@@ -587,20 +587,25 @@ void Tracker::buildCabling() {
 		  std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
 			    << std::endl;
+		  break;
 		}
 
 		// Assign the module with the biggest phi to the next phi region
 		else if (ribbons_[previousRibbonId]->numModules() > 12 || maxPhiBorder <= minPhiBorder) {
-
+		  std::cout << "Removing module in disk " << diskNumber << "from phiRegionRef " << phiRegionRef 
+			    << ", adding it to the next region." 
+			    << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
-		  ribbons_[ribbonId]->removeModule(maxPhiMod);
+		  ribbons_[ribbonId]->removeModule(maxPhiMod);		  
 		  ribbons_[nextRibbonId]->addModule(maxPhiMod);
 		  maxPhiMod->setRibbonId(nextRibbonId);  // !!!!!!! ERROR : obviously doesnt change the ribbonId in the tracker modules
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
 		else if (ribbons_[nextRibbonId]->numModules() > 12 || minPhiBorder < maxPhiBorder) {
-
+		  std::cout << "Removing module in disk " << diskNumber << "from phiRegionRef " << phiRegionRef 
+			    << ", adding it to the previous region." 
+			    << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
 		  ribbons_[ribbonId]->removeModule(minPhiMod);
 		  ribbons_[previousRibbonId]->addModule(minPhiMod);
@@ -625,7 +630,7 @@ void Tracker::buildCabling() {
 
 
 
-	}*/
+	}
 
 
 
@@ -637,7 +642,7 @@ void Tracker::buildCabling() {
 
  ModulesToRibbonsBuilder ribbonsBuilder;
  accept(ribbonsBuilder);
- //ribbonsBuilder.postVisit();
+ ribbonsBuilder.postVisit();
  ribbons_ = ribbonsBuilder.getRibbons();
 
 

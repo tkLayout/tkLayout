@@ -29,32 +29,16 @@ class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>
 
 
   typedef PtrVector<Module> Container;
+  //typedef PtrSet<Module> Container;
   //typedef std::vector<Module*> Container;
   Container modules_;
 
   //Property<int, Default> nModulesPerRibbon;
 
 public:
-  /*Property<std::string, AutoDefault> type;
-  Property<std::string, AutoDefault> subDetectorName;
-  Property<int, AutoDefault> layerDiskNumber;
-
-  Property<double, AutoDefault> startPhi;
-  Property<double, AutoDefault> phiRegionWidth;
-  Property<int, AutoDefault> phiRegionRef;
-  Property<double, AutoDefault> phiSectorWidth;
-  Property<int, AutoDefault> phiSectorRef;*/
 
   Ribbon(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double startPhi, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
     myid(id);
-    /*type_ = type;
-
-    startPhi_ = startPhi;
-    phiRegionWidth_ = phiRegionWidth;
-    phiRegionRef_ = phiRegionRef;
-    const double phiSectorWidth_ = phiSectorWidth;
-    phiSectorRef_ = phiSectorRef;*/
-
 
     type_ = type;
     subDetectorName_ = subDetectorName;
@@ -81,40 +65,41 @@ public:
 
 
 
-  //const std::string getType() const { return type_; }
-
   void addModule(Module* m) { modules_.push_back(m); }
   const Container& modules() const { return modules_; }
 
-  /*void removeModule(Module* m) {
+  void removeModule(Module* m) {
     int detId = m->myDetId();
-    modules_.erase(std::remove_if(modules_.begin(), modules_.end(), [&](Module* a) { return (a->myDetId() == detId); } ), modules_.end()); 
+    modules_.erase_if([detId](Module& m) { return (m.myDetId() == detId); });
   }
 
   int numModules() const { return modules_.size(); }
 
   const double minPhi() const { 
     double min = std::numeric_limits<double>::max();
-    for (const auto& m : modules_) { min = MIN(min, femod(m->center().Phi(), 2. * M_PI) ); } return min;
+    for (const auto& m : modules_) { min = MIN(min, femod(m.center().Phi(), 2. * M_PI) ); } return min;
   }
 
   const double maxPhi() const { 
     double max = 0.;
-    for (const auto& m : modules_) { max = MAX(max, femod(m->center().Phi(), 2. * M_PI) ); } return max;
+    for (const auto& m : modules_) { max = MAX(max, femod(m.center().Phi(), 2. * M_PI) ); } return max;
   }
 
   Module* minPhiModule() const {
-    return *std::min_element(modules_.begin(), modules_.end(), [&](Module* a, Module* b) {
-	return (femod(a->center().Phi(), 2. * M_PI) <= femod(b->center().Phi(), 2. * M_PI));
-      });
+    const Module* mod = &(*std::min_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
+	return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
+	}));
+    Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
+    return mod2;
   }
 
   Module* maxPhiModule() const {
-    return *std::max_element(modules_.begin(), modules_.end(), [&](Module* a, Module* b) {
-	return (femod(a->center().Phi(), 2. * M_PI) <= femod(b->center().Phi(), 2. * M_PI));
-      });
-      }*/
-
+    const Module* mod = &(*std::max_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
+	  return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
+	}));
+    Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
+    return mod2;
+  }
   
 
 
