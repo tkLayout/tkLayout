@@ -399,8 +399,8 @@ void Tracker::buildCabling() {
 	if (barrelName == "TB2S") {
 	  ribbonId = 10000 + layerNumber * 1000 + phiRegionRef * 10;
 	  type = "2S";
-	  Ribbon ribbon(ribbonId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
+	  Ribbon* ribbon = GeometryFactory::make<Ribbon>(ribbonId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  ribbons_.insert(std::make_pair(ribbonId, ribbon));
 	}
 
 	// Create PS ribbons
@@ -412,21 +412,21 @@ void Tracker::buildCabling() {
 	  // standard case
 	  if ( (phiRegionRef + 1) % 2 == phiSelect) {
 	    ribbonFlatId = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 1;
-	    Ribbon ribbonFlat(ribbonFlatId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	    ribbons_.insert(std::make_pair(ribbonFlatId, &ribbonFlat));
+	    Ribbon* ribbonFlat = GeometryFactory::make<Ribbon>(ribbonFlatId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    ribbons_.insert(std::make_pair(ribbonFlatId, ribbonFlat));
 
 	    // For layer 3, need to add a second ribbon for flat part
 	    if (numFlatRings > 12) {
 	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 2;
-	      Ribbon ribbonFlatB(ribbonFlatIdB, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	      ribbons_.insert(std::make_pair(ribbonFlatIdB, &ribbonFlatB));
+	      Ribbon* ribbonFlatB = GeometryFactory::make<Ribbon>(ribbonFlatIdB, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	      ribbons_.insert(std::make_pair(ribbonFlatIdB, ribbonFlatB));
 	    }
 	  }
 
 	  // Tilted part
 	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiRegionRef * 10;	  
-	  Ribbon ribbonTilted(ribbonTiltedId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbons_.insert(std::make_pair(ribbonTiltedId, &ribbonTilted));	 
+	  Ribbon* ribbonTilted = GeometryFactory::make<Ribbon>(ribbonTiltedId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  ribbons_.insert(std::make_pair(ribbonTiltedId, ribbonTilted));	 
 	}
       }
       
@@ -537,9 +537,9 @@ void Tracker::buildCabling() {
 	int phiSectorRef = round(femod(m.center().Phi() - startPhi, 2*M_PI) / phiSectorWidth);
 
 	if (ribbons_.count(ribbonId) == 0) {
-	  Ribbon ribbon(ribbonId, type, endcapName, diskNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbon.addModule(&m);
-	  ribbons_.insert(std::make_pair(ribbonId, &ribbon));
+	  Ribbon* ribbon = GeometryFactory::make<Ribbon>(ribbonId, type, endcapName, diskNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  ribbon->addModule(&m);
+	  ribbons_.insert(std::make_pair(ribbonId, ribbon));
 	}
 	else ribbons_[ribbonId]->addModule(&m);	 
 	m.setRibbonId(ribbonId);
@@ -549,7 +549,7 @@ void Tracker::buildCabling() {
 
 
 
-      void postVisit() {
+      /* void postVisit() {
 
 	// STAGGER RIBBONS
 	for (auto& r : ribbons_) {
@@ -625,7 +625,7 @@ void Tracker::buildCabling() {
 
 
 
-      }
+	}*/
 
 
 
@@ -637,7 +637,7 @@ void Tracker::buildCabling() {
 
  ModulesToRibbonsBuilder ribbonsBuilder;
  accept(ribbonsBuilder);
- ribbonsBuilder.postVisit();
+ //ribbonsBuilder.postVisit();
  ribbons_ = ribbonsBuilder.getRibbons();
 
 

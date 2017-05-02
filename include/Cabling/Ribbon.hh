@@ -16,7 +16,7 @@ using std::pair;
 using std::unique_ptr;*/
 
 //class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
-class Ribbon : public PropertyObject, public Identifiable<int> {
+class Ribbon : public PropertyObject, public Buildable, public Identifiable<int> {
   std::string type_;
   std::string subDetectorName_;
   int layerDiskNumber_;
@@ -28,8 +28,8 @@ class Ribbon : public PropertyObject, public Identifiable<int> {
   int phiSectorRef_;
 
 
-  //typedef PtrVector<Module> Container;
-  typedef std::vector<Module*> Container;
+  typedef PtrVector<Module> Container;
+  //typedef std::vector<Module*> Container;
   Container modules_;
 
   //Property<int, Default> nModulesPerRibbon;
@@ -86,7 +86,7 @@ public:
   void addModule(Module* m) { modules_.push_back(m); }
   const Container& modules() const { return modules_; }
 
-  void removeModule(Module* m) {
+  /*void removeModule(Module* m) {
     int detId = m->myDetId();
     modules_.erase(std::remove_if(modules_.begin(), modules_.end(), [&](Module* a) { return (a->myDetId() == detId); } ), modules_.end()); 
   }
@@ -113,7 +113,7 @@ public:
     return *std::max_element(modules_.begin(), modules_.end(), [&](Module* a, Module* b) {
 	return (femod(a->center().Phi(), 2. * M_PI) <= femod(b->center().Phi(), 2. * M_PI));
       });
-  }
+      }*/
 
   
 
