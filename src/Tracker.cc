@@ -668,8 +668,48 @@ void Tracker::buildCabling() {
 
 
 
+
 void Tracker::connectRibbonsToCables() {
 
+  for (auto& r : ribbons_) {
+    int phiSectorRef = r.second->phiSectorRef();
+    double phiSectorWidth = r.second->phiSectorWidth();
+
+    std::string type = r.second->type();
+    if (type == "PS5GA" || type == "PS5GB") type = "PS5G";
+
+    int typeIndex;
+    if (type == "PS10G") typeIndex = 0;
+    else if (type == "PS5G") typeIndex = 1;
+    else if (type == "2S") typeIndex = 2;
 
 
+    std::string subDetectorName = r.second->subDetectorName();
+    int layerDiskNumber = r.second->layerDiskNumber();
+
+
+    if (type == "PS10G") {
+      if (subDetectorName == "TBPS" || (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_1" && layerDiskNumber == 2)) {
+	int cableId = phiSectorRef * 100 + typeIndex * 10 + 1;
+
+	if (cables_.count(cableId) == 0) {
+	  Cable* cable = GeometryFactory::make<Cable>(cableId, type, phiSectorWidth, phiSectorRef);
+	  cable->addRibbon(r.second);
+	  cables_.insert(std::make_pair(cableId, cable));
+	}
+	else cables_[cableId]->addRibbon(r.second);
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+  }
 }
