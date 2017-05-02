@@ -76,7 +76,7 @@ private:
   //std::map<uint32_t, Module> modules_;
   std::map<int, Ribbon*> ribbons_;
   std::map<int, Cable*> cables_;
-  std::map<int, DTC*> DTCs_;
+  std::map<std::string, DTC*> DTCs_;
 
   Tracker(const Tracker&) = default;
 public:
@@ -153,6 +153,8 @@ public:
   void build();
   void buildCabling();
   void connectRibbonsToCables();
+  void checkRibbonsToCablesConnections();
+  void connectCablesToDTCs();
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

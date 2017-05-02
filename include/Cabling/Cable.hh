@@ -16,9 +16,10 @@ using std::unique_ptr;*/
 
 //class Cable : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Cable : public PropertyObject, public Buildable, public Identifiable<int> {
-  std::string type_;
   double phiSectorWidth_;
   int phiSectorRef_;
+  std::string type_;
+  int cableIndex_;
 
 
   typedef PtrVector<Ribbon> Container;
@@ -28,17 +29,19 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
 
 public:
 
-  Cable(int id, std::string type, const double phiSectorWidth, int phiSectorRef) {
+  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int cableIndex) {
     myid(id);
-    type_ = type;
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
+    type_ = type;
+    cableIndex_ = cableIndex;    
   };
 
 
   const std::string type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
+  const int cableIndex() const { return cableIndex_; }
 
 
   void addRibbon(Ribbon* r) { ribbons_.push_back(r); }

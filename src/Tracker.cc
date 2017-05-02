@@ -659,6 +659,10 @@ void Tracker::buildCabling() {
 
     // RIBBONS TO CABLES
     connectRibbonsToCables();
+    checkRibbonsToCablesConnections();
+
+    // CABLES TO DTCS
+    connectCablesToDTCs();
 
   }
 
@@ -672,12 +676,16 @@ void Tracker::buildCabling() {
 
 void Tracker::connectRibbonsToCables() {
 
+  // Used to stagger several ribbons
+  std::map<int, int> StripLayer2PhiRegionsCounter;
+  std::map<int, int> StripLayer3PhiRegionsCounter;
+
   for (auto& r : ribbons_) {
     int phiSectorRef = r.second->phiSectorRef();
     double phiSectorWidth = r.second->phiSectorWidth();
 
     std::string ribbonType = r.second->type();
-    std::string cableType == ribbonType;
+    std::string cableType = ribbonType;
     if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
 
     int cableTypeIndex;
@@ -691,8 +699,6 @@ void Tracker::connectRibbonsToCables() {
 
     // Used to stagger several ribbons
     int phiRegionRef = r.second->phiRegionRef();
-    std::map<int, int> 2SLayer2PhiRegionsCounter;
-    std::map<int, int> 2SLayer3PhiRegionsCounter;
 
     // Used to build cableId
     int cableIndex;
@@ -727,23 +733,21 @@ void Tracker::connectRibbonsToCables() {
     }
 
 
-
-
     else if (cableType == "2S") {
       if (subDetectorName == "TB2S" && layerDiskNumber == 1) {
 	cableIndex = 1;
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 2) {
-	2SLayer2PhiRegionsCounter[phiRegionRef] += 1;
-	if (2SLayer2PhiRegionsCounter[phiRegionRef] == 4) cableIndex = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	StripLayer2PhiRegionsCounter[phiRegionRef] += 1;
+	if (StripLayer2PhiRegionsCounter[phiRegionRef] == 4) cableIndex = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	else cableIndex = 2;
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
-	  2SLayer3PhiRegionsCounter[phiRegionRef] += 1;
-	  if (2SLayer3PhiRegionsCounter[phiRegionRef] >= 4) cableIndex = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  StripLayer3PhiRegionsCounter[phiRegionRef] += 1;
+	  if (StripLayer3PhiRegionsCounter[phiRegionRef] >= 4) cableIndex = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	  else cableIndex = 3;
 	}
 	else cableIndex = 4;
@@ -759,16 +763,45 @@ void Tracker::connectRibbonsToCables() {
     }
   
 
-
-
-
+    // BUILD CABLE AND STORES IT
     int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + cableIndex;
 
     if (cables_.count(cableId) == 0) {
-      Cable* cable = GeometryFactory::make<Cable>(cableId, cableType, phiSectorWidth, phiSectorRef);
+      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, cableIndex);
       cable->addRibbon(r.second);
       cables_.insert(std::make_pair(cableId, cable));
     }
     else cables_[cableId]->addRibbon(r.second);
+  }
+}
+
+
+void Tracker::checkRibbonsToCablesConnections() {
+  for (auto& c : cables_) {
+    if (c.second->numRibbons() > 6) {
+      std::cout << "There was an error while staggering ribbons. Cable " 
+		<< c.first << " is connected to " << c.second->numRibbons() << " ribbons." 
+		<< std::endl;
+    }
+  }
+}
+
+
+
+void Tracker::connectCablesToDTCs() {
+  for (auto& c : cables_) {
+    double phiSectorWidth = c.second->phiSectorWidth();
+    int phiSectorRef = c.second->phiSectorRef();
+    std::string cableType = c.second->type();
+    int cableIndex = c.second->cableIndex();
+
+    // BUILD DTC AND STORES IT
+    std::ostringstream nameStream;
+    nameStream << phiSectorRef << "_" << cableType << "_" << cableIndex;
+    std::string name = nameStream.str();
+
+    DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, cableIndex);
+    dtc->addCable(c.second);
+    DTCs_.insert(std::make_pair(name, dtc));
   }
 }

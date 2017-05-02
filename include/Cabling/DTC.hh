@@ -14,7 +14,18 @@ using std::pair;
 using std::unique_ptr;*/
 
 //class DTC : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
-class DTC : public PropertyObject, public Identifiable<int> {
+class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
+  std::string name_;
+
+  double phiSectorWidth_;
+  int phiSectorRef_;
+  std::string type_;
+  int cableIndex_;
+
+
+  typedef PtrVector<Cable> Container;
+  Container cable_;
+
 
   //typedef PtrVector<Cable> Container;
   //Container cables_;
@@ -22,6 +33,28 @@ class DTC : public PropertyObject, public Identifiable<int> {
   //Property<int, Default> nCablesPerDTC;
 
 public:
+
+  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, std::string type, int cableIndex) {
+    name_ = name;
+    phiSectorWidth_ = phiSectorWidth;
+    phiSectorRef_ = phiSectorRef;
+    type_ = type;
+    cableIndex_ = cableIndex;    
+  };
+
+
+  const std::string name() const { return name_; }
+  const std::string type() const { return type_; }
+  const double phiSectorWidth() const { return phiSectorWidth_; }
+  const int phiSectorRef() const { return phiSectorRef_; }
+  const int cableIndex() const { return cableIndex_; }
+
+
+  void addCable(Cable* c) { cable_.push_back(c); }
+  const Container& cable() const { return cable_; }
+
+
+
 
   /*DTC() :
             nCablesPerDTC      ("nCablesPerDTC"      , parsedAndChecked(), 1)
