@@ -675,41 +675,86 @@ void Tracker::connectRibbonsToCables() {
     int phiSectorRef = r.second->phiSectorRef();
     double phiSectorWidth = r.second->phiSectorWidth();
 
-    std::string type = r.second->type();
-    if (type == "PS5GA" || type == "PS5GB") type = "PS5G";
+    std::string ribbonType = r.second->type();
+    std::string cableType == ribbonType;
+    if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
 
-    int typeIndex;
-    if (type == "PS10G") typeIndex = 0;
-    else if (type == "PS5G") typeIndex = 1;
-    else if (type == "2S") typeIndex = 2;
+    int cableTypeIndex;
+    if (cableType == "PS10G") cableTypeIndex = 0;
+    else if (cableType == "PS5G") cableTypeIndex = 1;
+    else if (cableType == "2S") cableTypeIndex = 2;
 
 
     std::string subDetectorName = r.second->subDetectorName();
     int layerDiskNumber = r.second->layerDiskNumber();
 
+    int cableIndex;
 
-    if (type == "PS10G") {
+    if (cableType == "PS10G") {
       if (subDetectorName == "TBPS" || (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_1" && layerDiskNumber == 2)) {
-	int cableId = phiSectorRef * 100 + typeIndex * 10 + 1;
+	cableIndex = 1;
+      }
+    }
 
-	if (cables_.count(cableId) == 0) {
-	  Cable* cable = GeometryFactory::make<Cable>(cableId, type, phiSectorWidth, phiSectorRef);
-	  cable->addRibbon(r.second);
-	  cables_.insert(std::make_pair(cableId, cable));
+
+    else if (cableType == "PS5G") {
+      if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GA") ) {
+	cableIndex = 1;
+      }
+
+      else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GB") ) {
+	if (subDetectorName == "TBPS") {
+	  if (!r.second->isFlatPart()) cableIndex = 2;
+	  else cableIndex = 3;
 	}
-	else cables_[cableId]->addRibbon(r.second);
+	else cableIndex = 3;
+      }
+
+      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
+	cableIndex = 4;
+      }
+
+      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
+	cableIndex = 5;
       }
     }
 
 
 
 
+    else if (cableType == "2S") {
+      if (subDetectorName == "TB2S" && layerDiskNumber == 1) {
+	cableIndex = 1;
+      }
+
+      else if (subDetectorName == "TB2S" && layerDiskNumber == 2) {
+	cableIndex = 2;  // stagger!
+      }
+
+      else if ( (subDetectorName == "TB2S" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
+	cableIndex = 3;  // or 4, stagger !!!!
+      }
+
+      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
+	cableIndex = 5;
+      }
+
+      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
+	cableIndex = 6;
+      }
+    }
+  
 
 
 
 
+    int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + cableIndex;
 
-
-
+    if (cables_.count(cableId) == 0) {
+      Cable* cable = GeometryFactory::make<Cable>(cableId, cableType, phiSectorWidth, phiSectorRef);
+      cable->addRibbon(r.second);
+      cables_.insert(std::make_pair(cableId, cable));
+    }
+    else cables_[cableId]->addRibbon(r.second);
   }
 }
