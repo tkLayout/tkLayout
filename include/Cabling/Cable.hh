@@ -21,6 +21,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   std::string type_;
   int cableIndex_;
 
+  std::string DTCName_;
 
   typedef PtrVector<Ribbon> Container;
   Container ribbons_;
@@ -42,6 +43,9 @@ public:
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int cableIndex() const { return cableIndex_; }
+
+  const std::string DTCName() const { return DTCName_; }
+  void setDTCName(std::string DTCName) { DTCName_ = DTCName; }
 
 
   void addRibbon(Ribbon* r) { ribbons_.push_back(r); }

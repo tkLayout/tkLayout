@@ -27,7 +27,8 @@ class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>
   double phiSectorWidth_;
   int phiSectorRef_;
 
-  bool isTiltedPart_;
+  bool isTiltedPart_ = false;
+  int cableId_ = 0;
 
 
   typedef PtrVector<Module> Container;
@@ -51,8 +52,6 @@ public:
     phiRegionRef_ = phiRegionRef;
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
-
-    isTiltedPart_ = false;
   };
 
   const std::string type() const { return type_; }
@@ -69,6 +68,9 @@ public:
 
   const bool isTiltedPart() const { return isTiltedPart_; }
   void setIsTiltedPart(bool isTiltedPart) { isTiltedPart_ = isTiltedPart; }
+
+  const int cableId() const { return cableId_; }
+  void setCableId(int cableId) { cableId_ = cableId; }
 
 
 

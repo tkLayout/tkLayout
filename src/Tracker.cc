@@ -663,7 +663,6 @@ void Tracker::buildCabling() {
 
     // CABLES TO DTCS
     connectCablesToDTCs();
-
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
@@ -765,6 +764,7 @@ void Tracker::connectRibbonsToCables() {
 
     // BUILD CABLE AND STORES IT
     int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + cableIndex;
+    r.second->setCableId(cableId);
 
     if (cables_.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, cableIndex);
@@ -799,6 +799,7 @@ void Tracker::connectCablesToDTCs() {
     std::ostringstream nameStream;
     nameStream << phiSectorRef << "_" << cableType << "_" << cableIndex;
     std::string name = nameStream.str();
+    c.second->setDTCName(name);
 
     DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, cableIndex);
     dtc->addCable(c.second);

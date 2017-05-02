@@ -22,6 +22,8 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
   std::string type_;
   int cableIndex_;
 
+  int plotColor_;
+
 
   typedef PtrVector<Cable> Container;
   Container cable_;
@@ -39,7 +41,11 @@ public:
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
     type_ = type;
-    cableIndex_ = cableIndex;    
+    cableIndex_ = cableIndex;
+
+    if (type == "PS10G") plotColor_ = cableIndex;
+    else if (type == "PS5G") plotColor_ = 1 + cableIndex;
+    else if (type == "2S") plotColor_ = 6 + cableIndex;  
   };
 
 
@@ -53,6 +59,7 @@ public:
   void addCable(Cable* c) { cable_.push_back(c); }
   const Container& cable() const { return cable_; }
 
+  const int plotColor() const { return plotColor_; }
 
 
 
