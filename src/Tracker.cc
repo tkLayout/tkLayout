@@ -470,6 +470,7 @@ void Tracker::buildCabling() {
 	  else if (m.isTilted() && side > 0) {
 	    m.setRibbonId(ribbonTiltedId);
 	    ribbons_[ribbonTiltedId]->addModule(&m);
+	    ribbons_[ribbonTiltedId]->setIsTiltedPart(true);
 	  }
 
 	}
@@ -688,6 +689,12 @@ void Tracker::connectRibbonsToCables() {
     std::string subDetectorName = r.second->subDetectorName();
     int layerDiskNumber = r.second->layerDiskNumber();
 
+    // Used to stagger several ribbons
+    int phiRegionRef = r.second->phiRegionRef();
+    std::map<int, int> 2SLayer2PhiRegionsCounter;
+    std::map<int, int> 2SLayer3PhiRegionsCounter;
+
+    // Used to build cableId
     int cableIndex;
 
     if (cableType == "PS10G") {
@@ -704,7 +711,7 @@ void Tracker::connectRibbonsToCables() {
 
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
-	  if (!r.second->isFlatPart()) cableIndex = 2;
+	  if (r.second->isTiltedPart()) cableIndex = 2;
 	  else cableIndex = 3;
 	}
 	else cableIndex = 3;
@@ -728,11 +735,18 @@ void Tracker::connectRibbonsToCables() {
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 2) {
-	cableIndex = 2;  // stagger!
+	2SLayer2PhiRegionsCounter[phiRegionRef] += 1;
+	if (2SLayer2PhiRegionsCounter[phiRegionRef] == 4) cableIndex = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	else cableIndex = 2;
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
-	cableIndex = 3;  // or 4, stagger !!!!
+	if (subDetectorName == "TB2S") {
+	  2SLayer3PhiRegionsCounter[phiRegionRef] += 1;
+	  if (2SLayer3PhiRegionsCounter[phiRegionRef] >= 4) cableIndex = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  else cableIndex = 3;
+	}
+	else cableIndex = 4;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
