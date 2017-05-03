@@ -558,15 +558,15 @@ void Tracker::buildCabling() {
 
 
       void postVisit() {
-	// STAGGER RIBBONS
-	staggerRibbons();
+	// STAGGER MODULES
+	staggerModules();
 
 	// CHECK
 	checkModulesToRibbonsConnections();
       }
 
 
-      void staggerRibbons() {
+      void staggerModules() {
 
 	for (auto& r : ribbons_) {
 	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
@@ -647,7 +647,7 @@ void Tracker::buildCabling() {
       void checkModulesToRibbonsConnections() {
 	for (auto& r : ribbons_) {
 	  if (r.second->numModules() > 12) {
-	    std::cout << "There was an error while staggering ribbons. Ribbon " 
+	    std::cout << "There was an error while staggering modules. Ribbon " 
 		      << r.first << " is connected to " << r.second->numModules() << " modules." 
 		      << std::endl;
 	  }

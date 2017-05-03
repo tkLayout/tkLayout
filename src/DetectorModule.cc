@@ -3,6 +3,9 @@
 #include "ModuleCap.hh"
 #include "Cabling/Ribbon.hh"
 
+#include "Cabling/Cable.hh"
+#include "Cabling/DTC.hh"
+
 
 
 void DetectorModule::build() {
@@ -456,6 +459,21 @@ std::string DetectorModule::summaryFullType() const  {
   }
   return result;
 };
+
+const int DetectorModule::dtcPlotColor() const {
+  int dtcPlotColor = 1;
+  const Ribbon* myRibbon = getRibbon();
+  if (myRibbon != NULL) {
+    const Cable* myCable = myRibbon->getCable();
+    if (myCable != NULL) {
+      const DTC* myDTC = myCable->getDTC();
+      if (myDTC != NULL) {
+	dtcPlotColor = myDTC->plotColor();
+      }
+    }
+  }
+  return dtcPlotColor;
+}
 
 //BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
 //setup();

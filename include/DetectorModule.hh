@@ -332,6 +332,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
   void setRibbon(Ribbon* ribbon) { ribbon_ = ribbon ; }
   const Ribbon* getRibbon() const { return ribbon_; }
+  const int dtcPlotColor() const;
 };
 
 

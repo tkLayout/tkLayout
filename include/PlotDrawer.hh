@@ -21,8 +21,6 @@
 
 
 
-
-
 // ========================================================================================
 // Here be STATISTICS
 // If possible, additional statistics should be local to the plot drawer instantiation
@@ -98,7 +96,8 @@ struct TypeAutoColor { // Auto-assign colors
 
 struct Type { // Module-maintained color
   double operator()(const Module& m) {
-    return Palette::color(m.plotColor());
+    //return Palette::color(m.plotColor());
+    return Palette::color(m.dtcPlotColor());
   }
 };
 
