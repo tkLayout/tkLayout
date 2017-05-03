@@ -577,6 +577,9 @@ namespace insur {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, is, site, debugResolution);
       if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");
+
+      v.cablingSummary(a, *tr, site);
+      
       stopTaskClock();
       return true;
     } else {

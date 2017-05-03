@@ -96,7 +96,13 @@ struct TypeAutoColor { // Auto-assign colors
 
 struct Type { // Module-maintained color
   double operator()(const Module& m) {
-    //return Palette::color(m.plotColor());
+    return Palette::color(m.plotColor());
+  }
+};
+
+
+struct TypeDTCColor { // Module-maintained DTC color
+  double operator()(const Module& m) {
     return Palette::color(m.dtcPlotColor());
   }
 };

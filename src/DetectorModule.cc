@@ -461,7 +461,7 @@ std::string DetectorModule::summaryFullType() const  {
 };
 
 const int DetectorModule::dtcPlotColor() const {
-  int dtcPlotColor = 1;
+  int dtcPlotColor = 0;
   const Ribbon* myRibbon = getRibbon();
   if (myRibbon != NULL) {
     const Cable* myCable = myRibbon->getCable();

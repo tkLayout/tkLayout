@@ -1184,6 +1184,155 @@ namespace insur {
   }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+
+    bool isPixelTracker = tracker.isPixelTracker();
+    if (!isPixelTracker) {
+      std::string name = "Outer";
+
+      std::string pageTitle = "Cabling";
+      pageTitle += " (" + name + ")";
+      RootWPage* myPage = new RootWPage(pageTitle);
+
+      std::string pageAddress ="cabling" + name + ".html";
+      myPage->setAddress(pageAddress);
+
+      site.addPage(myPage);
+      RootWContent* myContent;
+
+
+      //********************************//
+      //*                              *//
+      //*       Plots                  *//
+      //*                              *//
+      //********************************//
+      RootWImage* myImage;
+      TCanvas *summaryCanvas = NULL;
+      TCanvas *RZCanvas = NULL;
+      TCanvas *RZCanvasBarrel = NULL;
+      TCanvas *XYCanvas = NULL;
+      std::vector<TCanvas*> XYCanvasesEC;
+      TCanvas *myCanvas = NULL;
+      createSummaryCanvasCablingNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesEC);
+
+      myContent = new RootWContent("Plots");
+      myPage->addContent(myContent);
+
+      if (RZCanvas) {
+	myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
+	myImage->setComment("RZ positions of the modules");
+	myContent->addItem(myImage);
+      }
+      if ((RZCanvasBarrel) && (name == "pixel")) {
+	myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("RZ positions of the barrel modules");
+	myContent->addItem(myImage);
+      }
+      if (XYCanvas) {
+	myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("XY Section of the tracker barrel");
+	myContent->addItem(myImage);
+      }
+      for (auto XYCanvasEC : XYCanvasesEC ) {
+	myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYCanvasEC->GetTitle());
+	myContent->addItem(myImage);
+      }
+
+      // Add detailed geometry info here
+      RootWContent* filesContent = new RootWContent("Cabling files", false);
+      myPage->addContent(filesContent);
+      RootWTextFile* myTextFile;
+      // Barrel coordinates
+      myTextFile = new RootWTextFile(Form("ModulesToDTCs%s.csv", name.c_str()), "Cabling : Modules to DTCs");
+      myTextFile->addText(createBarrelModulesCsv(tracker));
+      filesContent->addItem(myTextFile);
+      /*// Endcap coordinates
+      myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
+      myTextFile->addText(createEndcapModulesCsv(tracker));
+      filesContent->addItem(myTextFile);
+      // All coordinates
+      myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
+      bool withHeader = true;
+      myTextFile->addText(createAllModulesCsv(tracker, withHeader));
+      filesContent->addItem(myTextFile);*/
+
+    }
+    return true;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /**
    * This function draws the profile of hits obtained by the analysis of the geometry
    * together with the summaries in tables with the rootweb library. It also actually does a couple of
@@ -6132,6 +6281,77 @@ namespace insur {
 	}
       }
     }
+  }
+
+
+void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
+                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
+                                        std::vector<TCanvas*> &XYCanvasesEC) {
+
+    double scaleFactor = tracker.maxR()/600;
+
+    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, TypeDTCColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RZCanvasBarrel->cd();
+    PlotDrawer<YZ, TypeDTCColor> yzDrawerBarrel(viewPortMax, viewPortMax);
+    yzDrawerBarrel.addModulesType(tracker, BARREL);
+    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
+    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
+
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModulesType(tracker, BARREL);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+
+    for (auto& anEndcap : tracker.endcaps() ) {
+      TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
+					Form("XY projection of Endcap %s", anEndcap.myid().c_str()),
+					vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      XYCanvasEC->cd();
+      PlotDrawer<XY, TypeDTCColor> xyEndcapDrawer;
+      xyEndcapDrawer.addModules(anEndcap);
+      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+      XYCanvasesEC.push_back(XYCanvasEC);
+    }
+
+    // And now one per disk surface
+    /*for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size()>0) {
+	auto lastDiskIt = anEndcap.disks().end();
+	lastDiskIt--;
+	const Disk& lastDisk = *(lastDiskIt);
+
+	std::vector<std::set<const Module*>> modZ = lastDisk.getModuleSurfaces();
+	int iSurface=0;
+	for (std::set<const Module*>& moduleSet : modZ) {
+	  iSurface++; //for (int iSurface=1; iSurface<=4; ++iSurface) {
+	  TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), iSurface),
+					    Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), iSurface),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasEC->cd();
+	  PlotDrawer<XY, TypeDTCColor> xyEndcapDrawer;
+
+	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+	  xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
+	  XYCanvasesEC.push_back(XYCanvasEC);
+	}
+      }
+    }*/
   }
 
 
