@@ -209,6 +209,9 @@ namespace insur {
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
 
+    std::string createModulesToDTCsCsv(const Tracker& t);
+    std::string createDTCsToModulesCsv(const Tracker& t);
+
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
