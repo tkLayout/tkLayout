@@ -45,7 +45,8 @@ public:
 
     if (type == "PS10G") plotColor_ = cableIndex;
     else if (type == "PS5G") plotColor_ = 1 + cableIndex;
-    else if (type == "2S") plotColor_ = 6 + cableIndex;  
+    else if (type == "2S") plotColor_ = 6 + cableIndex;
+    plotColor_ += 12 * phiSectorRef;
   };
 
 
