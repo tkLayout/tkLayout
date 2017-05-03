@@ -467,14 +467,13 @@ void TrackerSensorVisitor::visit(Sensor& s) {
 std::string TrackerSensorVisitor::output() const { return output_.str(); }
    
 
-
     //************************************//
     //*               Visitor             //
     //*            ModulesToDTCsCsv       //
     //*                                   //
     //************************************//
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Ribbon #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index /I, DTC Phi Sector Width_deg/D," << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Ribbon #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D," << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {

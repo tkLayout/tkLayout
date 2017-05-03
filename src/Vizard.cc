@@ -1260,7 +1260,7 @@ namespace insur {
       }
 
       // Add detailed geometry info here
-      RootWContent* filesContent = new RootWContent("Cabling files", false);
+      RootWContent* filesContent = new RootWContent("Cabling files", true);
       myPage->addContent(filesContent);
       RootWTextFile* myTextFile;
       // Modules to DTCs
@@ -6471,6 +6471,64 @@ namespace insur {
     return detIdsListCsv;
   }
 
+
+  std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker) {
+    ModulesToDTCsVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
+  std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker) {
+    std::stringstream modulesToDTCsCsv;
+    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Ribbon #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::map<std::string, DTC*>& myDTCs = tracker.getDTCs();
+    for (const auto& dtc : myDTCs) {
+      if (dtc.second != NULL) {
+	std::stringstream DTCInfo;
+	DTCInfo << dtc.second->name() << ","
+		<< dtc.second->phiSectorRef() << ","
+		<< dtc.second->type() << ","
+		<< dtc.second->cableIndex() << ","
+		<< std::fixed << std::setprecision(6)
+		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
+
+	const PtrVector<Cable>& myCables = dtc.second->cable();
+	for (const auto& cable : myCables) {
+	  std::stringstream cableInfo;
+	  cableInfo << cable.myid() << ","
+		    << cable.type() << ",";
+
+	  const PtrVector<Ribbon>& myRibbons = cable.ribbons();
+	  for (const auto& ribbon : myRibbons) {
+	    std::stringstream ribbonInfo;
+	    ribbonInfo << ribbon.myid() << ",";
+
+	    const PtrVector<Module>& myModules = ribbon.modules();
+	    for (const auto& module : myModules) {
+	      std::stringstream moduleInfo;
+	      moduleInfo << module.myDetId() << ", "
+			 << module.uniRef().cnt << ", "
+			 << module.uniRef().layer << ", "
+			 << module.moduleRing() << ", "
+			 << module.center().Phi() * 180. / M_PI << ", ";
+	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << ribbonInfo.str() << moduleInfo.str() << std::endl;
+	    }
+	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << ribbonInfo.str() << std::endl;
+	  }
+	  if (myRibbons.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << std::endl;
+	}
+	if (myCables.size() == 0) modulesToDTCsCsv << DTCInfo.str() << std::endl;
+      }
+    }
+    if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
+
+    return modulesToDTCsCsv.str();
+  }
+
+
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
     TEllipse* myEllipse = new TEllipse(0,0,radius);
     if (full) {
@@ -6574,42 +6632,6 @@ namespace insur {
     myContent.addItem(myTextFile);
 
   }
-
-
-  std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker) {
-    ModulesToDTCsVisitor v;
-    v.preVisit();
-    tracker.accept(v);
-    return v.output();
-  }
-
-
-
-
-
-std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker) {
-std::stringstream modulesToDTCsCsv;
-    //header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
-    modulesToDTCsCsv << "DetId/U, Section/C, Layer/I, Ring/I, phi_deg/D" << std::endl;
-
-
-    const set<Module*>& mods = tracker.modules();
-    for (const auto& m : mods) {
-      modulesToDTCsCsv << m->myDetId() << ", "
-		       << m->uniRef().cnt << ", "
-		       << m->uniRef().layer << ", "
-		       << m->moduleRing() << ", "
-		       << m->center().Phi() * 180. / M_PI << ", "
-		       << std::endl;
-
-
-
-
-    }
-
-    return modulesToDTCsCsv.str();
-  }
-
 
 
   // Create an extra tab for XML files linking
