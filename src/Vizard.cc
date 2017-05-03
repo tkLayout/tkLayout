@@ -6320,30 +6320,8 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
-	  std::cout << anEndcap.myid().c_str() << std::endl;
-	  //std::cout << aDisk.myid() << std::endl;
-
-	  int diskId;
-	  if (anEndcap.myid() == "TEDD_1") diskId = aDisk.myid();
-	  else if (anEndcap.myid() == "TEDD_2") diskId = aDisk.myid();
-	  std::cout << diskId << std::endl;
-
-	  std::ostringstream nameStreamA;
-	  nameStreamA << "XYCanvasDisk_" <<  anEndcap.myid() << diskId;// << aDisk.myid();
-	  std::string nameA = nameStreamA.str();
-	  const char* nameAc = nameA.c_str();
-
-	  std::ostringstream nameStreamB;
-	  nameStreamB << "XY projection of Disk "<< anEndcap.myid() << diskId;// << aDisk.myid();
-	  std::string nameB = nameStreamB.str();
-	  const char* nameBc = nameB.c_str();
-
-
-	  /*TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasDisk_%d", aDisk.myid()),
-	    Form("XY projection of Disk %d", aDisk.myid()),
-	    vis_min_canvas_sizeX, vis_min_canvas_sizeY );*/
-	  TCanvas* XYCanvasDisk = new TCanvas(nameAc,
-					      nameBc,
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
@@ -6355,32 +6333,6 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
 	}
       }
     }
-
-    // And now one per disk surface
-    /*for (auto& anEndcap : tracker.endcaps() ) {
-      if (anEndcap.disks().size()>0) {
-	auto lastDiskIt = anEndcap.disks().end();
-	lastDiskIt--;
-	const Disk& lastDisk = *(lastDiskIt);
-
-	std::vector<std::set<const Module*>> modZ = lastDisk.getModuleSurfaces();
-	int iSurface=0;
-	for (std::set<const Module*>& moduleSet : modZ) {
-	  iSurface++; //for (int iSurface=1; iSurface<=4; ++iSurface) {
-	  TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), iSurface),
-					    Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), iSurface),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYCanvasEC->cd();
-	  PlotDrawer<XY, TypeDTCColor> xyEndcapDrawer;
-
-	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-	  xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
-	  XYCanvasesEC.push_back(XYCanvasEC);
-	}
-      }
-      }*/
   }
 
 
