@@ -1237,9 +1237,9 @@ namespace insur {
       TCanvas *RZCanvas = NULL;
       TCanvas *RZCanvasBarrel = NULL;
       TCanvas *XYCanvas = NULL;
-      std::vector<TCanvas*> XYCanvasesEC;
+      std::vector<TCanvas*> XYCanvasesDisk;
       TCanvas *myCanvas = NULL;
-      createSummaryCanvasCablingNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesEC);
+      createSummaryCanvasCablingNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesDisk);
 
       myContent = new RootWContent("Plots");
       myPage->addContent(myContent);
@@ -1259,10 +1259,12 @@ namespace insur {
 	myImage->setComment("XY Section of the tracker barrel");
 	myContent->addItem(myImage);
       }
-      for (auto XYCanvasEC : XYCanvasesEC ) {
-	myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYCanvasEC->GetTitle());
-	myContent->addItem(myImage);
+      for (auto XYCanvasDisk : XYCanvasesDisk ) {
+	//if (XYCanvasDisk) {
+	  myImage = new RootWImage(XYCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYCanvasDisk->GetTitle());
+	  myContent->addItem(myImage);
+	  //}
       }
 
       // Add detailed geometry info here
@@ -6286,7 +6288,7 @@ namespace insur {
 
 void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
-                                        std::vector<TCanvas*> &XYCanvasesEC) {
+                                        std::vector<TCanvas*> &XYCanvasesDisk) {
 
     double scaleFactor = tracker.maxR()/600;
 
@@ -6316,15 +6318,42 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
     for (auto& anEndcap : tracker.endcaps() ) {
-      TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
-					Form("XY projection of Endcap %s", anEndcap.myid().c_str()),
-					vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-      XYCanvasEC->cd();
-      PlotDrawer<XY, TypeDTCColor> xyEndcapDrawer;
-      xyEndcapDrawer.addModules(anEndcap);
-      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-      XYCanvasesEC.push_back(XYCanvasEC);
+      for (auto& aDisk : anEndcap.disks() ) {
+	if (aDisk.side()) {
+	  std::cout << anEndcap.myid().c_str() << std::endl;
+	  //std::cout << aDisk.myid() << std::endl;
+
+	  int diskId;
+	  if (anEndcap.myid() == "TEDD_1") diskId = aDisk.myid();
+	  else if (anEndcap.myid() == "TEDD_2") diskId = aDisk.myid();
+	  std::cout << diskId << std::endl;
+
+	  std::ostringstream nameStreamA;
+	  nameStreamA << "XYCanvasDisk_" <<  anEndcap.myid() << diskId;// << aDisk.myid();
+	  std::string nameA = nameStreamA.str();
+	  const char* nameAc = nameA.c_str();
+
+	  std::ostringstream nameStreamB;
+	  nameStreamB << "XY projection of Disk "<< anEndcap.myid() << diskId;// << aDisk.myid();
+	  std::string nameB = nameStreamB.str();
+	  const char* nameBc = nameB.c_str();
+
+
+	  /*TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasDisk_%d", aDisk.myid()),
+	    Form("XY projection of Disk %d", aDisk.myid()),
+	    vis_min_canvas_sizeX, vis_min_canvas_sizeY );*/
+	  TCanvas* XYCanvasDisk = new TCanvas(nameAc,
+					      nameBc,
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasDisk->cd();
+	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(aDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  TCanvas* test = (TCanvas*)XYCanvasDisk->DrawClone();
+	}
+      }
     }
 
     // And now one per disk surface
@@ -6351,7 +6380,7 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
 	  XYCanvasesEC.push_back(XYCanvasEC);
 	}
       }
-    }*/
+      }*/
   }
 
 
