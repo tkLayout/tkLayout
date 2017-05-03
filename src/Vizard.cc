@@ -1184,32 +1184,6 @@ namespace insur {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
 
     bool isPixelTracker = tracker.isPixelTracker();
@@ -1264,61 +1238,16 @@ namespace insur {
       myPage->addContent(filesContent);
       RootWTextFile* myTextFile;
       // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("ModulesToDTCs%s.csv", name.c_str()), "Cabling : Modules to DTCs");
+      myTextFile = new RootWTextFile(Form("ModulesToDTCs%s.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createModulesToDTCsCsv(tracker));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModules%s.csv", name.c_str()), "Cabling : DTCs to modules");
+      myTextFile = new RootWTextFile(Form("DTCsToModules%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(tracker));
       filesContent->addItem(myTextFile);
     }
     return true;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   /**
