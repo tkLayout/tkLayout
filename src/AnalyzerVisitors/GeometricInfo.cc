@@ -466,3 +466,60 @@ void TrackerSensorVisitor::visit(Sensor& s) {
 
 std::string TrackerSensorVisitor::output() const { return output_.str(); }
    
+
+
+    //************************************//
+    //*               Visitor             //
+    //*            ModulesToDTCsCsv       //
+    //*                                   //
+    //************************************//
+void ModulesToDTCsVisitor::preVisit() {
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Ribbon #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index /I, DTC Phi Sector Width_deg/D," << std::endl;
+}
+
+void ModulesToDTCsVisitor::visit(const Barrel& b) {
+  sectionName_ = b.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Endcap& e) {
+  sectionName_ = e.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Layer& l) {
+  layerId_ = l.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Disk& d) {
+  layerId_ = d.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Module& m) {
+  output_ << m.myDetId() << ","
+	  << sectionName_ << ", "
+	  << layerId_ << ", "
+	  << m.moduleRing() << ", "
+	  << std::fixed << std::setprecision(6)
+	  << m.center().Phi() * 180. / M_PI << ", ";
+
+  const Ribbon* myRibbon = m.getRibbon();
+  if (myRibbon != NULL) {
+    output_ << myRibbon->myid() << ",";
+
+    const Cable* myCable = myRibbon->getCable();
+    if (myCable != NULL) {
+      output_ << myCable->myid() << ","
+	      << myCable->type() << ",";
+
+      const DTC* myDTC = myCable->getDTC();
+      if (myDTC != NULL) {
+	output_ << myDTC->name() << ","
+		<< myDTC->phiSectorRef() << ","
+		<< myDTC->type() << ","
+		<< myDTC->cableIndex() << ","
+		<< std::fixed << std::setprecision(6)
+		<< myDTC->phiSectorWidth() * 180. / M_PI;	  
+      }
+    }
+  }
+  output_ << std::endl;
+}

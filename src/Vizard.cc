@@ -6577,24 +6577,10 @@ namespace insur {
 
 
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker) {
-    std::stringstream modulesToDTCsCsv;
-    //header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
-    modulesToDTCsCsv << "DetId/U, Ring/I, phi_deg/D" << std::endl;
-
-
-    const set<Module*>& mods = tracker.modules();
-    for (const auto& m : mods) {
-      modulesToDTCsCsv << m->myDetId() << ", "
-		       << m->moduleRing() << ", "
-		       << m->center().Phi() * 180. / M_PI << ", "
-		       << std::endl;
-
-
-
-
-    }
-
-    return modulesToDTCsCsv.str();
+    ModulesToDTCsVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
   }
 
 
@@ -6602,14 +6588,16 @@ namespace insur {
 
 
 std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker) {
-  std::stringstream modulesToDTCsCsv;
+std::stringstream modulesToDTCsCsv;
     //header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
-  modulesToDTCsCsv << "DetId/U, Ring/I, phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DetId/U, Section/C, Layer/I, Ring/I, phi_deg/D" << std::endl;
 
 
     const set<Module*>& mods = tracker.modules();
     for (const auto& m : mods) {
       modulesToDTCsCsv << m->myDetId() << ", "
+		       << m->uniRef().cnt << ", "
+		       << m->uniRef().layer << ", "
 		       << m->moduleRing() << ", "
 		       << m->center().Phi() * 180. / M_PI << ", "
 		       << std::endl;
