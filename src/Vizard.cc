@@ -1235,11 +1235,10 @@ namespace insur {
       RootWImage* myImage;
       TCanvas *summaryCanvas = NULL;
       TCanvas *RZCanvas = NULL;
-      TCanvas *RZCanvasBarrel = NULL;
       TCanvas *XYCanvas = NULL;
       std::vector<TCanvas*> XYCanvasesDisk;
       TCanvas *myCanvas = NULL;
-      createSummaryCanvasCablingNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesDisk);
+      createSummaryCanvasCablingNicer(tracker, RZCanvas, XYCanvas, XYCanvasesDisk);
 
       myContent = new RootWContent("Plots");
       myPage->addContent(myContent);
@@ -1249,22 +1248,15 @@ namespace insur {
 	myImage->setComment("RZ positions of the modules");
 	myContent->addItem(myImage);
       }
-      if ((RZCanvasBarrel) && (name == "pixel")) {
-	myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("RZ positions of the barrel modules");
-	myContent->addItem(myImage);
-      }
       if (XYCanvas) {
 	myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("XY Section of the tracker barrel");
 	myContent->addItem(myImage);
       }
-      for (auto XYCanvasDisk : XYCanvasesDisk ) {
-	//if (XYCanvasDisk) {
+      for (const auto& XYCanvasDisk : XYCanvasesDisk ) {
 	  myImage = new RootWImage(XYCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYCanvasDisk->GetTitle());
 	  myContent->addItem(myImage);
-	  //}
       }
 
       // Add detailed geometry info here
@@ -6286,9 +6278,9 @@ namespace insur {
   }
 
 
-void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
-                                        std::vector<TCanvas*> &XYCanvasesDisk) {
+  void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
+					       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+					       std::vector<TCanvas*> &XYCanvasesDisk) {
 
     double scaleFactor = tracker.maxR()/600;
 
@@ -6303,13 +6295,7 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
-    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    RZCanvasBarrel->cd();
-    PlotDrawer<YZ, TypeDTCColor> yzDrawerBarrel(viewPortMax, viewPortMax);
-    yzDrawerBarrel.addModulesType(tracker, BARREL);
-    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
-    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
-
+   
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
@@ -6329,7 +6315,6 @@ void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  TCanvas* test = (TCanvas*)XYCanvasDisk->DrawClone();
 	}
       }
     }
