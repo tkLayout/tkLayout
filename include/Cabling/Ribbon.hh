@@ -16,6 +16,9 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;*/
 
+namespace insur { class Cable; }
+using insur::Cable;
+
 
 
 //class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
@@ -31,7 +34,7 @@ class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>
   int phiSectorRef_;
 
   bool isTiltedPart_ = false;
-  int cableId_ = 0;
+  Cable* cable_ = NULL;
 
 
   typedef PtrVector<Module> Container;
@@ -72,8 +75,8 @@ public:
   const bool isTiltedPart() const { return isTiltedPart_; }
   void setIsTiltedPart(bool isTiltedPart) { isTiltedPart_ = isTiltedPart; }
 
-  const int cableId() const { return cableId_; }
-  void setCableId(int cableId) { cableId_ = cableId; }
+  const Cable* getCable() const { return cable_; }
+  void setCable(Cable* cable) { cable_ = cable; }
 
 
 

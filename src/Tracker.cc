@@ -773,14 +773,17 @@ void Tracker::connectRibbonsToCables() {
 
     // BUILD CABLE AND STORES IT
     int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + cableIndex;
-    r.second->setCableId(cableId);
 
     if (cables_.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, cableIndex);
       cable->addRibbon(r.second);
       cables_.insert(std::make_pair(cableId, cable));
+      r.second->setCable(cable);
     }
-    else cables_[cableId]->addRibbon(r.second);
+    else {
+      cables_[cableId]->addRibbon(r.second);
+      r.second->setCable(cables_[cableId]);
+    }
   }
 }
 
@@ -808,10 +811,10 @@ void Tracker::connectCablesToDTCs() {
     std::ostringstream nameStream;
     nameStream << phiSectorRef << "_" << cableType << "_" << cableIndex;
     std::string name = nameStream.str();
-    c.second->setDTCName(name);
 
     DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, cableIndex);
     dtc->addCable(c.second);
     DTCs_.insert(std::make_pair(name, dtc));
+    c.second->setDTC(dtc);
   }
 }

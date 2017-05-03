@@ -8,6 +8,9 @@
 #include "Ribbon.hh"
 //#include "CablingVisitable.h"
 
+namespace insur { class DTC; }
+using insur::DTC;
+
 
 /*using std::string;
 using std::vector;
@@ -21,7 +24,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   std::string type_;
   int cableIndex_;
 
-  std::string DTCName_;
+  DTC* myDTC_ = NULL;
 
   typedef PtrVector<Ribbon> Container;
   Container ribbons_;
@@ -44,8 +47,8 @@ public:
   const int phiSectorRef() const { return phiSectorRef_; }
   const int cableIndex() const { return cableIndex_; }
 
-  const std::string DTCName() const { return DTCName_; }
-  void setDTCName(std::string DTCName) { DTCName_ = DTCName; }
+  const DTC* getDTC() const { return myDTC_; }
+  void setDTC(DTC* dtc) { myDTC_ = dtc; }
 
 
   void addRibbon(Ribbon* r) { ribbons_.push_back(r); }
