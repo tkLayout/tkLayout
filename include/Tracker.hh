@@ -157,7 +157,7 @@ public:
   void connectCablesToDTCs();
   const std::map<int, Ribbon*> ribbons() const { return ribbons_; }
   const std::map<int, Cable*> cables() const { return cables_; }
-  const std::map<std::string, DTC*> const DTCs() { return DTCs_; }
+  const std::map<std::string, DTC*> DTCs() const { return DTCs_; }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

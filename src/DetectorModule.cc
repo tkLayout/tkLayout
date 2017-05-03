@@ -1,6 +1,9 @@
 
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
+#include "Cabling/Ribbon.hh"
+
+
 
 void DetectorModule::build() {
   check();

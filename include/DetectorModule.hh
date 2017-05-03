@@ -21,8 +21,12 @@
 #include "Visitable.hh"
 #include "MaterialObject.hh"
 
+
 using namespace boost::accumulators;
 using material::MaterialObject;
+
+namespace insur { class Ribbon; }
+using insur::Ribbon;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -43,6 +47,7 @@ struct UniRef { string cnt; int layer, ring, phi, side; };
 namespace insur {
   class ModuleCap;
 }
+
 using insur::ModuleCap;
 using material::ElementsVector;
 
@@ -53,7 +58,7 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 
-  int ribbonId_ = 0;
+  Ribbon* ribbon_ = NULL;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -325,8 +330,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryType() const;
   std::string summaryFullType() const;
 
-  void setRibbonId(int id) {ribbonId_ = id; }
-  int getRibbonId() {return ribbonId_; }
+  void setRibbon(Ribbon* ribbon) { ribbon_ = ribbon ; }
+  const Ribbon* getRibbon() const { return ribbon_; }
 };
 
 
