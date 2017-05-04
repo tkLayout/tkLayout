@@ -711,73 +711,73 @@ void Tracker::connectRibbonsToCables() {
     int phiRegionRef = r.second->phiRegionRef();
 
     // Used to build cableId
-    int cableIndex;
+    int slot;
 
     if (cableType == "PS10G") {
       if (subDetectorName == "TBPS" || (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_1" && layerDiskNumber == 2)) {
-	cableIndex = 1;
+	slot = 1;
       }
     }
 
 
     else if (cableType == "PS5G") {
       if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GA") ) {
-	cableIndex = 1;
+	slot = 1;
       }
 
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
-	  if (r.second->isTiltedPart()) cableIndex = 2;
-	  else cableIndex = 3;
+	  if (r.second->isTiltedPart()) slot = 2;
+	  else slot = 3;
 	}
-	else cableIndex = 3;
+	else slot = 3;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
-	cableIndex = 4;
+	slot = 4;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
-	cableIndex = 5;
+	slot = 5;
       }
     }
 
 
     else if (cableType == "2S") {
       if (subDetectorName == "TB2S" && layerDiskNumber == 1) {
-	cableIndex = 1;
+	slot = 1;
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 2) {
 	StripLayer2PhiRegionsCounter[phiRegionRef] += 1;
-	if (StripLayer2PhiRegionsCounter[phiRegionRef] == 4) cableIndex = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
-	else cableIndex = 2;
+	if (StripLayer2PhiRegionsCounter[phiRegionRef] == 4) slot = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	else slot = 2;
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
 	  StripLayer3PhiRegionsCounter[phiRegionRef] += 1;
-	  if (StripLayer3PhiRegionsCounter[phiRegionRef] >= 4) cableIndex = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
-	  else cableIndex = 3;
+	  if (StripLayer3PhiRegionsCounter[phiRegionRef] >= 4) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  else slot = 3;
 	}
-	else cableIndex = 4;
+	else slot = 4;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
-	cableIndex = 5;
+	slot = 5;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
-	cableIndex = 6;
+	slot = 6;
       }
     }
   
 
     // BUILD CABLE AND STORES IT
-    int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + cableIndex;
+    int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + slot;
 
     if (cables_.count(cableId) == 0) {
-      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, cableIndex);
+      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, slot);
       cable->addRibbon(r.second);
       cables_.insert(std::make_pair(cableId, cable));
       r.second->setCable(cable);
@@ -807,14 +807,14 @@ void Tracker::connectCablesToDTCs() {
     double phiSectorWidth = c.second->phiSectorWidth();
     int phiSectorRef = c.second->phiSectorRef();
     std::string cableType = c.second->type();
-    int cableIndex = c.second->cableIndex();
+    int slot = c.second->slot();
 
     // BUILD DTC AND STORES IT
     std::ostringstream nameStream;
-    nameStream << phiSectorRef << "_" << cableType << "_" << cableIndex;
+    nameStream << phiSectorRef << "_" << cableType << "_" << slot;
     std::string name = nameStream.str();
 
-    DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, cableIndex);
+    DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, slot);
     dtc->addCable(c.second);
     DTCs_.insert(std::make_pair(name, dtc));
     c.second->setDTC(dtc);

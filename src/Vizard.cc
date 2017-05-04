@@ -6420,7 +6420,7 @@ namespace insur {
 	DTCInfo << dtc.second->name() << ","
 		<< dtc.second->phiSectorRef() << ","
 		<< dtc.second->type() << ","
-		<< dtc.second->cableIndex() << ","
+		<< dtc.second->slot() << ","
 		<< std::fixed << std::setprecision(6)
 		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
 

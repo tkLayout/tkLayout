@@ -20,7 +20,7 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
   double phiSectorWidth_;
   int phiSectorRef_;
   std::string type_;
-  int cableIndex_;
+  int slot_;
 
   int plotColor_;
 
@@ -36,16 +36,16 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
 
 public:
 
-  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, std::string type, int cableIndex) {
+  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, std::string type, int slot) {
     name_ = name;
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
     type_ = type;
-    cableIndex_ = cableIndex;
+    slot_ = slot;
 
-    if (type == "PS10G") plotColor_ = cableIndex;
-    else if (type == "PS5G") plotColor_ = 1 + cableIndex;
-    else if (type == "2S") plotColor_ = 6 + cableIndex;
+    if (type == "PS10G") plotColor_ = slot;
+    else if (type == "PS5G") plotColor_ = 1 + slot;
+    else if (type == "2S") plotColor_ = 6 + slot;
     plotColor_ += 12 * phiSectorRef;
   };
 
@@ -54,7 +54,7 @@ public:
   const std::string type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
-  const int cableIndex() const { return cableIndex_; }
+  const int slot() const { return slot_; }
 
 
   void addCable(Cable* c) { cable_.push_back(c); }

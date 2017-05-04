@@ -22,7 +22,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   double phiSectorWidth_;
   int phiSectorRef_;
   std::string type_;
-  int cableIndex_;
+  int slot_;
 
   DTC* myDTC_ = NULL;
 
@@ -33,19 +33,19 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
 
 public:
 
-  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int cableIndex) {
+  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot) {
     myid(id);
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
     type_ = type;
-    cableIndex_ = cableIndex;    
+    slot_ = slot;    
   };
 
 
   const std::string type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
-  const int cableIndex() const { return cableIndex_; }
+  const int slot() const { return slot_; }
 
   const DTC* getDTC() const { return myDTC_; }
   void setDTC(DTC* dtc) { myDTC_ = dtc; }

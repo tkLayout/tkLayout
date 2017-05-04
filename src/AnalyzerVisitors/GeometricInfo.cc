@@ -514,7 +514,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 	output_ << myDTC->name() << ","
 		<< myDTC->phiSectorRef() << ","
 		<< myDTC->type() << ","
-		<< myDTC->cableIndex() << ","
+		<< myDTC->slot() << ","
 		<< std::fixed << std::setprecision(6)
 		<< myDTC->phiSectorWidth() * 180. / M_PI << ","
 		<< myDTC->plotColor();
