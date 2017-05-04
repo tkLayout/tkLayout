@@ -441,12 +441,9 @@ void Tracker::buildCabling() {
 	}
       }
       
-      void visit(Module& m) {
-	side = (m.center().Z() >= 0. || fabs(m.center().Z()) < 0.00001);
-
-      }
      
       void visit(BarrelModule& m) {
+	side = (m.uniRef().side > 0.);
 
 	// Connect modules to 2S bundles
 	if (barrelName == "TB2S") {
@@ -498,6 +495,7 @@ void Tracker::buildCabling() {
 
       void visit(Disk& d) {
 	diskNumber = d.diskNumber();
+	side = d.side();
       }
 
       void visit(Ring& r)   { 
@@ -527,7 +525,7 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	if (side) {
+	//if (side) {
 	  if (type == "PS10G" || type == "PS5GA") {
 	    phiRegionWidth = 40. * M_PI / 180.;
 	  }
@@ -558,7 +556,7 @@ void Tracker::buildCabling() {
 	    bundles_[bundleId]->addModule(&m);
 	    m.setBundle(bundles_[bundleId]);
 	  }	 
-	}
+	  //	}
       }
 
 
