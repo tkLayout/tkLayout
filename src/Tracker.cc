@@ -714,7 +714,7 @@ void Tracker::connectBundlesToCables() {
     int phiRegionRef = r.second->phiRegionRef();
 
     // Used to build cableId
-    int slot;
+    int slot = 0;
 
     if (cableType == "PS10G") {
       if (subDetectorName == "TBPS" || (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_1" && layerDiskNumber == 2)) {
@@ -747,17 +747,17 @@ void Tracker::connectBundlesToCables() {
 
 
     else if (cableType == "2S") {
-      if (subDetectorName == "TB2S" && layerDiskNumber == 1) {
+      if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
 	slot = 1;
       }
 
-      else if (subDetectorName == "TB2S" && layerDiskNumber == 2) {
+      else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
 	StripLayer2PhiRegionsCounter[phiRegionRef] += 1;
 	if (StripLayer2PhiRegionsCounter[phiRegionRef] == 4) slot = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	else slot = 2;
       }
 
-      else if ( (subDetectorName == "TB2S" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
 	  StripLayer3PhiRegionsCounter[phiRegionRef] += 1;
 	  if (StripLayer3PhiRegionsCounter[phiRegionRef] >= 4) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
