@@ -365,7 +365,7 @@ void Tracker::buildCabling() {
 
       std::string type;
       int typeIndex;
-      int side;
+      bool side;
    
       int phiSegmentRef;
       int phiSelect;
@@ -442,14 +442,15 @@ void Tracker::buildCabling() {
       }
       
       void visit(Module& m) {
-	side = m.uniRef().side;
+	side = (m.center().Z() >= 0. || fabs(m.center().Z()) < 0.00001);
+
       }
      
       void visit(BarrelModule& m) {
 
 	// Connect modules to 2S bundles
 	if (barrelName == "TB2S") {
-	  if (side > 0) {
+	  if (side) {
 	    m.setBundle(bundle);
 	    bundles_[bundleId]->addModule(&m);
 	  }
@@ -467,7 +468,7 @@ void Tracker::buildCabling() {
 	    }
 	    // For layer 3, need to add a second bundle for flat part
 	    else {
-	      if (side > 0) {
+	      if (side) {
 		m.setBundle(bundleFlat);
 		bundles_[bundleFlatId]->addModule(&m);
 	      } else {
@@ -478,7 +479,7 @@ void Tracker::buildCabling() {
 	  }
 
 	  // tilted modules
-	  else if (m.isTilted() && side > 0) {
+	  else if (m.isTilted() && side) {
 	    m.setBundle(bundleTilted);
 	    bundles_[bundleTiltedId]->addModule(&m);
 	    bundles_[bundleTiltedId]->setIsTiltedPart(true);
@@ -526,37 +527,38 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	if (type == "PS10G" || type == "PS5GA") {
-	  phiRegionWidth = 40. * M_PI / 180.;
+	if (side) {
+	  if (type == "PS10G" || type == "PS5GA") {
+	    phiRegionWidth = 40. * M_PI / 180.;
+	  }
+
+	  else if (type == "PS5GB") {
+	    phiRegionWidth = 20. * M_PI / 180.;
+	  }
+
+	  else if (type == "2S") {
+	    phiRegionWidth = 360. / 27. * M_PI / 180.;
+	  }
+
+	  double phiSegmentWidth = (2*M_PI) / numModulesInRing;
+	  phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
+
+	  int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
+	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+
+	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
+
+	  if (bundles_.count(bundleId) == 0) {
+	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    bundleEndcap->addModule(&m);
+	    bundles_.insert(std::make_pair(bundleId, bundleEndcap));
+	    m.setBundle(bundleEndcap);
+	  }
+	  else { 
+	    bundles_[bundleId]->addModule(&m);
+	    m.setBundle(bundles_[bundleId]);
+	  }	 
 	}
-
-	else if (type == "PS5GB") {
-	  phiRegionWidth = 20. * M_PI / 180.;
-	}
-
-	else if (type == "2S") {
-	  phiRegionWidth = 360. / 27. * M_PI / 180.;
-	}
-
-	double phiSegmentWidth = (2*M_PI) / numModulesInRing;
-	phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
-
-	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
-	bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
-
-	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
-
-	if (bundles_.count(bundleId) == 0) {
-	  Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  bundleEndcap->addModule(&m);
-	  bundles_.insert(std::make_pair(bundleId, bundleEndcap));
-	  m.setBundle(bundleEndcap);
-	}
-	else { 
-	  bundles_[bundleId]->addModule(&m);
-	  m.setBundle(bundles_[bundleId]);
-	}	 
-	
       }
 
 
