@@ -525,8 +525,8 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	//if (side) {
 	std::cout << "side = " << side << std::endl;
+	std::cout << "diskNumber = " << diskNumber << std::endl;
 	if (type == "PS10G" || type == "PS5GA") {
 	  phiRegionWidth = 40. * M_PI / 180.;
 	}
@@ -544,6 +544,7 @@ void Tracker::buildCabling() {
 
 	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
 	bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+	//else { bundleId = 30000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex; }
 
 	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
 
@@ -557,7 +558,6 @@ void Tracker::buildCabling() {
 	  bundles_[bundleId]->addModule(&m);
 	  m.setBundle(bundles_[bundleId]);
 	}	 
-	//}
       }
 
 
@@ -637,7 +637,7 @@ void Tracker::buildCabling() {
 		  minPhiMod->setBundle(r.second);
 		}
 	      }
-	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; }
+	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; break; }
 
 	    }
 	  }
