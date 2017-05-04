@@ -103,7 +103,7 @@ struct Type { // Module-maintained color
 
 struct TypeDTCColor { // Module-maintained DTC color
   double operator()(const Module& m) {
-    return Palette::color(m.dtcPlotColor());
+    return Palette::colorDTC(m.dtcPlotColor());
   }
 };
 

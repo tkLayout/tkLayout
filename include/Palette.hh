@@ -11,6 +11,7 @@ class Palette {
  public:
   static Color_t color(const std::string& objectName);
   static Color_t color(const unsigned int& colorIndex);
+  static Color_t colorDTC(const int& colorIndex);
   static const Color_t color_invalid_module = kGray + 1;
  private:
   static std::map<std::string, int> colorPickMap;

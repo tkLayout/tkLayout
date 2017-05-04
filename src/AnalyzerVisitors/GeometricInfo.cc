@@ -473,7 +473,7 @@ std::string TrackerSensorVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Ribbon #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D," << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Ribbon #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D, DTC plotColor" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -516,7 +516,8 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		<< myDTC->type() << ","
 		<< myDTC->cableIndex() << ","
 		<< std::fixed << std::setprecision(6)
-		<< myDTC->phiSectorWidth() * 180. / M_PI;	  
+		<< myDTC->phiSectorWidth() * 180. / M_PI << ","
+		<< myDTC->plotColor();
       }
     }
   }

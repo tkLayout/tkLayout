@@ -361,13 +361,15 @@ void Tracker::buildCabling() {
       std::string endcapName;
       int diskNumber;
       int ringNumber;
+      int numModulesInRing;
 
       std::string type;
       int typeIndex;
-      int phiRegionRef;
-      int phiSelect;
       int side;
-
+   
+      int phiSegmentRef;
+      int phiSelect;
+      double phiRegionWidth;
       const double phiSectorWidth = 40. * M_PI / 180.;
   
       int ribbonId;
@@ -390,21 +392,25 @@ void Tracker::buildCabling() {
       void visit(Layer& l) {
 	layerNumber = l.layerNumber();
 	numRods = l.numRods();
-
 	numFlatRings = l.buildNumModulesFlat();
+
+	if (layerNumber == 1 || layerNumber == 2 || layerNumber == 4) phiRegionWidth = 40. * M_PI / 180.;
+	else phiRegionWidth = 20. * M_PI / 180.;
       }
 
       void visit(RodPair& r) {
-	double startPhi = femod( r.Phi(), (2 * M_PI / numRods));
-	double phiRegionWidth = (2*M_PI) / numRods;
-	phiRegionRef = round(femod(r.Phi() - startPhi, 2*M_PI) / phiRegionWidth);
-	int phiSectorRef = round(femod(r.Phi() - startPhi, 2*M_PI) / phiSectorWidth);	
+	double phiSegmentWidth = (2*M_PI) / numRods;
+	phiSegmentRef = std::floor(femod(r.Phi(), 2*M_PI) / phiSegmentWidth);
+	
+	int phiRegionRef = std::floor(femod(r.Phi(), 2*M_PI) / phiRegionWidth);
+
+	int phiSectorRef = std::floor(femod(r.Phi(), 2*M_PI) / phiSectorWidth);	
 
 	// Create 2S ribbons
 	if (barrelName == "TB2S") {
-	  ribbonId = 10000 + layerNumber * 1000 + phiRegionRef * 10;
+	  ribbonId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;
 	  type = "2S";
-	  ribbon = GeometryFactory::make<Ribbon>(ribbonId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  ribbon = GeometryFactory::make<Ribbon>(ribbonId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbons_.insert(std::make_pair(ribbonId, ribbon));
 	}
 
@@ -415,22 +421,22 @@ void Tracker::buildCabling() {
 	  // Flat part
 	  phiSelect = layerNumber % 2;
 	  // standard case
-	  if ( (phiRegionRef + 1) % 2 == phiSelect) {
-	    ribbonFlatId = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 1;
-	    ribbonFlat = GeometryFactory::make<Ribbon>(ribbonFlatId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  if ( (phiSegmentRef + 1) % 2 == phiSelect) {
+	    ribbonFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
+	    ribbonFlat = GeometryFactory::make<Ribbon>(ribbonFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    ribbons_.insert(std::make_pair(ribbonFlatId, ribbonFlat));
 
 	    // For layer 3, need to add a second ribbon for flat part
 	    if (numFlatRings > 12) {
-	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiRegionRef * 10 + 2;
-	      ribbonFlatB = GeometryFactory::make<Ribbon>(ribbonFlatIdB, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
+	      ribbonFlatB = GeometryFactory::make<Ribbon>(ribbonFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	      ribbons_.insert(std::make_pair(ribbonFlatIdB, ribbonFlatB));
 	    }
 	  }
 
 	  // Tilted part
-	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiRegionRef * 10;	  
-	  ribbonTilted = GeometryFactory::make<Ribbon>(ribbonTiltedId, type, barrelName, layerNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
+	  ribbonTilted = GeometryFactory::make<Ribbon>(ribbonTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbons_.insert(std::make_pair(ribbonTiltedId, ribbonTilted));	 
 	}
       }
@@ -453,7 +459,7 @@ void Tracker::buildCabling() {
 	else if (barrelName == "TBPS") {
 
 	  // flat modules
-	  if (!m.isTilted() && ( (phiRegionRef + 1) % 2 == phiSelect)) {
+	  if (!m.isTilted() && ( (phiSegmentRef + 1) % 2 == phiSelect)) {
 	    // standard case
 	    if (numFlatRings <= 12) {
 	      m.setRibbon(ribbonFlat);
@@ -495,6 +501,7 @@ void Tracker::buildCabling() {
 
       void visit(Ring& r)   { 
 	ringNumber = r.myid();
+	numModulesInRing = r.numModules();
 
 	if (endcapName == "TEDD_1") {
 	  if (ringNumber <= 4) type = "PS10G";
@@ -519,31 +526,28 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	double startPhi;
-	double phiRegionWidth;
-
 	if (type == "PS10G" || type == "PS5GA") {
-	  startPhi = 0.;
 	  phiRegionWidth = 40. * M_PI / 180.;
 	}
 
 	else if (type == "PS5GB") {
-	  startPhi = 0.;
 	  phiRegionWidth = 20. * M_PI / 180.;
 	}
 
 	else if (type == "2S") {
-	  startPhi = 0.;
 	  phiRegionWidth = 360. / 27. * M_PI / 180.;
 	}
 
-	phiRegionRef = round(femod(m.center().Phi() - startPhi, 2*M_PI) / phiRegionWidth);	  
+	double phiSegmentWidth = (2*M_PI) / numModulesInRing;
+	phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
+
+	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
 	ribbonId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
 
-	int phiSectorRef = round(femod(m.center().Phi() - startPhi, 2*M_PI) / phiSectorWidth);
+	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
 
 	if (ribbons_.count(ribbonId) == 0) {
-	  Ribbon* ribbonEndcap = GeometryFactory::make<Ribbon>(ribbonId, type, endcapName, diskNumber, startPhi, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  Ribbon* ribbonEndcap = GeometryFactory::make<Ribbon>(ribbonId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  ribbonEndcap->addModule(&m);
 	  ribbons_.insert(std::make_pair(ribbonId, ribbonEndcap));
 	  m.setRibbon(ribbonEndcap);
@@ -580,10 +584,8 @@ void Tracker::buildCabling() {
 	      else if (type == "PS5GB") typeIndex = 2;
 	      else if (type == "2S") typeIndex = 3;
 
-	      double startPhi = r.second->startPhi();
 	      double phiRegionWidth = r.second->phiRegionWidth();
 	      int numPhiRegions = round(2 * M_PI / phiRegionWidth);
-	      std::cout << round(3.9) << std::endl;
 
 	      int phiRegionRef = r.second->phiRegionRef();
 	      int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
@@ -593,7 +595,7 @@ void Tracker::buildCabling() {
 	      int nextRibbonId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
 	      int previousRibbonId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
-	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) - startPhi );
+	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) );
 	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
 
 

@@ -27,7 +27,8 @@ class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>
   std::string subDetectorName_;
   int layerDiskNumber_;
 
-  double startPhi_;
+  double phiSegmentWidth_;
+  int phiSegmentRef_;
   double phiRegionWidth_;
   int phiRegionRef_;
   double phiSectorWidth_;
@@ -46,14 +47,15 @@ class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>
 
 public:
 
-  Ribbon(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double startPhi, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
+  Ribbon(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
     myid(id);
 
     type_ = type;
     subDetectorName_ = subDetectorName;
     layerDiskNumber_ = layerDiskNumber;
 
-    startPhi_ = startPhi;
+    phiSegmentWidth_ = phiSegmentWidth;
+    phiSegmentRef_ = phiSegmentRef;
     phiRegionWidth_ = phiRegionWidth;
     phiRegionRef_ = phiRegionRef;
     phiSectorWidth_ = phiSectorWidth;
@@ -64,7 +66,8 @@ public:
   const std::string subDetectorName() const { return subDetectorName_; }
   const int layerDiskNumber() const { return layerDiskNumber_; }
 
-  const double startPhi() const { return startPhi_; }
+  const double phiSegmentWidth() const { return phiSegmentWidth_; }
+  const int phiSegmentRef() const { return phiSegmentRef_; }
   const double phiRegionWidth() const { return phiRegionWidth_; }
   const int phiRegionRef() const { return phiRegionRef_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }

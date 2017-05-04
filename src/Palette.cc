@@ -94,3 +94,65 @@ Color_t Palette::color_int(const unsigned int& plotIndex) {
   return TColor::GetColor(colorCode.c_str());
 }
 
+
+Color_t Palette::colorDTC(const int& colorIndex) {
+  //TColor::CreateColorWheel();
+ //return gROOT->GetColor(paletteIndex);
+
+  short phiSector = colorIndex % 10;
+  short zone = colorIndex % 12;
+  
+  short paletteIndex;
+  if (colorIndex == 0) paletteIndex = 1;
+  //else paletteIndex = 300 + colorIndex * 5;
+  //else paletteIndex = 300 + zone * 50 + 5 * phiSector;
+
+  else {
+    switch (zone) {
+    case 0 :
+      paletteIndex= kYellow;
+      break;
+    case 1 :
+      paletteIndex= kOrange;
+      break;
+    case 2 :
+      paletteIndex= kRed;
+      break;
+    case 3 :
+      paletteIndex=kPink;
+      break;
+    case 4 :
+      paletteIndex=kMagenta;
+      break;
+    case 5 :
+      paletteIndex=kViolet;
+      break;
+    case 6 :
+      paletteIndex=kBlue;
+      break;
+    case 7 :
+      paletteIndex=kAzure;
+      break;
+    case 8 :
+      paletteIndex=kCyan;
+      break;
+    case 9 :
+      paletteIndex=kTeal;
+      break;
+    case 10 :
+      paletteIndex=kGreen;
+      break;
+    case 11 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    paletteIndex -= phiSector;
+  }
+ 
+  return paletteIndex;
+}
