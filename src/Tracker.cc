@@ -526,37 +526,38 @@ void Tracker::buildCabling() {
 
       void visit(EndcapModule& m) {
 	//if (side) {
-	  if (type == "PS10G" || type == "PS5GA") {
-	    phiRegionWidth = 40. * M_PI / 180.;
-	  }
+	std::cout << "side = " << side << std::endl;
+	if (type == "PS10G" || type == "PS5GA") {
+	  phiRegionWidth = 40. * M_PI / 180.;
+	}
 
-	  else if (type == "PS5GB") {
-	    phiRegionWidth = 20. * M_PI / 180.;
-	  }
+	else if (type == "PS5GB") {
+	  phiRegionWidth = 20. * M_PI / 180.;
+	}
 
-	  else if (type == "2S") {
-	    phiRegionWidth = 360. / 27. * M_PI / 180.;
-	  }
+	else if (type == "2S") {
+	  phiRegionWidth = 360. / 27. * M_PI / 180.;
+	}
 
-	  double phiSegmentWidth = (2*M_PI) / numModulesInRing;
-	  phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
+	double phiSegmentWidth = (2*M_PI) / numModulesInRing;
+	phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
 
-	  int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
-	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
+	bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
 
-	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
+	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
 
-	  if (bundles_.count(bundleId) == 0) {
-	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	    bundleEndcap->addModule(&m);
-	    bundles_.insert(std::make_pair(bundleId, bundleEndcap));
-	    m.setBundle(bundleEndcap);
-	  }
-	  else { 
-	    bundles_[bundleId]->addModule(&m);
-	    m.setBundle(bundles_[bundleId]);
-	  }	 
-	  //	}
+	if (bundles_.count(bundleId) == 0) {
+	  Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundleEndcap->addModule(&m);
+	  bundles_.insert(std::make_pair(bundleId, bundleEndcap));
+	  m.setBundle(bundleEndcap);
+	}
+	else { 
+	  bundles_[bundleId]->addModule(&m);
+	  m.setBundle(bundles_[bundleId]);
+	}	 
+	//}
       }
 
 

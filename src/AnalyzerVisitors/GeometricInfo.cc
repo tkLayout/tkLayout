@@ -493,33 +493,42 @@ void ModulesToDTCsVisitor::visit(const Disk& d) {
 }
 
 void ModulesToDTCsVisitor::visit(const Module& m) {
-  output_ << m.myDetId() << ","
-	  << sectionName_ << ", "
-	  << layerId_ << ", "
-	  << m.moduleRing() << ", "
-	  << std::fixed << std::setprecision(6)
-	  << m.center().Phi() * 180. / M_PI << ", ";
+  if (m.center().Z() >= 0.) {
+    std::stringstream moduleInfo;
+    moduleInfo << m.myDetId() << ","
+	       << sectionName_ << ", "
+	       << layerId_ << ", "
+	       << m.moduleRing() << ", "
+	       << std::fixed << std::setprecision(6)
+	       << m.center().Phi() * 180. / M_PI << ", ";
 
-  const Bundle* myBundle = m.getBundle();
-  if (myBundle != NULL) {
-    output_ << myBundle->myid() << ",";
+    const Bundle* myBundle = m.getBundle();
+    if (myBundle != NULL) {
+      std::stringstream bundleInfo;
+      bundleInfo << myBundle->myid() << ",";
 
-    const Cable* myCable = myBundle->getCable();
-    if (myCable != NULL) {
-      output_ << myCable->myid() << ","
-	      << myCable->type() << ",";
+      const Cable* myCable = myBundle->getCable();
+      if (myCable != NULL) {
+	std::stringstream cableInfo;
+	cableInfo << myCable->myid() << ","
+		  << myCable->type() << ",";
 
-      const DTC* myDTC = myCable->getDTC();
-      if (myDTC != NULL) {
-	output_ << myDTC->name() << ","
-		<< myDTC->phiSectorRef() << ","
-		<< myDTC->type() << ","
-		<< myDTC->slot() << ","
-		<< std::fixed << std::setprecision(6)
-		<< myDTC->phiSectorWidth() * 180. / M_PI << ","
-		<< myDTC->plotColor();
+	const DTC* myDTC = myCable->getDTC();
+	if (myDTC != NULL) {
+	  std::stringstream DTCInfo;
+	  DTCInfo << myDTC->name() << ","
+		  << myDTC->phiSectorRef() << ","
+		  << myDTC->type() << ","
+		  << myDTC->slot() << ","
+		  << std::fixed << std::setprecision(6)
+		  << myDTC->phiSectorWidth() * 180. / M_PI << ","
+		  << myDTC->plotColor();
+	  output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << DTCInfo.str() << std::endl;
+	}
+	else output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << std::endl;
       }
+      else output_ << moduleInfo.str() << bundleInfo.str() << std::endl;
     }
+    else output_ << moduleInfo.str() << std::endl;
   }
-  output_ << std::endl;
 }
