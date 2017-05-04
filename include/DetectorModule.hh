@@ -25,8 +25,8 @@
 using namespace boost::accumulators;
 using material::MaterialObject;
 
-namespace insur { class Ribbon; }
-using insur::Ribbon;
+namespace insur { class Bundle; }
+using insur::Bundle;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -58,7 +58,7 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 
-  Ribbon* ribbon_ = NULL;
+  Bundle* bundle_ = NULL;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -330,8 +330,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryType() const;
   std::string summaryFullType() const;
 
-  void setRibbon(Ribbon* ribbon) { ribbon_ = ribbon ; }
-  const Ribbon* getRibbon() const { return ribbon_; }
+  void setBundle(Bundle* bundle) { bundle_ = bundle ; }
+  const Bundle* getBundle() const { return bundle_; }
   const int dtcPlotColor() const;
 };
 

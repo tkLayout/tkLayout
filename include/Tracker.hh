@@ -74,7 +74,7 @@ private:
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
   //std::map<uint32_t, Module> modules_;
-  std::map<int, Ribbon*> ribbons_;
+  std::map<int, Bundle*> bundles_;
   std::map<int, Cable*> cables_;
   std::map<std::string, DTC*> DTCs_;
 
@@ -152,10 +152,10 @@ public:
 
   void build();
   void buildCabling();
-  void connectRibbonsToCables();
-  void checkRibbonsToCablesConnections();
+  void connectBundlesToCables();
+  void checkBundlesToCablesConnections();
   void connectCablesToDTCs();
-  const std::map<int, Ribbon*>& getRibbons() const { return ribbons_; }
+  const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   const std::map<int, Cable*>& getCables() const { return cables_; }
   const std::map<std::string, DTC*>& getDTCs() const { return DTCs_; }
 

@@ -6411,7 +6411,7 @@ namespace insur {
 
   std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker) {
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Ribbon #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<std::string, DTC*>& myDTCs = tracker.getDTCs();
     for (const auto& dtc : myDTCs) {
@@ -6430,12 +6430,12 @@ namespace insur {
 	  cableInfo << cable.myid() << ","
 		    << cable.type() << ",";
 
-	  const PtrVector<Ribbon>& myRibbons = cable.ribbons();
-	  for (const auto& ribbon : myRibbons) {
-	    std::stringstream ribbonInfo;
-	    ribbonInfo << ribbon.myid() << ",";
+	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  for (const auto& bundle : myBundles) {
+	    std::stringstream bundleInfo;
+	    bundleInfo << bundle.myid() << ",";
 
-	    const PtrVector<Module>& myModules = ribbon.modules();
+	    const PtrVector<Module>& myModules = bundle.modules();
 	    for (const auto& module : myModules) {
 	      std::stringstream moduleInfo;
 	      moduleInfo << module.myDetId() << ", "
@@ -6443,11 +6443,11 @@ namespace insur {
 			 << module.uniRef().layer << ", "
 			 << module.moduleRing() << ", "
 			 << module.center().Phi() * 180. / M_PI << ", ";
-	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << ribbonInfo.str() << moduleInfo.str() << std::endl;
+	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << moduleInfo.str() << std::endl;
 	    }
-	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << ribbonInfo.str() << std::endl;
+	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << std::endl;
 	  }
-	  if (myRibbons.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << std::endl;
+	  if (myBundles.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << std::endl;
 	}
 	if (myCables.size() == 0) modulesToDTCsCsv << DTCInfo.str() << std::endl;
       }

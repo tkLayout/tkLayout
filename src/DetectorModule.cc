@@ -1,7 +1,7 @@
 
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
-#include "Cabling/Ribbon.hh"
+#include "Cabling/Bundle.hh"
 
 #include "Cabling/Cable.hh"
 #include "Cabling/DTC.hh"
@@ -462,9 +462,9 @@ std::string DetectorModule::summaryFullType() const  {
 
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
-  const Ribbon* myRibbon = getRibbon();
-  if (myRibbon != NULL) {
-    const Cable* myCable = myRibbon->getCable();
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    const Cable* myCable = myBundle->getCable();
     if (myCable != NULL) {
       const DTC* myDTC = myCable->getDTC();
       if (myDTC != NULL) {

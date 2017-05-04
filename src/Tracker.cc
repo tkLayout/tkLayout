@@ -352,7 +352,7 @@ std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
 void Tracker::buildCabling() {
   try {
     
-    class ModulesToRibbonsBuilder : public GeometryVisitor {  
+    class ModulesToBundlesBuilder : public GeometryVisitor {  
       std::string barrelName;     
       int layerNumber;
       int numRods;
@@ -372,17 +372,17 @@ void Tracker::buildCabling() {
       double phiRegionWidth;
       const double phiSectorWidth = 40. * M_PI / 180.;
   
-      int ribbonId;
-      int ribbonFlatId;
-      int ribbonFlatIdB;
-      int ribbonTiltedId;
+      int bundleId;
+      int bundleFlatId;
+      int bundleFlatIdB;
+      int bundleTiltedId;
 
-      Ribbon* ribbon = NULL;
-      Ribbon* ribbonFlat = NULL;
-      Ribbon* ribbonFlatB = NULL;
-      Ribbon* ribbonTilted = NULL;
+      Bundle* bundle = NULL;
+      Bundle* bundleFlat = NULL;
+      Bundle* bundleFlatB = NULL;
+      Bundle* bundleTilted = NULL;
 
-      std::map<int, Ribbon*> ribbons_;
+      std::map<int, Bundle*> bundles_;
 
     public:
       void visit(Barrel& b) {
@@ -406,15 +406,15 @@ void Tracker::buildCabling() {
 
 	int phiSectorRef = std::floor(femod(r.Phi(), 2*M_PI) / phiSectorWidth);	
 
-	// Create 2S ribbons
+	// Create 2S bundles
 	if (barrelName == "TB2S") {
-	  ribbonId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;
+	  bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;
 	  type = "2S";
-	  ribbon = GeometryFactory::make<Ribbon>(ribbonId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbons_.insert(std::make_pair(ribbonId, ribbon));
+	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundles_.insert(std::make_pair(bundleId, bundle));
 	}
 
-	// Create PS ribbons
+	// Create PS bundles
 	else if (barrelName == "TBPS") {
 	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
 
@@ -422,22 +422,22 @@ void Tracker::buildCabling() {
 	  phiSelect = layerNumber % 2;
 	  // standard case
 	  if ( (phiSegmentRef + 1) % 2 == phiSelect) {
-	    ribbonFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
-	    ribbonFlat = GeometryFactory::make<Ribbon>(ribbonFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	    ribbons_.insert(std::make_pair(ribbonFlatId, ribbonFlat));
+	    bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
+	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
 
-	    // For layer 3, need to add a second ribbon for flat part
+	    // For layer 3, need to add a second bundle for flat part
 	    if (numFlatRings > 12) {
-	      ribbonFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
-	      ribbonFlatB = GeometryFactory::make<Ribbon>(ribbonFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	      ribbons_.insert(std::make_pair(ribbonFlatIdB, ribbonFlatB));
+	      bundleFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
+	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	      bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
 	    }
 	  }
 
 	  // Tilted part
-	  ribbonTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-	  ribbonTilted = GeometryFactory::make<Ribbon>(ribbonTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbons_.insert(std::make_pair(ribbonTiltedId, ribbonTilted));	 
+	  bundleTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
+	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));	 
 	}
       }
       
@@ -447,41 +447,41 @@ void Tracker::buildCabling() {
      
       void visit(BarrelModule& m) {
 
-	// Connect modules to 2S ribbons
+	// Connect modules to 2S bundles
 	if (barrelName == "TB2S") {
 	  if (side > 0) {
-	    m.setRibbon(ribbon);
-	    ribbons_[ribbonId]->addModule(&m);
+	    m.setBundle(bundle);
+	    bundles_[bundleId]->addModule(&m);
 	  }
 	}
 
-	// Connect modules to PS ribbons
+	// Connect modules to PS bundles
 	else if (barrelName == "TBPS") {
 
 	  // flat modules
 	  if (!m.isTilted() && ( (phiSegmentRef + 1) % 2 == phiSelect)) {
 	    // standard case
 	    if (numFlatRings <= 12) {
-	      m.setRibbon(ribbonFlat);
-	      ribbons_[ribbonFlatId]->addModule(&m);
+	      m.setBundle(bundleFlat);
+	      bundles_[bundleFlatId]->addModule(&m);
 	    }
-	    // For layer 3, need to add a second ribbon for flat part
+	    // For layer 3, need to add a second bundle for flat part
 	    else {
 	      if (side > 0) {
-		m.setRibbon(ribbonFlat);
-		ribbons_[ribbonFlatId]->addModule(&m);
+		m.setBundle(bundleFlat);
+		bundles_[bundleFlatId]->addModule(&m);
 	      } else {
-		m.setRibbon(ribbonFlatB);
-		ribbons_[ribbonFlatIdB]->addModule(&m);
+		m.setBundle(bundleFlatB);
+		bundles_[bundleFlatIdB]->addModule(&m);
 	      }
 	    }
 	  }
 
 	  // tilted modules
 	  else if (m.isTilted() && side > 0) {
-	    m.setRibbon(ribbonTilted);
-	    ribbons_[ribbonTiltedId]->addModule(&m);
-	    ribbons_[ribbonTiltedId]->setIsTiltedPart(true);
+	    m.setBundle(bundleTilted);
+	    bundles_[bundleTiltedId]->addModule(&m);
+	    bundles_[bundleTiltedId]->setIsTiltedPart(true);
 	  }
 
 	}
@@ -542,19 +542,19 @@ void Tracker::buildCabling() {
 	phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
 
 	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
-	ribbonId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+	bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
 
 	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
 
-	if (ribbons_.count(ribbonId) == 0) {
-	  Ribbon* ribbonEndcap = GeometryFactory::make<Ribbon>(ribbonId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  ribbonEndcap->addModule(&m);
-	  ribbons_.insert(std::make_pair(ribbonId, ribbonEndcap));
-	  m.setRibbon(ribbonEndcap);
+	if (bundles_.count(bundleId) == 0) {
+	  Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundleEndcap->addModule(&m);
+	  bundles_.insert(std::make_pair(bundleId, bundleEndcap));
+	  m.setBundle(bundleEndcap);
 	}
 	else { 
-	  ribbons_[ribbonId]->addModule(&m);
-	  m.setRibbon(ribbons_[ribbonId]);
+	  bundles_[bundleId]->addModule(&m);
+	  m.setBundle(bundles_[bundleId]);
 	}	 
 	
       }
@@ -566,13 +566,13 @@ void Tracker::buildCabling() {
 	staggerModules();
 
 	// CHECK
-	checkModulesToRibbonsConnections();
+	checkModulesToBundlesConnections();
       }
 
 
       void staggerModules() {
 
-	for (auto& r : ribbons_) {
+	for (auto& r : bundles_) {
 	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
 
 	    while (r.second->numModules() > 12) {
@@ -591,17 +591,17 @@ void Tracker::buildCabling() {
 	      int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
 	      int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
-	      int ribbonId = r.first;
-	      int nextRibbonId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
-	      int previousRibbonId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
+	      int bundleId = r.first;
+	      int nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
+	      int previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
 	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) );
 	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
 
 
-	      if (ribbons_.count(previousRibbonId) != 0 && ribbons_.count(nextRibbonId) != 0) {
+	      if (bundles_.count(previousBundleId) != 0 && bundles_.count(nextBundleId) != 0) {
 		// Cannot assign the extra module : both neighbouring phi regions are full !
-		if (ribbons_[previousRibbonId]->numModules() >= 12 && ribbons_[nextRibbonId]->numModules() >= 12) {
+		if (bundles_[previousBundleId]->numModules() >= 12 && bundles_[nextBundleId]->numModules() >= 12) {
 		  std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
 			    << std::endl;
@@ -609,34 +609,34 @@ void Tracker::buildCabling() {
 		}
 
 		// Assign the module with the biggest phi to the next phi region
-		else if (ribbons_[previousRibbonId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
+		else if (bundles_[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
 		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
 			    << ", adding it to the next region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
-		  std::cout << "ribbons_[nextRibbonId]->numModules = " << ribbons_[nextRibbonId]->numModules() << std::endl;
+		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
 		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;
-		  ribbons_[ribbonId]->removeModule(maxPhiMod);		  
-		  ribbons_[nextRibbonId]->addModule(maxPhiMod);
-		  maxPhiMod->setRibbon(r.second);
+		  bundles_[bundleId]->removeModule(maxPhiMod);		  
+		  bundles_[nextBundleId]->addModule(maxPhiMod);
+		  maxPhiMod->setBundle(r.second);
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
-		else if (ribbons_[nextRibbonId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
+		else if (bundles_[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
 		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
 			    << ", adding it to the previous region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
-		  std::cout << "ribbons_[previousRibbonId]->numModules = " << ribbons_[previousRibbonId]->numModules() << std::endl;
+		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
 		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;
-		  ribbons_[ribbonId]->removeModule(minPhiMod);
-		  ribbons_[previousRibbonId]->addModule(minPhiMod);
-		  minPhiMod->setRibbon(r.second);
+		  bundles_[bundleId]->removeModule(minPhiMod);
+		  bundles_[previousBundleId]->addModule(minPhiMod);
+		  minPhiMod->setBundle(r.second);
 		}
 	      }
-	      else { std::cout << "Error building previousRibbonId or nextRibbonId" << std::endl; }
+	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; }
 
 	    }
 	  }
@@ -646,10 +646,10 @@ void Tracker::buildCabling() {
 
 
 
-      void checkModulesToRibbonsConnections() {
-	for (auto& r : ribbons_) {
+      void checkModulesToBundlesConnections() {
+	for (auto& r : bundles_) {
 	  if (r.second->numModules() > 12) {
-	    std::cout << "There was an error while staggering modules. Ribbon " 
+	    std::cout << "There was an error while staggering modules. Bundle " 
 		      << r.first << " is connected to " << r.second->numModules() << " modules." 
 		      << std::endl;
 	  }
@@ -657,20 +657,20 @@ void Tracker::buildCabling() {
       }
 
 
-      std::map<int, Ribbon*> getRibbons() { return ribbons_; }
+      std::map<int, Bundle*> getBundles() { return bundles_; }
     };
 
 
-    // MODULES TO RIBBONS
-    ModulesToRibbonsBuilder ribbonsBuilder;
-    accept(ribbonsBuilder);
-    ribbonsBuilder.postVisit();
-    ribbons_ = ribbonsBuilder.getRibbons();
+    // MODULES TO BUNDLES
+    ModulesToBundlesBuilder bundlesBuilder;
+    accept(bundlesBuilder);
+    bundlesBuilder.postVisit();
+    bundles_ = bundlesBuilder.getBundles();
 
 
-    // RIBBONS TO CABLES
-    connectRibbonsToCables();
-    checkRibbonsToCablesConnections();
+    // BUNDLES TO CABLES
+    connectBundlesToCables();
+    checkBundlesToCablesConnections();
 
     // CABLES TO DTCS
     connectCablesToDTCs();
@@ -684,18 +684,18 @@ void Tracker::buildCabling() {
 
 
 
-void Tracker::connectRibbonsToCables() {
+void Tracker::connectBundlesToCables() {
 
-  // Used to stagger several ribbons
+  // Used to stagger several bundles
   std::map<int, int> StripLayer2PhiRegionsCounter;
   std::map<int, int> StripLayer3PhiRegionsCounter;
 
-  for (auto& r : ribbons_) {
+  for (auto& r : bundles_) {
     int phiSectorRef = r.second->phiSectorRef();
     double phiSectorWidth = r.second->phiSectorWidth();
 
-    std::string ribbonType = r.second->type();
-    std::string cableType = ribbonType;
+    std::string bundleType = r.second->type();
+    std::string cableType = bundleType;
     if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
 
     int cableTypeIndex;
@@ -707,7 +707,7 @@ void Tracker::connectRibbonsToCables() {
     std::string subDetectorName = r.second->subDetectorName();
     int layerDiskNumber = r.second->layerDiskNumber();
 
-    // Used to stagger several ribbons
+    // Used to stagger several bundles
     int phiRegionRef = r.second->phiRegionRef();
 
     // Used to build cableId
@@ -721,11 +721,11 @@ void Tracker::connectRibbonsToCables() {
 
 
     else if (cableType == "PS5G") {
-      if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GA") ) {
+      if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GA") ) {
 	slot = 1;
       }
 
-      else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && ribbonType == "PS5GB") ) {
+      else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
 	  if (r.second->isTiltedPart()) slot = 2;
 	  else slot = 3;
@@ -778,23 +778,23 @@ void Tracker::connectRibbonsToCables() {
 
     if (cables_.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, slot);
-      cable->addRibbon(r.second);
+      cable->addBundle(r.second);
       cables_.insert(std::make_pair(cableId, cable));
       r.second->setCable(cable);
     }
     else {
-      cables_[cableId]->addRibbon(r.second);
+      cables_[cableId]->addBundle(r.second);
       r.second->setCable(cables_[cableId]);
     }
   }
 }
 
 
-void Tracker::checkRibbonsToCablesConnections() {
+void Tracker::checkBundlesToCablesConnections() {
   for (auto& c : cables_) {
-    if (c.second->numRibbons() > 6) {
-      std::cout << "There was an error while staggering ribbons. Cable " 
-		<< c.first << " is connected to " << c.second->numRibbons() << " ribbons." 
+    if (c.second->numBundles() > 6) {
+      std::cout << "There was an error while staggering bundles. Cable " 
+		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 
 		<< std::endl;
     }
   }

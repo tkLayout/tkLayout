@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Property.hh"
-#include "Ribbon.hh"
+#include "Bundle.hh"
 //#include "CablingVisitable.h"
 
 namespace insur { class DTC; }
@@ -26,10 +26,10 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
 
   DTC* myDTC_ = NULL;
 
-  typedef PtrVector<Ribbon> Container;
-  Container ribbons_;
+  typedef PtrVector<Bundle> Container;
+  Container bundles_;
 
-  //Property<int, Default> nRibbonsPerCable;
+  //Property<int, Default> nBundlesPerCable;
 
 public:
 
@@ -51,10 +51,10 @@ public:
   void setDTC(DTC* dtc) { myDTC_ = dtc; }
 
 
-  void addRibbon(Ribbon* r) { ribbons_.push_back(r); }
-  const Container& ribbons() const { return ribbons_; }
+  void addBundle(Bundle* b) { bundles_.push_back(b); }
+  const Container& bundles() const { return bundles_; }
 
-  int numRibbons() const { return ribbons_.size(); }
+  int numBundles() const { return bundles_.size(); }
 
 
 
@@ -63,16 +63,16 @@ public:
 
 
   /*Cable() :
-            nRibbonsPerCable      ("nRibbonsPerCable"      , parsedAndChecked(), 12)
+            nBundlesPerCable      ("nBundlesPerCable"      , parsedAndChecked(), 12)
   {}
 
   void setup() {}
 
 
-  Container& ribbons() { return ribbons_; }
+  Container& bundles() { return bundles_; }
  
-  int nRibbons() const { return ribbons_.size(); }
-  int maxRibbons() {return nRibbonsPerCable(); }
+  int nBundles() const { return bundles_.size(); }
+  int maxBundles() {return nBundlesPerCable(); }
    
   void check() override;
   void build();
@@ -80,11 +80,11 @@ public:
 
   void accept(CablingVisitor& v) { 
     v.visit(*this); 
-    for (auto& r : ribbons_) { r.accept(v); }
+    for (auto& b : bundles_) { b.accept(v); }
   }
   void accept(ConstCablingVisitor& v) const { 
     v.visit(*this); 
-    for (const auto& r :ribbons_) { r.accept(v); }
+    for (const auto& b :bundles_) { b.accept(v); }
     }*/
 
 };

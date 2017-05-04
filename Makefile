@@ -134,7 +134,7 @@ ANALYZERVISITORS+=ModuleCount
 
 CABLING+=DTC
 CABLING+=Cable
-CABLING+=Ribbon
+CABLING+=Bundle
 
 EXES+=tklayout
 EXES+=setup
