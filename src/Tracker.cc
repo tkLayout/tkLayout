@@ -559,7 +559,7 @@ void Tracker::buildCabling() {
 	    bundles_[bundleId]->addModule(&m);
 	    m.setBundle(bundles_[bundleId]);
 	  }	 
-	  //	}
+	  // }
       }
 
 
@@ -691,7 +691,7 @@ void Tracker::connectBundlesToCables() {
 
   // Used to stagger several bundles
   std::map<int, int> StripLayer2PhiRegionsCounter;
-  std::map<int, int> StripLayer3PhiRegionsCounter;
+  std::map<int, int> StripLayer3PhiSectorsCounter;
 
   for (auto& r : bundles_) {
     int phiSectorRef = r.second->phiSectorRef();
@@ -759,8 +759,8 @@ void Tracker::connectBundlesToCables() {
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
-	  StripLayer3PhiRegionsCounter[phiRegionRef] += 1;
-	  if (StripLayer3PhiRegionsCounter[phiRegionRef] >= 4) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  StripLayer3PhiSectorsCounter[phiSectorRef] += 1;
+	  if (StripLayer3PhiSectorsCounter[phiSectorRef] == 1 || StripLayer3PhiSectorsCounter[phiSectorRef] == 5 || StripLayer3PhiSectorsCounter[phiSectorRef] == 8) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	  else slot = 3;
 	}
 	else slot = 4;
