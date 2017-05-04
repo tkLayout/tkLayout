@@ -356,7 +356,7 @@ void Tracker::buildCabling() {
       std::string barrelName;     
       int layerNumber;
       int numRods;
-      int numFlatRings;   
+      int totalNumFlatRings;   
 
       std::string endcapName;
       int diskNumber;
@@ -392,19 +392,19 @@ void Tracker::buildCabling() {
       void visit(Layer& l) {
 	layerNumber = l.layerNumber();
 	numRods = l.numRods();
-	numFlatRings = l.buildNumModulesFlat();
+	totalNumFlatRings = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both +Z side and -Z side
 
 	if (layerNumber == 1 || layerNumber == 2 || layerNumber == 4) phiRegionWidth = 40. * M_PI / 180.;
 	else phiRegionWidth = 20. * M_PI / 180.;
       }
 
       void visit(RodPair& r) {
-	double phiSegmentWidth = (2*M_PI) / numRods;
-	phiSegmentRef = std::floor(femod(r.Phi(), 2*M_PI) / phiSegmentWidth);
+	double phiSegmentWidth = (2.*M_PI) / numRods;
+	phiSegmentRef = round(femod(r.Phi(), 2.*M_PI) / phiSegmentWidth);
 	
-	int phiRegionRef = std::floor(femod(r.Phi(), 2*M_PI) / phiRegionWidth);
+	int phiRegionRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiRegionWidth);
 
-	int phiSectorRef = std::floor(femod(r.Phi(), 2*M_PI) / phiSectorWidth);	
+	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);	
 
 	// Create 2S bundles
 	if (barrelName == "TB2S") {
@@ -427,7 +427,7 @@ void Tracker::buildCabling() {
 	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
 
 	    // For layer 3, need to add a second bundle for flat part
-	    if (numFlatRings > 12) {
+	    if (totalNumFlatRings > 12) {
 	      bundleFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
 	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	      bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
@@ -459,7 +459,7 @@ void Tracker::buildCabling() {
 	  // flat modules
 	  if (!m.isTilted() && ( (phiSegmentRef + 1) % 2 == phiSelect)) {
 	    // standard case
-	    if (numFlatRings <= 12) {
+	    if (totalNumFlatRings <= 12) {
 	      m.setBundle(bundleFlat);
 	      bundles_[bundleFlatId]->addModule(&m);
 	    }
@@ -525,39 +525,39 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	std::cout << "side = " << side << std::endl;
-	std::cout << "diskNumber = " << diskNumber << std::endl;
-	if (type == "PS10G" || type == "PS5GA") {
-	  phiRegionWidth = 40. * M_PI / 180.;
-	}
+	//if (side) {
+	  if (type == "PS10G" || type == "PS5GA") {
+	    phiRegionWidth = 40. * M_PI / 180.;
+	  }
 
-	else if (type == "PS5GB") {
-	  phiRegionWidth = 20. * M_PI / 180.;
-	}
+	  else if (type == "PS5GB") {
+	    phiRegionWidth = 20. * M_PI / 180.;
+	  }
 
-	else if (type == "2S") {
-	  phiRegionWidth = 360. / 27. * M_PI / 180.;
-	}
+	  else if (type == "2S") {
+	    phiRegionWidth = 360. / 27. * M_PI / 180.;
+	  }
 
-	double phiSegmentWidth = (2*M_PI) / numModulesInRing;
-	phiSegmentRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSegmentWidth);
+	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
+	  phiSegmentRef = round(femod(m.center().Phi(), 2.*M_PI) / phiSegmentWidth);
 
-	int phiRegionRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiRegionWidth);	  
-	bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
-	//else { bundleId = 30000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex; }
+	  int phiRegionRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiRegionWidth);	  
+	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+	  //else { bundleId = 30000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex; }
 
-	int phiSectorRef = std::floor(femod(m.center().Phi(), 2*M_PI) / phiSectorWidth);
+	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiSectorWidth);
 
-	if (bundles_.count(bundleId) == 0) {
-	  Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  bundleEndcap->addModule(&m);
-	  bundles_.insert(std::make_pair(bundleId, bundleEndcap));
-	  m.setBundle(bundleEndcap);
-	}
-	else { 
-	  bundles_[bundleId]->addModule(&m);
-	  m.setBundle(bundles_[bundleId]);
-	}	 
+	  if (bundles_.count(bundleId) == 0) {
+	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    bundleEndcap->addModule(&m);
+	    bundles_.insert(std::make_pair(bundleId, bundleEndcap));
+	    m.setBundle(bundleEndcap);
+	  }
+	  else { 
+	    bundles_[bundleId]->addModule(&m);
+	    m.setBundle(bundles_[bundleId]);
+	  }	 
+	  //	}
       }
 
 
