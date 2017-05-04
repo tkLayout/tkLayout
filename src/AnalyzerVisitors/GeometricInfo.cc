@@ -473,7 +473,7 @@ std::string TrackerSensorVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Index/I, DTC Phi Sector Width_deg/D, DTC plotColor" << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, DTC plotColor" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
