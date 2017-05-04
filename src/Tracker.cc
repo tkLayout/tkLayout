@@ -775,6 +775,7 @@ void Tracker::connectBundlesToCables() {
       }
     }
   
+    if (slot == 0) std::cout << "Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly." << std::endl;
 
     // BUILD CABLE AND STORES IT
     int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + slot;
