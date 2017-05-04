@@ -400,7 +400,8 @@ void Tracker::buildCabling() {
 
       void visit(RodPair& r) {
 	double phiSegmentWidth = (2.*M_PI) / numRods;
-	phiSegmentRef = round(femod(r.Phi(), 2.*M_PI) / phiSegmentWidth);
+	double startPhi = femod( r.Phi(), phiSegmentWidth);
+	phiSegmentRef = round(femod(r.Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
 	
 	int phiRegionRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiRegionWidth);
 
@@ -539,7 +540,8 @@ void Tracker::buildCabling() {
 	  }
 
 	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
-	  phiSegmentRef = round(femod(m.center().Phi(), 2.*M_PI) / phiSegmentWidth);
+	  double startPhi = femod( m.center().Phi(), phiSegmentWidth);
+	  phiSegmentRef = round(femod(m.center().Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
 
 	  int phiRegionRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiRegionWidth);	  
 	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
