@@ -107,6 +107,11 @@ struct TypeDTCColor { // Module-maintained DTC color
   }
 };
 
+struct TypeBundleColor { // Module-maintained DTC color
+  double operator()(const Module& m) {
+    return Palette::color(m.bundlePlotColor());
+  }
+};
 
 struct CoordZ {
   double operator()(const Module& m) { return m.center().Z(); }

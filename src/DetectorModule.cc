@@ -475,6 +475,16 @@ const int DetectorModule::dtcPlotColor() const {
   return dtcPlotColor;
 }
 
+
+const int DetectorModule::bundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
 //BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
 //setup();
                                     // this was already commented

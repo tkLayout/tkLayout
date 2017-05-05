@@ -1207,29 +1207,58 @@ namespace insur {
       //*                              *//
       //********************************//
       RootWImage* myImage;
-      TCanvas *summaryCanvas = NULL;
-      TCanvas *RZCanvas = NULL;
-      TCanvas *XYCanvas = NULL;
-      std::vector<TCanvas*> XYCanvasesDisk;
-      TCanvas *myCanvas = NULL;
-      createSummaryCanvasCablingNicer(tracker, RZCanvas, XYCanvas, XYCanvasesDisk);
+      TCanvas *summaryDTCCanvas = NULL;
+      TCanvas *RZDTCCanvas = NULL;
+      TCanvas *XYDTCCanvas = NULL;
+      std::vector<TCanvas*> XYDTCCanvasesDisk;
 
-      myContent = new RootWContent("Plots");
+      
+      // Modules to DTCs
+      myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      if (RZCanvas) {
-	myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
+      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCCanvas, XYDTCCanvasesDisk);
+
+      if (RZDTCCanvas) {
+	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
 	myImage->setComment("RZ positions of the modules");
 	myContent->addItem(myImage);
       }
-      if (XYCanvas) {
-	myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      if (XYDTCCanvas) {
+	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("XY Section of the tracker barrel");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYCanvasDisk : XYCanvasesDisk ) {
-	  myImage = new RootWImage(XYCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYCanvasDisk->GetTitle());
+      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
+	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      
+      TCanvas *summaryBundleCanvas = NULL;
+      TCanvas *RZBundleCanvas = NULL;
+      TCanvas *XYBundleCanvas = NULL;
+      std::vector<TCanvas*> XYBundleCanvasesDisk;
+
+      //Modules to Bundles
+      myContent = new RootWContent("Modules to Bundles");
+      myPage->addContent(myContent);
+
+      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleCanvasesDisk);
+
+      if (RZBundleCanvas) {
+	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
+	myImage->setComment("RZ positions of the modules");
+	myContent->addItem(myImage);
+      }
+      if (XYBundleCanvas) {
+	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("XY Section of the tracker barrel");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
+	  myImage = new RootWImage(XYBundleCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYBundleCanvasDisk->GetTitle());
 	  myContent->addItem(myImage);
       }
 
@@ -6201,7 +6230,7 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingNicer(Tracker& tracker,
+  void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
 					       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
 					       std::vector<TCanvas*> &XYCanvasesDisk) {
 
@@ -6234,6 +6263,49 @@ namespace insur {
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(aDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	}
+      }
+    }
+  }
+
+
+  void Vizard::createSummaryCanvasCablingBundleNicer(Tracker& tracker,
+					       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+					       std::vector<TCanvas*> &XYCanvasesDisk) {
+
+    double scaleFactor = tracker.maxR()/600;
+
+    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, TypeBundleColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+   
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeBundleColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModulesType(tracker, BARREL);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+
+    for (auto& anEndcap : tracker.endcaps() ) {
+      for (auto& aDisk : anEndcap.disks() ) {
+	if (aDisk.side()) {
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasDisk->cd();
+	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
 	  xyDiskDrawer.addModules(aDisk);
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
