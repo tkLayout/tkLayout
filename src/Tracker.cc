@@ -619,11 +619,11 @@ void Tracker::buildCabling() {
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
 		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
-		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;
-		  //bundles_[bundleId]->removeModule(maxPhiMod);  // TO DO ! SOlve this!!!!		  
+		  //bundles_[bundleId]->removeModule(maxPhiMod);  // TO DO ! SOlve this!!!!
+		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl;	
+		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;	  
 		  bundles_[nextBundleId]->addModule(maxPhiMod);
-		  maxPhiMod->setBundle(r.second);
-		  break;
+		  maxPhiMod->setBundle(bundles_[nextBundleId]);
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
@@ -634,11 +634,11 @@ void Tracker::buildCabling() {
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
 		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
-		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;
 		  //bundles_[bundleId]->removeModule(minPhiMod);   // TO DO ! SOlve this!!!!
+		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl;
+		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;	
 		  bundles_[previousBundleId]->addModule(minPhiMod);
-		  minPhiMod->setBundle(r.second);
-		  break;
+		  minPhiMod->setBundle(bundles_[previousBundleId]);
 		}
 	      }
 	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; break; }
