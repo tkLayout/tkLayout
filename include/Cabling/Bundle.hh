@@ -105,30 +105,38 @@ public:
   
   const Container& modules() const { return modules_; }
   void addModule(Module* m) { modules_.push_back(m); }
-  void removeModule(Module* m) {
+  /*void removeModule(Module* m) {
     int detId = m->myDetId();
     modules_.erase_if([detId](Module& m) { return (m.myDetId() == detId); });
-  }
+    }*/
 
   Container& modules() { return modules_; }
-  void transferModule(Container& otherModules, bool isMax) {
-    if (isMax) {
-      modules_.transfer(modules_.end(), 
-			std::max_element(otherModules.begin(), otherModules.end(), [](const Module& a, const Module& b) {
-			    return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
-			  }),
-			otherModules);
-    }
-    else {
-      modules_.transfer(modules_.end(), 
-			std::min_element(otherModules.begin(), otherModules.end(), [](const Module& a, const Module& b) {
-			    return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
-			  }),
-			otherModules);
-    }
+
+  void moveMaxPhiModuleFromOtherBundle(Bundle* otherBundle) {
+    Container& otherBundleModules = otherBundle->modules();
+    auto maxPhiModuleIt = std::max_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
+	return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
+      });
+
+    modules_.transfer(modules_.end(), 
+		      maxPhiModuleIt,
+		      otherBundleModules);
   }
 
-  
+  void moveMinPhiModuleFromOtherBundle(Bundle* otherBundle) {
+    Container& otherBundleModules = otherBundle->modules();
+    auto minPhiModuleIt = std::min_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
+	return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
+      });
+
+    modules_.transfer(modules_.end(), 
+		      minPhiModuleIt,
+		      otherBundleModules);
+  }
+
+
+
+
 
   int numModules() const { return modules_.size(); }
 
