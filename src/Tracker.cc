@@ -526,7 +526,7 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	//if (side) {
+	if (side) {
 	  if (type == "PS10G" || type == "PS5GA") {
 	    phiRegionWidth = 40. * M_PI / 180.;
 	  }
@@ -559,7 +559,7 @@ void Tracker::buildCabling() {
 	    bundles_[bundleId]->addModule(&m);
 	    m.setBundle(bundles_[bundleId]);
 	  }	 
-	  // }
+	}
       }
 
 
@@ -620,9 +620,10 @@ void Tracker::buildCabling() {
 		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
 		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;
-		  bundles_[bundleId]->removeModule(maxPhiMod);		  
+		  //bundles_[bundleId]->removeModule(maxPhiMod);  // TO DO ! SOlve this!!!!		  
 		  bundles_[nextBundleId]->addModule(maxPhiMod);
 		  maxPhiMod->setBundle(r.second);
+		  break;
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
@@ -634,9 +635,10 @@ void Tracker::buildCabling() {
 		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
 		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;
-		  bundles_[bundleId]->removeModule(minPhiMod);
+		  //bundles_[bundleId]->removeModule(minPhiMod);   // TO DO ! SOlve this!!!!
 		  bundles_[previousBundleId]->addModule(minPhiMod);
 		  minPhiMod->setBundle(r.second);
+		  break;
 		}
 	      }
 	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; break; }
