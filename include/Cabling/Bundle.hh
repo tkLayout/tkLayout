@@ -67,16 +67,16 @@ public:
    
 
     int dizaine = id / 10;
-    int plotPhi = dizaine % 2;
+    int plotPhi = dizaine % 3;
 
     int plotType = 0;
     if (type == "PS10G") plotType = 1;
     else if (type == "PS5G") plotType = 2;
     else if (type == "PS5GA") plotType = 2;
-    else if (type == "PS5GB") plotType = 3;
-    else if (type == "2S") plotType = 4;
+    else if (type == "PS5GB") plotType = 1;
+    else if (type == "2S") plotType = 3;
 
-    plotColor_ = plotType * 2 + plotPhi;
+    plotColor_ = plotType * 3 + plotPhi;
    
   };
 
@@ -96,10 +96,7 @@ public:
 
 
   const bool isTiltedPart() const { return isTiltedPart_; }
-  void setIsTiltedPart(bool isTiltedPart) { 
-    isTiltedPart_ = isTiltedPart;  
-    if (isTiltedPart) plotColor_ += 5; 
-  }
+  void setIsTiltedPart(bool isTiltedPart) { isTiltedPart_ = isTiltedPart; }
 
   const Cable* getCable() const { return cable_; }
   void setCable(Cable* cable) { cable_ = cable; }
