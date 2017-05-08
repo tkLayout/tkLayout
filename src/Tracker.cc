@@ -619,10 +619,13 @@ void Tracker::buildCabling() {
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
 		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
 		  Module* maxPhiMod = r.second->maxPhiModule();
+		  //std::auto_ptr<Module> maxPhiMod = r.second->maxPhiModule();
 		  //bundles_[bundleId]->removeModule(maxPhiMod);  // TO DO ! SOlve this!!!!
+		  PtrVector<Module>& presentModules = r.second->modules();
+		  bundles_[nextBundleId]->transferModule(presentModules, true);
 		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl;	
-		  std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;	  
-		  bundles_[nextBundleId]->addModule(maxPhiMod);
+		  //std::cout << "maxPhiMod->myDetId() = " << maxPhiMod->myDetId() << std::endl;	  
+		  //bundles_[nextBundleId]->addModule(maxPhiMod);
 		  maxPhiMod->setBundle(bundles_[nextBundleId]);
 		}
 
@@ -635,9 +638,11 @@ void Tracker::buildCabling() {
 		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
 		  Module* minPhiMod = r.second->minPhiModule();
 		  //bundles_[bundleId]->removeModule(minPhiMod);   // TO DO ! SOlve this!!!!
+		  PtrVector<Module>& presentModules = r.second->modules();
+		  bundles_[previousBundleId]->transferModule(presentModules, false);
 		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl;
-		  std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;	
-		  bundles_[previousBundleId]->addModule(minPhiMod);
+		  //std::cout << "minPhiMod->myDetId() = " << minPhiMod->myDetId() << std::endl;	
+		  //bundles_[previousBundleId]->addModule(minPhiMod);
 		  minPhiMod->setBundle(bundles_[previousBundleId]);
 		}
 	      }
