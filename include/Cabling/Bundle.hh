@@ -66,20 +66,11 @@ public:
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
 
-   
-
+    // Calculate plotColor_
+    int plotType = 2 + id % 2;  // Barrel : Identifies Flat vs Tilted. Endcap : Identifies PS10G vs PG5GA vs PS5GB vs 2S type.
     int dizaine = id / 10;
-    int plotPhi = dizaine % 3;
-
-    int plotType = 0;
-    if (type == "PS10G") plotType = 1;
-    else if (type == "PS5G") plotType = 2;
-    else if (type == "PS5GA") plotType = 2;
-    else if (type == "PS5GB") plotType = 1;
-    else if (type == "2S") plotType = 3;
-
-    plotColor_ = plotType * 3 + plotPhi;
-   
+    int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
+    plotColor_ = plotType * 3 + plotPhi;  
   };
 
   const std::string type() const { return type_; }

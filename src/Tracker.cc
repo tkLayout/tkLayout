@@ -790,6 +790,7 @@ void Tracker::connectBundlesToCables() {
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
 	Layer5PhiRegionsCounter[phiRegionRef] += 1;
+	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
 	if (Layer5PhiRegionsCounter[phiRegionRef] == 4) {
 	  Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	  slot = 1;
@@ -798,6 +799,7 @@ void Tracker::connectBundlesToCables() {
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
+	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
 	if (subDetectorName == "TB2S") {
 	  Layer6PhiSectorsCounter[phiSectorRef] += 1;
 	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;
