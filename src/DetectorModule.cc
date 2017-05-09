@@ -460,6 +460,16 @@ std::string DetectorModule::summaryFullType() const  {
   return result;
 };
 
+
+const int DetectorModule::bundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
   const Bundle* myBundle = getBundle();
@@ -488,16 +498,6 @@ const int DetectorModule::dtcPhiSectorRef() const {
     }
   }
   return dtcPhiSectorRef;
-}
-
-
-const int DetectorModule::bundlePlotColor() const {
-  int bundlePlotColor = 0;
-  const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
-    bundlePlotColor = myBundle->plotColor();
-  }
-  return bundlePlotColor;
 }
 
 //BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
