@@ -473,7 +473,7 @@ std::string TrackerSensorVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, DTC plotColor" << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, Cable ServicesChannel/I, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -511,8 +511,9 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
       if (myCable != NULL) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ","
-		  << myCable->type() << ",";
-
+		  << myCable->type() << ","
+		  << myCable->servicesChannel() << ",";
+	
 	const DTC* myDTC = myCable->getDTC();
 	if (myDTC != NULL) {
 	  std::stringstream DTCInfo;
@@ -521,8 +522,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		  << myDTC->type() << ","
 		  << myDTC->slot() << ","
 		  << std::fixed << std::setprecision(6)
-		  << myDTC->phiSectorWidth() * 180. / M_PI << ","
-		  << myDTC->plotColor();
+		  << myDTC->phiSectorWidth() * 180. / M_PI;
 	  output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << DTCInfo.str() << std::endl;
 	}
 	else output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << std::endl;

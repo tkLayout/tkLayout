@@ -24,6 +24,8 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   std::string type_;
   int slot_;
 
+  int servicesChannel_;
+
   DTC* myDTC_ = NULL;
 
   typedef PtrVector<Bundle> Container;
@@ -38,7 +40,43 @@ public:
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
     type_ = type;
-    slot_ = slot;    
+    slot_ = slot;
+
+    // Assign servicesChannel (depends on cable type and phiSectorRef)
+    servicesChannel_ = 0;
+    if (type == "PS10G") {
+      if (phiSectorRef == 0) servicesChannel_ = 1;
+      else if (phiSectorRef == 1) servicesChannel_ = 3;
+      else if (phiSectorRef == 2) servicesChannel_ = 4;
+      else if (phiSectorRef == 3) servicesChannel_ = 5;
+      else if (phiSectorRef == 4) servicesChannel_ = 6;
+      else if (phiSectorRef == 5) servicesChannel_ = 7;
+      else if (phiSectorRef == 6) servicesChannel_ = 9;
+      else if (phiSectorRef == 7) servicesChannel_ = 10;
+      else if (phiSectorRef == 8) servicesChannel_ = 12;   
+    }
+    else if (type == "PS5G") {
+      if (phiSectorRef == 0) servicesChannel_ = 1;
+      else if (phiSectorRef == 1) servicesChannel_ = 3;
+      else if (phiSectorRef == 2) servicesChannel_ = 4;
+      else if (phiSectorRef == 3) servicesChannel_ = 6;
+      else if (phiSectorRef == 4) servicesChannel_ = 7;
+      else if (phiSectorRef == 5) servicesChannel_ = 8;
+      else if (phiSectorRef == 6) servicesChannel_ = 10;
+      else if (phiSectorRef == 7) servicesChannel_ = 11;
+      else if (phiSectorRef == 8) servicesChannel_ = 12;
+    }
+    else if (type == "2S") {
+      if (phiSectorRef == 0) servicesChannel_ = 1;
+      else if (phiSectorRef == 1) servicesChannel_ = 2;
+      else if (phiSectorRef == 2) servicesChannel_ = 4;
+      else if (phiSectorRef == 3) servicesChannel_ = 5;
+      else if (phiSectorRef == 4) servicesChannel_ = 6;
+      else if (phiSectorRef == 5) servicesChannel_ = 7;
+      else if (phiSectorRef == 6) servicesChannel_ = 9;
+      else if (phiSectorRef == 7) servicesChannel_ = 10;
+      else if (phiSectorRef == 8) servicesChannel_ = 12;
+    }
   };
 
 
@@ -46,6 +84,8 @@ public:
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }
+
+  const int servicesChannel() const { return servicesChannel_; }
 
   const DTC* getDTC() const { return myDTC_; }
   void setDTC(DTC* dtc) { myDTC_ = dtc; }
