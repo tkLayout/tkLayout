@@ -1207,41 +1207,14 @@ namespace insur {
       //*                              *//
       //********************************//
       RootWImage* myImage;
-      TCanvas *summaryDTCCanvas = NULL;
-      TCanvas *RZDTCCanvas = NULL;
-      TCanvas *XYDTCCanvas = NULL;
-      std::vector<TCanvas*> XYDTCCanvasesDisk;
 
-      
-      // Modules to DTCs
-      myContent = new RootWContent("Modules to DTCs");
-      myPage->addContent(myContent);
-
-      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCCanvas, XYDTCCanvasesDisk);
-
-      if (RZDTCCanvas) {
-	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
-	myContent->addItem(myImage);
-      }
-      if (XYDTCCanvas) {
-	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel");
-	myContent->addItem(myImage);
-      }
-      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
-	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
-	  myContent->addItem(myImage);
-      }
-      
+      //Modules to Bundles
       TCanvas *summaryBundleCanvas = NULL;
       TCanvas *RZBundleCanvas = NULL;
       TCanvas *XYBundleCanvas = NULL;
       std::vector<TCanvas*> XYBundleCanvasesDisk;
       std::vector<TCanvas*> XYSurfacesDisk;
-
-      //Modules to Bundles
+   
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
@@ -1267,6 +1240,35 @@ namespace insur {
 	  myImage->setComment(XYSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
+
+
+      // Modules to DTCs
+      TCanvas *summaryDTCCanvas = NULL;
+      TCanvas *RZDTCCanvas = NULL;
+      TCanvas *XYDTCCanvas = NULL;
+      std::vector<TCanvas*> XYDTCCanvasesDisk;
+       
+      myContent = new RootWContent("Modules to DTCs");
+      myPage->addContent(myContent);
+
+      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCCanvas, XYDTCCanvasesDisk);
+
+      if (RZDTCCanvas) {
+	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCCanvas) {
+	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
+	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      
 
       // Add detailed geometry info here
       RootWContent* filesContent = new RootWContent("Cabling files", true);
