@@ -37,6 +37,9 @@ OT_Tilted_362_200_Pixel_4021.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.1
                                      VERY small adjustment in positioning of TBPS layer 1 ring 8 and 10 (affexts rings 8+)
 
+OT362_200_IT4121.cfg		     OT Version 3.6.2
+				     Pixel version as in 4.0.2.1, but with 50x50 pixels instead of 25x100
+
 OT_Tilted_362_200_Pixel_4022.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.2 <- like 4.0.2.1 but with lower radii for BPIX L3 and L4 (less modules)
 
@@ -179,6 +182,8 @@ OT602_200_IT4025.cfg                       9,7 PS rings in TEDD1,2
 OT603_200_IT4025.cfg                      like 602, but overlap mainly through PS modules
 
 OT611_200_IT4025.cfg                      TDR geometry
+
+OT611_200_IT4125.cfg		     	Like TDR geometry, but with 50x50 pixels instead of 25x100
 
 OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paired-up layers:
                                              Z coordinates in TEDD: 1356.8 1440 1854.67 1937.67 2567 2650
