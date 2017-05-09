@@ -696,13 +696,18 @@ void Tracker::buildCabling() {
 
 void Tracker::connectBundlesToCables() {
 
-  // Used to stagger several bundles
-  std::map<int, int> StripLayer2PhiRegionsCounter;
-  std::map<int, int> StripLayer3PhiSectorsCounter;
+  // Used to stagger several bundlesn
+  std::map<int, int> Layer5PhiRegionsCounter;
+  std::map<int, int> Layer6PhiSectorsCounter;
+  std::map<int, int> Layer3FlatPhiSectorsCounter;
 
   for (auto& b : bundles_) {
     int phiSectorRef = b.second->phiSectorRef();
+    int phiSectorRefCable = phiSectorRef;
     double phiSectorWidth = b.second->phiSectorWidth();
+
+    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
+    int nextPhiSectorRef = femod( (phiSectorRef + 1), numPhiSectors);
 
     std::string bundleType = b.second->type();
     std::string cableType = bundleType;
@@ -718,7 +723,7 @@ void Tracker::connectBundlesToCables() {
     int layerDiskNumber = b.second->layerDiskNumber();
 
     // Used to stagger several bundles
-    int phiRegionRef = b.second->phiRegionRef();
+    int phiRegionRef = b.second->phiRegionRef();   
 
     // Used to build cableId
     int slot = 0;
@@ -737,8 +742,19 @@ void Tracker::connectBundlesToCables() {
 
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
-	  if (b.second->isTiltedPart()) slot = 2;
-	  else slot = 3;
+	  // Tilted part
+	  if (b.second->isTiltedPart()) { slot = 2; }
+	  // Flat part : assign TBPS bundles with TEDD bundles
+	  else {
+	    Layer3FlatPhiSectorsCounter[phiSectorRef] += 1;
+	    // In case already 4 bundles from flat part, assign to next phi Sector
+	    if (Layer3FlatPhiSectorsCounter.at(phiSectorRef) > 4) {
+	      Layer3FlatPhiSectorsCounter[phiSectorRef] -= 1;
+	      Layer3FlatPhiSectorsCounter[nextPhiSectorRef] += 1;
+	      phiSectorRefCable = nextPhiSectorRef;
+	    }
+	    slot = 3;
+	  }
 	}
 	else slot = 3;
       }
@@ -759,15 +775,15 @@ void Tracker::connectBundlesToCables() {
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
-	StripLayer2PhiRegionsCounter[phiRegionRef] += 1;
-	if (StripLayer2PhiRegionsCounter[phiRegionRef] == 4) slot = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	Layer5PhiRegionsCounter[phiRegionRef] += 1;
+	if (Layer5PhiRegionsCounter[phiRegionRef] == 4) slot = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	else slot = 2;
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
-	  StripLayer3PhiSectorsCounter[phiSectorRef] += 1;
-	  if (StripLayer3PhiSectorsCounter[phiSectorRef] == 1 || StripLayer3PhiSectorsCounter[phiSectorRef] == 5 || StripLayer3PhiSectorsCounter[phiSectorRef] == 8) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  Layer6PhiSectorsCounter[phiSectorRef] += 1;
+	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
 	  else slot = 3;
 	}
 	else slot = 4;
@@ -785,10 +801,10 @@ void Tracker::connectBundlesToCables() {
     if (slot == 0) std::cout << "Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly." << std::endl;
 
     // BUILD CABLE AND STORES IT
-    int cableId = phiSectorRef * 100 + cableTypeIndex * 10 + slot;
+    int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
 
     if (cables_.count(cableId) == 0) {
-      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, slot);
+      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot);
       cable->addBundle(b.second);
       cables_.insert(std::make_pair(cableId, cable));
       b.second->setCable(cable);
