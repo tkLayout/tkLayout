@@ -6306,39 +6306,36 @@ namespace insur {
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
     for (auto& anEndcap : tracker.endcaps() ) {
-      for (auto& aDisk : anEndcap.disks() ) {
-	if (aDisk.side()) {
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
-					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), lastDisk.myid()),
+					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), lastDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	  xyDiskDrawer.addModules(aDisk);
+	  xyDiskDrawer.addModules(lastDisk);
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	}
       }
     }
 
     for (auto& anEndcap : tracker.endcaps() ) {
-      for (auto& aDisk : anEndcap.disks() ) {
-	if (aDisk.side()) {
-
-	  std::vector<std::set<const Module*> > allSurfaceModules = aDisk.getModuleSurfaces();
-	  int iSurface = 0;
-	  for (auto& surfaceModules : allSurfaceModules) {
-	    iSurface++;
-	    TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sDisk_%dSurface_%d", anEndcap.myid().c_str(), aDisk.myid(), iSurface),
-						Form("XY projection of Endcap %s Disk %d Surface %d", anEndcap.myid().c_str(), aDisk.myid(), iSurface),
-						vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	    XYSurfaceDisk->cd();
-	    PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	    xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	    xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	    xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	    XYSurfacesDisk.push_back(XYSurfaceDisk);
-	  }
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	std::vector<std::set<const Module*> > allSurfaceModules = lastDisk.getModuleSurfaces();
+	int iSurface = 0;
+	for (auto& surfaceModules : allSurfaceModules) {
+	  iSurface++;
+	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sDisk_%dSurface_%d", anEndcap.myid().c_str(), lastDisk.myid(), iSurface),
+					       Form("XY projection of Endcap %s Disk %d Surface %d", anEndcap.myid().c_str(), lastDisk.myid(), iSurface),
+					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYSurfaceDisk->cd();
+	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	  XYSurfacesDisk.push_back(XYSurfaceDisk);
 	}
       }
     }
