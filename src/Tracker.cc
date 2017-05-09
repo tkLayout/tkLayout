@@ -540,7 +540,7 @@ void Tracker::buildCabling() {
 	  else if (type == "2S") {
 	    phiRegionWidth = 360. / 27. * M_PI / 180.;
 	    if (endcapName == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
-	    else phiRegionStart = 0.005 * M_PI / 180.;
+	    else phiRegionStart = -0.001 * M_PI / 180.;
 	  }
 
 	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
@@ -700,6 +700,10 @@ void Tracker::connectBundlesToCables() {
   std::map<int, int> Layer5PhiRegionsCounter;
   std::map<int, int> Layer6PhiSectorsCounter;
   std::map<int, int> Layer3FlatPhiSectorsCounter;
+
+  std::map<int, int> Layer4PhiSectorsCounter;
+  std::map<int, int> Layer5PhiSectorsCounter;
+ 
 
   for (auto& b : bundles_) {
     int phiSectorRef = b.second->phiSectorRef();
