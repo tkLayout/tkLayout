@@ -29,6 +29,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 
   double phiSegmentWidth_;
   int phiSegmentRef_;
+  double phiRegionStart_;
   double phiRegionWidth_;
   int phiRegionRef_;
   double phiSectorWidth_;
@@ -50,7 +51,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
+  Bundle(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionStart, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
     myid(id);
 
     type_ = type;
@@ -59,6 +60,7 @@ public:
 
     phiSegmentWidth_ = phiSegmentWidth;
     phiSegmentRef_ = phiSegmentRef;
+    phiRegionStart_ = phiRegionStart;
     phiRegionWidth_ = phiRegionWidth;
     phiRegionRef_ = phiRegionRef;
     phiSectorWidth_ = phiSectorWidth;
@@ -86,6 +88,7 @@ public:
 
   const double phiSegmentWidth() const { return phiSegmentWidth_; }
   const int phiSegmentRef() const { return phiSegmentRef_; }
+  const double phiRegionStart() const { return phiRegionStart_; }
   const double phiRegionWidth() const { return phiRegionWidth_; }
   const int phiRegionRef() const { return phiRegionRef_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }

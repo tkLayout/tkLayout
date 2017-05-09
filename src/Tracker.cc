@@ -403,7 +403,8 @@ void Tracker::buildCabling() {
 	double startPhi = femod( r.Phi(), phiSegmentWidth);
 	phiSegmentRef = round(femod(r.Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
 	
-	int phiRegionRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiRegionWidth);
+	double phiRegionStart = 0.;
+	int phiRegionRef = std::floor(femod(r.Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);
 
 	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);	
 
@@ -411,7 +412,7 @@ void Tracker::buildCabling() {
 	if (barrelName == "TB2S") {
 	  bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;
 	  type = "2S";
-	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  bundles_.insert(std::make_pair(bundleId, bundle));
 	}
 
@@ -424,20 +425,20 @@ void Tracker::buildCabling() {
 	  // standard case
 	  if ( (phiSegmentRef + 1) % 2 == phiSelect) {
 	    bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
-	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
 
 	    // For layer 3, need to add a second bundle for flat part
 	    if (totalNumFlatRings > 12) {
 	      bundleFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
-	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	      bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
 	    }
 	  }
 
 	  // Tilted part
 	  bundleTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));	 
 	}
       }
@@ -527,6 +528,7 @@ void Tracker::buildCabling() {
 
       void visit(EndcapModule& m) {
 	if (side) {
+	  double phiRegionStart = 0.;
 	  if (type == "PS10G" || type == "PS5GA") {
 	    phiRegionWidth = 40. * M_PI / 180.;
 	  }
@@ -537,20 +539,22 @@ void Tracker::buildCabling() {
 
 	  else if (type == "2S") {
 	    phiRegionWidth = 360. / 27. * M_PI / 180.;
+	    if (endcapName == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
+	    else phiRegionStart = 0.005 * M_PI / 180.;
 	  }
 
 	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
 	  double startPhi = femod( m.center().Phi(), phiSegmentWidth);
 	  phiSegmentRef = round(femod(m.center().Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
 
-	  int phiRegionRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiRegionWidth);	  
+	  int phiRegionRef = std::floor(femod(m.center().Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);	  
 	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
 	  //else { bundleId = 30000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex; }
 
 	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiSectorWidth);
 
 	  if (bundles_.count(bundleId) == 0) {
-	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    bundleEndcap->addModule(&m);
 	    bundles_.insert(std::make_pair(bundleId, bundleEndcap));
 	    m.setBundle(bundleEndcap);
@@ -587,6 +591,8 @@ void Tracker::buildCabling() {
 	      else if (type == "PS5GB") typeIndex = 2;
 	      else if (type == "2S") typeIndex = 3;
 
+	      double phiRegionStart = r.second->phiRegionStart();
+
 	      double phiRegionWidth = r.second->phiRegionWidth();
 	      int numPhiRegions = round(2 * M_PI / phiRegionWidth);
 
@@ -598,14 +604,15 @@ void Tracker::buildCabling() {
 	      int nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
 	      int previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
-	      double minPhiBorder = fabs( femod(r.second->minPhi(), phiRegionWidth) );
-	      double maxPhiBorder = fabs( femod(r.second->maxPhi(), phiRegionWidth) - phiRegionWidth);
+	      double minPhiBorder = fabs( femod((r.second->minPhi() - phiRegionStart), phiRegionWidth) );
+	      double maxPhiBorder = fabs( femod((r.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
 
 
 	      if (bundles_.count(previousBundleId) != 0 && bundles_.count(nextBundleId) != 0) {
 		// Cannot assign the extra module : both neighbouring phi regions are full !
 		if (bundles_[previousBundleId]->numModules() >= 12 && bundles_[nextBundleId]->numModules() >= 12) {
-		  std::cout << "I am a refugee module from disk " << diskNumber << ", phiRegionRef " << phiRegionRef 
+		  std::cout << "I am a refugee module from disk " << diskNumber << ", type " << type 
+			    << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
 			    << std::endl;
 		  break;
@@ -613,7 +620,8 @@ void Tracker::buildCabling() {
 
 		// Assign the module with the biggest phi to the next phi region
 		else if (bundles_[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
+		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
+			    << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 			    << ", adding it to the next region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
@@ -626,7 +634,8 @@ void Tracker::buildCabling() {
 
 		// Assign the module with the lowest phi to the previous phi region
 		else if (bundles_[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << " from phiRegionRef " << phiRegionRef 
+		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
+			    << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 			    << ", adding it to the previous region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
