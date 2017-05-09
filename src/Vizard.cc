@@ -1239,12 +1239,13 @@ namespace insur {
       TCanvas *RZBundleCanvas = NULL;
       TCanvas *XYBundleCanvas = NULL;
       std::vector<TCanvas*> XYBundleCanvasesDisk;
+      std::vector<TCanvas*> XYSurfacesDisk;
 
       //Modules to Bundles
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleCanvasesDisk);
+      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleCanvasesDisk, XYSurfacesDisk);
 
       if (RZBundleCanvas) {
 	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
@@ -1259,6 +1260,11 @@ namespace insur {
       for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
 	  myImage = new RootWImage(XYBundleCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYBundleCanvasDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      for (const auto& XYSurface : XYSurfacesDisk ) {
+	  myImage = new RootWImage(XYSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
 
@@ -6276,7 +6282,7 @@ namespace insur {
 
   void Vizard::createSummaryCanvasCablingBundleNicer(Tracker& tracker,
 					       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
-					       std::vector<TCanvas*> &XYCanvasesDisk) {
+						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYSurfacesDisk) {
 
     double scaleFactor = tracker.maxR()/600;
 
@@ -6314,6 +6320,29 @@ namespace insur {
 	}
       }
     }
+
+    for (auto& anEndcap : tracker.endcaps() ) {
+      for (auto& aDisk : anEndcap.disks() ) {
+	if (aDisk.side()) {
+
+	  std::vector<std::set<const Module*> > allSurfaceModules = aDisk.getModuleSurfaces();
+	  int iSurface = 0;
+	  for (auto& surfaceModules : allSurfaceModules) {
+	    iSurface++;
+	    TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sDisk_%dSurface_%d", anEndcap.myid().c_str(), aDisk.myid(), iSurface),
+						Form("XY projection of Endcap %s Disk %d Surface %d", anEndcap.myid().c_str(), aDisk.myid(), iSurface),
+						vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	    XYSurfaceDisk->cd();
+	    PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	    xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	    xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	    xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	    XYSurfacesDisk.push_back(XYSurfaceDisk);
+	  }
+	}
+      }
+    }
+
   }
 
 
