@@ -1221,12 +1221,12 @@ namespace insur {
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
-	myImage->setComment("RZ positions of the modules");
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
 	myContent->addItem(myImage);
       }
       if (XYDTCCanvas) {
 	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("XY Section of the tracker barrel");
+	myImage->setComment("(XY) Section : Tracker barrel");
 	myContent->addItem(myImage);
       }
       for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
@@ -1249,12 +1249,12 @@ namespace insur {
 
       if (RZBundleCanvas) {
 	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
-	myImage->setComment("RZ positions of the modules");
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Bundles. Different colors = different bundles.");
 	myContent->addItem(myImage);
       }
       if (XYBundleCanvas) {
 	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("XY Section of the tracker barrel");
+	myImage->setComment("(XY) Section : Tracker barrel");
 	myContent->addItem(myImage);
       }
       for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
@@ -6211,10 +6211,8 @@ namespace insur {
     // And now one per disk surface
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size()>0) {
-	auto lastDiskIt = anEndcap.disks().end();
-	lastDiskIt--;
-	const Disk& lastDisk = *(lastDiskIt);
-
+	const Disk& lastDisk = anEndcap.disks().back();
+     
 	std::vector<std::set<const Module*>> modZ = lastDisk.getModuleSurfaces();
 	int iSurface=0;
 	for (std::set<const Module*>& moduleSet : modZ) {
@@ -6266,7 +6264,7 @@ namespace insur {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
 	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
-					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("(XY) Projection : Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
@@ -6308,8 +6306,8 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), lastDisk.myid()),
-					      Form("XY projection of Endcap %s Disk %d", anEndcap.myid().c_str(), lastDisk.myid()),
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					      Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
@@ -6327,8 +6325,8 @@ namespace insur {
 	int iSurface = 0;
 	for (auto& surfaceModules : allSurfaceModules) {
 	  iSurface++;
-	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sDisk_%dSurface_%d", anEndcap.myid().c_str(), lastDisk.myid(), iSurface),
-					       Form("XY projection of Endcap %s Disk %d Surface %d", anEndcap.myid().c_str(), lastDisk.myid(), iSurface),
+	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), iSurface),
+					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d", anEndcap.myid().c_str(), iSurface),
 					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYSurfaceDisk->cd();
 	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
