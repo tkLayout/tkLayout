@@ -702,7 +702,6 @@ void Tracker::connectBundlesToCables() {
   std::map<int, int> Layer3FlatPhiSectorsCounter;
 
   std::map<int, int> Layer4PhiSectorsCounter;
-  std::map<int, int> Layer5PhiSectorsCounter;
  
 
   for (auto& b : bundles_) {
@@ -775,19 +774,33 @@ void Tracker::connectBundlesToCables() {
 
     else if (cableType == "2S") {
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
+	Layer4PhiSectorsCounter[phiSectorRef] += 1;
+	int phiSectorRefThird = femod(phiSectorRef % 3, 3);
+	// In case already 5 or 6 bundles in phi sector, assign to next phi Sector
+	// Indeed, in 2 cases out of 3, also one bundle from Layer 5 added
+	if ( (phiSectorRefThird == 0 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5)
+	     || (phiSectorRefThird == 1 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5) 
+	     || (phiSectorRefThird == 2 && Layer4PhiSectorsCounter.at(phiSectorRef) > 6) ) {
+	  Layer4PhiSectorsCounter[phiSectorRef] -= 1;
+	  Layer4PhiSectorsCounter[nextPhiSectorRef] += 1;
+	  phiSectorRefCable = nextPhiSectorRef;
+	}
 	slot = 1;
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
 	Layer5PhiRegionsCounter[phiRegionRef] += 1;
-	if (Layer5PhiRegionsCounter[phiRegionRef] == 4) slot = 1;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	if (Layer5PhiRegionsCounter[phiRegionRef] == 4) {
+	  Layer4PhiSectorsCounter[phiSectorRef] += 1;
+	  slot = 1;
+	}
 	else slot = 2;
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
 	if (subDetectorName == "TB2S") {
 	  Layer6PhiSectorsCounter[phiSectorRef] += 1;
-	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;  // STAGGER NOT OPTIMIZED IN PHI !!!!!
+	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;
 	  else slot = 3;
 	}
 	else slot = 4;
