@@ -400,8 +400,8 @@ void Tracker::buildCabling() {
 
       void visit(RodPair& r) {
 	double phiSegmentWidth = (2.*M_PI) / numRods;
-	double startPhi = femod( r.Phi(), phiSegmentWidth);
-	phiSegmentRef = round(femod(r.Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
+	double phiSegmentStart = femod( r.Phi(), phiSegmentWidth);
+	phiSegmentRef = round(femod(r.Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double phiRegionStart = 0.;
 	int phiRegionRef = std::floor(femod(r.Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);
@@ -544,8 +544,8 @@ void Tracker::buildCabling() {
 	  }
 
 	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
-	  double startPhi = femod( m.center().Phi(), phiSegmentWidth);
-	  phiSegmentRef = round(femod(m.center().Phi() - startPhi, 2.*M_PI) / phiSegmentWidth);
+	  double phiSegmentStart = femod( m.center().Phi(), phiSegmentWidth);
+	  phiSegmentRef = round(femod(m.center().Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 
 	  int phiRegionRef = std::floor(femod(m.center().Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);	  
 	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
@@ -579,33 +579,33 @@ void Tracker::buildCabling() {
 
       void staggerModules() {
 
-	for (auto& r : bundles_) {
-	  if (r.second->subDetectorName() == "TEDD_1" || r.second->subDetectorName() == "TEDD_2") {
+	for (auto& b : bundles_) {
+	  if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
 
-	    while (r.second->numModules() > 12) {
-	      int diskNumber = r.second->layerDiskNumber();
+	    while (b.second->numModules() > 12) {
+	      int diskNumber = b.second->layerDiskNumber();
 
-	      std::string type = r.second->type();
+	      std::string type = b.second->type();
 	      if (type == "PS10G") typeIndex = 0;
 	      else if (type == "PS5GA") typeIndex = 1;
 	      else if (type == "PS5GB") typeIndex = 2;
 	      else if (type == "2S") typeIndex = 3;
 
-	      double phiRegionStart = r.second->phiRegionStart();
+	      double phiRegionStart = b.second->phiRegionStart();
 
-	      double phiRegionWidth = r.second->phiRegionWidth();
+	      double phiRegionWidth = b.second->phiRegionWidth();
 	      int numPhiRegions = round(2 * M_PI / phiRegionWidth);
 
-	      int phiRegionRef = r.second->phiRegionRef();
+	      int phiRegionRef = b.second->phiRegionRef();
 	      int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
 	      int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
-	      int bundleId = r.first;
+	      int bundleId = b.first;
 	      int nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
 	      int previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
 
-	      double minPhiBorder = fabs( femod((r.second->minPhi() - phiRegionStart), phiRegionWidth) );
-	      double maxPhiBorder = fabs( femod((r.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+	      double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
+	      double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
 
 
 	      if (bundles_.count(previousBundleId) != 0 && bundles_.count(nextBundleId) != 0) {
@@ -624,12 +624,12 @@ void Tracker::buildCabling() {
 			    << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 			    << ", adding it to the next region." 
 			    << std::endl;
-		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
+		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
 		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
-		  Module* maxPhiMod = r.second->maxPhiModule();
+		  Module* maxPhiMod = b.second->maxPhiModule();
 		  maxPhiMod->setBundle(bundles_[nextBundleId]);  
-		  bundles_[nextBundleId]->moveMaxPhiModuleFromOtherBundle(r.second);
-		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl; 		  
+		  bundles_[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
@@ -638,12 +638,12 @@ void Tracker::buildCabling() {
 			    << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 			    << ", adding it to the previous region." 
 			    << std::endl;
-		  std::cout << "my region numModules = " << r.second->numModules() << std::endl;
+		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
 		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
-		  Module* minPhiMod = r.second->minPhiModule();
+		  Module* minPhiMod = b.second->minPhiModule();
 		  minPhiMod->setBundle(bundles_[previousBundleId]);	  
-		  bundles_[previousBundleId]->moveMinPhiModuleFromOtherBundle(r.second);
-		  std::cout << "NOWWWWWWWW my region numModules = " << r.second->numModules() << std::endl;		  
+		  bundles_[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 		}
 	      }
 	      else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; break; }
@@ -657,10 +657,10 @@ void Tracker::buildCabling() {
 
 
       void checkModulesToBundlesConnections() {
-	for (auto& r : bundles_) {
-	  if (r.second->numModules() > 12) {
+	for (auto& b : bundles_) {
+	  if (b.second->numModules() > 12) {
 	    std::cout << "There was an error while staggering modules. Bundle " 
-		      << r.first << " is connected to " << r.second->numModules() << " modules." 
+		      << b.first << " is connected to " << b.second->numModules() << " modules." 
 		      << std::endl;
 	  }
 	}
@@ -700,11 +700,11 @@ void Tracker::connectBundlesToCables() {
   std::map<int, int> StripLayer2PhiRegionsCounter;
   std::map<int, int> StripLayer3PhiSectorsCounter;
 
-  for (auto& r : bundles_) {
-    int phiSectorRef = r.second->phiSectorRef();
-    double phiSectorWidth = r.second->phiSectorWidth();
+  for (auto& b : bundles_) {
+    int phiSectorRef = b.second->phiSectorRef();
+    double phiSectorWidth = b.second->phiSectorWidth();
 
-    std::string bundleType = r.second->type();
+    std::string bundleType = b.second->type();
     std::string cableType = bundleType;
     if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
 
@@ -714,11 +714,11 @@ void Tracker::connectBundlesToCables() {
     else if (cableType == "2S") cableTypeIndex = 2;
 
 
-    std::string subDetectorName = r.second->subDetectorName();
-    int layerDiskNumber = r.second->layerDiskNumber();
+    std::string subDetectorName = b.second->subDetectorName();
+    int layerDiskNumber = b.second->layerDiskNumber();
 
     // Used to stagger several bundles
-    int phiRegionRef = r.second->phiRegionRef();
+    int phiRegionRef = b.second->phiRegionRef();
 
     // Used to build cableId
     int slot = 0;
@@ -737,7 +737,7 @@ void Tracker::connectBundlesToCables() {
 
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
-	  if (r.second->isTiltedPart()) slot = 2;
+	  if (b.second->isTiltedPart()) slot = 2;
 	  else slot = 3;
 	}
 	else slot = 3;
@@ -789,13 +789,13 @@ void Tracker::connectBundlesToCables() {
 
     if (cables_.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRef, cableType, slot);
-      cable->addBundle(r.second);
+      cable->addBundle(b.second);
       cables_.insert(std::make_pair(cableId, cable));
-      r.second->setCable(cable);
+      b.second->setCable(cable);
     }
     else {
-      cables_[cableId]->addBundle(r.second);
-      r.second->setCable(cables_[cableId]);
+      cables_[cableId]->addBundle(b.second);
+      b.second->setCable(cables_[cableId]);
     }
   }
 }
