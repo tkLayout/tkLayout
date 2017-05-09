@@ -6239,10 +6239,11 @@ namespace insur {
     int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
     int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
 
+    const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
     PlotDrawer<YZ, TypeDTCColor> yzDrawer;
-    yzDrawer.addModules(tracker);
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.dtcPhiSectorRef() == 1); } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 

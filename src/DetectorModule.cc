@@ -475,6 +475,21 @@ const int DetectorModule::dtcPlotColor() const {
   return dtcPlotColor;
 }
 
+const int DetectorModule::dtcPhiSectorRef() const {
+  int dtcPhiSectorRef = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    const Cable* myCable = myBundle->getCable();
+    if (myCable != NULL) {
+      const DTC* myDTC = myCable->getDTC();
+      if (myDTC != NULL) {
+	dtcPhiSectorRef = myDTC->phiSectorRef();
+      }
+    }
+  }
+  return dtcPhiSectorRef;
+}
+
 
 const int DetectorModule::bundlePlotColor() const {
   int bundlePlotColor = 0;
