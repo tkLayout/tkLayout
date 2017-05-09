@@ -56,26 +56,52 @@ public:
       else if (phiSectorRef == 8) servicesChannel_ = 12;   
     }
     else if (type == "PS5G") {
-      if (phiSectorRef == 0) servicesChannel_ = 1;
-      else if (phiSectorRef == 1) servicesChannel_ = 3;
-      else if (phiSectorRef == 2) servicesChannel_ = 4;
-      else if (phiSectorRef == 3) servicesChannel_ = 6;
-      else if (phiSectorRef == 4) servicesChannel_ = 7;
-      else if (phiSectorRef == 5) servicesChannel_ = 8;
-      else if (phiSectorRef == 6) servicesChannel_ = 10;
-      else if (phiSectorRef == 7) servicesChannel_ = 11;
-      else if (phiSectorRef == 8) servicesChannel_ = 12;
+      if (slot != 2) {
+	if (phiSectorRef == 0) servicesChannel_ = 1;
+	else if (phiSectorRef == 1) servicesChannel_ = 3;
+	else if (phiSectorRef == 2) servicesChannel_ = 4;
+	else if (phiSectorRef == 3) servicesChannel_ = 6;
+	else if (phiSectorRef == 4) servicesChannel_ = 7;
+	else if (phiSectorRef == 5) servicesChannel_ = 8;
+	else if (phiSectorRef == 6) servicesChannel_ = 10;
+	else if (phiSectorRef == 7) servicesChannel_ = 11;
+	else if (phiSectorRef == 8) servicesChannel_ = 12;
+      }
+      else {
+	if (phiSectorRef == 0) servicesChannel_ = 1;
+	else if (phiSectorRef == 1) servicesChannel_ = 3;
+	else if (phiSectorRef == 2) servicesChannel_ = 4;
+	else if (phiSectorRef == 3) servicesChannel_ = 5;
+	else if (phiSectorRef == 4) servicesChannel_ = 6;
+	else if (phiSectorRef == 5) servicesChannel_ = 7;
+	else if (phiSectorRef == 6) servicesChannel_ = 9;
+	else if (phiSectorRef == 7) servicesChannel_ = 10;
+	else if (phiSectorRef == 8) servicesChannel_ = 12;
+      }
     }
     else if (type == "2S") {
-      if (phiSectorRef == 0) servicesChannel_ = 1;
-      else if (phiSectorRef == 1) servicesChannel_ = 2;
-      else if (phiSectorRef == 2) servicesChannel_ = 4;
-      else if (phiSectorRef == 3) servicesChannel_ = 5;
-      else if (phiSectorRef == 4) servicesChannel_ = 6;
-      else if (phiSectorRef == 5) servicesChannel_ = 7;
-      else if (phiSectorRef == 6) servicesChannel_ = 9;
-      else if (phiSectorRef == 7) servicesChannel_ = 10;
-      else if (phiSectorRef == 8) servicesChannel_ = 12;
+      if (slot != 1 && slot != 2) {
+	if (phiSectorRef == 0) servicesChannel_ = 1;
+	else if (phiSectorRef == 1) servicesChannel_ = 2;
+	else if (phiSectorRef == 2) servicesChannel_ = 4;
+	else if (phiSectorRef == 3) servicesChannel_ = 5;
+	else if (phiSectorRef == 4) servicesChannel_ = 6;
+	else if (phiSectorRef == 5) servicesChannel_ = 7;
+	else if (phiSectorRef == 6) servicesChannel_ = 9;
+	else if (phiSectorRef == 7) servicesChannel_ = 10;
+	else if (phiSectorRef == 8) servicesChannel_ = 12;
+      }
+      if (slot == 1 || slot == 2) {
+	if (phiSectorRef == 0) servicesChannel_ = 1;
+	else if (phiSectorRef == 1) servicesChannel_ = 2;
+	else if (phiSectorRef == 2) servicesChannel_ = 4;
+	else if (phiSectorRef == 3) servicesChannel_ = 6;
+	else if (phiSectorRef == 4) servicesChannel_ = 7;
+	else if (phiSectorRef == 5) servicesChannel_ = 8;
+	else if (phiSectorRef == 6) servicesChannel_ = 10;
+	else if (phiSectorRef == 7) servicesChannel_ = 11;
+	else if (phiSectorRef == 8) servicesChannel_ = 12;
+      }
     }
   };
 
