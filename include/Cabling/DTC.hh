@@ -43,8 +43,7 @@ public:
     type_ = type;
     slot_ = slot;
 
-    if (type == "PS10G") plotColor_ = slot;
-    else if (type == "PS5G") plotColor_ = 1 + slot;
+    if (type == "PS10G" || type == "PS5G") plotColor_ = slot;
     else if (type == "2S") plotColor_ = 6 + slot;
     plotColor_ += 12 * phiSectorRef;
   };

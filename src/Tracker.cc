@@ -740,13 +740,13 @@ void Tracker::connectBundlesToCables() {
 
     else if (cableType == "PS5G") {
       if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GA") ) {
-	slot = 1;
+	slot = 2;
       }
 
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
 	  // Tilted part
-	  if (b.second->isTiltedPart()) { slot = 2; }
+	  if (b.second->isTiltedPart()) { slot = 3; }
 	  // Flat part : assign TBPS bundles with TEDD bundles
 	  else {
 	    Layer3FlatPhiSectorsCounter[phiSectorRef] += 1;
@@ -756,18 +756,18 @@ void Tracker::connectBundlesToCables() {
 	      Layer3FlatPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      phiSectorRefCable = nextPhiSectorRef;
 	    }
-	    slot = 3;
+	    slot = 4;
 	  }
 	}
-	else slot = 3;
+	else slot = 4;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
-	slot = 4;
+	slot = 5;
       }
 
       else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
-	slot = 5;
+	slot = 6;
       }
     }
 

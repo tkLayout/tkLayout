@@ -56,7 +56,7 @@ public:
       else if (phiSectorRef == 8) servicesChannel_ = 12;   
     }
     else if (type == "PS5G") {
-      if (slot != 2) {
+      if (slot != 3) {
 	if (phiSectorRef == 0) servicesChannel_ = 1;
 	else if (phiSectorRef == 1) servicesChannel_ = 3;
 	else if (phiSectorRef == 2) servicesChannel_ = 4;
