@@ -204,11 +204,11 @@ $(EXELIBFILES): $(LIBDIR)/%.o: $(SRCDIR)/%.cc
 	@echo "Main object $@ built"
 
 # General rule to build executables
-$(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) getRevisionDefine
+$(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) $(CABLINGFILES) getRevisionDefine
 	# Let's make the revision object first
 	$(COMP) $(SVNREVISIONDEFINE) -c $(SRCDIR)/SvnRevision.cc -o $(LIBDIR)/SvnRevision.o
 	# Now we just have to link standard objects, revision and main object
-	$(LINK) $< $(OBJECTFILES) $(ANALYZERVISITORFILES) $(LIBDIR)/SvnRevision.o \
+	$(LINK) $< $(OBJECTFILES) $(ANALYZERVISITORFILES) $(CABLINGFILES) $(LIBDIR)/SvnRevision.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $@
 	@echo "Executable $@ built"
