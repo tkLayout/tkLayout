@@ -1282,6 +1282,42 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModules%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(tracker));
       filesContent->addItem(myTextFile);
+
+
+      // Cabling efficiency
+      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency", true);
+      myPage->addContent(efficiencyContent);
+      RootWInfo* myInfo = NULL;
+      // Links
+      myInfo = new RootWInfo("Total number of links (one side)");
+      int numLinks = tracker.modules().size() / 2;
+      myInfo->setValue(numLinks);
+      efficiencyContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of bundles (one side)");
+      int numBundles = tracker.getBundles().size();
+      myInfo->setValue(numBundles);
+      efficiencyContent->addItem(myInfo);
+      // Bundles efficiency
+      myInfo = new RootWInfo("Bundles efficiency (%)");
+      double bundleEfficiency = numLinks / (numBundles * 12.);
+      myInfo->setValue(bundleEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Cables
+      myInfo = new RootWInfo("Total number of cables (one side)");
+      int numCables = tracker.getCables().size();
+      myInfo->setValue(numCables);
+      efficiencyContent->addItem(myInfo);
+      // Cables efficiency
+      myInfo = new RootWInfo("Cables efficiency (%)");
+      double cableEfficiency = numBundles / (numCables * 6.);
+      myInfo->setValue(cableEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Overall efficiency
+      myInfo = new RootWInfo("Overall cabling efficiency (%)");
+      double overallEfficiency = cableEfficiency * bundleEfficiency;
+      myInfo->setValue(overallEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
     }
     return true;
   }
@@ -6509,6 +6545,7 @@ namespace insur {
 
 
   std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker) {
+
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Cable ServicesChannel/I, Bundle #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
