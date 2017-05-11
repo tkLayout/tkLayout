@@ -154,7 +154,6 @@ public:
   void buildCabling();
   void connectBundlesToCables();
   void checkBundlesToCablesConnections();
-  void connectCablesToDTCs();
   const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   const std::map<int, Cable*>& getCables() const { return cables_; }
   const std::map<std::string, DTC*>& getDTCs() const { return DTCs_; }

@@ -7,13 +7,27 @@
 
 
 Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot) {
-    myid(id);
-    phiSectorWidth_ = phiSectorWidth;
-    phiSectorRef_ = phiSectorRef;
-    type_ = type;
-    slot_ = slot;
+  // Generic cable characteristics
+  myid(id);
+  phiSectorWidth_ = phiSectorWidth;
+  phiSectorRef_ = phiSectorRef;
+  type_ = type;
+  slot_ = slot;
 
-    servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot);
+  // Assign cable a servicesChannel
+  servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot);
+
+
+
+  // Build DTC asociated to the cable
+  std::ostringstream dtcNameStream;
+  dtcNameStream << phiSectorRef << "_" << type << "_" << slot;
+  std::string dtcName = dtcNameStream.str();
+
+  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot);
+  dtc->addCable(this);
+  
+  myDTC_ = dtc;
   };
 
 

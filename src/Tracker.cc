@@ -681,9 +681,6 @@ void Tracker::buildCabling() {
     // BUNDLES TO CABLES
     connectBundlesToCables();
     checkBundlesToCablesConnections();
-
-    // CABLES TO DTCS
-    connectCablesToDTCs();
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
@@ -825,8 +822,11 @@ void Tracker::connectBundlesToCables() {
     if (cables_.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot);
       cable->addBundle(b.second);
-      cables_.insert(std::make_pair(cableId, cable));
       b.second->setCable(cable);
+      cables_.insert(std::make_pair(cableId, cable));
+
+      DTC* dtc = cable->getDTC();
+      DTCs_.insert(std::make_pair(dtc->name(), dtc));      
     }
     else {
       cables_[cableId]->addBundle(b.second);
@@ -846,23 +846,3 @@ void Tracker::checkBundlesToCablesConnections() {
   }
 }
 
-
-
-void Tracker::connectCablesToDTCs() {
-  for (auto& c : cables_) {
-    double phiSectorWidth = c.second->phiSectorWidth();
-    int phiSectorRef = c.second->phiSectorRef();
-    std::string cableType = c.second->type();
-    int slot = c.second->slot();
-
-    // BUILD DTC AND STORES IT
-    std::ostringstream nameStream;
-    nameStream << phiSectorRef << "_" << cableType << "_" << slot;
-    std::string name = nameStream.str();
-
-    DTC* dtc = GeometryFactory::make<DTC>(name, phiSectorWidth, phiSectorRef, cableType, slot);
-    dtc->addCable(c.second);
-    DTCs_.insert(std::make_pair(name, dtc));
-    c.second->setDTC(dtc);
-  }
-}

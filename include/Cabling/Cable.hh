@@ -45,8 +45,7 @@ public:
 
   const int servicesChannel() const { return servicesChannel_; }
 
-  const DTC* getDTC() const { return myDTC_; }
-  void setDTC(DTC* dtc) { myDTC_ = dtc; }
+  DTC* getDTC() const { return myDTC_; }
 
 
   void addBundle(Bundle* b) { bundles_.push_back(b); }
