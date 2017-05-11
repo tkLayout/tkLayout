@@ -1388,6 +1388,19 @@ namespace insur {
       cablesPerChannel[channel].push_back(cableId);
 
       std::string cableType = myCable.second->type();
+
+
+
+
+      if (channel == 1 && (cableType == "PS10G" || cableType == "PS5G")) {
+	const PtrVector<Bundle>& bundles = myCable.second->bundles();
+	for (const auto& myBundle : bundles) {
+	  std::cout << "Channel 1, PS, myBundle.myid() = " << myBundle.myid() << std::endl;
+	}
+      }
+
+
+      
       int numBundles = myCable.second->numBundles();
       if (cableType == "PS10G" || cableType == "PS5G") psBundlesPerChannel[channel] += numBundles;
       else if (cableType == "2S") ssBundlesPerChannel[channel] += numBundles;

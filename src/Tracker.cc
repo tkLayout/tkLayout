@@ -697,6 +697,7 @@ void Tracker::connectBundlesToCables() {
   std::map<int, int> Layer5PhiRegionsCounter;
   std::map<int, int> Layer6PhiSectorsCounter;
   std::map<int, int> Layer3FlatPhiSectorsCounter;
+  std::map<int, int> Layer3TiltedPhiSectorsCounter;
 
   std::map<int, int> Layer4PhiSectorsCounter;
  
@@ -743,7 +744,16 @@ void Tracker::connectBundlesToCables() {
       else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
 	if (subDetectorName == "TBPS") {
 	  // Tilted part
-	  if (b.second->isTiltedPart()) { slot = 3; }
+	  if (b.second->isTiltedPart()) {
+	    Layer3TiltedPhiSectorsCounter[phiSectorRef] += 1;
+	    // In case already 4 bundles from tilted part, assign to next phi Sector
+	    if (Layer3TiltedPhiSectorsCounter.at(phiSectorRef) > 4) {
+	      Layer3TiltedPhiSectorsCounter[phiSectorRef] -= 1;
+	      Layer3TiltedPhiSectorsCounter[nextPhiSectorRef] += 1;
+	      phiSectorRefCable = nextPhiSectorRef;
+	    }
+	    slot = 3;
+	  }
 	  // Flat part : assign TBPS bundles with TEDD bundles
 	  else {
 	    Layer3FlatPhiSectorsCounter[phiSectorRef] += 1;
