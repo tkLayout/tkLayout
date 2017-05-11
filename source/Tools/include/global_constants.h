@@ -99,6 +99,7 @@ static const std::string web_smallStart = "<small>";
 static const std::string web_smallEnd   = "</small>";
 static const std::string web_emphStart  = "<b>";
 static const std::string web_emphEnd    = "</b>";
+static const std::string web_ampersand  = "&amp;";
 static const std::string web_muLetter   = "&mu;";
 static const std::string web_etaLetter  = "&eta;";
 static const std::string web_phiLetter  = "&phi;";

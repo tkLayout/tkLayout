@@ -239,11 +239,13 @@ bool AnalyzerPatternReco::analyze()
             // Print info
             //std::cout << ">> " << " R=" << nextRPos/Units::mm << " dD=" << dDProj/Units::um << " " << " Z=" << nextZPos/Units::mm << " dZ=" << dZProj/Units::um << std::endl;
 
-            // Calculate how many sigmas does one need to get in 2D Gauss. 5% coverge
-            // F(mu + n*sigma) - F(mu - n*sigma) = erf(n/sqrt(2))
-            // In 2D we assume independent measurement in r-phi & Z, hence 0.95 = erf(n/sqrt(2))*erf(n/sqrt(2)) assuming the same number of sigmas (n) in both r-phi & z
-            // Hence n = InverseErf(sqrt(0.95))*sqrt(2)
-            static double nSigmaFactor = TMath::ErfInverse(sqrt(0.95))*sqrt(2);
+            // Calculate how many sigmas does one need to get in 2D Gauss. 95% coverge, prob=0.95, alpha (p-value)=0.05
+            // F(mu + n*sigma) - F(mu - n*sigma) = erf(n/sqrt(2)) --> 1 dimension
+            // xTSigma^-1x = c^2 --> Follows chi2 distr with r=2 degrees of freedom --> Calculate 0.95 confidence level -> nSigmaFactor is then sqrt(chi2(r=2,p=0.95))
+            // Or we want to get contour for ellipse being (x/sigX)^2 + (y/sigY)^2 = N^2 --> Calculate 0.95 confidence level
+            // Hence calculate integral: int(Gaus(0,sigX)|-a;+a * int(Gaus(0,sigY)|-b;+b --> Make transformation (x/sigX)^2 + (y/sigY)^2 = z^2
+            // The integral is then: int(z.exp(-z^2)/2Pi)|0;N * int(dtheta)|0;2Pi = 1 - exp(-N^2/2) = 1 - alpha --> N^2 = -2*ln(alpha)
+            static double nSigmaFactor = sqrt(-2*log(0.05));
 
             // Calculate errorEllipse multiplied by nSigmaFactor(RPhi)*nSigmaFactor(Z)
             double errorEllipse = M_PI*dZProj*dDProj*nSigmaFactor*nSigmaFactor;

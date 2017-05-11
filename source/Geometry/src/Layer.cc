@@ -90,8 +90,8 @@ void Layer::check()
 
   // Non-tilted geometry
   if (!isTilted()) {
-    if (buildNumModules()>0  && outerZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-    if (buildNumModules()==0 &&!outerZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+    if (buildNumModules()>0  && outerZ.state()) throw PathfulException("Non-tilted geom.: Either numModules or outerZ parameter may be specified. Not both.");
+    if (buildNumModules()==0 &&!outerZ.state()) throw PathfulException("Non-tilted geom.: Either numModules or outerZ parameter must be specified!");
     if (!phiOverlap.state())                    throw PathfulException("Flat layer: phiOverlap must be specified.");
     if (!phiSegments.state())                   throw PathfulException("Flat layer: phiSegments must be specified.");
 
@@ -112,9 +112,9 @@ void Layer::check()
     // Automatic tilt algorithm applied
     if (isTiltedAuto()) {
 
-      if (buildNumModulesFlat()==0)   throw PathfulException("Tilted layer with automatic placement: numModulesFlat must be specified.");
-      if (buildNumModulesTilted()==0) throw PathfulException("Tilted layer with automatic placement: numModulesTilted must be specified.");
-      if (outerZ.state())             throw PathfulException("Tilted layer with automatic placement: outerZ can't be defined, expect number of flat & tilted modules.");
+      if (buildNumModulesFlat()<0)   throw PathfulException("Tilted layer with automatic placement: numModulesFlat must be specified.");
+      if (buildNumModulesTilted()<0) throw PathfulException("Tilted layer with automatic placement: numModulesTilted must be specified.");
+      if (outerZ.state())            throw PathfulException("Tilted layer with automatic placement: outerZ can't be defined, expect number of flat & tilted modules.");
 
       // Check total number of all modules
       if (buildNumModules()>0 && buildNumModules()!=(buildNumModulesFlat() + buildNumModulesTilted())) {

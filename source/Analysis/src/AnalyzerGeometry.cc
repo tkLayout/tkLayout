@@ -842,7 +842,7 @@ void VisitorLayerDiscSummary::visit(const Disk& d) {
   m_nRings = d.numRings();
   ++m_nDisks;
 
-  // Update module counter
+  // Update module counter -> counting only +Z discs
   int nModules = d.totalModules();
   m_totalEndcapModules += nModules;
 
@@ -1029,14 +1029,14 @@ void VisitorLayerDiscSummary::postVisit() {
 
   // Finalize tables
   std::string sTotBarrelModules = web_emphStart + any2str(m_totalBarrelModules)        + web_emphEnd;
-  std::string sTotEndcapModules = web_emphStart + any2str(m_totalEndcapModules)        + web_emphEnd;
+  std::string sTotEndcapModules = web_emphStart + any2str(2*m_totalEndcapModules)      + web_emphEnd; // Disk calculations done only for one side due to symmetry, hence factor of 2 needed
   std::string sTrkTotArea       = web_emphStart + any2str(trkTotArea, c_areaPrecision) + web_emphEnd;;
   std::string sTrkTotModules    = web_emphStart + any2str(trkTotNumModules)            + web_emphEnd;
   std::string sTrkTotNumChannels= web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + web_emphEnd;
 
   m_layerTable->setContent( 0, m_nBarrelLayers+1, "Total");
   m_layerTable->setContent( 8, m_nBarrelLayers+1, sTotBarrelModules);
-  m_diskTable->setContent(  0, m_nDisks+1       , "Total");
+  m_diskTable->setContent(  0, m_nDisks+1       , "Total (+Z "+web_ampersand+" -Z)");
   m_diskTable->setContent(  7, m_nDisks+1       , sTotEndcapModules);
   m_moduleTable->setContent(0, iType+1          , "Total");
   m_moduleTable->setContent(4, iType+1          , sTrkTotArea);
