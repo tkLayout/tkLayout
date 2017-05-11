@@ -2939,7 +2939,7 @@ void Analyzer::clearGeometryHistograms() {
   mapPhiEta.Reset();
   mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;#phi;#eta");
   mapPhiEtaDTC.Reset();
-  mapPhiEtaDTC.SetNameTitle("mapPhiEtaDTC", "Number of distinct DTC connected to the hit modules;#phi;#eta");
+  mapPhiEtaDTC.SetNameTitle("mapPhiEtaDTC", "Number of distinct DTCs per track;#phi;#eta");
   etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
   hitDistribution.Reset();
   hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");

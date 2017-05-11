@@ -1372,7 +1372,7 @@ namespace insur {
 
 
       // Distinct DTCs 2D map
-      RootWContent* dtcMapContent = new RootWContent("Distinct DTCs 2D map", true);
+      RootWContent* dtcMapContent = new RootWContent("DTCs per track", true);
       myPage->addContent(dtcMapContent);
       
       TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1384,7 +1384,7 @@ namespace insur {
       analyzer.getMapPhiEtaDTC().SetStats(0);
       hitMapDTCCanvas->Modified();
       myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Distinct DTCs in eta, phi");
+      myImage->setComment("Number of distinct DTCs per track");
       dtcMapContent->addItem(myImage);
 
     }
