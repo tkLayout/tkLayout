@@ -1208,7 +1208,7 @@ namespace insur {
       //********************************//
       RootWImage* myImage;
 
-      //Modules to Bundles
+      // Modules to Bundles
       TCanvas *summaryBundleCanvas = NULL;
       TCanvas *RZBundleCanvas = NULL;
       TCanvas *XYBundleCanvas = NULL;
@@ -1270,7 +1270,7 @@ namespace insur {
       }
       
 
-      // Add detailed geometry info here
+      // CSV files
       RootWContent* filesContent = new RootWContent("Cabling files", true);
       myPage->addContent(filesContent);
       RootWTextFile* myTextFile;
@@ -1289,27 +1289,27 @@ namespace insur {
       myPage->addContent(efficiencyContent);
       RootWInfo* myInfo = NULL;
       // Links
-      myInfo = new RootWInfo("Total number of links (one side)");
+      myInfo = new RootWInfo("Total number of fiber links (one side)");
       int numLinks = tracker.modules().size() / 2;
       myInfo->setValue(numLinks);
       efficiencyContent->addItem(myInfo);
       // Bundles
-      myInfo = new RootWInfo("Total number of bundles (one side)");
+      myInfo = new RootWInfo("Total number of fiber bundles (one side)");
       int numBundles = tracker.getBundles().size();
       myInfo->setValue(numBundles);
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
-      myInfo = new RootWInfo("Bundles efficiency (%)");
+      myInfo = new RootWInfo("Fiber bundles efficiency (%)");
       double bundleEfficiency = numLinks / (numBundles * 12.);
       myInfo->setValue(bundleEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Cables
-      myInfo = new RootWInfo("Total number of cables (one side)");
+      myInfo = new RootWInfo("Total number of fiber cables (one side)");
       int numCables = tracker.getCables().size();
       myInfo->setValue(numCables);
       efficiencyContent->addItem(myInfo);
       // Cables efficiency
-      myInfo = new RootWInfo("Cables efficiency (%)");
+      myInfo = new RootWInfo("Fiber cables efficiency (%)");
       double cableEfficiency = numBundles / (numCables * 6.);
       myInfo->setValue(cableEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
@@ -1318,9 +1318,83 @@ namespace insur {
       double overallEfficiency = cableEfficiency * bundleEfficiency;
       myInfo->setValue(overallEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
+
+
+      // Services channels
+      RootWContent* channelsContent = new RootWContent("Services per channel (one side)", true);
+      myPage->addContent(channelsContent);
+
+      RootWTable* channelsTable = new RootWTable();
+      channelsContent->addItem(channelsTable);
+
+      // Header table
+      channelsTable->setContent(0, 1, "# MFC");
+      channelsTable->setContent(0, 2, "# PWR PS");
+      channelsTable->setContent(0, 3, "# PWR 2S");
+      channelsTable->setContent(0, 4, "# PWR Total");
+
+      std::map<int, std::vector<int> > cablesPerChannel;
+      std::map<int, int> psBundlesPerChannel;
+      std::map<int, int> ssBundlesPerChannel;
+      analyzeServicesChannels(tracker, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel);
+      int totalCables = 0;
+      int totalPsBundles = 0;
+      int totalSsBundles = 0;
+      int totalBundles = 0;
+
+      // Fill table
+      for (int i = 1; i <= 12; i++) {
+	int numCablesPerChannel = (cablesPerChannel.count(i) != 0 ? cablesPerChannel.at(i).size() : 0);
+	int numPsBundlesPerChannel = (psBundlesPerChannel.count(i) != 0 ? psBundlesPerChannel.at(i) : 0);
+	int numSsBundlesPerChannel = (ssBundlesPerChannel.count(i) != 0 ? ssBundlesPerChannel.at(i) : 0);
+	int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+	// Channel name
+	std::stringstream channelName;
+	channelName << "OT" << i;
+	channelsTable->setContent(i, 0, channelName.str());
+
+	channelsTable->setContent(i, 1, numCablesPerChannel);
+	channelsTable->setContent(i, 2, numPsBundlesPerChannel);
+	channelsTable->setContent(i, 3, numSsBundlesPerChannel);
+	channelsTable->setContent(i, 4, numBundlesPerChannel);
+
+	totalCables += numCablesPerChannel;
+	totalPsBundles += numPsBundlesPerChannel;
+	totalSsBundles += numSsBundlesPerChannel;
+	totalBundles += numBundlesPerChannel;
+      }
+
+      channelsTable->setContent(13, 0, "Total");
+      channelsTable->setContent(13, 1, totalCables);
+      channelsTable->setContent(13, 2, totalPsBundles);
+      channelsTable->setContent(13, 3, totalSsBundles);
+      channelsTable->setContent(13, 4, totalBundles);
+
     }
     return true;
   }
+
+
+
+  void Vizard::analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel) {
+
+    const std::map<int, Cable*>& cables = tracker.getCables();
+
+    for (const auto& myCable : cables) {
+      int channel = myCable.second->servicesChannel();
+
+      int cableId = myCable.first;
+      cablesPerChannel[channel].push_back(cableId);
+
+      std::string cableType = myCable.second->type();
+      int numBundles = myCable.second->numBundles();
+      if (cableType == "PS10G" || cableType == "PS5G") psBundlesPerChannel[channel] += numBundles;
+      else if (cableType == "2S") ssBundlesPerChannel[channel] += numBundles;
+      else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+    }
+  }
+
 
 
   /**

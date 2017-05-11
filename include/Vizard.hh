@@ -163,6 +163,7 @@ namespace insur {
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void createSummaryCanvasCablingBundleNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
+    void analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
