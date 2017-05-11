@@ -825,7 +825,7 @@ void Tracker::connectBundlesToCables() {
       b.second->setCable(cable);
       cables_.insert(std::make_pair(cableId, cable));
 
-      DTC* dtc = cable->getDTC();
+      const DTC* dtc = cable->getDTC();
       DTCs_.insert(std::make_pair(dtc->name(), dtc));      
     }
     else {

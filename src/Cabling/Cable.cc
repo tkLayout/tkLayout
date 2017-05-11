@@ -25,10 +25,10 @@ Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string 
   std::string dtcName = dtcNameStream.str();
 
   DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot);
-  dtc->addCable(this);
-  
+  dtc->addCable(this); 
   myDTC_ = dtc;
-  };
+};
+
 
 
 

@@ -76,7 +76,7 @@ private:
   //std::map<uint32_t, Module> modules_;
   std::map<int, Bundle*> bundles_;
   std::map<int, Cable*> cables_;
-  std::map<std::string, DTC*> DTCs_;
+  std::map<const std::string, const DTC*> DTCs_;
 
   Tracker(const Tracker&) = default;
 public:
@@ -156,7 +156,7 @@ public:
   void checkBundlesToCablesConnections();
   const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   const std::map<int, Cable*>& getCables() const { return cables_; }
-  const std::map<std::string, DTC*>& getDTCs() const { return DTCs_; }
+  const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }
