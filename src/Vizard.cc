@@ -1364,12 +1364,28 @@ namespace insur {
 	totalSsBundles += numSsBundlesPerChannel;
 	totalBundles += numBundlesPerChannel;
       }
-
       channelsTable->setContent(13, 0, "Total");
       channelsTable->setContent(13, 1, totalCables);
       channelsTable->setContent(13, 2, totalPsBundles);
       channelsTable->setContent(13, 3, totalSsBundles);
       channelsTable->setContent(13, 4, totalBundles);
+
+
+      // Distinct DTCs 2D map
+      RootWContent* dtcMapContent = new RootWContent("Distinct DTCs 2D map", true);
+      myPage->addContent(dtcMapContent);
+      
+      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      hitMapDTCCanvas->cd();
+      hitMapDTCCanvas->SetFillColor(color_plot_background);
+      hitMapDTCCanvas->SetBorderMode(0);
+      hitMapDTCCanvas->SetBorderSize(0);
+      analyzer.getMapPhiEtaDTC().Draw("colz");
+      analyzer.getMapPhiEtaDTC().SetStats(0);
+      hitMapDTCCanvas->Modified();
+      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Distinct DTCs in eta, phi");
+      dtcMapContent->addItem(myImage);
 
     }
     return true;

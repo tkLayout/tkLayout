@@ -203,6 +203,7 @@ namespace insur {
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
+    TH2D& getMapPhiEtaDTC() { return mapPhiEtaDTC; }
     TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
     TH1D& getHitDistribution() {return hitDistribution; }
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
@@ -321,6 +322,7 @@ namespace insur {
     TH2I mapRadiationCount, mapInteractionCount;
     TH2D mapRadiationCalib, mapInteractionCalib;
     TH2D mapPhiEta;
+    TH2D mapPhiEtaDTC;
     TCanvas etaProfileCanvas;
     TCanvas* geomLite; bool geomLiteCreated;
     TCanvas* geomLiteXY; bool geomLiteXYCreated;

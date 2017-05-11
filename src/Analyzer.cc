@@ -2938,6 +2938,8 @@ void Analyzer::clearGeometryHistograms() {
   // geometry analysis
   mapPhiEta.Reset();
   mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;#phi;#eta");
+  mapPhiEtaDTC.Reset();
+  mapPhiEtaDTC.SetNameTitle("mapPhiEtaDTC", "Number of distinct DTC connected to the hit modules;#phi;#eta");
   etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
   hitDistribution.Reset();
   hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
@@ -3366,6 +3368,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   int nBlocks = int(nTracksPerSide/2.);
   nTracks = nTracksPerSide*nTracksPerSide;
   mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
+  mapPhiEtaDTC.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   totalEtaProfile.Reset();
   totalEtaProfile.SetName("totalEtaProfile");
@@ -3414,6 +3417,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
       std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
+      std::set<std::string> hitModulesDTC;
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
       resetTypeCounter(sensorTypeCount);
@@ -3436,6 +3440,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         }
         modulePlotColors[mh.first->moduleType()] = mh.first->plotColor();
       }
+      for (auto& mh : hitModules) {
+	const DTC* myDTC = mh.first->getDTC();
+        if (myDTC != NULL) hitModulesDTC.insert(myDTC->name());
+      }
       // Fill the module type hit plot
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
         etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
@@ -3450,6 +3458,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       }
       // Fill other plots
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
+      mapPhiEtaDTC.Fill(aLine.first.Phi(), aLine.second, hitModulesDTC.size()); // phi, eta  DTC 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
       totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
@@ -3486,6 +3495,19 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       if (trackCount>0) {
         hitCount=mapPhiEta.GetBinContent(nx, ny);
         mapPhiEta.SetBinContent(nx, ny, hitCount/trackCount);
+      }
+    }
+  }
+
+  // Create and archive for saving our 2D map of hits
+  double DTCCount;
+  trackCount = 0;
+  for (int nx=0; nx<=mapPhiEtaCount.GetNbinsX()+1; nx++) {
+    for (int ny=0; ny<=mapPhiEtaCount.GetNbinsY()+1; ny++) {
+      trackCount=mapPhiEtaCount.GetBinContent(nx, ny);
+      if (trackCount>0) {
+        DTCCount=mapPhiEtaDTC.GetBinContent(nx, ny);
+        mapPhiEtaDTC.SetBinContent(nx, ny, DTCCount/trackCount);
       }
     }
   }

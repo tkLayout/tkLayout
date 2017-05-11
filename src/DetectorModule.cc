@@ -470,6 +470,18 @@ const int DetectorModule::bundlePlotColor() const {
   return bundlePlotColor;
 }
 
+const DTC* DetectorModule::getDTC() const {
+  const DTC* myDTC = NULL;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    const Cable* myCable = myBundle->getCable();
+    if (myCable != NULL) {
+      myDTC = myCable->getDTC();
+    }
+  }
+  return myDTC;
+}
+
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
   const Bundle* myBundle = getBundle();
