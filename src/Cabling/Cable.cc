@@ -14,13 +14,16 @@ Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string 
   type_ = type;
   slot_ = slot;
 
+  bool isPositiveCablingSide = (id >= 0);
+
   // Assign cable a servicesChannel
-  servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot);
+  servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
 
 
 
   // Build DTC asociated to the cable
   std::ostringstream dtcNameStream;
+  if (!isPositiveCablingSide) dtcNameStream << "neg_";
   dtcNameStream << phiSectorRef << "_" << type << "_" << slot;
   std::string dtcName = dtcNameStream.str();
 
@@ -32,7 +35,7 @@ Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string 
 
 
 
-int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot) {
+int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) {
   int servicesChannel = 0;
   if (type == "PS10G") {
     if (phiSectorRef == 0) servicesChannel = 1;
@@ -94,5 +97,6 @@ int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot) 
     }
   }
 
+  if (!isPositiveCablingSide) servicesChannel *= -1;
   return servicesChannel;
 }

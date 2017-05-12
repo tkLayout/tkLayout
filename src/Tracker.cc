@@ -662,7 +662,8 @@ void Tracker::buildCabling() {
 	staggerModules();
 
 	// CHECK
-	checkModulesToBundlesConnections();
+	checkModulesToBundlesConnections(bundles_);
+	checkModulesToBundlesConnections(negBundles_);
       }
 
 
@@ -745,8 +746,8 @@ void Tracker::buildCabling() {
 
 
 
-      void checkModulesToBundlesConnections() {
-	for (auto& b : bundles_) {
+      void checkModulesToBundlesConnections(std::map<int, Bundle*>& bundles) {
+	for (auto& b : bundles) {
 	  if (b.second->numModules() > 12) {
 	    std::cout << "There was an error while staggering modules. Bundle " 
 		      << b.first << " is connected to " << b.second->numModules() << " modules." 
@@ -757,6 +758,7 @@ void Tracker::buildCabling() {
 
 
       std::map<int, Bundle*> getBundles() { return bundles_; }
+      std::map<int, Bundle*> getNegBundles() { return negBundles_; }
     };
 
 
@@ -765,11 +767,14 @@ void Tracker::buildCabling() {
     accept(bundlesBuilder);
     bundlesBuilder.postVisit();
     bundles_ = bundlesBuilder.getBundles();
+    negBundles_ = bundlesBuilder.getNegBundles();
 
 
     // BUNDLES TO CABLES
-    connectBundlesToCables();
-    checkBundlesToCablesConnections();
+    connectBundlesToCables(bundles_, cables_, DTCs_);
+    connectBundlesToCables(negBundles_, negCables_, negDTCs_);
+    checkBundlesToCablesConnections(cables_);
+    checkBundlesToCablesConnections(negCables_);
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
@@ -780,7 +785,7 @@ void Tracker::buildCabling() {
 
 
 
-void Tracker::connectBundlesToCables() {
+void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
   // Used to stagger several bundlesn
   std::map<int, int> Layer5PhiSectorsCounter;
@@ -791,7 +796,7 @@ void Tracker::connectBundlesToCables() {
   std::map<int, int> Layer4PhiSectorsCounter;
  
 
-  for (auto& b : bundles_) {
+  for (auto& b : bundles) {
     int phiSectorRef = b.second->phiSectorRef();
     int phiSectorRefCable = phiSectorRef;
     double phiSectorWidth = b.second->phiSectorWidth();
@@ -919,25 +924,28 @@ void Tracker::connectBundlesToCables() {
     // BUILD CABLE AND STORES IT
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
 
-    if (cables_.count(cableId) == 0) {
+    bool isPositiveCablingSide = (b.second->myid() >= 0);
+    if (!isPositiveCablingSide) cableId *= -1;
+
+    if (cables.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot);
       cable->addBundle(b.second);
       b.second->setCable(cable);
-      cables_.insert(std::make_pair(cableId, cable));
+      cables.insert(std::make_pair(cableId, cable));
 
       const DTC* dtc = cable->getDTC();
-      DTCs_.insert(std::make_pair(dtc->name(), dtc));      
+      DTCs.insert(std::make_pair(dtc->name(), dtc));      
     }
     else {
-      cables_[cableId]->addBundle(b.second);
-      b.second->setCable(cables_[cableId]);
+      cables[cableId]->addBundle(b.second);
+      b.second->setCable(cables[cableId]);
     }
   }
 }
 
 
-void Tracker::checkBundlesToCablesConnections() {
-  for (auto& c : cables_) {
+void Tracker::checkBundlesToCablesConnections(std::map<int, Cable*>& cables) {
+  for (auto& c : cables) {
     if (c.second->numBundles() > 6) {
       std::cout << "There was an error while staggering bundles. Cable " 
 		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 

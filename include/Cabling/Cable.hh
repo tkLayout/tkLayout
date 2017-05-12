@@ -31,7 +31,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   typedef PtrVector<Bundle> Container;
   Container bundles_;
 
-  int computeServicesChannel(int phiSectorRef, std::string type, int slot);
+  int computeServicesChannel(int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide);
 
   //Property<int, Default> nBundlesPerCable;
 
