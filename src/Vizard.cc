@@ -6366,7 +6366,6 @@ namespace insur {
   void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
 					       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
 					       std::vector<TCanvas*> &XYCanvasesDisk) {
-
     double scaleFactor = tracker.maxR()/600;
 
     int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
@@ -6389,6 +6388,17 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
+    // Draw spider net to delimit the Phi Sectors
+    double phiSectorWidth = 40. * M_PI / 180.;
+    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
+    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX;  // Spider line
+  
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
@@ -6401,6 +6411,12 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  // Draw spider net to delimit the Phi Sectors
+	  for (int i = 0; i < numPhiSectors; i++) {
+	    TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+	    line->SetLineWidth(2); 
+	    line->Draw("same");
+	  }
 	}
       }
     }
