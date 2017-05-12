@@ -782,16 +782,10 @@ void Tracker::connectBundlesToCables() {
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
-	Layer4PhiSectorsCounter[phiSectorRef] += 1;
-	
-	// In case already 5 or 6 bundles in phi sector, assign to next phi Sector
-	// Indeed, in 2 cases out of 3, also one bundle from Layer 5 added
-	/*if ( (phiSectorRefThird == 0 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5)
-	     || (phiSectorRefThird == 1 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5) 
-	     || (phiSectorRefThird == 2 && Layer4PhiSectorsCounter.at(phiSectorRef) > 6) ) {*/
+	Layer4PhiSectorsCounter[phiSectorRef] += 1;	
+	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
+	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.	
 	if (phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
-	  Layer4PhiSectorsCounter[phiSectorRef] -= 1;
-	  Layer4PhiSectorsCounter[previousPhiSectorRef] += 1;
 	  phiSectorRefCable = previousPhiSectorRef;
 	}
 	slot = 1;
@@ -800,8 +794,11 @@ void Tracker::connectBundlesToCables() {
       else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
 	Layer5PhiSectorsCounter[phiSectorRef] += 1;
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
+	// In 2 cases out of 3, also one bundle from Layer 5 added.
+	// if (phiSectorRefThird == 0) : should have 5 bundles in Layer 4 (+ 1 added from Layer 5)
+	// if (phiSectorRefThird == 1) : should have 5 bundles in Layer 4 (+ 1 added from Layer 5)
+	// if (phiSectorRefThird == 2) : should have 6 bundles in Layer 4 (no bundle added from Layer 5)
 	if (phiSectorRefThird != 2 && Layer5PhiSectorsCounter[phiSectorRef] == 4) {
-	  //Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	  slot = 1;
 	}
 	else slot = 2;
