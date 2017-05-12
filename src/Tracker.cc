@@ -692,7 +692,7 @@ void Tracker::buildCabling() {
 void Tracker::connectBundlesToCables() {
 
   // Used to stagger several bundlesn
-  std::map<int, int> Layer5PhiRegionsCounter;
+  std::map<int, int> Layer5PhiSectorsCounter;
   std::map<int, int> Layer6PhiSectorsCounter;
   std::map<int, int> Layer3FlatPhiSectorsCounter;
   std::map<int, int> Layer3TiltedPhiSectorsCounter;
@@ -707,6 +707,7 @@ void Tracker::connectBundlesToCables() {
 
     int numPhiSectors = round(2 * M_PI / phiSectorWidth);
     int nextPhiSectorRef = femod( (phiSectorRef + 1), numPhiSectors);
+    int previousPhiSectorRef = femod( (phiSectorRef - 1), numPhiSectors);
 
     std::string bundleType = b.second->type();
     std::string cableType = bundleType;
@@ -778,26 +779,29 @@ void Tracker::connectBundlesToCables() {
 
 
     else if (cableType == "2S") {
+      int phiSectorRefThird = femod(phiSectorRef % 3, 3);
+
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
 	Layer4PhiSectorsCounter[phiSectorRef] += 1;
-	int phiSectorRefThird = femod(phiSectorRef % 3, 3);
+	
 	// In case already 5 or 6 bundles in phi sector, assign to next phi Sector
 	// Indeed, in 2 cases out of 3, also one bundle from Layer 5 added
-	if ( (phiSectorRefThird == 0 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5)
+	/*if ( (phiSectorRefThird == 0 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5)
 	     || (phiSectorRefThird == 1 && Layer4PhiSectorsCounter.at(phiSectorRef) > 5) 
-	     || (phiSectorRefThird == 2 && Layer4PhiSectorsCounter.at(phiSectorRef) > 6) ) {
+	     || (phiSectorRefThird == 2 && Layer4PhiSectorsCounter.at(phiSectorRef) > 6) ) {*/
+	if (phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
 	  Layer4PhiSectorsCounter[phiSectorRef] -= 1;
-	  Layer4PhiSectorsCounter[nextPhiSectorRef] += 1;
-	  phiSectorRefCable = nextPhiSectorRef;
+	  Layer4PhiSectorsCounter[previousPhiSectorRef] += 1;
+	  phiSectorRefCable = previousPhiSectorRef;
 	}
 	slot = 1;
       }
 
       else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
-	Layer5PhiRegionsCounter[phiRegionRef] += 1;
+	Layer5PhiSectorsCounter[phiSectorRef] += 1;
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
-	if (Layer5PhiRegionsCounter[phiRegionRef] == 4) {
-	  Layer4PhiSectorsCounter[phiSectorRef] += 1;
+	if (phiSectorRefThird != 2 && Layer5PhiSectorsCounter[phiSectorRef] == 4) {
+	  //Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	  slot = 1;
 	}
 	else slot = 2;
