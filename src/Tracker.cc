@@ -368,7 +368,6 @@ void Tracker::buildCabling() {
       bool side;
    
       int phiSegmentRef;
-      int phiSelect;
       double phiRegionWidth;
       const double phiSectorWidth = 40. * M_PI / 180.;
   
@@ -421,9 +420,8 @@ void Tracker::buildCabling() {
 	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
 
 	  // Flat part
-	  phiSelect = layerNumber % 2;
 	  // standard case
-	  if ( (phiSegmentRef + 1) % 2 == phiSelect) {
+	  if ( (phiSegmentRef % 2) == 1 ) {
 	    bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
 	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
@@ -459,7 +457,7 @@ void Tracker::buildCabling() {
 	else if (barrelName == "TBPS") {
 
 	  // flat modules
-	  if (!m.isTilted() && ( (phiSegmentRef + 1) % 2 == phiSelect)) {
+	  if (!m.isTilted() && ( (phiSegmentRef % 2) == 1)) {
 	    // standard case
 	    if (totalNumFlatRings <= 12) {
 	      m.setBundle(bundleFlat);
