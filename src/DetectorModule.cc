@@ -470,6 +470,15 @@ const int DetectorModule::bundlePlotColor() const {
   return bundlePlotColor;
 }
 
+const int DetectorModule::isPositiveCablingSide() const {
+  int isPositiveCablingSide = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != NULL) {
+    isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
+  }
+  return isPositiveCablingSide;
+}
+
 const DTC* DetectorModule::getDTC() const {
   const DTC* myDTC = NULL;
   const Bundle* myBundle = getBundle();

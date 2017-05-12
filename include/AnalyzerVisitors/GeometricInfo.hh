@@ -196,11 +196,13 @@ public:
     //*                                   //
     //************************************//
 class ModulesToDTCsVisitor : public ConstGeometryVisitor {
+  bool isPositiveCablingSide_;
   std::stringstream output_;
   string sectionName_;
   int layerId_;
 
 public:
+  ModulesToDTCsVisitor(bool isPositiveCablingSide);
   void preVisit();
   void visit(const Barrel& b);
   void visit(const Endcap& e);

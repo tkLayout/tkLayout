@@ -336,6 +336,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const Bundle* getBundle() const { return bundle_; }
   const DTC* getDTC() const;
   const int bundlePlotColor() const;
+  const int isPositiveCablingSide() const;
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;  
 };
