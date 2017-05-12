@@ -6,15 +6,14 @@
 
 
 
-Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot) {
+Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) {
   // Generic cable characteristics
   myid(id);
   phiSectorWidth_ = phiSectorWidth;
   phiSectorRef_ = phiSectorRef;
+  isPositiveCablingSide_ = isPositiveCablingSide;
   type_ = type;
   slot_ = slot;
-
-  bool isPositiveCablingSide = (id >= 0);
 
   // Assign cable a servicesChannel
   servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
@@ -27,7 +26,7 @@ Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string 
   dtcNameStream << phiSectorRef << "_" << type << "_" << slot;
   std::string dtcName = dtcNameStream.str();
 
-  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot);
+  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
   dtc->addCable(this); 
   myDTC_ = dtc;
 };

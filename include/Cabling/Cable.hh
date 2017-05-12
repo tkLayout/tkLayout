@@ -23,6 +23,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   int phiSectorRef_;
   std::string type_;
   int slot_;
+  bool isPositiveCablingSide_;
 
   int servicesChannel_;
 
@@ -36,12 +37,13 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   //Property<int, Default> nBundlesPerCable;
 
 public:
-  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot) ;
+  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) ;
 
   const std::string type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }
+  const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
   const int servicesChannel() const { return servicesChannel_; }
 

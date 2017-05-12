@@ -430,18 +430,21 @@ void Tracker::buildCabling() {
 
 	int negPhiSectorRef = std::floor(femod(M_PI - r.Phi(), 2.*M_PI) / phiSectorWidth);	
 
+	bool isPositiveCablingSide = true;
 
 	// CREATE 2S BUNDLES
 	if (barrelName == "TB2S") {
 	  type = "2S";
 	  // Positive cabling side
+	  isPositiveCablingSide = true;
 	  bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
 	  bundles_.insert(std::make_pair(bundleId, bundle));
 
 	  // Negative cabling side
+	  isPositiveCablingSide = false;
 	  negBundleId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);
-	  negBundle = GeometryFactory::make<Bundle>(negBundleId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	  negBundle = GeometryFactory::make<Bundle>(negBundleId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	  negBundles_.insert(std::make_pair(negBundleId, negBundle));
 	}
 
@@ -450,44 +453,48 @@ void Tracker::buildCabling() {
 	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
 
 	  // FLAT PART
-	  // Positive cabling side
+	  // Positive cabling side	  
 	  if ( (phiSegmentRef % 2) == 1 ) {
+	    isPositiveCablingSide = true;
 	    // standard case
 	    bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
-	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
 	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
 
 	    // For layer 3, need to add a second bundle for flat part
 	    if (totalNumFlatRings > 12) {
 	      bundleFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
-	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	      bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
 	      bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
 	    }
 	  }
 	  // Negative cabling side
 	  if ( (negPhiSegmentRef % 2) == 0 ) {
+	    isPositiveCablingSide = false;
 	    // standard case
 	    negBundleFlatId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 1);
-	    negBundleFlat = GeometryFactory::make<Bundle>(negBundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	    negBundleFlat = GeometryFactory::make<Bundle>(negBundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	    negBundles_.insert(std::make_pair(negBundleFlatId, negBundleFlat));
 
 	    // For layer 3, need to add a second negBundle for flat part
 	    if (totalNumFlatRings > 12) {
 	      negBundleFlatIdB = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 2);
-	      negBundleFlatB = GeometryFactory::make<Bundle>(negBundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	      negBundleFlatB = GeometryFactory::make<Bundle>(negBundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	      negBundles_.insert(std::make_pair(negBundleFlatIdB, negBundleFlatB));
 	    }
 	  }
 
 	  // TILTED PART
 	  // Positive cabling side
+	  isPositiveCablingSide = true;
 	  bundleTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
 	  bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));
 
 	  // Negative cabling side
+	  isPositiveCablingSide = false;
 	  negBundleTiltedId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);	  
-	  negBundleTilted = GeometryFactory::make<Bundle>(negBundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	  negBundleTilted = GeometryFactory::make<Bundle>(negBundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	  negBundles_.insert(std::make_pair(negBundleTiltedId, negBundleTilted));	 
 	}
       }
@@ -617,6 +624,7 @@ void Tracker::buildCabling() {
 
       void visit(EndcapModule& m) {
 	if (side) {
+	  bool isPositiveCablingSide = true;
 	  double phiRegionStart = 0.;
 	  if (type == "PS10G" || type == "PS5GA") {
 	    phiRegionWidth = 40. * M_PI / 180.;
@@ -643,7 +651,7 @@ void Tracker::buildCabling() {
 	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiSectorWidth);
 
 	  if (bundles_.count(bundleId) == 0) {
-	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
+	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
 	    bundleEndcap->addModule(&m);
 	    bundles_.insert(std::make_pair(bundleId, bundleEndcap));
 	    m.setBundle(bundleEndcap);
@@ -659,7 +667,7 @@ void Tracker::buildCabling() {
 
       void postVisit() {
 	// STAGGER MODULES
-	staggerModules();
+	staggerModules(bundles_);
 
 	// CHECK
 	checkModulesToBundlesConnections(bundles_);
@@ -667,9 +675,9 @@ void Tracker::buildCabling() {
       }
 
 
-      void staggerModules() {
+      void staggerModules(std::map<int, Bundle*>& bundles) {
 
-	for (auto& b : bundles_) {
+	for (auto& b : bundles) {
 	  if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
 
 	    while (b.second->numModules() > 12) {
@@ -698,9 +706,9 @@ void Tracker::buildCabling() {
 	      double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
 
 
-	      if (bundles_.count(previousBundleId) != 0 && bundles_.count(nextBundleId) != 0) {
+	      if (bundles.count(previousBundleId) != 0 && bundles.count(nextBundleId) != 0) {
 		// Cannot assign the extra module : both neighbouring phi regions are full !
-		if (bundles_[previousBundleId]->numModules() >= 12 && bundles_[nextBundleId]->numModules() >= 12) {
+		if (bundles[previousBundleId]->numModules() >= 12 && bundles[nextBundleId]->numModules() >= 12) {
 		  std::cout << "I am a refugee module from disk " << diskNumber << ", type " << type 
 			    << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
@@ -709,30 +717,30 @@ void Tracker::buildCabling() {
 		}
 
 		// Assign the module with the biggest phi to the next phi region
-		else if (bundles_[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
+		else if (bundles[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
 		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
 			    << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 			    << ", adding it to the next region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-		  std::cout << "bundles_[nextBundleId]->numModules = " << bundles_[nextBundleId]->numModules() << std::endl;
+		  std::cout << "bundles[nextBundleId]->numModules = " << bundles[nextBundleId]->numModules() << std::endl;
 		  Module* maxPhiMod = b.second->maxPhiModule();
-		  maxPhiMod->setBundle(bundles_[nextBundleId]);  
-		  bundles_[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		  maxPhiMod->setBundle(bundles[nextBundleId]);  
+		  bundles[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 		}
 
 		// Assign the module with the lowest phi to the previous phi region
-		else if (bundles_[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
+		else if (bundles[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
 		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
 			    << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 			    << ", adding it to the previous region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-		  std::cout << "bundles_[previousBundleId]->numModules = " << bundles_[previousBundleId]->numModules() << std::endl;
+		  std::cout << "bundles[previousBundleId]->numModules = " << bundles[previousBundleId]->numModules() << std::endl;
 		  Module* minPhiMod = b.second->minPhiModule();
-		  minPhiMod->setBundle(bundles_[previousBundleId]);	  
-		  bundles_[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		  minPhiMod->setBundle(bundles[previousBundleId]);	  
+		  bundles[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 		}
 	      }
@@ -921,14 +929,14 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
   
     if (slot == 0) std::cout << "Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly." << std::endl;
 
-    // BUILD CABLE AND STORES IT
+    // BUILD CABLE AND STORE IT
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
 
-    bool isPositiveCablingSide = (b.second->myid() >= 0);
+    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
     if (!isPositiveCablingSide) cableId *= -1;
 
     if (cables.count(cableId) == 0) {
-      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot);
+      Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot, isPositiveCablingSide);
       cable->addBundle(b.second);
       b.second->setCable(cable);
       cables.insert(std::make_pair(cableId, cable));

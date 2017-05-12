@@ -34,6 +34,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
   int phiRegionRef_;
   double phiSectorWidth_;
   int phiSectorRef_;
+  bool isPositiveCablingSide_;
 
   int plotColor_;
 
@@ -51,7 +52,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionStart, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef) {
+  Bundle(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionStart, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef, bool isPositiveCablingSide) {
     myid(id);
 
     type_ = type;
@@ -65,6 +66,7 @@ public:
     phiRegionRef_ = phiRegionRef;
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
+    isPositiveCablingSide_ = isPositiveCablingSide;
 
     // Calculate plotColor_
     int plotId = fabs(id);
@@ -85,6 +87,7 @@ public:
   const int phiRegionRef() const { return phiRegionRef_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
+  const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
   const int plotColor() const { return plotColor_; }
 
