@@ -368,20 +368,32 @@ void Tracker::buildCabling() {
       bool side;
    
       int phiSegmentRef;
+      int negPhiSegmentRef;
       double phiRegionWidth;
       const double phiSectorWidth = 40. * M_PI / 180.;
   
       int bundleId;
-      int bundleFlatId;
-      int bundleFlatIdB;
+      int bundleFlatId;   
+      int bundleFlatIdB;      
       int bundleTiltedId;
+
+      int negBundleId;
+      int negBundleFlatId;
+      int negBundleFlatIdB;
+      int negBundleTiltedId;
 
       Bundle* bundle = NULL;
       Bundle* bundleFlat = NULL;
       Bundle* bundleFlatB = NULL;
       Bundle* bundleTilted = NULL;
 
+      Bundle* negBundle = NULL;
+      Bundle* negBundleFlat = NULL;
+      Bundle* negBundleFlatB = NULL;
+      Bundle* negBundleTilted = NULL;
+
       std::map<int, Bundle*> bundles_;
+      std::map<int, Bundle*> negBundles_;
 
     public:
       void visit(Barrel& b) {
@@ -399,29 +411,48 @@ void Tracker::buildCabling() {
 
       void visit(RodPair& r) {
 	double phiSegmentWidth = (2.*M_PI) / numRods;
+
+	// Positive cabling side
 	double phiSegmentStart = femod( r.Phi(), phiSegmentWidth);
 	phiSegmentRef = round(femod(r.Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double phiRegionStart = 0.;
 	int phiRegionRef = std::floor(femod(r.Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);
 
-	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);	
+	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);
 
-	// Create 2S bundles
+	// Negative cabling side
+	double negPhiSegmentStart = femod( M_PI - r.Phi(), phiSegmentWidth);
+	negPhiSegmentRef = round(femod(M_PI - r.Phi() - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+	
+	double negPhiRegionStart = 0.;
+	int negPhiRegionRef = std::floor(femod(M_PI - r.Phi() - negPhiRegionStart, 2.*M_PI) / phiRegionWidth);
+
+	int negPhiSectorRef = std::floor(femod(M_PI - r.Phi(), 2.*M_PI) / phiSectorWidth);	
+
+
+	// CREATE 2S BUNDLES
 	if (barrelName == "TB2S") {
-	  bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;
 	  type = "2S";
+	  // Positive cabling side
+	  bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
 	  bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	  bundles_.insert(std::make_pair(bundleId, bundle));
+
+	  // Negative cabling side
+	  negBundleId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);
+	  negBundle = GeometryFactory::make<Bundle>(negBundleId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	  negBundles_.insert(std::make_pair(negBundleId, negBundle));
 	}
 
-	// Create PS bundles
+	// CREATE PS BUNDLES
 	else if (barrelName == "TBPS") {
 	  type = (layerNumber == 1 ? "PS10G" : "PS5G");
 
-	  // Flat part
-	  // standard case
+	  // FLAT PART
+	  // Positive cabling side
 	  if ( (phiSegmentRef % 2) == 1 ) {
+	    // standard case
 	    bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
 	    bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
 	    bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
@@ -433,11 +464,31 @@ void Tracker::buildCabling() {
 	      bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
 	    }
 	  }
+	  // Negative cabling side
+	  if ( (negPhiSegmentRef % 2) == 0 ) {
+	    // standard case
+	    negBundleFlatId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 1);
+	    negBundleFlat = GeometryFactory::make<Bundle>(negBundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	    negBundles_.insert(std::make_pair(negBundleFlatId, negBundleFlat));
 
-	  // Tilted part
+	    // For layer 3, need to add a second negBundle for flat part
+	    if (totalNumFlatRings > 12) {
+	      negBundleFlatIdB = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 2);
+	      negBundleFlatB = GeometryFactory::make<Bundle>(negBundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	      negBundles_.insert(std::make_pair(negBundleFlatIdB, negBundleFlatB));
+	    }
+	  }
+
+	  // TILTED PART
+	  // Positive cabling side
 	  bundleTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
 	  bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef);
-	  bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));	 
+	  bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));
+
+	  // Negative cabling side
+	  negBundleTiltedId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);	  
+	  negBundleTilted = GeometryFactory::make<Bundle>(negBundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef);
+	  negBundles_.insert(std::make_pair(negBundleTiltedId, negBundleTilted));	 
 	}
       }
       
@@ -445,44 +496,84 @@ void Tracker::buildCabling() {
       void visit(BarrelModule& m) {
 	side = (m.uniRef().side > 0.);
 
-	// Connect modules to 2S bundles
+	// CONNECT MODULES TO 2S BUNDLES
 	if (barrelName == "TB2S") {
+	  // Positive cabling side
 	  if (side) {
 	    m.setBundle(bundle);
 	    bundles_[bundleId]->addModule(&m);
 	  }
+	  // Negative cabling side
+	  else {
+	    m.setBundle(negBundle);
+	    negBundles_[negBundleId]->addModule(&m);
+	  }
 	}
 
-	// Connect modules to PS bundles
+	// CONNECT MODULES TO PS BUNDLES
 	else if (barrelName == "TBPS") {
 
-	  // flat modules
-	  if (!m.isTilted() && ( (phiSegmentRef % 2) == 1)) {
-	    // standard case
-	    if (totalNumFlatRings <= 12) {
-	      m.setBundle(bundleFlat);
-	      bundles_[bundleFlatId]->addModule(&m);
-	    }
-	    // For layer 3, need to add a second bundle for flat part
-	    else {
-	      if (side) {
+	  // FLAT MODULES
+	  if (!m.isTilted()) {
+	    // Positive cabling side
+	    if ( (phiSegmentRef % 2) == 1) {
+	      // standard case
+	      if (totalNumFlatRings <= 12) {
 		m.setBundle(bundleFlat);
 		bundles_[bundleFlatId]->addModule(&m);
-	      } else {
-		m.setBundle(bundleFlatB);
-		bundles_[bundleFlatIdB]->addModule(&m);
+	      }
+	      // For layer 3, need to add a second bundle for flat part
+	      else {
+		if (side) {
+		  m.setBundle(bundleFlat);
+		  bundles_[bundleFlatId]->addModule(&m);
+		} else {
+		  m.setBundle(bundleFlatB);
+		  bundles_[bundleFlatIdB]->addModule(&m);
+		}
 	      }
 	    }
+
+	    // Negative cabling side
+	    if ( (phiSegmentRef % 2) == 0) {
+	      // standard case
+	      if (totalNumFlatRings <= 12) {
+		m.setBundle(negBundleFlat);
+		negBundles_[negBundleFlatId]->addModule(&m);
+	      }
+	      // For layer 3, need to add a second bundle for flat part
+	      else {
+		if (!side) {
+		  m.setBundle(negBundleFlat);
+		  negBundles_[negBundleFlatId]->addModule(&m);
+		} else {
+		  m.setBundle(negBundleFlatB);
+		  negBundles_[negBundleFlatIdB]->addModule(&m);
+		}
+	      }
+	    }
+
 	  }
 
-	  // tilted modules
-	  else if (m.isTilted() && side) {
-	    m.setBundle(bundleTilted);
-	    bundles_[bundleTiltedId]->addModule(&m);
-	    bundles_[bundleTiltedId]->setIsTiltedPart(true);
+	  // TILTED MODULES
+	  else if (m.isTilted()) {
+	    // Positive cabling side
+	    if (side) {
+	      m.setBundle(bundleTilted);
+	      bundles_[bundleTiltedId]->addModule(&m);
+	      bundles_[bundleTiltedId]->setIsTiltedPart(true);
+	    }
+	    // Negative cabling side
+	    else {
+	      m.setBundle(negBundleTilted);
+	      negBundles_[negBundleTiltedId]->addModule(&m);
+	      negBundles_[negBundleTiltedId]->setIsTiltedPart(true);
+	    }
 	  }
+	  
 
 	}
+      
       }
 
 
