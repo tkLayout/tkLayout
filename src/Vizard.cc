@@ -1211,8 +1211,8 @@ namespace insur {
       // Modules to Bundles
       TCanvas *summaryBundleCanvas = NULL;
       TCanvas *RZBundleCanvas = NULL;
-      TCanvas *XYBundleCanvas = NULL;
       TCanvas *XYBundleNegCanvas = NULL;
+      TCanvas *XYBundleCanvas = NULL;   
       std::vector<TCanvas*> XYBundleCanvasesDisk;
       std::vector<TCanvas*> XYSurfacesDisk;
    
@@ -1226,14 +1226,14 @@ namespace insur {
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Bundles. Different colors = different bundles.");
 	myContent->addItem(myImage);
       }
-      if (XYBundleCanvas) {
-	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
-	myContent->addItem(myImage);
-      }
       if (XYBundleNegCanvas) {
 	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side");
+	myContent->addItem(myImage);
+      }
+      if (XYBundleCanvas) {
+	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
 	myContent->addItem(myImage);
       }
       for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
@@ -1251,8 +1251,8 @@ namespace insur {
       // Modules to DTCs
       TCanvas *summaryDTCCanvas = NULL;
       TCanvas *RZDTCCanvas = NULL;
-      TCanvas *XYDTCCanvas = NULL;
       TCanvas *XYDTCNegCanvas = NULL;
+      TCanvas *XYDTCCanvas = NULL; 
       std::vector<TCanvas*> XYDTCCanvasesDisk;
        
       myContent = new RootWContent("Modules to DTCs");
@@ -1265,14 +1265,14 @@ namespace insur {
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
 	myContent->addItem(myImage);
       }
-      if (XYDTCCanvas) {
-	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
-	myContent->addItem(myImage);
-      }
       if (XYDTCNegCanvas) {
 	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCCanvas) {
+	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
 	myContent->addItem(myImage);
       }
       for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
@@ -6419,7 +6419,7 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-    PlotDrawer<YZ, TypeBundleColor> yzDrawer;
+    PlotDrawer<YZFull, TypeBundleColor> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
@@ -6512,7 +6512,7 @@ void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
     const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-    PlotDrawer<YZ, TypeDTCColor> yzDrawer;
+    PlotDrawer<YZFull, TypeDTCColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.dtcPhiSectorRef() == 1); } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);

@@ -122,6 +122,11 @@ template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas&, DrawerP
   drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
+template<> void SummaryFrameStyle<YZFull>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();
+  //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+}
+
 template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();    
 }
