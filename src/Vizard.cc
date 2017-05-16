@@ -6433,13 +6433,13 @@ namespace insur {
    
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
-    PlotDrawer<XY, TypeBundleColor> xyNegBarrelDrawer;
+    PlotDrawer<XYNeg, TypeBundleColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
       line->SetLineWidth(2); 
       line->Draw("same");
     }
@@ -6526,7 +6526,7 @@ void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
 
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
-    PlotDrawer<XY, TypeDTCColor> xyNegBarrelDrawer;
+    PlotDrawer<XYNeg, TypeDTCColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);

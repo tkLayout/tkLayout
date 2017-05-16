@@ -213,6 +213,17 @@ struct XY : public std::pair<int, int>, private Rounder {
   int y() const { return this->second; }
 };
 
+struct XYNeg : public std::pair<int, int>, private Rounder {
+  const bool valid;
+  // XY coordinates of the centre of module m.
+ XYNeg(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
+  // XY coordinates of vector v.
+ XYNeg(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() <= 0) {}
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
+ XYNeg(const XYZVector& v, const Module& m) : XYNeg(v) {}
+  int x() const { return this->first; }
+  int y() const { return this->second; }
+};
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
