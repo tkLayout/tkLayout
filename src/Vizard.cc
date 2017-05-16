@@ -6346,12 +6346,23 @@ namespace insur {
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
+    // Draw spider net to delimit the Phi Sectors
+    double phiSectorWidth = 40. * M_PI / 180.;
+    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
+    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
+
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
 
     for (auto& anEndcap : tracker.endcaps() ) {
       TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
@@ -6362,6 +6373,12 @@ namespace insur {
       xyEndcapDrawer.addModules(anEndcap);
       xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+      // Spider lines
+      for (int i = 0; i < numPhiSectors; i++) {
+	TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+	line->SetLineWidth(2); 
+	line->Draw("same");
+      }
       XYCanvasesEC.push_back(XYCanvasEC);
     }
 
@@ -6391,7 +6408,100 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
+  void Vizard::createSummaryCanvasCablingBundleNicer(Tracker& tracker,
+					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYSurfacesDisk) {
+
+    double scaleFactor = tracker.maxR()/600;
+
+    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, TypeBundleColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+
+    // Draw spider net to delimit the Phi Sectors
+    double phiSectorWidth = 40. * M_PI / 180.;
+    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
+    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
+   
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XY, TypeBundleColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeBundleColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					      Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasDisk->cd();
+	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(lastDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	  // Spider lines
+	  for (int i = 0; i < numPhiSectors; i++) {
+	    TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+	    line->SetLineWidth(2); 
+	    line->Draw("same");
+	  }
+	  XYCanvasesDisk.push_back(XYCanvasDisk);
+      }
+    }
+
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	std::vector<std::set<const Module*> > allSurfaceModules = lastDisk.getModuleSurfaces();
+	int iSurface = 0;
+	for (auto& surfaceModules : allSurfaceModules) {
+	  iSurface++;
+	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), iSurface),
+					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d", anEndcap.myid().c_str(), iSurface),
+					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYSurfaceDisk->cd();
+	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	  XYSurfacesDisk.push_back(XYSurfaceDisk);
+	}
+      }
+    }
+
+  }
+
+
+void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
 					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
 					       std::vector<TCanvas*> &XYCanvasesDisk) {
     double scaleFactor = tracker.maxR()/600;
@@ -6414,19 +6524,6 @@ namespace insur {
     int numPhiSectors = round(2 * M_PI / phiSectorWidth);
     double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYCanvas->cd();
-    PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    // Spider lines
-    for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
-      line->SetLineWidth(2); 
-      line->Draw("same");
-    }
-
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyNegBarrelDrawer;
@@ -6436,6 +6533,19 @@ namespace insur {
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
       TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
       line->SetLineWidth(2); 
       line->Draw("same");
     }
@@ -6462,76 +6572,6 @@ namespace insur {
 	}
       }
     }
-  }
-
-
-  void Vizard::createSummaryCanvasCablingBundleNicer(Tracker& tracker,
-					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYSurfacesDisk) {
-
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
-    RZCanvas->cd();
-    PlotDrawer<YZ, TypeBundleColor> yzDrawer;
-    yzDrawer.addModules(tracker);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
-   
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYCanvas->cd();
-    PlotDrawer<XY, TypeBundleColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYNegCanvas->cd();
-    PlotDrawer<XY, TypeBundleColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-
-    for (auto& anEndcap : tracker.endcaps() ) {
-      if (anEndcap.disks().size() > 0) {
-	const Disk& lastDisk = anEndcap.disks().back();
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					      Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYCanvasDisk->cd();
-	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	  xyDiskDrawer.addModules(lastDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	  XYCanvasesDisk.push_back(XYCanvasDisk);
-      }
-    }
-
-    for (auto& anEndcap : tracker.endcaps() ) {
-      if (anEndcap.disks().size() > 0) {
-	const Disk& lastDisk = anEndcap.disks().back();
-	std::vector<std::set<const Module*> > allSurfaceModules = lastDisk.getModuleSurfaces();
-	int iSurface = 0;
-	for (auto& surfaceModules : allSurfaceModules) {
-	  iSurface++;
-	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), iSurface),
-					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d", anEndcap.myid().c_str(), iSurface),
-					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYSurfaceDisk->cd();
-	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	  xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	  XYSurfacesDisk.push_back(XYSurfaceDisk);
-	}
-      }
-    }
-
   }
 
 
