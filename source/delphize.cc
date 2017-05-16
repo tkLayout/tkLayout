@@ -93,14 +93,16 @@ int main(int argc, char* argv[]) {
 
   double      etaSlice = 0.0;
   std::string author   = "";
+  std::string parameter= "";
 
   //
   // Program options
   boost::program_options::options_description help("Program options");
   help.add_options()
     ("help,h"        , "Display help")
-    ("input-file,i"  , boost::program_options::value<std::string>()                                        , "Specify name of input root file (from tkLayout), containing canvas with pT profiles")
+    ("input-file,i"  , boost::program_options::value<std::string>()                                        , "Specify name of input root file (from tkLayout), containing canvas with d0,z0,pT,p,cotgTh or phi0 profiles")
     ("layout-name,n" , boost::program_options::value<std::string>()                                        , "Specify given layout name")
+    ("parameter,p"   , boost::program_options::value<std::string>(&parameter)                              , "Specify parameter, the resolution of will be output: d0,z0,pT,p,cotgTh or phi0")
     ("author,a"      , boost::program_options::value<std::string>(&author)->default_value("Unknown author"), "Specify author of DELPHES file (optional: default = Unknown author)")
     ("eta-slicing,s" , boost::program_options::value<double>(&etaSlice)->default_value(0.2)                , "Specify eta slicing <0.0?; 1.0>, e.g. 0.1, 0.2, ... (optional: default = 0.2)")
     ;
@@ -117,6 +119,7 @@ int main(int argc, char* argv[]) {
     if      (etaSlice <= 0.0 || etaSlice > 1.0)                     throw boost::program_options::invalid_option_value("eta-slicing");
     else if (!varMap.count("input-file")  && !varMap.count("help")) throw boost::program_options::error("Forgot to define input root file???");
     else if (!varMap.count("layout-name") && !varMap.count("help")) throw boost::program_options::error("Forgot to define layout name???");
+    else if (!(parameter=="d0" || parameter=="z0" || parameter=="pT" || parameter=="p" || parameter=="cotgTh" || parameter=="phi0")) throw boost::program_options::invalid_option_value("parameter");
     else {
 
       // Write help
@@ -136,7 +139,7 @@ int main(int argc, char* argv[]) {
       // Delphes output file
       outFile = new std::ofstream();
       layoutName = varMap["layout-name"].as<std::string>();
-      std::string delphesName  = layoutName+"_Delphes.conf";
+      std::string delphesName  = layoutName+"_"+parameter+"Res_Delphes.conf";
       outFile->open(delphesName);
       if (outFile->is_open()) {
         osp = outFile;
@@ -176,13 +179,13 @@ int main(int argc, char* argv[]) {
           if (aClassName=="TProfile") {
 
             TProfile* myProfile = (TProfile*)aList->At(i);
-            //std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
+            std::cout << "TProfile: " << myProfile->GetName() << std::endl;
             double aMomentum;
-            if (sscanf(myProfile->GetName(), "pT_vs_eta%lf", &aMomentum)==1) {
+            if (sscanf(myProfile->GetName(), std::string(parameter+"_vs_eta%lf").c_str(), &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
-            else if (sscanf(myProfile->GetName(), "Total_pT_vs_eta%lf", &aMomentum)==1) {
+            else if (sscanf(myProfile->GetName(), std::string("Total_"+parameter+"_vs_eta%lf").c_str(), &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
 
