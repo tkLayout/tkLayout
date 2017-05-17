@@ -1289,8 +1289,9 @@ namespace insur {
       RootWInfo* myInfo = NULL;
       // POSITIVE CABLING SIDE
       bool isPositiveCablingSide = true;
-      myInfo = new RootWInfo("Positive cabling side");
-      filesContent->addItem(myInfo);
+      RootWTable* sideName = new RootWTable();
+      sideName->setContent(0, 0, "Positive cabling side:");
+      filesContent->addItem(sideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
@@ -1301,8 +1302,15 @@ namespace insur {
       filesContent->addItem(myTextFile);
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
-      myInfo = new RootWInfo("Negative cabling side");
-      filesContent->addItem(myInfo);
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      spacer->setContent(3, 0, " ");
+      filesContent->addItem(spacer);
+      sideName = new RootWTable();
+      sideName->setContent(0, 0, "Negative cabling side:");
+      filesContent->addItem(sideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
