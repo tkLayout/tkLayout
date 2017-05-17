@@ -370,9 +370,7 @@ void Tracker::buildCabling() {
       int phiSegmentRef;
       int negPhiSegmentRef;
       double phiRegionWidth;
-      int numPhiRegions;
       const double phiSectorWidth = 40. * M_PI / 180.;
-      const int numPhiSectors = round(2 * M_PI / phiSectorWidth);
   
       int bundleId;
       int bundleFlatId;   
@@ -409,7 +407,6 @@ void Tracker::buildCabling() {
 
 	if (layerNumber == 1 || layerNumber == 2 || layerNumber == 4) phiRegionWidth = 40. * M_PI / 180.;
 	else phiRegionWidth = 20. * M_PI / 180.;
-	numPhiRegions = round(2 * M_PI / phiRegionWidth);
       }
 
       void visit(RodPair& r) {
