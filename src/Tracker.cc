@@ -453,7 +453,7 @@ void Tracker::buildCabling() {
 
 	  // Negative cabling side
 	  isPositiveCablingSide = false;
-	  negBundleId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);
+	  negBundleId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10;
 	  negBundle = GeometryFactory::make<Bundle>(negBundleId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	  negBundles_.insert(std::make_pair(negBundleId, negBundle));
 	}
@@ -482,13 +482,13 @@ void Tracker::buildCabling() {
 	  if ( (negPhiSegmentRef % 2) == 0 ) {
 	    isPositiveCablingSide = false;
 	    // standard case
-	    negBundleFlatId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 1);
+	    negBundleFlatId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 1;
 	    negBundleFlat = GeometryFactory::make<Bundle>(negBundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	    negBundles_.insert(std::make_pair(negBundleFlatId, negBundleFlat));
 
 	    // For layer 3, need to add a second negBundle for flat part
 	    if (totalNumFlatRings > 12) {
-	      negBundleFlatIdB = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 2);
+	      negBundleFlatIdB = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 2;
 	      negBundleFlatB = GeometryFactory::make<Bundle>(negBundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	      negBundles_.insert(std::make_pair(negBundleFlatIdB, negBundleFlatB));
 	    }
@@ -503,7 +503,7 @@ void Tracker::buildCabling() {
 
 	  // Negative cabling side
 	  isPositiveCablingSide = false;
-	  negBundleTiltedId = -(10000 + layerNumber * 1000 + negPhiSegmentRef * 10);	  
+	  negBundleTiltedId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10;	  
 	  negBundleTilted = GeometryFactory::make<Bundle>(negBundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
 	  negBundles_.insert(std::make_pair(negBundleTiltedId, negBundleTilted));	 
 	}
@@ -901,6 +901,8 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
 	Layer4PhiSectorsCounter[phiSectorRef] += 1;
+	if (Layer4PhiSectorsCounter[phiSectorRef] == 1) std::cout << "Layer4PhiSectorsCounter[phiSectorRef] == 1" << " b.first = " << b.first << std::endl;
+	if (Layer4PhiSectorsCounter[phiSectorRef] == 2) std::cout << "Layer4PhiSectorsCounter[phiSectorRef] == 2" << " b.first = " << b.first << std::endl;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
 	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.	
 	if (phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {

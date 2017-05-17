@@ -69,7 +69,7 @@ public:
     isPositiveCablingSide_ = isPositiveCablingSide;
 
     // Calculate plotColor_
-    int plotId = fabs(id);
+    int plotId = (isPositiveCablingSide ? id : (id - 20000));
     int plotType = 2 + plotId % 2;  // Barrel : Identifies Flat vs Tilted. Endcap : Identifies PS10G vs PG5GA vs PS5GB vs 2S type.
     int dizaine = plotId / 10;
     int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
