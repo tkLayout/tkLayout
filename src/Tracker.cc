@@ -413,30 +413,32 @@ void Tracker::buildCabling() {
       }
 
       void visit(RodPair& r) {
+	double rodPhi = round(r.Phi() * 100000.) / 100000.;
+
 	double phiSegmentWidth = (2.*M_PI) / numRods;
 
 	// Positive cabling side
-	double phiSegmentStart = femod( r.Phi(), phiSegmentWidth);
-	phiSegmentRef = round(femod(r.Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+	double phiSegmentStart = femod( rodPhi, phiSegmentWidth);
+	phiSegmentRef = round(femod(rodPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double phiRegionStart = 0.;	
-	int phiRegionRef = std::floor(femod(r.Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);
+	int phiRegionRef = std::floor(femod(rodPhi - phiRegionStart, 2.*M_PI) / phiRegionWidth);
 	phiRegionRef = femod(phiRegionRef, numPhiRegions);
 
-	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);
+	int phiSectorRef = std::floor(femod(rodPhi, 2.*M_PI) / phiSectorWidth);
 	phiSectorRef = femod(phiSectorRef, numPhiSectors);
 
 	// Negative cabling side
-	double negPhiSegmentStart = femod( M_PI - r.Phi(), phiSegmentWidth);
-	negPhiSegmentRef = round(femod(M_PI - r.Phi() - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+	double negPhiSegmentStart = femod( M_PI - rodPhi, phiSegmentWidth);
+	negPhiSegmentRef = round(femod(M_PI - rodPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double negPhiRegionStart = 0.;
-	int negPhiRegionRef = std::floor(femod(M_PI - r.Phi() - negPhiRegionStart, 2.*M_PI) / phiRegionWidth);
+	int negPhiRegionRef = std::floor(femod(M_PI - rodPhi - negPhiRegionStart, 2.*M_PI) / phiRegionWidth);
 	negPhiRegionRef = femod(negPhiRegionRef, numPhiRegions);
 
-	int negPhiSectorRef = std::floor(femod(M_PI - r.Phi(), 2.*M_PI) / phiSectorWidth);
+	int negPhiSectorRef = std::floor(femod(M_PI - rodPhi, 2.*M_PI) / phiSectorWidth);
 	negPhiSectorRef = femod(negPhiSectorRef, numPhiSectors);
-	if (negPhiSectorRef < 0) std::cout << "AHHHHHHH negPhiSectorRef = " << negPhiSectorRef << "r.Phi() = " << r.Phi() * 180. / M_PI << "femod(M_PI - r.Phi(), 2.*M_PI) = " << (femod(M_PI - r.Phi(), 2.*M_PI) * 180. * M_PI) << std::endl;
+	if (negPhiSectorRef < 0) std::cout << "AHHHHHHH negPhiSectorRef = " << negPhiSectorRef << "rodPhi = " << rodPhi * 180. / M_PI << "femod(M_PI - rodPhi, 2.*M_PI) = " << (femod(M_PI - rodPhi, 2.*M_PI) * 180. * M_PI) << std::endl;
 
 	bool isPositiveCablingSide = true;
 
@@ -898,7 +900,7 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
-	Layer4PhiSectorsCounter[phiSectorRef] += 1;	
+	Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
 	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.	
 	if (phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
@@ -917,7 +919,14 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 	if (phiSectorRefThird != 2 && Layer5PhiSectorsCounter[phiSectorRef] == 4) {
 	  slot = 1;
 	}
-	else slot = 2;
+	else {
+	  if (phiSectorRefThird == 2 && Layer5PhiSectorsCounter[phiSectorRef] >= 7) {
+	    phiSectorRefCable = nextPhiSectorRef;
+	    Layer5PhiSectorsCounter[phiSectorRef] -= 1;
+	    Layer5PhiSectorsCounter[nextPhiSectorRef] += 1;
+	  }
+	  slot = 2;
+	}
       }
 
       else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
