@@ -426,13 +426,11 @@ void Tracker::buildCabling() {
 	int phiRegionRef = 0;
 	if (fabs((phiRegionRefExact - round(phiRegionRefExact))) < 0.0001) phiRegionRef = fabs(round(phiRegionRefExact));
 	else phiRegionRef = std::floor(phiRegionRefExact);
-	//phiRegionRef = femod(phiRegionRef, numPhiRegions);
 
 	double phiSectorRefExact = femod(rodPhi, 2.*M_PI) / phiSectorWidth;
 	int phiSectorRef = 0;
 	if (fabs((phiSectorRefExact - round(phiSectorRefExact))) < 0.0001) phiSectorRef = fabs(round(phiSectorRefExact));
 	else phiSectorRef = std::floor(phiSectorRefExact);
-	//phiSectorRef = femod(phiSectorRef, numPhiSectors);
 
 	// Negative cabling side
 	double negPhiSegmentStart = femod( M_PI - rodPhi, phiSegmentWidth);
@@ -443,14 +441,11 @@ void Tracker::buildCabling() {
 	int negPhiRegionRef = 0;
 	if (fabs((negPhiRegionRefExact - round(negPhiRegionRefExact))) < 0.0001) negPhiRegionRef = fabs(round(negPhiRegionRefExact));
 	else negPhiRegionRef = std::floor(negPhiRegionRefExact);
-	//negPhiRegionRef = femod(negPhiRegionRef, numPhiRegions);
 
 	double negPhiSectorRefExact = femod(M_PI - rodPhi, 2.*M_PI) / phiSectorWidth;
 	int negPhiSectorRef = 0;
 	if (fabs((negPhiSectorRefExact - round(negPhiSectorRefExact))) < 0.0001) negPhiSectorRef = fabs(round(negPhiSectorRefExact));
 	else negPhiSectorRef = std::floor(negPhiSectorRefExact);
-	//negPhiSectorRef = femod(negPhiSectorRef, numPhiSectors);
-	if (negPhiSectorRef < 0) std::cout << "AHHHHHHH negPhiSectorRef = " << negPhiSectorRef << "rodPhi = " << rodPhi * 180. / M_PI << "femod(M_PI - rodPhi, 2.*M_PI) = " << (femod(M_PI - rodPhi, 2.*M_PI) * 180. * M_PI) << "negPhiSectorRefExact = " << negPhiSectorRefExact << "round(negPhiSectorRefExact) = " << round(negPhiSectorRefExact)  << std::endl;
 
 	bool isPositiveCablingSide = true;
 
@@ -847,8 +842,6 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
     else if (cableType == "PS5G") cableTypeIndex = 1;
     else if (cableType == "2S") cableTypeIndex = 2;
 
-    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
-
 
     std::string subDetectorName = b.second->subDetectorName();
     int layerDiskNumber = b.second->layerDiskNumber();
@@ -915,10 +908,7 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
       if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
 	Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
-	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.	
-	//if ( (isPositiveCablingSide && phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1)
-	// || (!isPositiveCablingSide && phiSectorRef == 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1)
-	// ) {
+	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.
 	if (phiSectorRefThird == 0 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
 	  phiSectorRefCable = previousPhiSectorRef;
 	}
@@ -936,6 +926,7 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 	  slot = 1;
 	}
 	else {
+	  // Is this still necessary ?
 	  if (phiSectorRefThird == 2 && Layer5PhiSectorsCounter[phiSectorRef] >= 7) {
 	    phiSectorRefCable = nextPhiSectorRef;
 	    Layer5PhiSectorsCounter[phiSectorRef] -= 1;
@@ -968,6 +959,8 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 
     // BUILD CABLE AND STORE IT
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
+
+    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
     if (!isPositiveCablingSide) cableId *= -1;
 
     if (cables.count(cableId) == 0) {
