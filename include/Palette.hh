@@ -7,6 +7,8 @@
 #include <string>
 #include <map>
 
+#include <global_funcs.hh>
+
 class Palette {
  public:
   static Color_t color(const std::string& objectName);

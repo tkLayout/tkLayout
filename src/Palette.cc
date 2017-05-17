@@ -100,7 +100,7 @@ Color_t Palette::colorDTC(const int& colorIndex) {
  //return gROOT->GetColor(paletteIndex);
 
   short phiSector = colorIndex % 10;
-  short zone = colorIndex % 12;
+  short zone = femod(colorIndex % 12, 12);
   
   short paletteIndex;
   if (colorIndex == 0) paletteIndex = 1;

@@ -370,7 +370,9 @@ void Tracker::buildCabling() {
       int phiSegmentRef;
       int negPhiSegmentRef;
       double phiRegionWidth;
+      int numPhiRegions;
       const double phiSectorWidth = 40. * M_PI / 180.;
+      const int numPhiSectors = round(2 * M_PI / phiSectorWidth);
   
       int bundleId;
       int bundleFlatId;   
@@ -407,6 +409,7 @@ void Tracker::buildCabling() {
 
 	if (layerNumber == 1 || layerNumber == 2 || layerNumber == 4) phiRegionWidth = 40. * M_PI / 180.;
 	else phiRegionWidth = 20. * M_PI / 180.;
+	numPhiRegions = round(2 * M_PI / phiRegionWidth);
       }
 
       void visit(RodPair& r) {
@@ -416,10 +419,12 @@ void Tracker::buildCabling() {
 	double phiSegmentStart = femod( r.Phi(), phiSegmentWidth);
 	phiSegmentRef = round(femod(r.Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
-	double phiRegionStart = 0.;
+	double phiRegionStart = 0.;	
 	int phiRegionRef = std::floor(femod(r.Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);
+	phiRegionRef = femod(phiRegionRef, numPhiRegions);
 
 	int phiSectorRef = std::floor(femod(r.Phi(), 2.*M_PI) / phiSectorWidth);
+	phiSectorRef = femod(phiSectorRef, numPhiSectors);
 
 	// Negative cabling side
 	double negPhiSegmentStart = femod( M_PI - r.Phi(), phiSegmentWidth);
@@ -427,8 +432,11 @@ void Tracker::buildCabling() {
 	
 	double negPhiRegionStart = 0.;
 	int negPhiRegionRef = std::floor(femod(M_PI - r.Phi() - negPhiRegionStart, 2.*M_PI) / phiRegionWidth);
+	negPhiRegionRef = femod(negPhiRegionRef, numPhiRegions);
 
-	int negPhiSectorRef = std::floor(femod(M_PI - r.Phi(), 2.*M_PI) / phiSectorWidth);	
+	int negPhiSectorRef = std::floor(femod(M_PI - r.Phi(), 2.*M_PI) / phiSectorWidth);
+	negPhiSectorRef = femod(negPhiSectorRef, numPhiSectors);
+	if (negPhiSectorRef < 0) std::cout << "AHHHHHHH negPhiSectorRef = " << negPhiSectorRef << "r.Phi() = " << r.Phi() * 180. / M_PI << "femod(M_PI - r.Phi(), 2.*M_PI) = " << (femod(M_PI - r.Phi(), 2.*M_PI) * 180. * M_PI) << std::endl;
 
 	bool isPositiveCablingSide = true;
 
@@ -761,6 +769,10 @@ void Tracker::buildCabling() {
 		      << b.first << " is connected to " << b.second->numModules() << " modules." 
 		      << std::endl;
 	  }
+
+	  if (b.second->phiSegmentRef() <= -1 || b.second->phiRegionRef() <= -1 || b.second->phiSectorRef() <= -1) {
+	    std::cout << "Error while creating bundle. Bundle " << b.first << " has phiSegmentRef = " << b.second->phiSegmentRef() << ", phiRegionRef = " << b.second->phiRegionRef() << ", phiSectorRef = " << b.second->phiSectorRef() << ", type = " << b.second->type() << std::endl;
+	  }
 	}
       }
 
@@ -795,7 +807,7 @@ void Tracker::buildCabling() {
 
 void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
-  // Used to stagger several bundlesn
+  // Used to stagger several bundles
   std::map<int, int> Layer5PhiSectorsCounter;
   std::map<int, int> Layer6PhiSectorsCounter;
   std::map<int, int> Layer3FlatPhiSectorsCounter;
@@ -959,6 +971,11 @@ void Tracker::checkBundlesToCablesConnections(std::map<int, Cable*>& cables) {
 		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 
 		<< std::endl;
     }
+
+    if (c.second->phiSectorRef() <= -1) {
+      std::cout << "Error while creating cable. Cable " << c.first << " has phiSectorRef = " << c.second->phiSectorRef() << ". type = " << c.second->type() << ", slot = " <<  c.second->slot() << std::endl;
+    }
+
   }
 }
 
