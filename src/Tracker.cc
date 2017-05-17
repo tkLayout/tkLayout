@@ -952,7 +952,7 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
 
     bool isPositiveCablingSide = b.second->isPositiveCablingSide();
-    if (!isPositiveCablingSide) cableId *= -1;
+    if (!isPositiveCablingSide) cableId += 1000;
 
     if (cables.count(cableId) == 0) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot, isPositiveCablingSide);

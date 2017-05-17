@@ -6513,7 +6513,9 @@ void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCColor> yzDrawer;
-    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.dtcPhiSectorRef() == 1); } );
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
+      } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
