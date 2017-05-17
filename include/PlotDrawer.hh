@@ -100,6 +100,18 @@ struct Type { // Module-maintained color
   }
 };
 
+struct TypeBundleColor { // Module-maintained DTC color
+  double operator()(const Module& m) {
+    return Palette::color(m.bundlePlotColor());
+  }
+};
+
+struct TypeBundleTransparentColor { // Module-maintained DTC color
+  double operator()(const Module& m) {
+    bool isTransparent = (m.isPositiveCablingSide() < 0);
+    return Palette::color(m.bundlePlotColor(), isTransparent);
+  }
+};
 
 struct TypeDTCColor { // Module-maintained DTC color
   double operator()(const Module& m) {
@@ -107,11 +119,13 @@ struct TypeDTCColor { // Module-maintained DTC color
   }
 };
 
-struct TypeBundleColor { // Module-maintained DTC color
+struct TypeDTCTransparentColor { // Module-maintained DTC color
   double operator()(const Module& m) {
-    return Palette::color(m.bundlePlotColor());
+    bool isTransparent = (m.isPositiveCablingSide() < 0);
+    return Palette::colorDTC(m.dtcPlotColor(), isTransparent);
   }
 };
+
 
 struct CoordZ {
   double operator()(const Module& m) { return m.center().Z(); }

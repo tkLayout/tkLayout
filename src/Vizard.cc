@@ -6419,7 +6419,7 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-    PlotDrawer<YZFull, TypeBundleColor> yzDrawer;
+    PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
@@ -6512,7 +6512,7 @@ void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
     const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-    PlotDrawer<YZFull, TypeDTCColor> yzDrawer;
+    PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
 	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
       } );
