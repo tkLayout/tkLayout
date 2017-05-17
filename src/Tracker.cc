@@ -926,12 +926,6 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 	  slot = 1;
 	}
 	else {
-	  // Is this still necessary ?
-	  if (phiSectorRefThird == 2 && Layer5PhiSectorsCounter[phiSectorRef] >= 7) {
-	    phiSectorRefCable = nextPhiSectorRef;
-	    Layer5PhiSectorsCounter[phiSectorRef] -= 1;
-	    Layer5PhiSectorsCounter[nextPhiSectorRef] += 1;
-	  }
 	  slot = 2;
 	}
       }
