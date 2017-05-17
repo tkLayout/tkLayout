@@ -155,24 +155,15 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
     }
 
     paletteIndex -= phiSector;
-
-    if (isTransparent) {
-      // paletteIndex = TColor::GetColorTransparent(paletteIndex, 0.2);
-      
-      /*TColor* color = gROOT->GetColor(paletteIndex);
-      TColor* transColor = new TColor(gROOT->GetListOfColors()->GetLast()+1, color->GetRed(), color->GetGreen(), color->GetBlue());
-      transColor->SetAlpha(0.2);
-      transColor->SetName(Form("%s_transparent",color->GetName()));
-      paletteIndex = transColor->GetNumber();*/
-      paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
-    }
+    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
   }
  
   return paletteIndex;
 }
 
 
-// TO DO : Why the hell is TColor::GetColorTransparent not recognized as a method of TColor ?? Temporary : use this instead.  
+// TO DO : Why the hell is TColor::GetColorTransparent not recognized as a method of TColor ?? 
+// Temporary : use this instead.  
 Int_t Palette::GetColorTransparent(Int_t colorIndex, Float_t ratio) {
   if (colorIndex < 0) return -1;
 
