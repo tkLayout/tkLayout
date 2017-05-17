@@ -810,12 +810,11 @@ void Tracker::buildCabling() {
 void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
   // Used to stagger several bundles
-  std::map<int, int> Layer5PhiSectorsCounter;
-  std::map<int, int> Layer6PhiSectorsCounter;
   std::map<int, int> Layer3FlatPhiSectorsCounter;
   std::map<int, int> Layer3TiltedPhiSectorsCounter;
-
   std::map<int, int> Layer4PhiSectorsCounter;
+  std::map<int, int> Layer5PhiSectorsCounter;
+  std::map<int, int> Layer6PhiSectorsCounter;
  
 
   for (auto& b : bundles) {
@@ -835,6 +834,8 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
     if (cableType == "PS10G") cableTypeIndex = 0;
     else if (cableType == "PS5G") cableTypeIndex = 1;
     else if (cableType == "2S") cableTypeIndex = 2;
+
+    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 
 
     std::string subDetectorName = b.second->subDetectorName();
@@ -905,7 +906,9 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 	if (Layer4PhiSectorsCounter[phiSectorRef] == 2) std::cout << "Layer4PhiSectorsCounter[phiSectorRef] == 2" << " b.first = " << b.first << std::endl;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
 	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.	
-	if (phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
+	if ( (isPositiveCablingSide && phiSectorRefThird == 0 && phiSectorRef != 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1)
+	     || (!isPositiveCablingSide && phiSectorRef == 6 && Layer4PhiSectorsCounter[phiSectorRef] == 1)
+	     ) {
 	  phiSectorRefCable = previousPhiSectorRef;
 	}
 	slot = 1;
@@ -954,8 +957,6 @@ void Tracker::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<i
 
     // BUILD CABLE AND STORE IT
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
-
-    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
     if (!isPositiveCablingSide) cableId *= -1;
 
     if (cables.count(cableId) == 0) {
