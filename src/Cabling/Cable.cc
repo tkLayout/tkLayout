@@ -96,6 +96,11 @@ int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot, 
     }
   }
 
-  if (!isPositiveCablingSide) servicesChannel *= -1;
+  if (!isPositiveCablingSide) {
+    double pivot = (servicesChannel <= 6 ? 3.5 : 9.5);
+    servicesChannel = servicesChannel + round( 2. * (pivot - servicesChannel) );
+    servicesChannel *= -1;
+  }
+
   return servicesChannel;
 }
