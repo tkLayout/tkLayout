@@ -1301,9 +1301,9 @@ namespace insur {
       RootWInfo* myInfo = NULL;
       // POSITIVE CABLING SIDE
       bool isPositiveCablingSide = true;
-      RootWTable* sideName = new RootWTable();
-      sideName->setContent(0, 0, "Positive cabling side:");
-      filesContent->addItem(sideName);
+      RootWTable* positiveSideName = new RootWTable();
+      positiveSideName->setContent(0, 0, "Positive cabling side:");
+      filesContent->addItem(positiveSideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
@@ -1318,11 +1318,10 @@ namespace insur {
       spacer->setContent(0, 0, " ");
       spacer->setContent(1, 0, " ");
       spacer->setContent(2, 0, " ");
-      spacer->setContent(3, 0, " ");
       filesContent->addItem(spacer);
-      sideName = new RootWTable();
-      sideName->setContent(0, 0, "Negative cabling side:");
-      filesContent->addItem(sideName);
+      RootWTable* negativeSideName = new RootWTable();
+      negativeSideName->setContent(0, 0, "Negative cabling side:");
+      filesContent->addItem(negativeSideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
@@ -1369,54 +1368,31 @@ namespace insur {
 
 
       // Services channels
-      RootWContent* channelsContent = new RootWContent("Services per channel (one side)", true);
+      RootWContent* channelsContent = new RootWContent("Services per channel", true);
       myPage->addContent(channelsContent);
-
-      RootWTable* channelsTable = new RootWTable();
-      channelsContent->addItem(channelsTable);
-
-      // Header table
-      channelsTable->setContent(0, 1, "# MFC");
-      channelsTable->setContent(0, 2, "# PWR PS");
-      channelsTable->setContent(0, 3, "# PWR 2S");
-      channelsTable->setContent(0, 4, "# PWR Total");
-
-      std::map<int, std::vector<int> > cablesPerChannel;
-      std::map<int, int> psBundlesPerChannel;
-      std::map<int, int> ssBundlesPerChannel;
-      analyzeServicesChannels(tracker, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel);
-      int totalCables = 0;
-      int totalPsBundles = 0;
-      int totalSsBundles = 0;
-      int totalBundles = 0;
-
-      // Fill table
-      for (int i = 1; i <= 12; i++) {
-	int numCablesPerChannel = (cablesPerChannel.count(i) != 0 ? cablesPerChannel.at(i).size() : 0);
-	int numPsBundlesPerChannel = (psBundlesPerChannel.count(i) != 0 ? psBundlesPerChannel.at(i) : 0);
-	int numSsBundlesPerChannel = (ssBundlesPerChannel.count(i) != 0 ? ssBundlesPerChannel.at(i) : 0);
-	int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
-
-	// Channel name
-	std::stringstream channelName;
-	channelName << "OT" << i;
-	channelsTable->setContent(i, 0, channelName.str());
-
-	channelsTable->setContent(i, 1, numCablesPerChannel);
-	channelsTable->setContent(i, 2, numPsBundlesPerChannel);
-	channelsTable->setContent(i, 3, numSsBundlesPerChannel);
-	channelsTable->setContent(i, 4, numBundlesPerChannel);
-
-	totalCables += numCablesPerChannel;
-	totalPsBundles += numPsBundlesPerChannel;
-	totalSsBundles += numSsBundlesPerChannel;
-	totalBundles += numBundlesPerChannel;
-      }
-      channelsTable->setContent(13, 0, "Total");
-      channelsTable->setContent(13, 1, totalCables);
-      channelsTable->setContent(13, 2, totalPsBundles);
-      channelsTable->setContent(13, 3, totalSsBundles);
-      channelsTable->setContent(13, 4, totalBundles);
+      // POSITIVE CABLING SIDE
+      isPositiveCablingSide = true;
+      channelsContent->addItem(positiveSideName);
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelPlus;
+      std::map<int, int> psBundlesPerChannelPlus;
+      std::map<int, int> ssBundlesPerChannelPlus;
+      analyzeServicesChannels(tracker, cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
+      // Create table
+      RootWTable* channelsTablePlus = createServicesChannelTable(cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
+      channelsContent->addItem(channelsTablePlus);
+      // NEGATIVE CABLING SIDE
+      isPositiveCablingSide = false;
+      channelsContent->addItem(spacer);
+      channelsContent->addItem(negativeSideName);
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelMinus;
+      std::map<int, int> psBundlesPerChannelMinus;
+      std::map<int, int> ssBundlesPerChannelMinus;
+      analyzeServicesChannels(tracker, cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
+      // Create table
+      RootWTable* channelsTableMinus = createServicesChannelTable(cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
+      channelsContent->addItem(channelsTableMinus);
 
 
       // Distinct DTCs 2D map
@@ -1441,9 +1417,9 @@ namespace insur {
 
 
 
-  void Vizard::analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel) {
+  void Vizard::analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
 
-    const std::map<int, Cable*>& cables = tracker.getCables();
+    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? tracker.getCables() : tracker.getNegCables());
 
     for (const auto& myCable : cables) {
       int channel = myCable.second->servicesChannel();
@@ -1459,6 +1435,57 @@ namespace insur {
       else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
     }
   }
+
+
+
+  RootWTable* Vizard::createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    // Header table
+    channelsTable->setContent(0, 1, "# MFC");
+    channelsTable->setContent(0, 2, "# PWR PS");
+    channelsTable->setContent(0, 3, "# PWR 2S");
+    channelsTable->setContent(0, 4, "# PWR Total");
+
+    int totalCables = 0;
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      int channel = (isPositiveCablingSide ? i : -i);
+      int numCablesPerChannel = (cablesPerChannel.count(channel) != 0 ? cablesPerChannel.at(channel).size() : 0);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channel) != 0 ? psBundlesPerChannel.at(channel) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channel) != 0 ? ssBundlesPerChannel.at(channel) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channel;
+      channelsTable->setContent(i, 0, channelName.str());
+
+      channelsTable->setContent(i, 1, numCablesPerChannel);
+      channelsTable->setContent(i, 2, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 3, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numBundlesPerChannel);
+
+      totalCables += numCablesPerChannel;
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, 0, "Total");
+    channelsTable->setContent(13, 1, totalCables);
+    channelsTable->setContent(13, 2, totalPsBundles);
+    channelsTable->setContent(13, 3, totalSsBundles);
+    channelsTable->setContent(13, 4, totalBundles);
+
+    return channelsTable;
+  }
+
+
 
 
 
