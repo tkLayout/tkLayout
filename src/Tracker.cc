@@ -419,30 +419,22 @@ void Tracker::buildCabling() {
 	phiSegmentRef = round(femod(rodPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double phiRegionStart = 0.;
-	double phiRegionRefExact = femod(rodPhi - phiRegionStart, 2.*M_PI) / phiRegionWidth;
-	int phiRegionRef = 0;
-	if (fabs((phiRegionRefExact - round(phiRegionRefExact))) < 0.0001) phiRegionRef = fabs(round(phiRegionRefExact));
-	else phiRegionRef = std::floor(phiRegionRefExact);
+	int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth);
 
-	double phiSectorRefExact = femod(rodPhi, 2.*M_PI) / phiSectorWidth;
-	int phiSectorRef = 0;
-	if (fabs((phiSectorRefExact - round(phiSectorRefExact))) < 0.0001) phiSectorRef = fabs(round(phiSectorRefExact));
-	else phiSectorRef = std::floor(phiSectorRefExact);
+	double phiSectorStart = 0.;
+	int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth);
+
 
 	// Negative cabling side
 	double negPhiSegmentStart = femod( M_PI - rodPhi, phiSegmentWidth);
 	negPhiSegmentRef = round(femod(M_PI - rodPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
 	double negPhiRegionStart = 0.;
-	double negPhiRegionRefExact = femod(M_PI - rodPhi - negPhiRegionStart, 2.*M_PI) / phiRegionWidth;
-	int negPhiRegionRef = 0;
-	if (fabs((negPhiRegionRefExact - round(negPhiRegionRefExact))) < 0.0001) negPhiRegionRef = fabs(round(negPhiRegionRefExact));
-	else negPhiRegionRef = std::floor(negPhiRegionRefExact);
+	int negPhiRegionRef = computePhiSliceRef(M_PI - rodPhi, negPhiRegionStart, phiRegionWidth);
 
-	double negPhiSectorRefExact = femod(M_PI - rodPhi, 2.*M_PI) / phiSectorWidth;
-	int negPhiSectorRef = 0;
-	if (fabs((negPhiSectorRefExact - round(negPhiSectorRefExact))) < 0.0001) negPhiSectorRef = fabs(round(negPhiSectorRefExact));
-	else negPhiSectorRef = std::floor(negPhiSectorRefExact);
+	double negPhiSectorStart = 0.;
+	int negPhiSectorRef = computePhiSliceRef(M_PI - rodPhi, negPhiSectorStart, phiSectorWidth);
+
 
 	bool isPositiveCablingSide = true;
 
@@ -598,6 +590,14 @@ void Tracker::buildCabling() {
       }
 
 
+      int computePhiSliceRef(double phi, double phiSliceStart, double phiSliceWidth) const {
+	double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
+	int phiSliceRef = 0;
+	if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
+	else phiSliceRef = std::floor(phiSliceRefExact);
+
+	return phiSliceRef;
+      }
 
 
 
