@@ -162,7 +162,7 @@ namespace insur {
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void createSummaryCanvasCablingBundleNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
-    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};

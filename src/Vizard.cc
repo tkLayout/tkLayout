@@ -1252,13 +1252,15 @@ namespace insur {
       TCanvas *summaryDTCCanvas = NULL;
       TCanvas *RZDTCCanvas = NULL;
       TCanvas *XYDTCNegCanvas = NULL;
+      TCanvas *XYDTCNegFlatCanvas = NULL;
       TCanvas *XYDTCCanvas = NULL; 
+      TCanvas *XYDTCFlatCanvas = NULL; 
       std::vector<TCanvas*> XYDTCCanvasesDisk;
        
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCCanvas, XYDTCNegCanvas, XYDTCCanvasesDisk);
+      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
@@ -1267,12 +1269,22 @@ namespace insur {
       }
       if (XYDTCNegCanvas) {
 	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side");
+	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCNegFlatCanvas) {
+	myImage = new RootWImage(XYDTCNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules, Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCCanvas) {
 	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
+	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCFlatCanvas) {
+	myImage = new RootWImage(XYDTCFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules, Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
@@ -6509,9 +6521,10 @@ namespace insur {
   }
 
 
-void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
-					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-					       std::vector<TCanvas*> &XYCanvasesDisk) {
+  void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
+						  TCanvas *&RZCanvas, 
+						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+						  std::vector<TCanvas*> &XYCanvasesDisk) {
     double scaleFactor = tracker.maxR()/600;
 
     int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
@@ -6547,12 +6560,38 @@ void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
       line->Draw("same");
     }
 
+    XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegFlatCanvas->cd();
+    PlotDrawer<XYNeg, TypeDTCColor> xyNegFlatBarrelDrawer;
+    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
+    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
+    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    // Spider lines
+    for (int i = 0; i < numPhiSectors; i++) {
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      line->SetLineWidth(2); 
+      line->Draw("same");
+    }
+
+    XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYFlatCanvas->cd();
+    PlotDrawer<XY, TypeDTCColor> xyBarrelFlatDrawer;
+    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
+    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
+    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
       TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
