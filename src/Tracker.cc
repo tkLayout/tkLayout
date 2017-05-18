@@ -590,17 +590,6 @@ void Tracker::buildCabling() {
       }
 
 
-      int computePhiSliceRef(double phi, double phiSliceStart, double phiSliceWidth) const {
-	double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
-	int phiSliceRef = 0;
-	if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
-	else phiSliceRef = std::floor(phiSliceRefExact);
-
-	return phiSliceRef;
-      }
-
-
-
       void visit(Endcap& e) { 
 	endcapName = e.myid();
       }
@@ -637,32 +626,38 @@ void Tracker::buildCabling() {
 
 
       void visit(EndcapModule& m) {
-	if (side) {
-	  bool isPositiveCablingSide = true;
-	  double phiRegionStart = 0.;
-	  if (type == "PS10G" || type == "PS5GA") {
-	    phiRegionWidth = 40. * M_PI / 180.;
-	  }
+	double modPhi = m.center().Phi();
 
-	  else if (type == "PS5GB") {
-	    phiRegionWidth = 20. * M_PI / 180.;
-	  }
+	double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
+		  
+	double phiRegionStart = 0.;
+	if (type == "PS10G" || type == "PS5GA") {
+	  phiRegionWidth = 40. * M_PI / 180.;
+	}
 
-	  else if (type == "2S") {
-	    phiRegionWidth = 360. / 27. * M_PI / 180.;
-	    if (endcapName == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
-	    else phiRegionStart = -0.001 * M_PI / 180.;
-	  }
+	else if (type == "PS5GB") {
+	  phiRegionWidth = 20. * M_PI / 180.;
+	}
 
-	  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
-	  double phiSegmentStart = femod( m.center().Phi(), phiSegmentWidth);
-	  phiSegmentRef = round(femod(m.center().Phi() - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+	else if (type == "2S") {
+	  phiRegionWidth = 360. / 27. * M_PI / 180.;
+	  if (endcapName == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
+	  else phiRegionStart = -0.001 * M_PI / 180.;
+	}
 
-	  int phiRegionRef = std::floor(femod(m.center().Phi() - phiRegionStart, 2.*M_PI) / phiRegionWidth);	  
+	double phiSectorStart = 0.;
+
+	bool isPositiveCablingSide = (side ? true : false);
+
+	// Positive cabling side
+	if (isPositiveCablingSide) {
+	  double phiSegmentStart = femod( modPhi, phiSegmentWidth);
+	  phiSegmentRef = round(femod(modPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+
+	  int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth);
 	  bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
-	  //else { bundleId = 30000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex; }
 
-	  int phiSectorRef = std::floor(femod(m.center().Phi(), 2.*M_PI) / phiSectorWidth);
+	  int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth);
 
 	  if (bundles_.count(bundleId) == 0) {
 	    Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
@@ -673,15 +668,48 @@ void Tracker::buildCabling() {
 	  else { 
 	    bundles_[bundleId]->addModule(&m);
 	    m.setBundle(bundles_[bundleId]);
-	  }	 
+	  }
 	}
+
+	// Negative cabling side
+	else {
+	  double negPhiSegmentStart = femod(M_PI - modPhi, phiSegmentWidth);
+	  negPhiSegmentRef = round(femod(M_PI - modPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+
+	  int negPhiRegionRef = computePhiSliceRef(M_PI - modPhi, phiRegionStart, phiRegionWidth);
+	  negBundleId = 40000 + diskNumber * 1000 + negPhiRegionRef * 10 + typeIndex;
+
+	  int negPhiSectorRef = computePhiSliceRef(M_PI - modPhi, phiSectorStart, phiSectorWidth);
+
+	  if (negBundles_.count(negBundleId) == 0) {
+	    Bundle* negBundleEndcap = GeometryFactory::make<Bundle>(negBundleId, type, endcapName, diskNumber, phiSegmentWidth, negPhiSegmentRef, phiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
+	    negBundleEndcap->addModule(&m);
+	    negBundles_.insert(std::make_pair(negBundleId, negBundleEndcap));
+	    m.setBundle(negBundleEndcap);
+	  }
+	  else { 
+	    negBundles_[negBundleId]->addModule(&m);
+	    m.setBundle(negBundles_[negBundleId]);
+	  }
+	}
+	
       }
 
+
+      int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth) const {
+	double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
+	int phiSliceRef = 0;
+	if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
+	else phiSliceRef = std::floor(phiSliceRefExact);
+
+	return phiSliceRef;
+      }
 
 
       void postVisit() {
 	// STAGGER MODULES
 	staggerModules(bundles_);
+	staggerModules(negBundles_);
 
 	// CHECK
 	checkModulesToBundlesConnections(bundles_);
@@ -695,6 +723,7 @@ void Tracker::buildCabling() {
 	  if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
 
 	    while (b.second->numModules() > 12) {
+	      bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	      int diskNumber = b.second->layerDiskNumber();
 
 	      std::string type = b.second->type();
@@ -713,48 +742,77 @@ void Tracker::buildCabling() {
 	      int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
 	      int bundleId = b.first;
-	      int nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
-	      int previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
+	      int nextBundleId = 0;
+	      int previousBundleId = 0;
+	      if (isPositiveCablingSide) {
+		nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
+		previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
+	      }
+	      else {
+		nextBundleId = 40000 + diskNumber * 1000 + nextPhiRegionRef * 10 + typeIndex;
+		previousBundleId = 40000 + diskNumber * 1000 + previousPhiRegionRef * 10 + typeIndex;
+	      }
 
-	      double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
-	      double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+	      double minPhiBorder = 0.;
+	      double maxPhiBorder = 0.;
+	      if (isPositiveCablingSide) {
+		minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
+	        maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+	      }
+	      else {
+		minPhiBorder = fabs( femod((M_PI - b.second->maxPhi() - phiRegionStart), phiRegionWidth) );
+	        maxPhiBorder = fabs( femod((M_PI - b.second->minPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+	      }
 
 
 	      if (bundles.count(previousBundleId) != 0 && bundles.count(nextBundleId) != 0) {
 		// Cannot assign the extra module : both neighbouring phi regions are full !
 		if (bundles[previousBundleId]->numModules() >= 12 && bundles[nextBundleId]->numModules() >= 12) {
-		  std::cout << "I am a refugee module from disk " << diskNumber << ", type " << type 
+		  std::cout << "I am a refugee module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 			    << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
 			    << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
 			    << std::endl;
 		  break;
 		}
 
-		// Assign the module with the biggest phi to the next phi region
+		// Assign a module to the next phi region
 		else if (bundles[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
+		  std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 			    << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 			    << ", adding it to the next region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
 		  std::cout << "bundles[nextBundleId]->numModules = " << bundles[nextBundleId]->numModules() << std::endl;
-		  Module* maxPhiMod = b.second->maxPhiModule();
-		  maxPhiMod->setBundle(bundles[nextBundleId]);  
-		  bundles[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		  if (isPositiveCablingSide) {
+		    Module* maxPhiMod = b.second->maxPhiModule();
+		    maxPhiMod->setBundle(bundles[nextBundleId]);  
+		    bundles[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		  }
+		  else {
+		    Module* minPhiModNeg = b.second->minPhiModule();
+		    minPhiModNeg->setBundle(bundles[nextBundleId]);  
+		    bundles[nextBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		  }
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 		}
 
-		// Assign the module with the lowest phi to the previous phi region
+		// Assign a module to the previous phi region
 		else if (bundles[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
-		  std::cout << "Removing module in disk " << diskNumber << ", type " << type 
+		  std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 			    << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 			    << ", adding it to the previous region." 
 			    << std::endl;
 		  std::cout << "my region numModules = " << b.second->numModules() << std::endl;
 		  std::cout << "bundles[previousBundleId]->numModules = " << bundles[previousBundleId]->numModules() << std::endl;
-		  Module* minPhiMod = b.second->minPhiModule();
-		  minPhiMod->setBundle(bundles[previousBundleId]);	  
-		  bundles[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		  if (isPositiveCablingSide) {
+		    Module* minPhiMod = b.second->minPhiModule();
+		    minPhiMod->setBundle(bundles[previousBundleId]);	  
+		    bundles[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		  } else {
+		    Module* maxPhiModNeg = b.second->maxPhiModule();
+		    maxPhiModNeg->setBundle(bundles[previousBundleId]);	  
+		    bundles[previousBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		  }
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 		}
 	      }
