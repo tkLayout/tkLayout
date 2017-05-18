@@ -755,13 +755,22 @@ void Tracker::buildCabling() {
 
 	      double minPhiBorder = 0.;
 	      double maxPhiBorder = 0.;
+	      std::cout << "phiRegionStart = " << phiRegionStart << "phiRegionWidth = " << phiRegionWidth << std::endl;
 	      if (isPositiveCablingSide) {
 		minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
 	        maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+		std::cout << "b.second->minPhi() = " << b.second->minPhi() << std::endl;
+		std::cout << "b.second->maxPhi() = " << b.second->maxPhi() << std::endl;
 	      }
 	      else {
-		minPhiBorder = fabs( femod((M_PI - b.second->maxPhi() - phiRegionStart), phiRegionWidth) );
-	        maxPhiBorder = fabs( femod((M_PI - b.second->minPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+		minPhiBorder = fabs( femod((b.second->minPhiNeg() - phiRegionStart), phiRegionWidth) );
+	        maxPhiBorder = fabs( femod((b.second->maxPhiNeg() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+		std::cout << "b.second->minPhiNeg() = " << b.second->minPhiNeg() << std::endl;
+		std::cout << "b.second->maxPhiNeg() = " << b.second->maxPhiNeg() << std::endl;
+		std::cout << "M_PI - b.second->minPhi() = " << (M_PI - b.second->minPhiNeg()) << std::endl;
+		std::cout << "M_PI - b.second->minPhi() - phiRegionStart = " << (M_PI - b.second->minPhiNeg() - phiRegionStart) << std::endl;
+		std::cout << "M_PI - b.second->maxPhi() = " << (M_PI - b.second->maxPhiNeg()) << std::endl;
+		std::cout << "M_PI - b.second->maxPhi() - phiRegionStart = " << (M_PI - b.second->maxPhiNeg() - phiRegionStart) << std::endl;
 	      }
 
 
@@ -789,9 +798,9 @@ void Tracker::buildCabling() {
 		    bundles[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
 		  }
 		  else {
-		    Module* minPhiModNeg = b.second->minPhiModule();
-		    minPhiModNeg->setBundle(bundles[nextBundleId]);  
-		    bundles[nextBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+		    Module* maxPhiNegMod = b.second->maxPhiNegModule();
+		    maxPhiNegMod->setBundle(bundles[nextBundleId]);  
+		    bundles[nextBundleId]->moveMaxPhiNegModuleFromOtherBundle(b.second);
 		  }
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 		}
@@ -809,9 +818,9 @@ void Tracker::buildCabling() {
 		    minPhiMod->setBundle(bundles[previousBundleId]);	  
 		    bundles[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
 		  } else {
-		    Module* maxPhiModNeg = b.second->maxPhiModule();
-		    maxPhiModNeg->setBundle(bundles[previousBundleId]);	  
-		    bundles[previousBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+		    Module* minPhiNegMod = b.second->minPhiNegModule();
+		    minPhiNegMod->setBundle(bundles[previousBundleId]);	  
+		    bundles[previousBundleId]->moveMinPhiNegModuleFromOtherBundle(b.second);
 		  }
 		  std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 		}

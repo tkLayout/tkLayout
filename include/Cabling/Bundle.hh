@@ -102,13 +102,16 @@ public:
 
   
   const Container& modules() const { return modules_; }
+  Container& modules() { return modules_; }
+  int numModules() const { return modules_.size(); }
+
   void addModule(Module* m) { modules_.push_back(m); }
   /*void removeModule(Module* m) {
     int detId = m->myDetId();
     modules_.erase_if([detId](Module& m) { return (m.myDetId() == detId); });
     }*/
 
-  Container& modules() { return modules_; }
+  
 
   void moveMaxPhiModuleFromOtherBundle(Bundle* otherBundle) {
     Container& otherBundleModules = otherBundle->modules();
@@ -132,12 +135,6 @@ public:
 		      otherBundleModules);
   }
 
-
-
-
-
-  int numModules() const { return modules_.size(); }
-
   const double minPhi() const { 
     double min = std::numeric_limits<double>::max();
     for (const auto& m : modules_) { min = MIN(min, femod(m.center().Phi(), 2. * M_PI) ); } return min;
@@ -159,6 +156,58 @@ public:
   Module* maxPhiModule() const {
     const Module* mod = &(*std::max_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
 	  return (femod(a.center().Phi(), 2. * M_PI) <= femod(b.center().Phi(), 2. * M_PI));
+	}));
+    Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
+    return mod2;
+  }
+
+
+
+
+
+void moveMaxPhiNegModuleFromOtherBundle(Bundle* otherBundle) {
+    Container& otherBundleModules = otherBundle->modules();
+    auto maxPhiNegModuleIt = std::max_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
+	return (femod(M_PI - a.center().Phi(), 2. * M_PI) <= femod(M_PI - b.center().Phi(), 2. * M_PI));
+      });
+
+    modules_.transfer(modules_.end(), 
+		      maxPhiNegModuleIt,
+		      otherBundleModules);
+  }
+
+  void moveMinPhiNegModuleFromOtherBundle(Bundle* otherBundle) {
+    Container& otherBundleModules = otherBundle->modules();
+    auto minPhiNegModuleIt = std::min_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
+	return (femod(M_PI - a.center().Phi(), 2. * M_PI) <= femod(M_PI - b.center().Phi(), 2. * M_PI));
+      });
+
+    modules_.transfer(modules_.end(), 
+		      minPhiNegModuleIt,
+		      otherBundleModules);
+  }
+
+  const double minPhiNeg() const { 
+    double min = std::numeric_limits<double>::max();
+    for (const auto& m : modules_) { min = MIN(min, femod(M_PI - m.center().Phi(), 2. * M_PI) ); } return min;
+  }
+
+  const double maxPhiNeg() const { 
+    double max = 0.;
+    for (const auto& m : modules_) { max = MAX(max, femod(M_PI - m.center().Phi(), 2. * M_PI) ); } return max;
+  }
+
+  Module* minPhiNegModule() const {
+    const Module* mod = &(*std::min_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
+	return (femod(M_PI - a.center().Phi(), 2. * M_PI) <= femod(M_PI - b.center().Phi(), 2. * M_PI));
+	}));
+    Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
+    return mod2;
+  }
+
+  Module* maxPhiNegModule() const {
+    const Module* mod = &(*std::max_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
+	  return (femod(M_PI - a.center().Phi(), 2. * M_PI) <= femod(M_PI - b.center().Phi(), 2. * M_PI));
 	}));
     Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
     return mod2;

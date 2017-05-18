@@ -6507,21 +6507,41 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					      Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYCanvasDisk->cd();
-	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	  xyDiskDrawer.addModules(lastDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	  // Spider lines
-	  for (int i = 0; i < numPhiSectors; i++) {
-	    TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
-	    line->SetLineWidth(2); 
-	    line->Draw("same");
-	  }
-	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	// Spider lines
+	for (int i = 0; i < numPhiSectors; i++) {
+	  TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+	  line->SetLineWidth(2); 
+	  line->Draw("same");
+	}
+	XYCanvasesDisk.push_back(XYCanvasDisk);
+
+
+
+	const Disk& firstDisk = anEndcap.disks().front();
+	TCanvas* XYCanvasNegDisk = new TCanvas(Form("NegXYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection, Negative side : Endcap %s, any Disk", anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	XYCanvasNegDisk->cd();
+	PlotDrawer<XYNeg, TypeBundleColor> xyNegDiskDrawer;
+	xyNegDiskDrawer.addModules(firstDisk);
+	xyNegDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasNegDisk);
+	xyNegDiskDrawer.drawModules<ContourStyle>(*XYCanvasNegDisk);
+	// Spider lines
+	for (int i = 0; i < numPhiSectors; i++) {
+	  TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+	  line->SetLineWidth(2); 
+	  line->Draw("same");
+	}
+	XYCanvasesDisk.push_back(XYCanvasNegDisk);
+
       }
     }
 
