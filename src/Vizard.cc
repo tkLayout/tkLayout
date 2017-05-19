@@ -6409,12 +6409,6 @@ namespace insur {
       xyEndcapDrawer.addModules(anEndcap);
       xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-      // Spider lines
-      for (int i = 0; i < numPhiSectors; i++) {
-	TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
-	line->SetLineWidth(2); 
-	line->Draw("same");
-      }
       XYCanvasesEC.push_back(XYCanvasEC);
     }
 
