@@ -6522,26 +6522,6 @@ namespace insur {
 	  line->Draw("same");
 	}
 	XYCanvasesDisk.push_back(XYCanvasDisk);
-
-
-
-	/*const Disk& firstDisk = anEndcap.disks().front();
-	TCanvas* XYCanvasNegDisk = new TCanvas(Form("NegXYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					    Form("(XY) Projection, Negative side : Endcap %s, any Disk", anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	XYCanvasNegDisk->cd();
-	PlotDrawer<XYNeg, TypeBundleColor> xyNegDiskDrawer;
-	xyNegDiskDrawer.addModules(firstDisk);
-	xyNegDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasNegDisk);
-	xyNegDiskDrawer.drawModules<ContourStyle>(*XYCanvasNegDisk);
-	// Spider lines
-	for (int i = 0; i < numPhiSectors; i++) {
-	  TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
-	  line->SetLineWidth(2); 
-	  line->Draw("same");
-	}
-	XYCanvasesDisk.push_back(XYCanvasNegDisk);*/
-
       }
     }
 
