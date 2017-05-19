@@ -6393,23 +6393,12 @@ namespace insur {
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
-    // Draw spider net to delimit the Phi Sectors
-    double phiSectorWidth = 40. * M_PI / 180.;
-    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
-    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
-
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    // Spider lines
-    for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
-      line->SetLineWidth(2); 
-      line->Draw("same");
-    }
 
     for (auto& anEndcap : tracker.endcaps() ) {
       TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
