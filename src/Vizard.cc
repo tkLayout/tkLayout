@@ -6525,7 +6525,7 @@ namespace insur {
 
 
 
-	const Disk& firstDisk = anEndcap.disks().front();
+	/*const Disk& firstDisk = anEndcap.disks().front();
 	TCanvas* XYCanvasNegDisk = new TCanvas(Form("NegXYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					    Form("(XY) Projection, Negative side : Endcap %s, any Disk", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6540,7 +6540,7 @@ namespace insur {
 	  line->SetLineWidth(2); 
 	  line->Draw("same");
 	}
-	XYCanvasesDisk.push_back(XYCanvasNegDisk);
+	XYCanvasesDisk.push_back(XYCanvasNegDisk);*/
 
       }
     }
