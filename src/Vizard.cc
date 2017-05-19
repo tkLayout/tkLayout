@@ -1269,22 +1269,22 @@ namespace insur {
       }
       if (XYDTCNegCanvas) {
 	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCNegFlatCanvas) {
 	myImage = new RootWImage(XYDTCNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, untilted modules, Negative cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCCanvas) {
 	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCFlatCanvas) {
 	myImage = new RootWImage(XYDTCFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, untilted modules, Positive cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
