@@ -84,7 +84,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //Property<int, Default> bigParity;
   Property<double, NoDefault> phiOverlap;
   Property<int, NoDefault> phiSegments;
-  Property<float, NoDefault> phiForbiddenLength;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
   PropertyNodeUnique<std::string> stationsNode;
@@ -168,6 +167,7 @@ public:
 
   void check() override;
   void build();
+  void removePhiForbiddenRods();
 
   const Container& rods() const { return rods_; }
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }

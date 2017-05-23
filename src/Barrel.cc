@@ -34,6 +34,7 @@ void Barrel::build() {
       layer->build();
       layer->rotateZ(barrelRotation());
       layer->rotateZ(layer->layerRotation());
+      layer->removePhiForbiddenRods();
       layers_.push_back(layer);
     }
 
