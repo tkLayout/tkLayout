@@ -204,3 +204,4 @@ OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                         xy plane is exactly the same
 
 
+OT613_200_IT4125.cfg	Like above, but with 50x50 pixels instead of 25x100
