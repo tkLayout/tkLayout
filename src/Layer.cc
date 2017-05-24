@@ -149,9 +149,9 @@ void Layer::check() {
   if (!isTilted()) {
     if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
     if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
-    if (!phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
-    if (!phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
-    if (numRods.state()) throw PathfulException("Flat layer : numRods should not be specified.");
+    if (numRods.state() && (phiOverlap.state() || phiSegments.state())) throw PathfulException("Flat layer : Only one between numRods  and (phiOverlap + phiSegments) can be specified.");
+    if (!numRods.state() && !phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
+    if (!numRods.state() && !phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
   }
 
@@ -305,9 +305,14 @@ void Layer::buildStraight(bool isFlatPart) {
   RodTemplate rodTemplate = makeRodTemplate();
 
   if (!isFlatPart) {
-    std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
-    placeRadius_ = optimalLayerParms.first; 
-    numRods(optimalLayerParms.second);
+    if (!numRods.state()) {
+      std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
+      placeRadius_ = optimalLayerParms.first; 
+      numRods(optimalLayerParms.second);
+    }
+    else {
+      placeRadius_ = placeRadiusHint();
+    }
   }
   else {
     placeRadius_ = placeRadiusHint();
