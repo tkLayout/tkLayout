@@ -263,6 +263,7 @@ namespace insur {
     static const std::string xml_places_unflipped_mod_in_rod = "RODTOMODULE";
     static const std::string xml_places_flipped_mod_in_rod = "RODTOFLIPPEDMODULE";
     static const std::string xml_flip_mod_rot = "FLIP"; 
+    static const std::string xml_tilted_mod_rot = "tiltModuleRot"; 
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
