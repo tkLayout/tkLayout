@@ -22,7 +22,7 @@ SimParms {
     numTriggerTowersEta 6
     numTriggerTowersPhi 8
 
-    irradiationMapFiles 1MeVneq_CMSphase2_pp_7TeV_v3.7.0.0_FLUKA.map,1MeVneq_CMSphase2_pp_7TeV_v3.7.0.0_FLUKA_pixel.map
+    irradiationMapFiles 1MeVneq_CMS_HGC_pp_7TeV_v3.7.2.0_FLUKA.map,1MeVneq_CMS_HGC_pp_7TeV_v3.7.2.0_FLUKA_pixel.map
 
     Gabie IsAHero           // inside joke. forget about it
 }
