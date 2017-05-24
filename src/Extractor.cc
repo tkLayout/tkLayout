@@ -937,9 +937,9 @@ namespace insur {
 
 		double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
 
-		for (int i = 0; i < numCrystalsX; i++) {
-		  for (int j = 0; j < numCrystalsY; j++) {
-
+		for (int j = 0; j < numCrystalsY; j++) {
+		  for (int i = 0; i < numCrystalsX; i++) {
+		  
 		    std::ostringstream crystalIndex;
 		    crystalIndex << (j * numCrystalsX + i);
 
