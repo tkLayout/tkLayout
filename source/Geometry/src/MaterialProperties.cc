@@ -20,7 +20,6 @@ const RILength RILength::operator+(const RILength &other) const {
 
 
 
-namespace insur {
     /*-----public functions-----*/
     /**
      * The constructor sets a few defaults. The flags for the initialisation status of the material vectors are
@@ -501,4 +500,4 @@ namespace insur {
     }
 
 define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
-}
+

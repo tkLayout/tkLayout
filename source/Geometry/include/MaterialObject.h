@@ -12,13 +12,7 @@
 //#include "Materialway.h"
 
 class DetectorModule;
-
-namespace insur {
-  class MaterialProperties;
-}
-
-using insur::MaterialProperties;
-
+class MaterialProperties;
 class MaterialTab;
 
 namespace material {

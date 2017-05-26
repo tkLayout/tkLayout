@@ -74,7 +74,7 @@ bool AnalyzerOccupancy::analyze()
 
   // Make & fill all flux histograms
   fillHistogram(m_chargedMap,   m_hisChargedFlux,   "ChargedFluxPerPP",   "Flux of charged particles [cm^{-2}] per pp collision");
-  fillHistogram(m_photonsMap,   m_hisPhotonsFlux,   "PhotonsFluxPerPP",   "Flux of photons [cm^{-2}] per pp collision");
+  //fillHistogram(m_photonsMap,   m_hisPhotonsFlux,   "PhotonsFluxPerPP",   "Flux of photons [cm^{-2}] per pp collision");
 
   m_isAnalysisOK = true;
   return m_isAnalysisOK;
@@ -118,21 +118,21 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageYZBField.setComment("YZ view of B field [T] (X=0)");
   }
 
-  // Draw plots - photons
-  RootWContent& plotsPhotonsContent = myPage.addContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
-
-  TCanvas canvasPhotons;
-
-  if (drawHistogram(canvasPhotons, m_hisPhotonsFlux, m_photonsMap, "PhotonsCanvas", "RZ view of photons flux")) {
-    canvasPhotons.SetLogz();
-    m_hisPhotonsFlux->SetMinimum(c_fluxMin);
-    m_hisPhotonsFlux->SetMaximum(c_fluxMax);
-    RootWImage& anImagePhotons = plotsPhotonsContent.addImage(canvasPhotons);
-    anImagePhotons.setComment("RZ view of photons flux [cm^-2] in a tracker");
-  }
+//  // Draw plots - photons
+//  RootWContent& plotsPhotonsContent = myPage.addContent("Fluka simulation - photons fluxes per pp collision -> adding individual effects:", false);
+//
+//  TCanvas canvasPhotons;
+//
+//  if (drawHistogram(canvasPhotons, m_hisPhotonsFlux, m_photonsMap, "PhotonsCanvas", "RZ view of photons flux")) {
+//    canvasPhotons.SetLogz();
+//    m_hisPhotonsFlux->SetMinimum(c_fluxMin);
+//    m_hisPhotonsFlux->SetMaximum(c_fluxMax);
+//    RootWImage& anImagePhotons = plotsPhotonsContent.addImage(canvasPhotons);
+//    anImagePhotons.setComment("RZ view of photons flux [cm^-2] in a tracker");
+//  }
 
   // Draw plots - charged
-  RootWContent& plotsChargedContent = myPage.addContent("Fluka simulation - charged particles fluxes per pp collision -> adding individual effects:", false);
+  RootWContent& plotsChargedContent = myPage.addContent("Fluka simulation - charged particles fluxes per pp collision:", true);
 
   TCanvas canvasCharged;
 
@@ -325,11 +325,12 @@ void OccupancyVisitor::visit(const Layer& layer) {
    m_layerNRods.push_back(layer.numRods());
    m_layerNModules.push_back(0);
    std::vector<int> vecAddrSpar, vecAddrUnspar, vecNPixels;
-   std::vector<double> vecPixelArea;
+   std::vector<double> vecPixelArea, vecSenArea;
    m_layerSenAddrSparSize.push_back(vecAddrSpar);
    m_layerSenAddrUnsparSize.push_back(vecAddrUnspar);
    m_layerSenNPixels.push_back(vecNPixels);
    m_layerSenPixelArea.push_back(vecPixelArea);
+   m_layerSenArea.push_back(vecSenArea);
    m_layerNSensorsInMod.push_back(0);
 
    m_nLayers++;
@@ -345,6 +346,8 @@ void OccupancyVisitor::visit(const Layer& layer) {
    double rPos     = (module.planarMaxR()+module.planarMinR())/2.;
    long   nHits    = module.area() * m_chargedMap->calculateIrradiationZR(zPos, rPos)/Units::mm2 * m_maxPileUp;
    // long   nHits    = module.area() * m_chargedMap->calculateIrradiationRZ(rPos, zPos)/Units::mm2 * m_maxPileUp;
+
+   if (m_layerSenArea[iLayer].size()==0) m_layerSenArea[iLayer].push_back(module.area());
 
    short iSensor = 0;
    for (const auto& s : module.sensors()) {
@@ -456,6 +459,7 @@ void OccupancyVisitor::visit(const Disk& disk) {
     m_ringSenAddrUnsparSize.resize(disk.numRings());
     m_ringSenNPixels.resize(disk.numRings());
     m_ringSenPixelArea.resize(disk.numRings());
+    m_ringSenArea.resize(disk.numRings());
 
     // Initialize min & max flux values
     for (int i=m_nRings; i<disk.numRings(); i++) {
@@ -513,6 +517,8 @@ void OccupancyVisitor::visit(const EndcapModule& module) {
   double rPos     = (module.planarMaxR()+module.planarMinR())/2.;
   long   nHits    = module.area() * m_chargedMap->calculateIrradiationZR(zPos, rPos)/Units::mm2 * m_maxPileUp;
   //  long   nHits    = module.area() * m_chargedMap->calculateIrradiationRZ(rPos, zPos)/Units::mm2 * m_maxPileUp;
+
+  if (m_ringSenArea[m_iRing].size()==0) m_ringSenArea[m_iRing].push_back(module.area());
 
   short iSensor = 0;
   for (const auto& s : module.sensors()) {
@@ -643,6 +649,7 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getLayerTable(signed int nPileUps,
     double dataRateUnTriggerSpar = 0;
     double moduleOccupancy       = 0;
     double pixelArea             = 0;
+    double moduleArea            = m_layerSenArea[iLayer][0];
 
     for (int iSensor=0; iSensor<numSensors; iSensor++) {
       hitRate[iSensor]           = m_layerNHits[iLayer][iSensor];
@@ -655,8 +662,7 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getLayerTable(signed int nPileUps,
       totAddrSparSize   += senAddrSparSize[iSensor];
       totAddrUnsparSize += senAddrUnsparSize[iSensor];
 
-      double occupancy = hitRate[iSensor]/m_layerSenNPixels[iLayer][iSensor]/m_layerNModules[iLayer];
-      if (occupancy>moduleOccupancy) moduleOccupancy = occupancy;
+      moduleOccupancy = channelRate[iSensor]/m_layerSenNPixels[iLayer][iSensor]/m_layerNModules[iLayer];
 
       pixelArea = m_layerSenPixelArea[iLayer][iSensor];
 
@@ -678,22 +684,24 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getLayerTable(signed int nPileUps,
     layerTable->setContent(3, 0, "Max flux in Z [particles/cm^2]             : ");
     layerTable->setContent(4, 0, "Z position [mm] related to max flux        : ");
     layerTable->setContent(5, 0, "Max cell area (1% occupancy) [mm^2]        : ");
-    layerTable->setContent(6, 0, "Module avg occupancy (max[sen1,sen2])[%]   : ");
-//    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
-//      layerTable->setContent(6 , 0, "#Hits per BX (bunch crossing)             : ");
-//      layerTable->setContent(7 , 0, "#Hit-channels per BX                      : ");
-//      layerTable->setContent(8 , 0, "#Hit-channels per module per BX           : ");
-//      layerTable->setContent(9 , 0, "Module avg occupancy (max[sen1,sen2])[%]  : ");
-//      layerTable->setContent(10, 0, "Module bandwidth/(addr+clsWidth=2b[b]     : ");
-//      layerTable->setContent(11, 0, "Mod. bandwidth(#chnls*(addr+clsWidth)[kb] : ");
-//      layerTable->setContent(12, 0, "Mod. bandwidth (matrix*1b/channel) [kb]   : ");
-//      layerTable->setContent(13, 0, "Data rate per layer - 40MHz,spars [Tb/s]  : ");
-//      layerTable->setContent(14, 0, "Data rate per layer -  1MHz,spars [Tb/s]  : ");
-//      layerTable->setContent(15, 0, "Data rate per ladder - 40Mhz,spars [Gb/s] : ");
-//      layerTable->setContent(16, 0, "Data rate per ladder -  1Mhz,spars [Gb/s] : ");
-//      layerTable->setContent(17, 0, "<b>Data rate per module - 40Mhz,spars [Gb/s]</b>: ");
-//      layerTable->setContent(18, 0, "<b>Data rate per module -  1Mhz,spars [Gb/s]</b>: ");
-//    }
+    layerTable->setContent(6, 0, "Module max occupancy (max[sen1,sen2])[%]   : ");
+    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
+      layerTable->setContent(7 , 0, "#Hits per BX (bunch crossing)             : ");
+      layerTable->setContent(8 , 0, "#Hit-channels per BX                      : ");
+      layerTable->setContent(9 , 0, "#Hit-channels per module per BX           : ");
+      layerTable->setContent(10, 0, "Module avg occupancy (max[sen1,sen2])[%]  : ");
+      layerTable->setContent(11, 0, "Module bandwidth/(addr+clsWidth=2b[b]     : ");
+      layerTable->setContent(12, 0, "Mod. bandwidth(#chnls*(addr+clsWidth)[kb] : ");
+      layerTable->setContent(13, 0, "Mod. bandwidth (matrix*1b/channel) [kb]   : ");
+      layerTable->setContent(14, 0, "Data rate per layer - 40MHz,spars [Tb/s]  : ");
+      layerTable->setContent(15, 0, "Data rate per layer -  1MHz,spars [Tb/s]  : ");
+      layerTable->setContent(16, 0, "Data rate per ladder - 40Mhz,spars [Gb/s] : ");
+      layerTable->setContent(17, 0, "Data rate per ladder -  1Mhz,spars [Gb/s] : ");
+      layerTable->setContent(18, 0, "Data rate per module - 40Mhz,spars [Gb/s] : ");
+      layerTable->setContent(19, 0, "Data rate per module -  1Mhz,spars [Gb/s] : ");
+      layerTable->setContent(20, 0, "<b>Data rate per cm^2 - 40Mhz,spars [Gb/s/cm^2]</b>: ");
+      layerTable->setContent(21, 0, "<b>Data rate per cm^2 -  1Mhz,spars [Gb/s/cm^2]</b>: ");
+    }
 
     layerTable->setContent(0, iLayer+1, iLayer+1);
     layerTable->setContent(1, iLayer+1, m_layerRadii[iLayer]/Units::mm   , c_coordPrecision);
@@ -702,27 +710,29 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getLayerTable(signed int nPileUps,
     layerTable->setContent(4, iLayer+1, m_layerMaxFluxZ[iLayer]/Units::mm, c_coordPrecision);
     layerTable->setContent(5, iLayer+1, maxCellArea/Units::mm2           , precisionArea);
     layerTable->setContent(6, iLayer+1, maxFlux*pixelArea*100            , precisionOccupancy);
-//    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
-//      layerTable->setContent(6 , iLayer+1, totHitRate                          );
-//      layerTable->setContent(7 , iLayer+1, totChannelRate                      );
-//      layerTable->setContent(8 , iLayer+1, totChannelRate/m_layerNModules[iLayer]);
-//      layerTable->setContent(9 , iLayer+1, maxFlux*pixelArea*100, precisionOccupancy); //moduleOccupancy*100           , precisionOccupancy);
-//      layerTable->setContent(10, iLayer+1, totAddrSparSize/Units::b);
-//      layerTable->setContent(11, iLayer+1, dataRateCollisionSpar/m_layerNModules[iLayer]/Units::kb, 2*c_coordPrecision);
-//      layerTable->setContent(12, iLayer+1, totAddrUnsparSize/Units::kb                            , 2*c_coordPrecision);
-//      layerTable->setContent(13, iLayer+1, dataRateUnTriggerSpar/(Units::Tb/Units::s));
-//      layerTable->setContent(14, iLayer+1, dataRateTriggerSpar/(Units::Tb/Units::s));
-//      layerTable->setContent(15, iLayer+1, dataRateUnTriggerSpar/m_layerNRods[iLayer]/(Units::Gb/Units::s));
-//      layerTable->setContent(16, iLayer+1, dataRateTriggerSpar/m_layerNRods[iLayer]/(Units::Gb/Units::s));
-//      layerTable->setContent(17, iLayer+1, dataRateUnTriggerSpar/m_layerNModules[iLayer]/(Units::Gb/Units::s), 2*c_coordPrecision);
-//      layerTable->setContent(18, iLayer+1, dataRateTriggerSpar/m_layerNModules[iLayer]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
-//    }
+    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
+      layerTable->setContent(7 , iLayer+1, totHitRate                          );
+      layerTable->setContent(8 , iLayer+1, totChannelRate                      );
+      layerTable->setContent(9 , iLayer+1, totChannelRate/m_layerNModules[iLayer]);
+      layerTable->setContent(10, iLayer+1, moduleOccupancy*100, precisionOccupancy); // maxFlux*pixelArea*100, precisionOccupancy);
+      layerTable->setContent(11, iLayer+1, totAddrSparSize/Units::b);
+      layerTable->setContent(12, iLayer+1, dataRateCollisionSpar/m_layerNModules[iLayer]/Units::kb, 2*c_coordPrecision);
+      layerTable->setContent(13, iLayer+1, totAddrUnsparSize/Units::kb                            , 2*c_coordPrecision);
+      layerTable->setContent(14, iLayer+1, dataRateUnTriggerSpar/(Units::Tb/Units::s), c_coordPrecision);
+      layerTable->setContent(15, iLayer+1, dataRateTriggerSpar/(Units::Tb/Units::s)  , c_coordPrecision);
+      layerTable->setContent(16, iLayer+1, dataRateUnTriggerSpar/m_layerNRods[iLayer]/(Units::Gb/Units::s), c_coordPrecision);
+      layerTable->setContent(17, iLayer+1, dataRateTriggerSpar/m_layerNRods[iLayer]/(Units::Gb/Units::s)  , c_coordPrecision);
+      layerTable->setContent(18, iLayer+1, dataRateUnTriggerSpar/m_layerNModules[iLayer]/(Units::Gb/Units::s), 2*c_coordPrecision);
+      layerTable->setContent(19, iLayer+1, dataRateTriggerSpar/m_layerNModules[iLayer]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
+      layerTable->setContent(20, iLayer+1, dataRateUnTriggerSpar/m_layerNModules[iLayer]/moduleArea/(Units::Gb/(Units::s*Units::cm2)), 2*c_coordPrecision);
+      layerTable->setContent(21, iLayer+1, dataRateTriggerSpar/m_layerNModules[iLayer]/moduleArea/(Units::Gb/(Units::s*Units::cm2))  , 2*c_coordPrecision);
+    }
   }
-//  if (m_nLayers>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
-//    layerTable->setContent(0 , m_nLayers+1, "Total [TB/s]");
-//    layerTable->setContent(13, m_nLayers+1, totDataRateUnTriggerSpar/(Units::TB/Units::s));
-//    layerTable->setContent(14, m_nLayers+1, totDataRateTriggerSpar/(Units::TB/Units::s));
-//  }
+  if (m_nLayers>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
+    layerTable->setContent(0 , m_nLayers+1, "Total [TB/s]");
+    layerTable->setContent(14, m_nLayers+1, totDataRateUnTriggerSpar/(Units::TB/Units::s), c_coordPrecision);
+    layerTable->setContent(15, m_nLayers+1, totDataRateTriggerSpar/(Units::TB/Units::s)  , c_coordPrecision);
+  }
 
   return std::move(layerTable);
 }
@@ -780,6 +790,7 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getRingTable(signed int nPileUps, 
     double dataRateUnTriggerSpar = 0;
     double moduleOccupancy       = 0;
     double pixelArea             = 0;
+    double moduleArea            = m_ringSenArea[iRing][0];
 
     for (int iSensor=0; iSensor<numSensors; iSensor++) {
       hitRate[iSensor]           = m_ringNHits[iRing][iSensor];
@@ -792,8 +803,7 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getRingTable(signed int nPileUps, 
       totAddrSparSize   += senAddrSparSize[iSensor];
       totAddrUnsparSize += senAddrUnsparSize[iSensor];
 
-      double occupancy = hitRate[iSensor]/m_ringNModules[iRing]/m_ringSenNPixels[iRing][iSensor];
-      if (occupancy>moduleOccupancy) moduleOccupancy = occupancy;
+      moduleOccupancy = channelRate[iSensor]/m_ringSenNPixels[iRing][iSensor]/m_ringNModules[iRing];
 
       pixelArea = m_ringSenPixelArea[iRing][iSensor];
 
@@ -815,22 +825,24 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getRingTable(signed int nPileUps, 
     ringTable->setContent(3, 0, "Max flux in R [particles/cm^2]          : ");
     ringTable->setContent(4, 0, "Z position [mm] related to max flux     : ");
     ringTable->setContent(5, 0, "Max cell area (1% occupancy) [mm^2]     : ");
-    ringTable->setContent(6, 0, "Module avg occupancy (max[sen1,sen2])[%]: ");
-//    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
-//      ringTable->setContent(6 , 0, "#Hits per BX (bunch crossing)             : ");
-//      ringTable->setContent(7 , 0, "#Hit-channels per BX                      : ");
-//      ringTable->setContent(8 , 0, "#Hit-channels per module per BX           : ");
-//      ringTable->setContent(9 , 0, "Module avg occupancy (max[sen1,sen2]) [%] : ");
-//      ringTable->setContent(10, 0, "Module bandwidth/(addr+clsWidth=2b[b]     : ");
-//      ringTable->setContent(11, 0, "Mod. bandwidth(#chnls*(addr+clsWidth)[kb] : ");
-//      ringTable->setContent(12, 0, "Mod. bandwidth (matrix*1b/channel) [kb]   : ");
-//      ringTable->setContent(13, 0, "Data rate per ringLayer-40MHz,spars [Tb/s]: ");
-//      ringTable->setContent(14, 0, "Data rate per ringLayer- 1MHz,spars [Tb/s]: ");
-//      ringTable->setContent(15, 0, "Data rate per ring - 40Mhz,spars [Gb/s]   : ");
-//      ringTable->setContent(16, 0, "Data rate per ring -  1Mhz,spars [Gb/s]   : ");
-//      ringTable->setContent(17, 0, "<b>Data rate per module - 40Mhz,spars [Gb/s]</b>: ");
-//      ringTable->setContent(18, 0, "<b>Data rate per module -  1Mhz,spars [Gb/s]</b>: ");
-//    }
+    ringTable->setContent(6, 0, "Module max occupancy (max[sen1,sen2])[%]: ");
+    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
+      ringTable->setContent(7 , 0, "#Hits per BX (bunch crossing)             : ");
+      ringTable->setContent(8 , 0, "#Hit-channels per BX                      : ");
+      ringTable->setContent(9 , 0, "#Hit-channels per module per BX           : ");
+      ringTable->setContent(10, 0, "Module avg occupancy (max[sen1,sen2]) [%] : ");
+      ringTable->setContent(11, 0, "Module bandwidth/(addr+clsWidth=2b[b]     : ");
+      ringTable->setContent(12, 0, "Mod. bandwidth(#chnls*(addr+clsWidth)[kb] : ");
+      ringTable->setContent(13, 0, "Mod. bandwidth (matrix*1b/channel) [kb]   : ");
+      ringTable->setContent(14, 0, "Data rate per ringLayer-40MHz,spars [Tb/s]: ");
+      ringTable->setContent(15, 0, "Data rate per ringLayer- 1MHz,spars [Tb/s]: ");
+      ringTable->setContent(16, 0, "Data rate per ring - 40Mhz,spars [Gb/s]   : ");
+      ringTable->setContent(17, 0, "Data rate per ring -  1Mhz,spars [Gb/s]   : ");
+      ringTable->setContent(18, 0, "Data rate per module - 40Mhz,spars [Gb/s]: ");
+      ringTable->setContent(19, 0, "Data rate per module -  1Mhz,spars [Gb/s]: ");
+      ringTable->setContent(20, 0, "<b>Data rate per cm^2 - 40Mhz,spars [Gb/s/cm^2]</b>: ");
+      ringTable->setContent(21, 0, "<b>Data rate per cm^2 -  1Mhz,spars [Gb/s/cm^2]</b>: ");
+    }
 
     ringTable->setContent(0, iRing+1, iRing+1);
     ringTable->setContent(1, iRing+1, m_ringAvgRadii[iRing]/Units::mm , c_coordPrecision);
@@ -840,26 +852,28 @@ std::unique_ptr<RootWTable> OccupancyVisitor::getRingTable(signed int nPileUps, 
     ringTable->setContent(5, iRing+1, maxCellArea/Units::mm2          , precisionArea);
     ringTable->setContent(6, iRing+1, maxFlux*pixelArea*100           , precisionOccupancy);
 
-//    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
-//      ringTable->setContent(6 , iRing+1, totHitRate*2                        ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//      ringTable->setContent(7 , iRing+1, totChannelRate*2                    ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//      ringTable->setContent(8 , iRing+1, totChannelRate/m_ringNModules[iRing]);
-//      ringTable->setContent(9 , iRing+1, maxFlux*pixelArea*100, precisionOccupancy); //moduleOccupancy*100           , precisionOccupancy);
-//      ringTable->setContent(10, iRing+1, totAddrSparSize/Units::b);
-//      ringTable->setContent(11, iRing+1, dataRateCollisionSpar/m_ringNModules[iRing]/Units::kb, 2*c_coordPrecision);
-//      ringTable->setContent(12, iRing+1, totAddrUnsparSize/Units::kb                          , 2*c_coordPrecision);
-//      ringTable->setContent(13, iRing+1, dataRateUnTriggerSpar/(Units::Tb/Units::s)*2); // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//      ringTable->setContent(14, iRing+1, dataRateTriggerSpar/(Units::Tb/Units::s)*2);   // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//      ringTable->setContent(15, iRing+1, dataRateUnTriggerSpar/m_nDisks/(Units::Gb/Units::s));
-//      ringTable->setContent(16, iRing+1, dataRateTriggerSpar/m_nDisks/(Units::Gb/Units::s));
-//      ringTable->setContent(17, iRing+1, dataRateUnTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s), 2*c_coordPrecision);
-//      ringTable->setContent(18, iRing+1, dataRateTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
-//    }
-//    if (m_nRings>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
-//      ringTable->setContent(0 , m_nRings+1, "Total [TB/s]");
-//      ringTable->setContent(13, m_nRings+1, totDataRateUnTriggerSpar/(Units::TB/Units::s)*2); // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//      ringTable->setContent(14, m_nRings+1, totDataRateTriggerSpar/(Units::TB/Units::s)*2);   // Factor 2 for positive + negative side (neg. side don't used in calculations)
-//    }
+    if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
+      ringTable->setContent(7 , iRing+1, totHitRate*2                        ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+      ringTable->setContent(8 , iRing+1, totChannelRate*2                    ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+      ringTable->setContent(9 , iRing+1, totChannelRate/m_ringNModules[iRing]);
+      ringTable->setContent(10, iRing+1, moduleOccupancy*100, precisionOccupancy); // maxFlux*pixelArea*100, precisionOccupancy);
+      ringTable->setContent(11, iRing+1, totAddrSparSize/Units::b);
+      ringTable->setContent(12, iRing+1, dataRateCollisionSpar/m_ringNModules[iRing]/Units::kb, 2*c_coordPrecision);
+      ringTable->setContent(13, iRing+1, totAddrUnsparSize/Units::kb                          , 2*c_coordPrecision);
+      ringTable->setContent(14, iRing+1, dataRateUnTriggerSpar/(Units::Tb/Units::s)*2, c_coordPrecision); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+      ringTable->setContent(15, iRing+1, dataRateTriggerSpar/(Units::Tb/Units::s)*2  , c_coordPrecision); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+      ringTable->setContent(16, iRing+1, dataRateUnTriggerSpar/m_nDisks/(Units::Gb/Units::s), c_coordPrecision);
+      ringTable->setContent(17, iRing+1, dataRateTriggerSpar/m_nDisks/(Units::Gb/Units::s)  , c_coordPrecision);
+      ringTable->setContent(18, iRing+1, dataRateUnTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s), 2*c_coordPrecision);
+      ringTable->setContent(19, iRing+1, dataRateTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
+      ringTable->setContent(20, iRing+1, dataRateUnTriggerSpar/m_ringNModules[iRing]/moduleArea/(Units::Gb/(Units::s*Units::cm2)), 2*c_coordPrecision);
+      ringTable->setContent(21, iRing+1, dataRateTriggerSpar/m_ringNModules[iRing]/moduleArea/(Units::Gb/(Units::s*Units::cm2))  , 2*c_coordPrecision);
+    }
+    if (m_nRings>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
+      ringTable->setContent(0 , m_nRings+1, "Total [TB/s]");
+      ringTable->setContent(14, m_nRings+1, totDataRateUnTriggerSpar/(Units::TB/Units::s)*2, c_coordPrecision); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+      ringTable->setContent(15, m_nRings+1, totDataRateTriggerSpar/(Units::TB/Units::s)*2  , c_coordPrecision); // Factor 2 for positive + negative side (neg. side don't used in calculations)
+    }
   }
   return ringTable;
 }

@@ -124,6 +124,7 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   double  startR       = maxR + tickDistance;
   double  startZ       = maxZ + tickDistance;
   double  endR         = maxR + tickLengthY + tickDistance;
+  double  endRsmall    = maxR + 0.5 * tickLengthY; // length for subticks
   double  endZ         = maxZ + tickLengthX + tickDistance;
   TLine*  aTick        = new TLine();
   
@@ -144,7 +145,7 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   std::vector<double> etaStepsFull;
 
   // Start with short eta step, continue with long eta step when drawing eta ticks 
-  for (eta=0; eta<=etaMaxSafe+etaStepShort; eta+=etaStepShort) {
+  for (eta=0; eta<=etaMaxSafe+2*etaStepShort; eta+=etaStepShort) {
  
     etaSteps.push_back(eta);
   }
@@ -179,6 +180,8 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
 
   for (auto it = etaStepsFull.begin(); it!=etaStepsFull.end(); ++it) {
     eta       =*it;
+    // draw ticks differently for certain values of eta, e.g. omit labels
+    bool l_drawSmallTicks = (std::abs(eta) < etaMaxSafe+2*etaStepShort)&&(std::abs(eta) - std::floor(std::abs(eta)) > 0.001);
     thetaSign = eta>=0 ? +1 : -1;
     theta     = 2 * atan(exp(-fabs(eta)));
     
@@ -186,6 +189,8 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
     aTick->SetLineWidth(1);
     if (theta>thetaLimit) {
       if (zPlsMin && eta==0) aTick->DrawLine(0, 0, endR / tan(theta)*thetaSign,  endR);
+      // draw subticks shorter
+      else if (l_drawSmallTicks) aTick->DrawLine(startR / tan(theta)*thetaSign, startR, endRsmall / tan(theta)*thetaSign,  endRsmall);
       else                   aTick->DrawLine(startR / tan(theta)*thetaSign, startR, endR / tan(theta)*thetaSign,  endR);
     } else {
       aTick->DrawLine(startZ, startZ * tan(theta), endZ, endZ * tan(theta));
@@ -205,6 +210,9 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
       labelSize  = 1.5*stdLabelSize;
       labelAlign = 23; 
       labelColor = kGreen;
+    }
+    else if (l_drawSmallTicks) { // don't draw labels for small eta subticks
+      labelSize  = 0;
     }
     else {
       labelSize  = stdLabelSize;

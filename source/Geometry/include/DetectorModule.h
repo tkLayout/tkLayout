@@ -3,10 +3,10 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "CoordinateOperations.h"
 #include "GeometricModule.h"
 #include "GeometryFactory.h"
 #include "MaterialObject.h"
+#include "MaterialProperties.h"
 #include "math_functions.h"
 #include "MessageLogger.h"
 #include "Property.h"
@@ -93,13 +93,13 @@ public:
   const ModuleCap& getModuleCap() const { return *m_moduleCap; }
 
   //! Geometric module interface -> return reference to a geometrical representation of a module
-  const Polygon3d<4>& basePoly() const { return m_moduleGeom->basePoly(); }
+  const Polygon3D<4>& basePoly() const { return m_moduleGeom->basePoly(); }
 
   //! Could track at this direction hit the module? (fast method)
   bool couldHit(const XYZVector& direction, double zError) const;
 
-  //! Check if track hit the module. If yes, return the intersection point of 2D plane & track as a hit  + its type (which module sensor(s) was/were hit)
-  std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const;
+  //! Check if track hit the module -> if yes, return true with passed material, hit position vector & hitType (which module sensor(s) was/were hit)
+  bool checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, HitType& hitType, XYZVector& hitPos) const;
 
   //! Calculate min & max module eta coverage taking into account error on beam Z position
   std::pair<double, double> minMaxEtaWithError(double zError) const;
@@ -132,6 +132,7 @@ public:
 
   double thickness()        const { return dsDistance() + sensorThickness(); }
   double thicknessAllMat()  const { double modThick = 0; for (auto& elem : m_materialObject.getLocalElements()) modThick += elem->quantity(); return modThick; }
+  double flatMaxZ()         const { return (center().Z() + length()/2.); }
   double length()           const { return m_moduleGeom->length(); }
   double maxWidth()         const { return m_moduleGeom->maxWidth(); }
   double minWidth()         const { return m_moduleGeom->minWidth(); }
@@ -172,9 +173,17 @@ public:
   void mirrorZ();
   void rotateX(double angle)              { m_moduleGeom->rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle)              { m_moduleGeom->rotateY(angle); clearSensorPolys(); }
-  void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = RotationZ(angle)(m_rAxis); }
+  void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = ROOT::Math::RotationZ(angle)(m_rAxis); }
   void tilt(double angle)                 { rotateX(-angle); m_moduleGeom->tiltAngle(angle); } // Atention: Tilt can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void skew(double angle)                 { rotateY(-angle); m_moduleGeom->skewAngle(angle); } // Atention: Skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  bool flipped() const { return m_moduleGeom->flipped(); } 
+  bool flipped(bool newFlip) {
+    if (newFlip && numSensors() > 1) {
+      m_sensors.front().innerOuter(SensorPosition::UPPER);
+      m_sensors.back().innerOuter(SensorPosition::LOWER);
+    }
+    return m_moduleGeom->flipped(newFlip);
+  } 
   void dsDistance(double d)               { m_moduleGeom->dsDistance(d); }
 
   // Properties

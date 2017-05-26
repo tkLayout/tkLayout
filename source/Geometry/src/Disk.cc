@@ -1,12 +1,15 @@
 #include "Disk.h"
+
 #include "MessageLogger.h"
 #include "ConversionStation.h"
+#include "SimParms.h"
+
 
 Disk::Disk(int id, double zOffset, double zECCentre, double zECHalfLength, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
  m_materialObject(MaterialObject::LAYER),
  m_flangeConversionStation(nullptr),
  numRings(      "numRings"   , parsedAndChecked()),
- zError(        "zError"     , parsedAndChecked()),
+ zError(        "zError"     , parsedAndChecked(), SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
  m_innerRadius( "innerRadius", parsedAndChecked()),
  m_outerRadius( "outerRadius", parsedAndChecked()),
  bigDelta(      "bigDelta"   , parsedAndChecked()),

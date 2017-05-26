@@ -4,20 +4,111 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <limits.h>
 
 using std::vector;
 using std::string;
 
+#include "math_functions.h"
 #include "Property.h"
 #include "DetectorModule.h"
 #include "Visitable.h"
 
 // Typedefs
 typedef PtrVector<Ring>            Rings;
+typedef PtrVector<TiltedRing>      TiltedRings;
 typedef std::map<int, const Ring*> RingIndexMap;
 
 // Enums
 enum BuildDirection { TOPDOWN, BOTTOMUP };
+
+/*
+ * @class TiltedRing
+ * @details Tilted ring keeps information about individual tilted modules positioned in a barrel layer, set in so-called rings.
+ * Two rods of modules are set, inner & outer (similar concept to RodPair, with modules positioned at +-smallDelta). Modules are
+ * currently built using Tilted Rod, so not here, within the Tilted ring concept. TODO!
+ *
+ */
+class TiltedRing : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+
+ public:
+
+  //! Constructor
+  TiltedRing(int id, int numRods, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
+
+  //! Build the ring
+  void build(double lastThetaEnd);
+
+  //! Cross-check parameters provided from geometry configuration file
+  void check() override;
+
+  //! Calculate geometry properties with respect to previous ring or flat part defined by several parameters
+  void calculateGeometryProperties(const TiltedRing* prevRing, double flatPartREndInner, double flatPartREndOuter, double flatPartEndModCenterZ, double flatPartZEnd);
+
+  //! GeometryVisitor pattern -> ring visitable
+  void accept(GeometryVisitor& v);
+
+  //! GeometryVisitor pattern -> ring visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
+
+  //! TODO: Return ring modules -> modules defined in tilted rods
+  // const BarrelModules& modules() const { return m_modules; }
+
+  // Ring defined by following parameters
+  Property<double, NoDefault> innerRadius;          //!< Radius of the inner rod/module (must be specified)
+  Property<double, NoDefault> outerRadius;          //!< Radius of the outer rod/module (must be specified
+  Property<double, NoDefault> zInner;               //!< Z position of the inner rod/module (define either zInner, zOuter or zOverlap)
+  Property<double, NoDefault> zOuter;               //!< Z position of the outer rod/module (define either zInner, zOuter or zOverlap)
+  Property<double, NoDefault> ringZOverlap;         //!< Required overlap in Z with respect to the previous ring -> as projected on the current tilted ring module (so effective measure of overlap in Z on the current module)
+  Property<double, NoDefault> tiltAngle;            //!< Module tilt angle expected in config file in degrees (0 for BRL, 90deg for ENDCAP) -
+  Property<double, NoDefault> theta_g;              //!< Angle between pos. Z axis and line connecting centres of outer & inner modules in degrees (expected in degerees in config file). Ideally 90deg - tiltAngle
+
+  // Calculated quantities
+  Property<double, Computable> zErrorInner;         //!< Beam spot coverage in Z by inner rod/module -> only active module parameters taken into account
+  Property<double, Computable> zErrorOuter;         //!< Beam spot coverage in Z by outer rod/module -> only active module parameters taken into account
+  Property<double, Computable> deltaZInner;         //!< Difference between given ring module center & previous ring module center
+  Property<double, Computable> deltaZOuter;         //!< Difference between given ring module center & previous ring module center
+
+  Property<double, Computable> thetaStart;                                            //!< Ring module rods start at given theta, namely outer rod modules starts here
+  double thetaEnd() const { return MAX(thetaEndInner_REAL(), thetaEndOuter_REAL()); } //!< To get hermetic coverage, get the worse scenario of where the Ring module rods end-up, i.e. outer rod modules
+
+  Property<double, Computable> tiltAngleIdealInner; //!< Ideal theta angle of the module positioned in inner rod
+  Property<double, Computable> deltaTiltIdealInner; //!< Difference between the real angle and ideal angle for inner module;
+  Property<double, Computable> tiltAngleIdealOuter; //!< Ideal theta angle of the module positioned in outer rod
+  Property<double, Computable> deltaTiltIdealOuter; //!< Difference between the real angle and ideal angle for outer module;
+  Property<double, Computable> phiOverlap;          //!< Minimum modules overlap in R-Phi in length units
+
+  Property<double, Computable> rStartOuter_REAL;    //!< Ring modules in the outer rod start at given radius
+  Property<double, Computable> rEndOuter_REAL;      //!< Ring modules in the outer rod end-up at given radius
+  Property<double, Computable> zStartOuter_REAL;    //!< Ring modules in the outer rod start at given z-pos
+  Property<double, Computable> zEndOuter_REAL;      //!< Ring modules in the outer rod end-up at given z-pos
+  Property<double, Computable> thetaEndOuter_REAL;  //!< Theta angle for outer rod defined as: tan(radiusEnd/ZEnd)
+
+  Property<double, Computable> rStartInner_REAL;    //!< Ring modules in the inner rod start at given radius
+  Property<double, Computable> rEndInner_REAL;      //!< Ring modules in the inner rod end-up at given radius
+  Property<double, Computable> zStartInner_REAL;    //!< Ring modules in the inner rod start at given z-pos
+  Property<double, Computable> zEndInner_REAL;      //!< Ring modules in the inner rod end-up at given z-pos
+  Property<double, Computable> thetaEndInner_REAL;  //!< Theta angle for inner rod defined as: tan(radiusEnd/ZEnd)
+
+  double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
+  double averageZ() const { return (zInner() + zOuter()) / 2.; }
+
+  double deltaR()   const { return outerRadius() - innerRadius(); }
+  double gapR()     const { return (outerRadius() - innerRadius()) / sin(theta_g() * M_PI / 180.); }
+  double deltaZ()   const { return zOuter() - zInner(); }
+
+ private :
+
+  // Helper function building the modules in a ring
+  void buildLeftRight(double lastThetaEnd);
+
+  // TODO: Modules defined in tilted rods
+  //BarrelModules m_modules; //!< Modules built within a ring
+  //MaterialObject materialObject_;
+
+  int    m_numRods;                  //!< Number of rods (modules) in a ring along phi
+
+}; // Class
 
 /*
  * @class Ring
@@ -128,6 +219,6 @@ private:
 
    const int c_maxWedgeCalcLoops = 100; //!< Maximum number of loops to be iterated when finding optimal positions for wege-shaped modules
 
-};
+}; // Class
 
 #endif /* INCLUDE_RING_H */

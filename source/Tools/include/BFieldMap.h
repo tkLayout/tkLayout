@@ -115,7 +115,6 @@ private:
   const std::string c_fileZBinNum     = "# Z number of bins: ";   /**< Header prefix - value of the number of bins in Z*/
   const std::string c_fileEscValue    = "/t";                     /**< File - special character used between values*/
   const std::string c_fileEscLine     = "/n";                     /**< File - special character used at the end of line*/
-  const std::string c_fileEscSpace    = " ";                      /**< File - special character used for spacing*/
   const std::string c_fileEscComment  = "#//;";                   /**< File - special character used for commet*/
 
   const double      c_arrowMaxLength  = 0.9;

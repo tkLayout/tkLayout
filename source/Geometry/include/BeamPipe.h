@@ -14,11 +14,9 @@
 #include "Visitable.h"
 
 // Forward declaration
-class GeometryVisitor;
 class ConstGeometryVisitor;
-namespace insur {
-  class InactiveTube;
-}
+class GeometryVisitor;
+class InactiveTube;
 
 /*
  * @class BeamPipe
@@ -48,7 +46,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
 
   //! Get beam pipe material information
   //! @return InactiveTube, i.e. returns beam pipe as inactive element
-  const insur::InactiveTube* getMaterial() const;
+  const InactiveTube* getMaterial() const;
 
   // Beam pipe radius, thickness, thickness in rad. length, in int. length
   ReadonlyProperty<double, Default>   radius;           //!< Beam pipe radius
@@ -59,7 +57,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
 
  private:
 
-  std::unique_ptr<insur::InactiveTube> m_tube; //!< Beam pipe as inactive tube;
+  std::unique_ptr<InactiveTube> m_tube; //!< Beam pipe as inactive tube;
 
 }; // Class
 

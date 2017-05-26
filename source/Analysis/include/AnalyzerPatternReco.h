@@ -76,6 +76,12 @@ class AnalyzerPatternReco : public AnalyzerUnit {
   std::map<std::string, std::vector<TProfile*>> m_hisPHitZProjInOut;      //!< InOut approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
   std::map<std::string, std::vector<TProfile*>> m_hisPtHitProbContamInOut;//!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
   std::map<std::string, std::vector<TProfile*>> m_hisPHitProbContamInOut; //!< InOut approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitDProjOutIn;     //!< OutIn approach: D0 projection @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitDProjOutIn;      //!< OutIn approach: D0 projection @ ith+3 measurement plane at given eta for set of p
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitZProjOutIn;     //!< OutIn approach: Z0 projection @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitZProjOutIn;      //!< OutIn approach: Z0 projection @ ith+3 measurement plane at given eta for set of p
+  std::map<std::string, std::vector<TProfile*>> m_hisPtHitProbContamOutIn;//!< OutIn approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of pt
+  std::map<std::string, std::vector<TProfile*>> m_hisPHitProbContamOutIn; //!< OutIn approach: Calculated occupancy from flux & pile-up @ ith+3 measurement plane at given eta for set of p
 
   std::vector<TProfile*> m_hisPtBkgContInOut;      //! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of pT
   std::vector<TProfile*> m_hisPtBkgContInnerInOut; //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT

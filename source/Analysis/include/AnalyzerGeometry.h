@@ -166,6 +166,9 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   std::map<std::string, const DetectorModule*> m_modulePtrMap;            //!< Module (by tag) to module pointer map -> to get module properties
   std::map<std::string, int>                   m_moduleCount;             //!< Number of modules of given module type (by tag)
   std::map<std::string, long>                  m_moduleChannels;          //!< Number of channels of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsRPhi;   //!< Number of channels in R-Phi of given module type
+  std::map<std::string, long>                  m_moduleAvgChannelsZ;      //!< Number of channels in Z of given module type
+  std::map<std::string, long>                  m_moduleAvgROCs;           //!< Number of read-out chips per module type
   std::map<std::string, double>                m_moduleMaxStripOccupancy; //!< Maximum strip occupancy of given module type
   std::map<std::string, double>                m_moduleAvgStripOccupancy; //!< Average hit occupancy of given module type
   std::map<std::string, double>                m_moduleMaxHitOccupancy;   //!< Maximum hit occupancy of given module type
@@ -187,12 +190,37 @@ class VisitorLayerDiscSummary : public ConstGeometryVisitor {
   std::vector<int>                   m_ringNModules;  //!< Number of modules in a given ring
 
  private:
+  const int   c_coordPrecision       = 1;
+  const int   c_areaPrecision        = 1;
+  const int   c_occupancyPrecision   = 1;
+  const int   c_resolutionPrecision  = 1;
+  const int   c_channelPrecision     = 2;
+}; // Helper Class
 
-  const int   c_coordPrecision     = 1;
-  const int   c_areaPrecision      = 1;
-  const int   c_occupancyPrecision = 1;
-  const int   c_resolutionPrecision= 1;
-  const int   c_channelPrecision   = 2;
+
+/*
+ *  Helper class: Visit tilted layers for info on website.
+ */
+class TiltedLayersVisitor : public ConstGeometryVisitor {
+ 
+ public:
+
+  void visit(const Tracker& t) override;
+  void visit(const Layer& l) override;
+
+  // tilted info containers
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedLayerNames;
+  std::vector<std::unique_ptr<RootWTable>> m_flatPartTables;
+  std::vector<std::unique_ptr<RootWTable>> m_tiltedPartTables;
+
+  // counters
+  int m_nTiltedLayers;
+  int m_nLayers;
+
+ private:
+  const int   c_tiltedCoordPrecision = 2;
+  const int   c_zOverlapPrecision    = 3;
+  const int   c_anglePrecision       = 1;
 }; // Helper Class
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */

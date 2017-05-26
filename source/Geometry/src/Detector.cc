@@ -78,7 +78,7 @@ bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
   } // Try
   catch (PathfulException& e) {
 
-    logERROR(e.path()+ " : " +e.what());
+    logERROR(std::string(e.what()));
     stopTaskClock();
     return false;
   }
@@ -155,7 +155,7 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
   } // Try
   catch (PathfulException& e) {
 
-    logERROR(e.path()+ " : " +e.what());
+    logERROR(std::string(e.what()));
     stopTaskClock();
     return false;
   }

@@ -14,9 +14,7 @@
 // Forward declaration
 class DetectorModule;
 class Hit;
-namespace insur {
-  class InactiveElement;
-}
+class InactiveElement;
 class Track;
 
 #undef HIT_DEBUG
@@ -47,7 +45,7 @@ public:
   Hit(const Hit& h);
 
   //! Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
-  Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType);
+  Hit(double rPos, double zPos, const InactiveElement* myPassiveElem, HitPassiveType passiveHitType);
 
   //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
   Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType);
@@ -80,8 +78,8 @@ public:
   void setDiscID(int discID)                      { m_discID  = discID; }
 
   // Getter methods
-  const DetectorModule*         getHitModule() const         { return m_hitModule; };
-  const insur::InactiveElement* getHitPassiveElement() const { return m_hitPassiveElem; }
+  const DetectorModule*  getHitModule() const         { return m_hitModule; };
+  const InactiveElement* getHitPassiveElement() const { return m_hitPassiveElem; }
 
   double   getDistance() const         { return m_distance;};
   double   getRPos() const             { return m_rPos;};
@@ -122,7 +120,7 @@ protected:
   void setHitModule(const DetectorModule* myModule);
 
   //! Set pointer to inactive element in the constructor
-  void setHitPassiveElement(const insur::InactiveElement* myPassiveElem);
+  void setHitPassiveElement(const InactiveElement* myPassiveElem);
 
   double         m_distance;      //!< Distance of hit from origin in 3D = sqrt(rPos*rPos + zPos*zPos)
   double         m_rPos;          //!< Distance of hit from origin in the x/y plane (cylindrical coordinates -> r)
@@ -131,9 +129,9 @@ protected:
   HitType        m_activeHitType; //!< Hit coming from inner, outer, stub, ... module
   HitPassiveType m_passiveHitType;//!< Hit coming from which passive part: beam-pipe, service, support etc.
   
-  const DetectorModule*         m_hitModule;     //!< Const pointer to the hit module
-  const insur::InactiveElement* m_hitPassiveElem;//!< Const pointer to the hit inactive element
-  const Track*                  m_track;         //!< Const pointer to the track, into which the hit was assigned
+  const DetectorModule*  m_hitModule;     //!< Const pointer to the hit module
+  const InactiveElement* m_hitPassiveElem;//!< Const pointer to the hit inactive element
+  const Track*           m_track;         //!< Const pointer to the track, into which the hit was assigned
   
   RILength m_correctedMaterial; //!< Material in the way of particle shot at m_track direction, i.e. theta, module tilt angles corrected
   

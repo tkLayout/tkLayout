@@ -71,7 +71,7 @@ public:
   void addIPConstraint(double dr, double dz);
 
   //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt (signed: + -> particle in-out, - -> particle out-in)
-  const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
+  const ROOT::Math::Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
   //! Set track origin
   const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
@@ -164,8 +164,8 @@ public:
   double getRho(double zPos) const    { return (getRadius(zPos)!=0 ? 1/getRadius(zPos) : 0);}
   double getRadius(double zPos) const { return fabs(m_pt / (0.3 * getMagField(zPos))); }
 
-  const Polar3DVector& getDirection() const { return m_direction; }
-  const XYZVector&     getOrigin() const    { return m_origin; }
+  const ROOT::Math::Polar3DVector& getDirection() const { return m_direction; }
+  const XYZVector&                 getOrigin() const    { return m_origin; }
 
   //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
   int getNActiveHits(std::string tag, bool useIP = true) const;
@@ -259,8 +259,8 @@ protected:
   double m_cotgTheta;         //!< Automatically calculated from theta at [0,0]
   double m_eta;               //!< Automatically calculated from eta at [0,0]
 
-  Polar3DVector  m_direction; //!< Track parameters as a 3-vector: R, theta, phi
-  XYZVector      m_origin;    //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
+  ROOT::Math::Polar3DVector  m_direction; //!< Track parameters as a 3-vector: R, theta, phi
+  XYZVector                  m_origin;    //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]
 
   bool   m_reSortHits;        //!< Caching whether necessary to resort hits (sorting will be done again if a new hit added or direction changed)
   bool   m_covRPhiDone;       //!< Caching whether errors in R-Phi already calculated (will be recalculated, if direction of propagation changed, or added new hit etc.)

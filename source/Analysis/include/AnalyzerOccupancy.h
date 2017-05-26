@@ -119,6 +119,7 @@ class OccupancyVisitor : public ConstGeometryVisitor {
   std::vector<std::vector<int>>   m_layerSenAddrUnsparSize; // Sensor addressing size in bits (assuming max 2 types of sensors in the layer, each channel is either 0 or 1 - n channels x 1b) -> used for unsparsified data
   std::vector<std::vector<int>>   m_layerSenNPixels;        // Number of pixels (strips) in each module (assuming max 2 types of sensors in the layer)
   std::vector<std::vector<double>>m_layerSenPixelArea;      // Pixel (strips) area in each module calculated from resolutions & assuming binary read-out
+  std::vector<std::vector<double>>m_layerSenArea;           // Sensor area
 
   std::vector<double>             m_ringAvgRadii;
   std::vector<double>             m_ringMinFluxes;
@@ -132,6 +133,7 @@ class OccupancyVisitor : public ConstGeometryVisitor {
   std::vector<std::vector<int>>   m_ringSenAddrUnsparSize;  // Sensor addressing size in bits (assuming max 2 types of sensors in the ring, each channel is either 0 or 1 - n channels x 1b) -> used for unsparsified data
   std::vector<std::vector<int>>   m_ringSenNPixels;         // Number of pixels (strips) in each module (assuming max 2 types of sensors in the ring)
   std::vector<std::vector<double>>m_ringSenPixelArea;       // Pixel (strips) area in each module calculated from resolutions & assuming binary read-out
+  std::vector<std::vector<double>>m_ringSenArea;            // Sensor area
 
   double    m_maxPileUp;
   double    m_maxColFreq;

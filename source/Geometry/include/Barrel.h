@@ -5,15 +5,13 @@
 #include <vector>
 #include <string>
 
-#include "InactiveElement.h"
 #include "Layer.h"
 #include "Property.h"
 #include "Visitable.h"
 
 // Forward declaration
+class InactiveElement;
 class SupportStructure;
-
-using insur::InactiveElement;
 
 // Typedefs
 typedef PtrVector<Barrel>           Barrels;

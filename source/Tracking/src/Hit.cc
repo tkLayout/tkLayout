@@ -96,7 +96,7 @@ Hit::Hit(const Hit& h) {
 /*
  * Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
  */
-Hit::Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType) {
+Hit::Hit(double rPos, double zPos, const InactiveElement* myPassiveElem, HitPassiveType passiveHitType) {
     m_detName           = "Undefined";
     m_distance          = sqrt(rPos*rPos + zPos*zPos);
     m_rPos              = rPos;
@@ -158,7 +158,7 @@ void Hit::setHitModule(const DetectorModule* myModule) {
 /*
  * Setter for the pointer to the inactive surface that caused the hit.
  */
-void Hit::setHitPassiveElement(const insur::InactiveElement* myPassiveElem) {
+void Hit::setHitPassiveElement(const InactiveElement* myPassiveElem) {
 
   if (myPassiveElem) m_hitPassiveElem = myPassiveElem;
   //else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");

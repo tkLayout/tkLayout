@@ -117,7 +117,11 @@ bool AnalyzerResolution::analyze()
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+
+    // Use uniform distribution to simulate position of primary interaction (rphi negligible). May be also triangular or gaussian (depends on accelerator design)!
+    double zPos = 0.;
+    if (SimParms::getInstance().useLumiRegInAnalysis()) zPos = (myDice.Rndm()*2 - 1)*SimParms::getInstance().zErrorIP();
+    matTrack.setOrigin(0, 0, zPos);
 
     // Assign material to the track
     VisitorMatTrack matVisitor(matTrack);
@@ -244,14 +248,14 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
 
     // Correct naming...
     std::string wName = "";
-    if      (tag=="beampipe")                wName = "BP";
-    else if (tag=="pixel")                   wName = "Pixel";
-    else if (tag=="trigger" || tag=="strip") wName = "Strip";
-    else if (tag=="barrel")                  wName = "BRL";
-    else if (tag=="endcap")                  wName = "ECAP";
-    else if (tag=="forward")                 wName = "FWD";
-    else if (tag=="tracker")                 wName = "Tracker";
-    else                                     wName = tag;
+    if      (tag=="beampipe")                                wName = "BP";
+    else if (tag=="pixel" || tag=="inner")                   wName = "Inner";
+    else if (tag=="trigger" || tag=="strip" || tag=="outer") wName = "Outer";
+    else if (tag=="barrel")                                  wName = "BRL";
+    else if (tag=="endcap")                                  wName = "ECAP";
+    else if (tag=="forward")                                 wName = "FWD";
+    else if (tag=="tracker")                                 wName = "Tracker";
+    else                                                     wName = tag;
 
     pageTitle              += " ("+wName+")";
     additionalSummaryTag    = "_"+wName+"_";
@@ -259,12 +263,12 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
     std::string pageAddress = "indexResol" + wName + ".html";
 
     int webPriority         = 0;
-    if      (wName=="PIXEL")  webPriority = web_priority_Resol;
-    else if (wName=="STRIP")  webPriority = web_priority_Resol-1;
-    else if (wName=="FWD")    webPriority = web_priority_Resol-2;
-    else if (wName=="BARREL") webPriority = web_priority_Resol-3;
-    else if (wName=="ENDCAP") webPriority = web_priority_Resol-4;
-    else if (wName=="TRK")    webPriority = web_priority_Resol-5;
+    if      (wName=="Inner")   webPriority = web_priority_Resol;
+    else if (wName=="Outer")   webPriority = web_priority_Resol-1;
+    else if (wName=="FWD")     webPriority = web_priority_Resol-2;
+    else if (wName=="BRL")     webPriority = web_priority_Resol-3;
+    else if (wName=="ECAP")    webPriority = web_priority_Resol-4;
+    else if (wName=="Tracker") webPriority = web_priority_Resol-5;
 
     RootWPage& myPage = webSite.addPage(pageTitle, webPriority);
     myPage.setAddress(pageAddress);
