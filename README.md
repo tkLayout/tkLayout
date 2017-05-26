@@ -1,22 +1,29 @@
 <!-- README.md file --> 
 # Description
 
-The **tkLayout** represents a tracker geometry modelling tool and tracker performance analysis tool, which has been fully developed within 
-the CMS collaboration at CERN. Its main aim is to study performance of a new silicon tracker, replacing the current one in a view of the 
-Phase-2 upgrade (early 2020's). Besides that, the tkLayout is generic enough to be used for tracker studies at other experiments.
+The **tkLayout-lite** represents a derived SW version of tracker geometry modelling tool and tracker performance analysis tool **tkLayout**, 
+which has been fully developed within the CMS collaboration at CERN. Its main aim is to study performance of a new silicon tracker, 
+replacing the current one in a view of the Phase-2 upgrade (early 2020's). In order to utilize such broad functionality of tkLayout SW in 
+other experiments an intensive effort has been made to prepare a ligth version of the original tkLayout tool. Its main feature is a full modularity, 
+experiment independence and comprehensive documentation.
 
-A tracker geometry is generated from simple configuration files (cf. GeometryManager & MainConfigHandler), defining the module types, 
-tracker layout and material composition. Various support structures are then automatically added and services routed to build a truly 
-realistic tracking system. The tkLayout has been programmed with flexibility in mind to provide natural support for various detector 
-geometries and wide spectrum of analyses to be run with given layout and study the best trade-off among many figures of merit, 
-such as: tracking resolution, material budget, power dissipation, cost etc. The tkLayout software is easy to be used thanks to its modular 
-structure. The individual analysis modules, so-called analyzers, are run sequentially by so-called AnalysisManager, first to analyze the 
-data and then to visualize the obtained results in compact & user-friendly way. The visualization is provided via html format. Several 
-web pages are generated and included on the main web-site. They may contain various explanation texts, pictures, graphs, tables etc. 
-(cf. RootWSite, RootWPage). Several important analyzers to be explicite mentioned: AnalyzerResolution (track resolution studies using the 
-V.Karimaki approach for track fitting, see V.Karimaki - Effective circle fitting for particle trajectories), AnalyzerGeometry & AnalyzerMatBudget.   
+The key features of tkLayout may be described as follows: a tracker geometry is generated from a set of simple configuration files (cf. GeometryManager 
+& MainConfigHandler), defining the module types, tracker layout and material composition. Various support structures are then automatically added and 
+services routed to build a truly realistic tracking system (c.f. Materialway). The tkLayout-lite has been programmed with flexibility in mind to provide natural 
+support for various detector geometries and wide spectrum of analyses to be run with given layout and study the best trade-off among many figures of merit, 
+such as: tracking resolution, material budget, power dissipation, cost etc. The tkLayout software is easy to be used thanks to its modular structure. The 
+individual analysis modules, so-called analyzers, are run sequentially by so-called AnalysisManager, first to analyze the data and then to visualize the 
+obtained results in a compact & user-friendly way. The visualization is provided via html format. Several web pages are generated and included on the main 
+web-site. They may contain various explanation texts, pictures, graphs, tables etc. (cf. RootWSite, RootWPage). Several important analyzers to be explicite 
+mentioned: AnalyzerResolution (track resolution studies, which mathematically make use of a parabolic approximation in a global chi2 fit technique to estimate 
+the track parameters cov. matrix; parabolic approx. simplifies a more complex approach to circle fitting in XY; a line is being used to simplify track fitting 
+in s-Z), AnalyzerPattern (performing track propagation & estimation of tracker pattern recognition capabilities - makes use of error propagation technique 
+applied to a parabolic approximation; to estimate the background level (hits) for given tracker & accelerator a Fluka charged fluence map is assumed to be add 
+to tkLayout on the inpute), AnalyzerGeometry reporting details about geometry), AnalyzerMatBudget (reporting tracker material budget) & AnalyzerOccupancy (reporting 
+occupancy & date rates being estimated based on built-in geometry & Fluka charged particles fluence provided as an input to tkLayout).   
 
-Developed at CERN by Giovanni Bianchi, Nicoletta De Maio, Stefano Martina and Stefano Mersi.
+Developed at CERN by Giovanni Bianchi, Nicoletta De Maio, Stefano Martina and Stefano Mersi. tkLayout-lite version developed at CERN by Zbynek Drasal in 
+collaboration with tkLayout team.
 
 # Getting the code
 
