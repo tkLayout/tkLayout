@@ -2,8 +2,6 @@
 #include "MessageLogger.h"
 #include "SupportStructure.h"
 
-using material::SupportStructure;
-
 //
 // Constructor - parse geometry config file using boost property tree & read-in Disk, Support nodes
 //
@@ -106,10 +104,12 @@ void Endcap::build()
 //
 void Endcap::setup()
 {
-  maxR.setup([this]() { double max = 0;                                  for (const auto& d : m_disks) { max = MAX(max, d.maxR()); } return max; });
-  minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { min = MIN(min, d.minR()); } return min; });
-  maxZ.setup([this]() { double max =-std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
-  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
+  maxR.setup([this]()       { double max = 0;                                  for (const auto& d : m_disks) { max = MAX(max, d.maxR()); } return max; });
+  minR.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { min = MIN(min, d.minR()); } return min; });
+  maxZ.setup([this]()       { double max =-std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
+  minZ.setup([this]()       { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
+  maxZAllMat.setup([this]() { double max =-std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZAllMat()); } return max; });
+  minZAllMat.setup([this]() { double min =+std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.minZ() > 0 ) min = MIN(min, d.minZAllMat()); } return min; });
 }
 
 //
@@ -118,6 +118,7 @@ void Endcap::setup()
 void Endcap::accept(GeometryVisitor& v) {
   v.visit(*this);
   for (auto& d : m_disks) { d.accept(v); }
+  for (auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //
@@ -126,6 +127,7 @@ void Endcap::accept(GeometryVisitor& v) {
 void Endcap::accept(ConstGeometryVisitor& v) const {
   v.visit(*this);
   for (const auto& d : m_disks) { d.accept(v); }
+  for (const auto& s : m_supportStructures) { s.accept(v); }
 }
 
 //

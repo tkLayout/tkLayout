@@ -1,7 +1,9 @@
 #include "PlotDrawer.h"
-#include "TLatex.h"
+#include <TLatex.h>
 #include <global_constants.h>
 #include <iomanip>
+
+#include "SimParms.h"
 
 int FrameGetterBase::s_id = 0;
 const int FrameGetterBase::s_nBinsZoom = 1000;
@@ -39,14 +41,14 @@ template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
-template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxZ, double maxR, double tickDistance, double tickLength, double textDistance,
                                                                        Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {
   // Add the eta ticks
   double theta;
   double startR = maxR + tickDistance;
-  double startL = maxL + tickDistance;
+  double startZ = maxZ + tickDistance;
   double endR = maxR + tickLength + tickDistance;
-  double endL = maxL + tickLength + tickDistance;
+  double endZ = maxZ + tickLength + tickDistance;
   TLine* aTick = new TLine();
   double textX = 0, textY = 0;
 
@@ -57,7 +59,7 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   // Use epsilon to avoid rounding errors
   etaMax = etaMax+vis_step_eta_epsilon;
 
-  double thetaLimit = atan(startR/startL);
+  double thetaLimit = atan(startR/startZ);
   std::vector<double> etaSteps;
   for (eta=0; eta<=etaMax; eta+=etaStep) {
  
@@ -75,19 +77,19 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
     if (theta>thetaLimit) {
       aTick->DrawLine(startR / tan(theta), startR, endR / tan(theta),  endR);
     } else {
-      aTick->DrawLine(startL, startL * tan(theta), endL, endL * tan(theta));
+      aTick->DrawLine(startZ, startZ * tan(theta), endZ, endZ * tan(theta));
     }
     if ((eta==etaLongLine)&&(etaLongLine!=0)) {
       aTick->SetLineColor(kGray);
       if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta), endR);
-      else aTick->DrawLine(0., 0., endL, endL * tan(theta));
+      else aTick->DrawLine(0., 0., endZ, endZ * tan(theta));
       labelSize*=2;
     }
 
     if (labelSize!=0) {
       textX = (endR+textDistance) / tan(theta);
-      textY = (endL + textDistance) * tan(theta);
-      if (textX>endL+textDistance) textX = endL+textDistance;
+      textY = (endZ+textDistance) * tan(theta);
+      if (textX>endZ+textDistance) textX = endZ+textDistance;
       if (textY>endR+textDistance) textY = endR+textDistance;
 
       sprintf(labelChar, "%.01f", eta);
@@ -108,7 +110,7 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   }
 }
 
-template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double scaleFactorX, double scaleFactorY,
+template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxZ, double maxR, double tickDistance, double scaleFactorX, double scaleFactorY,
                                                                        Style_t labelFont, Float_t stdLabelSize, double etaStepShort, double etaStepLong, double etaMax, double etaLongLineI, double etaLongLineII,
                                                                        bool zPlsMin) const {
   // Add the eta ticks
@@ -116,13 +118,14 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   double  thetaSign;
   double  tickLengthY   = maxR/scaleFactorY;
   double  textDistanceY = maxR/scaleFactorY;
-  double  tickLengthX   = maxL/scaleFactorX;
-  double  textDistanceX = maxL/scaleFactorX;
+  double  tickLengthX   = maxZ/scaleFactorX;
+  double  textDistanceX = maxZ/scaleFactorX;
   
   double  startR       = maxR + tickDistance;
-  double  startL       = maxL + tickDistance;
+  double  startZ       = maxZ + tickDistance;
   double  endR         = maxR + tickLengthY + tickDistance;
-  double  endL         = maxL + tickLengthX + tickDistance;
+  double  endRsmall    = maxR + 0.5 * tickLengthY; // length for subticks
+  double  endZ         = maxZ + tickLengthX + tickDistance;
   TLine*  aTick        = new TLine();
   
   double  textX = 0, textY = 0;
@@ -137,12 +140,12 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   // Use epsilon to avoid rounding errors when drawing eta ticks
   double etaMaxSafe = etaMax+vis_step_eta_epsilon;
 
-  double thetaLimit = atan(startR/startL);
+  double thetaLimit = atan(startR/startZ);
   std::vector<double> etaSteps;
   std::vector<double> etaStepsFull;
 
   // Start with short eta step, continue with long eta step when drawing eta ticks 
-  for (eta=0; eta<=etaMaxSafe+etaStepShort; eta+=etaStepShort) {
+  for (eta=0; eta<=etaMaxSafe+2*etaStepShort; eta+=etaStepShort) {
  
     etaSteps.push_back(eta);
   }
@@ -150,7 +153,7 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
     
     etaSteps.push_back(eta);
   }    
-  for (eta=etaLongLineI; eta<etaLongLineII; eta+=2*etaStepLong) {
+  for (eta=etaLongLineI; eta<etaLongLineII; eta+=etaStepLong) {
     
     etaSteps.push_back(eta);
   }   
@@ -158,16 +161,27 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
   // Add final eta tick
   etaSteps.push_back(etaLongLineII);
 
-  // Create ticks for both sides
+  // Create ticks for both sides (avoid double counting of zero
   if (zPlsMin) etaStepsFull.resize(2*etaSteps.size());
   else         etaStepsFull.resize(etaSteps.size());
 
   int iStep=0;
-  if (zPlsMin)  for (auto it = etaSteps.end(); it!=etaSteps.begin(); it--, iStep++) etaStepsFull[iStep] = -1 * *it;
+  if (zPlsMin)  for (auto it = etaSteps.rbegin(); it!=etaSteps.rend(); it++, iStep++) {
+
+    // Avoid adding minus sign to zero
+    if (*it!=0) {
+      etaStepsFull[iStep] = -1 * *it;
+    }
+    else {
+      etaStepsFull[iStep] = 0.0;
+    }
+  }
   for (auto it = etaSteps.begin(); it!=etaSteps.end(); it++, iStep++) etaStepsFull[iStep] = *it;
 
   for (auto it = etaStepsFull.begin(); it!=etaStepsFull.end(); ++it) {
     eta       =*it;
+    // draw ticks differently for certain values of eta, e.g. omit labels
+    bool l_drawSmallTicks = (std::abs(eta) < etaMaxSafe+2*etaStepShort)&&(std::abs(eta) - std::floor(std::abs(eta)) > 0.001);
     thetaSign = eta>=0 ? +1 : -1;
     theta     = 2 * atan(exp(-fabs(eta)));
     
@@ -175,14 +189,16 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
     aTick->SetLineWidth(1);
     if (theta>thetaLimit) {
       if (zPlsMin && eta==0) aTick->DrawLine(0, 0, endR / tan(theta)*thetaSign,  endR);
+      // draw subticks shorter
+      else if (l_drawSmallTicks) aTick->DrawLine(startR / tan(theta)*thetaSign, startR, endRsmall / tan(theta)*thetaSign,  endRsmall);
       else                   aTick->DrawLine(startR / tan(theta)*thetaSign, startR, endR / tan(theta)*thetaSign,  endR);
     } else {
-      aTick->DrawLine(startL, startL * tan(theta), endL, endL * tan(theta));
+      aTick->DrawLine(startZ, startZ * tan(theta), endZ, endZ * tan(theta));
     }
     if ((eta==etaLongLineI)&&(etaLongLineI!=0)) {
       aTick->SetLineColor(kBlue); // blue
       if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta)*thetaSign, endR);
-      else aTick->DrawLine(0., 0., endL*thetaSign, endL * tan(theta));
+      else aTick->DrawLine(0., 0., endZ*thetaSign, endZ * tan(theta));
       labelSize  = 1.2*stdLabelSize;
       labelAlign = 21;
       labelColor = kBlue;
@@ -190,10 +206,13 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
     else if ((eta==etaLongLineII)&&(etaLongLineII!=0)) {
       aTick->SetLineColor(kGreen); // green
       if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta)*thetaSign, endR);
-      else aTick->DrawLine(0., 0., endL*thetaSign, endL * tan(theta));
+      else aTick->DrawLine(0., 0., endZ*thetaSign, endZ * tan(theta));
       labelSize  = 1.5*stdLabelSize;
       labelAlign = 23; 
       labelColor = kGreen;
+    }
+    else if (l_drawSmallTicks) { // don't draw labels for small eta subticks
+      labelSize  = 0;
     }
     else {
       labelSize  = stdLabelSize;
@@ -205,8 +224,8 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
 
     if (labelSize!=0) {
       textX = (endR +textDistanceY) / tan(theta);
-      textY = (endL +textDistanceX) * tan(theta);
-      if (textX>endL+textDistanceX) textX = endL+textDistanceX;
+      textY = (endZ +textDistanceX) * tan(theta);
+      if (textX>endZ+textDistanceX) textX = endZ+textDistanceX;
       if (textY>endR+textDistanceY) textY = endR+textDistanceY;
       textX *= thetaSign;
 
@@ -237,9 +256,15 @@ template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double m
 template<> void TicksFrameStyle<RZ>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
   frame.Draw();
 
+  double short_eta_coverage = SimParms::getInstance().etaRegionRanges[1];
+  double trk_eta_coverage   = SimParms::getInstance().etaRegionRanges[2];
+  double max_eta_coverage   = SimParms::getInstance().getMaxEtaCoverage();
+
   //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), step_eta_normal, trk_eta_coverage, max_eta_coverage);
-  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), vis_step_eta_long, vis_step_eta_long, vis_short_eta_coverage, vis_trk_eta_coverage, geom_max_eta_coverage);
-  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), vis_step_eta_short, vis_step_eta_long, vis_short_eta_coverage, vis_trk_eta_coverage, geom_max_eta_coverage);
+  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(),
+                                vis_step_eta_long, vis_step_eta_long, short_eta_coverage, trk_eta_coverage, max_eta_coverage);
+  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(),
+                                vis_step_eta_short, vis_step_eta_long, short_eta_coverage, trk_eta_coverage, max_eta_coverage);
 }
 
 //
@@ -248,9 +273,15 @@ template<> void TicksFrameStyle<RZ>::operator()(TH2C& frame, TCanvas& canvas, Dr
 template<> void TicksFrameStyle<RZFull>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
   frame.Draw();
 
+  double short_eta_coverage = SimParms::getInstance().etaRegionRanges[1];
+  double trk_eta_coverage   = SimParms::getInstance().etaRegionRanges[2];
+  double max_eta_coverage   = SimParms::getInstance().getMaxEtaCoverage();
+
   //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), step_eta_normal, trk_eta_coverage, max_eta_coverage);
-  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), vis_step_eta_long, vis_step_eta_long, vis_short_eta_coverage, vis_trk_eta_coverage, geom_max_eta_coverage, true);
-  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), vis_step_eta_short, vis_step_eta_long, vis_short_eta_coverage, vis_trk_eta_coverage, geom_max_eta_coverage, true);
+  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(),
+                                vis_step_eta_long, vis_step_eta_long, short_eta_coverage, trk_eta_coverage, max_eta_coverage, true);
+  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(),
+                                vis_step_eta_short, vis_step_eta_long, short_eta_coverage, trk_eta_coverage, max_eta_coverage, true);
 }
 
 //

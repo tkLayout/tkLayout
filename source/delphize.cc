@@ -93,14 +93,16 @@ int main(int argc, char* argv[]) {
 
   double      etaSlice = 0.0;
   std::string author   = "";
+  std::string parameter= "";
 
   //
   // Program options
   boost::program_options::options_description help("Program options");
   help.add_options()
     ("help,h"        , "Display help")
-    ("input-file,i"  , boost::program_options::value<std::string>()                                        , "Specify name of input root file (from tkLayout), containing canvas with pT profiles")
+    ("input-file,i"  , boost::program_options::value<std::string>()                                        , "Specify name of input root file (from tkLayout), containing canvas with d0,z0,pT,p,cotgTh or phi0 profiles")
     ("layout-name,n" , boost::program_options::value<std::string>()                                        , "Specify given layout name")
+    ("parameter,p"   , boost::program_options::value<std::string>(&parameter)                              , "Specify parameter, the resolution of will be output: d0,z0,pT,p,cotgTh or phi0")
     ("author,a"      , boost::program_options::value<std::string>(&author)->default_value("Unknown author"), "Specify author of DELPHES file (optional: default = Unknown author)")
     ("eta-slicing,s" , boost::program_options::value<double>(&etaSlice)->default_value(0.2)                , "Specify eta slicing <0.0?; 1.0>, e.g. 0.1, 0.2, ... (optional: default = 0.2)")
     ;
@@ -117,6 +119,7 @@ int main(int argc, char* argv[]) {
     if      (etaSlice <= 0.0 || etaSlice > 1.0)                     throw boost::program_options::invalid_option_value("eta-slicing");
     else if (!varMap.count("input-file")  && !varMap.count("help")) throw boost::program_options::error("Forgot to define input root file???");
     else if (!varMap.count("layout-name") && !varMap.count("help")) throw boost::program_options::error("Forgot to define layout name???");
+    else if (!(parameter=="d0" || parameter=="z0" || parameter=="pT" || parameter=="p" || parameter=="cotgTh" || parameter=="phi0")) throw boost::program_options::invalid_option_value("parameter");
     else {
 
       // Write help
@@ -136,7 +139,7 @@ int main(int argc, char* argv[]) {
       // Delphes output file
       outFile = new std::ofstream();
       layoutName = varMap["layout-name"].as<std::string>();
-      std::string delphesName  = layoutName+"_Delphes.conf";
+      std::string delphesName  = layoutName+"_"+parameter+"Res_Delphes.conf";
       outFile->open(delphesName);
       if (outFile->is_open()) {
         osp = outFile;
@@ -176,13 +179,13 @@ int main(int argc, char* argv[]) {
           if (aClassName=="TProfile") {
 
             TProfile* myProfile = (TProfile*)aList->At(i);
-            //std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
+            std::cout << "TProfile: " << myProfile->GetName() << std::endl;
             double aMomentum;
-            if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+            if (sscanf(myProfile->GetName(), std::string(parameter+"_vs_eta%lf").c_str(), &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
-            else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+            else if (sscanf(myProfile->GetName(), std::string("Total_"+parameter+"_vs_eta%lf").c_str(), &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
 
@@ -195,89 +198,90 @@ int main(int argc, char* argv[]) {
   //inputFile->Close();
 
   // Check that non-zero profile map
-  auto itPtProfiles = ptProfiles.begin();
-  
-  if (itPtProfiles==ptProfiles.end()) {
+  if (ptProfiles.empty()) {
     std::cerr << "Error: the collection of profiles is empty" << std::endl;
     return false;
   }
-  
-  // First profile -> get eta, rescale bins, ...
-  TProfile* exampleProfile = itPtProfiles->second;
+  else {
+    auto itPtProfiles = ptProfiles.begin();
 
-  double maxEta = exampleProfile->GetXaxis()->GetXmax();
-  VDUMP(maxEta);
-  double minEta = exampleProfile->GetXaxis()->GetXmin();
-  VDUMP(minEta);
-  double originalEtaStep = exampleProfile->GetXaxis()->GetBinWidth(1);
-  VDUMP(originalEtaStep);
-  int rebinScale = etaSlice / originalEtaStep;
-  VDUMP(rebinScale);
-  for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) it->second->Rebin(rebinScale);
-  int newBins = exampleProfile->GetXaxis()->GetNbins();
-  VDUMP(newBins);
+    // First profile -> get eta, rescale bins, ...
+    TProfile* exampleProfile = itPtProfiles->second;
 
-  // OK, for each eta slice (rebinned bins) we will compute
-  // an interpolation formula. Keep your finger crossed...
-  
-  // Looping on eta range first:
-  double lowEta, highEta;
-  double myResolution, nextResolution;
-  double myPt, nextPt;
-  (*osp) << "#" << std::endl;
-  (*osp) << "# Automatically generated tracker resolution formula for layout: " << layoutName << std::endl;
-  (*osp) << "#" << std::endl;
-  (*osp) << "#  By " << author << " on: " << currentDateTime() << std::endl;
-  (*osp) << "#" << std::endl;
-  (*osp) << "set ResolutionFormula { ";
+    double maxEta = exampleProfile->GetXaxis()->GetXmax();
+    VDUMP(maxEta);
+    double minEta = exampleProfile->GetXaxis()->GetXmin();
+    VDUMP(minEta);
+    double originalEtaStep = exampleProfile->GetXaxis()->GetBinWidth(1);
+    VDUMP(originalEtaStep);
+    int rebinScale = etaSlice / originalEtaStep;
+    VDUMP(rebinScale);
+    for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) it->second->Rebin(rebinScale);
+    int newBins = exampleProfile->GetXaxis()->GetNbins();
+    VDUMP(newBins);
 
-  for (int iBin=1; iBin<=newBins; ++iBin) {
+    // OK, for each eta slice (rebinned bins) we will compute
+    // an interpolation formula. Keep your finger crossed...
 
-    // Get eta
-    lowEta  = exampleProfile->GetXaxis()->GetBinLowEdge(iBin);
-    highEta = exampleProfile->GetXaxis()->GetBinUpEdge(iBin);
+    // Looping on eta range first:
+    double lowEta, highEta;
+    double myResolution, nextResolution;
+    double myPt, nextPt;
+    (*osp) << "#" << std::endl;
+    (*osp) << "# Automatically generated tracker resolution formula for layout: " << layoutName << std::endl;
+    (*osp) << "#" << std::endl;
+    (*osp) << "#  By " << author << " on: " << currentDateTime() << std::endl;
+    (*osp) << "#" << std::endl;
+    (*osp) << "set ResolutionFormula { ";
 
-    // Loop over pT
-    for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
+    for (int iBin=1; iBin<=newBins; ++iBin) {
 
-      auto nextItem = (++it)--;
+      // Get eta
+      lowEta  = exampleProfile->GetXaxis()->GetBinLowEdge(iBin);
+      highEta = exampleProfile->GetXaxis()->GetBinUpEdge(iBin);
 
-      double aMomentum = it->first;
-      if (iBin==1) std::cout << "Using momentum [GeV]: " << std::setw(6) << aMomentum << std::endl;
+      // Loop over pT
+      for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
 
-      TProfile* myProfile = it->second;
-      myPt         = it->first;
-      myResolution = myProfile->GetBinContent(iBin)/100.;
-      printEtaRange(lowEta, highEta);
-      if (it==ptProfiles.begin()) {
-        // From here down the resolution will be always the same
-        printPtRange(0, myPt);
-        printResolutionScale(myResolution, myPt, myResolution, myPt);
-        printNewLine(false);
+        auto nextItem = (++it)--;
+
+        double aMomentum = it->first;
+        if (iBin==1) std::cout << "Using momentum [GeV]: " << std::setw(6) << aMomentum << std::endl;
+
+        TProfile* myProfile = it->second;
+        myPt         = it->first;
+        myResolution = myProfile->GetBinContent(iBin)/100.;
         printEtaRange(lowEta, highEta);
-      }
-      if (nextItem==ptProfiles.end()) {
-        // From here up the resolution will just scale with pT
-        printPtRange(myPt, -1);
-        printResolutionStandardWorsen(myResolution, myPt);
-        printNewLine(iBin==newBins); // true if it is the last
-      }
-      else {
-        TProfile* nextProfile = nextItem->second;
-        nextPt = nextItem->first;
-        nextResolution = nextProfile->GetBinContent(iBin)/100.;
-        printPtRange(myPt, nextPt);
-        printResolutionScale(myResolution, myPt, nextResolution, nextPt);
-        printNewLine(false);
+        if (it==ptProfiles.begin()) {
+          // From here down the resolution will be always the same
+          printPtRange(0, myPt);
+          printResolutionScale(myResolution, myPt, myResolution, myPt);
+          printNewLine(false);
+          printEtaRange(lowEta, highEta);
+        }
+        if (nextItem==ptProfiles.end()) {
+          // From here up the resolution will just scale with pT
+          printPtRange(myPt, -1);
+          printResolutionStandardWorsen(myResolution, myPt);
+          printNewLine(iBin==newBins); // true if it is the last
+        }
+        else {
+          TProfile* nextProfile = nextItem->second;
+          nextPt = nextItem->first;
+          nextResolution = nextProfile->GetBinContent(iBin)/100.;
+          printPtRange(myPt, nextPt);
+          printResolutionScale(myResolution, myPt, nextResolution, nextPt);
+          printNewLine(false);
+        }
       }
     }
   }
 
   // Close file
   inputFile->Close();
-  delete inputFile;
+  if (inputFile!=nullptr) delete inputFile;
   outFile->close();
-  delete outFile;
+  if (inputFile!=nullptr) delete outFile;
 
   return true;
 }

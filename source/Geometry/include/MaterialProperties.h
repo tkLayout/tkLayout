@@ -31,7 +31,6 @@ public:
 typedef RILength Material;
 
 
-namespace insur {
     /**
      * Errors and messages that may be reported during operations on member variables
      */
@@ -60,7 +59,7 @@ namespace insur {
         MaterialProperties();
         //virtual ~MaterialProperties() {} 
         // bureaucracy
-        Category getCategory();
+        Category getCategory() const;
         void setCategory(Category c);
         // to be used by the subclasses
         virtual double getSurface() const;
@@ -98,8 +97,8 @@ namespace insur {
         double getTotalMass() const;
         double getLocalMass();
         double getExitingMass();
-        double getRadiationLength();
-        double getInteractionLength();
+        double getRadiationLength() const;
+        double getInteractionLength() const ;
         RILength getMaterialLengths();
         const std::map<std::string, RILength>& getComponentsRI() const;
         // output calculations
@@ -152,6 +151,5 @@ namespace insur {
 //        bool newExitingComp(std::string comp);
 
     };
-}
 #endif	/* _MATERIALPROPERTIES_H */
 

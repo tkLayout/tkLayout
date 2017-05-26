@@ -8,15 +8,15 @@
 #ifndef BEAMPIPE_H_
 #define BEAMPIPE_H_
 
+#include <memory>
+
 #include "Property.h"
 #include "Visitable.h"
 
 // Forward declaration
-class GeometryVisitor;
 class ConstGeometryVisitor;
-namespace insur {
-  class InactiveTube;
-}
+class GeometryVisitor;
+class InactiveTube;
 
 /*
  * @class BeamPipe
@@ -30,7 +30,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   BeamPipe(const PropertyTree& treeProperty);
 
   //! Destructor
-  virtual ~BeamPipe();
+  ~BeamPipe();
 
   //! Build method - setting all parameters
   void build();
@@ -46,21 +46,18 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
 
   //! Get beam pipe material information
   //! @return InactiveTube, i.e. returns beam pipe as inactive element
-  const insur::InactiveTube* getMaterial() const;
+  const InactiveTube* getMaterial() const;
 
   // Beam pipe radius, thickness, thickness in rad. length, in int. length
   ReadonlyProperty<double, Default>   radius;           //!< Beam pipe radius
   ReadonlyProperty<double, Default>   thickness;        //!< Beam pipe thickness
   ReadonlyProperty<double, Default>   maxZ;             //!< Beam pipe extends from minimum Z to maximum Z
-  ReadonlyProperty<double, Default>   radLength;        //!< Beam pipe rad. length in [%] @ 90 deg
-  ReadonlyProperty<double, Default>   intLength;        //!< Beam pipe int. lenght in [%] @ 90 deg
+  ReadonlyProperty<double, Default>   radLength;        //!< Beam pipe rad. length @ 90 deg
+  ReadonlyProperty<double, Default>   intLength;        //!< Beam pipe int. lenght @ 90 deg
 
  private:
 
-  //! Copy constructor
-  BeamPipe(const BeamPipe&) = default;
-
-  insur::InactiveTube* m_tube; //!< Beam pipe as inactive tube;
+  std::unique_ptr<InactiveTube> m_tube; //!< Beam pipe as inactive tube;
 
 }; // Class
 

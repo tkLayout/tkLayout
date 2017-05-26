@@ -8,6 +8,8 @@
 #ifndef INCLUDE_UNITS_H_
 #define INCLUDE_UNITS_H_
 
+#include <math.h>
+
 namespace Units {
 
   static const float MeV = 1.0;
@@ -38,7 +40,7 @@ namespace Units {
 
   static const float s   = 1.0;
 
-  static const int     b   = 1.0;
+  static const float   b   = 1.0;
   static const float   B   = 8.0;
   static const float   kb  = 1.0 * 1024;
   static const double  Mb  = 1.0 * 1024 * 1024;
@@ -48,6 +50,10 @@ namespace Units {
   static const float   MB  = 8.0 * 1024 * 1024;
   static const double  GB  = 8.0 * 1024 * 1024 * 1024;
   static const double  TB  = 8.0 * 1024 * 1024 * 1024 * 1024;
+
+  static const double percent = 1E-2;
+  static const double degrees = M_PI/180.;
+  static const double radians = 1;
 } // Namespace
 
 #endif /* INCLUDE_UNITS_H_ */

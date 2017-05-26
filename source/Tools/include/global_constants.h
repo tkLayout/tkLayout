@@ -10,7 +10,7 @@
 #include <vector>
 #include <Rtypes.h>
 
-static const double                  magnetic_field     = 3.8;       // Tesla; CMS magnet field strength
+static const double                  magnetic_field     = 3.8;       // Tesla; CMS magnet field strength (used if not defined in SimParms config file)
 static const double                  trk_max_occupancy  = 0.01;      // Maximum required occupancy in the tracker
 static const std::vector<signed int> trk_pile_up        = {200,1000};// Considered pile-up scenarios
 static const double                  collision_freq     = 40000000;  // Collision frequency
@@ -21,18 +21,9 @@ static const long                    random_seed        = 0xcaffe;   // Random s
  * Geometry constants; all length measurements are in mm
  * @param epsilon The standard distance between one solid object and the next
  * @param volume_width The standard geometrical thickness of an inactive volume
- * @param inner_radius The inner radius of the tracker; the inner support tube starts immediately inside, everything below is part of the pixel detector
- * @param outer_radius The outer radius of the tracker; the outer support tube starts immediately outside, everything above is part of ECAL
- * @param max_length The maximum length, in +z, available to place the tracker components
  */
-static const std::vector<std::string> geom_name_eta_regions  = {""   ,"TRK-BRL","TRK-ENDCAP","TRK-FWD","TRK-IFWD"}; // Name tracker eta regions
-static const std::vector<double>      geom_range_eta_regions = {0.001,1.5      ,2.5         ,4.0      ,6.0       }; // Name tracker eta regions
-
 static const double geom_epsilon                    = 0.1;
 static const double geom_inactive_volume_width      = 10.0;   // mm
-static const double geom_inner_pixel_radius         = 25.0;   // mm
-static const double geom_inner_strip_radius         = 800.0;  // mm
-static const double geom_outer_strip_radius         = 2500.0; // mm
 static const double geom_z_threshold_service_zigzag = 100.0;
 static const double geom_top_volume_pad             = 200;    // mm
 
@@ -40,13 +31,6 @@ static const double geom_support_margin_bottom      = 1;      // mm
 static const double geom_support_margin_top         = 2;      // mm
 
 static const double geom_safety_factor              = 1.1;
-
-static const double geom_min_radius                 = geom_inner_pixel_radius;
-static const double geom_max_radius                 = geom_outer_strip_radius;
-static const double geom_max_length                 = 8000.0; // mm
-
-static const double geom_max_eta_coverage           = geom_range_eta_regions[geom_range_eta_regions.size()-1]; // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
-static const int    geom_n_eta_regions              = geom_range_eta_regions.size();                           // Tracking performed in the following Number of eta regions
 
 static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
 
@@ -84,21 +68,6 @@ static const int    vis_temperature_levels = 512;
 static const double vis_step_eta_short     = 0.2;
 static const double vis_step_eta_long      = 0.5;
 static const double vis_step_eta_epsilon   = 0.001;
-static const double vis_short_eta_coverage = geom_range_eta_regions[1];
-static const double vis_trk_eta_coverage   = geom_range_eta_regions[2];
-static const double vis_long_eta_coverage  = geom_range_eta_regions[3];
-
-static const double vis_max_dPtOverPt      = 500;  // [%]
-static const double vis_min_dPtOverPt      = 0.001; // [%]
-static const double vis_max_dZ0            = 5000.;
-static const double vis_min_dZ0            = 1.;
-static const double vis_max_dD0            = 5000.;
-static const double vis_min_dD0            = 1.;
-static const double vis_max_dPhi           = 100.;
-static const double vis_min_dPhi           = 1E-4;
-static const double vis_max_dCtgTheta      = 1.0;
-static const double vis_min_dCtgTheta      = 1E-6;
-
 static const double vis_safety_factor      = geom_safety_factor;
 
 static const int    vis_min_canvas_sizeX   = 600;
@@ -110,7 +79,8 @@ static const int    vis_max_canvas_sizeY   =1800;
 
 static const double vis_eta_step           = 0.1;
 static const double vis_material_eta_step  = 0.05;
-static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
+
+static const int style_grid = 3;
 
 /**
  * Internal string constants for standard one-sided and specialised double-sided, rotated types
@@ -121,11 +91,6 @@ static const std::string type_stereo = "stereo";
 /*
  *  Web variables: software name, site, branch, author, ...
  */
-static const std::string web_program_name          = "tkLayout";
-static const std::string web_program_site          = "https://github.com/drasal/tkLayout/tree/fcc"; // "https://github.com/alkemyst/tkLayout"
-static const std::string web_program_branch_name   = "FCC-hh";
-static const std::string web_program_branch_author = "Z.Drasal";
-
 static const std::string web_subStart   = "<sub>";      // These only should be needed
 static const std::string web_subEnd     = "</sub>";
 static const std::string web_superStart = "<sup>";
@@ -134,11 +99,20 @@ static const std::string web_smallStart = "<small>";
 static const std::string web_smallEnd   = "</small>";
 static const std::string web_emphStart  = "<b>";
 static const std::string web_emphEnd    = "</b>";
+static const std::string web_ampersand  = "&amp;";
 static const std::string web_muLetter   = "&mu;";
 static const std::string web_etaLetter  = "&eta;";
 static const std::string web_phiLetter  = "&phi;";
 static const std::string web_thetaLetter= "&theta;";
 static const std::string web_deltaLetter= "&delta;";
+static const std::string web_DeltaLetter= "&Delta;";
+static const std::string web_tauLetter  = "&tau;";
+
+static const int         web_priority_Geom = 99;
+static const int         web_priority_MB   = 89;
+static const int         web_priority_Resol= 79;
+static const int         web_priority_Occup= 69;
+static const int         web_priority_PR   = 59;
 
 /**
  * Filename and path constants
@@ -179,8 +153,5 @@ static const std::string default_configdir                     = "config";
 static const std::string default_stdincludedir                 = "stdinclude";
 static const std::string default_geometriesdir                 = "geometries";
 static const std::string default_htmldir                       = "results";
-
-static const std::string csv_separator = ",";
-static const std::string csv_eol = "\n";
 
 #endif /* _GLOBAL_CONSTANTS_H */

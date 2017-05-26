@@ -8,26 +8,23 @@
 #ifndef INCLUDE_GEOMETRYMANAGER_H_
 #define INCLUDE_GEOMETRYMANAGER_H_
 
-#include <vector>
+#include <boost/property_tree/ptree_fwd.hpp>
+#include <memory>
 #include <set>
 #include <string>
-#include <boost/property_tree/ptree_fwd.hpp>
+#include <vector>
 
 // Forward declarations
-class BeamPipe;
-class Tracker;
-namespace insur {
-  class InactiveSurfaces;
-}
+class Detector;
 
 /*
  * @class GeometryManager
- * @brief The core geometry class, building the overall tracker with its inactive components.
- * @details The core geometry class, building the overall tracker with its inactive components. The tracker consists of
- * individual sub-trackers and corresponding inactive parts. In addition various support structures, services, etc. are built
- * as well. As an interface for analysis, it provides several get methods to obtain geometrical info: vector of built active
- * trackers, their passive parts (passive trackers), supports etc. This class takes over the role of previous Squid class and
- * its geometry related methods ...
+ * @brief The core geometry class, building the overall tracker with its inactive components & beam-pipe, so called Detector.
+ * @details The core geometry class, building the overall tracker with its inactive components & beam-pipe, so called Detector.
+ * The tracker consists of individual sub-trackers and corresponding inactive parts. In addition various support structures,
+ * services, etc. are built as well. As an interface for analysis, it provides getDetector() methods to obtain geometrical info:
+ * built active, trackers, their passive parts (passive trackers), supports etc. This class takes over the role of previous
+ * Squid class and its geometry related methods ...
  */
 class GeometryManager {
 
@@ -40,32 +37,16 @@ class GeometryManager {
   //! Destructor - clean out the memory
   ~GeometryManager();
 
-  //! Build active part of the tracker (a bare-bones geometry of active modules). The resulting tracker object consists of individual sub-trackers
-  //! (pixel, strip, central, forward, ...). This procedure replaces the previously registered tracker (applying correct memory managment), if such an object
-  //! existed.
+  //! Build active part of the detector: individual trackers: pixel, strip, central, forward, ... (a bare-bones geometry of active modules).
   //! @return True if there were no errors during processing, false otherwise
-  bool buildActiveTracker();
+  bool buildActiveDetector();
 
-  //! Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
-  //! memory managment), if such an object existed.
+  //! Build all passive components related to individual active sub-trackers and/or beam-pipe.
   //! @return True if there were no errors during processing, false otherwise
-  bool buildPassiveTracker();
+  bool buildPassiveDetector();
 
-  //! Build beam pipe. This procedure replaces the previously registered beam pipe
-  //! @return True if there were no errors during processing, false otherwise
-  bool buildBeamPipe();
-
-  //! Get active sub-trackers
-  //! @return vector of pointers to active trackers
-  std::vector<const Tracker*> getActiveTrackers() const;
-
-  //! Get passive components related to active sub-trackers
-  //! @return vector of pointers to passive parts of trackers
-  std::vector<const insur::InactiveSurfaces*> getPassiveTrackers() const;
-
-  //! Get beam pipe
-  //! @return InactiveTube
-  const BeamPipe* getBeamPipe() const;
+  //! Get detector - container for active/passive parts of trackers, beam-pipe etc.
+  const Detector& getDetector() const {return *m_detector;}
 
   //! Get geometry layout name
   //! @return layout name
@@ -99,12 +80,10 @@ class GeometryManager {
   std::string m_htmlDir;     //!< Default html directory, where all results are saved
   std::string m_layoutName;  //!< Geometry layout name
 
-  boost::property_tree::ptree*   m_geomTree;       //!< Geometry property tree (built from the tree structure of geometry configuration files)
-  std::set<std::string>          m_includeSet;     //!< List of all configuration files obtained from the base geometry file using @include command
+  std::unique_ptr<boost::property_tree::ptree> m_geomTree;   //!< Geometry property tree (built from the tree structure of geometry configuration files)
+  std::set<std::string>                        m_includeSet; //!< List of all configuration files obtained from the base geometry file using @include command
 
-  std::vector<Tracker*>                 m_activeTrackers; //!< Vector of active sub-trackers
-  std::vector<insur::InactiveSurfaces*> m_passiveTrackers;//!< Vector of passive sub-trackers
-  BeamPipe*                             m_beamPipe;       //!< Passive surface (tube) simulating beam pipe
+  std::unique_ptr<Detector>                    m_detector;   //!< The overall detector geometry: trackers, beam-pipe, etc.
 
   // Constants
   const std::string c_defaultHtmlDir = "results";

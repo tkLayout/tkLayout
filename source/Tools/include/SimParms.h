@@ -28,7 +28,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
  public:
 
   //! SimParms access method -> get instance of singleton class SimParms
-  static SimParms* getInstance();
+  static SimParms& getInstance();
   
   //! Destructor
   ~SimParms();
@@ -39,7 +39,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! SimParms visitable -> implememented const accept method to call visitor pattern
   void accept(ConstGeometryVisitor& v) const;
 
-  //! Cross-check that Sim parameters correctly read-in from the file
+  //! Cross-check that Sim parameters correctly read-in from the file & set units
   void crosscheck();
 
   //! Set command line options passed over to program to analyze data
@@ -90,14 +90,28 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! @return set of all include files (strings)
   std::set<std::string> getListOfConfFiles() const {return m_includeSet;}
 
+  //! Get number of defined eta regions
+  size_t getNEtaRegions() const { return etaRegionRanges.size(); }
+
+  //! Get eta max value as defined by user in definition of various tracker eta regions
+  double getMaxEtaCoverage() const { if (etaRegionRanges.size()>0) return etaRegionRanges[etaRegionRanges.size()-1]; else return 0.0; }
+
+  //! Check whether magnetic field const. or defined as a function
+  bool isMagFieldConst() const { if (magField.size()==1) return true; else return false;}
+
+  //! Get number of defined mag. field regions
+  size_t getNMagFieldRegions() const { return magFieldZRegions.size(); }
+
   //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return *m_irradiationMapsManager;}
 
   // Variables to be read in by SimParms class from a configuration file
-  ReadonlyProperty<int   , NoDefault> numMinBiasEvents;
-  ReadonlyProperty<int   , NoDefault> zErrorCollider;
-  ReadonlyProperty<int   , NoDefault> rError;
-  ReadonlyProperty<bool  , NoDefault> useIPConstraint;
+  ReadonlyProperty<int   , NoDefault> numMinBiasEvents;     //!< Number of minimum bias events in p-p collision (#pile-ups)
+  ReadonlyProperty<double, NoDefault> zErrorIP;             //!< Defines typical size of luminous region in Z, typically sigmaZ_bunch/sqrt(2)
+  ReadonlyProperty<double, NoDefault> rphiErrorIP;          //!< Defines typical size of luminous region in R-Phi
+  ReadonlyProperty<bool  , Default>   useLumiRegInGeomBuild;//!< Apply luminous region constraints, when building geometry (build hermetic detector using z+-zErrorIP, rphiErrorIP negligible)
+  ReadonlyProperty<bool  , Default>   useLumiRegInAnalysis; //!< Apply luminous region constraints, when analysing geometry (resolution, pattern reco, etc.)
+  ReadonlyProperty<bool  , NoDefault> useIPConstraint;      //!< Use IP constraint in track fitting
   ReadonlyProperty<int   , NoDefault> ptCost;
   ReadonlyProperty<int   , NoDefault> stripCost;
   ReadonlyProperty<double, NoDefault> efficiency;
@@ -115,17 +129,17 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyProperty<double, Default>   alphaParm;
   ReadonlyProperty<double, Default>   referenceTemp;
 
-  ReadonlyProperty<double, Default>   magneticField;      //!< Central magnetic field in Tesla
-
-  // To include dipole region in a quick way
-  ReadonlyProperty<double, Default>   dipoleMagneticField;//!< Dipole integral magnetic field in [Tm]
-  ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;//!< Dipole deltaPl/Pl resolution of dipole tracker at 10 TeV
-  ReadonlyProperty<double, Default>   dipoleXToX0;        //  [%]
+  ReadonlyPropertyVector<double, ','> magField;             //!< Magnetic field [T] as a vector of approximate values of B(z) in predefined regions 0-z0, z0-z1, ...
+  ReadonlyPropertyVector<double, ','> magFieldZRegions;     //!< Regions [m], in which the magnetic field values (B(z)) are defined, regions defined as a sequence of z0 [m], z1 [m], ... -> intervals 0-z0; z0-z1, etc.
 
   PropertyVector<std::string, ','>    irradiationMapFiles;
-  //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
-  Property<std::string, Default> bFieldMapFile;           // Map of b field - not currently currently for tracking
+  // Define eta regions & region names to be plotted when drawing geometry.
+  // The last value of region ranges represents the maximum tracker eta coverage -> used by analysis modules
+  ReadonlyPropertyVector<double     , ','> etaRegionRanges; //!< Set ordered eta regions, the last one being maximum tracker eta coverage (e.g. 0, 2.5, 4.0)
+  ReadonlyPropertyVector<std::string, ','> etaRegionNames;  //!< Set names for ordered eta borders (e.g TRK-0, TRK-BRL, TRK-MAX)
+
+  Property<std::string, Default> bFieldMapFile;           // Map of b field - currently forvisualization use only (not for tracking)
   Property<std::string, Default> chargedMapFile;          // Map of charged hadron fluxes, segmented in R x Z
   Property<std::string, Default> chargedMapLowThFile;     // Map of charged hadron fluxes - electrons with lower threshold, segmented in R x Z
   Property<std::string, Default> chargedMapBOffMatOnFile; // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied
@@ -147,8 +161,6 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   //! Singleton private constructor -> initialize all variables to be read-out from configuration file & define if checker should be called after parsing
   SimParms();
 
-  static SimParms*       s_instance;     //!< An instance of SimParms class - singleton pattern
-
   std::string            m_commandLine;  //!< Command line options passed over to program to analyze data
   std::string            m_geomFile;     //!< Name of main geometry config file
   std::string            m_baseDir;      //!< Base tkLayout run directory
@@ -156,7 +168,7 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   std::string            m_layoutName;   //!< Geometry layout name
   std::set<std::string>  m_includeSet;   //!< List of all configuration files obtained from the base geometry file using @include command
 
-  IrradiationMapsManager* m_irradiationMapsManager; //!< Irradiation maps manager
+  std::unique_ptr<IrradiationMapsManager> m_irradiationMapsManager; //!< Irradiation maps manager
 
 
 

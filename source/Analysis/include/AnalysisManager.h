@@ -9,18 +9,14 @@
 #define INCLUDE_ANALYSISMANAGER_H_
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
 class AnalyzerUnit;
-class BeamPipe;
+class Detector;
 class RootWSite;
-namespace insur {
-  class InactiveSurfaces;
-}
-class Support;
-class Tracker;
 
 /*
  * @class AnalysisManager
@@ -41,14 +37,10 @@ class AnalysisManager {
  public:
 
   //! Constructor - create instances of all available analyzer units & prepare web container
-  //! @param[in] activeTrackers  List of all active sub-trackers
-  //! @param[in] passiveTrackers List of passives related to active sub-trackers
-  //! @param[in] beamPipe        Passive surface (tube) simulating beam pipe
-  AnalysisManager(std::vector<const Tracker*> activeTrackers,
-                  std::vector<const insur::InactiveSurfaces*> passiveTrackers,
-                  const BeamPipe* beamPipe);
+  //! @param[in] detector - List of all active sub-trackers + its passive parts and the beam pipe
+  AnalysisManager(const Detector& detector);
 
-  //! Destructor -
+  //! Destructor
   ~AnalysisManager();
 
   //! Initialize required analyzer unit
@@ -89,10 +81,10 @@ class AnalysisManager {
   //! @return True if any logs found
   bool makeWebLogPage();
 
-  RootWSite*  m_webSite;         //!< Web container, where all analysis results will be available
-  bool        m_webSitePrepared; //!< Web container correctly prepared
+  std::unique_ptr<RootWSite> m_webSite;         //!< Web container, where all analysis results will be available
+  bool                       m_webSitePrepared; //!< Web container correctly prepared
 
-  std::map<std::string, AnalyzerUnit*> m_units; //!< List of all available analyzer units
+  std::map<std::string, std::unique_ptr<AnalyzerUnit>> m_units; //!< List of all available analyzer units
 
 }; // Class
 

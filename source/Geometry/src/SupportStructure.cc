@@ -7,20 +7,17 @@
 
 #include <set>
 #include "SupportStructure.h"
+
 #include "MaterialTab.h"
 #include "MessageLogger.h"
 #include "MaterialProperties.h"
 #include "InactiveElement.h"
 #include "InactiveTube.h"
 #include "InactiveRing.h"
-#include "InactiveSurfaces.h"
 #include "Barrel.h"
 #include "Endcap.h"
+#include "Units.h"
 
-using insur::InactiveTube;
-using insur::InactiveRing;
-
-namespace material {
   //=============== begin class SupportStructure
   const std::map<std::string, SupportStructure::Type> SupportStructure::typeStringMap = {
     {"custom", CUSTOM},
@@ -45,7 +42,7 @@ namespace material {
   {}
   
   void SupportStructure::buildInTracker() {
-    InactiveElement* inactiveElement;
+    //InactiveElement* inactiveElement;
 
     buildBase();
 
@@ -150,7 +147,7 @@ namespace material {
                                MAX(0, barrel.minZ()),
                                barrel.maxR() + autoLayerMarginLower,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Top barrel support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Top barrel support>> " << "maxR: " << barrel.maxR() + autoLayerMarginLower << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel top support structure horizontally oriented");
       break;
     case BOTTOM :
@@ -159,7 +156,7 @@ namespace material {
                                MAX(0, barrel.minZ()),
                                barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Bottom barrel support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Bottom barrel support>> " << "minR: " << barrel.minR() - inactiveElementWidth - autoLayerMarginUpper << " minZ: " << MAX(0, barrel.minZ()) << " maxZ: " << barrel.maxZ() << std::endl;
       logINFO("Building barrel bottom support structure horizontally oriented");
       break;
     default :
@@ -189,7 +186,7 @@ namespace material {
                                MAX(0, endcap.minZ()),
                                endcap.maxR() + autoLayerMarginLower,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap top support structure horizontally oriented");
       break;
     case BOTTOM :
@@ -199,7 +196,7 @@ namespace material {
                                MAX(0, endcap.minZ()),
                                endcap.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap bottom support structure horizontally oriented");
       break;
     default :
@@ -209,11 +206,26 @@ namespace material {
     cleanup();
   }
 
-  void SupportStructure::updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces) {
-    for(InactiveElement* inactiveElement : inactiveElements) {
-      inactiveSurfaces.addSupportPart(*inactiveElement);
-    }
+  //
+  // GeometryVisitor pattern -> support structure visitable
+  //
+  void SupportStructure::accept(GeometryVisitor& v)
+  {
+    v.visit(*this);
   }
+
+  //
+  // GeometryVisitor pattern -> support structure visitable (const. option)
+  //
+  void SupportStructure::accept(ConstGeometryVisitor& v) const {
+    v.visit(*this);
+  }
+
+//  void SupportStructure::updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces) {
+//    for(auto& inactiveElement : inactiveElements) {
+//      inactiveSurfaces.addSupportPart(inactiveElement);
+//    }
+//  }
 
   void SupportStructure::buildBase() {
     for (auto& currentComponentNode : componentsNode) {
@@ -238,47 +250,27 @@ namespace material {
     InactiveElement* zNegativeElement;
 
     if(direction == HORIZONTAL) {
-      zPositiveElement = new InactiveTube;
-      zPositiveElement->setZLength(length);
-      zPositiveElement->setZOffset(startZ);
-      zPositiveElement->setInnerRadius(startR);
-      zPositiveElement->setRWidth(inactiveElementWidth);
-      zPositiveElement->setFinal(true);
-      //zPositiveElement->setCategory(insur::MaterialProperties::o_sup);      
-      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);      
+      zPositiveElement = new InactiveTube(startZ,length,startR,inactiveElementWidth);
+      //zPositiveElement->setCategory(MaterialProperties::o_sup);
+      zPositiveElement->setCategory(MaterialProperties::b_sup);
 
-      zNegativeElement = new InactiveTube;
-      zNegativeElement->setZLength(length);
-      zNegativeElement->setZOffset(-1 * startZ - length);
-      zNegativeElement->setInnerRadius(startR);
-      zNegativeElement->setRWidth(inactiveElementWidth);
-      zNegativeElement->setFinal(true);
-      //zNegativeElement->setCategory(insur::MaterialProperties::o_sup);      
-      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);      
+      zNegativeElement = new InactiveTube(-1*startZ-length,length,startR,inactiveElementWidth);
+      //zNegativeElement->setCategory(MaterialProperties::o_sup);
+      zNegativeElement->setCategory(MaterialProperties::b_sup);
     } else {
-      zPositiveElement = new InactiveRing;
-      zPositiveElement->setZLength(inactiveElementWidth);
-      zPositiveElement->setZOffset(startZ);
-      zPositiveElement->setInnerRadius(startR);
-      zPositiveElement->setRWidth(length);
-      zPositiveElement->setFinal(true);
-      //zPositiveElement->setCategory(insur::MaterialProperties::u_sup);
-      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);
+      zPositiveElement = new InactiveRing(startZ,inactiveElementWidth,startR,length);
+      //zPositiveElement->setCategory(MaterialProperties::u_sup);
+      zPositiveElement->setCategory(MaterialProperties::b_sup);
 
-      zNegativeElement = new InactiveRing;
-      zNegativeElement->setZLength(inactiveElementWidth);
-      zNegativeElement->setZOffset(-1 * startZ - inactiveElementWidth);
-      zNegativeElement->setInnerRadius(startR);
-      zNegativeElement->setRWidth(length);
-      zNegativeElement->setFinal(true);
-      //zNegativeElement->setCategory(insur::MaterialProperties::u_sup);
-      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);
+      zNegativeElement = new InactiveRing(-1*startZ-inactiveElementWidth,inactiveElementWidth,startR,length);
+      //zNegativeElement->setCategory(MaterialProperties::u_sup);
+      zNegativeElement->setCategory(MaterialProperties::b_sup);
     }
 
       populateMaterialProperties(*zPositiveElement);
       populateMaterialProperties(*zNegativeElement);
-      inactiveElements.push_back(zPositiveElement);
-      inactiveElements.push_back(zNegativeElement);
+      m_inactiveElements.push_back(zPositiveElement);
+      m_inactiveElements.push_back(zNegativeElement);
   }
 
 
@@ -330,7 +322,7 @@ namespace material {
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
-    materialTab_ (MaterialTab::instance()) {}
+    m_materialTab (MaterialTab::getInstance()) {}
     
   const std::string SupportStructure::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -349,12 +341,12 @@ namespace material {
         break;
 
       case Element::GRAMS_METER:
-        returnVal = length * quantity() / 1000.0;
+        returnVal = length * quantity() * Units::g/Units::m;
         break;
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
-        double elementDensity = materialTab_.density(elementNameString);
+        double elementDensity = m_materialTab.density(elementNameString);
         returnVal = elementDensity * surface * quantity();
         break;
       }
@@ -375,5 +367,3 @@ namespace material {
   }
   
   //=============== end class SupportStructure::Element
-}
-

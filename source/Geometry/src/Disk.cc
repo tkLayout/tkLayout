@@ -1,16 +1,19 @@
 #include "Disk.h"
+
 #include "MessageLogger.h"
 #include "ConversionStation.h"
+#include "SimParms.h"
+
 
 Disk::Disk(int id, double zOffset, double zECCentre, double zECHalfLength, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
  m_materialObject(MaterialObject::LAYER),
  m_flangeConversionStation(nullptr),
  numRings(      "numRings"   , parsedAndChecked()),
- zError(        "zError"     , parsedAndChecked()),
+ zError(        "zError"     , parsedAndChecked(), SimParms::getInstance().useLumiRegInGeomBuild() ? SimParms::getInstance().zErrorIP() : 0.0),
  m_innerRadius( "innerRadius", parsedAndChecked()),
  m_outerRadius( "outerRadius", parsedAndChecked()),
- m_bigDelta(    "bigDelta"   , parsedAndChecked()),
- m_rOverlap(    "rOverlap"   , parsedOnly(), 1.),
+ bigDelta(      "bigDelta"   , parsedAndChecked()),
+ rOverlap(      "rOverlap"   , parsedOnly(), 1.),
  m_bigParity(   "bigParity"  , parsedOnly(), 1),
  m_ringNode(    "Ring"       , parsedOnly()),
  m_stationsNode("Station"    , parsedOnly()),
@@ -30,10 +33,12 @@ Disk::Disk(int id, double zOffset, double zECCentre, double zECHalfLength, const
 //
 void Disk::setup()
 {
-  minZ.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZ()); } return min; });
-  maxZ.setup([&]() { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
-  minR.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minR()); } return min; });
-  maxR.setup([&]() { double max = 0;                                   for (const Ring& r : m_rings) { max = MAX(max, r.maxR()); } return max; });
+  minZ.setup([&]()       { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZ()); } return min; });
+  maxZ.setup([&]()       { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
+  minZAllMat.setup([&]() { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minZAllMat()); } return min; });
+  maxZAllMat.setup([&]() { double max = -std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { max = MAX(max, r.maxZAllMat()); } return max; });
+  minR.setup([&]()       { double min = +std::numeric_limits<double>::max(); for (const Ring& r : m_rings) { min = MIN(min, r.minR()); } return min; });
+  maxR.setup([&]()       { double max = 0;                                   for (const Ring& r : m_rings) { max = MAX(max, r.maxR()); } return max; });
   maxRingThickness.setup([&]() { double max = 0; for (const Ring& r : m_rings) { max = MAX(max, r.thickness()); } return max; });
   totalModules.setup([&]()     { int cnt = 0;    for (const Ring& r : m_rings) { cnt += r.numModules(); } return cnt; });
 }
@@ -125,8 +130,8 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     else {
 
       // Calcaluate new and last position in Z
-      double newZ  = m_zEndcapCentre + (parity > 0 ? + m_bigDelta() : - m_bigDelta()) - ring->smallDelta() - getDsDistance(buildDsDistances, i)/2;
-      double lastZ = m_zEndcapCentre + (parity > 0 ? - m_bigDelta() : + m_bigDelta()) + lastSmallDelta     + getDsDistance(buildDsDistances, i)/2;
+      double newZ  = m_zEndcapCentre + (parity > 0 ? + bigDelta() : - bigDelta()) - ring->smallDelta() - getDsDistance(buildDsDistances, i)/2;
+      double lastZ = m_zEndcapCentre + (parity > 0 ? - bigDelta() : + bigDelta()) + lastSmallDelta     + getDsDistance(buildDsDistances, i)/2;
 
       // Calculate shift in Z position of extreme cases (either innemost or outermost disc)
       // Remember that disc put always in to the centre of endcap
@@ -136,7 +141,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
       double errorShiftZ   = parity > 0 ? -zError() : +zError();
 
       // Calculate next rho taking into account overlap in extreme cases of innermost or outermost disc
-      double nextRhoWOverlap  = (lastRho - m_rOverlap())/(lastZ - shiftZ)*(newZ - shiftZ);
+      double nextRhoWOverlap  = (lastRho - rOverlap())/(lastZ - shiftZ)*(newZ - shiftZ);
       // Calculate next rho taking into account overlap zError in extreme cases of innermost or outermost disc
       double nextRhoWZError   = (lastRho)/(lastZ - shiftZ - errorShiftZ)*(newZ - shiftZ - errorShiftZ);
 
@@ -147,14 +152,14 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
 
        // For debug test only
        //std::cout << ">>> noOverlap:        " << (lastRho)/lastZ * newZ              << " New [ ; ]: " << (lastRho)/(lastZ - zHalfLength()) * (newZ - zHalfLength()) << " " << (lastRho)/(lastZ + zHalfLength()) * (newZ + zHalfLength()) << std::endl;
-       //std::cout << ">>> yesOverlap:       " << (lastRho - m_rOverlap())/lastZ * newZ << " New [ ; ]: " << (lastRho - m_rOverlap())/(lastZ - zHalfLength()) * (newZ - zHalfLength()) << " " << (lastRho - m_rOverlap())/(lastZ + zHalfLength()) * (newZ + zHalfLength()) << std::endl;
+       //std::cout << ">>> yesOverlap:       " << (lastRho - rOverlap())/lastZ * newZ << " New [ ; ]: " << (lastRho - rOverlap())/(lastZ - zHalfLength()) * (newZ - zHalfLength()) << " " << (lastRho - rOverlap())/(lastZ + zHalfLength()) * (newZ + zHalfLength()) << std::endl;
        //std::cout << ">>> yesZErr:          " << (lastRho)/lastZ * newZ              << " New [ ; ]: " << (lastRho)/(lastZ - zError() - zHalfLength()) * (newZ - zError() - zHalfLength()) << " " << (lastRho)/(lastZ + zError() + zHalfLength()) * (newZ + zError() + zHalfLength()) << std::endl;
        //
        //std::cout << ">>> ShiftZ: " << shiftZ << " ErrorZ: " << errorShiftZ << " nR: "<< nextRhoWOverlap << " nRShifted: " << nextRhoWZError << std::endl;
     }
 
     // Z shift by +-bigDelta within a disk
-    ringZOffset = parity > 0 ? m_bigDelta() : -m_bigDelta();
+    ringZOffset = parity > 0 ? bigDelta() : -bigDelta();
 
     // Build ring
     ring->buildCropRadius(m_outerRadius());
@@ -165,7 +170,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     m_ringIndexMap[i] = ring;
 
     // Keep for next calculation
-    lastRho        = ring->maxR();
+    lastRho        = ring->ringOuterRadius();
     lastSmallDelta = ring->smallDelta();
 
   } // For
@@ -191,8 +196,8 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     else {
 
       // Calcaluate new and last position in Z
-      double newZ  = m_zEndcapCentre + (parity > 0 ? + m_bigDelta() : - m_bigDelta()) + ring->smallDelta() + getDsDistance(buildDsDistances, i)/2; // CUIDADO was + smallDelta + dsDistances[nRing-1]/2;
-      double lastZ = m_zEndcapCentre + (parity > 0 ? - m_bigDelta() : + m_bigDelta()) - lastSmallDelta     - getDsDistance(buildDsDistances, i+1)/2; // CUIDADO was - smallDelta - dsDistances[nRing-1]/2; // try with prevRing here
+      double newZ  = m_zEndcapCentre + (parity > 0 ? + bigDelta() : - bigDelta()) + ring->smallDelta() + getDsDistance(buildDsDistances, i)/2; // CUIDADO was + smallDelta + dsDistances[nRing-1]/2;
+      double lastZ = m_zEndcapCentre + (parity > 0 ? - bigDelta() : + bigDelta()) - lastSmallDelta     - getDsDistance(buildDsDistances, i+1)/2; // CUIDADO was - smallDelta - dsDistances[nRing-1]/2; // try with prevRing here
 
       // Calculate shift in Z position of extreme cases (either innemost or outermost disc)
       // Remember that disc put always in to the centre of endcap
@@ -202,7 +207,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
       double errorShiftZ   = parity > 0 ? +zError() : -zError();
 
       // Calculate next rho taking into account overlap in extreme cases of innermost or outermost disc
-      double nextRhoWOverlap  = (lastRho + m_rOverlap())/(lastZ - shiftZ)*(newZ - shiftZ);
+      double nextRhoWOverlap  = (lastRho + rOverlap())/(lastZ - shiftZ)*(newZ - shiftZ);
       // Calculate next rho taking into account overlap zError in extreme cases of innermost or outermost disc
       double nextRhoWZError   = (lastRho)/(lastZ - shiftZ - errorShiftZ)*(newZ - shiftZ - errorShiftZ);
 
@@ -212,7 +217,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     }
 
     // Z shift by +-bigDelta within a disk
-    ringZOffset = parity > 0 ? m_bigDelta() : -m_bigDelta();
+    ringZOffset = parity > 0 ? bigDelta() : -bigDelta();
 
     // Build ring
     ring->build(ringRadius, ringZOffset);
@@ -222,7 +227,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     m_ringIndexMap[i] = ring;
 
     // Keep for next calculation
-    lastRho        = ring->minR();
+    lastRho        = ring->ringInnerRadius();
     lastSmallDelta = ring->smallDelta();
   } // For
 }

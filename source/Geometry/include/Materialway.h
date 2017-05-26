@@ -16,28 +16,17 @@
 #include "MaterialObject.h"
 //#include "global_constants.h"
 
-class DetectorModule;
-class Tracker;
 class Barrel;
-class Endcap;
-class Visitable;
+class DetectorModule;
 class Disk;
+class Endcap;
+class InactiveElement;
+class InactiveRing;
+class InactiveTube;
 class Layer;
-
-namespace insur {
-  class InactiveSurfaces;
-  class InactiveTube;
-  class InactiveRing;
-  class InactiveElement;
-  class MatCalc;
-}
-
-using insur::InactiveSurfaces;
-using insur::InactiveTube;
-using insur::InactiveRing;
-using insur::InactiveElement;
-using insur::MatCalc;
-
+class MatCalc;
+class Tracker;
+class Visitable;
 
 namespace material {
   static const std::string inactiveElementError = "Section without inactiveElement.";
@@ -270,7 +259,7 @@ namespace material {
     Materialway();
     virtual ~Materialway();
 
-    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface); //, WeightDistributionGrid& weightDistribution);
+    bool build(Tracker& tracker);//, InactiveSurfaces& inactiveSurface); //, WeightDistributionGrid& weightDistribution);
 
     static const double gridFactor;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                             actually transforms millimiters in microns */
@@ -318,8 +307,8 @@ namespace material {
     void duplicateSections();
     void populateAllMaterialProperties(Tracker& tracker); //, WeightDistributionGrid& weightDistribution);
     //void calculateMaterialValues(Tracker& tracker);
-    void buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface);
-    void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
+    void assignServices(Tracker& tracker); //, InactiveSurfaces& inactiveSurface);
+    void calculateMaterialValues(Tracker& tracker); //InactiveSurfaces& inactiveSurface, Tracker& tracker);
     //InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
 

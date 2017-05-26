@@ -11,7 +11,7 @@
 #include <GeometryManager.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <SvnRevision.h>
+#include <GitRevision.h>
 
 namespace po = boost::program_options;
 
@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
   int verbosity;
 
   std::string geomFile, optFile;
+  std::string expOption;
 
   // Program options - analysis
   po::options_description shown("Analysis options");
@@ -38,9 +39,11 @@ int main(int argc, char* argv[]) {
     ("material-tracks,N", po::value<int>(&matTracks)->default_value(default_n_tracks), "Number of tracks for material & resolution calculations.")
     ("occupancy,o"      , "Report occupancy studies based on Fluka data.")
     ("geometry,g"       , "Report geometry layout.")
-    ("material,m"       , "Report material buget.")
+    ("material,m"       , "Report material budget.")
+    ("patternreco,p"    , "Report pattern recognition capabilities in given occupancy (using Fluka data).")
     ("resolution,r"     , "Report resolution studies.")
     ("all,a"            , "Report all studies.")
+    ("extraction,e"     , po::value<std::string>(&expOption)->implicit_value("CMS"), "Extract tkLayout geometry to an XML file to be used in CMS/FCC SW frameworks. Supported values: CMS or FCC.")
     ("verbosity"        , po::value<int>(&verbosity)->default_value(1), "Verbosity level (Overridden by the option 'quiet').")
     ("quiet"            , "No output produced (Equivalent to verbosity 0, overrides the 'verbosity' option).")
     ("performance"      , "Outputs the CPU time needed for each computing step (Overrides the option 'quiet').")
@@ -82,6 +85,9 @@ int main(int argc, char* argv[]) {
     if (matTracks < 1)  throw po::invalid_option_value("material-tracks");
     if (!progOptions.count("geom-file") && !progOptions.count("help") && !progOptions.count("version")) throw po::error("Missing configuration/geometry file");
 
+    // Check supported experimental option for full geometry extraction
+    if (progOptions.count("extraction") && expOption!="CMS" && expOption!="FCC") throw po::invalid_option_value("extraction");
+
   } catch(po::error& e) {
 
     // Display the following options after program starts without configuration
@@ -98,7 +104,7 @@ int main(int argc, char* argv[]) {
 
   // Print version
   if (progOptions.count("version")) {
-    std::cout << "tklayout revision " << SvnRevision::revisionNumber << std::endl;
+    std::cout << "tklayout revision " << GitRevision::revisionNumber << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -114,36 +120,35 @@ int main(int argc, char* argv[]) {
   if (progOptions.count("quiet"))       verboseWatch = 0;
   if (progOptions.count("performance")) verboseWatch = 1;
 
-  StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
+  StopWatch::getInstance().setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build full tracker + beam pipe
+  // Build full detector: tracker (active + passive parts) + beam pipe
   GeometryManager gManager(geomFile);
-  bool activeTrackerOK  = gManager.buildActiveTracker();
-  bool passiveTrackerOK = gManager.buildPassiveTracker();
-  bool beamPipeOK       = gManager.buildBeamPipe();
+  bool activeDetOK  = gManager.buildActiveDetector();
+  bool passiveDetOK = gManager.buildPassiveDetector();
 
   //
   // Set simulation generic parameters
-  auto simParms = SimParms::getInstance();
-  simParms->setCommandLine(argc, argv);
-  simParms->setLayoutName(gManager.getLayoutName());
-  simParms->setBaseGeomFileName(gManager.getBaseGeomFileName());
-  simParms->setRunDirPath(gManager.getRunDirPath());
-  simParms->setWebDir(gManager.getWebDir());
-  simParms->setListOfConfFiles(gManager.getListOfConfFiles());
+  auto& simParms = SimParms::getInstance();
+  simParms.setCommandLine(argc, argv);
+  simParms.setLayoutName(gManager.getLayoutName());
+  simParms.setBaseGeomFileName(gManager.getBaseGeomFileName());
+  simParms.setRunDirPath(gManager.getRunDirPath());
+  simParms.setWebDir(gManager.getWebDir());
+  simParms.setListOfConfFiles(gManager.getListOfConfFiles());
 
   //
   // Analyze tracker - create analysis manager
-  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getBeamPipe());
+  AnalysisManager aManager(gManager.getDetector());
 
   // Call individual analyzer units
   bool isAnalysisOK      = false;
   bool isVisualizationOK = false;
-  if (activeTrackerOK) {
+  if (activeDetOK) {
 
     // Geometry layout study
-    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
+    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution") || progOptions.count("patternreco") || progOptions.count("occupancy")) {
 
       startTaskClock("Analyzing tracker geometry");
       aManager.initUnit(geomTracks, "AnalyzerGeometry");
@@ -155,7 +160,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Material budget study
-    if ((progOptions.count("all") || progOptions.count("material")) && beamPipeOK && passiveTrackerOK) {
+    if ((progOptions.count("all") || progOptions.count("material") || progOptions.count("resolution")) && passiveDetOK) {
 
       startTaskClock("Analyzing material budget");
       aManager.initUnit(matTracks, "AnalyzerMatBudget");
@@ -167,7 +172,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Resolution study
-    if ((progOptions.count("all") || progOptions.count("resolution")) && beamPipeOK && passiveTrackerOK) {
+    if ((progOptions.count("all") || progOptions.count("resolution")) && passiveDetOK) {
 
       startTaskClock("Analyzing resolution");
       aManager.initUnit(matTracks, "AnalyzerResolution");
@@ -176,6 +181,50 @@ int main(int argc, char* argv[]) {
       stopTaskClock();
       if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
       if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
+    }
+
+    // Pattern-recognition study
+    if ((progOptions.count("all") || progOptions.count("patternreco")) && passiveDetOK) {
+
+      startTaskClock("Analyzing pattern recognition");
+      aManager.initUnit(matTracks, "AnalyzerPatternReco");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerPatternReco");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerPatternReco");
+      stopTaskClock();
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerPatternReco -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerPatternReco -> visualization failed!");
+    }
+
+    // Occupancy study
+    if (progOptions.count("all") || progOptions.count("occupancy")) {
+
+      startTaskClock("Analyzing occupancy");
+      aManager.initUnit(matTracks, "AnalyzerOccupancy");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerOccupancy");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerOccupancy");
+      stopTaskClock();
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerOccupancy -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerOccupancy -> visualization failed!");
+    }
+
+    // Geometry extractor to CMSSW
+    if (progOptions.count("extraction") && expOption=="CMS") {
+
+      startTaskClock("Extracting geometry for use in CMSSW");
+      aManager.initUnit(matTracks, "ExtractorCMSSW");
+      isAnalysisOK      = aManager.analyzeUnit("ExtractorCMSSW");
+      stopTaskClock();
+      if (!isAnalysisOK) logERROR("Error in ExtractorCMSSW -> extraction failed!");
+    }
+
+    // Geometry extractor to FCCSW
+    if (progOptions.count("extraction") && expOption=="FCC") {
+
+      startTaskClock("Extracting geometry for use in FCCSW");
+      aManager.initUnit(matTracks, "ExtractorFCCSW");
+      isAnalysisOK      = aManager.analyzeUnit("ExtractorFCCSW");
+      stopTaskClock();
+      if (!isAnalysisOK) logERROR("Error in ExtractorFCCSW -> extraction failed!");
     }
   }
 

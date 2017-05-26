@@ -58,7 +58,7 @@ a
 	color: #E8EFC2;
 	font-weight: normal;
 	font-size: 1.1em;
-	text-transform: lowercase;
+/*	text-transform: lowercase; */
 }
 
 /* Menu */
@@ -90,7 +90,7 @@ color: white; /*text color*/
 padding: 5px 11px;
 text-decoration: none;
 border-right: 0px solid #5D5F53; /*dark purple divider between menu items*/
-	text-transform: lowercase;
+/*	text-transform: lowercase; */
 	font-size: 1.1em;
 	font-weight: normal;
 }
@@ -237,7 +237,7 @@ background: white;
 }
 #primaryContent h2, #primaryContent h3
 {
-	text-transform: lowercase;
+/*	text-transform: lowercase; */
 	color: #5D5F53;
 	border-bottom: dotted 1px #ECEEDF;
 	padding-bottom: 0.3em;
@@ -288,7 +288,7 @@ background: white;
 	font-weight: bold;
 	padding-left: 15px;
 	padding-top: 5px;
-	text-transform: lowercase;
+/*	text-transform: lowercase; */
 	color: #5D5F53;
 }
 /* Secondary Content */

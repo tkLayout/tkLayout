@@ -1,19 +1,17 @@
 #ifndef INCLUDE_RODPAIR_H_
 #define INCLUDE_RODPAIR_H_
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <functional>
 #include <algorithm>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "global_funcs.h"
 #include "GeometryFactory.h"
 #include "Property.h"
 #include "DetectorModule.h"
 #include "MessageLogger.h"
+#include "Ring.h"
 #include "Visitable.h"
 
 using std::string;
@@ -21,10 +19,19 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-typedef PtrVector<BarrelModule>            BarrelModules;
+// Typedefs
+typedef PtrVector<RodPair> Rods;
+typedef PtrVector<BarrelModule> RodTemplate;
 
 enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
+
+// Structs
+//struct TiltedModuleSpecs {
+//  double r, z, tiltAngle;
+//  bool   isFlat;
+//  bool   valid() const { return r > 0.0 && fabs(tiltAngle) <= 2*M_PI; }
+//};
 
 /*
  * @class RodPair
@@ -36,12 +43,16 @@ enum class StartZMode { MODULECENTER, MODULEEDGE };
 class RodPair : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 
  public:
+  typedef PtrVector<BarrelModule> Container;
 
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use number of modules to build rod
   RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, int numModules, const PropertyTree& treeProperty);
 
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
   RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, double outerZ , const PropertyTree& treeProperty);
+
+  //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> meant for tilted part (TODO: needs to be rearranged still)
+  RodPair(int id, double rotation, const PropertyTree& treeProperty);
 
   //! Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
    void buildClone(int id, double shiftR, double rotation);
@@ -51,6 +62,8 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
 
   //! Limit rod geometry by eta cut
   void cutAtEta(double eta);
+
+  void rotateZ(double angle);
 
   //! Return rod modules as a pair of modules on positive Z (first) & negative Z (second)
   const std::pair<const BarrelModules&,const BarrelModules&> modules() const { return std::pair<const BarrelModules&,const BarrelModules&>(m_zPlusModules,m_zMinusModules); }
@@ -73,12 +86,16 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   //! Get rod thickness - purely virtual method
   virtual double thickness() const = 0;
 
+  //! Is rod tilted or straight
+  virtual bool   isTilted() const = 0;
+
   ReadonlyProperty<double, Computable> maxZ;               //!< Maximum rod Z
   ReadonlyProperty<double, Computable> minZ;               //!< Minimum rod Z
   ReadonlyProperty<double, Computable> minR;               //!< Minimum rod radius
   ReadonlyProperty<double, Computable> maxR;               //!< Maximum rod radius
+  ReadonlyProperty<double, Computable> minRAllMat;         //!< Minimum rod radius taking into account all material structures
+  ReadonlyProperty<double, Computable> maxRAllMat;         //!< Maximum rod radius taking into account all material structures
   ReadonlyProperty<double, Computable> maxModuleThickness; //!< Calculated maximum module thickness in a rod
-  Property<        bool  , Default>    beamSpotCover;      //!< Take into account beam spot size when positioning modules
 
  protected:
 
@@ -118,23 +135,38 @@ public:
   //! Get rod thickness
   double thickness() const override { return m_smallDelta*2. + maxModuleThickness(); }
 
+  //! Does it have a central module in Z, i.e. "symmetric" around Z=0 (if not used balancing algorithm)?
+  bool hasCentralModule() const { if (m_startZMode()==StartZMode::MODULECENTER) return true; else return false; }
+
   RangeProperty<std::vector<double> > forbiddenRange;
 
   Property<double, Default>   zOverlap;            //!< Required overlap of modules in Z (in length units)
-  Property<double, NoDefault> zError;              //!< When positioning modules take into account beam spot spread in Z
-  Property<bool  , Default>   compressed;          //!< Modules will be compressed in Z, if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
+  Property<double, Default>   zError;              //!< When positioning modules take into account beam spot spread in Z
+  Property<bool  , Default>   useCompression;      //!< Modules will be compressed in Z, if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
   Property<bool  , Default>   allowCompressionCuts;//!< During compression algorithm cut out modules behind outerZ first
+  Property<bool  , Default>   useBalancing;        //!< Use balancing algorithm to balance -Z & +Z side to have hermetic coverage (useful for if modules positioned with edge at Z=0)
+
+  Property<double, Computable> thetaEnd;           //!< Theta angle corresponding to the edge of the outermost module in Z
+
+  const int smallParity() const          { return m_smallParity; };
+  bool      isTilted()    const override { return false; }
 
  private:
+
+  //! Cross-check parameters provided from geometry configuration file
+  void check() override;
 
   //! Helper method calculating module optimal Z position taking into account small/bigDelta, beam spot sizes etc. -> to fully cover eta region
   double computeNextZ(double lastRPos, double newRPos, double lastZPos, double moduleLength, double lastDsDistance, double newDsDistance, BuildDir direction, int parity);
 
-  //! Helper method compressing modules in Z direction (symmetrically from minus/plus Z) such as they fit into -outerZ, +outerZ region
+  //! Helper method compressing modules in Z direction (symmetrically from minus/plus Z) such as the fit into -outerZ, +outerZ region
   //! The algorithm first cuts out modules completely exceeding outerZ limit. Later on calculates (+ or -) shift of the last module with
   //! respect to the outerZ position. Finally each module is shifted by a fraction given as shift/moduleCentreZ. To avoid clashes of
   //! of newly positioned modules after their shift, cross-check between neighbouring modules is done.
   void compressToZ(double z);
+
+  //! Helper method calculating geometry properties needed for building the tilted part of the rod after the straight rod: thetaEnd
+  void setGeometryInfo();
 
   PropertyNode<int> m_ringNode;
 
@@ -146,26 +178,35 @@ public:
   double m_bigDelta;       //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   int    m_bigParity;      //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
 
-}; // Class
-//
-//
-//struct TiltedModuleSpecs {
-//  double r, z, gamma;
-//  bool valid() const {
-//    return r > 0.0 && fabs(gamma) <= 2*M_PI;
-//  }
-//};
-//
-///*
-// * @class Tilted option of rod class
-// * @details Derived class from RodPair implementing tilted option verison of layer rod
-// */
-//class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
-//  void buildModules(BarrelModules& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
-//public:
-//  double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
-//  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
-//
-//};
+}; // Class Straight
+
+/*
+ * @class Tilted option of rod class
+ * @details Derived class from RodPair implementing tilted option of layer rod
+ */
+class RodPairTilted : public RodPair, public Clonable<RodPairTilted> {
+ 
+ public :
+
+  //! Constructor - parse geometry config file using boost property tree & read-in Rod parameters
+  RodPairTilted(int id, double rotation, bool isOuterRadiusRod, const PropertyTree& treeProperty);
+
+  //! Cross-check parameters provided from geometry configuration file
+  void check() override;
+
+  //! Build tilted rods based on the given rod-template & using already built tilted rings
+  void build(const RodTemplate& rodTemplate, const TiltedRings& tiltedRings, bool isFlipped);
+
+  Property<bool, Default> isOuterRadiusRod;
+
+  double thickness() const override { logERROR("Thickness gives gives incorrect results as it is calculated as maxR()-minR()"); return maxR() - minR(); }
+  bool   isTilted()  const override { return true; }
+
+ private:
+
+  //! Build modules in given direction (+Z or -Z)
+  void buildModules(BarrelModules& modules, const RodTemplate& rodTemplate, const TiltedRings& tiltedRings, BuildDir direction, bool isFlipped);
+
+}; // Class Tilted
 
 #endif /* INCLUDE_RODPAIR_H_ */

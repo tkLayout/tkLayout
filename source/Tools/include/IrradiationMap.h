@@ -116,7 +116,6 @@ private:
   const std::string comp_norm        = "# normalization value: ";/**< Prefix of the line of the header of the feeded file that precedes the value of the normalization value in fb^-1*/
   const std::string comp_EscValue    = "/t";
   const std::string comp_EscLine     = "/n";
-  const std::string comp_EscSpace    = " ";
   const std::string comp_EscComment  = "#//;";
 
   std::string m_fileName;    /**< File name with irradiation data and predefined header*/

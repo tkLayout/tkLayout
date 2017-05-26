@@ -12,6 +12,7 @@
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TArrow.h"
+#include "TList.h"
 
 BFieldMap::BFieldMap(std::string bFieldMapFile) :
       m_fileName(bFieldMapFile),
@@ -83,7 +84,9 @@ void BFieldMap::ingest(std::string fileName) {
       line.erase(0,c_fileDataUnit.length());
       m_dataUnit = line;
       m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), c_fileEscLine.c_str() ), m_dataUnit.end());
-      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), c_fileEscSpace.c_str()), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\r'), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\n'), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), ' ' ), m_dataUnit.end());
       m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), c_fileEscValue.c_str()), m_dataUnit.end());
       continue;
     }
@@ -92,7 +95,9 @@ void BFieldMap::ingest(std::string fileName) {
       line.erase(0,c_fileXUnit.length());
       m_xUnit = line;
       m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), c_fileEscLine.c_str() ), m_xUnit.end());
-      m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), c_fileEscSpace.c_str()), m_xUnit.end());
+      m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), '\r'), m_xUnit.end());
+      m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), '\n'), m_xUnit.end());
+      m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), ' ' ), m_xUnit.end());
       m_xUnit.erase(std::remove(m_xUnit.begin(), m_xUnit.end(), c_fileEscValue.c_str()), m_xUnit.end());
       continue;
     }
@@ -129,7 +134,9 @@ void BFieldMap::ingest(std::string fileName) {
       line.erase(0,c_fileYUnit.length());
       m_yUnit = line;
       m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), c_fileEscLine.c_str() ), m_yUnit.end());
-      m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), c_fileEscSpace.c_str()), m_yUnit.end());
+      m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), '\r'), m_yUnit.end());
+      m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), '\n'), m_yUnit.end());
+      m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), ' ' ), m_yUnit.end());
       m_yUnit.erase(std::remove(m_yUnit.begin(), m_yUnit.end(), c_fileEscValue.c_str()), m_yUnit.end());
       continue;
     }
@@ -166,7 +173,9 @@ void BFieldMap::ingest(std::string fileName) {
       line.erase(0,c_fileZUnit.length());
       m_zUnit = line;
       m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), c_fileEscLine.c_str() ), m_zUnit.end());
-      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), c_fileEscSpace.c_str()), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\r'), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\n'), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), ' ' ), m_zUnit.end());
       m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), c_fileEscValue.c_str()), m_zUnit.end());
       continue;
     }
@@ -360,8 +369,8 @@ void BFieldMap::ingest(std::string fileName) {
   // Check binning
   m_typeMesh = false;
   m_typeHist = false;
-  if ((m_zMax-m_zMin)/m_zBinWidth==m_zBinNum    ) m_typeHist = true;
-  if ((m_zMax-m_zMin)/m_zBinWidth==(m_zBinNum-1)) m_typeMesh = true;
+  if (long((m_zMax-m_zMin)/m_zBinWidth)==m_zBinNum    ) m_typeHist = true;
+  if (long((m_zMax-m_zMin)/m_zBinWidth)==(m_zBinNum-1)) m_typeMesh = true;
 
   std::ostringstream message;
   if (m_typeMesh) {
@@ -374,7 +383,7 @@ void BFieldMap::ingest(std::string fileName) {
   }
   if (!m_typeMesh && !m_typeHist) {
     message << "B field map: " << m_fileName << " - binning doesn't correspond to the defined range and the bin size!";
-    logERROR("message.str()");
+    logERROR(message.str());
   }
 }
 
@@ -500,11 +509,12 @@ std::vector<double> BFieldMap::calculateBField(double xPos, double yPos, double 
   return bField;
 }
 
-bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ)
+bool BFieldMap::drawXZBFieldProj(TCanvas& xzCanvas, std::string name, double minX, double maxX, double minZ, double maxZ)
 {
-  if (xzCanvas!=nullptr && m_bFieldOK) {
 
-    xzCanvas->cd();
+  if (m_bFieldOK) {
+
+    xzCanvas.cd();
 
     maxX = ceil((maxX - m_xMin)/m_xBinWidth)*m_xBinWidth + m_xMin;
     maxZ = ceil((maxZ - m_zMin)/m_zBinWidth)*m_zBinWidth + m_zMin;
@@ -544,6 +554,7 @@ bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double min
 
     // Draw histogram
     TH2D* his = new TH2D(name.c_str(), std::string("XZ view of B field ["+m_dataUnit+"] (Y=0)").c_str(), nBinsZ, 0, maxZ, nBinsX, 0, maxX);
+    his->SetStats(kFALSE);
     his->Draw("COLZ");
 
     // Get min & max values
@@ -603,20 +614,21 @@ bool BFieldMap::drawXZBFieldProj(TCanvas* xzCanvas, std::string name, double min
         }
       }
     }
-    his->GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
+    his->GetXaxis()->SetTitle(std::string("Z [mm]").c_str());
     his->GetXaxis()->SetTitleOffset(1.2);
-    his->GetYaxis()->SetTitle(std::string("X ["+m_xUnit+"]").c_str());
+    his->GetYaxis()->SetTitle(std::string("X [mm]").c_str());
     his->GetYaxis()->SetTitleOffset(1.2);
+
     return true;
   }
   else return false;
 }
 
-bool BFieldMap::drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ)
+bool BFieldMap::drawYZBFieldProj(TCanvas& yzCanvas, std::string name, double minY, double maxY, double minZ, double maxZ)
 {
-  if (yzCanvas!=nullptr && m_bFieldOK) {
+  if (m_bFieldOK) {
 
-    yzCanvas->cd();
+    yzCanvas.cd();
 
     maxY = ceil((maxY - m_yMin)/m_yBinWidth)*m_yBinWidth + m_yMin;
     maxZ = ceil((maxZ - m_zMin)/m_zBinWidth)*m_zBinWidth + m_zMin;
@@ -652,6 +664,7 @@ bool BFieldMap::drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double min
 
     // Draw histogram
     TH2D* his = new TH2D(name.c_str(), std::string("YZ view of B field ["+m_dataUnit+"] (X=0)").c_str(), nBinsZ, 0, maxZ, nBinsY, 0, maxY);
+    his->SetStats(kFALSE);
     his->Draw("COLZ");
 
     // Get min & max values
@@ -711,9 +724,9 @@ bool BFieldMap::drawYZBFieldProj(TCanvas* yzCanvas, std::string name, double min
         }
       }
     }
-    his->GetXaxis()->SetTitle(std::string("Z ["+m_zUnit+"]").c_str());
+    his->GetXaxis()->SetTitle(std::string("Z [mm]").c_str());
     his->GetXaxis()->SetTitleOffset(1.2);
-    his->GetYaxis()->SetTitle(std::string("Y ["+m_xUnit+"]").c_str());
+    his->GetYaxis()->SetTitle(std::string("Y [mm]").c_str());
     his->GetYaxis()->SetTitleOffset(1.2);
     return true;
   }

@@ -11,15 +11,13 @@
 #include "Property.h"
 #include "MaterialObject.h"
 
-namespace insur {
-  class InactiveElement;
-}
-
-using insur::InactiveElement;
+class InactiveElement;
 
 namespace material {
   //class MaterialObject;
   
+  typedef std::vector<ConversionStation*> ConversionStations;
+
   class ConversionStation :public MaterialObject {
   public:
     enum Type {ERROR, FLANGE, SECOND};

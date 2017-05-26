@@ -15,11 +15,12 @@
 #include <vector>
 #include <string>
 
-class RootWSite;
 class BeamPipe;
+class Detector;
+class MaterialBudget;
+class RootWSite;
 class TCanvas;
 class Tracker;
-class MaterialBudget;
 
 /*
  * @class AnalyzerUnit
@@ -34,10 +35,7 @@ class AnalyzerUnit
  public:
 
   //! Constructor - set active trackers only
-  AnalyzerUnit(std::string name, std::vector<const Tracker*> trackers);
-
-  //! Constructor - set active trackers & beam pipe to be analyzed
-  AnalyzerUnit(std::string name, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerUnit(std::string name, const Detector& detector);
 
   //! Virtual destructor
   virtual ~AnalyzerUnit();
@@ -51,8 +49,19 @@ class AnalyzerUnit
   //! Pure virtual visualization method -> visualizes output
   virtual bool visualize(RootWSite& webSite) = 0;
 
+  //! Is unit correctly initialized
+  bool isInitOK() {return m_isInitOK;}
+
+  //! Is unit correctly analyzed
+  bool isAnalysisOK() {return m_isAnalysisOK;}
+
+  //! Is unit correctly visualized
+  bool isVisOK() {return m_isVisOK;}
+
   //! Pure virtual get name -> returns unique name of a unit
   virtual std::string getName() final {return m_name;}
+
+  //
 
  protected:
 
@@ -65,13 +74,16 @@ class AnalyzerUnit
   //! Is correctly analyzed
   bool m_isAnalysisOK;
 
+  //! Is correctly visualized
+  bool m_isVisOK;
+
   //! Unique name
   std::string m_name;
 
-  //! Vector of active trackers -> const pointer, one can't and shouldn't change its content
+  //! Vector of sub-trackers -> const references, one can't and shouldn't change its content, nor delete the pointers
   std::vector<const Tracker*> m_trackers;
 
-  //! Beam pipe
+  //! Beam pipe -> const reference, one can't and shouldn't change its content, nor delete the pointers
   const BeamPipe* m_beamPipe;
 };
 

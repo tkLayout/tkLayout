@@ -20,7 +20,6 @@ const RILength RILength::operator+(const RILength &other) const {
 
 
 
-namespace insur {
     /*-----public functions-----*/
     /**
      * The constructor sets a few defaults. The flags for the initialisation status of the material vectors are
@@ -43,7 +42,7 @@ namespace insur {
      * Get the category of this element.
      * @return The category identifier as defined in the enumeration <i>Category</i>
      */
-    MaterialProperties::Category MaterialProperties::getCategory() { return cat; }
+    MaterialProperties::Category MaterialProperties::getCategory() const { return cat; }
     
     /**
      * Set the category of this element.
@@ -252,7 +251,7 @@ namespace insur {
      * Get the radiation length of the inactive element.
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
-    double MaterialProperties::getRadiationLength() { return r_length; }
+    double MaterialProperties::getRadiationLength() const { return r_length; }
     
 
     const std::map<std::string, RILength>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
@@ -261,7 +260,7 @@ namespace insur {
      * Get the intraction length of the inactive element.
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
-    double MaterialProperties::getInteractionLength() { return i_length; }
+    double MaterialProperties::getInteractionLength() const { return i_length; }
 
     RILength MaterialProperties::getMaterialLengths() {
       RILength myMaterials;
@@ -384,29 +383,29 @@ namespace insur {
 
   // Versions with new material tab definition
     void MaterialProperties::calculateRadiationLength(double offset) {
-      const material::MaterialTab& materialTab = material::MaterialTab::instance();
+      auto materialTab = MaterialTab::getInstance();
  
         if (getSurface() > 0) {
             r_length = offset;
             if (msl_set) {
                 // local mass loop
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
-                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface() / 100.0);
+                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface());
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface());
                     }
                 }
             }
             if (mse_set) {
                 // exiting mass loop
                 for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
-                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface() / 100.0);
+                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface());
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface());
                     }
                 }
             }
@@ -414,31 +413,32 @@ namespace insur {
     }
     
     void MaterialProperties::calculateInteractionLength(double offset) {
-      const material::MaterialTab& materialTab =  material::MaterialTab::instance();
+
+      auto materialTab =  MaterialTab::getInstance();
 
         if (getSurface() > 0) {
             i_length = offset;
             if (msl_set) {
                 // local mass loop
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
-                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface() / 100.0);
+                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface());
                 }
                     
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface());
                     }
                 }
             }
             if (mse_set) {
                 // exiting mass loop
                 for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
-                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface() / 100.0);
+                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface());
                 }
 
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface());
                     }
                 }
             }
@@ -500,4 +500,4 @@ namespace insur {
     }
 
 define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
-}
+

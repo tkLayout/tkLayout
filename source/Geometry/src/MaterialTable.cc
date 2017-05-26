@@ -4,7 +4,6 @@
  */
 
 #include <MaterialTable.h>
-namespace insur {
     
   void MaterialTable2::parseMaterial(std::string str) {
     str = trim(str);
@@ -239,4 +238,3 @@ namespace insur {
     if (!found) return -1;
     return index;
   }
-}

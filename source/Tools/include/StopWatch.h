@@ -6,9 +6,9 @@
 #include <string>
 #include <list>
 
-#define startTaskClock(message) StopWatch::instance()->startCounter(message)
-#define addTaskInfo(message) StopWatch::instance()->addInfo(message)
-#define stopTaskClock() StopWatch::instance()->stopCounter()
+#define startTaskClock(message) StopWatch::getInstance().startCounter(message)
+#define addTaskInfo(message) StopWatch::getInstance().addInfo(message)
+#define stopTaskClock() StopWatch::getInstance().stopCounter()
 
 /**
  * @class StopWatch
@@ -22,22 +22,37 @@
  * when asked
  */
 class StopWatch {
+
  public:
-  static StopWatch* instance();
-  void startCounter(std::string message);
-  double stopCounter();
-  void setVerbosity(unsigned int newVerbosity, bool newPerformance);
-  void addInfo(std::string message);
-  static void destroy();
- private:
-  StopWatch();
+
+  //! StopWatch access method -> get instance of singleton class StopWatch
+  static StopWatch& getInstance();
+
+  //! Destructor
   ~StopWatch();
-  static StopWatch* myInstance_;
-  std::list<clock_t> startTimes_;
+
+  //! Start the counter now with a given message
+  void startCounter(std::string message);
+
+  //! Stop the counter
+  double stopCounter();
+
+  void setVerbosity(unsigned int newVerbosity, bool newPerformance);
+
+  void addInfo(std::string message);
+
+ private:
+
+  //! Singleton constructor method -> must be private (singleton pattern)
+  StopWatch();
+
+  //! Returns the difference between start and stop time in s
   double diffClock(const clock_t& stopTime, const clock_t& startTime);
-  unsigned int verbosity_;
-  unsigned int lastVerbosity_;
-  bool reportTime_;
+
+  std::list<clock_t> m_startTimes;
+  unsigned int       m_verbosity;
+  unsigned int       m_lastVerbosity;
+  bool               m_reportTime;
 };
 
 #endif

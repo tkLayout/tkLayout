@@ -1,13 +1,10 @@
 #ifndef INCLUDE_DISK_H_
 #define INCLUDE_DISK_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "global_funcs.h"
 #include "Property.h"
 #include "Ring.h"
 #include "Layer.h"
@@ -22,8 +19,7 @@ using material::MaterialObject;
 using material::ConversionStation;
 
 // Typedefs
-typedef PtrVector<Ring>      Rings;
-typedef std::map<int, Ring*> RingIndexMap;
+typedef PtrVector<Disk> Disks;
 
 /*
  * @class Disk
@@ -82,17 +78,22 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   double averageZ()  const { return m_averageZ; }
 
   //! Return disc thickness
-  double thickness() const { return m_bigDelta()*2 + maxRingThickness(); }
+  double thickness() const { return bigDelta()*2 + maxRingThickness(); }
 
   Property<int   , NoDefault> numRings; //!< Required number of rings in the disk -> TODO: Compression as for barrel rods
-  Property<double, NoDefault> zError;   //!< When positioning modules take into account beam spot spread in Z
+  Property<double, Default>   zError;   //!< When positioning modules take into account beam spot spread in Z (read-in through SimParms interface)
 
-  ReadonlyProperty<double, Computable> minZ; //!< Disk minimum Z position
-  ReadonlyProperty<double, Computable> maxZ; //!< Disk maximum Z position
-  ReadonlyProperty<double, Computable> minR; //!< Disk minimum radius
-  ReadonlyProperty<double, Computable> maxR; //!< Disk maximum radius
+  ReadonlyProperty<double, Computable> minZ;       //!< Disk minimum Z position
+  ReadonlyProperty<double, Computable> maxZ;       //!< Disk maximum Z position
+  ReadonlyProperty<double, Computable> minZAllMat; //!< Disk minimum Z position taking into account all material structures
+  ReadonlyProperty<double, Computable> maxZAllMat; //!< Disk maximum Z position taking into account all material structures
+  ReadonlyProperty<double, Computable> minR;       //!< Disk minimum radius
+  ReadonlyProperty<double, Computable> maxR;       //!< Disk maximum radius
   ReadonlyProperty<int   , Computable> totalModules;     //!< Total number of modules
   ReadonlyProperty<double, Computable> maxRingThickness; //!< Maximum ring thickness
+
+  Property<double, NoDefault> bigDelta;    //!< Ring versus another ring are positioned by +-bigDelta from the central Z pos.
+  Property<double, Default>   rOverlap;    //!< Required ring overlap in radius
 
  private:
 
@@ -117,8 +118,6 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
 
   Property<double, NoDefault> m_innerRadius; //!< Disc innermost radius
   Property<double, NoDefault> m_outerRadius; //!< Disc outermost radius
-  Property<double, NoDefault> m_bigDelta;    //!< Ring versus another ring are positioned by +-bigDelta from the central Z pos.
-  Property<double, Default>   m_rOverlap;    //!< Required ring overlap in radius
   Property<int   , Default>   m_bigParity;   //!< Use +bigDelta or -bigDelta as starting value in the positioning algorithm
 
   double m_zEndcapHalfLength; //!< Z halflength of endcap in which the disc is to bebuilt

@@ -16,8 +16,9 @@
 
 #include <boost/property_tree/ptree.hpp>
 
-#include "global_funcs.h"
 #include "GeometryCapability.h"
+#include "string_functions.h"
+#include "StringConverter.h"
 #include "StringSet.h"
 
 // Used namespaces
@@ -64,15 +65,15 @@ std::set<string> preprocessConfiguration(std::istream& is, std::ostream& os, con
 
 //! Exception class to be used when using boost property_tree
 class PathfulException : public std::invalid_argument {
-  string path_;
+  string m_path;
 public:
   PathfulException(const string& what, const string& path) : std::invalid_argument(what.c_str()) { pushPath(path); }
   template<class T> PathfulException(const string& what, const T& obj, const string& objid) : std::invalid_argument(what.c_str()) { pushPath(obj, objid); }
   PathfulException(const string& what) : std::invalid_argument(what.c_str()) {}
-  void pushPath(const string& p) { path_ = p + (!path_.empty() ? "." + path_ : ""); }
+  void pushPath(const string& p) { m_path = p + (!m_path.empty() ? "." + m_path : ""); }
   template<class T> void pushPath(const T& obj, const string& objid) { pushPath(string(typeid(obj).name()) + "(" + objid + ")"); }
   template<class T, class U> void pushPath(const T& obj, const U& objid) { pushPath(string(typeid(obj).name()) + "(" + any2str(objid) + ")"); }
-  const string& path() const { return path_; }
+  const string& path() const { return m_path; }
   virtual const char* what() const throw() override { return (path() + " : " + std::invalid_argument::what()).c_str(); }
 };
 
@@ -227,6 +228,9 @@ public:
   ///using Property<T, ValueHolder>::Property; // constructor inheritance not supported by GCC as of version 4.7.2
   using Property<T, ValueHolder>::operator();
   
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { Property<T, ValueHolder>::operator()(Property<T, ValueHolder>::operator()()*unit); }
+
 #define ALLOW_FORCE_SET
 #ifdef ALLOW_FORCE_SET
   void force(const T& value) { Property<T, ValueHolder>::operator()(value); } // for testing purposes only
@@ -245,6 +249,8 @@ public:
 
   void operator()(size_t i, const T& value) { m_values[i] = value; }
   const T& operator()(size_t i) const       { return m_values[i]; }
+  const T& operator[](size_t i) const       { return m_values[i]; }
+  size_t size() const                       { return m_values.size(); }
 
   typename std::vector<T>::const_iterator begin() const { return m_values.begin(); }
   typename std::vector<T>::const_iterator end()   const { return m_values.end(); }
@@ -255,15 +261,51 @@ public:
 
   void fromPtree(const ptree& pt)    { fromString(pt.data()); }
   void fromString(const string& s)   {
+
     string seq = trim(s);
     if (seq.front() != Sep) m_values.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
     std::vector<T> values = split<T>(seq, string(1, Sep));
     for (const auto& v : values) m_values.push_back(v);
   }
-  void appendString(const string& s) {
-    m_values.push_back(trim(s));
-  }
+
+  void appendString(const string& s) { m_values.push_back(trim(s));}
 }; 
+
+//! Vector of property variables, which are read-only - property can be read-in (or computed) using data from boost property_tree, can't be (re)set further on
+template<typename T, const char Sep = ','>
+class ReadonlyPropertyVector : public Parsable {  // CUIDADO DEPRECATED
+  std::vector<T> m_values;
+  const string&  m_name;
+
+  void operator()(size_t i, const T& value) {}
+public:
+  ReadonlyPropertyVector(const string& name, PropertyMap& registrar, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) { registrar[name] = this; }
+  ReadonlyPropertyVector(const string& name, const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref(name)) {}
+  ReadonlyPropertyVector(const std::initializer_list<T>& values = {}) : m_values(values), m_name(StringSet::ref("unnamed")) {}
+
+  const T& operator()(size_t i) const       { return m_values[i]; }
+  const T& operator[](size_t i) const       { return m_values[i]; }
+  size_t size() const                       { return m_values.size(); }
+
+  typename std::vector<T>::const_iterator begin() const { return m_values.begin(); }
+  typename std::vector<T>::const_iterator end()   const { return m_values.end(); }
+
+  // Readonly property can't be changed after setting, hence to scale it with used unit, one needs an extra method
+  void scaleByUnit(const float& unit) { for (size_t i=0; i<m_values.size(); i++) m_values[i] *= unit; }
+
+  bool state() const  { return !m_values.empty(); }
+  void clear()        { m_values.clear(); }
+  string name() const { return m_name; }
+
+  void fromPtree(const ptree& pt)    { fromString(pt.data()); }
+  void fromString(const string& s)   {
+
+    string seq = trim(s);
+    if (seq.front() != Sep) m_values.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
+    std::vector<T> values = split<T>(seq, string(1, Sep));
+    for (const auto& v : values) m_values.push_back(v);
+  }
+};
 
 //! Map of property variables
 template<typename T, const char Sep = ','>
