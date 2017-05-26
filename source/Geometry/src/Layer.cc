@@ -90,8 +90,8 @@ void Layer::check()
 
   // Non-tilted geometry
   if (!isTilted()) {
-    if (buildNumModules()>0  && outerZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-    if (buildNumModules()==0 &&!outerZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+    if (buildNumModules()>0  && outerZ.state()) throw PathfulException("Non-tilted geom.: Either numModules or outerZ parameter may be specified. Not both.");
+    if (buildNumModules()==0 &&!outerZ.state()) throw PathfulException("Non-tilted geom.: Either numModules or outerZ parameter must be specified!");
     if (!phiOverlap.state())                    throw PathfulException("Flat layer: phiOverlap must be specified.");
     if (!phiSegments.state())                   throw PathfulException("Flat layer: phiSegments must be specified.");
 
@@ -112,9 +112,9 @@ void Layer::check()
     // Automatic tilt algorithm applied
     if (isTiltedAuto()) {
 
-      if (buildNumModulesFlat()==0)   throw PathfulException("Tilted layer with automatic placement: numModulesFlat must be specified.");
-      if (buildNumModulesTilted()==0) throw PathfulException("Tilted layer with automatic placement: numModulesTilted must be specified.");
-      if (outerZ.state())             throw PathfulException("Tilted layer with automatic placement: outerZ can't be defined, expect number of flat & tilted modules.");
+      if (buildNumModulesFlat()<0)   throw PathfulException("Tilted layer with automatic placement: numModulesFlat must be specified.");
+      if (buildNumModulesTilted()<0) throw PathfulException("Tilted layer with automatic placement: numModulesTilted must be specified.");
+      if (outerZ.state())            throw PathfulException("Tilted layer with automatic placement: outerZ can't be defined, expect number of flat & tilted modules.");
 
       // Check total number of all modules
       if (buildNumModules()>0 && buildNumModules()!=(buildNumModulesFlat() + buildNumModulesTilted())) {
@@ -150,8 +150,8 @@ void Layer::setup()
   maxFlatRAllMat.setup([&]() { double max = 0;                                  for (const auto& r : m_flatRods) { max = MAX(max, r.maxRAllMat()); } return max; });
   minFlatRAllMat.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& r : m_flatRods) { min = MIN(min, r.minRAllMat()); } return min; });
 
-  maxTiltedZ.setup([&]()       { if (m_tiltedRods.size()>0) return m_tiltedRods.front().maxZ(); else return 0.0; });
-  minTiltedZ.setup([&]()       { double min = std::numeric_limits<double>::max(); if (m_tiltedRods.size()>0) return m_tiltedRods.front().minZ(); else return min; });
+  maxTiltedZ.setup([&]()       { double max = 0;                                  for (const auto& r : m_tiltedRods) { max = MAX(max, r.maxZ()); } return max; });
+  minTiltedZ.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& r : m_tiltedRods) { min = MIN(min, r.minZ()); } return min; });
   maxTiltedR.setup([&]()       { double max = 0;                                  for (const auto& r : m_tiltedRods) { max = MAX(max, r.maxR()); } return max; });
   minTiltedR.setup([&]()       { double min = std::numeric_limits<double>::max(); for (const auto& r : m_tiltedRods) { min = MIN(min, r.minR()); } return min; });
   maxTiltedRAllMat.setup([&]() { double max = 0;                                  for (const auto& r : m_tiltedRods) { max = MAX(max, r.maxRAllMat()); } return max; });
@@ -500,18 +500,18 @@ void Layer::buildTilted() {
   // Build at phi=0+totalLayerRotation -> put at inner radius
   double rotation = 0. + layerRotation();
 
-  bool isOuterRadiusRod = false;
+  bool isOuterRadiusRod = (m_bigParity()==1) ? true : false;
   RodPairTilted* first = GeometryFactory::make<RodPairTilted>(1, rotation, isOuterRadiusRod, propertyTree());
-  first->build(rodTemplate, m_tiltedRings, true); // Put at inner radius & flip
+  first->build(rodTemplate, m_tiltedRings, isOuterRadiusRod ? false : true); // If put at inner radius -> flip
   m_tiltedRods.push_back(first);
 
   // Build at phi=rodPhiRotation+totalLayerRotation -> put at outer radius
   float rodPhiRotation = 2*M_PI/numberRods();
   rotation             = rodPhiRotation + layerRotation();
-  isOuterRadiusRod     = true;
+  isOuterRadiusRod     = (m_bigParity()==1) ? false : true;
 
   RodPairTilted* second = GeometryFactory::make<RodPairTilted>(2, rotation, isOuterRadiusRod, propertyTree());
-  second->build(rodTemplate, m_tiltedRings, false); // Put at outer radius & don't flip
+  second->build(rodTemplate, m_tiltedRings, isOuterRadiusRod ? false : true); // If put at outer radius -> don't flip
   m_tiltedRods.push_back(second);
 
   for (auto iRod = 2; iRod<numberRods(); iRod++) {
@@ -519,7 +519,7 @@ void Layer::buildTilted() {
     rod->myid(iRod+1);
     rod->rotateZ(rodPhiRotation*(iRod%2 ? iRod-1 : iRod));
     m_tiltedRods.push_back(rod);
-    }
+  }
 
   // Compute the place radius for the whole layer as the weighted avarge of tilted & flat part
   int numTilt = buildNumModulesTilted();
@@ -552,7 +552,6 @@ void Layer::calculateStraightProperties() {
   double rOuterMin = std::numeric_limits<double>::max();
   double rInnerMax = 0;
   double rOuterMax = 0;
-  // Warning ! it seems that bigParity is inverted with respect to the tkLayout/dev version
 
   //
   // Prepare information about flat part of the layer

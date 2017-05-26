@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <set>
 
 #include <Barrel.h>
 #include <DetectorModule.h>
@@ -14,9 +13,6 @@
 #include <SupportStructure.h>
 #include "Visitor.h"
 #include "Visitable.h"
-
-// Using namespaces
-using std::set;
 
 // Forward
 class HierarchicalNameVisitor;
@@ -61,7 +57,7 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
   const SupportStructures& supports() const {return m_supportStructures;}
 
   //! Return all tracker modules
-  const set<DetectorModule*>& modules() const;
+  const std::vector<DetectorModule*>& modules() const;
 
   //Modules& modules() { return modulesSetVisitor_.modules(); }
 
@@ -110,13 +106,13 @@ class ModulesSetVisitor : public GeometryVisitor {
  public:
 
   // Typedef
-  typedef set<DetectorModule*> Modules;
+  typedef std::vector<DetectorModule*> Modules;
 
   // Destructor
   virtual ~ModulesSetVisitor() {};
 
   // Visit pattern - main method
-  void visit(DetectorModule& m) override { m_modules.insert(&m); }
+  void visit(DetectorModule& m) override { m_modules.push_back(&m); }
 
   // Return modules
   Modules& modules()             { return m_modules; }

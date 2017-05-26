@@ -769,7 +769,8 @@ void RodPairTilted::buildModules(BarrelModules& modules, const RodTemplate& rodT
       else                    mod->translateR(tiltedRings[iMod].innerRadius());
       mod->flipped(isFlipped);
       if (isOuterRadiusRod()) mod->translateZ(tiltedRings[iMod].zOuter() * short(direction));
-       else                   mod->translateZ(tiltedRings[iMod].zInner() * short(direction));
+      else                    mod->translateZ(tiltedRings[iMod].zInner() * short(direction));
+
       modules.push_back(mod);
     }
   }
