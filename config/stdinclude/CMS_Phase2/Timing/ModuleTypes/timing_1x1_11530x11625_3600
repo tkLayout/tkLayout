@@ -1,0 +1,47 @@
+// Lindsey Gray version : Barrel Timing module
+
+moduleType timing_1x1_11530x11625_3600 // timing modules should always have a type starting with keyword 'timing_'
+
+width 184.48
+length 46.5
+physicalLength 46.5     // to avoid collisions with previous module in barrels
+
+sensorLayout mono
+
+reduceCombinatorialBackground true 
+
+powerStripChip 0
+powerModuleChip 0 
+powerModuleOptical 0
+
+serviceHybridWidth 1.0  // 10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 1.0 // 10.05 hybrid + 1.45 inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 1.0
+
+
+
+
+numSensors 1
+
+sensorThickness 18.0
+
+Sensor 1 {
+  sensorType largepix
+  
+  numROCX 1
+  numROCY 1
+  
+  numCrystalsX 16  // 184.48mm / 11.53mm
+  numCrystalsY 4 // 46.5mm / 11.625mm
+  
+  crystalThickness 3.6
+  crystalTiltAngle 18.0
+  
+  numStripsAcross 16  // 184.48mm / 11.53mm
+  numSegments 4 // 46.5mm / 11.625mm
+}
+
+
+plotColor 6
+
