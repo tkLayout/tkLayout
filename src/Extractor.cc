@@ -667,7 +667,15 @@ namespace insur {
 
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  std::ostringstream mnameBase;
+	  std::ostringstream mnameNeg;
+	  if (!iiter->getModule().isTimingModule()) mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  // Timing layer : insert both +Z and -Z sides
+	  else {
+	    mnameBase << xml_barrel_module << modRing << lname.str();
+	    mname << xml_barrel_module << modRing << lname.str() << xml_positive_z;
+	    mnameNeg << xml_barrel_module << modRing << lname.str() << xml_negative_z;
+	  }
 
 	  // parent module name
 	  std::string parentName = mname.str();
@@ -680,6 +688,13 @@ namespace insur {
 #ifdef __DEBUGPRINT__
 	  modcomplex.print();
 #endif
+
+	  // Timing layer : insert both +Z and -Z sides
+	  if (iiter->getModule().isTimingModule()) {
+	    std::string parentNameNeg = mnameNeg.str();
+	    ModuleComplex modcomplexNeg(mnameNeg.str(),parentNameNeg,*iiter);
+	    modcomplexNeg.buildSubVolumes();
+	  }
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {           
@@ -696,6 +711,7 @@ namespace insur {
 	    // Only define a new module if no module of the same type already defined.
 	    // This is for shortening the size of the XML files.
 	    std::tuple<int, int, int, int> crystalProperties;
+	    std::string childName;
 	    if (iiter->getModule().isTimingModule()) {
 	      if (iiter->getModule().numSensors() > 0) {
 		double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
@@ -707,7 +723,7 @@ namespace insur {
 		// Define new timing module type.
 		if (timingModuleNames.count(crystalProperties) == 0) {
 		  newTimingModuleType = true;
-		  timingModuleNames.insert(std::make_pair(crystalProperties, mname.str()));
+		  timingModuleNames.insert(std::make_pair(crystalProperties, mnameBase.str()));
 		}
 		// Uses an already defined timing module with same properties.
 		else { newTimingModuleType = false; }
@@ -719,24 +735,25 @@ namespace insur {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 	      // For SolidSection in tracker.xml : module's box shape
 	      shape.name_tag = mname.str();
-	      //shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-	      //shape.dy = iiter->getModule().length() / 2.0;
-	      //shape.dz = iiter->getModule().thickness() / 2.0;
 	      shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
 	      shape.dy = modcomplex.getExpandedModuleLength()/2.0;
 	      shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
 	      s.push_back(shape);
 	    
-
 	      // For LogicalPartSection in tracker.xml : module's material
-	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      logic.name_tag = mname.str();
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	      l.push_back(logic);	    
-	      // module composite material
-	      //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
-	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+	      l.push_back(logic);
+
+	      // Timing layer : insert both +Z and -Z sides
+	      if (iiter->getModule().isTimingModule()) {
+		shape.name_tag = mnameNeg.str();
+		s.push_back(shape);
+		logic.name_tag = mnameNeg.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+	      }	    
 	    }
             	  
 
@@ -754,13 +771,13 @@ namespace insur {
 	      else {
 		// Define new timing module child.
 		if (newTimingModuleType) {
-		  pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+		  childName = trackerXmlTags.nspace + ":" + mnameBase.str();
 		  timingModuleCopyNumber = 1;
 		}
 		// Uses an already defined timing module with same properties.
 		else {
-		  pos.child_tag = trackerXmlTags.nspace + ":" + timingModuleNames.at(crystalProperties);
-		  timingModuleCopyNumber += 2;
+		  childName = trackerXmlTags.nspace + ":" + timingModuleNames.at(crystalProperties);
+		  timingModuleCopyNumber += 1;
 		}
 	      }	// end of timing layer special case
 	    	     
@@ -771,6 +788,7 @@ namespace insur {
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
+	      if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_positive_z;
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
@@ -779,7 +797,8 @@ namespace insur {
 		pos.trans.dz = partner->getModule().center().Z();
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
-		pos.copy += 1; 
+		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
+		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
 		p.push_back(pos);
 	      }
 	      // reset
@@ -825,6 +844,11 @@ namespace insur {
 	      // Topology
 	      sspec.partselectors.push_back(mname.str());
 	      sspec.moduletypes.push_back(minfo_zero);
+	      if (iiter->getModule().isTimingModule()) { 
+		sspec.partselectors.push_back(mnameNeg.str());
+		sspec.moduletypes.push_back(minfo_zero);
+	      }
+	      
 
 
 	      // WAFER
@@ -858,6 +882,18 @@ namespace insur {
 	      pos.trans.dx = 0.0;
 	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
 	      p.push_back(pos);
+
+	      // Timing layer : insert both +Z and -Z sides
+	      if (iiter->getModule().isTimingModule()) {
+		shape.name_tag = mnameNeg.str() + xml_timing + xml_base_waf;
+		s.push_back(shape);
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+		pos.parent_tag = trackerXmlTags.nspace + ":" + mnameNeg.str();
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		p.push_back(pos);
+	      }
 
 	      if (iiter->getModule().numSensors() == 2) {
 
@@ -991,15 +1027,16 @@ namespace insur {
 
 		  double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
 
-		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
-
-		  shape.name_tag = mname.str() + xml_timing + xml_base_act;
+		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();	  
+		  		 
 		 
 		  // SolidSection
+		  std::string namePlus = mname.str() + xml_timing + xml_base_act;
+		  shape.name_tag = namePlus;
 		  shape.dx = crystalWidth / 2.0;
 		  shape.dy = crystalLength / 2.0;
 		  shape.dz = crystalThickness / 2.0;
-		  s.push_back(shape);   
+		  s.push_back(shape);
 
 		  // LogicalPartSection
 		  logic.name_tag = shape.name_tag;
@@ -1007,12 +1044,19 @@ namespace insur {
 		  logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
 		  l.push_back(logic);
 
+		  // -Z side
+		  std::string nameMinus = mnameNeg.str() + xml_timing + xml_base_act;
+		  shape.name_tag = nameMinus;
+		  s.push_back(shape);
+		  logic.name_tag = shape.name_tag;
+		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		  l.push_back(logic);
+
 		  // LOOP ON ALL CRYSTALS IN THE MODULE
 		  for (int j = 0; j < numCrystalsY; j++) {
 		    for (int i = 0; i < numCrystalsX; i++) {		  	         
 	    
-		      // PosPart section
-		      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;		 
+		      // PosPart section		 
 		      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 		      int crystalIndex = j * numCrystalsX + i + 1;
 		      pos.copy = crystalIndex;
@@ -1026,27 +1070,32 @@ namespace insur {
 		      addTiltedModuleRot(r, crystalTiltAngle);
 		      std::ostringstream tilt;
 		      tilt << round(crystalTiltAngle);
-		      pos.rotref = trackerXmlTags.nspace + ":" + xml_tilted_mod_rot + tilt.str();
 
+		      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		      pos.rotref = trackerXmlTags.nspace + ":" + xml_positive_z_tilted_mod_rot + tilt.str();
 		      p.push_back(pos);
+
+		      // -Z side
+		      pos.parent_tag = trackerXmlTags.nspace + ":" + mnameNeg.str() + xml_timing + xml_base_waf;
+		      pos.rotref = trackerXmlTags.nspace + ":" + xml_negative_z_tilted_mod_rot + tilt.str();
+		      p.push_back(pos);
+
 		      // reset
 		      pos.copy = 1;
 		      pos.trans.dx = 0.;
 		      pos.trans.dy = 0.;
 		      pos.rotref = "";
-
-		      // Topology
-		      if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), shape.name_tag) == mspec.partselectors.end()) {
-			minfo.name		= iiter->getModule().moduleType();
-			mspec.partselectors.push_back(shape.name_tag);
-			minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
-			minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
-			minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
-			minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-			mspec.moduletypes.push_back(minfo);
-		      }
 		    }
 		  } // loop on crystals
+
+
+
+
+
+
+
+
+
 		}
 		else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
 	      }
@@ -2329,15 +2378,31 @@ namespace insur {
     std::ostringstream tilt;
     tilt << round(tiltAngle);
 
-    Rotation rot;
-    rot.name = xml_tilted_mod_rot + tilt.str();
-    rot.thetax = 90.0;
-    rot.phix = 0.0;
-    rot.thetay = 90.0 - tiltAngle;
-    rot.phiy = 90.0;
-    rot.thetaz = tiltAngle;
-    rot.phiz = 270.0;
-    if (rotations.count(rot.name) == 0) rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    std::string positiveZName = xml_positive_z_tilted_mod_rot + tilt.str();
+    if (rotations.count(positiveZName) == 0) {
+      Rotation rot;
+      rot.name = positiveZName;
+      rot.thetax = 90.0;
+      rot.phix = 0.0;
+      rot.thetay = 90.0 - tiltAngle;
+      rot.phiy = 90.0;
+      rot.thetaz = tiltAngle;
+      rot.phiz = 270.0;
+      rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
+
+    std::string negativeZName = xml_negative_z_tilted_mod_rot + tilt.str();
+    if (rotations.count(negativeZName) == 0) {
+      Rotation rot;
+      rot.name = negativeZName;
+      rot.thetax = 90.0;
+      rot.phix = 0.0;
+      rot.thetay = 90.0 + tiltAngle;
+      rot.phiy = 90.0;
+      rot.thetaz = tiltAngle;
+      rot.phiz = 90.0;
+      rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
   }
 
   /**
