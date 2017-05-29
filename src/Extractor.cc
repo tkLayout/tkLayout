@@ -641,6 +641,10 @@ namespace insur {
 
       double rodStartPhiAngle, rodNextPhiStartPhiAngle;
 
+      std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
+      bool newTimingModuleType = true;
+      int timingModuleCopyNumber = 0;
+
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
@@ -688,38 +692,85 @@ namespace insur {
 
 	    // MODULE
 
-	    // For SolidSection in tracker.xml : module's box shape
-            shape.name_tag = mname.str();
-            //shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-            //shape.dy = iiter->getModule().length() / 2.0;
-            //shape.dz = iiter->getModule().thickness() / 2.0;
-            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
-            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
-            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
-	    s.push_back(shape);
+	    // Special case : timing module.
+	    // Only define a new module if no module of the same type already defined.
+	    // This is for shortening the size of the XML files.
+	    std::tuple<int, int, int, int> crystalProperties;
+	    if (iiter->getModule().isTimingModule()) {
+	      if (iiter->getModule().numSensors() > 0) {
+		double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
+		double crystalLength = iiter->getModule().sensors().front().crystalLength();
+		double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
+		double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
+		crystalProperties = std::make_tuple(round(crystalWidth * 10.), round(crystalLength * 10.), round(crystalThickness * 10.), round(crystalTiltAngle * 10.));
+
+		// Define new timing module type.
+		if (timingModuleNames.count(crystalProperties) == 0) {
+		  newTimingModuleType = true;
+		  timingModuleNames.insert(std::make_pair(crystalProperties, mname.str()));
+		}
+		// Uses an already defined timing module with same properties.
+		else { newTimingModuleType = false; }
+	      }
+	      else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
+	    }
+
+	    // Standard case
+	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
+	      // For SolidSection in tracker.xml : module's box shape
+	      shape.name_tag = mname.str();
+	      //shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	      //shape.dy = iiter->getModule().length() / 2.0;
+	      //shape.dz = iiter->getModule().thickness() / 2.0;
+	      shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+	      shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+	      shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+	      s.push_back(shape);
 	    
 
-	    // For LogicalPartSection in tracker.xml : module's material
-            //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-            logic.material_tag = xml_material_air;
-            logic.name_tag = mname.str();
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	    l.push_back(logic);	    
-	    // module composite material
-            //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
-            //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
-            
+	      // For LogicalPartSection in tracker.xml : module's material
+	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      logic.material_tag = xml_material_air;
+	      logic.name_tag = mname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      l.push_back(logic);	    
+	      // module composite material
+	      //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
+	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+	    }
+            	  
 
 	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
             if (!isTilted || (isTilted && (tiltAngle == 0))) {
+
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodname.str();
-	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+
+	      // DEFINE CHILD : MODULE TO BE PLACED IN A ROD.
+	      // Standard case
+	      if (!iiter->getModule().isTimingModule()) {
+		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+	      }
+	      // For timing barrel layer : Child, to place in a rod, can be a copy of an existing module.	      
+	      else {
+		// Define new timing module child.
+		if (newTimingModuleType) {
+		  pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+		  timingModuleCopyNumber = 1;
+		}
+		// Uses an already defined timing module with same properties.
+		else {
+		  pos.child_tag = trackerXmlTags.nspace + ":" + timingModuleNames.at(crystalProperties);
+		  timingModuleCopyNumber += 2;
+		}
+	      }	// end of timing layer special case
+	    	     
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
@@ -728,13 +779,15 @@ namespace insur {
 		pos.trans.dz = partner->getModule().center().Z();
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
-		pos.copy = 2; 
+		pos.copy += 1; 
 		p.push_back(pos);
-		pos.copy = 1;
 	      }
+	      // reset
+	      pos.copy = 1;
 	      pos.rotref = "";
 	    }
 	  }
+
 
 	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
@@ -764,100 +817,30 @@ namespace insur {
 	  }
 
 	  if (iiter->getModule().uniRef().phi == 1) {
+	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
-	    std::ostringstream ringname;
-	    ringname << xml_ring << modRing << lname.str();
+	      std::ostringstream ringname;
+	      ringname << xml_ring << modRing << lname.str();
 
-	    // Topology
-	    sspec.partselectors.push_back(mname.str());
-	    sspec.moduletypes.push_back(minfo_zero);
+	      // Topology
+	      sspec.partselectors.push_back(mname.str());
+	      sspec.moduletypes.push_back(minfo_zero);
 
 
-            // WAFER
-            string xml_base_lowerupper = "";
-            if (iiter->getModule().numSensors() == 2) {
-	      xml_base_lowerupper = xml_base_lower;
-	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-	    }	    
-	    else {
-	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
-	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
-	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-	    }
-
-	    // SolidSection
-            shape.name_tag = shape.name_tag;
-	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-	    shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().sensorThickness() / 2.0;
-            s.push_back(shape);   
-
-	    // LogicalPartSection
-            logic.name_tag = shape.name_tag;
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_material_air;
-            l.push_back(logic);
-
-	    // PosPart section
-            pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
-            pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-            pos.trans.dx = 0.0;
-            pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
-            p.push_back(pos);
-
-            if (iiter->getModule().numSensors() == 2) {
-
-              xml_base_lowerupper = xml_base_upper;
+	      // WAFER
+	      string xml_base_lowerupper = "";
+	      if (iiter->getModule().numSensors() == 2) {
+		xml_base_lowerupper = xml_base_lower;
+		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	      }	    
+	      else {
+		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+		else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      }
 
 	      // SolidSection
-              shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-              s.push_back(shape);
-
-	      // LogicalPartSection
-              logic.name_tag = shape.name_tag;
-              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-              l.push_back(logic);
-
-	      // PosPart section
-              pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-              pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
-              //pos.copy = 2;
-
-              if (iiter->getModule().stereoRotation() != 0) {
-                rot.name = type_stereo + mname.str();
-                rot.thetax = 90.0;
-                rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
-                rot.thetay = 90.0;
-                rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
-                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-                pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
-              }
-              p.push_back(pos);
-
-              // Now reset
-              pos.rotref.clear();
-              rot.name.clear();
-              rot.thetax = 0.0;
-              rot.phix = 0.0;
-              rot.thetay = 0.0;
-              rot.phiy = 0.0;
-              pos.copy = 1;
-            }
-
-
-            // ACTIVE SURFACE
-            xml_base_lowerupper = "";
-	    std::cout << "iiter->getModule().isTimingModule() = " << iiter->getModule().isTimingModule() << "iiter->getModule().subdet() = " << iiter->getModule().subdet() << std::endl;
-	    if ( (!iiter->getModule().isTimingModule()) || iiter->getModule().subdet() == ENDCAP) {
-	      if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
-
-	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
-	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-	    
-	      // SolidSection
+	      shape.name_tag = shape.name_tag;
 	      shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	      shape.dy = iiter->getModule().length() / 2.0;
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0;
@@ -866,40 +849,22 @@ namespace insur {
 	      // LogicalPartSection
 	      logic.name_tag = shape.name_tag;
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	      logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + (iiter->getModule().isTimingModule() && iiter->getModule().subdet() == BARREL ? xml_sensor_LYSO : xml_sensor_silicon);
+	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 
 	      // PosPart section
-	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	      else {
-		if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-		else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
-		else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-	      }
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-	      pos.trans.dz = 0.0;
-#ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-	      pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
-#endif
+	      pos.trans.dx = 0.0;
+	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
 	      p.push_back(pos);
 
-	      // Topology
-	      minfo.name		= iiter->getModule().moduleType();
-	      mspec.partselectors.push_back(shape.name_tag);
-	      minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
-	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
-	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
-	      minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-	      mspec.moduletypes.push_back(minfo);
-
-	      if (iiter->getModule().numSensors() == 2) { 
+	      if (iiter->getModule().numSensors() == 2) {
 
 		xml_base_lowerupper = xml_base_upper;
 
 		// SolidSection
-		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
-		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 		s.push_back(shape);
 
 		// LogicalPartSection
@@ -908,134 +873,226 @@ namespace insur {
 		l.push_back(logic);
 
 		// PosPart section
-		pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-#ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
+		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
+		//pos.copy = 2;
+
+		if (iiter->getModule().stereoRotation() != 0) {
+		  rot.name = type_stereo + mname.str();
+		  rot.thetax = 90.0;
+		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
+		  rot.thetay = 90.0;
+		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
+		}
+		p.push_back(pos);
+
+		// Now reset
+		pos.rotref.clear();
+		rot.name.clear();
+		rot.thetax = 0.0;
+		rot.phix = 0.0;
+		rot.thetay = 0.0;
+		rot.phiy = 0.0;
+		pos.copy = 1;
+	      }
+
+
+	      // ACTIVE SURFACE
+	      xml_base_lowerupper = "";
+	      if ( !iiter->getModule().isTimingModule()) {
+		if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
+
+		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
+		else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    
+		// SolidSection
+		shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+		shape.dy = iiter->getModule().length() / 2.0;
+		shape.dz = iiter->getModule().sensorThickness() / 2.0;
+		s.push_back(shape);   
+
+		// LogicalPartSection
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + (iiter->getModule().isTimingModule() && iiter->getModule().subdet() == BARREL ? xml_sensor_LYSO : xml_sensor_silicon);
+		l.push_back(logic);
+
+		// PosPart section
+		if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		else {
+		  if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		}
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
 		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
 		p.push_back(pos);
 
 		// Topology
+		minfo.name		= iiter->getModule().moduleType();
 		mspec.partselectors.push_back(shape.name_tag);
-		minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
-		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
-		minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
-		minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
+		minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+		minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+		minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
 		mspec.moduletypes.push_back(minfo);
-	      } // End of replica for Pt-modules
-	    }
 
-	    // Barrel timing modules : add crystals volumes within the wafer volume
-	    else {
-	      if (iiter->getModule().numSensors() > 0) {
+		if (iiter->getModule().numSensors() == 2) { 
 
-		int numCrystalsX = iiter->getModule().sensors().front().numCrystalsX();
-		int numCrystalsY = iiter->getModule().sensors().front().numCrystalsY();
+		  xml_base_lowerupper = xml_base_upper;
 
-		double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+		  // SolidSection
+		  if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+		  else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+		  else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		  s.push_back(shape);
 
-		double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
-		double crystalLength = iiter->getModule().sensors().front().crystalLength();
-		double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
+		  // LogicalPartSection
+		  logic.name_tag = shape.name_tag;
+		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		  l.push_back(logic);
 
-		double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
+		  // PosPart section
+		  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		  pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+#ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
+#endif
+		  p.push_back(pos);
 
-		for (int j = 0; j < numCrystalsY; j++) {
-		  for (int i = 0; i < numCrystalsX; i++) {
-		  
-		    std::ostringstream crystalIndex;
-		    crystalIndex << (j * numCrystalsX + i);
-
-		    shape.name_tag = mname.str() + xml_timing + xml_base_act + crystalIndex.str();
-	    
-		    // SolidSection
-		    shape.dx = crystalWidth / 2.0;
-		    shape.dy = crystalLength / 2.0;
-		    shape.dz = crystalThickness / 2.0;
-		    s.push_back(shape);   
-
-		    // LogicalPartSection
-		    logic.name_tag = shape.name_tag;
-		    logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-		    logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
-		    l.push_back(logic);
-
-		    // PosPart section
-		    pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;		 
-		    pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-
-		    double midX = numCrystalsX / 2 - 0.5;
-		    pos.trans.dx = (i - midX) * crystalWidth;
-		    double midY = numCrystalsY / 2 - 0.5;
-		    pos.trans.dy = (i - midY) * crystalLength;
-		    pos.trans.dz = pow(-1., i + j + 1) * alveolaShift;
-
-		    addTiltedModuleRot(r, crystalTiltAngle);
-		    std::ostringstream tilt;
-		    tilt << round(crystalTiltAngle);
-		    pos.rotref = trackerXmlTags.nspace + ":" + xml_tilted_mod_rot + tilt.str();
-
-		    p.push_back(pos);
-		    // reset
-		    pos.trans.dx = 0.;
-		    pos.trans.dy = 0.;
-		    pos.rotref = "";
-
-		    // Topology
-		    minfo.name		= iiter->getModule().moduleType();
-		    mspec.partselectors.push_back(shape.name_tag);
-		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
-		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
-		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
-		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-		    mspec.moduletypes.push_back(minfo);
-		  }
-		}
+		  // Topology
+		  mspec.partselectors.push_back(shape.name_tag);
+		  minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
+		  minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
+		  minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
+		  minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		  mspec.moduletypes.push_back(minfo);
+		} // End of replica for Pt-modules
 	      }
-	      else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
-	    }
 
-	    modcomplex.addMaterialInfo(c);
-	    modcomplex.addShapeInfo(s);
-	    modcomplex.addLogicInfo(l);
-	    modcomplex.addPositionInfo(p);
+	      // Barrel timing modules : add crystals volumes within the wafer volume
+	      else {
+		if (iiter->getModule().numSensors() > 0) {
+
+		  int numCrystalsX = iiter->getModule().sensors().front().numCrystalsX();
+		  int numCrystalsY = iiter->getModule().sensors().front().numCrystalsY();
+
+		  double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
+		  double crystalLength = iiter->getModule().sensors().front().crystalLength();
+		  double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
+
+		  double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
+
+		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+
+		  shape.name_tag = mname.str() + xml_timing + xml_base_act;
+		 
+		  // SolidSection
+		  shape.dx = crystalWidth / 2.0;
+		  shape.dy = crystalLength / 2.0;
+		  shape.dz = crystalThickness / 2.0;
+		  s.push_back(shape);   
+
+		  // LogicalPartSection
+		  logic.name_tag = shape.name_tag;
+		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		  logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
+		  l.push_back(logic);
+
+		  // LOOP ON ALL CRYSTALS IN THE MODULE
+		  for (int j = 0; j < numCrystalsY; j++) {
+		    for (int i = 0; i < numCrystalsX; i++) {		  	         
+	    
+		      // PosPart section
+		      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;		 
+		      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		      int crystalIndex = j * numCrystalsX + i + 1;
+		      pos.copy = crystalIndex;
+
+		      double midX = numCrystalsX / 2 - 0.5;
+		      pos.trans.dx = (i - midX) * crystalWidth;
+		      double midY = numCrystalsY / 2 - 0.5;
+		      pos.trans.dy = (i - midY) * crystalLength;
+		      pos.trans.dz = pow(-1., i + j + 1) * alveolaShift;
+
+		      addTiltedModuleRot(r, crystalTiltAngle);
+		      std::ostringstream tilt;
+		      tilt << round(crystalTiltAngle);
+		      pos.rotref = trackerXmlTags.nspace + ":" + xml_tilted_mod_rot + tilt.str();
+
+		      p.push_back(pos);
+		      // reset
+		      pos.copy = 1;
+		      pos.trans.dx = 0.;
+		      pos.trans.dy = 0.;
+		      pos.rotref = "";
+
+		      // Topology
+		      if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), shape.name_tag) == mspec.partselectors.end()) {
+			minfo.name		= iiter->getModule().moduleType();
+			mspec.partselectors.push_back(shape.name_tag);
+			minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
+			minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+			minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+			minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+			mspec.moduletypes.push_back(minfo);
+		      }
+		    }
+		  } // loop on crystals
+		}
+		else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
+	      }
+
+	      modcomplex.addMaterialInfo(c);
+	      modcomplex.addShapeInfo(s);
+	      modcomplex.addLogicInfo(l);
+	      modcomplex.addPositionInfo(p);
 #ifdef __DEBUGPRINT__
-	    modcomplex.print();
+	      modcomplex.print();
 #endif
 	    
 
-	    // collect tilted ring info
-	    if (isTilted && (tiltAngle != 0)) {
-	      BTiltedRingInfo rinf;
-	      // ring on positive-z side
-	      rinf.name = ringname.str() + xml_plus;	      
-	      rinf.childname = mname.str();
-	      rinf.isZPlus = 1;
-	      rinf.tiltAngle = tiltAngle;
-	      rinf.bw_flipped = iiter->getModule().flipped();
-	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
-	      rinf.r1 = iiter->getModule().center().Rho();
-	      rinf.z1 = iiter->getModule().center().Z();
-	      rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
-	      rinf.rmin = modcomplex.getRmin();
-	      rinf.zmin = modcomplex.getZmin();
-	      rinf.rminatzmin = modcomplex.getRminatZmin();      
-	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+	      // collect tilted ring info
+	      if (isTilted && (tiltAngle != 0)) {
+		BTiltedRingInfo rinf;
+		// ring on positive-z side
+		rinf.name = ringname.str() + xml_plus;	      
+		rinf.childname = mname.str();
+		rinf.isZPlus = 1;
+		rinf.tiltAngle = tiltAngle;
+		rinf.bw_flipped = iiter->getModule().flipped();
+		rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+		rinf.r1 = iiter->getModule().center().Rho();
+		rinf.z1 = iiter->getModule().center().Z();
+		rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
+		rinf.rmin = modcomplex.getRmin();
+		rinf.zmin = modcomplex.getZmin();
+		rinf.rminatzmin = modcomplex.getRminatZmin();      
+		rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 
-	      // same ring on negative-z side
-	      rinf.name = ringname.str() + xml_minus;
-	      rinf.isZPlus = 0;
-	      rinf.z1 = - iiter->getModule().center().Z();
-	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+		// same ring on negative-z side
+		rinf.name = ringname.str() + xml_minus;
+		rinf.isZPlus = 0;
+		rinf.z1 = - iiter->getModule().center().Z();
+		rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+	      }
 	    }
 
 
-            // material properties
-            rtotal = rtotal + iiter->getRadiationLength();
-            itotal = itotal + iiter->getInteractionLength();
-            count++;
+	    // material properties
+	    rtotal = rtotal + iiter->getRadiationLength();
+	    itotal = itotal + iiter->getInteractionLength();
+	    count++;
 	    //double dt = modcomplex.getExpandedModuleThickness();
-	  }
+	  }	  
 
 
 	  // ONLY MODULES WITH UNIREF PHI == 2 OF THE TILTED RINGS (TILTED LAYER)
