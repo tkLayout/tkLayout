@@ -931,6 +931,9 @@ namespace insur {
 
 		int numCrystalsX = iiter->getModule().sensors().front().numCrystalsX();
 		int numCrystalsY = iiter->getModule().sensors().front().numCrystalsY();
+
+		double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+
 		double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
 		double crystalLength = iiter->getModule().sensors().front().crystalLength();
 		double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
@@ -965,7 +968,7 @@ namespace insur {
 		    pos.trans.dx = (i - midX) * crystalWidth;
 		    double midY = numCrystalsY / 2 - 0.5;
 		    pos.trans.dy = (i - midY) * crystalLength;
-		    pos.trans.dz = 0.0;
+		    pos.trans.dz = pow(-1., i + j + 1) * alveolaShift;
 
 		    addTiltedModuleRot(r, crystalTiltAngle);
 		    std::ostringstream tilt;
@@ -981,7 +984,7 @@ namespace insur {
 		    // Topology
 		    minfo.name		= iiter->getModule().moduleType();
 		    mspec.partselectors.push_back(shape.name_tag);
-		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
+		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
 		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());

@@ -39,6 +39,7 @@ public:
   // Timing barrel module : approximated as 1 single sensor made of crystals (for the XML export)
   ReadonlyProperty<int, AutoDefault> numCrystalsX;
   ReadonlyProperty<int, AutoDefault> numCrystalsY;
+  ReadonlyProperty<double, AutoDefault> alveolaShift;
   ReadonlyProperty<double, AutoDefault> crystalThickness;
   ReadonlyProperty<double, AutoDefault> crystalTiltAngle;
   
@@ -54,6 +55,7 @@ public:
     powerPerChannel("powerPerChannel", parsedOnly()),
     numCrystalsX("numCrystalsX", parsedOnly()),
     numCrystalsY("numCrystalsY", parsedOnly()),
+    alveolaShift("alveolaShift", parsedOnly()),
     crystalThickness("crystalThickness", parsedOnly()),
     crystalTiltAngle("crystalTiltAngle", parsedOnly())   
       {}

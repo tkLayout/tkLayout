@@ -34,6 +34,8 @@ Sensor 1 {
   
   numCrystalsX 16  // 184.48mm / 11.53mm
   numCrystalsY 4 // 46.5mm / 11.625mm
+    
+  alveolaShift 1.0
   
   crystalThickness 2.6
   crystalTiltAngle 18.0
