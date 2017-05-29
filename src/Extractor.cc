@@ -1088,14 +1088,19 @@ namespace insur {
 		    }
 		  } // loop on crystals
 
-
-
-
-
-
-
-
-
+		  // Topology
+		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), namePlus) == mspec.partselectors.end()) {
+		    minfo.name		= iiter->getModule().moduleType();
+		    mspec.partselectors.push_back(namePlus);
+		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
+		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+		    mspec.moduletypes.push_back(minfo);
+		    // -Z side
+		    mspec.partselectors.push_back(nameMinus);
+		    mspec.moduletypes.push_back(minfo);
+		  }
 		}
 		else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
 	      }
