@@ -1027,12 +1027,12 @@ namespace insur {
 
 		  double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
 
-		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();	  
-		  		 
-		 
-		  // SolidSection
-		  std::string namePlus = mname.str() + xml_timing + xml_base_act;
-		  shape.name_tag = namePlus;
+		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+
+		  std::string crystalName = mnameBase.str() + xml_timing + xml_base_act;	  
+		  		 		 
+		  // SolidSection		  
+		  shape.name_tag = crystalName;
 		  shape.dx = crystalWidth / 2.0;
 		  shape.dy = crystalLength / 2.0;
 		  shape.dz = crystalThickness / 2.0;
@@ -1044,23 +1044,22 @@ namespace insur {
 		  logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
 		  l.push_back(logic);
 
-		  // -Z side
-		  std::string nameMinus = mnameNeg.str() + xml_timing + xml_base_act;
-		  shape.name_tag = nameMinus;
+		  // test
+		  /*shape.name_tag = crystalName + "Test";
 		  s.push_back(shape);
 		  logic.name_tag = shape.name_tag;
 		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-		  l.push_back(logic);
+		  l.push_back(logic);*/
+
 
 		  // LOOP ON ALL CRYSTALS IN THE MODULE
 		  for (int j = 0; j < numCrystalsY; j++) {
 		    for (int i = 0; i < numCrystalsX; i++) {		  	         
 	    
 		      // PosPart section		 
-		      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		      pos.child_tag = trackerXmlTags.nspace + ":" + crystalName;
 		      int crystalIndex = j * numCrystalsX + i + 1;
 		      pos.copy = crystalIndex;
-
 		      double midX = numCrystalsX / 2 - 0.5;
 		      pos.trans.dx = (i - midX) * crystalWidth;
 		      double midY = numCrystalsY / 2 - 0.5;
@@ -1084,21 +1083,24 @@ namespace insur {
 		      pos.copy = 1;
 		      pos.trans.dx = 0.;
 		      pos.trans.dy = 0.;
+		      pos.trans.dz = 0.;
 		      pos.rotref = "";
 		    }
 		  } // loop on crystals
 
+		  // Test
+		  /*pos.parent_tag = pos.child_tag;
+		  pos.child_tag = trackerXmlTags.nspace + ":" + crystalName + "Test";
+		  p.push_back(pos);*/
+
 		  // Topology
-		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), namePlus) == mspec.partselectors.end()) {
+		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), crystalName) == mspec.partselectors.end()) {
 		    minfo.name		= iiter->getModule().moduleType();
-		    mspec.partselectors.push_back(namePlus);
+		    mspec.partselectors.push_back(crystalName);
 		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
 		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-		    mspec.moduletypes.push_back(minfo);
-		    // -Z side
-		    mspec.partselectors.push_back(nameMinus);
 		    mspec.moduletypes.push_back(minfo);
 		  }
 		}
