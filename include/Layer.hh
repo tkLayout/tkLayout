@@ -180,6 +180,8 @@ public:
 
   void layerNumber(int num) { layerNumber_ = num; }
   int layerNumber() const { return layerNumber_; }
+
+  bool isTiming() const { return rods_.front().isTiming(); }
   /*int calculateTotalNumRings(int numModulesSide) const { 
     int num = 0;
     if (rods_.size() !=0) {

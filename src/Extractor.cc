@@ -537,6 +537,8 @@ namespace insur {
       
       // is the layer tilted ?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
+
+      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
      
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
       // ALL THIS SHOULD BE DELETED AND REPLACED BY module->minRwithHybrids() GETTERS.
@@ -1049,7 +1051,7 @@ namespace insur {
 		      double midX = numCrystalsX / 2 - 0.5;
 		      pos.trans.dx = (i - midX) * crystalWidth;
 		      double midY = numCrystalsY / 2 - 0.5;
-		      pos.trans.dy = (i - midY) * crystalLength;
+		      pos.trans.dy = (j - midY) * crystalLength;
 		      pos.trans.dz = pow(-1., i + j) * alveolaShift;
 
 		      addTiltedModuleRot(r, crystalTiltAngle);
@@ -1188,10 +1190,10 @@ namespace insur {
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
       if (isTilted) shape.name_tag = rodname.str() + "Full";
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
-      if (isPixelTracker) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
+      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
-      if (isPixelTracker) shape.dy = rodWidth.at(layer) + xml_epsilon;
+      if (isPixelTracker || isTimingLayer) shape.dy = rodWidth.at(layer) + xml_epsilon;
       shape.dz = zmax + xml_epsilon;
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
