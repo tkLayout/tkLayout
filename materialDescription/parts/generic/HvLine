@@ -1,4 +1,0 @@
-// HV: 1 wire
-comp = HV lines
-M Cu_HV 0 0 1.18 g/m 0 E;
-M PE    0 0 0.96 g/m 0 E;

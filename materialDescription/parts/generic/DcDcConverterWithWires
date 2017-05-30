@@ -1,3 +1,0 @@
-// LP-GBT with its fiber pair
-#include <generic/DcDcConverterRaw>
-#include <generic/MvLinePair>
