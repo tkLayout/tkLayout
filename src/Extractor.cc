@@ -677,24 +677,17 @@ namespace insur {
 	    mnameNeg << xml_barrel_module << modRing << lname.str() << xml_negative_z;
 	  }
 
-	  // parent module name
-	  std::string parentName = mname.str();
-
-	  std::vector<ModuleCap>::iterator partner;
 
 	  // build module volumes, with hybrids taken into account
+	  std::string parentName = mname.str();
 	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
 	  modcomplex.buildSubVolumes();
 #ifdef __DEBUGPRINT__
 	  modcomplex.print();
 #endif
 
-	  // Timing layer : insert both +Z and -Z sides
-	  if (iiter->getModule().isTimingModule()) {
-	    std::string parentNameNeg = mnameNeg.str();
-	    ModuleComplex modcomplexNeg(mnameNeg.str(),parentNameNeg,*iiter);
-	    modcomplexNeg.buildSubVolumes();
-	  }
+	  std::vector<ModuleCap>::iterator partner = findPartnerModule(iiter, oiter->end(), modRing);
+	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {           
@@ -759,9 +752,7 @@ namespace insur {
 
 	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
             if (!isTilted || (isTilted && (tiltAngle == 0))) {
-
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodname.str();
-
 	      // DEFINE CHILD : MODULE TO BE PLACED IN A ROD.
 	      // Standard case
 	      if (!iiter->getModule().isTimingModule()) {
@@ -779,10 +770,7 @@ namespace insur {
 		  childName = trackerXmlTags.nspace + ":" + timingModuleNames.at(crystalProperties);
 		  timingModuleCopyNumber += 1;
 		}
-	      }	// end of timing layer special case
-	    	     
-	      partner = findPartnerModule(iiter, oiter->end(), modRing);
-
+	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
@@ -791,7 +779,7 @@ namespace insur {
 	      if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_positive_z;
 	      p.push_back(pos);
 	      
-	      // This is a copy of the BModule (FW/BW barrel half)
+	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
@@ -813,15 +801,13 @@ namespace insur {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-	      partner = findPartnerModule(iiter, oiter->end(), modRing);
-
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
-	      // This is a copy of the BModule (FW/BW barrel half)
+	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
 		pos.trans.dz = partner->getModule().center().Z();
@@ -1111,6 +1097,16 @@ namespace insur {
 	      modcomplex.addShapeInfo(s);
 	      modcomplex.addLogicInfo(l);
 	      modcomplex.addPositionInfo(p);
+	      // -Z side
+	      if ( iiter->getModule().isTimingModule()) {
+		std::string parentNameNeg = mnameNeg.str();
+		ModuleComplex modcomplexNeg(mnameNeg.str(),parentNameNeg,*partner);
+		modcomplexNeg.buildSubVolumes();
+		modcomplexNeg.addMaterialInfo(c);
+		modcomplexNeg.addShapeInfo(s);
+		modcomplexNeg.addLogicInfo(l);
+		modcomplexNeg.addPositionInfo(p);
+	      }
 #ifdef __DEBUGPRINT__
 	      modcomplex.print();
 #endif
