@@ -1064,7 +1064,7 @@ namespace insur {
 		      pos.trans.dx = (i - midX) * crystalWidth;
 		      double midY = numCrystalsY / 2 - 0.5;
 		      pos.trans.dy = (i - midY) * crystalLength;
-		      pos.trans.dz = pow(-1., i + j + 1) * alveolaShift;
+		      pos.trans.dz = pow(-1., i + j) * alveolaShift;
 
 		      addTiltedModuleRot(r, crystalTiltAngle);
 		      std::ostringstream tilt;
