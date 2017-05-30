@@ -2811,7 +2811,8 @@ namespace insur {
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
     if (!module.isPixelModule()) {
-      expandedModThickness = sensorDistance + 2.0 * (supportPlateThickness + sensorThickness);   
+      if (!module.isTimingModule()) expandedModThickness = sensorDistance + 2.0 * (supportPlateThickness + sensorThickness);
+      else expandedModThickness = sensorThickness + 2.0 * MAX(supportPlateThickness, hybridThickness);
       prefix_xmlfile = xml_fileident + ":";
       nTypes = 9;
     }
