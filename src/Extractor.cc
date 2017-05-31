@@ -2389,10 +2389,10 @@ namespace insur {
       rot.name = positiveZName;
       rot.thetax = 90.0;
       rot.phix = 0.0;
-      rot.thetay = 90.0 - tiltAngle;
+      rot.thetay = 90.0 + tiltAngle;
       rot.phiy = 90.0;
       rot.thetaz = tiltAngle;
-      rot.phiz = 270.0;
+      rot.phiz = 90.0;
       rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
     }
 
@@ -2402,10 +2402,10 @@ namespace insur {
       rot.name = negativeZName;
       rot.thetax = 90.0;
       rot.phix = 0.0;
-      rot.thetay = 90.0 + tiltAngle;
+      rot.thetay = 90.0 - tiltAngle;
       rot.phiy = 90.0;
       rot.thetaz = tiltAngle;
-      rot.phiz = 90.0;
+      rot.phiz = 270.0;
       rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
     }
   }

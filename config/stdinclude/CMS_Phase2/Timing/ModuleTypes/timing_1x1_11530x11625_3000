@@ -24,7 +24,7 @@ supportPlateThickness 1.0
 
 numSensors 1
 
-sensorThickness 18.0
+sensorThickness 10.0
 
 Sensor 1 {
   sensorType largepix
