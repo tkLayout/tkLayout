@@ -1,10 +1,6 @@
 // Lindsey Gray version : Barrel Timing module
 
-moduleType timing_1x1_11530x11625_3000 // timing modules should always have a type starting with keyword 'timing_'
-
-width 184.48
-length 46.5
-physicalLength 46.5     // to avoid collisions with previous module in barrels
+moduleType timing_1x1_11530x11625_3600 // timing modules should always have a type starting with keyword 'timing_'
 
 sensorLayout mono
 
@@ -14,38 +10,44 @@ powerStripChip 0
 powerModuleChip 0 
 powerModuleOptical 0
 
-serviceHybridWidth 0.0  // 10.63 hybrid + 1.37 inactive silicon // OK
-frontEndHybridWidth 0.0 // 10.05 hybrid + 1.45 inactive silicon // OK
-hybridThickness 1.0
-supportPlateThickness 1.0
+plotColor 6
 
 
+// In all that follows, what is called 'crystalsContainer' is an UNTILTED parallelepiped, which contains the tilted crystals.
 
+numSensors 1            // crystalsContainer is considered as 1 sensor by the core of tkLayout.
+                        // More detailed description (crystals) for the XML export only.
 
-numSensors 1
+width 184.48            // crystalsContainer width
+length 46.5             // crystalsContainer length
+physicalLength 46.5     // to avoid collisions with previous module in barrels
+sensorThickness 10.0    // crystalsContainer thickness
 
-sensorThickness 10.0
 
 Sensor 1 {
   sensorType largepix
   
-  numROCX 1
+  numROCX 1             // Only one chip in total
   numROCY 1
   
-  numCrystalsX 16  // 184.48mm / 16 = 11.53mm
-  numCrystalsY 4 // 46.5mm / 4 = 11.625mm
-    
-  alveolaShift 1.0
+  numCrystalsX 16       // 184.48mm / 16 = 11.53mm
+  numCrystalsY 4        // 46.5mm / 4 = 11.625mm
   
-  crystalWidth 11.53
+  alveolaShift 1.0      // crystals are placed at +Z = 1 mm and -Z = 1 mm alternatively.
+  
+  crystalWidth 11.53 
   crystalLength 11.0
   crystalThickness 3.0
-  crystalTiltAngle 18.0
+  crystalTiltAngle 18.0 // rotation along X axis
   
   numStripsAcross 16
   numSegments 4
 }
 
 
-plotColor 6
+// Extra (untilted) volumes, located outside crystalsContainer.
+serviceHybridWidth 0.0
+frontEndHybridWidth 0.0
+hybridThickness 1.0
+supportPlateThickness 1.0
 
