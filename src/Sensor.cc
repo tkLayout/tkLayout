@@ -77,7 +77,7 @@ double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStrips
 double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcrossEstimate(); }
 double Sensor::stripLength() const { return parent_->length() / numSegmentsEstimate(); }
 
-double Sensor::crystalWidth() const { return parent_->meanWidth() / (double)numCrystalsX(); }
-double Sensor::crystalLength() const { return parent_->length() / (double)numCrystalsY(); }
+double Sensor::alveolaWidth() const { return parent_->meanWidth() / (double)numCrystalsX(); }
+double Sensor::alveolaLength() const { return parent_->length() / (double)numCrystalsY(); }
 
 define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };

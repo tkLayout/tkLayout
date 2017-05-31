@@ -40,6 +40,8 @@ public:
   ReadonlyProperty<int, AutoDefault> numCrystalsX;
   ReadonlyProperty<int, AutoDefault> numCrystalsY;
   ReadonlyProperty<double, AutoDefault> alveolaShift;
+  ReadonlyProperty<double, AutoDefault> crystalWidth;
+  ReadonlyProperty<double, AutoDefault> crystalLength;
   ReadonlyProperty<double, AutoDefault> crystalThickness;
   ReadonlyProperty<double, AutoDefault> crystalTiltAngle;
   
@@ -56,6 +58,8 @@ public:
     numCrystalsX("numCrystalsX", parsedOnly()),
     numCrystalsY("numCrystalsY", parsedOnly()),
     alveolaShift("alveolaShift", parsedOnly()),
+    crystalWidth("crystalWidth", parsedOnly()),
+    crystalLength("crystalLength", parsedOnly()),
     crystalThickness("crystalThickness", parsedOnly()),
     crystalTiltAngle("crystalTiltAngle", parsedOnly())   
       {}
@@ -81,8 +85,8 @@ public:
   int totalROCs() const { return numROCX() * numROCY(); }
 
   int numCrystals() const { return numCrystalsX() * numCrystalsY(); }
-  double crystalWidth() const;
-  double crystalLength() const;
+  double alveolaWidth() const;
+  double alveolaLength() const;
 
   double sensorNormalOffset() const;             // normal offset of the sensor center, in the frame of reference of the module
   const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor

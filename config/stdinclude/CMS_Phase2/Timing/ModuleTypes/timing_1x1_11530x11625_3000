@@ -32,16 +32,18 @@ Sensor 1 {
   numROCX 1
   numROCY 1
   
-  numCrystalsX 16  // 184.48mm / 11.53mm
-  numCrystalsY 4 // 46.5mm / 11.625mm
+  numCrystalsX 16  // 184.48mm / 16 = 11.53mm
+  numCrystalsY 4 // 46.5mm / 4 = 11.625mm
     
   alveolaShift 1.0
   
+  crystalWidth 11.53
+  crystalLength 11.0
   crystalThickness 3.0
   crystalTiltAngle 18.0
   
-  numStripsAcross 16  // 184.48mm / 11.53mm
-  numSegments 4 // 46.5mm / 11.625mm
+  numStripsAcross 16
+  numSegments 4
 }
 
 

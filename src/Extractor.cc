@@ -1009,15 +1009,16 @@ namespace insur {
 		  int numCrystalsX = iiter->getModule().sensors().front().numCrystalsX();
 		  int numCrystalsY = iiter->getModule().sensors().front().numCrystalsY();
 
+		  double alveolaWidth = iiter->getModule().sensors().front().alveolaWidth();
+		  double alveolaLength = iiter->getModule().sensors().front().alveolaLength();
+		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+
+		  std::string crystalName = mnameBase.str() + xml_timing + xml_base_act;
+
 		  double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
 		  double crystalLength = iiter->getModule().sensors().front().crystalLength();
 		  double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
-
 		  double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
-
-		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
-
-		  std::string crystalName = mnameBase.str() + xml_timing + xml_base_act;	  
 		  		 		 
 		  // SolidSection		  
 		  shape.name_tag = crystalName;
@@ -1049,9 +1050,9 @@ namespace insur {
 		      int crystalIndex = j * numCrystalsX + i + 1;
 		      pos.copy = crystalIndex;
 		      double midX = numCrystalsX / 2 - 0.5;
-		      pos.trans.dx = (i - midX) * crystalWidth;
+		      pos.trans.dx = (i - midX) * alveolaWidth;
 		      double midY = numCrystalsY / 2 - 0.5;
-		      pos.trans.dy = (j - midY) * crystalLength;
+		      pos.trans.dy = (j - midY) * alveolaLength;
 		      pos.trans.dz = pow(-1., i + j) * alveolaShift;
 
 		      addTiltedModuleRot(r, crystalTiltAngle);
