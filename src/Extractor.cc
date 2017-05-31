@@ -2151,81 +2151,87 @@ namespace insur {
 
 	  // ENDCAPS services
 	  else {
-	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
-	    if (iter->getZOffset() < startEndcaps) {
-	      std::ostringstream shapenameBarrel, shapenameEndcaps;
-	      shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
-	      shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
+	    // VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. 
+	    // TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr.
+	    if ((iter->getInnerRadius() + iter->getRWidth()) <= 1160.) { // BTL
 
-	      // Barrel part
-	      shape.name_tag = shapenameBarrel.str();
-	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);
-	      if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
-	      if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
+	      // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	      if (iter->getZOffset() < startEndcaps) {
+		std::ostringstream shapenameBarrel, shapenameEndcaps;
+		shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
+		shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
 
-	      logic.name_tag = shapenameBarrel.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
+		// Barrel part
+		shape.name_tag = shapenameBarrel.str();
+		shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);
+		if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
+		if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
-	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
-	      p.push_back(pos);
-	      pos.copy = 2;
-	      pos.trans.dz = -pos.trans.dz;
-	      pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
-	      p.push_back(pos);
+		logic.name_tag = shapenameBarrel.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
+
+		pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
+		p.push_back(pos);
+		pos.copy = 2;
+		pos.trans.dz = -pos.trans.dz;
+		pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
+		p.push_back(pos);
 	      
 
-	      pos.copy = 1;
-	      pos.rotref.clear();
+		pos.copy = 1;
+		pos.rotref.clear();
 
-	      // Endcaps part
-	      shape.name_tag = shapenameEndcaps.str();
-	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);    
-	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
-	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
+		// Endcaps part
+		shape.name_tag = shapenameEndcaps.str();
+		shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);    
+		if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+		if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
-	      logic.name_tag = shapenameEndcaps.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
+		logic.name_tag = shapenameEndcaps.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
-	      p.push_back(pos);
+		pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
+		p.push_back(pos);
 
 
+	      }
+
+	      // ENDCAPS-only services
+	      else {
+		shape.name_tag = shapename.str();
+		shape.dz = iter->getZLength() / 2.0;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);
+		if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+		if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
+
+		logic.name_tag = shapename.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
+
+		pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
+		p.push_back(pos);
+	      }
 	    }
-
-	    // ENDCAPS-only services
-	    else {
-	      shape.name_tag = shapename.str();
-	      shape.dz = iter->getZLength() / 2.0;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);
-	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
-	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
-
-	      logic.name_tag = shapename.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
-
-	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
-	      p.push_back(pos);
-	    }
+	    else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
 	  }
 
 
