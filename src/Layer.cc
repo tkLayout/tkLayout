@@ -324,6 +324,15 @@ void Layer::buildStraight(bool isFlatPart) {
   }
 
   float rodPhiRotation = 2*M_PI/numRods();
+  double firstForbiddenLowerPhi, firstForbiddenUpperPhi, secondForbiddenLowerPhi, secondForbiddenUpperPhi;
+  if (phiForbiddenRanges.state()) {
+    firstForbiddenLowerPhi = phiForbiddenRanges.at(0) * M_PI / 180.;
+    firstForbiddenUpperPhi = phiForbiddenRanges.at(1) * M_PI / 180.;
+    secondForbiddenLowerPhi = phiForbiddenRanges.at(2) * M_PI / 180.;
+    secondForbiddenUpperPhi = phiForbiddenRanges.at(3) * M_PI / 180.;
+    double forbiddenPhiCircumference = firstForbiddenUpperPhi - firstForbiddenLowerPhi + secondForbiddenUpperPhi - secondForbiddenLowerPhi;
+    rodPhiRotation = (2*M_PI - forbiddenPhiCircumference) / numRods();
+  }
 
   // FIRST ROD : assign common properties
   StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
@@ -347,6 +356,7 @@ void Layer::buildStraight(bool isFlatPart) {
   first->isOuterRadiusRod(isPlusBigDeltaRod);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
+  if (phiForbiddenRanges.state()) first->rotateZ(firstForbiddenUpperPhi + rodPhiRotation / 2.);
   if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
@@ -356,7 +366,8 @@ void Layer::buildStraight(bool isFlatPart) {
   second->isOuterRadiusRod(isPlusBigDeltaRod);
   second->build(rodTemplate, isPlusBigDeltaRod);
   second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  second->rotateZ(rodPhiRotation);
+  if (!phiForbiddenRanges.state()) second->rotateZ(rodPhiRotation);
+  else { second->rotateZ(firstForbiddenUpperPhi + rodPhiRotation / 2. + rodPhiRotation); }
   if (!isFlatPart) { rods_.push_back(second); }
   else { flatPartRods_.push_back(second); }
 
@@ -364,7 +375,18 @@ void Layer::buildStraight(bool isFlatPart) {
   for (int i = 2; i < numRods(); i++) {
     StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    //rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+
+    double extraRot = (i%2 ? rodPhiRotation : 0.);
+    double phiRot = rodPhiRotation*(i%2 ? i-1 : i);
+    double totalRot = firstForbiddenUpperPhi + rodPhiRotation / 2. + extraRot + phiRot;
+
+    if (phiForbiddenRanges.state() && moduloComp(secondForbiddenLowerPhi, totalRot, 2. * M_PI)) {
+      phiRot += (secondForbiddenUpperPhi - secondForbiddenLowerPhi);
+    }
+    rod->rotateZ(phiRot);
+
+
     if (!isFlatPart) { rods_.push_back(rod); }
     else { flatPartRods_.push_back(rod); }
   }
