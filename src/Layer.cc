@@ -323,15 +323,16 @@ void Layer::buildStraight(bool isFlatPart) {
     maxBuildRadius(placeRadius_);
   }
 
-  float rodPhiRotation = 2*M_PI/numRods();
-  double firstForbiddenLowerPhi, firstForbiddenUpperPhi, secondForbiddenLowerPhi, secondForbiddenUpperPhi;
-  if (phiForbiddenRanges.state()) {
-    firstForbiddenLowerPhi = phiForbiddenRanges.at(0) * M_PI / 180.;
-    firstForbiddenUpperPhi = phiForbiddenRanges.at(1) * M_PI / 180.;
-    secondForbiddenLowerPhi = phiForbiddenRanges.at(2) * M_PI / 180.;
-    secondForbiddenUpperPhi = phiForbiddenRanges.at(3) * M_PI / 180.;
-    double forbiddenPhiCircumference = firstForbiddenUpperPhi - firstForbiddenLowerPhi + secondForbiddenUpperPhi - secondForbiddenLowerPhi;
-    rodPhiRotation = (2*M_PI - forbiddenPhiCircumference) / numRods();
+  double rodPhiWidth = 0;
+  double forbiddenPhiLowerA, forbiddenPhiUpperA, forbiddenPhiLowerB, forbiddenPhiUpperB;
+  if (!phiForbiddenRanges.state()) rodPhiWidth = 2. * M_PI / numRods();
+  else {
+    forbiddenPhiLowerA = phiForbiddenRanges.at(0) * M_PI / 180.;
+    forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
+    forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
+    forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
+    double forbiddenPhiCircumference = forbiddenPhiUpperA - forbiddenPhiLowerA + forbiddenPhiUpperB - forbiddenPhiLowerB;
+    rodPhiWidth = (2*M_PI - forbiddenPhiCircumference) / numRods();
   }
 
   // FIRST ROD : assign common properties
@@ -356,7 +357,8 @@ void Layer::buildStraight(bool isFlatPart) {
   first->isOuterRadiusRod(isPlusBigDeltaRod);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  if (phiForbiddenRanges.state()) first->rotateZ(firstForbiddenUpperPhi + rodPhiRotation / 2.);
+  double firstRodPhi = (!phiForbiddenRanges.state() ? 0. : (forbiddenPhiUpperA + rodPhiWidth / 2.));
+  first->rotateZ(firstRodPhi);
   if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
@@ -366,8 +368,8 @@ void Layer::buildStraight(bool isFlatPart) {
   second->isOuterRadiusRod(isPlusBigDeltaRod);
   second->build(rodTemplate, isPlusBigDeltaRod);
   second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  if (!phiForbiddenRanges.state()) second->rotateZ(rodPhiRotation);
-  else { second->rotateZ(firstForbiddenUpperPhi + rodPhiRotation / 2. + rodPhiRotation); }
+  double secondRodPhi = firstRodPhi + rodPhiWidth;
+  second->rotateZ(secondRodPhi);
   if (!isFlatPart) { rods_.push_back(second); }
   else { flatPartRods_.push_back(second); }
 
@@ -375,18 +377,18 @@ void Layer::buildStraight(bool isFlatPart) {
   for (int i = 2; i < numRods(); i++) {
     StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    //rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
 
-    double extraRot = (i%2 ? rodPhiRotation : 0.);
-    double phiRot = rodPhiRotation*(i%2 ? i-1 : i);
-    double totalRot = firstForbiddenUpperPhi + rodPhiRotation / 2. + extraRot + phiRot;
-
-    if (phiForbiddenRanges.state() && moduloComp(secondForbiddenLowerPhi, totalRot, 2. * M_PI)) {
-      phiRot += (secondForbiddenUpperPhi - secondForbiddenLowerPhi);
+    // Phi rotation
+    double deltaPhi = rodPhiWidth * (i%2 ? i-1 : i);  // Extra Phi, added to the copy of secondRod or firstRod respectively.
+    if (phiForbiddenRanges.state()) {
+      double iRodPhi = (i%2 ? secondRodPhi : firstRodPhi) + deltaPhi;  // Total Phi of rod number i.
+      if (moduloComp(forbiddenPhiLowerB, iRodPhi, 2. * M_PI)) {
+	deltaPhi += (forbiddenPhiUpperB - forbiddenPhiLowerB);  // Shift all Phi : + Phi forbidden range B circumference when relevant.
+      }
     }
-    rod->rotateZ(phiRot);
+    rod->rotateZ(deltaPhi);
 
-
+    // Store
     if (!isFlatPart) { rods_.push_back(rod); }
     else { flatPartRods_.push_back(rod); }
   }
@@ -568,7 +570,7 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodPhiRotation = 2*M_PI/numRods();
+  float rodPhiWidth = 2*M_PI/numRods();
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
@@ -582,13 +584,13 @@ void Layer::buildTilted() {
   second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
-  second->rotateZ(rodPhiRotation);
+  second->rotateZ(rodPhiWidth);
   rods_.push_back(second);
 
   for (int i = 2; i < numRods(); i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    rod->rotateZ(rodPhiWidth*(i%2 ? i-1 : i));
     rods_.push_back(rod);
     }
 
@@ -641,21 +643,6 @@ void Layer::build() {
   }
 }
 
-
-void Layer::removePhiForbiddenRods() {
-  if (phiForbiddenRanges.state()) {
-    double firstForbiddenLowerPhi = phiForbiddenRanges.at(0) * M_PI / 180.;
-    double firstForbiddenUpperPhi = phiForbiddenRanges.at(1) * M_PI / 180.;
-    double secondForbiddenLowerPhi = phiForbiddenRanges.at(2) * M_PI / 180.;
-    double secondForbiddenUpperPhi = phiForbiddenRanges.at(3) * M_PI / 180.;
-
-    rods_.erase_if([firstForbiddenLowerPhi, firstForbiddenUpperPhi, secondForbiddenLowerPhi, secondForbiddenUpperPhi](RodPair& r) { 
-	return ( (moduloComp(firstForbiddenLowerPhi, r.Phi(), 2.*M_PI) && moduloComp(r.Phi(), firstForbiddenUpperPhi, 2.*M_PI))
-		 || (moduloComp(secondForbiddenLowerPhi, r.Phi(), 2.*M_PI) && moduloComp(r.Phi(), secondForbiddenUpperPhi, 2.*M_PI)) );
-      });
-    numRods(rods_.size());
-  }
-}
 
 const MaterialObject& Layer::materialObject() const{
   return materialObject_;

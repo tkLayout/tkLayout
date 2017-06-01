@@ -167,7 +167,6 @@ public:
 
   void check() override;
   void build();
-  void removePhiForbiddenRods();
 
   const Container& rods() const { return rods_; }
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
