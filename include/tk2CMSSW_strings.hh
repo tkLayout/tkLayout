@@ -259,9 +259,11 @@ namespace insur {
     static const std::string xml_PX_reco_disc_name = "Phase2PixelForwardDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
-    static const std::string xml_places_unflipped_mod_in_rod = "RODTOMODULE";
-    static const std::string xml_places_flipped_mod_in_rod = "RODTOFLIPPEDMODULE";
-    static const std::string xml_flip_mod_rot = "FLIP"; 
+    static const std::string xml_OT_places_unflipped_mod_in_rod = "OUTERTRACKERRODTOMODULE";
+    static const std::string xml_OT_places_flipped_mod_in_rod = "OUTERTRACKERRODTOFLIPPEDMODULE";
+    static const std::string xml_PX_places_unflipped_mod_in_rod = "INNERTRACKERRODTOMODULE";
+    static const std::string xml_PX_places_flipped_mod_in_rod = "INNERTRACKERRODTOFLIPPEDMODULE";
+    static const std::string xml_Y180 = "Y180"; 
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
