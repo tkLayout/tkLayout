@@ -37,6 +37,9 @@ OT_Tilted_362_200_Pixel_4021.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.1
                                      VERY small adjustment in positioning of TBPS layer 1 ring 8 and 10 (affexts rings 8+)
 
+OT362_200_IT4121.cfg		     OT Version 3.6.2
+				     Pixel version as in 4.0.2.1, but with 50x50 pixels instead of 25x100
+
 OT_Tilted_362_200_Pixel_4022.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.2 <- like 4.0.2.1 but with lower radii for BPIX L3 and L4 (less modules)
 
@@ -199,3 +202,4 @@ OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                         xy plane is exactly the same
 
 
+OT613_200_IT4125.cfg	Like above, but with 50x50 pixels instead of 25x100
