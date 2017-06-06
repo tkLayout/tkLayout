@@ -78,10 +78,6 @@ OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-styl
 OT463_200_IT4025.cfg                 OT Version 4.6.3 <- like 4.6.2 but with 5 endcap disks
                                      Pixel version 4.0.2.5
 
-OT365_200_IT500.cfg                  OT Version 3.6.5
-                                     Pixel version 5.0.0 : created series of tilted pixel layouts. Geometry is first jet and needs to be more optimized :)
-
-
 OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 FPIX_1 disks and 4 FPIX_2 disks
 
@@ -197,5 +193,15 @@ OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                          and add 4 modules in one ring of TEDD2.
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
+                        
+OT613_200_IT500.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.0 : tilted Inner Tracker. 
+                                     Head of series : geometry is obviously first jet and needs to be more optimized :)
+                                     
+OT613_200_IT501.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.1 : tilted Inner Tracker. 
+                                     Adjusted tilt angle on Layer 3 + Slightly adjusted last tilted rings' outerZ, so that all 4 layers have closer maxZ.
+                                     
+                                     
 
 
