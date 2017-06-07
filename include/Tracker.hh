@@ -19,6 +19,7 @@
 #include "Visitor.hh"
 #include "Visitable.hh"
 #include "MainConfigHandler.hh"
+#include <DetIdBuilder.hh>
 
 using std::set;
 using material::SupportStructure;
