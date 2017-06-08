@@ -76,7 +76,6 @@ void Tracker::build() {
   
   // Build DetIds
   buildDetIds();
-  checkDetIds();
 
   cleanup();
   builtok(true);
@@ -172,6 +171,7 @@ void Tracker::buildDetIds() {
     EndcapDetIdBuilder v(isPixelTracker(), endcapScheme);
     accept(v);
   }
+  checkDetIds();
 }
 
 
@@ -189,14 +189,14 @@ void Tracker::checkDetIds() {
     // Check Modules DetIds are unique
     uint32_t myModuleDetId = m->myDetId();
     auto found = moduleDetIds.find(myModuleDetId);
-    if (found != moduleDetIds.end()) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(myModuleDetId) + " is duplicated.");
+    if (found != moduleDetIds.end() && myModuleDetId != 0) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(myModuleDetId) + " is duplicated.");
     else moduleDetIds.insert(myModuleDetId);
 
     // Check Sensors DetIds are unique
     for (const auto& s : m->sensors()) {
       uint32_t mySensorDetId = s.myDetId();
       auto found = sensorDetIds.find(mySensorDetId);
-      if (found != sensorDetIds.end()) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(mySensorDetId) + " is duplicated.");
+      if (found != sensorDetIds.end() && mySensorDetId != 0) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(mySensorDetId) + " is duplicated.");
       else sensorDetIds.insert(mySensorDetId);
     }
   }
