@@ -11,6 +11,7 @@
 #include <set>
 #include <global_constants.hh>
 #include <global_funcs.hh>
+#include "MessageLogger.hh"
 
 #include "GraphVizCreator.hh"
 
@@ -62,6 +63,7 @@ public:
   string getIrradiationDirectory();
   string getDefaultMaterialsDirectory();
   string getDetIdSchemesDirectory();
+  std::vector<int> getDetIdScheme(std::string schemeName);
   string getStandardIncludeDirectory();
   string getGeometriesDirectory();
   string getConfigFileName();
@@ -71,6 +73,7 @@ public:
   vector<double>& getThresholdProbabilities();
 private:
   bool goodConfigurationRead_;
+  std::map<std::string, std::vector<int> > detIdSchemes_;
   //string styleDirectory_;
   string binDirectory_;
   string layoutDirectory_;
@@ -100,6 +103,7 @@ private:
   string getIrradiationDirectory_();
   string getDefaultMaterialsDirectory_();
   string getDetIdSchemesDirectory_();
+  void readDetIdSchemes();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();
 

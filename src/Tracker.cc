@@ -75,52 +75,11 @@ void Tracker::build() {
   addLayerDiskNumbers();
   
   // Build DetIds
-  if (detIdSchemes_.count(barrelDetIdScheme()) != 0) {
-    BarrelDetIdBuilder v(isPixelTracker(), detIdSchemes_[barrelDetIdScheme()]);
-    accept(v);
-  }
-  else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
-
-  if (detIdSchemes_.count(endcapDetIdScheme()) != 0) {
-    EndcapDetIdBuilder v(isPixelTracker(), detIdSchemes_[endcapDetIdScheme()]);
-    accept(v);
-  }
-  else logWARNING("endcapDetIdScheme = " + endcapDetIdScheme() + ". This endcap detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Endcap sensors will be calculated.");
-
+  buildDetIds();
+  checkDetIds();
 
   cleanup();
   builtok(true);
-}
-
-
-std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
-  std::map<std::string, std::vector<int> > schemes;
-
-  std::ifstream schemesStream(mainConfigHandler::instance().getDetIdSchemesDirectory() + "/" + insur::default_detidschemesfile);
-
-  if (schemesStream.good()) {
-    std::string line;
-    while(getline(schemesStream, line).good()) {
-      if (line.empty()) continue;
-      auto schemeData = split(line, " ");
-      std::string schemeName = schemeData.at(0);
-      if (schemeData.size() < 2) logWARNING("DetId scheme " + schemeName + " : no data was entered." );
-      else {
-	std::vector<int> geometryHierarchySizes;
-	int sum = 0;
-	for (int i = 1; i < schemeData.size(); i++) {
-	  int size = str2any<int>(schemeData.at(i));
-	  geometryHierarchySizes.push_back(size);
-	  sum += size; 
-	}
-	if (sum != 32) logWARNING("DetId scheme " + schemeName + " : The sum of geometry hierarchy sizes is not equal to 32." );
-	else schemes.insert(std::make_pair(schemeName, geometryHierarchySizes));
-      }
-    }
-    schemesStream.close();
-  } else logWARNING("No file defining a detId scheme has been found.");
-
-  return schemes;
 }
 
 
@@ -194,4 +153,51 @@ void Tracker::addLayerDiskNumbers() {
   LayerDiskNumberBuilder builder;
   accept(builder);
   builder.postVisit();
+}
+
+
+/** 
+ * Build DetIds in the Tracker.
+ */
+void Tracker::buildDetIds() {
+  // Barrel part
+  std::vector<int> barrelScheme = mainConfigHandler::instance().getDetIdScheme(barrelDetIdScheme());
+  if (barrelScheme.size() != 0) {
+    BarrelDetIdBuilder v(isPixelTracker(), barrelScheme);
+    accept(v);
+  }
+  // Endcap part
+  std::vector<int> endcapScheme = mainConfigHandler::instance().getDetIdScheme(endcapDetIdScheme());
+  if (endcapScheme.size() != 0) {
+    EndcapDetIdBuilder v(isPixelTracker(), endcapScheme);
+    accept(v);
+  }
+}
+
+
+/**
+ * Check DetIds : DetIds should oviously be unique !
+ * NB : If DetIds are replicated outside of the same Tracker, this will not be noticed. Though, this cannot happen by construction.
+ */
+void Tracker::checkDetIds() {
+  std::set<int> moduleDetIds;
+  std::set<int> sensorDetIds;
+
+  const Modules& modules = moduleSetVisitor_.modules();
+
+  for (const auto& m : modules) {
+    // Check Modules DetIds are unique
+    uint32_t myModuleDetId = m->myDetId();
+    auto found = moduleDetIds.find(myModuleDetId);
+    if (found != moduleDetIds.end()) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(myModuleDetId) + " is duplicated.");
+    else moduleDetIds.insert(myModuleDetId);
+
+    // Check Sensors DetIds are unique
+    for (const auto& s : m->sensors()) {
+      uint32_t mySensorDetId = s.myDetId();
+      auto found = sensorDetIds.find(mySensorDetId);
+      if (found != sensorDetIds.end()) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(mySensorDetId) + " is duplicated.");
+      else sensorDetIds.insert(mySensorDetId);
+    }
+  }
 }
