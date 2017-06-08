@@ -19,7 +19,7 @@
 #include "Visitor.hh"
 #include "Visitable.hh"
 #include "MainConfigHandler.hh"
-#include <DetIdBuilder.hh>
+#include "DetIdBuilder.hh"
 
 using std::set;
 using material::SupportStructure;
@@ -148,6 +148,8 @@ public:
   }
 
   void build();
+  void addHierarchyInfoToModules();
+  void addLayerDiskNumbers();
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

@@ -63,77 +63,26 @@ void Tracker::build() {
   }
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
-  // Add modules to a set, directly accessible from Tracker
+  // Add all modules to a set, directly accessible from Tracker
   accept(moduleSetVisitor_);
 
   // Add geometry hierarchy information to modules
-  class HierarchicalNameVisitor : public GeometryVisitor {
-    int cntId = 0;
-    string cnt;
-    int c1, c2;
-  public:
-    void visit(Barrel& b) { cnt = b.myid(); cntId++; }
-    void visit(Endcap& e) { cnt = e.myid(); cntId++; }
-    void visit(Layer& l)  { c1 = l.myid(); }
-    void visit(Disk& d)   { c1 = d.myid(); }
-    void visit(RodPair& r){ c2 = r.myid(); }
-    void visit(Ring& r)   { c2 = r.myid(); }
-    void visit(Module& m) { m.cntNameId(cnt, cntId); }
-    void visit(BarrelModule& m) { m.layer(c1); m.rod(c2); }
-    void visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
-  } cntNameVisitor;
+  addHierarchyInfoToModules();
 
-  accept(cntNameVisitor);
-
-
-  // THis is uglyy, sorry i will completely rewrite this
-  std::vector< std::pair<const Layer*, std::string> > sortedLayers;
-  std::string barrelId;
-  for (auto& b : barrels_) {
-    barrelId = b.myid();
-    for (const auto& l : b.layers()) { sortedLayers.push_back(std::make_pair(&l, barrelId)); }
-  }
-  std::sort(sortedLayers.begin(), sortedLayers.end(), [&] (std::pair<const Layer*, std::string> l1, std::pair<const Layer*, std::string> l2) { return l1.first->minR() < l2.first->minR(); });
-  std::map< std::pair<std::string, int>, int > sortedLayersIds;
-  int i = 1;
-  for (const auto& l : sortedLayers) { sortedLayersIds.insert(std::make_pair(std::make_pair(l.second, l.first->myid()), i)); i++; }
-
-  std::vector< std::pair<const Disk*, std::string> > sortedZPlusDisks;
-  std::vector< std::pair<const Disk*, std::string> > sortedZMinusDisks;
-  std::string endcapId;
-  for (auto& e : endcaps_) {
-    endcapId = e.myid();
-    for (const auto& d : e.disks()) {
-      if (d.side()) sortedZPlusDisks.push_back(std::make_pair(&d, endcapId));
-      else sortedZMinusDisks.push_back(std::make_pair(&d, endcapId));
-    }
-  }
-  std::sort(sortedZPlusDisks.begin(), sortedZPlusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return d1.first->averageZ() < d2.first->averageZ(); });
-  std::sort(sortedZMinusDisks.begin(), sortedZMinusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return fabs(d1.first->averageZ()) < fabs(d2.first->averageZ()); });
-  std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
-  i = 1;
-  for (const auto& d : sortedZPlusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-  i = 1;
-  for (const auto& d : sortedZMinusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-  // END OF THE UGLY PART
-
-
-
-
-
+  // Add Layers and Disks a global Tracker numbering.
+  // All Tracker Layers are numbered by increasing radius.
+  // All Tracker Disks are numbered by increasing fabs(Z). Numbering starts from 1 on (+Z) side, and from 1 on (-Z) side.
+  addLayerDiskNumbers();
   
-
-  
-
-
+  // Build DetIds
   if (detIdSchemes_.count(barrelDetIdScheme()) != 0) {
-    BarrelDetIdBuilder v(isPixelTracker(), detIdSchemes_[barrelDetIdScheme()], sortedLayersIds);
+    BarrelDetIdBuilder v(isPixelTracker(), detIdSchemes_[barrelDetIdScheme()]);
     accept(v);
   }
   else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
 
   if (detIdSchemes_.count(endcapDetIdScheme()) != 0) {
-    EndcapDetIdBuilder v(isPixelTracker(), detIdSchemes_[endcapDetIdScheme()], sortedDisksIds);
+    EndcapDetIdBuilder v(isPixelTracker(), detIdSchemes_[endcapDetIdScheme()]);
     accept(v);
   }
   else logWARNING("endcapDetIdScheme = " + endcapDetIdScheme() + ". This endcap detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Endcap sensors will be calculated.");
@@ -172,4 +121,77 @@ std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
   } else logWARNING("No file defining a detId scheme has been found.");
 
   return schemes;
+}
+
+
+/** 
+ * Add geometry hierarchy information to modules.
+ */
+void Tracker::addHierarchyInfoToModules() {
+ 
+  class HierarchicalNameVisitor : public GeometryVisitor {
+    int cntId = 0;
+    string cnt;
+    int c1, c2;
+  public:
+    void visit(Barrel& b) { cnt = b.myid(); cntId++; }
+    void visit(Endcap& e) { cnt = e.myid(); cntId++; }
+    void visit(Layer& l)  { c1 = l.myid(); }
+    void visit(Disk& d)   { c1 = d.myid(); }
+    void visit(RodPair& r){ c2 = r.myid(); }
+    void visit(Ring& r)   { c2 = r.myid(); }
+    void visit(Module& m) { m.cntNameId(cnt, cntId); }
+    void visit(BarrelModule& m) { m.layer(c1); m.rod(c2); }
+    void visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
+  };
+
+  HierarchicalNameVisitor cntNameVisitor;
+  accept(cntNameVisitor);
+}
+
+
+/**
+ * Add Layers and Disks a global Tracker numbering.
+ * All Tracker Layers are numbered by increasing radius.
+ * All Tracker Disks are numbered by increasing fabs(Z). Numbering starts from 1 on (+Z) side, and from 1 on (-Z) side.
+ */
+void Tracker::addLayerDiskNumbers() {
+
+  class LayerDiskNumberBuilder : public GeometryVisitor {
+  public:
+    void visit(Layer& l)  { trackerLayers_.push_back(&l); }
+    void visit(Disk& d)   { trackerDisks_.push_back(&d); }
+
+    void postVisit() {
+      std::sort(trackerLayers_.begin(), trackerLayers_.end(), [] (const Layer* l1, const Layer* l2) { return l1->minR() < l2->minR(); });
+      int layerNumber = 1;
+      for (auto& l : trackerLayers_) {
+	l->layerNumber(layerNumber); 
+	layerNumber++; 
+      }
+
+      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->averageZ()) < fabs(d2->averageZ()); });
+      int positiveZDiskNumber = 1;
+      int negativeZDiskNumber = 1;
+      for (auto& d : trackerDisks_) {
+	if (d->side()) { 
+	  d->diskNumber(positiveZDiskNumber); 
+	  positiveZDiskNumber++; 
+	} 
+	else { 
+	  d->diskNumber(negativeZDiskNumber); 
+	  negativeZDiskNumber++; 
+	} 
+      }
+    }
+  private:
+    std::vector<Layer*> trackerLayers_;
+    std::vector<Disk*> trackerDisks_;
+    //PtrVector<Layer> trackerLayers_;  // Would be good to use this
+    //PtrVector<Disk> trackerDisks_;
+  };
+
+  LayerDiskNumberBuilder builder;
+  accept(builder);
+  builder.postVisit();
 }

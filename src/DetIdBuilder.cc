@@ -7,14 +7,12 @@
     //*                                   //
     //************************************//
 
-BarrelDetIdBuilder::BarrelDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes, std::map< std::pair<std::string, int>, int > layersIds) : 
+BarrelDetIdBuilder::BarrelDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes) : 
   isPixelTracker_(isPixelTracker),
-  geometryHierarchySizes_(geometryHierarchySizes), 
-  sortedLayersIds_(layersIds) 
+  geometryHierarchySizes_(geometryHierarchySizes)
 {}
 
 void BarrelDetIdBuilder::visit(Barrel& b) {
-  barrelName_ = b.myid();
 
   // !!! Tracker level
   geometryHierarchyIds_[0] = 1;   // always 1.
@@ -30,10 +28,6 @@ void BarrelDetIdBuilder::visit(Barrel& b) {
 }
 
 void BarrelDetIdBuilder::visit(Layer& l) {
-  std::pair<std::string, int> layerId;
-  layerId = std::make_pair(barrelName_, l.myid());
-  l.layerNumber(sortedLayersIds_.at(layerId));
-
   // !!! Layer level
   geometryHierarchyIds_[3] = l.layerNumber();
 
@@ -136,15 +130,12 @@ void BarrelDetIdBuilder::visit(Sensor& s) {
     //*                                   //
     //************************************//
 
-EndcapDetIdBuilder::EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes, std::map< std::tuple<std::string, int, bool>, int > disksIds) : 
+EndcapDetIdBuilder::EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes) : 
   isPixelTracker_(isPixelTracker),
-  geometryHierarchySizes_(geometryHierarchySizes), 
-  sortedDisksIds_(disksIds) 
+  geometryHierarchySizes_(geometryHierarchySizes)
 {}
 
 void EndcapDetIdBuilder::visit(Endcap& e) {
-  endcapName_ = e.myid();
-
   // !!! Tracker level
   geometryHierarchyIds_[0] = 1;   // always 1.
 
@@ -157,10 +148,6 @@ void EndcapDetIdBuilder::visit(Endcap& e) {
 
 void EndcapDetIdBuilder::visit(Disk& d) {
   bool side = d.side();
-
-  std::tuple<std::string, int, bool> diskId;
-  diskId = std::make_tuple(endcapName_, d.myid(), side);
-  d.diskNumber(sortedDisksIds_.at(diskId));  
 
   // !!! Z side level
   uint32_t sideRef = (side ? 2 : 1);  // 2 for Z+ side, 1 for -Z side

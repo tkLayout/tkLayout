@@ -3,11 +3,7 @@
 
 #include "global_constants.hh"
 #include "global_funcs.hh"
-//#include <VizardTools.hh>
 #include <Tracker.hh>
-//#include <SimParms.hh>
-//#include <TagMaker.hh>
-//#include <RootWeb.hh>
 
 /** See https://github.com/tkLayout/tkLayout/wiki/DetIds-in-tkLayout-for-the-entire-Tracker .
  * All geometry hierarchy levels (for example OT Barrel, or Ring) are assigned a size (number of bits) and an Id.
@@ -30,7 +26,7 @@
 class BarrelDetIdBuilder : public SensorGeometryVisitor {
 
 public:
-  BarrelDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes, std::map< std::pair<std::string, int>, int > layersIds);
+  BarrelDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes);
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -46,7 +42,6 @@ private:
 
   std::map<int, uint32_t> geometryHierarchyIds_;  // WHAT IS CALCULATED HERE !! Id associated to each level in the geometry hierarchy.
 
-  std::string barrelName_;
   bool isTiltedLayer_;
   int numRods_;
   int numFlatRings_;
@@ -65,7 +60,7 @@ private:
 class EndcapDetIdBuilder : public SensorGeometryVisitor {
 
 public:
-  EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes, std::map< std::tuple<std::string, int, bool>, int > disksIds);
+  EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes);
 
   void visit(Endcap& e);
   void visit(Disk& d);
@@ -81,7 +76,6 @@ private:
 
   std::map<int, uint32_t> geometryHierarchyIds_;  // WHAT IS CALCULATED HERE !! Id associated to each level in the geometry hierarchy.
 
-  std::string endcapName_;
   int numEmptyRings_;
   int numModules_;
 };
