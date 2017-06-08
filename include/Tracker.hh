@@ -20,6 +20,7 @@
 #include "Visitable.hh"
 #include "Cabling/DTC.hh"
 #include "MainConfigHandler.hh"
+#include "DetIdBuilder.hh"
 
 using std::set;
 using material::SupportStructure;
@@ -54,8 +55,6 @@ public:
   ReadonlyProperty<bool, Default> servicesForcedUp;
   ReadonlyProperty<bool, Default> skipAllServices;
   ReadonlyProperty<bool, Default> skipAllSupports;
-
-  std::map<std::string, std::vector<int> > detIdSchemes_;
 
 private:
   Barrels barrels_;
@@ -150,18 +149,21 @@ public:
 	  }
 	  return hasStep;
 	});
-
-      detIdSchemes_ = detIdSchemes();
   }
 
   void build();
+  void addHierarchyInfoToModules();
+  void addLayerDiskNumbers();
+  void buildDetIds();
+  void checkDetIds();
+
   void buildCabling();
   void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
   void checkBundlesToCablesConnections(std::map<int, Cable*>& cables);
+
   const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   const std::map<int, Cable*>& getCables() const { return cables_; }
   const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
-
   const std::map<int, Bundle*>& getNegBundles() const { return negBundles_; }
   const std::map<int, Cable*>& getNegCables() const { return negCables_; }
   const std::map<const std::string, const DTC*>& getNegDTCs() const { return negDTCs_; }
