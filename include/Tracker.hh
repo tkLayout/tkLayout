@@ -19,6 +19,7 @@
 #include "Visitor.hh"
 #include "Visitable.hh"
 #include "MainConfigHandler.hh"
+#include "DetIdBuilder.hh"
 
 using std::set;
 using material::SupportStructure;
@@ -54,8 +55,6 @@ public:
   ReadonlyProperty<bool, Default> skipAllServices;
   ReadonlyProperty<bool, Default> skipAllSupports;
 
-  std::map<std::string, std::vector<int> > detIdSchemes_;
-
 private:
   Barrels barrels_;
   Endcaps endcaps_;
@@ -71,8 +70,6 @@ private:
 
   Property<std::string, AutoDefault> barrelDetIdScheme;
   Property<std::string, AutoDefault> endcapDetIdScheme;
-
-  //std::map<std::string, std::vector<int> > detIdSchemes_;
 
   Tracker(const Tracker&) = default;
 public:
@@ -142,11 +139,13 @@ public:
 	  }
 	  return hasStep;
 	});
-
-      detIdSchemes_ = detIdSchemes();
   }
 
   void build();
+  void addHierarchyInfoToModules();
+  void addLayerDiskNumbers();
+  void buildDetIds();
+  void checkDetIds();
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }
