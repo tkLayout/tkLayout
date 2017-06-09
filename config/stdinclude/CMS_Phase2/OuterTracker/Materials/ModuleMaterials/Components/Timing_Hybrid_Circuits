@@ -1,0 +1,100 @@
+// Two Front-end hybrids, power hybrid and readout hybrid
+Component {
+  componentName "Timing FE hybrid circuits"
+  service false
+  scaleOnSensor 0
+  targetVolume 7
+  //FEH copper
+  Element {
+    elementName Cu
+    quantity 1.390
+    unit g
+  }
+  //FEH board + components
+  Element {
+    elementName PS-FEH-mix
+    quantity 1.318
+    unit g
+  }
+  //FEH-sensors wirebonds
+  Element {
+    elementName Al
+    quantity 0.025
+    unit g
+  }
+  //Wirebond encapsulant
+  Element {
+    elementName WB-enc
+    quantity 0.935
+    unit g
+  }
+  //FEH CFRP support
+  Element {
+    elementName CFRP
+    quantity 2.140
+    unit g
+  }
+  //FEH CFRP stiffener
+  Element {
+    elementName CFRP
+    quantity 1.499
+    unit g
+  }
+}
+
+Component {
+  componentName "Timing Readout hybrid circuit"
+  service false
+  scaleOnSensor 0
+  targetVolume 7
+  // ROH CFRP support
+  Element {
+    elementName CFRP
+    quantity 0.247
+    unit g
+  }
+  // ROH copper
+  Element {
+    elementName Cu
+    quantity 0.474
+    unit g
+  }
+  // ROH board + components
+  Element {
+    elementName PS-ROH-mix
+    quantity 3.024
+    unit g
+  }
+}
+
+
+Component {
+  componentName "Timing Power hybrid"
+  service false
+  scaleOnSensor 0
+  targetVolume 4
+  // POH CFRP support
+  Element {
+    elementName CFRP
+    quantity 0.247
+    unit g
+  }
+  // POH glue
+  Element {
+    elementName Epoxy
+    quantity 0.095
+    unit g
+  }
+  // POH copper
+  Element {
+    elementName Cu
+    quantity 2.419
+    unit g
+  }
+  // POH board + components
+  Element {
+    elementName PS-ROH-mix
+    quantity 3.108
+    unit g
+  }
+}

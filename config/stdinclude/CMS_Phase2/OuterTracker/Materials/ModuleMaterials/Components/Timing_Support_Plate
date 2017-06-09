@@ -1,0 +1,36 @@
+// Support plate for Timing module
+
+Component {
+  componentName "Timing Support plate (below hybrids)"
+  service false
+  scaleOnSensor 0
+  targetVolume 0
+  Element {
+    elementName CFRP
+    quantity 1.295
+    unit g
+  }
+ Element {
+    elementName Epoxy
+    quantity 0.153
+    unit g
+  }
+}
+
+Component {
+  componentName "Timing Support plate (below sensor)"
+  service false
+  scaleOnSensor 0
+  targetVolume 8
+  Element {
+    elementName CFRP
+    quantity 1.195
+    unit g
+  }
+ Element {
+    elementName Epoxy
+    quantity 0.141
+    unit g
+  }
+}
+

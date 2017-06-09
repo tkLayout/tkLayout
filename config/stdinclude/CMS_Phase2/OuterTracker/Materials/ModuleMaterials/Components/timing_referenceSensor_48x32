@@ -1,0 +1,5 @@
+// Default sensor:
+ReferenceSensor 1 {
+  numStripsAcross 48
+  numSegments 32
+}
