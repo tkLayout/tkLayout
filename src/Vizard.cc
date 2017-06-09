@@ -1294,6 +1294,11 @@ namespace insur {
       }
       
 
+      const CablingMap* myCablingMap = tracker.getCablingMap();
+      std::cout << "(myCablingMap == NULL) " << (myCablingMap == NULL) << std::endl;
+      std::cout << "Vizaaaard" << myCablingMap->getCables().size() << std::endl;
+
+
       // CSV files
       RootWContent* filesContent = new RootWContent("Cabling files", true);
       myPage->addContent(filesContent);   
@@ -1310,7 +1315,7 @@ namespace insur {
       filesContent->addItem(myTextFile);
       // DTCs to modules
       myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(tracker, isPositiveCablingSide));
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
@@ -1328,7 +1333,7 @@ namespace insur {
       filesContent->addItem(myTextFile);
       // DTCs to modules
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(tracker, isPositiveCablingSide));
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
 
@@ -1342,7 +1347,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Bundles
       myInfo = new RootWInfo("Total number of fiber bundles (one side)");
-      int numBundles = tracker.getBundles().size();
+      int numBundles = myCablingMap->getBundles().size();
       myInfo->setValue(numBundles);
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
@@ -1352,7 +1357,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Cables
       myInfo = new RootWInfo("Total number of fiber cables (one side)");
-      int numCables = tracker.getCables().size();
+      int numCables = myCablingMap->getCables().size();
       myInfo->setValue(numCables);
       efficiencyContent->addItem(myInfo);
       // Cables efficiency
@@ -1377,7 +1382,7 @@ namespace insur {
       std::map<int, std::vector<int> > cablesPerChannelPlus;
       std::map<int, int> psBundlesPerChannelPlus;
       std::map<int, int> ssBundlesPerChannelPlus;
-      analyzeServicesChannels(tracker, cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
+      analyzeServicesChannels(myCablingMap, cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
       // Create table
       RootWTable* channelsTablePlus = createServicesChannelTable(cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
       channelsContent->addItem(channelsTablePlus);
@@ -1389,7 +1394,7 @@ namespace insur {
       std::map<int, std::vector<int> > cablesPerChannelMinus;
       std::map<int, int> psBundlesPerChannelMinus;
       std::map<int, int> ssBundlesPerChannelMinus;
-      analyzeServicesChannels(tracker, cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
+      analyzeServicesChannels(myCablingMap, cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
       // Create table
       RootWTable* channelsTableMinus = createServicesChannelTable(cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
       channelsContent->addItem(channelsTableMinus);
@@ -1417,9 +1422,9 @@ namespace insur {
 
 
 
-  void Vizard::analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
+  void Vizard::analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
 
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? tracker.getCables() : tracker.getNegCables());
+    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
     for (const auto& myCable : cables) {
       int channel = myCable.second->servicesChannel();
@@ -6799,12 +6804,14 @@ namespace insur {
   }
 
 
-  std::string Vizard::createDTCsToModulesCsv(const Tracker& tracker, bool isPositiveCablingSide) {
+  std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Cable ServicesChannel/I, Bundle #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? tracker.getDTCs() : tracker.getNegDTCs());
+    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    std::cout << "myDTCs.size() =" << myDTCs.size() << std::endl;
+    std::cout << "myCables.size() =" << myCablingMap->getCables().size() << std::endl;
     for (const auto& dtc : myDTCs) {
       if (dtc.second != NULL) {
 	std::stringstream DTCInfo;

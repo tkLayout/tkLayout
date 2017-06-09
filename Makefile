@@ -134,9 +134,11 @@ ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 ANALYZERVISITORS+=ModuleCount
 
-CABLING+=DTC
-CABLING+=Cable
 CABLING+=Bundle
+CABLING+=Cable
+CABLING+=CablingMap
+CABLING+=DTC
+CABLING+=ModulesToBundlesConnector
 
 EXES+=tklayout
 EXES+=setup

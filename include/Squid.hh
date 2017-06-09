@@ -33,12 +33,15 @@
 
 #include <Tracker.hh>
 #include <Support.hh>
+#include <Cabling/CablingMap.hh>
 #include "Materialway.hh"
 #include "WeightDistributionGrid.hh"
 
 
 using material::Materialway;
 using material::WeightDistributionGrid;
+//namespace insur { class CablingMap; }
+//using insur::CablingMap;
 
 namespace po = boost::program_options;
 /**
@@ -116,6 +119,7 @@ namespace insur {
   private:
     //std::string g;
     Tracker* tr;
+    //const CablingMap* cablingMap;
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;

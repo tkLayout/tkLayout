@@ -18,12 +18,15 @@
 #include "SupportStructure.hh"
 #include "Visitor.hh"
 #include "Visitable.hh"
-#include "Cabling/DTC.hh"
+#include "Cabling/CablingMap.hh"
+//#include "Cabling/DTC.hh"
 #include "MainConfigHandler.hh"
 #include "DetIdBuilder.hh"
 
 using std::set;
 using material::SupportStructure;
+
+
 
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
@@ -73,13 +76,7 @@ private:
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
   //std::map<uint32_t, Module> modules_;
-  std::map<int, Bundle*> bundles_;
-  std::map<int, Cable*> cables_;
-  std::map<const std::string, const DTC*> DTCs_;
-
-  std::map<int, Bundle*> negBundles_;
-  std::map<int, Cable*> negCables_;
-  std::map<const std::string, const DTC*> negDTCs_;
+  const CablingMap* myCablingMap_ = NULL;
 
   Tracker(const Tracker&) = default;
 public:
@@ -157,16 +154,8 @@ public:
   void buildDetIds();
   void checkDetIds();
 
-  void buildCabling();
-  void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
-  void checkBundlesToCablesConnections(std::map<int, Cable*>& cables);
-
-  const std::map<int, Bundle*>& getBundles() const { return bundles_; }
-  const std::map<int, Cable*>& getCables() const { return cables_; }
-  const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
-  const std::map<int, Bundle*>& getNegBundles() const { return negBundles_; }
-  const std::map<int, Cable*>& getNegCables() const { return negCables_; }
-  const std::map<const std::string, const DTC*>& getNegDTCs() const { return negDTCs_; }
+  void setCablingMap(const CablingMap* map) { myCablingMap_ = map; }
+  const CablingMap* getCablingMap() const { return myCablingMap_; }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

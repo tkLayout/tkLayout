@@ -126,13 +126,16 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-	if (!t->isPixelTracker()) t->buildCabling();
-        //CoordExportVisitor v(t->myid());
-        //ModuleDataVisitor v1(t->myid());
-        //t->accept(v);
-        //t->accept(v1);
+	if (!t->isPixelTracker()) {
+	  const CablingMap* map = new CablingMap(t);
+	  t->setCablingMap(map);
+	  delete map;
+	  map = NULL;
+	  std::cout << "coucou Here" << t->getCablingMap()->getCables().size() << std::endl;
+	}
+	if (!t->isPixelTracker()) { std::cout << "Squi coucou out of scope" << t->getCablingMap()->getCables().size() << std::endl; }
         if (t->myid() == "Pixels") px = t;
-        else tr = t;
+        else { tr = t; std::cout << "Squi coucou last" << tr->getCablingMap()->getCables().size() << std::endl; }
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();

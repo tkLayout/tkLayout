@@ -41,6 +41,7 @@
 #include <global_constants.hh>
 // Custom objects
 #include <Tracker.hh>
+#include "Cabling/CablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
 
@@ -61,6 +62,8 @@ namespace material {
 
 using namespace boost::accumulators;
 using material::WeightDistributionGrid;
+//namespace insur { class CablingMap; }
+//using insur::CablingMap;
 
 namespace insur {
 
@@ -163,7 +166,7 @@ namespace insur {
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void createSummaryCanvasCablingBundleNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
     void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void analyzeServicesChannels(Tracker& tracker, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
+    void analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
     RootWTable* createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
@@ -213,7 +216,7 @@ namespace insur {
     std::string createSensorsDetIdListCsv();
 
     std::string createModulesToDTCsCsv(const Tracker& t, bool isPositiveCablingSide);
-    std::string createDTCsToModulesCsv(const Tracker& t, bool isPositiveCablingSide);
+    std::string createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide);
 
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
