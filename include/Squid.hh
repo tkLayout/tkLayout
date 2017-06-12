@@ -83,7 +83,7 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    //bool dressTracker();
+    bool buildCablingMap(bool cablingOption);
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
@@ -91,13 +91,13 @@ namespace insur {
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
-    bool buildCablingMap(bool cablingOption);
     bool translateFullSystemToXML(std::string xmlout = "");
     bool webOutput = false;
 
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
+    bool reportCablingMapSite(bool cablingOption);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
     bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
@@ -121,7 +121,6 @@ namespace insur {
   private:
     //std::string g;
     Tracker* tr;
-    //const CablingMap* cablingMap;
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;

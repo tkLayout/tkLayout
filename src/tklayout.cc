@@ -130,10 +130,9 @@ int main(int argc, char* argv[]) {
 
     // The tracker (and possibly pixel) must be build in any case
   if (!squid.buildTracker()) return EXIT_FAILURE;
-  //if (!squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
+  if (vm.count("cablingMap") && !squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
   
   if (!vm.count("tracksim")) {
-    if (!squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
     // The tracker should pick the types here but in case it does not,
     // we can still write something
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
@@ -159,6 +158,7 @@ int main(int argc, char* argv[]) {
       }
     }
     
+    if (vm.count("cablingMap") && !squid.reportCablingMapSite(vm.count("cablingMap"))) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    

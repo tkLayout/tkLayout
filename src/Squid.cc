@@ -175,7 +175,6 @@ namespace insur {
     return true;
   }
 
- 
 
   /**
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
@@ -184,31 +183,21 @@ namespace insur {
    * The underlying cabling was designed for TDR layout OT613_200_IT4025, and will not work for any other layout.
    */
   bool Squid::buildCablingMap(bool cablingOption) {
-    if (!cablingOption) return true;
+    startTaskClock("Building optical Cabling map.");
+    if (tr) {
+      // BUILD CABLING MAP.	
+      std::unique_ptr<const CablingMap> map(new CablingMap(tr));
+      // std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
+      tr->setCablingMap(std::move(map));
+      stopTaskClock();
+      return true;
+    }
     else {
-      startTaskClock("Building optical Cabling map, and creating report.");
-      if (tr) {
-	// BUILD CABLING MAP.	
-	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
-	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
-	tr->setCablingMap(std::move(map));
-
-	// CREATE REPORT ON WEBSITE.
-	v.cablingSummary(a, *tr, site);
-	stopTaskClock();
-        return true;
-      }
-      else {
-	logERROR(err_no_tracker);
-	stopTaskClock();
-	return false;
-      }
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
     }
   }
-
-
-
-
 
 
   /**
@@ -490,6 +479,26 @@ namespace insur {
       return false;
     }
   }
+
+
+  /**
+   * Add the optical cabling map to the website.
+   */
+  bool Squid::reportCablingMapSite(bool cablingOption) {
+    startTaskClock("Creating optical Cabling map report.");
+    if (tr) {
+      // CREATE REPORT ON WEBSITE.
+      v.cablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
 
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
