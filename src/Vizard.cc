@@ -1186,8 +1186,12 @@ namespace insur {
 
   bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
 
+    std::cout << "Firstttttttt Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
+
     bool isPixelTracker = tracker.isPixelTracker();
     if (!isPixelTracker) {
+      std::cout << "Seconddddd Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
+
       std::string name = "Outer";
 
       std::string pageTitle = "Cabling";
@@ -1199,7 +1203,6 @@ namespace insur {
 
       site.addPage(myPage);
       RootWContent* myContent;
-
 
       //********************************//
       //*                              *//
@@ -1219,7 +1222,9 @@ namespace insur {
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
+      std::cout << "Thirddd Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
       createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, XYBundleCanvasesDisk, XYSurfacesDisk);
+      std::cout << "Fourth Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
 
       if (RZBundleCanvas) {
 	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
@@ -1246,7 +1251,6 @@ namespace insur {
 	  myImage->setComment(XYSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
-
 
       // Modules to DTCs
       TCanvas *summaryDTCCanvas = NULL;
@@ -1293,8 +1297,10 @@ namespace insur {
 	  myContent->addItem(myImage);
       }
       
-
+      
       const CablingMap* myCablingMap = tracker.getCablingMap();
+      std::cout << "First vizard cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
+
       std::cout << "(myCablingMap == NULL) " << (myCablingMap == NULL) << std::endl;
       std::cout << "Vizaaaard" << myCablingMap->getCables().size() << std::endl;
 
@@ -6443,7 +6449,7 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingBundleNicer(Tracker& tracker,
+  void Vizard::createSummaryCanvasCablingBundleNicer(const Tracker& tracker,
 					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
 						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYSurfacesDisk) {
 

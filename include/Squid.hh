@@ -27,6 +27,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <memory>
 #include <RootWeb.hh>
 #include <MainConfigHandler.hh>
 #include <MessageLogger.hh>
@@ -90,6 +91,7 @@ namespace insur {
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
+    bool buildCablingMap(bool cablingOption);
     bool translateFullSystemToXML(std::string xmlout = "");
     bool webOutput = false;
 
@@ -97,7 +99,7 @@ namespace insur {
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
-    bool reportGeometrySite(bool debugResolution);
+    bool reportGeometrySite(bool debugResolution, bool cablingOption);
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
     bool reportPowerSite();

@@ -164,7 +164,7 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasCablingBundleNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
+    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
     void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
     RootWTable* createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);

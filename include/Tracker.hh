@@ -76,9 +76,9 @@ private:
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
   //std::map<uint32_t, Module> modules_;
-  const CablingMap* myCablingMap_ = NULL;
+  std::unique_ptr<const CablingMap> myCablingMap_;
 
-  Tracker(const Tracker&) = default;
+  //Tracker(const Tracker& otherTracker) : myCablingMap_(std::move(otherTracker.myCablingMap_) ) = default;
 public:
 
   Tracker() :
@@ -154,8 +154,8 @@ public:
   void buildDetIds();
   void checkDetIds();
 
-  void setCablingMap(const CablingMap* map) { myCablingMap_ = map; }
-  const CablingMap* getCablingMap() const { return myCablingMap_; }
+  void setCablingMap(std::unique_ptr<const CablingMap> map) { myCablingMap_ = std::move(map); }
+  const CablingMap* getCablingMap() const { return myCablingMap_.get(); }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

@@ -75,6 +75,8 @@
 class CablingMap : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   CablingMap(Tracker* tracker);
+  //CablingMap(const CablingMap& otherMap);
+  //~CablingMap();
 
   const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   const std::map<int, Cable*>& getCables() const { return cables_; }

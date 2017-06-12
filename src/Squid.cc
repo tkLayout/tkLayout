@@ -126,17 +126,21 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-	if (!t->isPixelTracker()) {
-	  const CablingMap* map = new CablingMap(t);
-	  t->setCablingMap(map);
-	  delete map;
-	  map = NULL;
-	  std::cout << "coucou Here" << t->getCablingMap()->getCables().size() << std::endl;
-	}
-	if (!t->isPixelTracker()) { std::cout << "Squi coucou out of scope" << t->getCablingMap()->getCables().size() << std::endl; }
         if (t->myid() == "Pixels") px = t;
-        else { tr = t; std::cout << "Squi coucou last" << tr->getCablingMap()->getCables().size() << std::endl; }
+        else { tr = t; } //std::cout << "Squi coucou there" << tr->getCablingMap()->getCables().size() << std::endl; }
+
+
+	//std::cout << "t.myid() = " << t->myid() << std::endl;
+	//std::cout << "px.myid() = " << px->myid() << std::endl;
+
+	//if (!tr->isPixelTracker()) std::cout << "Squid in loop, Cables size" << tr->getCablingMap()->getCables().size() << std::endl; 
       });
+
+
+
+
+
+      //if (tr) std::cout << "Squid after loop, Cables size" << tr->getCablingMap()->getCables().size() << std::endl; 
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
       if (!unmatchedProperties.empty()) {
@@ -183,37 +187,40 @@ namespace insur {
     return true;
   }
 
- /*
-  bool Squid::buildNewTracker() {
-    boost::ptree pt;
-    info_parser::read_info(getGeometryFile(), pt);
-  }
-*/
-  /**
-   * Dress the previously created geometry with module options. The modified tracker object remains
-   * in the squid as the current tracker until it is overwritten by a call to another function that creates
-   * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
-   * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
-   * pixel detector remains in the squid until it is replaced by a call to another function creating a new
-   * one.
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @return True if there was an existing tracker to dress, false otherwise
-   */
-/*  bool Squid::dressTracker() {
-    if (tr) {
-      startTaskClock("Assigning module types to tracker and pixel");
-      cp.dressTracker(tr, getSettingsFile());
-      if (px) cp.dressPixels(px, getSettingsFile());
-      stopTaskClock();
-      return true;
-    }
+ 
+
+
+  bool Squid::buildCablingMap(bool cablingOption) {
+    if (!cablingOption) return true;
     else {
-      logERROR(err_no_tracker);
-      stopTaskClock();
-      return false;
+      startTaskClock("Building optical Cabling map.");
+      if (tr) {
+	//const CablingMap* map = new CablingMap(tr);
+	
+	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
+	// Switch to C++14 and replace by what follows !
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);
+	tr->setCablingMap(std::move(map));
+
+	std::cout << "Building optical Cabling map here cables size " << tr->getCablingMap()->getCables().size() << std::endl;
+
+
+	//std::cout << "reportGeometrySite Cables size" << tr->getCablingMap()->getCables().size() << std::endl;
+	v.cablingSummary(a, *tr, site);
+	stopTaskClock();
+        return true;
+
+      } else {
+	logERROR(err_no_tracker);
+	stopTaskClock();
+	return false;
+      }
     }
   }
-*/
+
+
+
+
 
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
@@ -575,13 +582,16 @@ namespace insur {
    * Produces the output of the analysis of the geomerty analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportGeometrySite(bool debugResolution) {
+  bool Squid::reportGeometrySite(bool debugResolution, bool cablingOption) {
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, is, site, debugResolution);
       if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");
 
-      v.cablingSummary(a, *tr, site);
+      /*if (cablingOption) {
+	std::cout << "reportGeometrySite Cables size" << tr->getCablingMap()->getCables().size() << std::endl;
+	v.cablingSummary(a, *tr, site);
+	}*/
       
       stopTaskClock();
       return true;
