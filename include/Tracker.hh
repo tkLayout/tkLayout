@@ -155,7 +155,10 @@ public:
   void checkDetIds();
 
   void setCablingMap(std::unique_ptr<const CablingMap> map) { myCablingMap_ = std::move(map); }
-  const CablingMap* getCablingMap() const { return myCablingMap_.get(); }
+  const CablingMap* getCablingMap() const {
+    if (!myCablingMap_) throw PathfulException("Tracker has no cabling map, but one tries to access it.");
+    return myCablingMap_.get();
+  }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }
