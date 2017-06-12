@@ -3442,7 +3442,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       }
       for (auto& mh : hitModules) {
 	const DTC* myDTC = mh.first->getDTC();
-        if (myDTC != NULL) hitModulesDTC.insert(myDTC->name());
+        if (myDTC) hitModulesDTC.insert(myDTC->name());
       }
       // Fill the module type hit plot
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {

@@ -78,7 +78,7 @@ private:
   //std::map<uint32_t, Module> modules_;
   std::unique_ptr<const CablingMap> myCablingMap_;
 
-  //Tracker(const Tracker& otherTracker) : myCablingMap_(std::move(otherTracker.myCablingMap_) ) = default;
+  //Tracker(const Tracker& otherTracker) = default;
 public:
 
   Tracker() :

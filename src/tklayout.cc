@@ -130,14 +130,14 @@ int main(int argc, char* argv[]) {
 
     // The tracker (and possibly pixel) must be build in any case
   if (!squid.buildTracker()) return EXIT_FAILURE;
-  if (!squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
-
+  //if (!squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
+  
   if (!vm.count("tracksim")) {
+    if (!squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
     // The tracker should pick the types here but in case it does not,
     // we can still write something
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
-
-
+    
     if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
@@ -158,13 +158,13 @@ int main(int argc, char* argv[]) {
         if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);
       }
     }
-
+    
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
     if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
 
-    if (!squid.reportGeometrySite(vm.count("debug-resolution"), vm.count("cablingMap"))) return EXIT_FAILURE;
+    if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
     if (!squid.makeSite()) return EXIT_FAILURE;
 

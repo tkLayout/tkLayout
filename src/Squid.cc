@@ -127,20 +127,8 @@ namespace insur {
         t->store(kv.second);
         t->build();
         if (t->myid() == "Pixels") px = t;
-        else { tr = t; } //std::cout << "Squi coucou there" << tr->getCablingMap()->getCables().size() << std::endl; }
-
-
-	//std::cout << "t.myid() = " << t->myid() << std::endl;
-	//std::cout << "px.myid() = " << px->myid() << std::endl;
-
-	//if (!tr->isPixelTracker()) std::cout << "Squid in loop, Cables size" << tr->getCablingMap()->getCables().size() << std::endl; 
+        else { tr = t; }
       });
-
-
-
-
-
-      //if (tr) std::cout << "Squid after loop, Cables size" << tr->getCablingMap()->getCables().size() << std::endl; 
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
       if (!unmatchedProperties.empty()) {
@@ -189,34 +177,35 @@ namespace insur {
 
  
 
-
+  /**
+   * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
+   * Can actually be reused for power cables routing.
+   * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
+   * The underlying cabling was designed for TDR layout OT613_200_IT4025, and will not work for any other layout.
+   */
   bool Squid::buildCablingMap(bool cablingOption) {
     if (!cablingOption) return true;
     else {
-      startTaskClock("Building optical Cabling map.");
+      startTaskClock("Building optical Cabling map, and creating report.");
       if (tr) {
-	//const CablingMap* map = new CablingMap(tr);
-	
+	// BUILD CABLING MAP.	
 	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
-	// Switch to C++14 and replace by what follows !
-	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
 	tr->setCablingMap(std::move(map));
 
-	std::cout << "Building optical Cabling map here cables size " << tr->getCablingMap()->getCables().size() << std::endl;
-
-
-	//std::cout << "reportGeometrySite Cables size" << tr->getCablingMap()->getCables().size() << std::endl;
+	// CREATE REPORT ON WEBSITE.
 	v.cablingSummary(a, *tr, site);
 	stopTaskClock();
         return true;
-
-      } else {
+      }
+      else {
 	logERROR(err_no_tracker);
 	stopTaskClock();
 	return false;
       }
     }
   }
+
 
 
 
@@ -582,17 +571,11 @@ namespace insur {
    * Produces the output of the analysis of the geomerty analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportGeometrySite(bool debugResolution, bool cablingOption) {
+  bool Squid::reportGeometrySite(bool debugResolution) {
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, is, site, debugResolution);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");
-
-      /*if (cablingOption) {
-	std::cout << "reportGeometrySite Cables size" << tr->getCablingMap()->getCables().size() << std::endl;
-	v.cablingSummary(a, *tr, site);
-	}*/
-      
+      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");     
       stopTaskClock();
       return true;
     } else {

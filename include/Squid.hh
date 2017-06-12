@@ -99,7 +99,7 @@ namespace insur {
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
-    bool reportGeometrySite(bool debugResolution, bool cablingOption);
+    bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
     bool reportPowerSite();
