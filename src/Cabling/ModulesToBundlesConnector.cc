@@ -6,14 +6,16 @@ void ModulesToBundlesConnector::visit(Barrel& b) {
   barrelName_ = b.myid();	
 }
 
+
 void ModulesToBundlesConnector::visit(Layer& l) {
   layerNumber_ = l.layerNumber();
   numRods_ = l.numRods();
-  totalNumFlatRings_ = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both +Z side and -Z side
+  totalNumFlatRings_ = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both (+Z) side and (-Z) side
 
   if (layerNumber_ == 1 || layerNumber_ == 2 || layerNumber_ == 4) phiRegionWidth_ = 40. * M_PI / 180.;
   else phiRegionWidth_ = 20. * M_PI / 180.;
 }
+
 
 void ModulesToBundlesConnector::visit(RodPair& r) {
   double rodPhi = r.Phi();
@@ -21,43 +23,48 @@ void ModulesToBundlesConnector::visit(RodPair& r) {
   double phiSegmentWidth = (2.*M_PI) / numRods_;
 
   // Positive cabling side
-  double phiSegmentStart = femod( rodPhi, phiSegmentWidth);
-  phiSegmentRef_ = round(femod(rodPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+  bool isPositiveCablingSide = true;
+
+  double phiSegmentStart = computePhiSegmentStart(rodPhi, phiSegmentWidth, isPositiveCablingSide);
+  phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
 	
   double phiRegionStart = 0.;
-  int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth_);
+  int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
 
   double phiSectorStart = 0.;
-  int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth_);
+  int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
 
 
   // Negative cabling side
-  double negPhiSegmentStart = femod( M_PI - rodPhi, phiSegmentWidth);
-  negPhiSegmentRef_ = round(femod(M_PI - rodPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+  isPositiveCablingSide = false;
+
+  double negPhiSegmentStart = computePhiSegmentStart(rodPhi, phiSegmentWidth, isPositiveCablingSide);
+  negPhiSegmentRef_ = computePhiSegmentRef(rodPhi, negPhiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
 	
   double negPhiRegionStart = 0.;
-  int negPhiRegionRef = computePhiSliceRef(M_PI - rodPhi, negPhiRegionStart, phiRegionWidth_);
+  int negPhiRegionRef = computePhiSliceRef(rodPhi, negPhiRegionStart, phiRegionWidth_, isPositiveCablingSide);
 
   double negPhiSectorStart = 0.;
-  int negPhiSectorRef = computePhiSliceRef(M_PI - rodPhi, negPhiSectorStart, phiSectorWidth_);
+  int negPhiSectorRef = computePhiSliceRef(rodPhi, negPhiSectorStart, phiSectorWidth_, isPositiveCablingSide);
 
 
-  bool isPositiveCablingSide = true;
+  bool isBarrel = true;
+  isPositiveCablingSide = true;
 
   // CREATE 2S BUNDLES
   if (barrelName_ == "TB2S") {
     type_ = "2S";
     // Positive cabling side
     isPositiveCablingSide = true;
-    bundleId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10;	  
-    bundle_ = GeometryFactory::make<Bundle>(bundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
-    bundles_.insert(std::make_pair(bundleId_, bundle_));
+    typeIndex_ = 0;
+    bundleId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, phiSegmentRef_, typeIndex_);
+    createAndStoreBundle(bundles_, negBundles_, bundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
 
     // Negative cabling side
     isPositiveCablingSide = false;
-    negBundleId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10;
-    negBundle_ = GeometryFactory::make<Bundle>(negBundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
-    negBundles_.insert(std::make_pair(negBundleId_, negBundle_));
+    typeIndex_ = 0;
+    negBundleId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, typeIndex_);
+    createAndStoreBundle(bundles_, negBundles_, negBundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
   }
 
   // CREATE PS BUNDLES
@@ -69,45 +76,45 @@ void ModulesToBundlesConnector::visit(RodPair& r) {
     if ( (phiSegmentRef_ % 2) == 1 ) {
       isPositiveCablingSide = true;
       // standard case
-      bundleFlatId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10 + 1;
-      bundleFlat_ = GeometryFactory::make<Bundle>(bundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
-      bundles_.insert(std::make_pair(bundleFlatId_, bundleFlat_));
+      typeIndex_ = 1;
+      bundleFlatId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, phiSegmentRef_, typeIndex_);
+      createAndStoreBundle(bundles_, negBundles_, bundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
 
       // For layer 3, need to add a second bundle for flat part
       if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
-	bundleFlatIdB_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10 + 2;
-	bundleFlatB_ = GeometryFactory::make<Bundle>(bundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
-	bundles_.insert(std::make_pair(bundleFlatIdB_, bundleFlatB_));
+	typeIndex_ = 2;
+	bundleFlatIdB_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, phiSegmentRef_, typeIndex_);
+	createAndStoreBundle(bundles_, negBundles_, bundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
       }
     }
     // Negative cabling side
     if ( (negPhiSegmentRef_ % 2) == 0 ) {
       isPositiveCablingSide = false;
       // standard case
-      negBundleFlatId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10 + 1;
-      negBundleFlat_ = GeometryFactory::make<Bundle>(negBundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
-      negBundles_.insert(std::make_pair(negBundleFlatId_, negBundleFlat_));
+      typeIndex_ = 1;
+      negBundleFlatId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, typeIndex_);
+      createAndStoreBundle(bundles_, negBundles_, negBundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
 
       // For layer 3, need to add a second negBundle for flat part
       if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
-	negBundleFlatIdB_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10 + 2;
-	negBundleFlatB_ = GeometryFactory::make<Bundle>(negBundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
-	negBundles_.insert(std::make_pair(negBundleFlatIdB_, negBundleFlatB_));
+	typeIndex_ = 2;
+	negBundleFlatIdB_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, typeIndex_);
+	createAndStoreBundle(bundles_, negBundles_, negBundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
       }
     }
 
     // TILTED PART
     // Positive cabling side
     isPositiveCablingSide = true;
-    bundleTiltedId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10;	  
-    bundleTilted_ = GeometryFactory::make<Bundle>(bundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
-    bundles_.insert(std::make_pair(bundleTiltedId_, bundleTilted_));
-
+    typeIndex_ = 0;
+    bundleTiltedId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, phiSegmentRef_, typeIndex_);
+    createAndStoreBundle(bundles_, negBundles_, bundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+    
     // Negative cabling side
     isPositiveCablingSide = false;
-    negBundleTiltedId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10;	  
-    negBundleTilted_ = GeometryFactory::make<Bundle>(negBundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
-    negBundles_.insert(std::make_pair(negBundleTiltedId_, negBundleTilted_));	 
+    typeIndex_ = 0;
+    negBundleTiltedId_ = computeBundleId(isBarrel, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, typeIndex_);
+    createAndStoreBundle(bundles_, negBundles_, negBundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
   }
 }
       
@@ -119,13 +126,15 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   if (barrelName_ == "TB2S") {
     // Positive cabling side
     if (side_) {
-      m.setBundle(bundle_);
-      bundles_[bundleId_]->addModule(&m);
+      Bundle* bundle = bundles_[bundleId_];
+      m.setBundle(bundle);
+      bundle->addModule(&m);
     }
     // Negative cabling side
     else {
-      m.setBundle(negBundle_);
-      negBundles_[negBundleId_]->addModule(&m);
+      Bundle* negBundle = negBundles_[negBundleId_];
+      m.setBundle(negBundle);
+      negBundle->addModule(&m);
     }
   }
 
@@ -138,17 +147,20 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
       if ( (phiSegmentRef_ % 2) == 1) {
 	// standard case
 	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
-	  m.setBundle(bundleFlat_);
-	  bundles_[bundleFlatId_]->addModule(&m);
+	  Bundle* bundleFlat = bundles_[bundleFlatId_];
+	  m.setBundle(bundleFlat);
+	  bundleFlat->addModule(&m);
 	}
 	// For layer 3, need to add a second bundle for flat part
 	else {
 	  if (side_) {
-	    m.setBundle(bundleFlat_);
-	    bundles_[bundleFlatId_]->addModule(&m);
+	    Bundle* bundleFlat = bundles_[bundleFlatId_];
+	    m.setBundle(bundleFlat);
+	    bundleFlat->addModule(&m);
 	  } else {
-	    m.setBundle(bundleFlatB_);
-	    bundles_[bundleFlatIdB_]->addModule(&m);
+	    Bundle* bundleFlatB = bundles_[bundleFlatIdB_];
+	    m.setBundle(bundleFlatB);
+	    bundleFlatB->addModule(&m);
 	  }
 	}
       }
@@ -157,17 +169,20 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
       if ( (phiSegmentRef_ % 2) == 0) {
 	// standard case
 	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
-	  m.setBundle(negBundleFlat_);
-	  negBundles_[negBundleFlatId_]->addModule(&m);
+	  Bundle* negBundleFlat = negBundles_[negBundleFlatId_];
+	  m.setBundle(negBundleFlat);
+	  negBundleFlat->addModule(&m);
 	}
 	// For layer 3, need to add a second bundle for flat part
 	else {
 	  if (!side_) {
-	    m.setBundle(negBundleFlat_);
-	    negBundles_[negBundleFlatId_]->addModule(&m);
+	    Bundle* negBundleFlat = negBundles_[negBundleFlatId_];
+	    m.setBundle(negBundleFlat);
+	    negBundleFlat->addModule(&m);
 	  } else {
-	    m.setBundle(negBundleFlatB_);
-	    negBundles_[negBundleFlatIdB_]->addModule(&m);
+	    Bundle* negBundleFlatB = negBundles_[negBundleFlatIdB_];
+	    m.setBundle(negBundleFlatB);
+	    negBundleFlatB->addModule(&m);
 	  }
 	}
       }
@@ -178,15 +193,17 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
     else if (m.isTilted()) {
       // Positive cabling side
       if (side_) {
-	m.setBundle(bundleTilted_);
-	bundles_[bundleTiltedId_]->addModule(&m);
-	bundles_[bundleTiltedId_]->setIsTiltedPart(true);
+	Bundle* bundleTilted = bundles_[bundleTiltedId_];
+	m.setBundle(bundleTilted);
+	bundleTilted->addModule(&m);
+	bundleTilted->setIsTiltedPart(true);
       }
       // Negative cabling side
       else {
-	m.setBundle(negBundleTilted_);
-	negBundles_[negBundleTiltedId_]->addModule(&m);
-	negBundles_[negBundleTiltedId_]->setIsTiltedPart(true);
+	Bundle* negBundleTilted = negBundles_[negBundleTiltedId_];
+	m.setBundle(negBundleTilted);
+	negBundleTilted->addModule(&m);
+	negBundleTilted->setIsTiltedPart(true);
       }
     }
 	  
@@ -200,10 +217,12 @@ void ModulesToBundlesConnector::visit(Endcap& e) {
   endcapName_ = e.myid();
 }
 
+
 void ModulesToBundlesConnector::visit(Disk& d) {
   diskNumber_ = d.diskNumber();
   side_ = d.side();
 }
+
 
 void ModulesToBundlesConnector::visit(Ring& r)   { 
   ringNumber_ = r.myid();
@@ -253,63 +272,32 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
   double phiSectorStart = 0.;
 
+  bool isBarrel = false;
   bool isPositiveCablingSide = side_;
 
-  // Positive cabling side
-  if (isPositiveCablingSide) {
-    double phiSegmentStart = femod( modPhi, phiSegmentWidth);
-    phiSegmentRef_ = round(femod(modPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+ 
+  double phiSegmentStart = computePhiSegmentStart(modPhi, phiSegmentWidth, isPositiveCablingSide);
+  phiSegmentRef_ = computePhiSegmentRef(modPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
 
-    int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth_);
-    bundleId_ = 20000 + diskNumber_ * 1000 + phiRegionRef * 10 + typeIndex_;
+  int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
+  bundleId_ = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber_, phiRegionRef, typeIndex_);
 
-    int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth_);
+  int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
 
-    if (bundles_.count(bundleId_) == 0) {
-      Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId_, type_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
-      bundleEndcap->addModule(&m);
-      bundles_.insert(std::make_pair(bundleId_, bundleEndcap));
-      m.setBundle(bundleEndcap);
-    }
-    else { 
-      bundles_[bundleId_]->addModule(&m);
-      m.setBundle(bundles_[bundleId_]);
-    }
+  Bundle* bundleEndcap = nullptr;
+  std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+  auto found = bundles.find(bundleId_);
+  if (found == bundles.end()) {
+    createAndStoreBundle(bundles_, negBundles_, bundleId_, type_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+    bundleEndcap = bundles[bundleId_];
   }
-
-  // Negative cabling side
   else {
-    double negPhiSegmentStart = femod(M_PI - modPhi, phiSegmentWidth);
-    negPhiSegmentRef_ = round(femod(M_PI - modPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
-
-    int negPhiRegionRef = computePhiSliceRef(M_PI - modPhi, phiRegionStart, phiRegionWidth_);
-    negBundleId_ = 40000 + diskNumber_ * 1000 + negPhiRegionRef * 10 + typeIndex_;
-
-    int negPhiSectorRef = computePhiSliceRef(M_PI - modPhi, phiSectorStart, phiSectorWidth_);
-
-    if (negBundles_.count(negBundleId_) == 0) {
-      Bundle* negBundleEndcap = GeometryFactory::make<Bundle>(negBundleId_, type_, endcapName_, diskNumber_, phiSegmentWidth, negPhiSegmentRef_, phiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
-      negBundleEndcap->addModule(&m);
-      negBundles_.insert(std::make_pair(negBundleId_, negBundleEndcap));
-      m.setBundle(negBundleEndcap);
-    }
-    else { 
-      negBundles_[negBundleId_]->addModule(&m);
-      m.setBundle(negBundles_[negBundleId_]);
-    }
+    bundleEndcap = found->second;
   }
-	
+  bundleEndcap->addModule(&m);
+  m.setBundle(bundleEndcap);	
 }
 
-
-int ModulesToBundlesConnector::computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth) const {
-  double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
-  int phiSliceRef = 0;
-  if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
-  else phiSliceRef = std::floor(phiSliceRefExact);
-
-  return phiSliceRef;
-}
 
 
 void ModulesToBundlesConnector::postVisit() {
@@ -320,6 +308,59 @@ void ModulesToBundlesConnector::postVisit() {
   // CHECK
   checkModulesToBundlesCabling(bundles_);
   checkModulesToBundlesCabling(negBundles_);
+}
+
+
+double ModulesToBundlesConnector::computePhiSegmentStart(const double phi, const double phiSegmentWidth, const bool isPositiveCablingSide) const {
+  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
+  double phiSegmentStart = femod(stereoPhi, phiSegmentWidth);
+  return phiSegmentStart;
+}
+
+
+int ModulesToBundlesConnector::computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth, const bool isPositiveCablingSide) const {
+  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
+  int phiSegmentRef = round(femod(stereoPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+  return phiSegmentRef;
+}
+
+
+int ModulesToBundlesConnector::computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth, const bool isPositiveCablingSide) const {
+  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
+  double phiSliceRefExact = femod(stereoPhi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
+  int phiSliceRef = 0;
+  if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
+  else phiSliceRef = std::floor(phiSliceRefExact);
+
+  return phiSliceRef;
+}
+
+
+int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int typeIndex) {
+  int cablingSideIndex = 0;
+  if (isBarrel) {
+    cablingSideIndex = (isPositiveCablingSide ? 1 : 3);
+  }
+  else {
+    cablingSideIndex = (isPositiveCablingSide ? 2 : 4);
+  }
+
+  int bundleId = cablingSideIndex * 10000 + layerDiskNumber * 1000 + phiRef * 10 + typeIndex;
+  return bundleId;
+}
+
+
+
+void ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide) {
+
+  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, type, subDetectorName, layerDiskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
+
+  if (isPositiveCablingSide) {
+    bundles.insert(std::make_pair(bundleId, bundle));
+  }
+  else {
+    negBundles.insert(std::make_pair(bundleId, bundle));
+  }
 }
 
 
@@ -411,8 +452,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 }
 
 
-
-void ModulesToBundlesConnector::checkModulesToBundlesCabling(std::map<int, Bundle*>& bundles) {
+void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const {
   for (auto& b : bundles) {
     if (b.second->numModules() > maxNumModulesPerBundle_) {
       std::cout << "There was an error while staggering modules. Bundle " 

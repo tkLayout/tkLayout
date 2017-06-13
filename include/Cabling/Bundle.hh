@@ -53,7 +53,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(int id, std::string type, std::string subDetectorName, int layerDiskNumber, double phiSegmentWidth, int phiSegmentRef, double phiRegionStart, double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, int phiSectorRef, bool isPositiveCablingSide) {
+  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide) {
     myid(id);
 
     type_ = type;

@@ -24,9 +24,15 @@ public:
   void postVisit();
 
 private:
-  int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth) const;
+  double computePhiSegmentStart(const double phi, const double phiSegmentWidth, const bool isPositiveCablingSide) const;
+  int computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth, const bool isPositiveCablingSide) const;
+  int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth, const bool isPositiveCablingSide) const;
+  int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int typeIndex);
+
+  void createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide);
+
   void staggerModules(std::map<int, Bundle*>& bundles);
-  void checkModulesToBundlesCabling(std::map<int, Bundle*>& bundles);
+  void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
 
   std::string barrelName_;
   int layerNumber_;
@@ -58,16 +64,6 @@ private:
   int negBundleFlatId_;
   int negBundleFlatIdB_;
   int negBundleTiltedId_;
-
-  Bundle* bundle_ = NULL;
-  Bundle* bundleFlat_ = NULL;
-  Bundle* bundleFlatB_ = NULL;
-  Bundle* bundleTilted_ = NULL;
-
-  Bundle* negBundle_ = NULL;
-  Bundle* negBundleFlat_ = NULL;
-  Bundle* negBundleFlatB_ = NULL;
-  Bundle* negBundleTilted_ = NULL;
 
   std::map<int, Bundle*> bundles_;
   std::map<int, Bundle*> negBundles_;
