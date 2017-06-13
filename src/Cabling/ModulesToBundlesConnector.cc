@@ -3,171 +3,171 @@
 
 
 void ModulesToBundlesConnector::visit(Barrel& b) {
-  barrelName = b.myid();	
+  barrelName_ = b.myid();	
 }
 
 void ModulesToBundlesConnector::visit(Layer& l) {
-  layerNumber = l.layerNumber();
-  numRods = l.numRods();
-  totalNumFlatRings = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both +Z side and -Z side
+  layerNumber_ = l.layerNumber();
+  numRods_ = l.numRods();
+  totalNumFlatRings_ = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both +Z side and -Z side
 
-  if (layerNumber == 1 || layerNumber == 2 || layerNumber == 4) phiRegionWidth = 40. * M_PI / 180.;
-  else phiRegionWidth = 20. * M_PI / 180.;
+  if (layerNumber_ == 1 || layerNumber_ == 2 || layerNumber_ == 4) phiRegionWidth_ = 40. * M_PI / 180.;
+  else phiRegionWidth_ = 20. * M_PI / 180.;
 }
 
 void ModulesToBundlesConnector::visit(RodPair& r) {
   double rodPhi = r.Phi();
 
-  double phiSegmentWidth = (2.*M_PI) / numRods;
+  double phiSegmentWidth = (2.*M_PI) / numRods_;
 
   // Positive cabling side
   double phiSegmentStart = femod( rodPhi, phiSegmentWidth);
-  phiSegmentRef = round(femod(rodPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+  phiSegmentRef_ = round(femod(rodPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
   double phiRegionStart = 0.;
-  int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth);
+  int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth_);
 
   double phiSectorStart = 0.;
-  int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth);
+  int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth_);
 
 
   // Negative cabling side
   double negPhiSegmentStart = femod( M_PI - rodPhi, phiSegmentWidth);
-  negPhiSegmentRef = round(femod(M_PI - rodPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+  negPhiSegmentRef_ = round(femod(M_PI - rodPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 	
   double negPhiRegionStart = 0.;
-  int negPhiRegionRef = computePhiSliceRef(M_PI - rodPhi, negPhiRegionStart, phiRegionWidth);
+  int negPhiRegionRef = computePhiSliceRef(M_PI - rodPhi, negPhiRegionStart, phiRegionWidth_);
 
   double negPhiSectorStart = 0.;
-  int negPhiSectorRef = computePhiSliceRef(M_PI - rodPhi, negPhiSectorStart, phiSectorWidth);
+  int negPhiSectorRef = computePhiSliceRef(M_PI - rodPhi, negPhiSectorStart, phiSectorWidth_);
 
 
   bool isPositiveCablingSide = true;
 
   // CREATE 2S BUNDLES
-  if (barrelName == "TB2S") {
-    type = "2S";
+  if (barrelName_ == "TB2S") {
+    type_ = "2S";
     // Positive cabling side
     isPositiveCablingSide = true;
-    bundleId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-    bundle = GeometryFactory::make<Bundle>(bundleId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
-    bundles_.insert(std::make_pair(bundleId, bundle));
+    bundleId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10;	  
+    bundle_ = GeometryFactory::make<Bundle>(bundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+    bundles_.insert(std::make_pair(bundleId_, bundle_));
 
     // Negative cabling side
     isPositiveCablingSide = false;
-    negBundleId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10;
-    negBundle = GeometryFactory::make<Bundle>(negBundleId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
-    negBundles_.insert(std::make_pair(negBundleId, negBundle));
+    negBundleId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10;
+    negBundle_ = GeometryFactory::make<Bundle>(negBundleId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
+    negBundles_.insert(std::make_pair(negBundleId_, negBundle_));
   }
 
   // CREATE PS BUNDLES
-  else if (barrelName == "TBPS") {
-    type = (layerNumber == 1 ? "PS10G" : "PS5G");
+  else if (barrelName_ == "TBPS") {
+    type_ = (layerNumber_ == 1 ? "PS10G" : "PS5G");
 
     // FLAT PART
     // Positive cabling side	  
-    if ( (phiSegmentRef % 2) == 1 ) {
+    if ( (phiSegmentRef_ % 2) == 1 ) {
       isPositiveCablingSide = true;
       // standard case
-      bundleFlatId = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 1;
-      bundleFlat = GeometryFactory::make<Bundle>(bundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
-      bundles_.insert(std::make_pair(bundleFlatId, bundleFlat));
+      bundleFlatId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10 + 1;
+      bundleFlat_ = GeometryFactory::make<Bundle>(bundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+      bundles_.insert(std::make_pair(bundleFlatId_, bundleFlat_));
 
       // For layer 3, need to add a second bundle for flat part
-      if (totalNumFlatRings > 12) {
-	bundleFlatIdB = 10000 + layerNumber * 1000 + phiSegmentRef * 10 + 2;
-	bundleFlatB = GeometryFactory::make<Bundle>(bundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
-	bundles_.insert(std::make_pair(bundleFlatIdB, bundleFlatB));
+      if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
+	bundleFlatIdB_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10 + 2;
+	bundleFlatB_ = GeometryFactory::make<Bundle>(bundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+	bundles_.insert(std::make_pair(bundleFlatIdB_, bundleFlatB_));
       }
     }
     // Negative cabling side
-    if ( (negPhiSegmentRef % 2) == 0 ) {
+    if ( (negPhiSegmentRef_ % 2) == 0 ) {
       isPositiveCablingSide = false;
       // standard case
-      negBundleFlatId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 1;
-      negBundleFlat = GeometryFactory::make<Bundle>(negBundleFlatId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
-      negBundles_.insert(std::make_pair(negBundleFlatId, negBundleFlat));
+      negBundleFlatId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10 + 1;
+      negBundleFlat_ = GeometryFactory::make<Bundle>(negBundleFlatId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
+      negBundles_.insert(std::make_pair(negBundleFlatId_, negBundleFlat_));
 
       // For layer 3, need to add a second negBundle for flat part
-      if (totalNumFlatRings > 12) {
-	negBundleFlatIdB = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10 + 2;
-	negBundleFlatB = GeometryFactory::make<Bundle>(negBundleFlatIdB, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
-	negBundles_.insert(std::make_pair(negBundleFlatIdB, negBundleFlatB));
+      if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
+	negBundleFlatIdB_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10 + 2;
+	negBundleFlatB_ = GeometryFactory::make<Bundle>(negBundleFlatIdB_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
+	negBundles_.insert(std::make_pair(negBundleFlatIdB_, negBundleFlatB_));
       }
     }
 
     // TILTED PART
     // Positive cabling side
     isPositiveCablingSide = true;
-    bundleTiltedId = 10000 + layerNumber * 1000 + phiSegmentRef * 10;	  
-    bundleTilted = GeometryFactory::make<Bundle>(bundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
-    bundles_.insert(std::make_pair(bundleTiltedId, bundleTilted));
+    bundleTiltedId_ = 10000 + layerNumber_ * 1000 + phiSegmentRef_ * 10;	  
+    bundleTilted_ = GeometryFactory::make<Bundle>(bundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+    bundles_.insert(std::make_pair(bundleTiltedId_, bundleTilted_));
 
     // Negative cabling side
     isPositiveCablingSide = false;
-    negBundleTiltedId = 30000 + layerNumber * 1000 + negPhiSegmentRef * 10;	  
-    negBundleTilted = GeometryFactory::make<Bundle>(negBundleTiltedId, type, barrelName, layerNumber, phiSegmentWidth, negPhiSegmentRef, negPhiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
-    negBundles_.insert(std::make_pair(negBundleTiltedId, negBundleTilted));	 
+    negBundleTiltedId_ = 30000 + layerNumber_ * 1000 + negPhiSegmentRef_ * 10;	  
+    negBundleTilted_ = GeometryFactory::make<Bundle>(negBundleTiltedId_, type_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
+    negBundles_.insert(std::make_pair(negBundleTiltedId_, negBundleTilted_));	 
   }
 }
       
      
 void ModulesToBundlesConnector::visit(BarrelModule& m) {
-  side = (m.uniRef().side > 0.);
+  side_ = (m.uniRef().side > 0.);
 
   // CONNECT MODULES TO 2S BUNDLES
-  if (barrelName == "TB2S") {
+  if (barrelName_ == "TB2S") {
     // Positive cabling side
-    if (side) {
-      m.setBundle(bundle);
-      bundles_[bundleId]->addModule(&m);
+    if (side_) {
+      m.setBundle(bundle_);
+      bundles_[bundleId_]->addModule(&m);
     }
     // Negative cabling side
     else {
-      m.setBundle(negBundle);
-      negBundles_[negBundleId]->addModule(&m);
+      m.setBundle(negBundle_);
+      negBundles_[negBundleId_]->addModule(&m);
     }
   }
 
   // CONNECT MODULES TO PS BUNDLES
-  else if (barrelName == "TBPS") {
+  else if (barrelName_ == "TBPS") {
 
     // FLAT MODULES
     if (!m.isTilted()) {
       // Positive cabling side
-      if ( (phiSegmentRef % 2) == 1) {
+      if ( (phiSegmentRef_ % 2) == 1) {
 	// standard case
-	if (totalNumFlatRings <= 12) {
-	  m.setBundle(bundleFlat);
-	  bundles_[bundleFlatId]->addModule(&m);
+	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
+	  m.setBundle(bundleFlat_);
+	  bundles_[bundleFlatId_]->addModule(&m);
 	}
 	// For layer 3, need to add a second bundle for flat part
 	else {
-	  if (side) {
-	    m.setBundle(bundleFlat);
-	    bundles_[bundleFlatId]->addModule(&m);
+	  if (side_) {
+	    m.setBundle(bundleFlat_);
+	    bundles_[bundleFlatId_]->addModule(&m);
 	  } else {
-	    m.setBundle(bundleFlatB);
-	    bundles_[bundleFlatIdB]->addModule(&m);
+	    m.setBundle(bundleFlatB_);
+	    bundles_[bundleFlatIdB_]->addModule(&m);
 	  }
 	}
       }
 
       // Negative cabling side
-      if ( (phiSegmentRef % 2) == 0) {
+      if ( (phiSegmentRef_ % 2) == 0) {
 	// standard case
-	if (totalNumFlatRings <= 12) {
-	  m.setBundle(negBundleFlat);
-	  negBundles_[negBundleFlatId]->addModule(&m);
+	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
+	  m.setBundle(negBundleFlat_);
+	  negBundles_[negBundleFlatId_]->addModule(&m);
 	}
 	// For layer 3, need to add a second bundle for flat part
 	else {
-	  if (!side) {
-	    m.setBundle(negBundleFlat);
-	    negBundles_[negBundleFlatId]->addModule(&m);
+	  if (!side_) {
+	    m.setBundle(negBundleFlat_);
+	    negBundles_[negBundleFlatId_]->addModule(&m);
 	  } else {
-	    m.setBundle(negBundleFlatB);
-	    negBundles_[negBundleFlatIdB]->addModule(&m);
+	    m.setBundle(negBundleFlatB_);
+	    negBundles_[negBundleFlatIdB_]->addModule(&m);
 	  }
 	}
       }
@@ -177,16 +177,16 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
     // TILTED MODULES
     else if (m.isTilted()) {
       // Positive cabling side
-      if (side) {
-	m.setBundle(bundleTilted);
-	bundles_[bundleTiltedId]->addModule(&m);
-	bundles_[bundleTiltedId]->setIsTiltedPart(true);
+      if (side_) {
+	m.setBundle(bundleTilted_);
+	bundles_[bundleTiltedId_]->addModule(&m);
+	bundles_[bundleTiltedId_]->setIsTiltedPart(true);
       }
       // Negative cabling side
       else {
-	m.setBundle(negBundleTilted);
-	negBundles_[negBundleTiltedId]->addModule(&m);
-	negBundles_[negBundleTiltedId]->setIsTiltedPart(true);
+	m.setBundle(negBundleTilted_);
+	negBundles_[negBundleTiltedId_]->addModule(&m);
+	negBundles_[negBundleTiltedId_]->setIsTiltedPart(true);
       }
     }
 	  
@@ -197,36 +197,36 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
 
 void ModulesToBundlesConnector::visit(Endcap& e) { 
-  endcapName = e.myid();
+  endcapName_ = e.myid();
 }
 
 void ModulesToBundlesConnector::visit(Disk& d) {
-  diskNumber = d.diskNumber();
-  side = d.side();
+  diskNumber_ = d.diskNumber();
+  side_ = d.side();
 }
 
 void ModulesToBundlesConnector::visit(Ring& r)   { 
-  ringNumber = r.myid();
-  numModulesInRing = r.numModules();
+  ringNumber_ = r.myid();
+  numModulesInRing_ = r.numModules();
 
-  if (endcapName == "TEDD_1") {
-    if (ringNumber <= 4) type = "PS10G";
-    else if (ringNumber >= 5 && ringNumber <= 7) type = "PS5GA";
-    else if (ringNumber >= 8 && ringNumber <= 10) type = "PS5GB";
-    else if (ringNumber >= 11) type = "2S";
+  if (endcapName_ == "TEDD_1") {
+    if (ringNumber_ <= 4) type_ = "PS10G";
+    else if (ringNumber_ >= 5 && ringNumber_ <= 7) type_ = "PS5GA";
+    else if (ringNumber_ >= 8 && ringNumber_ <= 10) type_ = "PS5GB";
+    else if (ringNumber_ >= 11) type_ = "2S";
   }
 
-  else if (endcapName == "TEDD_2") {
-    if (ringNumber <= 3) type = "null";
-    else if (ringNumber >= 4 && ringNumber <= 6) type = "PS5GA";
-    else if (ringNumber >= 7 && ringNumber <= 10) type = "PS5GB";
-    else if (ringNumber >= 11) type = "2S";
+  else if (endcapName_ == "TEDD_2") {
+    if (ringNumber_ <= 3) type_ = "null";
+    else if (ringNumber_ >= 4 && ringNumber_ <= 6) type_ = "PS5GA";
+    else if (ringNumber_ >= 7 && ringNumber_ <= 10) type_ = "PS5GB";
+    else if (ringNumber_ >= 11) type_ = "2S";
   }
 
-  if (type == "PS10G") typeIndex = 0;
-  else if (type == "PS5GA") typeIndex = 1;
-  else if (type == "PS5GB") typeIndex = 2;
-  else if (type == "2S") typeIndex = 3;
+  if (type_ == "PS10G") typeIndex_ = 0;
+  else if (type_ == "PS5GA") typeIndex_ = 1;
+  else if (type_ == "PS5GB") typeIndex_ = 2;
+  else if (type_ == "2S") typeIndex_ = 3;
 
 }
 
@@ -234,68 +234,68 @@ void ModulesToBundlesConnector::visit(Ring& r)   {
 void ModulesToBundlesConnector::visit(EndcapModule& m) {
   double modPhi = m.center().Phi();
 
-  double phiSegmentWidth = (2.*M_PI) / numModulesInRing;
+  double phiSegmentWidth = (2.*M_PI) / numModulesInRing_;
 		  
   double phiRegionStart = 0.;
-  if (type == "PS10G" || type == "PS5GA") {
-    phiRegionWidth = 40. * M_PI / 180.;
+  if (type_ == "PS10G" || type_ == "PS5GA") {
+    phiRegionWidth_ = 40. * M_PI / 180.;
   }
 
-  else if (type == "PS5GB") {
-    phiRegionWidth = 20. * M_PI / 180.;
+  else if (type_ == "PS5GB") {
+    phiRegionWidth_ = 20. * M_PI / 180.;
   }
 
-  else if (type == "2S") {
-    phiRegionWidth = 360. / 27. * M_PI / 180.;
-    if (endcapName == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
+  else if (type_ == "2S") {
+    phiRegionWidth_ = 360. / 27. * M_PI / 180.;
+    if (endcapName_ == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
     else phiRegionStart = -0.001 * M_PI / 180.;
   }
 
   double phiSectorStart = 0.;
 
-  bool isPositiveCablingSide = (side ? true : false);
+  bool isPositiveCablingSide = side_;
 
   // Positive cabling side
   if (isPositiveCablingSide) {
     double phiSegmentStart = femod( modPhi, phiSegmentWidth);
-    phiSegmentRef = round(femod(modPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+    phiSegmentRef_ = round(femod(modPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 
-    int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth);
-    bundleId = 20000 + diskNumber * 1000 + phiRegionRef * 10 + typeIndex;
+    int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth_);
+    bundleId_ = 20000 + diskNumber_ * 1000 + phiRegionRef * 10 + typeIndex_;
 
-    int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth);
+    int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth_);
 
-    if (bundles_.count(bundleId) == 0) {
-      Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId, type, endcapName, diskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide);
+    if (bundles_.count(bundleId_) == 0) {
+      Bundle* bundleEndcap = GeometryFactory::make<Bundle>(bundleId_, type_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
       bundleEndcap->addModule(&m);
-      bundles_.insert(std::make_pair(bundleId, bundleEndcap));
+      bundles_.insert(std::make_pair(bundleId_, bundleEndcap));
       m.setBundle(bundleEndcap);
     }
     else { 
-      bundles_[bundleId]->addModule(&m);
-      m.setBundle(bundles_[bundleId]);
+      bundles_[bundleId_]->addModule(&m);
+      m.setBundle(bundles_[bundleId_]);
     }
   }
 
   // Negative cabling side
   else {
     double negPhiSegmentStart = femod(M_PI - modPhi, phiSegmentWidth);
-    negPhiSegmentRef = round(femod(M_PI - modPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
+    negPhiSegmentRef_ = round(femod(M_PI - modPhi - negPhiSegmentStart, 2.*M_PI) / phiSegmentWidth);
 
-    int negPhiRegionRef = computePhiSliceRef(M_PI - modPhi, phiRegionStart, phiRegionWidth);
-    negBundleId = 40000 + diskNumber * 1000 + negPhiRegionRef * 10 + typeIndex;
+    int negPhiRegionRef = computePhiSliceRef(M_PI - modPhi, phiRegionStart, phiRegionWidth_);
+    negBundleId_ = 40000 + diskNumber_ * 1000 + negPhiRegionRef * 10 + typeIndex_;
 
-    int negPhiSectorRef = computePhiSliceRef(M_PI - modPhi, phiSectorStart, phiSectorWidth);
+    int negPhiSectorRef = computePhiSliceRef(M_PI - modPhi, phiSectorStart, phiSectorWidth_);
 
-    if (negBundles_.count(negBundleId) == 0) {
-      Bundle* negBundleEndcap = GeometryFactory::make<Bundle>(negBundleId, type, endcapName, diskNumber, phiSegmentWidth, negPhiSegmentRef, phiRegionStart, phiRegionWidth, negPhiRegionRef, phiSectorWidth, negPhiSectorRef, isPositiveCablingSide);
+    if (negBundles_.count(negBundleId_) == 0) {
+      Bundle* negBundleEndcap = GeometryFactory::make<Bundle>(negBundleId_, type_, endcapName_, diskNumber_, phiSegmentWidth, negPhiSegmentRef_, phiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide);
       negBundleEndcap->addModule(&m);
-      negBundles_.insert(std::make_pair(negBundleId, negBundleEndcap));
+      negBundles_.insert(std::make_pair(negBundleId_, negBundleEndcap));
       m.setBundle(negBundleEndcap);
     }
     else { 
-      negBundles_[negBundleId]->addModule(&m);
-      m.setBundle(negBundles_[negBundleId]);
+      negBundles_[negBundleId_]->addModule(&m);
+      m.setBundle(negBundles_[negBundleId_]);
     }
   }
 	
@@ -328,11 +328,12 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
   for (auto& b : bundles) {
     if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
 
-      while (b.second->numModules() > 12) {
+      while (b.second->numModules() > maxNumModulesPerBundle_) {
 	bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	int diskNumber = b.second->layerDiskNumber();
 
 	std::string type = b.second->type();
+	int typeIndex;
 	if (type == "PS10G") typeIndex = 0;
 	else if (type == "PS5GA") typeIndex = 1;
 	else if (type == "PS5GB") typeIndex = 2;
@@ -365,16 +366,16 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
 	if (bundles.count(previousBundleId) != 0 && bundles.count(nextBundleId) != 0) {
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (bundles[previousBundleId]->numModules() >= 12 && bundles[nextBundleId]->numModules() >= 12) {
+	  if (bundles[previousBundleId]->numModules() >= maxNumModulesPerBundle_ && bundles[nextBundleId]->numModules() >= maxNumModulesPerBundle_) {
 	    std::cout << "I am a refugee module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 		      << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
-		      << ", which has already more than 12 modules, and none of my neighbouring regions wants to welcome me :/" 
+		      << ", which has already more than " << maxNumModulesPerBundle_<< " modules, and none of my neighbouring regions wants to welcome me :/" 
 		      << std::endl;
 	    break;
 	  }
 
 	  // Assign a module to the next phi region
-	  else if (bundles[previousBundleId]->numModules() >= 12 || maxPhiBorder <= minPhiBorder) {
+	  else if (bundles[previousBundleId]->numModules() >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
 	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 		      << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 		      << ", adding it to the next region." 
@@ -388,7 +389,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  }
 
 	  // Assign a module to the previous phi region
-	  else if (bundles[nextBundleId]->numModules() >= 12 || minPhiBorder < maxPhiBorder) {
+	  else if (bundles[nextBundleId]->numModules() >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
 	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", type " << type 
 		      << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 		      << ", adding it to the previous region." 
@@ -413,7 +414,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
 void ModulesToBundlesConnector::checkModulesToBundlesCabling(std::map<int, Bundle*>& bundles) {
   for (auto& b : bundles) {
-    if (b.second->numModules() > 12) {
+    if (b.second->numModules() > maxNumModulesPerBundle_) {
       std::cout << "There was an error while staggering modules. Bundle " 
 		<< b.first << " is connected to " << b.second->numModules() << " modules." 
 		<< std::endl;

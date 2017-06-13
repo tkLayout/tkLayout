@@ -196,7 +196,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 
 void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
   for (auto& c : cables) {
-    if (c.second->numBundles() > 6) {
+    if (c.second->numBundles() > maxNumBundlesPerCable_) {
       std::cout << "There was an error while staggering bundles. Cable " 
 		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 
 		<< std::endl;

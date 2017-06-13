@@ -3,21 +3,10 @@
 
 #include <global_constants.hh>
 #include "global_funcs.hh"
-
 #include "Cabling/DTC.hh"
-
-//#include "Visitor.hh"
-//#include "Visitable.hh"
-
-
-//#include "Cabling/CablingMap"
-//#include <Tracker.hh>
-
-
 
 
 class ModulesToBundlesConnector : public GeometryVisitor {
-  
 public:
   std::map<int, Bundle*> getBundles() { return bundles_; }
   std::map<int, Bundle*> getNegBundles() { return negBundles_; }
@@ -39,49 +28,49 @@ private:
   void staggerModules(std::map<int, Bundle*>& bundles);
   void checkModulesToBundlesCabling(std::map<int, Bundle*>& bundles);
 
-  std::string barrelName;
-  int layerNumber;
-  int numRods;
-  int totalNumFlatRings;   
+  std::string barrelName_;
+  int layerNumber_;
+  int numRods_;
+  int totalNumFlatRings_;   
 
-  std::string endcapName;
-  int diskNumber;
-  int ringNumber;
-  int numModulesInRing;
+  std::string endcapName_;
+  int diskNumber_;
+  int ringNumber_;
+  int numModulesInRing_;
 
-  std::string type;
-  int typeIndex;
-  bool side;
+  std::string type_;
+  int typeIndex_;
+  bool side_;
    
-  int phiSegmentRef;
-  int negPhiSegmentRef;
-  double phiRegionWidth;
-  const double phiSectorWidth = 40. * M_PI / 180.;
+  int phiSegmentRef_;
+  int negPhiSegmentRef_;
+  double phiRegionWidth_;
+  const double phiSectorWidth_ = 40. * M_PI / 180.;
+
+  const int maxNumModulesPerBundle_ = 12;
   
-  int bundleId;
-  int bundleFlatId;   
-  int bundleFlatIdB;      
-  int bundleTiltedId;
+  int bundleId_;
+  int bundleFlatId_;   
+  int bundleFlatIdB_;      
+  int bundleTiltedId_;
 
-  int negBundleId;
-  int negBundleFlatId;
-  int negBundleFlatIdB;
-  int negBundleTiltedId;
+  int negBundleId_;
+  int negBundleFlatId_;
+  int negBundleFlatIdB_;
+  int negBundleTiltedId_;
 
-  Bundle* bundle = NULL;
-  Bundle* bundleFlat = NULL;
-  Bundle* bundleFlatB = NULL;
-  Bundle* bundleTilted = NULL;
+  Bundle* bundle_ = NULL;
+  Bundle* bundleFlat_ = NULL;
+  Bundle* bundleFlatB_ = NULL;
+  Bundle* bundleTilted_ = NULL;
 
-  Bundle* negBundle = NULL;
-  Bundle* negBundleFlat = NULL;
-  Bundle* negBundleFlatB = NULL;
-  Bundle* negBundleTilted = NULL;
+  Bundle* negBundle_ = NULL;
+  Bundle* negBundleFlat_ = NULL;
+  Bundle* negBundleFlatB_ = NULL;
+  Bundle* negBundleTilted_ = NULL;
 
   std::map<int, Bundle*> bundles_;
   std::map<int, Bundle*> negBundles_;
-
-  
 };
 
 
