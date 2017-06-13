@@ -31,7 +31,8 @@ private:
   int computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
 
-  void createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide);
+  void createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  void connectModuleToBundle(BarrelModule& m, const int bundleId, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const bool isPositiveCablingSide);
 
   void staggerModules(std::map<int, Bundle*>& bundles);
   void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
@@ -58,14 +59,12 @@ private:
 
   const int maxNumModulesPerBundle_ = 12;
   
-  int bundleId_;
   int bundleFlatId_;   
-  int bundleFlatIdB_;      
+  int bundleExtraFlatId_;      
   int bundleTiltedId_;
 
-  int negBundleId_;
   int negBundleFlatId_;
-  int negBundleFlatIdB_;
+  int negBundleExtraFlatId_;
   int negBundleTiltedId_;
 
   std::map<int, Bundle*> bundles_;

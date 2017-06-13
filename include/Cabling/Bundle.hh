@@ -36,10 +36,10 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
   double phiSectorWidth_;
   int phiSectorRef_;
   bool isPositiveCablingSide_;
+  bool isTiltedPart_;
 
   int plotColor_;
 
-  bool isTiltedPart_ = false;
   Cable* cable_ = NULL;
 
 
@@ -53,7 +53,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide) {
+  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart) {
     myid(id);
 
     type_ = type;
@@ -68,6 +68,7 @@ public:
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
     isPositiveCablingSide_ = isPositiveCablingSide;
+    isTiltedPart_ = isTiltedPart;
 
     // Calculate plotColor_
     int plotId = (isPositiveCablingSide ? id : (id - 20000));
@@ -89,13 +90,11 @@ public:
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
+  const bool isTiltedPart() const { return isTiltedPart_; }
 
   const int plotColor() const { return plotColor_; }
 
 
-
-  const bool isTiltedPart() const { return isTiltedPart_; }
-  void setIsTiltedPart(bool isTiltedPart) { isTiltedPart_ = isTiltedPart; }
 
   const Cable* getCable() const { return cable_; }
   void setCable(Cable* cable) { cable_ = cable; }
