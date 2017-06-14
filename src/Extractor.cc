@@ -577,7 +577,6 @@ namespace insur {
       double ymin = std::numeric_limits<double>::max();
       double ymax = 0;
       // straight or tilted layer : z and r extrema of rod (straight layer), or of {rod part + tilted ring} (tilted layer)
-      //double zmin = std::numeric_limits<double>::max();
       double zmax = 0;
       double rmin = std::numeric_limits<double>::max();
       double rmax = 0;
@@ -1232,6 +1231,12 @@ namespace insur {
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
 
+      if (isPixelTracker) {
+	if (!isTilted) shape.name_tag = rodNextPhiName.str();
+	else shape.name_tag = rodNextPhiName.str() + "Full";
+	s.push_back(shape);
+      }
+
       // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
       if (isTilted && flatPartNumModules >= 2) {
 	shape.name_tag = rodname.str() + "Air";
@@ -1265,8 +1270,32 @@ namespace insur {
       l.push_back(logic);
 
       if (isPixelTracker) {
-	shape.name_tag = rodNextPhiName.str();
-	s.push_back(shape);
+	if (isTilted) {
+	  shape.name_tag = rodNextPhiName.str() + "Air";
+	  shape.dx = (rodThickness.at(layer) + xml_epsilon) / 2.0;
+	  shape.dy = rodWidth.at(layer) + xml_epsilon + xml_epsilon;
+	  shape.dz = (flatPartMaxZ + xml_epsilon - flatPartOneBeforeLastModuleMaxZ) / 2.;
+	  s.push_back(shape);
+	
+	  shapeOp.name_tag = rodNextPhiName.str() + "SubtractionIntermediate";
+	  shapeOp.type = substract;
+	  shapeOp.rSolid1 = rodNextPhiName.str() + "Full";
+	  shapeOp.rSolid2 = rodNextPhiName.str() + "Air";
+	  shapeOp.trans.dx = shape.dx + xml_epsilon;
+	  shapeOp.trans.dy = 0.;
+	  shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz + xml_epsilon;
+	  so.push_back(shapeOp);
+
+	  shapeOp.name_tag = rodNextPhiName.str();
+	  shapeOp.type = substract;
+	  shapeOp.rSolid1 = rodNextPhiName.str() + "SubtractionIntermediate";
+	  shapeOp.rSolid2 = rodNextPhiName.str() + "Air";
+	  shapeOp.trans.dx = shape.dx + xml_epsilon;
+	  shapeOp.trans.dy = 0.;
+	  shapeOp.trans.dz = -shapeOp.trans.dz;
+	  so.push_back(shapeOp);
+	}
+
 	logic.name_tag = rodNextPhiName.str();
 	logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 	l.push_back(logic);
