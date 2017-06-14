@@ -2362,7 +2362,8 @@ namespace insur {
 
 
 	  // BARREL supports
-	  if (iter->getZOffset() < startEndcaps ) {
+	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
+
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
 	    shape.rmin = iter->getInnerRadius();
@@ -2388,6 +2389,61 @@ namespace insur {
 
 	  // ENDCAPS supports
 	  else {
+
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	    if (iter->getZOffset() < startEndcaps) {
+	      std::ostringstream shapenameBarrel, shapenameEndcaps;
+	      shapenameBarrel << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "BarrelPart";
+	      shapenameEndcaps << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "EndcapsPart";
+
+	      // Barrel part
+	      shape.name_tag = shapenameBarrel.str();
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+	      if (shape.rmin < supportBarrelRMin) supportBarrelRMin = shape.rmin;
+	      if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
+
+	      logic.name_tag = shapenameBarrel.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
+	      p.push_back(pos);
+	      pos.copy = 2;
+	      pos.trans.dz = -pos.trans.dz;
+	      pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
+	      p.push_back(pos);
+
+	      pos.copy = 1;
+	      pos.rotref.clear();
+
+	      // Endcaps part
+	      shape.name_tag = shapenameEndcaps.str();
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);    
+	      if (shape.rmin < supportEndcapsRMin) supportEndcapsRMin = shape.rmin;
+	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
+
+	      logic.name_tag = shapenameEndcaps.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
+	      p.push_back(pos);
+	    }
+
+	    // ENDCAPS-only services
+	    else {
 	      shape.name_tag = shapename.str();
 	      shape.dz = iter->getZLength() / 2.0;
 	      shape.rmin = iter->getInnerRadius();
@@ -2405,6 +2461,7 @@ namespace insur {
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
+	    }
 	  }
 
 
