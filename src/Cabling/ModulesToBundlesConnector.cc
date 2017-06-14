@@ -19,171 +19,84 @@ void ModulesToBundlesConnector::visit(Layer& l) {
 
 
 void ModulesToBundlesConnector::visit(RodPair& r) {
-  double rodPhi = r.Phi();
-
-  double phiSegmentWidth = (2.*M_PI) / numRods_;
-
-  // Positive cabling side
-  bool isPositiveCablingSide = true;
-
-  double phiSegmentStart = computePhiSegmentStart(rodPhi, phiSegmentWidth, isPositiveCablingSide);
-  phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
-	
-  double phiRegionStart = 0.;
-  int phiRegionRef = computePhiSliceRef(rodPhi, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
-
-  double phiSectorStart = 0.;
-  int phiSectorRef = computePhiSliceRef(rodPhi, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
-
-
-  // Negative cabling side
-  isPositiveCablingSide = false;
-
-  double negPhiSegmentStart = computePhiSegmentStart(rodPhi, phiSegmentWidth, isPositiveCablingSide);
-  negPhiSegmentRef_ = computePhiSegmentRef(rodPhi, negPhiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
-	
-  double negPhiRegionStart = 0.;
-  int negPhiRegionRef = computePhiSliceRef(rodPhi, negPhiRegionStart, phiRegionWidth_, isPositiveCablingSide);
-
-  double negPhiSectorStart = 0.;
-  int negPhiSectorRef = computePhiSliceRef(rodPhi, negPhiSectorStart, phiSectorWidth_, isPositiveCablingSide);
-
-
-  isPositiveCablingSide = true;
   bundleType_ = computeBundleType(isBarrel_, barrelName_, layerNumber_);
 
-  // CREATE 2S BUNDLES
-  if (barrelName_ == "TB2S") {
-    bool isTilted = false;
-    bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted);
-    // Positive cabling side
-    isPositiveCablingSide = true;
-    bundleFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
-    createAndStoreBundle(bundles_, negBundles_, bundleFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
-
-    // Negative cabling side
-    isPositiveCablingSide = false;
-    negBundleFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, bundleTypeIndex_);
-    createAndStoreBundle(bundles_, negBundles_, negBundleFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide, isTilted);
-  }
-
-  // CREATE PS BUNDLES
-  else if (barrelName_ == "TBPS") {
-    // FLAT PART
-    bool isTilted = false;   
-    // Positive cabling side	  
-    if ( (phiSegmentRef_ % 2) == 1 ) {
-      isPositiveCablingSide = true;
-      // standard case
-      bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted);
-      bundleFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
-      createAndStoreBundle(bundles_, negBundles_, bundleFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
-
-      // For layer 3, need to add a second bundle for flat part
-      if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
-	bool isExtraFlatPart = true;
-	bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
-	bundleExtraFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
-	createAndStoreBundle(bundles_, negBundles_, bundleExtraFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
-      }
-    }
-    // Negative cabling side
-    if ( (negPhiSegmentRef_ % 2) == 0 ) {
-      isPositiveCablingSide = false;
-      // standard case
-      bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted);
-      negBundleFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, bundleTypeIndex_);
-      createAndStoreBundle(bundles_, negBundles_, negBundleFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide, isTilted);
-
-      // For layer 3, need to add a second negBundle for flat part
-      if (totalNumFlatRings_ > maxNumModulesPerBundle_) {
-	bool isExtraFlatPart = true;
-	bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
-	negBundleExtraFlatId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, bundleTypeIndex_);
-	createAndStoreBundle(bundles_, negBundles_, negBundleExtraFlatId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide, isTilted);
-      }
-    }
-
-    // TILTED PART
-    isTilted = true;
-    bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted);
-    // Positive cabling side
-    isPositiveCablingSide = true;
-    bundleTiltedId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
-    createAndStoreBundle(bundles_, negBundles_, bundleTiltedId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
-    
-    // Negative cabling side
-    isPositiveCablingSide = false;
-    negBundleTiltedId_ = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, negPhiSegmentRef_, bundleTypeIndex_);
-    createAndStoreBundle(bundles_, negBundles_, negBundleTiltedId_, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, negPhiSegmentRef_, negPhiRegionStart, phiRegionWidth_, negPhiRegionRef, phiSectorWidth_, negPhiSectorRef, isPositiveCablingSide, isTilted);
-  }
+  rodPhi_ = r.Phi();
 }
       
      
 void ModulesToBundlesConnector::visit(BarrelModule& m) {
   side_ = (m.uniRef().side > 0.);
+  
   bool isPositiveCablingSide = side_;
+  bool isTilted = false;
+  bool isExtraFlatPart = false;
 
-  int bundleId = 0;
-
-  // CONNECT MODULES TO 2S BUNDLES
+  // 2S BUNDLES
   if (barrelName_ == "TB2S") {
 
     isPositiveCablingSide = side_;
-
-    // Positive cabling side
-    if (isPositiveCablingSide) bundleId = bundleFlatId_;
-    // Negative cabling side
-    else bundleId = negBundleFlatId_;
+    isTilted = false;
+    isExtraFlatPart = false;
   }
 
-  // CONNECT MODULES TO PS BUNDLES
+  // PS BUNDLES
   else if (barrelName_ == "TBPS") {
 
-    // FLAT MODULES
-    if (!m.isTilted()) {
+    // FLAT PART
+    if (!m.isTilted()) {     
       isPositiveCablingSide = ((phiSegmentRef_ % 2) == 1);
+      isTilted = false;
+      isExtraFlatPart = false;
 
-      // Positive cabling side
-      if (isPositiveCablingSide) {
-	// standard case
-	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
-	  bundleId = bundleFlatId_;
-	  
-	}
-	// For layer 3, need to add a second bundle for flat part
-	else {
-	  if (side_) bundleId = bundleFlatId_;
-	  else bundleId = bundleExtraFlatId_;
-	}
-      }
-
-      // Negative cabling side
-      else {
-	// standard case
-	if (totalNumFlatRings_ <= maxNumModulesPerBundle_) {
-	  bundleId = negBundleFlatId_;
-	}
-	// For layer 3, need to add a second bundle for flat part
-	else {
-	  if (!side_) bundleId = negBundleFlatId_;
-	  else bundleId = negBundleExtraFlatId_;
-	}
-      }
-
+      // For layer 3, need to add a second bundle for flat part
+      if (isPositiveCablingSide && (totalNumFlatRings_ > maxNumModulesPerBundle_) && !side_) isExtraFlatPart = true;
+      if (!isPositiveCablingSide && (totalNumFlatRings_ > maxNumModulesPerBundle_) && side_) isExtraFlatPart = true;
     }
 
-    // TILTED MODULES
+    // TILTED PART
     else if (m.isTilted()) {
+
       isPositiveCablingSide = side_;
-      // Positive cabling side
-      if (isPositiveCablingSide) bundleId = bundleTiltedId_;
-      // Negative cabling side
-      else bundleId = negBundleTiltedId_;
+      isTilted = true;
+      isExtraFlatPart = false;
     }       
   }
 
-  connectModuleToBundle(m, bundleId, bundles_, negBundles_, isPositiveCablingSide);   
+  double phiSegmentWidth = (2.*M_PI) / numRods_;
+  double phiSegmentStart = computePhiSegmentStart(rodPhi_, phiSegmentWidth, isPositiveCablingSide);
+  phiSegmentRef_ = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
+	
+  double phiRegionStart = 0.;
+  int phiRegionRef = computePhiSliceRef(rodPhi_, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
+
+  double phiSectorStart = 0.;
+  int phiSectorRef = computePhiSliceRef(rodPhi_, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
+
+  bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
+  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
+
+
+
+  Bundle* barrelBundle = nullptr;
+  std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+
+  auto found = bundles.find(bundleId);
+  if (found == bundles.end()) {
+    createAndStoreBundle(bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
+    barrelBundle = bundles[bundleId];
+  }
+  else {
+    barrelBundle = found->second;
+  }
+
+  barrelBundle->addModule(&m);
+  m.setBundle(barrelBundle);
+
+  
+
+  //connectModuleToBundle(m, bundle);
+
 }
 
 
