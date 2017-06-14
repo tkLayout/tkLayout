@@ -6,6 +6,7 @@ width 48
 length 96
 
 sensorLayout mono
+singleHitEfficiency 0.95
 
 numSensors 1
 

@@ -69,31 +69,58 @@ namespace insur {
     pos.trans.dy = 0.0;
     pos.trans.dz = 0.0;
     pos.rotref = "";
-
-    // Initialise rotation list with Harry's tilt mod
-    // This rotation places an unflipped module within a rod
+  
     Rotation rot;
-    rot.name = xml_places_unflipped_mod_in_rod;
-    rot.thetax = 90.0;
-    rot.phix = 90.0;
-    rot.thetay = 0.0;
-    rot.phiy = 0.0;
-    rot.thetaz = 90.0;
-    rot.phiz = 0.0;
-    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    // PLACING MODULE WITHIN A ROD
+    // Outer Tracker : local X axis, at e.g. Phi = 0°, is parallel to CMS_Y.
+    if (!isPixelTracker) {
+      // This rotation places an unflipped module within a rod
+      rot.name = xml_OT_places_unflipped_mod_in_rod;
+      rot.thetax = 90.0;
+      rot.phix = 90.0;
+      rot.thetay = 0.0;
+      rot.phiy = 0.0;
+      rot.thetaz = 90.0;
+      rot.phiz = 0.0;
+      r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
-    // This rotation places a flipped module within a rod
-    rot.name = xml_places_flipped_mod_in_rod;
-    rot.thetax = 90.0;
-    rot.phix = 270.0;
-    rot.thetay = 0.0;
-    rot.phiy = 0.0;
-    rot.thetaz = 90.0;
-    rot.phiz = 180.0;
-    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+      // This rotation places a flipped module within a rod.
+      // Flip is 180° rotation around local X axis.
+      rot.name = xml_OT_places_flipped_mod_in_rod;
+      rot.thetax = 90.0;
+      rot.phix = 270.0;
+      rot.thetay = 0.0;
+      rot.phiy = 0.0;
+      rot.thetaz = 90.0;
+      rot.phiz = 180.0;
+      r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
+    // Inner Tracker : local X axis, at e.g. Phi = 0°, is antiparallel to CMS_Y.
+    else {
+      // This rotation places an unflipped module within a rod
+      rot.name = xml_PX_places_unflipped_mod_in_rod;
+      rot.thetax = 90.0;
+      rot.phix = 270.0;
+      rot.thetay = 180.0;
+      rot.phiy = 0.0;
+      rot.thetaz = 90.0;
+      rot.phiz = 0.0;
+      r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
-    // Flip module (Fix Y axis)
-    rot.name = xml_flip_mod_rot;
+      // This rotation places a flipped module within a rod.
+      // Flip is 180° rotation around local X axis.
+      rot.name = xml_PX_places_flipped_mod_in_rod;
+      rot.thetax = 90.0;
+      rot.phix = 90.0;
+      rot.thetay = 180.0;
+      rot.phiy = 0.0;
+      rot.thetaz = 90.0;
+      rot.phiz = 180.0;
+      r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
+
+    // Y180 : Rotation of 180° around CMS_Y axis.
+    rot.name = xml_Y180;
     rot.thetax = 90.0;
     rot.phix = 180.0;
     rot.thetay = 90.0;
@@ -641,6 +668,9 @@ namespace insur {
 	rodNextPhiName << xml_rod << xml_unflipped << layer; // e.g.RodUnflipped1
       }
 
+      std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
+      std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
+
       double rodStartPhiAngle, rodNextPhiStartPhiAngle;
 
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
@@ -775,8 +805,9 @@ namespace insur {
 	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
+
+	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
 	      if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_positive_z;
 	      p.push_back(pos);
@@ -785,10 +816,12 @@ namespace insur {
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
+
+		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
+		pos.copy = 2;
 		p.push_back(pos);
 	      }
 	      // reset
@@ -805,16 +838,16 @@ namespace insur {
 	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
+		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 		pos.copy = 2; 
 		p.push_back(pos);
 		pos.copy = 1;
@@ -2145,7 +2178,7 @@ namespace insur {
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
 	    p.push_back(pos);
 	  }
 
@@ -2181,9 +2214,8 @@ namespace insur {
 		p.push_back(pos);
 		pos.copy = 2;
 		pos.trans.dz = -pos.trans.dz;
-		pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
+		pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
 		p.push_back(pos);
-	      
 
 		pos.copy = 1;
 		pos.rotref.clear();
@@ -2336,7 +2368,7 @@ namespace insur {
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
 	    p.push_back(pos);
 	  }
 

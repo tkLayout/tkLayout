@@ -55,10 +55,11 @@ public:
   std::string diskId;
 
   // counters
-  int nBarrelLayers=0;
-  int nEndcaps=0;
-  int nDisks=0;
-  int nRings=0;
+  int nBarrelLayers = 0;
+  int nEndcaps = 0;
+  int nDisks = 0;
+  int nRings = 0;
+  int nRingsTotal = 0;
   int totalBarrelModules = 0;
   int totalEndcapModules = 0;
 

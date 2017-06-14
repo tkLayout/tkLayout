@@ -18,6 +18,7 @@ void Tracker::build() {
 
     double barrelMaxZ = 0;
 
+    // Build barrel(s)
     for (auto& mapel : barrelNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Barrel* b = GeometryFactory::make<Barrel>();
@@ -30,6 +31,7 @@ void Tracker::build() {
       barrels_.push_back(b);
     }
 
+    // Build endcap(s)
     for (auto& mapel : endcapNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Endcap* e = GeometryFactory::make<Endcap>();
@@ -42,6 +44,7 @@ void Tracker::build() {
       endcaps_.push_back(e);
     }
 
+    // Remove requested modules
     class ModuleRemover : public GeometryVisitor {
       void visit(RodPair& m_rodPair) { m_rodPair.removeModules(); }
       void visit(Ring& m_ring) { m_ring.removeModules(); }
@@ -60,8 +63,30 @@ void Tracker::build() {
   }
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
+  // Add all modules to a set, directly accessible from Tracker
   accept(moduleSetVisitor_);
 
+  // Add geometry hierarchy information to modules
+  addHierarchyInfoToModules();
+
+  // Add Layers and Disks a global Tracker numbering.
+  // All Tracker Layers are numbered by increasing radius.
+  // All Tracker Disks are numbered by increasing fabs(Z). Numbering starts from 1 on (+Z) side, and from 1 on (-Z) side.
+  addLayerDiskNumbers();
+  
+  // Build DetIds
+  buildDetIds();
+
+  cleanup();
+  builtok(true);
+}
+
+
+/** 
+ * Add geometry hierarchy information to modules.
+ */
+void Tracker::addHierarchyInfoToModules() {
+ 
   class HierarchicalNameVisitor : public GeometryVisitor {
     int cntId = 0;
     string cnt;
@@ -76,268 +101,103 @@ void Tracker::build() {
     void visit(Module& m) { m.cntNameId(cnt, cntId); }
     void visit(BarrelModule& m) { m.layer(c1); m.rod(c2); }
     void visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
-  } cntNameVisitor;
+  };
 
+  HierarchicalNameVisitor cntNameVisitor;
   accept(cntNameVisitor);
-
-
-  // THis is uglyy, sorry i will completely rewrite this
-  std::vector< std::pair<const Layer*, std::string> > sortedLayers;
-  std::string barrelId;
-  for (auto& b : barrels_) {
-    barrelId = b.myid();
-    for (const auto& l : b.layers()) { sortedLayers.push_back(std::make_pair(&l, barrelId)); }
-  }
-  std::sort(sortedLayers.begin(), sortedLayers.end(), [&] (std::pair<const Layer*, std::string> l1, std::pair<const Layer*, std::string> l2) { return l1.first->minR() < l2.first->minR(); });
-  std::map< std::pair<std::string, int>, int > sortedLayersIds;
-  int i = 1;
-  for (const auto& l : sortedLayers) { sortedLayersIds.insert(std::make_pair(std::make_pair(l.second, l.first->myid()), i)); i++; }
-
-  std::vector< std::pair<const Disk*, std::string> > sortedZPlusDisks;
-  std::vector< std::pair<const Disk*, std::string> > sortedZMinusDisks;
-  std::string endcapId;
-  for (auto& e : endcaps_) {
-    endcapId = e.myid();
-    for (const auto& d : e.disks()) {
-      if (d.side()) sortedZPlusDisks.push_back(std::make_pair(&d, endcapId));
-      else sortedZMinusDisks.push_back(std::make_pair(&d, endcapId));
-    }
-  }
-  std::sort(sortedZPlusDisks.begin(), sortedZPlusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return d1.first->averageZ() < d2.first->averageZ(); });
-  std::sort(sortedZMinusDisks.begin(), sortedZMinusDisks.end(), [&] (std::pair<const Disk*, std::string> d1, std::pair<const Disk*, std::string> d2) { return fabs(d1.first->averageZ()) < fabs(d2.first->averageZ()); });
-  std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
-  i = 1;
-  for (const auto& d : sortedZPlusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-  i = 1;
-  for (const auto& d : sortedZMinusDisks) { sortedDisksIds.insert(std::make_pair(std::make_tuple(d.second, d.first->myid(), d.first->side()), i)); i++; }
-  // END OF THE UGLY PART
-
-
-
-
-
-  class BarrelDetIdBuilder : public SensorGeometryVisitor {
-  private:
-    std::string schemeName;
-    std::vector<int> schemeShifts;
-    std::map< std::pair<std::string, int>, int > sortedLayersIds;
-
-    std::map<int, uint32_t> detIdRefs;
-
-    std::string barrelName;
-    bool isTiltedLayer;
-    int numRods;
-    int numFlatRings;
-    int numRings;
-    bool isCentered;
-    uint32_t phiRef;
-
-  public:
-    BarrelDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::pair<std::string, int>, int > layersIds) : schemeName(name), schemeShifts(shifts), sortedLayersIds(layersIds) {}
-
-    void visit(Barrel& b) {
-      barrelName = b.myid();
-
-      detIdRefs[0] = 1;
-
-      detIdRefs[1] = 205 % 100;
-			   
-      detIdRefs[2] = 0;
-    }
-
-    void visit(Layer& l) {
-      std::pair<std::string, int> layerId;
-      layerId = std::make_pair(barrelName, l.myid());
-      l.layerNumber(sortedLayersIds.at(layerId));
-
-      detIdRefs[3] = l.layerNumber();
-
-      isTiltedLayer = l.isTilted();
-      numRods = l.numRods();
-      numFlatRings = l.buildNumModulesFlat();
-      numRings = l.buildNumModules();
-      if (!isTiltedLayer) numRings = numFlatRings;
-    }
-
-    void visit(RodPair& r) {
-      double startAngle = femod( r.Phi(), (2 * M_PI / numRods));
-      phiRef = 1 + round(femod(r.Phi() - startAngle, 2*M_PI) / (2*M_PI) * numRods);
-
-      isCentered = (r.startZMode() == RodPair::StartZMode::MODULECENTER);
-    }
-
-    void visit(BarrelModule& m) {
-      int side = m.uniRef().side;
-      uint32_t ringRef;
-
-      if (!m.isTilted()) {
-	detIdRefs[4] = 3;
-	detIdRefs[5] = phiRef;
-
-	if (isCentered) ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings - 1) : (1 + numFlatRings - m.uniRef().ring));
-	else ringRef = (side > 0 ? (m.uniRef().ring + numFlatRings) : (1 + numFlatRings - m.uniRef().ring));
-	detIdRefs[6] = ringRef;
-      }
-
-      else {
-	uint32_t category = (side > 0 ? 2 : 1);
-	detIdRefs[4] = category;
-
-	ringRef = (side > 0 ? (m.uniRef().ring - numFlatRings) : (1 + numRings - m.uniRef().ring));
-	detIdRefs[5] = ringRef;
-
-	detIdRefs[6] = phiRef;
-      }
-
-      uint32_t sensorRef = 0;
-      detIdRefs[7] = sensorRef;
-
-      m.buildDetId(detIdRefs, schemeShifts);
-    }
-
-    void visit(Sensor& s) {
-      uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
-      if (s.subdet() == ModuleSubdetector::BARREL) {
-	detIdRefs[7] = sensorRef;
-
-	s.buildDetId(detIdRefs, schemeShifts);
-      }  
-    }
-
-  };
-
-
-  class EndcapDetIdBuilder : public SensorGeometryVisitor {
-  private:
-    std::string schemeName;
-    std::vector<int> schemeShifts;
-    std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds;
-
-    std::map<int, uint32_t> detIdRefs;
-
-    std::string endcapName;
-    int numEmptyRings;
-    int numModules;
-
-  public:
-    EndcapDetIdBuilder(std::string name, std::vector<int> shifts, std::map< std::tuple<std::string, int, bool>, int > disksIds) : schemeName(name), schemeShifts(shifts), sortedDisksIds(disksIds) {}
-
-    void visit(Endcap& e) {
-      endcapName = e.myid();
-
-      detIdRefs[0] = 1;
-
-      detIdRefs[1] = 204 % 100;
-    }
-
-    void visit(Disk& d) {
-      bool side = d.side();
-
-      std::tuple<std::string, int, bool> diskId;
-      diskId = std::make_tuple(endcapName, d.myid(), side);
-      d.diskNumber(sortedDisksIds.at(diskId));  
-
-      uint32_t sideRef = (side ? 2 : 1);
-      detIdRefs[2] = sideRef;
-
-      detIdRefs[3] = 0;
-
-      uint32_t diskRef = d.diskNumber();
-      detIdRefs[4] = diskRef;
-
-      numEmptyRings = d.numEmptyRings();
-    }
-   
-    void visit(Ring& r) {
-      uint32_t ringRef = r.myid() - numEmptyRings;
-      detIdRefs[5] = ringRef;
-
-      detIdRefs[6] = 1;
-
-      numModules = r.numModules();
-    }
- 
-    void visit(EndcapModule& m) {
-      double startAngle = femod( m.center().Phi(), (2 * M_PI / numModules));
-      uint32_t phiRef = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*M_PI) * numModules);
-      detIdRefs[7] = phiRef;
-
-      uint32_t sensorRef = 0;
-      detIdRefs[8] = sensorRef;
-      m.buildDetId(detIdRefs, schemeShifts);
-
-      //std::cout << "disk = " << m.uniRef().layer << "ring = " <<  m.uniRef().ring << "side = " << m.uniRef().side << std::endl;
-    }
-
-    void visit(Sensor& s) {
-      uint32_t sensorRef = (s.innerOuter() == SensorPosition::LOWER ? 1 : 2);
-      if (s.subdet() == ModuleSubdetector::ENDCAP) {
-	detIdRefs[8] = sensorRef;
-
-
-	/*for (int a = 0; a < detIdRefs.size(); a++) {
-	  std::cout << "values = " << std::endl;
-	  std::cout << detIdRefs.at(a) << std::endl;
-	  std::cout << "scheme = " << std::endl;
-	  std::cout << schemeShifts.at(a) << std::endl;
-	  }*/
-
-	s.buildDetId(detIdRefs, schemeShifts);
-
-	//std::bitset<32> test(s.myDetId());
-	//std::cout << s.myDetId() << " " << test << " " << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
-      }
-    }
-
-  };
-
-
-  if (!isPixelTracker()) {
-    if (barrelDetIdScheme() == "Phase2Subdetector5" && detIdSchemes_.count("Phase2Subdetector5") != 0) {
-      BarrelDetIdBuilder v(barrelDetIdScheme(), detIdSchemes_["Phase2Subdetector5"], sortedLayersIds);
-      accept(v);
-    }
-    else logWARNING("barrelDetIdScheme = " + barrelDetIdScheme() + ". This barrel detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Barrel sensors will be calculated.");
-
-    if (endcapDetIdScheme() == "Phase2Subdetector4" && detIdSchemes_.count("Phase2Subdetector4") != 0) {
-      EndcapDetIdBuilder v(endcapDetIdScheme(), detIdSchemes_["Phase2Subdetector4"], sortedDisksIds);
-      accept(v);
-    }
-    else logWARNING("endcapDetIdScheme = " + endcapDetIdScheme() + ". This endcap detId scheme is empty or incorrect or not currently implemented within tkLayout. No detId for Endcap sensors will be calculated.");
-  }
-
-
-  cleanup();
-  builtok(true);
 }
 
 
-std::map<std::string, std::vector<int> > Tracker::detIdSchemes() {
-  std::map<std::string, std::vector<int> > schemes;
+/**
+ * Add Layers and Disks a global Tracker numbering.
+ * All Tracker Layers are numbered by increasing radius.
+ * All Tracker Disks are numbered by increasing fabs(Z). Numbering starts from 1 on (+Z) side, and from 1 on (-Z) side.
+ */
+void Tracker::addLayerDiskNumbers() {
 
-  std::ifstream schemesStream(mainConfigHandler::instance().getDetIdSchemesDirectory() + "/" + insur::default_detidschemesfile);
+  class LayerDiskNumberBuilder : public GeometryVisitor {
+  public:
+    void visit(Layer& l)  { trackerLayers_.push_back(&l); }
+    void visit(Disk& d)   { trackerDisks_.push_back(&d); }
 
-  if (schemesStream.good()) {
-    std::string line;
-    while(getline(schemesStream, line).good()) {
-      if (line.empty()) continue;
-      auto schemeData = split(line, " ");
-      std::string schemeName = schemeData.at(0);
-      if (schemeData.size() < 2) logWARNING("DetId scheme " + schemeName + " : no data was entered." );
-      else {
-	std::vector<int> detIdShifts;
-	int sum = 0;
-	for (int i = 1; i < schemeData.size(); i++) {
-	  int shift = str2any<int>(schemeData.at(i));
-	  detIdShifts.push_back(shift);
-	  sum += shift; 
-	}
-	if (sum != 32) logWARNING("DetId scheme " + schemeName + " : The sum of Det Id shifts is not equal to 32." );
-	else schemes.insert(std::make_pair(schemeName, detIdShifts));
+    void postVisit() {
+      std::sort(trackerLayers_.begin(), trackerLayers_.end(), [] (const Layer* l1, const Layer* l2) { return l1->minR() < l2->minR(); });
+      int layerNumber = 1;
+      for (auto& l : trackerLayers_) {
+	l->layerNumber(layerNumber); 
+	layerNumber++; 
+      }
+
+      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->averageZ()) < fabs(d2->averageZ()); });
+      int positiveZDiskNumber = 1;
+      int negativeZDiskNumber = 1;
+      for (auto& d : trackerDisks_) {
+	if (d->side()) { 
+	  d->diskNumber(positiveZDiskNumber); 
+	  positiveZDiskNumber++; 
+	} 
+	else { 
+	  d->diskNumber(negativeZDiskNumber); 
+	  negativeZDiskNumber++; 
+	} 
       }
     }
-    schemesStream.close();
-  } else logWARNING("No file defining a detId scheme has been found.");
+  private:
+    std::vector<Layer*> trackerLayers_;
+    std::vector<Disk*> trackerDisks_;
+    //PtrVector<Layer> trackerLayers_;  // Would be good to use this
+    //PtrVector<Disk> trackerDisks_;
+  };
 
-  return schemes;
+  LayerDiskNumberBuilder builder;
+  accept(builder);
+  builder.postVisit();
+}
+
+
+/** 
+ * Build DetIds in the Tracker.
+ */
+void Tracker::buildDetIds() {
+  // Barrel part
+  std::vector<int> barrelScheme = mainConfigHandler::instance().getDetIdScheme(barrelDetIdScheme());
+  if (barrelScheme.size() != 0) {
+    BarrelDetIdBuilder v(isPixelTracker(), barrelScheme);
+    accept(v);
+  }
+  // Endcap part
+  std::vector<int> endcapScheme = mainConfigHandler::instance().getDetIdScheme(endcapDetIdScheme());
+  if (endcapScheme.size() != 0) {
+    EndcapDetIdBuilder v(isPixelTracker(), endcapScheme);
+    accept(v);
+  }
+  checkDetIds();
+}
+
+
+/**
+ * Check DetIds : DetIds should oviously be unique !
+ * NB : If DetIds are replicated outside of the same Tracker, this will not be noticed. Though, this cannot happen by construction.
+ */
+void Tracker::checkDetIds() {
+  std::set<int> moduleDetIds;
+  std::set<int> sensorDetIds;
+
+  const Modules& modules = moduleSetVisitor_.modules();
+
+  for (const auto& m : modules) {
+    // Check Modules DetIds are unique
+    uint32_t myModuleDetId = m->myDetId();
+    auto found = moduleDetIds.find(myModuleDetId);
+    if (found != moduleDetIds.end() && myModuleDetId != 0) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(myModuleDetId) + " is duplicated.");
+    else moduleDetIds.insert(myModuleDetId);
+
+    // Check Sensors DetIds are unique
+    for (const auto& s : m->sensors()) {
+      uint32_t mySensorDetId = s.myDetId();
+      auto found = sensorDetIds.find(mySensorDetId);
+      if (found != sensorDetIds.end() && mySensorDetId != 0) logWARNING(any2str(myid()) + ": Error while building DetIds !! DetId " + any2str(mySensorDetId) + " is duplicated.");
+      else sensorDetIds.insert(mySensorDetId);
+    }
+  }
 }
