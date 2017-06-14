@@ -44,8 +44,11 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   else if (barrelName_ == "TBPS") {
 
     // FLAT PART
-    if (!m.isTilted()) {     
-      isPositiveCablingSide = ((phiSegmentRef_ % 2) == 1);
+    if (!m.isTilted()) {
+      double phiSegmentWidth = (2.*M_PI) / numRods_;
+      double phiSegmentStart = computePhiSegmentStart(rodPhi_, phiSegmentWidth, true);
+      int phiSegmentRef = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, true);  
+      isPositiveCablingSide = ((phiSegmentRef % 2) == 1);
       isTilted = false;
       isExtraFlatPart = false;
 
