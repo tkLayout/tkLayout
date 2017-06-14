@@ -31,8 +31,9 @@ private:
   int computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
 
-  void createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart = false);
-  //void connectModuleToBundle(Module& m, Bundle* bundle);
+  void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  void connectModuleToBundle(DetectorModule& m, Bundle* bundle) const;
 
   void staggerModules(std::map<int, Bundle*>& bundles);
   void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
