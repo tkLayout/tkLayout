@@ -2110,6 +2110,10 @@ namespace insur {
   void Extractor::analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 					std::vector<Composite>& c, std::vector<LogicalInfo>& l,
                                         std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+
+    bool isTimingLayout = false;
+    bool isWithTiltedPixel = true;
+
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2156,7 +2160,10 @@ namespace insur {
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1250.;
 	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
+	  else {
+	    if (!isWithTiltedPixel) startEndcaps = 227.;   // PIXEL 4_0_2_1
+	    else startEndcaps = 390.;
+	  }
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -2187,7 +2194,7 @@ namespace insur {
 	  else {
 	    // VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. 
 	    // TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr.
-	    if ((iter->getInnerRadius() + iter->getRWidth()) <= 1160.) { // BTL
+	    if (!isTimingLayout || (isTimingLayout && (iter->getInnerRadius() + iter->getRWidth()) <= 1160.)) { // BTL
 
 	      // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
 	      if (iter->getZOffset() < startEndcaps) {
@@ -2304,6 +2311,8 @@ namespace insur {
   void Extractor::analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 				  std::vector<Composite>& c, std::vector<LogicalInfo>& l,
                                   std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+    bool isWithTiltedPixel = true;
+
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2346,7 +2355,11 @@ namespace insur {
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1250.;
 	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
+	  else {
+	    if (!isWithTiltedPixel) startEndcaps = 227.;   // PIXEL 4_0_2_1
+	    else startEndcaps = 390.;
+	  }
+
 
 	  // BARREL supports
 	  if (iter->getZOffset() < startEndcaps ) {
