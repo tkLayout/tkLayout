@@ -820,7 +820,6 @@ namespace insur {
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
-		pos.copy = 2;
 		p.push_back(pos);
 	      }
 	      // reset
