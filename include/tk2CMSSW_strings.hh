@@ -202,7 +202,7 @@ namespace insur {
     static const std::string xml_PX_fileident = "pixel";
     static const std::string xml_pixbar = "PixelBarrel";
     static const std::string xml_OT_bar = "Phase2OTBarrel";
-    static const std::string xml_PX_bar = "Phase1PixelBarrel";
+    static const std::string xml_PX_bar = "Phase2PixelBarrel";
     static const std::string xml_pixfwd = "PixelForward"; 
     static const std::string xml_OT_fwd = "Phase2OTForward";
     static const std::string xml_PX_fwd = "Phase2PixelEndcap";
@@ -257,16 +257,18 @@ namespace insur {
     static const std::string xml_par_tail = "Par";
     static const std::string xml_reco = "TrackerRecMaterial";
     static const std::string xml_OT_reco_layer_name = "Phase2OTBarrelLayer";
-    static const std::string xml_PX_reco_layer_name = "Phase1PixelBarrelLayer";
+    static const std::string xml_PX_reco_layer_name = "Phase2PixelBarrelLayer";
     static const std::string xml_OT_reco_disc_name = "Phase2OTForwardDisk";
     static const std::string xml_PX_reco_disc_name = "Phase2PixelForwardDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
-    static const std::string xml_places_unflipped_mod_in_rod = "RODTOMODULE";
-    static const std::string xml_places_flipped_mod_in_rod = "RODTOFLIPPEDMODULE";
-    static const std::string xml_flip_mod_rot = "FLIP"; 
+    static const std::string xml_OT_places_unflipped_mod_in_rod = "OUTERTRACKERRODTOMODULE";
+    static const std::string xml_OT_places_flipped_mod_in_rod = "OUTERTRACKERRODTOFLIPPEDMODULE";
+    static const std::string xml_PX_places_unflipped_mod_in_rod = "INNERTRACKERRODTOMODULE";
+    static const std::string xml_PX_places_flipped_mod_in_rod = "INNERTRACKERRODTOFLIPPEDMODULE";
     static const std::string xml_positive_z_tilted_mod_rot = "POSITIVEZMODULETILT"; 
-    static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT"; 
+    static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
+    static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
@@ -278,10 +280,10 @@ namespace insur {
 
 
     static const std::string xml_OT_topo_barrel_name = "Phase2OTBarrelSubDet";
-    static const std::string xml_PX_topo_barrel_name = "Phase1PixelBarrel";
+    static const std::string xml_PX_topo_barrel_name = "Phase2PixelBarrel";
 
     static const std::string xml_OT_topo_barrel_value = "Phase2OTBarrel";
-    static const std::string xml_PX_topo_barrel_value = "PixelPhase1Barrel";
+    static const std::string xml_PX_topo_barrel_value = "PixelPhase2Barrel";
 
     static const std::string xml_OT_topo_layer_name = "OuterTrackerPixelBarrelLayer";
     static const std::string xml_PX_topo_layer_name = "PixelBarrelLayer";
@@ -290,7 +292,7 @@ namespace insur {
     static const std::string xml_PX_topo_layer_value = xml_PX_topo_layer_name;
    
     static const std::string xml_OT_topo_straight_rod_name = "OuterTrackerPixelBarrelLadder";
-    static const std::string xml_PX_topo_straight_rod_name = "Phase1PixelBarrelRod";
+    static const std::string xml_PX_topo_straight_rod_name = "Phase2PixelBarrelRod";
    
     static const std::string xml_OT_topo_straight_rod_value = "PixelBarrelLadder";
     static const std::string xml_PX_topo_straight_rod_value = "PixelBarrelLadder";
