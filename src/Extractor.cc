@@ -2205,26 +2205,14 @@ pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 		l.push_back(logic);
 
-<<<<<<< HEAD
 		pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 		pos.child_tag = logic.shape_tag;
 		pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
 		p.push_back(pos);
 		pos.copy = 2;
 		pos.trans.dz = -pos.trans.dz;
-		pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
-		p.push_back(pos);
-=======
-	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
-	      p.push_back(pos);
-	      pos.copy = 2;
-	      pos.trans.dz = -pos.trans.dz;
-	      pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
-	      p.push_back(pos);
->>>>>>> upstream/dev_gabie
-	      
+		pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
+		p.push_back(pos);	      
 
 		pos.copy = 1;
 		pos.rotref.clear();
