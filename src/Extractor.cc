@@ -2361,7 +2361,9 @@ namespace insur {
 
 
 	  // BARREL supports
-	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
+	  if ( (!isPixelTracker && iter->getZOffset() < startEndcaps)
+	       || (isPixelTracker && ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps))
+	       ) {
 
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
@@ -2390,7 +2392,7 @@ namespace insur {
 	  else {
 
 	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
-	    if (iter->getZOffset() < startEndcaps) {
+	    if (isPixelTracker && iter->getZOffset() < startEndcaps) {
 	      std::ostringstream shapenameBarrel, shapenameEndcaps;
 	      shapenameBarrel << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "BarrelPart";
 	      shapenameEndcaps << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "EndcapsPart";
