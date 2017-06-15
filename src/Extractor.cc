@@ -565,8 +565,8 @@ namespace insur {
       // is the layer tilted ?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
 
-      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
-     
+      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();     
+
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
       // ALL THIS SHOULD BE DELETED AND REPLACED BY module->minRwithHybrids() GETTERS.
 
@@ -677,6 +677,9 @@ namespace insur {
       bool newTimingModuleType = true;
       int timingModuleCopyNumber = 0;
 
+      bool hasPhiForbiddenRanges = lagg.getBarrelLayers()->at(layer - 1)->phiForbiddenRanges.state();
+      std::map<int, double> phiForbiddenRanges;
+
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
@@ -684,6 +687,27 @@ namespace insur {
 
       // LOOP ON MODULE CAPS 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+
+	if (hasPhiForbiddenRanges) {
+	  int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  int forbiddenPhiUpperAIndex = numRods / 2;
+	  int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
+
+	  std::vector<int> phiForbiddenRangesIndexes;
+	  phiForbiddenRangesIndexes.push_back(1);
+	  phiForbiddenRangesIndexes.push_back(forbiddenPhiUpperAIndex);
+	  phiForbiddenRangesIndexes.push_back(forbiddenPhiLowerBIndex);
+	  phiForbiddenRangesIndexes.push_back(numRods);
+
+	  for (const auto& i : phiForbiddenRangesIndexes) {
+	    if (iiter->getModule().uniRef().phi == i) {
+	      auto found = phiForbiddenRanges.find(i);
+	      if (found == phiForbiddenRanges.end()) {
+		phiForbiddenRanges.insert(std::make_pair(i, iiter->getModule().center().Phi()));
+	      }
+	    }
+	  }
+	}
         
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
@@ -852,6 +876,7 @@ pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 	      pos.rotref = "";
 	    }
 	  }
+
 
 	  if (iiter->getModule().uniRef().phi == 1) {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
@@ -1279,34 +1304,104 @@ pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 
       
       // rods in layer algorithm(s)
+      // OUTER TRACKER
       if (!isPixelTracker) {
-	alg.name = xml_phialt_algo;
-	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
-	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
-	// It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
-	// 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
-	pconverter.str("");
-	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
-	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << RadiusIn << "*mm";
-	alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-	pconverter.str("");
-	pconverter << RadiusOut << "*mm";
-	alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-	alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-	a.push_back(alg);
-	alg.parameters.clear();
+	if (!hasPhiForbiddenRanges) {
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+	}
+	else {
+	  int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  int forbiddenPhiUpperAIndex = numRods / 2;
+	  int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
+
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << phiForbiddenRanges.at(1) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << numRods / 2;
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter.str("");
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << phiForbiddenRanges.at(forbiddenPhiLowerBIndex) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << numRods / 2;
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << forbiddenPhiLowerBIndex;
+	  alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  pconverter.str("");
+	  alg.parameters.clear();
+	}
       }
+
+      // INNER TRACKER
       else {
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
