@@ -430,7 +430,10 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
-    if (tmspecs[i].gamma == 0) { mod->flipped(i%2); } // flat part of the tilted rod, i is the ring number
+    if (tmspecs[i].gamma == 0) { // flat part of the tilted rod
+      if (!isPixel()) mod->flipped(i%2);         // i is the ring number
+      else mod->flipped(flip);
+    } 
     else { mod->flipped(flip); } // tilted part of the tilted rod
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);

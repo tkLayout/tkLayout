@@ -77,6 +77,12 @@ public:
   virtual double thickness() const = 0;
   virtual bool isTilted() const = 0;
 
+  bool isPixel() const {
+    bool isPixel = false;
+    if (zPlusModules_.size() != 0) isPixel = zPlusModules_.front().isPixelModule();
+    return isPixel; 
+  }
+
   bool isTiming() const {
     bool isTiming = false;
     if (zPlusModules_.size() != 0) isTiming = zPlusModules_.front().isTimingModule();
