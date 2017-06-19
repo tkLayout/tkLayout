@@ -298,10 +298,10 @@ namespace insur {
     static const std::string xml_PX_topo_straight_rod_value = "PixelBarrelLadder";
 
     static const std::string xml_OT_topo_tilted_ring_name = "OuterTrackerPixelBarrelRing";
-    static const std::string xml_PX_topo_tilted_ring_name = "InnerPixelBarrelRing";
+    static const std::string xml_PX_topo_tilted_ring_name = "InnerTrackerBarrelRing";
 
     static const std::string xml_OT_topo_tilted_ring_value = "Phase2OTBarrelPanel";
-    static const std::string xml_PX_topo_tilted_ring_value = "";
+    static const std::string xml_PX_topo_tilted_ring_value = "Phase2ITBarrelPanel";
 
     static const std::string xml_OT_topo_bmodule_name = "OuterTrackerBarrelStack";
     static const std::string xml_PX_topo_bmodule_name = "InnerPixelBarrelStack";
