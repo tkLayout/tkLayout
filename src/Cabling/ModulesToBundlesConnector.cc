@@ -299,17 +299,14 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
   for (auto& b : bundles) {
     if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
+      bool isBarrel = false;
 
       while (b.second->numModules() > maxNumModulesPerBundle_) {
 	bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	int diskNumber = b.second->layerDiskNumber();
 
 	std::string bundleType = b.second->type();
-	int bundleTypeIndex;
-	if (bundleType == "PS10G") bundleTypeIndex = 0;
-	else if (bundleType == "PS5GA") bundleTypeIndex = 1;
-	else if (bundleType == "PS5GB") bundleTypeIndex = 2;
-	else if (bundleType == "2S") bundleTypeIndex = 3;
+	int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType);
 
 	double phiRegionStart = b.second->phiRegionStart();
 
@@ -321,16 +318,8 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
 	int bundleId = b.first;
-	int nextBundleId = 0;
-	int previousBundleId = 0;
-	if (isPositiveCablingSide) {
-	  nextBundleId = 20000 + diskNumber * 1000 + nextPhiRegionRef * 10 + bundleTypeIndex;
-	  previousBundleId = 20000 + diskNumber * 1000 + previousPhiRegionRef * 10 + bundleTypeIndex;
-	}
-	else {
-	  nextBundleId = 40000 + diskNumber * 1000 + nextPhiRegionRef * 10 + bundleTypeIndex;
-	  previousBundleId = 40000 + diskNumber * 1000 + previousPhiRegionRef * 10 + bundleTypeIndex;
-	}
+	int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
+	int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
 
 	double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
 	double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
