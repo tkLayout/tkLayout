@@ -331,44 +331,64 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  Bundle* previousBundle = previousBundleSearch->second;
 	  Bundle* nextBundle = nextBundleSearch->second;
 
+	  int previousBundleNumModules = previousBundle->numModules();
+	  int nextBundleNumModules = nextBundle->numModules();
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (previousBundle->numModules() >= maxNumModulesPerBundle_ && nextBundle->numModules() >= maxNumModulesPerBundle_) {
-	    std::cout << "I am a refugee module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
-		      << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
-		      << ", which has already more than " << maxNumModulesPerBundle_<< " modules, and none of my neighbouring regions wants to welcome me :/" 
-		      << std::endl;
+	  if (previousBundleNumModules >= maxNumModulesPerBundle_ && nextBundleNumModules >= maxNumModulesPerBundle_) {
+	    logERROR(any2str("Building cabling map : Staggering modules.")
+		     + "I am a module in side " + any2str(isPositiveCablingSide)
+		     + ", disk " + any2str(diskNumber)
+		     + ", bundleType " + any2str(bundleType) 
+		     + ", phiRegionRef " + any2str(phiRegionRef)
+		     + ", phiRegionWidth " + any2str(phiRegionWidth)
+		     + ". My phiRegion has more than " + any2str(maxNumModulesPerBundle_) + " modules."
+		     + " My 2 neighbouring phiRegions have also more than " + any2str(maxNumModulesPerBundle_) + " modules."
+		     + " Hence, I cannot be staggered to any other phiRegion :/ "
+		     );
 	    break;
 	  }
 
 	  // Assign a module to the next phi region
-	  else if (previousBundle->numModules() >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
-	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
-		      << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
-		      << ", adding it to the next region." 
-		      << std::endl;
-	    std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-	    std::cout << "nextBundle->numModules = " << nextBundle->numModules() << std::endl;
+	  else if (previousBundleNumModules >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
+	    logINFO(any2str("Building cabling map : Staggering modules.")
+		    + " I am a module in side " + any2str(isPositiveCablingSide)
+		    + ", disk " + any2str(diskNumber)
+		    + ", bundleType " + any2str(bundleType)
+		    + ", phiRegionRef " + any2str(phiRegionRef)
+		    + ". maxPhiBorder " + any2str((maxPhiBorder * 180. / M_PI))
+		    + ". My region has " + any2str(b.second->numModules())
+		    + " > maxNumModulesPerBundle = " + any2str(maxNumModulesPerBundle_)
+		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
+		    );
+		    
 	    Module* maxPhiMod = b.second->maxPhiModule();
 	    maxPhiMod->setBundle(nextBundle);  
 	    nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
-	    std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 	  }
 
 	  // Assign a module to the previous phi region
-	  else if (nextBundle->numModules() >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
-	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
-		      << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
-		      << ", adding it to the previous region." 
-		      << std::endl;
-	    std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-	    std::cout << "previousBundle->numModules = " << previousBundle->numModules() << std::endl;
+	  else if (nextBundleNumModules >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
+	    logINFO(any2str("Building cabling map : Staggering modules.")
+		    + " I am a module in side " + any2str(isPositiveCablingSide)
+		    + ", disk " + any2str(diskNumber)
+		    + ", bundleType " + any2str(bundleType)
+		    + ", phiRegionRef " + any2str(phiRegionRef)
+		    + ". minPhiBorder " + any2str((minPhiBorder * 180. / M_PI))
+		    + ". My region has " + any2str(b.second->numModules())
+		    + " > maxNumModulesPerBundle = " + any2str(maxNumModulesPerBundle_)
+		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
+		    );
+
 	    Module* minPhiMod = b.second->minPhiModule();
 	    minPhiMod->setBundle(previousBundle);	  
 	    previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
-	    std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 	  }
 	}
-	else { std::cout << "Error building previousBundleId or nextBundleId" << std::endl; break; }
+	else { 
+	  logERROR(any2str("Building cabling map : Staggering modules.")
+		   + "Error building previousBundleId or nextBundleId"); 
+	  break; 
+	}
 
       }
     }
@@ -379,14 +399,22 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
 void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const {
   for (auto& b : bundles) {
-    if (b.second->numModules() > maxNumModulesPerBundle_) {
-      std::cout << "There was an error while staggering modules. Bundle " 
-		<< b.first << " is connected to " << b.second->numModules() << " modules." 
-		<< std::endl;
-    }
 
     if (b.second->phiSegmentRef() <= -1 || b.second->phiRegionRef() <= -1 || b.second->phiSectorRef() <= -1) {
-      std::cout << "Error while creating bundle. Bundle " << b.first << " has phiSegmentRef = " << b.second->phiSegmentRef() << ", phiRegionRef = " << b.second->phiRegionRef() << ", phiSectorRef = " << b.second->phiSectorRef() << ", bundleType = " << b.second->type() << std::endl;
+      logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
+	       + "Bundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
+	       + ", has phiSegmentRef = " + any2str(b.second->phiSegmentRef())
+	       + ", phiRegionRef = " + any2str(b.second->phiRegionRef())
+	       + ", phiSectorRef = " + any2str(b.second->phiSectorRef())
+	       );
     }
+
+    if (b.second->numModules() > maxNumModulesPerBundle_) {
+      logERROR(any2str("Building cabling map : Staggering modules. ")
+	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(b.second->numModules()) + " modules."
+	       + "Maximum number of modules per bundle allowed is " + any2str(maxNumModulesPerBundle_)
+	       );
+    }
+
   }
 }
