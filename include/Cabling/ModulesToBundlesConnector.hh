@@ -24,9 +24,12 @@ public:
   void postVisit();
 
 private:
+  bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth);
+
   double computePhiSegmentStart(const double phi, const double phiSegmentWidth, const bool isPositiveCablingSide) const;
   int computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth, const bool isPositiveCablingSide) const;
   int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth, const bool isPositiveCablingSide) const;
+
   std::string computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
   int computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
@@ -37,6 +40,9 @@ private:
 
   void staggerModules(std::map<int, Bundle*>& bundles);
   void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
+
+  std::map<int, Bundle*> bundles_;
+  std::map<int, Bundle*> negBundles_;
 
   bool isBarrel_;
   std::string barrelName_;
@@ -54,23 +60,10 @@ private:
   int bundleTypeIndex_;
   bool side_;
    
-  int phiSegmentRef_;
-  int negPhiSegmentRef_;
   double phiRegionWidth_;
   const double phiSectorWidth_ = 40. * M_PI / 180.;
 
   const int maxNumModulesPerBundle_ = 12;
-  
-  int bundleFlatId_;   
-  int bundleExtraFlatId_;      
-  int bundleTiltedId_;
-
-  int negBundleFlatId_;
-  int negBundleExtraFlatId_;
-  int negBundleTiltedId_;
-
-  std::map<int, Bundle*> bundles_;
-  std::map<int, Bundle*> negBundles_;
 };
 
 

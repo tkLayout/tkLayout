@@ -26,8 +26,10 @@ void ModulesToBundlesConnector::visit(RodPair& r) {
       
      
 void ModulesToBundlesConnector::visit(BarrelModule& m) {
+  double phiSegmentWidth = (2.*M_PI) / numRods_;
+
   side_ = (m.uniRef().side > 0.);
-  
+
   bool isPositiveCablingSide = side_;
   bool isTilted = false;
   bool isExtraFlatPart = false;
@@ -45,10 +47,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
     // FLAT PART
     if (!m.isTilted()) {
-      double phiSegmentWidth = (2.*M_PI) / numRods_;
-      double phiSegmentStart = computePhiSegmentStart(rodPhi_, phiSegmentWidth, true);
-      int phiSegmentRef = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, true);  
-      isPositiveCablingSide = ((phiSegmentRef % 2) == 1);
+      isPositiveCablingSide = computeBarrelFlatPartRodCablingSide(rodPhi_, phiSegmentWidth);
       isTilted = false;
       isExtraFlatPart = false;
 
@@ -66,9 +65,8 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
     }       
   }
 
-  double phiSegmentWidth = (2.*M_PI) / numRods_;
   double phiSegmentStart = computePhiSegmentStart(rodPhi_, phiSegmentWidth, isPositiveCablingSide);
-  phiSegmentRef_ = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
+  int phiSegmentRef = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
 	
   double phiRegionStart = 0.;
   int phiRegionRef = computePhiSliceRef(rodPhi_, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
@@ -77,10 +75,10 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   int phiSectorRef = computePhiSliceRef(rodPhi_, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
 
   bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
-  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef_, bundleTypeIndex_);
+  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef, bundleTypeIndex_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
+  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
 }
 
 
@@ -131,7 +129,7 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
  
   double phiSegmentStart = computePhiSegmentStart(modPhi, phiSegmentWidth, isPositiveCablingSide);
-  phiSegmentRef_ = computePhiSegmentRef(modPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
+  int phiSegmentRef = computePhiSegmentRef(modPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
 
   int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
   int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, diskNumber_, phiRegionRef, bundleTypeIndex_);
@@ -140,7 +138,7 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef_, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
 }
 
 
@@ -153,6 +151,14 @@ void ModulesToBundlesConnector::postVisit() {
   // CHECK
   checkModulesToBundlesCabling(bundles_);
   checkModulesToBundlesCabling(negBundles_);
+}
+
+
+bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) {
+  double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth, true);
+  int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);  
+  bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
+  return isPositiveCablingSide;
 }
 
 
