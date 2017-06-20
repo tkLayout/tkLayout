@@ -325,9 +325,14 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
 	      
 
-	if (bundles.count(previousBundleId) != 0 && bundles.count(nextBundleId) != 0) {
+	auto previousBundleSearch = bundles.find(previousBundleId);
+	auto nextBundleSearch = bundles.find(nextBundleId);
+	if (previousBundleSearch != bundles.end() && nextBundleSearch != bundles.end()) {
+	  Bundle* previousBundle = previousBundleSearch->second;
+	  Bundle* nextBundle = nextBundleSearch->second;
+
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (bundles[previousBundleId]->numModules() >= maxNumModulesPerBundle_ && bundles[nextBundleId]->numModules() >= maxNumModulesPerBundle_) {
+	  if (previousBundle->numModules() >= maxNumModulesPerBundle_ && nextBundle->numModules() >= maxNumModulesPerBundle_) {
 	    std::cout << "I am a refugee module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
 		      << ", phiRegionRef " << phiRegionRef << ", phiRegionWidth " << phiRegionWidth
 		      << ", which has already more than " << maxNumModulesPerBundle_<< " modules, and none of my neighbouring regions wants to welcome me :/" 
@@ -336,30 +341,30 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  }
 
 	  // Assign a module to the next phi region
-	  else if (bundles[previousBundleId]->numModules() >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
+	  else if (previousBundle->numModules() >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
 	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
 		      << " from phiRegionRef " << phiRegionRef << ", maxPhiBorder " << (maxPhiBorder * 180. / M_PI)
 		      << ", adding it to the next region." 
 		      << std::endl;
 	    std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-	    std::cout << "bundles[nextBundleId]->numModules = " << bundles[nextBundleId]->numModules() << std::endl;
+	    std::cout << "nextBundle->numModules = " << nextBundle->numModules() << std::endl;
 	    Module* maxPhiMod = b.second->maxPhiModule();
-	    maxPhiMod->setBundle(bundles[nextBundleId]);  
-	    bundles[nextBundleId]->moveMaxPhiModuleFromOtherBundle(b.second);
+	    maxPhiMod->setBundle(nextBundle);  
+	    nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
 	    std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl; 		  
 	  }
 
 	  // Assign a module to the previous phi region
-	  else if (bundles[nextBundleId]->numModules() >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
+	  else if (nextBundle->numModules() >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
 	    std::cout << "Removing module in side " << isPositiveCablingSide << ", disk " << diskNumber << ", bundleType " << bundleType 
 		      << " from phiRegionRef " << phiRegionRef << ", minPhiBorder " << (minPhiBorder * 180. / M_PI)
 		      << ", adding it to the previous region." 
 		      << std::endl;
 	    std::cout << "my region numModules = " << b.second->numModules() << std::endl;
-	    std::cout << "bundles[previousBundleId]->numModules = " << bundles[previousBundleId]->numModules() << std::endl;
+	    std::cout << "previousBundle->numModules = " << previousBundle->numModules() << std::endl;
 	    Module* minPhiMod = b.second->minPhiModule();
-	    minPhiMod->setBundle(bundles[previousBundleId]);	  
-	    bundles[previousBundleId]->moveMinPhiModuleFromOtherBundle(b.second);
+	    minPhiMod->setBundle(previousBundle);	  
+	    previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
 	    std::cout << "NOWWWWWWWW my region numModules = " << b.second->numModules() << std::endl;		  
 	  }
 	}
