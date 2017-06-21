@@ -7,6 +7,7 @@
 //#include "CoordinateOperations.hh"
 #include "Property.hh"
 #include "Module.hh"
+#include "Cabling/PhiPosition.hh"
 
 
 //#include "CablingVisitable.h"
@@ -28,13 +29,6 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
   std::string subDetectorName_;
   int layerDiskNumber_;
 
-  double phiSegmentWidth_;
-  int phiSegmentRef_;
-  double phiRegionStart_;
-  double phiRegionWidth_;
-  int phiRegionRef_;
-  double phiSectorWidth_;
-  int phiSectorRef_;
   bool isPositiveCablingSide_;
   bool isTiltedPart_;
 
@@ -53,22 +47,15 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart) {
+  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
+    type_(type),
+    subDetectorName_(subDetectorName),
+    layerDiskNumber_(layerDiskNumber),
+    phiPosition_(phiPosition),
+    isPositiveCablingSide_(isPositiveCablingSide),
+    isTiltedPart_(isTiltedPart)
+  {
     myid(id);
-
-    type_ = type;
-    subDetectorName_ = subDetectorName;
-    layerDiskNumber_ = layerDiskNumber;
-
-    phiSegmentWidth_ = phiSegmentWidth;
-    phiSegmentRef_ = phiSegmentRef;
-    phiRegionStart_ = phiRegionStart;
-    phiRegionWidth_ = phiRegionWidth;
-    phiRegionRef_ = phiRegionRef;
-    phiSectorWidth_ = phiSectorWidth;
-    phiSectorRef_ = phiSectorRef;
-    isPositiveCablingSide_ = isPositiveCablingSide;
-    isTiltedPart_ = isTiltedPart;
 
     // Calculate plotColor_
     int plotId = (isPositiveCablingSide ? id : (id - 20000));
@@ -82,13 +69,8 @@ public:
   const std::string subDetectorName() const { return subDetectorName_; }
   const int layerDiskNumber() const { return layerDiskNumber_; }
 
-  const double phiSegmentWidth() const { return phiSegmentWidth_; }
-  const int phiSegmentRef() const { return phiSegmentRef_; }
-  const double phiRegionStart() const { return phiRegionStart_; }
-  const double phiRegionWidth() const { return phiRegionWidth_; }
-  const int phiRegionRef() const { return phiRegionRef_; }
-  const double phiSectorWidth() const { return phiSectorWidth_; }
-  const int phiSectorRef() const { return phiSectorRef_; }
+  const PhiPosition& phiPosition() { return phiPosition_; }
+  
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const bool isTiltedPart() const { return isTiltedPart_; }
 
@@ -190,6 +172,9 @@ public:
 
  
 
+
+private:
+  PhiPosition phiPosition_;
 
 };
 

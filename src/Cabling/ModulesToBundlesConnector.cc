@@ -12,9 +12,6 @@ void ModulesToBundlesConnector::visit(Layer& l) {
   layerNumber_ = l.layerNumber();
   numRods_ = l.numRods();
   totalNumFlatRings_ = l.buildNumModulesFlat() * 2 - 1; // Total number of flat rings on both (+Z) side and (-Z) side
-
-  if (layerNumber_ == 1 || layerNumber_ == 2 || layerNumber_ == 4) phiRegionWidth_ = 40. * M_PI / 180.;
-  else phiRegionWidth_ = 20. * M_PI / 180.;
 }
 
 
@@ -26,8 +23,6 @@ void ModulesToBundlesConnector::visit(RodPair& r) {
       
      
 void ModulesToBundlesConnector::visit(BarrelModule& m) {
-  double phiSegmentWidth = (2.*M_PI) / numRods_;
-
   side_ = (m.uniRef().side > 0.);
 
   bool isPositiveCablingSide = side_;
@@ -47,6 +42,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
     // FLAT PART
     if (!m.isTilted()) {
+      double phiSegmentWidth = (2.*M_PI) / numRods_;
       isPositiveCablingSide = computeBarrelFlatPartRodCablingSide(rodPhi_, phiSegmentWidth);
       isTilted = false;
       isExtraFlatPart = false;
@@ -65,20 +61,13 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
     }       
   }
 
-  double phiSegmentStart = computePhiSegmentStart(rodPhi_, phiSegmentWidth, isPositiveCablingSide);
-  int phiSegmentRef = computePhiSegmentRef(rodPhi_, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
-	
-  double phiRegionStart = 0.;
-  int phiRegionRef = computePhiSliceRef(rodPhi_, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
-
-  double phiSectorStart = 0.;
-  int phiSectorRef = computePhiSliceRef(rodPhi_, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
+  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
 
   bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
-  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, phiSegmentRef, bundleTypeIndex_);
+  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, modulePhiPosition.phiSegmentRef(), bundleTypeIndex_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide, isTilted);
+  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, isTilted);
 }
 
 
@@ -106,39 +95,14 @@ void ModulesToBundlesConnector::visit(Ring& r)   {
 void ModulesToBundlesConnector::visit(EndcapModule& m) {
   double modPhi = m.center().Phi();
 
-  double phiSegmentWidth = (2.*M_PI) / numModulesInRing_;
-		  
-  double phiRegionStart = 0.;
-  if (bundleType_ == "PS10G" || bundleType_ == "PS5GA") {
-    phiRegionWidth_ = 40. * M_PI / 180.;
-  }
-
-  else if (bundleType_ == "PS5GB") {
-    phiRegionWidth_ = 20. * M_PI / 180.;
-  }
-
-  else if (bundleType_ == "2S") {
-    phiRegionWidth_ = 360. / 27. * M_PI / 180.;
-    if (endcapName_ == "TEDD_1") phiRegionStart = -0.55 * M_PI / 180.;
-    else phiRegionStart = -0.001 * M_PI / 180.;
-  }
-
-  double phiSectorStart = 0.;
-
   bool isPositiveCablingSide = side_;
 
- 
-  double phiSegmentStart = computePhiSegmentStart(modPhi, phiSegmentWidth, isPositiveCablingSide);
-  int phiSegmentRef = computePhiSegmentRef(modPhi, phiSegmentStart, phiSegmentWidth, isPositiveCablingSide);
+  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isPositiveCablingSide, isBarrel_, diskNumber_, endcapName_, bundleType_);
 
-  int phiRegionRef = computePhiSliceRef(modPhi, phiRegionStart, phiRegionWidth_, isPositiveCablingSide);
-  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, diskNumber_, phiRegionRef, bundleTypeIndex_);
-
-  int phiSectorRef = computePhiSliceRef(modPhi, phiSectorStart, phiSectorWidth_, isPositiveCablingSide);
-
+  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, diskNumber_, modulePhiPosition.phiRegionRef(), bundleTypeIndex_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, endcapName_, diskNumber_, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth_, phiRegionRef, phiSectorWidth_, phiSectorRef, isPositiveCablingSide);
+  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, endcapName_, diskNumber_, modulePhiPosition, modulePhiPosition.phiSectorRef(), isPositiveCablingSide);
 }
 
 
@@ -159,31 +123,6 @@ bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double
   int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);  
   bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
   return isPositiveCablingSide;
-}
-
-
-double ModulesToBundlesConnector::computePhiSegmentStart(const double phi, const double phiSegmentWidth, const bool isPositiveCablingSide) const {
-  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
-  double phiSegmentStart = femod(stereoPhi, phiSegmentWidth);
-  return phiSegmentStart;
-}
-
-
-int ModulesToBundlesConnector::computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth, const bool isPositiveCablingSide) const {
-  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
-  int phiSegmentRef = round(femod(stereoPhi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
-  return phiSegmentRef;
-}
-
-
-int ModulesToBundlesConnector::computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth, const bool isPositiveCablingSide) const {
-  double stereoPhi = (isPositiveCablingSide ? phi : M_PI - phi);
-  double phiSliceRefExact = femod(stereoPhi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
-  int phiSliceRef = 0;
-  if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < 0.0001) phiSliceRef = fabs(round(phiSliceRefExact));
-  else phiSliceRef = std::floor(phiSliceRefExact);
-
-  return phiSliceRef;
 }
 
 
@@ -258,14 +197,14 @@ int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool i
 }
 
 
-void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart) {
+void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
   
   std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
 
   Bundle* bundle = nullptr;
   auto found = stereoBundles.find(bundleId);
   if (found == stereoBundles.end()) {
-    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide, isTiltedPart);
+    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
   }
   else {
     bundle = found->second;
@@ -275,9 +214,9 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
 }
 
 
-Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const double phiSegmentWidth, const int phiSegmentRef, const double phiRegionStart, const double phiRegionWidth, const int phiRegionRef, const double phiSectorWidth, const int phiSectorRef, const bool isPositiveCablingSide, const bool isTiltedPart) {
+Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, bundleType, subDetectorName, layerDiskNumber, phiSegmentWidth, phiSegmentRef, phiRegionStart, phiRegionWidth, phiRegionRef, phiSectorWidth, phiSectorRef, isPositiveCablingSide, isTiltedPart);
+  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));
@@ -299,30 +238,32 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
   for (auto& b : bundles) {
     if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
-      bool isBarrel = false;
+      const bool isBarrel = false;
 
       while (b.second->numModules() > maxNumModulesPerBundle_) {
-	bool isPositiveCablingSide = b.second->isPositiveCablingSide();
-	int diskNumber = b.second->layerDiskNumber();
+	const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
+	const int diskNumber = b.second->layerDiskNumber();
 
-	std::string bundleType = b.second->type();
-	int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType);
+	const std::string bundleType = b.second->type();
+	const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType);
 
-	double phiRegionStart = b.second->phiRegionStart();
+	const PhiPosition& bundlePhiPosition = b.second->phiPosition();
 
-	double phiRegionWidth = b.second->phiRegionWidth();
-	int numPhiRegions = round(2 * M_PI / phiRegionWidth);
+	const double phiRegionStart = bundlePhiPosition.phiRegionStart();
 
-	int phiRegionRef = b.second->phiRegionRef();
-	int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
-	int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
+	const double phiRegionWidth = bundlePhiPosition.phiRegionWidth();
+	const int numPhiRegions = round(2 * M_PI / phiRegionWidth);
 
-	int bundleId = b.first;
-	int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
-	int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
+	const int phiRegionRef = bundlePhiPosition.phiRegionRef();
+	const int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
+	const int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
 
-	double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
-	double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
+	const int bundleId = b.first;
+	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
+	const int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
+
+	const double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
+	const double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
 	      
 
 	auto previousBundleSearch = bundles.find(previousBundleId);
@@ -331,8 +272,8 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  Bundle* previousBundle = previousBundleSearch->second;
 	  Bundle* nextBundle = nextBundleSearch->second;
 
-	  int previousBundleNumModules = previousBundle->numModules();
-	  int nextBundleNumModules = nextBundle->numModules();
+	  const int previousBundleNumModules = previousBundle->numModules();
+	  const int nextBundleNumModules = nextBundle->numModules();
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
 	  if (previousBundleNumModules >= maxNumModulesPerBundle_ && nextBundleNumModules >= maxNumModulesPerBundle_) {
 	    logERROR(any2str("Building cabling map : Staggering modules.")
@@ -400,18 +341,23 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const {
   for (auto& b : bundles) {
 
-    if (b.second->phiSegmentRef() <= -1 || b.second->phiRegionRef() <= -1 || b.second->phiSectorRef() <= -1) {
+    const PhiPosition& bundlePhiPosition = b.second->phiPosition();
+    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef();
+    const int phiRegionRef = bundlePhiPosition.phiRegionRef();
+    const int phiSectorRef = bundlePhiPosition.phiSectorRef();
+    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1) {
       logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
 	       + "Bundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
-	       + ", has phiSegmentRef = " + any2str(b.second->phiSegmentRef())
-	       + ", phiRegionRef = " + any2str(b.second->phiRegionRef())
-	       + ", phiSectorRef = " + any2str(b.second->phiSectorRef())
+	       + ", has phiSegmentRef = " + any2str(phiSegmentRef)
+	       + ", phiRegionRef = " + any2str(phiRegionRef)
+	       + ", phiSectorRef = " + any2str(phiSectorRef)
 	       );
     }
 
-    if (b.second->numModules() > maxNumModulesPerBundle_) {
+    const int bundleNumModules = b.second->numModules();
+    if (bundleNumModules > maxNumModulesPerBundle_) {
       logERROR(any2str("Building cabling map : Staggering modules. ")
-	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(b.second->numModules()) + " modules."
+	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
 	       + "Maximum number of modules per bundle allowed is " + any2str(maxNumModulesPerBundle_)
 	       );
     }

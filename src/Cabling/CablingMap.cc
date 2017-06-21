@@ -41,15 +41,16 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
  
 
   for (auto& b : bundles) {
-    int phiSectorRef = b.second->phiSectorRef();
-    int phiSectorRefCable = phiSectorRef;
-    double phiSectorWidth = b.second->phiSectorWidth();
+    const PhiPosition& bundlePhiPosition = b.second->phiPosition();
 
-    int numPhiSectors = round(2 * M_PI / phiSectorWidth);
-    int nextPhiSectorRef = femod( (phiSectorRef + 1), numPhiSectors);
-    int previousPhiSectorRef = femod( (phiSectorRef - 1), numPhiSectors);
+    const int phiSectorRef = bundlePhiPosition.phiSectorRef();  
+    const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
+    const int numPhiSectors = round(2 * M_PI / phiSectorWidth);
 
-    std::string bundleType = b.second->type();
+    const int nextPhiSectorRef = femod( (phiSectorRef + 1), numPhiSectors);
+    const int previousPhiSectorRef = femod( (phiSectorRef - 1), numPhiSectors);
+
+    const std::string bundleType = b.second->type();
     std::string cableType = bundleType;
     if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
 
@@ -59,11 +60,10 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     else if (cableType == "2S") cableTypeIndex = 2;
 
 
-    std::string subDetectorName = b.second->subDetectorName();
-    int layerDiskNumber = b.second->layerDiskNumber();
+    const std::string subDetectorName = b.second->subDetectorName();
+    const int layerDiskNumber = b.second->layerDiskNumber();
 
-    // Used to stagger several bundles
-    int phiRegionRef = b.second->phiRegionRef();   
+    int phiSectorRefCable = phiSectorRef;
 
     // Used to build cableId
     int slot = 0;

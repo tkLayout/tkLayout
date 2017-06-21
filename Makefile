@@ -136,9 +136,12 @@ ANALYZERVISITORS+=ModuleCount
 
 CABLING+=Bundle
 CABLING+=Cable
+CABLING+=cabling_constants
+CABLING+=cabling_functions
 CABLING+=CablingMap
 CABLING+=DTC
 CABLING+=ModulesToBundlesConnector
+CABLING+=PhiPosition
 
 EXES+=tklayout
 EXES+=setup
