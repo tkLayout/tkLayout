@@ -63,11 +63,8 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
   const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
 
-  bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
-  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, layerNumber_, modulePhiPosition.phiSegmentRef(), bundleTypeIndex_);
-
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, isTilted);
+  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
 }
 
 
@@ -88,7 +85,6 @@ void ModulesToBundlesConnector::visit(Ring& r)   {
   numModulesInRing_ = r.numModules();
 
   bundleType_ = computeBundleType(isBarrel_, endcapName_, diskNumber_, ringNumber_);
-  bundleTypeIndex_ = computeBundleTypeIndex(isBarrel_, bundleType_);
 }
 
 
@@ -99,10 +95,8 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
   const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isPositiveCablingSide, isBarrel_, diskNumber_, endcapName_, bundleType_);
 
-  int bundleId = computeBundleId(isBarrel_, isPositiveCablingSide, diskNumber_, modulePhiPosition.phiRegionRef(), bundleTypeIndex_);
-
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleId, bundleType_, endcapName_, diskNumber_, modulePhiPosition, modulePhiPosition.phiSectorRef(), isPositiveCablingSide);
+  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
 }
 
 
@@ -158,6 +152,26 @@ std::string ModulesToBundlesConnector::computeBundleType(const bool isBarrel, co
 }
 
 
+void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const std::string bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const int maxNumModulesPerBundle, const bool isTiltedPart, const bool isExtraFlatPart) {
+  
+  int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, maxNumModulesPerBundle, isTiltedPart, isExtraFlatPart);
+  int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, modulePhiPosition.phiSegmentRef(), bundleTypeIndex);
+
+  std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
+
+  Bundle* bundle = nullptr;
+  auto found = stereoBundles.find(bundleId);
+  if (found == stereoBundles.end()) {
+    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  }
+  else {
+    bundle = found->second;
+  }
+
+  connectModuleToBundle(m, bundle);
+}
+
+
 int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings, const int maxNumModulesPerBundle, const bool isTilted, const bool isExtraFlatPart) const {
   int bundleTypeIndex;
   if (isBarrel) {
@@ -194,23 +208,6 @@ int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool i
 
   int bundleId = cablingSideIndex * 10000 + layerDiskNumber * 1000 + phiRef * 10 + bundleTypeIndex;
   return bundleId;
-}
-
-
-void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
-  
-  std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
-
-  Bundle* bundle = nullptr;
-  auto found = stereoBundles.find(bundleId);
-  if (found == stereoBundles.end()) {
-    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
-  }
-  else {
-    bundle = found->second;
-  }
-
-  connectModuleToBundle(m, bundle);
 }
 
 
