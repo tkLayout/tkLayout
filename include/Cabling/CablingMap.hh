@@ -83,8 +83,6 @@ private:
   std::map<int, Bundle*> negBundles_;
   std::map<int, Cable*> negCables_;
   std::map<const std::string, const DTC*> negDTCs_;
-
-  const int maxNumBundlesPerCable_ = 6;
 };
 
 

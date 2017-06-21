@@ -2,6 +2,12 @@
 #define CABLING_CONSTANTS_HH
 
 #include <math.h>
+#include <string>
+
+
+static const int cabling_maxNumModulesPerBundle = 12;
+static const int cabling_maxNumBundlesPerCable = 6;
+
 
 static const double cabling_nonantWidth = 2. * M_PI / 9.;
 static const double cabling_semiNonantWidth = 2. * M_PI / 18.;
@@ -13,8 +19,10 @@ static const double cabling_tedd2StripStripPhiRegionStart = -0.001 * M_PI / 180.
 static const double cabling_roundingTolerance = 1.E-4;
 
 
-
-
+static const std::string cabling_tbps = "TBPS";
+static const std::string cabling_tb2s = "TB2S";
+static const std::string cabling_tedd1 = "TEDD_1";
+static const std::string cabling_tedd2 = "TEDD_2";
 
 
 #endif  // CABLING_CONSTANTS_HH

@@ -69,19 +69,19 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     int slot = 0;
 
     if (cableType == "PS10G") {
-      if (subDetectorName == "TBPS" || (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_1" && layerDiskNumber == 2)) {
+      if (subDetectorName == cabling_tbps || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2)) {
 	slot = 1;
       }
     }
 
 
     else if (cableType == "PS5G") {
-      if ( (subDetectorName == "TBPS" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GA") ) {
+      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == "PS5GA") ) {
 	slot = 2;
       }
 
-      else if ( (subDetectorName == "TBPS" && layerDiskNumber == 3) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
-	if (subDetectorName == "TBPS") {
+      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
+	if (subDetectorName == cabling_tbps) {
 	  // Tilted part
 	  if (b.second->isTiltedPart()) {
 	    Layer3TiltedPhiSectorsCounter[phiSectorRef] += 1;
@@ -108,11 +108,11 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5) ) {
 	slot = 6;
       }
     }
@@ -121,7 +121,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     else if (cableType == "2S") {
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
-      if (subDetectorName == "TB2S" && layerDiskNumber == 4) {
+      if (subDetectorName == cabling_tb2s && layerDiskNumber == 4) {
 	Layer4PhiSectorsCounter[phiSectorRef] += 1;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
 	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.
@@ -131,7 +131,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	slot = 1;
       }
 
-      else if (subDetectorName == "TB2S" && layerDiskNumber == 5) {
+      else if (subDetectorName == cabling_tb2s && layerDiskNumber == 5) {
 	Layer5PhiSectorsCounter[phiSectorRef] += 1;
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
 	// In 2 cases out of 3, also one bundle from Layer 5 added.
@@ -146,9 +146,9 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	}
       }
 
-      else if ( (subDetectorName == "TB2S" && layerDiskNumber == 6) || (subDetectorName == "TEDD_2" && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) ) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
-	if (subDetectorName == "TB2S") {
+	if (subDetectorName == cabling_tb2s) {
 	  Layer6PhiSectorsCounter[phiSectorRef] += 1;
 	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;
 	  else slot = 3;
@@ -156,11 +156,11 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 1) || (subDetectorName == "TEDD_2" && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == "TEDD_1" && layerDiskNumber == 2) || (subDetectorName == "TEDD_2" && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5) ) {
 	slot = 6;
       }
     }
@@ -196,7 +196,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 
 void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
   for (auto& c : cables) {
-    if (c.second->numBundles() > maxNumBundlesPerCable_) {
+    if (c.second->numBundles() > cabling_maxNumBundlesPerCable) {
       std::cout << "There was an error while staggering bundles. Cable " 
 		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 
 		<< std::endl;

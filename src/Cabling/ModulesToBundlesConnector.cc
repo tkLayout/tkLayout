@@ -30,7 +30,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   bool isExtraFlatPart = false;
 
   // 2S BUNDLES
-  if (barrelName_ == "TB2S") {
+  if (barrelName_ == cabling_tb2s) {
 
     isPositiveCablingSide = side_;
     isTilted = false;
@@ -38,7 +38,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   }
 
   // PS BUNDLES
-  else if (barrelName_ == "TBPS") {
+  else if (barrelName_ == cabling_tbps) {
 
     // FLAT PART
     if (!m.isTilted()) {
@@ -48,8 +48,8 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
       isExtraFlatPart = false;
 
       // For layer 3, need to add a second bundle for flat part
-      if (isPositiveCablingSide && (totalNumFlatRings_ > maxNumModulesPerBundle_) && !side_) isExtraFlatPart = true;
-      if (!isPositiveCablingSide && (totalNumFlatRings_ > maxNumModulesPerBundle_) && side_) isExtraFlatPart = true;
+      if (isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && !side_) isExtraFlatPart = true;
+      if (!isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && side_) isExtraFlatPart = true;
     }
 
     // TILTED PART
@@ -64,7 +64,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, maxNumModulesPerBundle_, isTilted, isExtraFlatPart);
+  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, cabling_maxNumModulesPerBundle, isTilted, isExtraFlatPart);
 }
 
 
@@ -100,7 +100,6 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 }
 
 
-
 void ModulesToBundlesConnector::postVisit() {
   // STAGGER MODULES
   staggerModules(bundles_);
@@ -124,23 +123,23 @@ std::string ModulesToBundlesConnector::computeBundleType(const bool isBarrel, co
   std::string bundleType;
 
   if (isBarrel) {
-    if (subDetectorName == "TB2S") {
+    if (subDetectorName == cabling_tb2s) {
       bundleType = "2S";
     }
-    else if (subDetectorName == "TBPS") {
+    else if (subDetectorName == cabling_tbps) {
       bundleType = (layerDiskNumber == 1 ? "PS10G" : "PS5G");
     }
   }
 
   else {
-    if (subDetectorName == "TEDD_1") {
+    if (subDetectorName == cabling_tedd1) {
       if (ringNumber <= 4) bundleType = "PS10G";
       else if (ringNumber >= 5 && ringNumber <= 7) bundleType = "PS5GA";
       else if (ringNumber >= 8 && ringNumber <= 10) bundleType = "PS5GB";
       else if (ringNumber >= 11) bundleType = "2S";
     }
 
-    else if (subDetectorName == "TEDD_2") {
+    else if (subDetectorName == cabling_tedd2) {
       if (ringNumber <= 3) bundleType = "null";
       else if (ringNumber >= 4 && ringNumber <= 6) bundleType = "PS5GA";
       else if (ringNumber >= 7 && ringNumber <= 10) bundleType = "PS5GB";
@@ -234,10 +233,10 @@ void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, Bundle*
 void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) {
 
   for (auto& b : bundles) {
-    if (b.second->subDetectorName() == "TEDD_1" || b.second->subDetectorName() == "TEDD_2") {
+    if (b.second->subDetectorName() == cabling_tedd1 || b.second->subDetectorName() == cabling_tedd2) {
       const bool isBarrel = false;
 
-      while (b.second->numModules() > maxNumModulesPerBundle_) {
+      while (b.second->numModules() > cabling_maxNumModulesPerBundle) {
 	const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	const int diskNumber = b.second->layerDiskNumber();
 
@@ -272,22 +271,22 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  const int previousBundleNumModules = previousBundle->numModules();
 	  const int nextBundleNumModules = nextBundle->numModules();
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (previousBundleNumModules >= maxNumModulesPerBundle_ && nextBundleNumModules >= maxNumModulesPerBundle_) {
+	  if (previousBundleNumModules >= cabling_maxNumModulesPerBundle && nextBundleNumModules >= cabling_maxNumModulesPerBundle) {
 	    logERROR(any2str("Building cabling map : Staggering modules.")
 		     + "I am a module in side " + any2str(isPositiveCablingSide)
 		     + ", disk " + any2str(diskNumber)
 		     + ", bundleType " + any2str(bundleType) 
 		     + ", phiRegionRef " + any2str(phiRegionRef)
 		     + ", phiRegionWidth " + any2str(phiRegionWidth)
-		     + ". My phiRegion has more than " + any2str(maxNumModulesPerBundle_) + " modules."
-		     + " My 2 neighbouring phiRegions have also more than " + any2str(maxNumModulesPerBundle_) + " modules."
+		     + ". My phiRegion has more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
+		     + " My 2 neighbouring phiRegions have also more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
 		     + " Hence, I cannot be staggered to any other phiRegion :/ "
 		     );
 	    break;
 	  }
 
 	  // Assign a module to the next phi region
-	  else if (previousBundleNumModules >= maxNumModulesPerBundle_ || maxPhiBorder <= minPhiBorder) {
+	  else if (previousBundleNumModules >= cabling_maxNumModulesPerBundle || maxPhiBorder <= minPhiBorder) {
 	    logINFO(any2str("Building cabling map : Staggering modules.")
 		    + " I am a module in side " + any2str(isPositiveCablingSide)
 		    + ", disk " + any2str(diskNumber)
@@ -295,7 +294,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 		    + ", phiRegionRef " + any2str(phiRegionRef)
 		    + ". maxPhiBorder " + any2str((maxPhiBorder * 180. / M_PI))
 		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(maxNumModulesPerBundle_)
+		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
 		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
 		    );
 		    
@@ -305,7 +304,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	  }
 
 	  // Assign a module to the previous phi region
-	  else if (nextBundleNumModules >= maxNumModulesPerBundle_ || minPhiBorder < maxPhiBorder) {
+	  else if (nextBundleNumModules >= cabling_maxNumModulesPerBundle || minPhiBorder < maxPhiBorder) {
 	    logINFO(any2str("Building cabling map : Staggering modules.")
 		    + " I am a module in side " + any2str(isPositiveCablingSide)
 		    + ", disk " + any2str(diskNumber)
@@ -313,7 +312,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 		    + ", phiRegionRef " + any2str(phiRegionRef)
 		    + ". minPhiBorder " + any2str((minPhiBorder * 180. / M_PI))
 		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(maxNumModulesPerBundle_)
+		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
 		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
 		    );
 
@@ -352,10 +351,10 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     }
 
     const int bundleNumModules = b.second->numModules();
-    if (bundleNumModules > maxNumModulesPerBundle_) {
+    if (bundleNumModules > cabling_maxNumModulesPerBundle) {
       logERROR(any2str("Building cabling map : Staggering modules. ")
 	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
-	       + "Maximum number of modules per bundle allowed is " + any2str(maxNumModulesPerBundle_)
+	       + "Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
 	       );
     }
 

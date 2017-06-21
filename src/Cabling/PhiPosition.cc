@@ -37,7 +37,7 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
       }
       else if (bundleType == "2S") {
 	phiRegionWidth_ = cabling_endcapStripStripPhiRegionWidth;
-	if (subDetectorName == "TEDD_1") phiRegionStart_ = cabling_tedd1StripStripPhiRegionStart;
+	if (subDetectorName == cabling_tedd1) phiRegionStart_ = cabling_tedd1StripStripPhiRegionStart;
 	else phiRegionStart_ = cabling_tedd2StripStripPhiRegionStart;
       }
       phiRegionRef_ = computePhiSliceRef(modPhi, phiRegionStart_, phiRegionWidth_, isPositiveCablingSide);

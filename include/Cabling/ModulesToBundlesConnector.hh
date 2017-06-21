@@ -28,7 +28,6 @@ private:
   bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth);
 
   std::string computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
-  
   void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const std::string bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
   int computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
@@ -55,8 +54,6 @@ private:
 
   std::string bundleType_;
   bool side_;
-
-  const int maxNumModulesPerBundle_ = 12;
 };
 
 
