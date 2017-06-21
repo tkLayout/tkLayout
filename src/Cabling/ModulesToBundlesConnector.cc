@@ -255,8 +255,8 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	const int numPhiRegions = round(2 * M_PI / phiRegionWidth);
 
 	const int phiRegionRef = bundlePhiPosition.phiRegionRef();
-	const int nextPhiRegionRef = femod( (phiRegionRef + 1), numPhiRegions);
-	const int previousPhiRegionRef = femod( (phiRegionRef - 1), numPhiRegions);
+	const int nextPhiRegionRef = computeNextPhiSliceRef(phiRegionRef, numPhiRegions);
+	const int previousPhiRegionRef = computePreviousPhiSliceRef(phiRegionRef, numPhiRegions);
 
 	const int bundleId = b.first;
 	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);

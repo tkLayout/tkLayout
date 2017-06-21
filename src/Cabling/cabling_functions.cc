@@ -24,3 +24,15 @@ const int computePhiSliceRef(const double phi, const double phiSliceStart, const
 
   return phiSliceRef;
 }
+
+
+const int computeNextPhiSliceRef(const int phiSliceRef, const int numPhiSlices) {
+  int nextPhiSliceRef = femod( (phiSliceRef + 1), numPhiSlices);
+  return nextPhiSliceRef;
+}
+
+
+const int computePreviousPhiSliceRef(const int phiSliceRef, const int numPhiSlices) {
+  int previousPhiSliceRef = femod( (phiSliceRef - 1), numPhiSlices);
+  return previousPhiSliceRef;
+}

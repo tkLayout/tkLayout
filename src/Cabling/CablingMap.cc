@@ -47,8 +47,8 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
     const int numPhiSectors = round(2 * M_PI / phiSectorWidth);
 
-    const int nextPhiSectorRef = femod( (phiSectorRef + 1), numPhiSectors);
-    const int previousPhiSectorRef = femod( (phiSectorRef - 1), numPhiSectors);
+    const int nextPhiSectorRef = computeNextPhiSliceRef(phiSectorRef, numPhiSectors);
+    const int previousPhiSectorRef = computePreviousPhiSliceRef(phiSectorRef, numPhiSectors);
 
     const std::string bundleType = b.second->type();
     std::string cableType = bundleType;
