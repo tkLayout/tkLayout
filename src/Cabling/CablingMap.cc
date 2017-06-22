@@ -122,23 +122,25 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
       if (subDetectorName == cabling_tb2s && layerDiskNumber == 4) {
-	Layer4PhiSectorsCounter[phiSectorRef] += 1;
+	int& myPhiSectorCounter = Layer4PhiSectorsCounter[phiSectorRef];
+	myPhiSectorCounter += 1;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
 	// As a result, the first bundle in the Phi Sector is assigned to the previous phiSector.
-	if (phiSectorRefThird == 0 && Layer4PhiSectorsCounter[phiSectorRef] == 1) {
+	if (phiSectorRefThird == 0 && myPhiSectorCounter == 1) {
 	  phiSectorRefCable = previousPhiSectorRef;
 	}
 	slot = 1;
       }
 
       else if (subDetectorName == cabling_tb2s && layerDiskNumber == 5) {
-	Layer5PhiSectorsCounter[phiSectorRef] += 1;
+	int& myPhiSectorCounter = Layer5PhiSectorsCounter[phiSectorRef];
+	myPhiSectorCounter += 1;
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
 	// In 2 cases out of 3, also one bundle from Layer 5 added.
 	// if (phiSectorRefThird == 0) : should have 5 bundles in Layer 4 (+ 1 added from Layer 5)
 	// if (phiSectorRefThird == 1) : should have 5 bundles in Layer 4 (+ 1 added from Layer 5)
 	// if (phiSectorRefThird == 2) : should have 6 bundles in Layer 4 (no bundle added from Layer 5)
-	if (phiSectorRefThird != 2 && Layer5PhiSectorsCounter[phiSectorRef] == 4) {
+	if (phiSectorRefThird != 2 && myPhiSectorCounter == 4) {
 	  slot = 1;
 	}
 	else {
@@ -149,8 +151,9 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
       else if ( (subDetectorName == cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) ) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
 	if (subDetectorName == cabling_tb2s) {
-	  Layer6PhiSectorsCounter[phiSectorRef] += 1;
-	  if (Layer6PhiSectorsCounter[phiSectorRef] == 1 || Layer6PhiSectorsCounter[phiSectorRef] == 5 || Layer6PhiSectorsCounter[phiSectorRef] == 8) slot = 4;
+	  int& myPhiSectorCounter = Layer6PhiSectorsCounter[phiSectorRef];
+	  myPhiSectorCounter += 1;
+	  if (myPhiSectorCounter == 1 || myPhiSectorCounter == 5 || myPhiSectorCounter == 8) slot = 4;
 	  else slot = 3;
 	}
 	else slot = 4;

@@ -140,7 +140,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
     }
 
     else if (subDetectorName == cabling_tedd2) {
-      if (ringNumber <= 3) logERROR("Unexpected geometry! Found a ring whith ringNumber <= 3 in a disk in " + cabling_tedd2);
+      if (ringNumber <= 3) bundleType = Category::UNDEFINED;
       else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS5GA;
       else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5GB;
       else if (ringNumber >= 11) bundleType = Category::SS;
