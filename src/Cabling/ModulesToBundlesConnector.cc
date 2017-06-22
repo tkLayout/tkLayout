@@ -111,16 +111,16 @@ void ModulesToBundlesConnector::postVisit() {
 }
 
 
-bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) {
-  double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth, true);
-  int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);  
-  bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
+const bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const {
+  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth, true);
+  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);  
+  const bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
   return isPositiveCablingSide;
 }
 
 
-Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
-  Category bundleType;
+const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
+  Category bundleType = Category::UNDEFINED;
 
   if (isBarrel) {
     if (subDetectorName == cabling_tb2s) {
@@ -140,7 +140,7 @@ Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const
     }
 
     else if (subDetectorName == cabling_tedd2) {
-      if (ringNumber <= 3) bundleType = Category::UNDEFINED;
+      if (ringNumber <= 3) logERROR("Unexpected geometry! Found a ring whith ringNumber <= 3 in a disk in " + cabling_tedd2);
       else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS5GA;
       else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5GB;
       else if (ringNumber >= 11) bundleType = Category::SS;
@@ -153,11 +153,11 @@ Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const
 
 void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
   
-  int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
-  int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
-  int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
+  const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
+  const int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
+  const int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
 
-  std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
+  const std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
 
   Bundle* bundle = nullptr;
   auto found = stereoBundles.find(bundleId);
@@ -172,7 +172,7 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
 }
 
 
-int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
+const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
   int bundleTypeIndex;
   if (isBarrel) {
     if (bundleType == Category::SS) bundleTypeIndex = 0;
@@ -197,7 +197,7 @@ int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const
 }
 
 
-int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const {
+const int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const {
   int cablingSideIndex = 0;
   if (isBarrel) {
     cablingSideIndex = (isPositiveCablingSide ? 1 : 3);
@@ -206,7 +206,7 @@ int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool i
     cablingSideIndex = (isPositiveCablingSide ? 2 : 4);
   }
 
-  int bundleId = cablingSideIndex * 10000 + layerDiskNumber * 1000 + phiRef * 10 + bundleTypeIndex;
+  const int bundleId = cablingSideIndex * 10000 + layerDiskNumber * 1000 + phiRef * 10 + bundleTypeIndex;
   return bundleId;
 }
 
