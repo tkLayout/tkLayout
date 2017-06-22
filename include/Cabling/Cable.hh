@@ -37,7 +37,7 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   //Property<int, Default> nBundlesPerCable;
 
 public:
-  Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) ;
+  Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide);
 
   const Category type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }

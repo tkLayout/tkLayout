@@ -23,9 +23,12 @@ public:
 
 private:
   void connectModulesToBundles(Tracker* tracker);
-  void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
 
+  void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
+  const int computeCableTypeIndex(const Category& cableType) const;
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
+  void createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
+  void connectBundleToCable(Bundle* bundle, Cable* cable) const;
   void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);
 
   std::map<int, Bundle*> bundles_;
