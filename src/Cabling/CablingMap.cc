@@ -50,14 +50,14 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     const int nextPhiSectorRef = computeNextPhiSliceRef(phiSectorRef, numPhiSectors);
     const int previousPhiSectorRef = computePreviousPhiSliceRef(phiSectorRef, numPhiSectors);
 
-    const std::string bundleType = b.second->type();
-    std::string cableType = bundleType;
-    if (cableType == "PS5GA" || cableType == "PS5GB") cableType = "PS5G";
+    const Category& bundleType = b.second->type();
+    Category cableType = bundleType;
+    if (bundleType == Category::PS5GA || bundleType == Category::PS5GB) cableType = Category::PS5G;
 
     int cableTypeIndex;
-    if (cableType == "PS10G") cableTypeIndex = 0;
-    else if (cableType == "PS5G") cableTypeIndex = 1;
-    else if (cableType == "2S") cableTypeIndex = 2;
+    if (cableType == Category::PS10G) cableTypeIndex = 0;
+    else if (cableType == Category::PS5G) cableTypeIndex = 1;
+    else if (cableType == Category::SS) cableTypeIndex = 2;
 
 
     const std::string subDetectorName = b.second->subDetectorName();
@@ -68,19 +68,19 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     // Used to build cableId
     int slot = 0;
 
-    if (cableType == "PS10G") {
+    if (cableType == Category::PS10G) {
       if (subDetectorName == cabling_tbps || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2)) {
 	slot = 1;
       }
     }
 
 
-    else if (cableType == "PS5G") {
-      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == "PS5GA") ) {
+    else if (cableType == Category::PS5G) {
+      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == Category::PS5GA) ) {
 	slot = 2;
       }
 
-      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == "PS5GB") ) {
+      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == Category::PS5GB) ) {
 	if (subDetectorName == cabling_tbps) {
 	  // Tilted part
 	  if (b.second->isTiltedPart()) {
@@ -118,7 +118,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     }
 
 
-    else if (cableType == "2S") {
+    else if (cableType == Category::SS) {
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
       if (subDetectorName == cabling_tb2s && layerDiskNumber == 4) {
@@ -203,7 +203,7 @@ void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
     }
 
     if (c.second->phiSectorRef() <= -1) {
-      std::cout << "Error while creating cable. Cable " << c.first << " has phiSectorRef = " << c.second->phiSectorRef() << ". type = " << c.second->type() << ", slot = " <<  c.second->slot() << std::endl;
+      std::cout << "Error while creating cable. Cable " << c.first << " has phiSectorRef = " << c.second->phiSectorRef() << ". type = " << any2str(c.second->type()) << ", slot = " <<  c.second->slot() << std::endl;
     }
 
   }

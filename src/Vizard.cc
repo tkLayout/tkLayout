@@ -1438,11 +1438,11 @@ namespace insur {
       int cableId = myCable.first;
       cablesPerChannel[channel].push_back(cableId);
 
-      std::string cableType = myCable.second->type();      
+      Category cableType = myCable.second->type();      
       int numBundles = myCable.second->numBundles();
 
-      if (cableType == "PS10G" || cableType == "PS5G") psBundlesPerChannel[channel] += numBundles;
-      else if (cableType == "2S") ssBundlesPerChannel[channel] += numBundles;
+      if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channel] += numBundles;
+      else if (cableType == Category::SS) ssBundlesPerChannel[channel] += numBundles;
       else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
     }
   }
@@ -6823,7 +6823,7 @@ namespace insur {
 	std::stringstream DTCInfo;
 	DTCInfo << dtc.second->name() << ","
 		<< dtc.second->phiSectorRef() << ","
-		<< dtc.second->type() << ","
+		<< any2str(dtc.second->type()) << ","
 		<< dtc.second->slot() << ","
 		<< std::fixed << std::setprecision(6)
 		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
@@ -6832,7 +6832,7 @@ namespace insur {
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
 	  cableInfo << cable.myid() << ","
-		    << cable.type() << ","
+		    << any2str(cable.type()) << ","
 		    << cable.servicesChannel() << ",";
 
 	  const PtrVector<Bundle>& myBundles = cable.bundles();

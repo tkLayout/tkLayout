@@ -64,7 +64,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, cabling_maxNumModulesPerBundle, isTilted, isExtraFlatPart);
+  buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
 }
 
 
@@ -119,31 +119,31 @@ bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double
 }
 
 
-std::string ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
-  std::string bundleType;
+Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
+  Category bundleType;
 
   if (isBarrel) {
     if (subDetectorName == cabling_tb2s) {
-      bundleType = "2S";
+      bundleType = Category::SS;
     }
     else if (subDetectorName == cabling_tbps) {
-      bundleType = (layerDiskNumber == 1 ? "PS10G" : "PS5G");
+      bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
     }
   }
 
   else {
     if (subDetectorName == cabling_tedd1) {
-      if (ringNumber <= 4) bundleType = "PS10G";
-      else if (ringNumber >= 5 && ringNumber <= 7) bundleType = "PS5GA";
-      else if (ringNumber >= 8 && ringNumber <= 10) bundleType = "PS5GB";
-      else if (ringNumber >= 11) bundleType = "2S";
+      if (ringNumber <= 4) bundleType = Category::PS10G;
+      else if (ringNumber >= 5 && ringNumber <= 7) bundleType = Category::PS5GA;
+      else if (ringNumber >= 8 && ringNumber <= 10) bundleType = Category::PS5GB;
+      else if (ringNumber >= 11) bundleType = Category::SS;
     }
 
     else if (subDetectorName == cabling_tedd2) {
-      if (ringNumber <= 3) bundleType = "null";
-      else if (ringNumber >= 4 && ringNumber <= 6) bundleType = "PS5GA";
-      else if (ringNumber >= 7 && ringNumber <= 10) bundleType = "PS5GB";
-      else if (ringNumber >= 11) bundleType = "2S";
+      if (ringNumber <= 3) bundleType = Category::UNDEFINED;
+      else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS5GA;
+      else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5GB;
+      else if (ringNumber >= 11) bundleType = Category::SS;
     }
   }
 
@@ -151,9 +151,9 @@ std::string ModulesToBundlesConnector::computeBundleType(const bool isBarrel, co
 }
 
 
-void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const std::string bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const int maxNumModulesPerBundle, const bool isTiltedPart, const bool isExtraFlatPart) {
+void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
   
-  int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, maxNumModulesPerBundle, isTiltedPart, isExtraFlatPart);
+  int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
   int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, modulePhiPosition.phiSegmentRef(), bundleTypeIndex);
 
   std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
@@ -171,13 +171,13 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
 }
 
 
-int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings, const int maxNumModulesPerBundle, const bool isTilted, const bool isExtraFlatPart) const {
+int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
   int bundleTypeIndex;
   if (isBarrel) {
-    if (bundleType == "2S") bundleTypeIndex = 0;
+    if (bundleType == Category::SS) bundleTypeIndex = 0;
     else {
       if (!isTilted) {
-	if (totalNumFlatRings <= maxNumModulesPerBundle) bundleTypeIndex = 1;
+	if (totalNumFlatRings <= cabling_maxNumModulesPerBundle) bundleTypeIndex = 1;
 	else {
 	  if (!isExtraFlatPart) bundleTypeIndex = 1;
 	  else bundleTypeIndex = 2;
@@ -187,10 +187,10 @@ int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const
     }
   }
   else {
-    if (bundleType == "PS10G") bundleTypeIndex = 0;
-    else if (bundleType == "PS5GA") bundleTypeIndex = 1;
-    else if (bundleType == "PS5GB") bundleTypeIndex = 2;
-    else if (bundleType == "2S") bundleTypeIndex = 3;
+    if (bundleType == Category::PS10G) bundleTypeIndex = 0;
+    else if (bundleType == Category::PS5GA) bundleTypeIndex = 1;
+    else if (bundleType == Category::PS5GB) bundleTypeIndex = 2;
+    else if (bundleType == Category::SS) bundleTypeIndex = 3;
   }
   return bundleTypeIndex;
 }
@@ -210,7 +210,7 @@ int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const bool i
 }
 
 
-Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
+Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
   Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
@@ -240,7 +240,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	const int diskNumber = b.second->layerDiskNumber();
 
-	const std::string bundleType = b.second->type();
+	const Category& bundleType = b.second->type();
 	const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType);
 
 	const PhiPosition& bundlePhiPosition = b.second->phiPosition();

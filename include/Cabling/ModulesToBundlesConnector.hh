@@ -27,11 +27,11 @@ public:
 private:
   bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth);
 
-  std::string computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
-  void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const std::string bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
-  int computeBundleTypeIndex(const bool isBarrel, const std::string bundleType, const int totalNumFlatRings = 0, const int maxNumModulesPerBundle = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
+  Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
+  void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
+  int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
-  Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const std::string bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
   void connectModuleToBundle(DetectorModule& m, Bundle* bundle) const;
 
   void staggerModules(std::map<int, Bundle*>& bundles);
@@ -52,7 +52,7 @@ private:
   int ringNumber_;
   int numModulesInRing_;
 
-  std::string bundleType_;
+  Category bundleType_;
   bool side_;
 };
 

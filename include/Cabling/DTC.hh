@@ -19,7 +19,7 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
 
   double phiSectorWidth_;
   int phiSectorRef_;
-  std::string type_;
+  Category type_;
   int slot_;
   bool isPositiveCablingSide_;
 
@@ -37,7 +37,7 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
 
 public:
 
-  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) {
+  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
     name_ = name;
     phiSectorWidth_ = phiSectorWidth;
     phiSectorRef_ = phiSectorRef;
@@ -45,14 +45,14 @@ public:
     slot_ = slot;
     isPositiveCablingSide_ = isPositiveCablingSide;
 
-    if (type == "PS10G" || type == "PS5G") plotColor_ = slot;
-    else if (type == "2S") plotColor_ = 6 + slot;
+    if (type == Category::PS10G || type == Category::PS5G) plotColor_ = slot;
+    else if (type == Category::SS) plotColor_ = 6 + slot;
     plotColor_ += 12 * phiSectorRef;
   };
 
 
   const std::string name() const { return name_; }
-  const std::string type() const { return type_; }
+  const Category type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }

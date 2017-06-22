@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <string>
+#include "global_funcs.hh"
 
 
 static const int cabling_maxNumModulesPerBundle = 12;
@@ -23,6 +24,20 @@ static const std::string cabling_tbps = "TBPS";
 static const std::string cabling_tb2s = "TB2S";
 static const std::string cabling_tedd1 = "TEDD_1";
 static const std::string cabling_tedd2 = "TEDD_2";
+
+enum Category { UNDEFINED, PS10G, PS5G, PS5GA, PS5GB, SS };
+
+/*const std::string getName(Category type) {
+  switch (type) {
+  case UNDEFINED: return "UNDEFINED";
+  case PS10G: return "PS10G";
+  case PS5G: return "PS5G";
+  case PS5GA: return "PS5GA";
+  case PS5GB: return "PS5GB";
+  case SS: return "2S";
+  }
+  }*/
+
 
 
 #endif  // CABLING_CONSTANTS_HH

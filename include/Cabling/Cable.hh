@@ -21,7 +21,7 @@ using std::unique_ptr;*/
 class Cable : public PropertyObject, public Buildable, public Identifiable<int> {
   double phiSectorWidth_;
   int phiSectorRef_;
-  std::string type_;
+  Category type_;
   int slot_;
   bool isPositiveCablingSide_;
 
@@ -32,14 +32,14 @@ class Cable : public PropertyObject, public Buildable, public Identifiable<int> 
   typedef PtrVector<Bundle> Container;
   Container bundles_;
 
-  int computeServicesChannel(int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide);
+  int computeServicesChannel(int phiSectorRef, Category type, int slot, bool isPositiveCablingSide);
 
   //Property<int, Default> nBundlesPerCable;
 
 public:
-  Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) ;
+  Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) ;
 
-  const std::string type() const { return type_; }
+  const Category type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }

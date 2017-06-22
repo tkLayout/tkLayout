@@ -515,7 +515,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
       if (myCable != NULL) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ","
-		  << myCable->type() << ","
+		  << any2str(myCable->type()) << ","
 		  << myCable->servicesChannel() << ",";
 	
 	const DTC* myDTC = myCable->getDTC();
@@ -523,7 +523,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->name() << ","
 		  << myDTC->phiSectorRef() << ","
-		  << myDTC->type() << ","
+		  << any2str(myDTC->type()) << ","
 		  << myDTC->slot() << ","
 		  << std::fixed << std::setprecision(6)
 		  << myDTC->phiSectorWidth() * 180. / M_PI;

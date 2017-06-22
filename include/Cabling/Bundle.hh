@@ -25,7 +25,7 @@ using insur::Cable;
 
 //class Bundle : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Bundle : public PropertyObject, public Buildable, public Identifiable<int> {
-  std::string type_;
+  Category type_;
   std::string subDetectorName_;
   int layerDiskNumber_;
 
@@ -47,7 +47,7 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
 public:
 
   //~Bundle();
-  Bundle(const int id, const std::string type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
+  Bundle(const int id, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
     type_(type),
     subDetectorName_(subDetectorName),
     layerDiskNumber_(layerDiskNumber),
@@ -65,7 +65,7 @@ public:
     plotColor_ = plotType * 3 + plotPhi;  
   };
 
-  const std::string type() const { return type_; }
+  const Category& type() const { return type_; }
   const std::string subDetectorName() const { return subDetectorName_; }
   const int layerDiskNumber() const { return layerDiskNumber_; }
 

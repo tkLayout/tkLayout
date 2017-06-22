@@ -6,7 +6,7 @@
 
 
 
-Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) {
+Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
   // Generic cable characteristics
   myid(id);
   phiSectorWidth_ = phiSectorWidth;
@@ -23,20 +23,20 @@ Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, std::string 
   // Build DTC asociated to the cable
   std::ostringstream dtcNameStream;
   if (!isPositiveCablingSide) dtcNameStream << "neg_";
-  dtcNameStream << phiSectorRef << "_" << type << "_" << slot;
+  dtcNameStream << phiSectorRef << "_" << any2str(type) << "_" << slot;
   std::string dtcName = dtcNameStream.str();
 
   DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
-  dtc->addCable(this); 
+  dtc->addCable(this);
   myDTC_ = dtc;
 };
 
 
 
 
-int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot, bool isPositiveCablingSide) {
+int Cable::computeServicesChannel(int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
   int servicesChannel = 0;
-  if (type == "PS10G") {
+  if (type == Category::PS10G) {
     if (phiSectorRef == 0) servicesChannel = 1;
     else if (phiSectorRef == 1) servicesChannel = 3;
     else if (phiSectorRef == 2) servicesChannel = 4;
@@ -47,7 +47,7 @@ int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot, 
     else if (phiSectorRef == 7) servicesChannel = 10;
     else if (phiSectorRef == 8) servicesChannel = 12;   
   }
-  else if (type == "PS5G") {
+  else if (type == Category::PS5G) {
     if (slot != 3) {
       if (phiSectorRef == 0) servicesChannel = 1;
       else if (phiSectorRef == 1) servicesChannel = 3;
@@ -71,7 +71,7 @@ int Cable::computeServicesChannel(int phiSectorRef, std::string type, int slot, 
       else if (phiSectorRef == 8) servicesChannel = 12;
     }
   }
-  else if (type == "2S") {
+  else if (type == Category::SS) {
     if (slot != 1 && slot != 2) {
       if (phiSectorRef == 0) servicesChannel = 1;
       else if (phiSectorRef == 1) servicesChannel = 2;
