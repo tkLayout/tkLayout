@@ -398,6 +398,16 @@ string mainConfigHandler::getDetIdSchemesDirectory() {
   return getDetIdSchemesDirectory_();
 }
 
+std::vector<int> mainConfigHandler::getDetIdScheme(std::string schemeName) {
+  getConfiguration();
+  if (detIdSchemes_.size() == 0) readDetIdSchemes();
+  std::vector<int> scheme;
+  auto found = detIdSchemes_.find(schemeName);
+  if (found != detIdSchemes_.end()) scheme = found->second;
+  else std::cerr << "detIdScheme " << schemeName << " description could not be found in the cfg files. No detId for the associated subdetector will be calculated." << std::endl;
+  return scheme;
+}
+
 string mainConfigHandler::getStandardIncludeDirectory() {
   getConfiguration();
   return getStandardIncludeDirectory_();
@@ -542,4 +552,40 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
     numLine++;
   }
   return includeSet;
+}
+
+
+/** 
+ * Read DetId schemes definitions from cfg files.
+ */
+void mainConfigHandler::readDetIdSchemes() {
+  std::ifstream schemesStream(getDetIdSchemesDirectory_() + "/" + insur::default_detidschemesfile);
+  // Readin DetId schemes definition file
+  if (schemesStream.good()) {
+    std::string line;
+    while(getline(schemesStream, line).good()) {
+      if (line.empty()) continue;
+      auto schemeData = split(line, " ");
+      if (schemeData.size() < 2) std::cerr << "Reading DetId scheme : no data was entered."  << std::endl;  
+      else {
+	// Scheme Name
+	std::string schemeName = schemeData.at(0);
+	// Geometry hierarchy levels sizes (in number of bits) associated to the Scheme.
+	// For example, Tracker volume (hierarchy level 0) is assigned size 4 (ie, 4 bits).
+	std::vector<int> geometryHierarchySizes;
+	int sum = 0;
+	for (int i = 1; i < schemeData.size(); i++) {
+	  int size = str2any<int>(schemeData.at(i));
+	  geometryHierarchySizes.push_back(size);
+	  sum += size; 
+	}
+	// The sum of all sizes should be 32. Indeed, the DetId, made of all of them, id a 32-bit integer.
+	if (sum != 32) std::cerr << "DetId scheme " << schemeName << " : The sum of geometry hierarchy sizes is not equal to 32."  << std::endl;
+	else detIdSchemes_.insert(std::make_pair(schemeName, geometryHierarchySizes));
+      }
+    }
+    schemesStream.close();
+  } 
+  else { std::cerr << "No file defining a detId scheme has been found." << std::endl; }
+
 }
