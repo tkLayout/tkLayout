@@ -154,7 +154,8 @@ Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel, const
 void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
   
   int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
-  int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, modulePhiPosition.phiSegmentRef(), bundleTypeIndex);
+  int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
+  int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
 
   std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
 
