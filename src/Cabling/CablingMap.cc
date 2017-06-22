@@ -171,12 +171,13 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
     if (slot == 0) logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
 
     // BUILD CABLE AND STORE IT
-    int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
+    
 
     bool isPositiveCablingSide = b.second->isPositiveCablingSide();
-    if (!isPositiveCablingSide) cableId += 1000;
+    const int cableId = computeBundleId(phiSectorRefCable, cableTypeIndex, slot, isPositiveCablingSide);
 
-    if (cables.count(cableId) == 0) {
+    auto found = cables.find(cableId);
+    if (found == cables.end()) {
       Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, phiSectorRefCable, cableType, slot, isPositiveCablingSide);
       cable->addBundle(b.second);
       b.second->setCable(cable);
@@ -186,14 +187,22 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
       DTCs.insert(std::make_pair(dtc->name(), dtc));      
     }
     else {
-      cables[cableId]->addBundle(b.second);
-      b.second->setCable(cables[cableId]);
+      found.second->addBundle(b.second);
+      b.second->setCable(found.second);
     }
   }
 
 
   // CHECK CABLES
   checkBundlesToCablesCabling(cables);
+}
+
+
+const int CablingMap::computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const {
+  int cablingSideIndex = (isPositiveCablingSide ? 0 : 1);
+
+  const int cableId = cablingSideIndex * 1000 + phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
+  return cableId;
 }
 
 
