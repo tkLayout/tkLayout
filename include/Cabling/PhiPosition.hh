@@ -1,9 +1,6 @@
 #ifndef PHIPOSITION_HH
 #define PHIPOSITION_HH
 
-//#include <global_constants.hh>
-//#include "global_funcs.hh"
-//#include "Cabling/cabling_constants.hh"
 #include "Cabling/cabling_functions.hh"
 
 

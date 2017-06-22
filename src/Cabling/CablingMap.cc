@@ -4,7 +4,6 @@
 
 CablingMap::CablingMap(Tracker* tracker) {
   try {
-
     // MODULES TO BUNDLES
     connectModulesToBundles(tracker);
 
@@ -38,7 +37,6 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
   std::map<int, int> Layer4PhiSectorsCounter;
   std::map<int, int> Layer5PhiSectorsCounter;
   std::map<int, int> Layer6PhiSectorsCounter;
- 
 
   for (auto& b : bundles) {
     const PhiPosition& bundlePhiPosition = b.second->phiPosition();
@@ -86,8 +84,9 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	  if (b.second->isTiltedPart()) {
 	    Layer3TiltedPhiSectorsCounter[phiSectorRef] += 1;
 	    // In case already 4 bundles from tilted part, assign to next phi Sector
-	    if (Layer3TiltedPhiSectorsCounter.at(phiSectorRef) > 4) {
-	      Layer3TiltedPhiSectorsCounter[phiSectorRef] -= 1;
+	    auto found = Layer3TiltedPhiSectorsCounter.find(phiSectorRef);
+	    if (found.second > 4) {
+	      found.second -= 1;
 	      Layer3TiltedPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      phiSectorRefCable = nextPhiSectorRef;
 	    }
@@ -96,9 +95,10 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	  // Flat part : assign TBPS bundles with TEDD bundles
 	  else {
 	    Layer3FlatPhiSectorsCounter[phiSectorRef] += 1;
+	    auto found = Layer3FlatPhiSectorsCounter.find(phiSectorRef);
 	    // In case already 4 bundles from flat part, assign to next phi Sector
-	    if (Layer3FlatPhiSectorsCounter.at(phiSectorRef) > 4) {
-	      Layer3FlatPhiSectorsCounter[phiSectorRef] -= 1;
+	    if (found.second) > 4) {
+	      found.second -= 1;
 	      Layer3FlatPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      phiSectorRefCable = nextPhiSectorRef;
 	    }
@@ -165,7 +165,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
       }
     }
   
-    if (slot == 0) std::cout << "Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly." << std::endl;
+    if (slot == 0) logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
 
     // BUILD CABLE AND STORE IT
     int cableId = phiSectorRefCable * 100 + cableTypeIndex * 10 + slot;
@@ -196,14 +196,22 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 
 void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
   for (auto& c : cables) {
-    if (c.second->numBundles() > cabling_maxNumBundlesPerCable) {
-      std::cout << "There was an error while staggering bundles. Cable " 
-		<< c.first << " is connected to " << c.second->numBundles() << " bundles." 
-		<< std::endl;
+
+    const int phiSectorRef = c.second->phiSectorRef();
+    if (phiSectorRef <= -1) {
+      logERROR(any2str("Building cabling map : a cable was not correctly created. ")
+	       + "Cable " + any2str(c.first) + ", with cableType = " + any2str(c.second->type())
+	       + ", has phiSectorRef = " + any2str(phiSectorRef)
+	       + ", slot = " << any2str(c.second->slot())
+	       );
     }
 
-    if (c.second->phiSectorRef() <= -1) {
-      std::cout << "Error while creating cable. Cable " << c.first << " has phiSectorRef = " << c.second->phiSectorRef() << ". type = " << any2str(c.second->type()) << ", slot = " <<  c.second->slot() << std::endl;
+    const int numBundles = c.second->numBundles();
+    if (numBundles > cabling_maxNumBundlesPerCable) {
+      logERROR(any2str("Building cabling map : Staggering bundles. ")
+	       + "Cable "  + any2str(c.first) + " is connected to " + any2str(numBundles) + " bundles."
+	       + "Maximum number of bundles per cable allowed is " + any2str(cabling_maxNumBundlesPerCable)
+	       );
     }
 
   }
