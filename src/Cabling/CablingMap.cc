@@ -82,11 +82,11 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	if (subDetectorName == cabling_tbps) {
 	  // Tilted part
 	  if (b.second->isTiltedPart()) {
-	    Layer3TiltedPhiSectorsCounter[phiSectorRef] += 1;
+	    int& myPhiSectorCounter = Layer3TiltedPhiSectorsCounter[phiSectorRef];
+	    myPhiSectorCounter += 1;
 	    // In case already 4 bundles from tilted part, assign to next phi Sector
-	    auto found = Layer3TiltedPhiSectorsCounter.find(phiSectorRef);
-	    if (found.second > 4) {
-	      found.second -= 1;
+	    if (myPhiSectorCounter > 4) {
+	      myPhiSectorCounter -= 1;
 	      Layer3TiltedPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      phiSectorRefCable = nextPhiSectorRef;
 	    }
@@ -94,11 +94,11 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
 	  }
 	  // Flat part : assign TBPS bundles with TEDD bundles
 	  else {
-	    Layer3FlatPhiSectorsCounter[phiSectorRef] += 1;
-	    auto found = Layer3FlatPhiSectorsCounter.find(phiSectorRef);
+	    int& myPhiSectorCounter = Layer3FlatPhiSectorsCounter[phiSectorRef];
+	    myPhiSectorCounter += 1;
 	    // In case already 4 bundles from flat part, assign to next phi Sector
-	    if (found.second) > 4) {
-	      found.second -= 1;
+	    if (myPhiSectorCounter > 4) {
+	      myPhiSectorCounter -= 1;
 	      Layer3FlatPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      phiSectorRefCable = nextPhiSectorRef;
 	    }
@@ -202,7 +202,7 @@ void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
 	       + "Cable " + any2str(c.first) + ", with cableType = " + any2str(c.second->type())
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
-	       + ", slot = " << any2str(c.second->slot())
+	       + ", slot = " + any2str(c.second->slot())
 	       );
     }
 
