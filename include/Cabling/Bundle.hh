@@ -69,7 +69,7 @@ public:
   const std::string subDetectorName() const { return subDetectorName_; }
   const int layerDiskNumber() const { return layerDiskNumber_; }
 
-  const PhiPosition& phiPosition() { return phiPosition_; }
+  const PhiPosition& phiPosition() const { return phiPosition_; }
   
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const bool isTiltedPart() const { return isTiltedPart_; }

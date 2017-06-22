@@ -25,7 +25,8 @@ private:
   void connectModulesToBundles(Tracker* tracker);
 
   void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
-  const std::pair<int, int> computeCablePhiSectorRefAndSlot(Bundle* myBundle, const double phiSectorWidth, const Category& bundleType, const Category& cableType, std::map<int, int>& Layer3FlatPhiSectorsCounter, std::map<int, int>& Layer3TiltedPhiSectorsCounter, std::map<int, int>& Layer4PhiSectorsCounter, std::map<int, int>& Layer5PhiSectorsCounter, std::map<int, int>& Layer6PhiSectorsCounter);
+  const Category computeCableType(const Category& bundleType) const;
+  const std::map<int, std::pair<int, int> > computeCablesPhiSectorRefAndSlot(const std::map<int, Bundle*>& bundles) const;
   const int computeCableTypeIndex(const Category& cableType) const;
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
   void createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
