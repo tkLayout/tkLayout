@@ -486,21 +486,16 @@ namespace insur {
    */
   bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
     startTaskClock("Creating optical Cabling map report.");
-    if (layoutName == default_tdrLayoutName) {
-      if (tr) {
-	// CREATE REPORT ON WEBSITE.
-	v.cablingSummary(a, *tr, site);
-	stopTaskClock();
-	return true;
-      }
-      else {
-	logERROR(err_no_tracker);
-	stopTaskClock();
-	return false;
-      }
+    if (layoutName != default_tdrLayoutName) logERROR("Cabling map is designed and implemented for TDR layout only.");
+    if (tr) {
+      // CREATE REPORT ON WEBSITE.
+      v.cablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
     }
     else {
-      logERROR("Cabling map is designed and implemented for TDR layout only.");
+      logERROR(err_no_tracker);
+      stopTaskClock();
       return false;
     }
   }
