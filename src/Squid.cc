@@ -182,7 +182,7 @@ namespace insur {
    * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
    * The underlying cabling was designed for TDR layout OT613_200_IT4025, and will not work for any other layout.
    */
-  bool Squid::buildCablingMap(bool cablingOption) {
+  bool Squid::buildCablingMap(const bool cablingOption) {
     startTaskClock("Building optical Cabling map.");
     if (tr) {
       // BUILD CABLING MAP.	
@@ -484,17 +484,23 @@ namespace insur {
   /**
    * Add the optical cabling map to the website.
    */
-  bool Squid::reportCablingMapSite(bool cablingOption) {
+  bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
     startTaskClock("Creating optical Cabling map report.");
-    if (tr) {
-      // CREATE REPORT ON WEBSITE.
-      v.cablingSummary(a, *tr, site);
-      stopTaskClock();
-      return true;
+    if (layoutName == default_tdrLayoutName) {
+      if (tr) {
+	// CREATE REPORT ON WEBSITE.
+	v.cablingSummary(a, *tr, site);
+	stopTaskClock();
+	return true;
+      }
+      else {
+	logERROR(err_no_tracker);
+	stopTaskClock();
+	return false;
+      }
     }
     else {
-      logERROR(err_no_tracker);
-      stopTaskClock();
+      logERROR("Cabling map is designed and implemented for TDR layout only.");
       return false;
     }
   }

@@ -498,7 +498,7 @@ void ModulesToDTCsVisitor::visit(const Disk& d) {
 
 void ModulesToDTCsVisitor::visit(const Module& m) {
   const Bundle* myBundle = m.getBundle();
-  if (myBundle != NULL) {
+  if (myBundle != nullptr) {
     if (myBundle->isPositiveCablingSide() == isPositiveCablingSide_) {
       std::stringstream moduleInfo;
       moduleInfo << m.myDetId() << ","
@@ -512,14 +512,14 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
       bundleInfo << myBundle->myid() << ",";
 
       const Cable* myCable = myBundle->getCable();
-      if (myCable != NULL) {
+      if (myCable != nullptr) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ","
 		  << any2str(myCable->type()) << ","
 		  << myCable->servicesChannel() << ",";
 	
 	const DTC* myDTC = myCable->getDTC();
-	if (myDTC != NULL) {
+	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->name() << ","
 		  << myDTC->phiSectorRef() << ","

@@ -1208,10 +1208,10 @@ namespace insur {
       RootWImage* myImage;
 
       // Modules to Bundles
-      TCanvas *summaryBundleCanvas = NULL;
-      TCanvas *RZBundleCanvas = NULL;
-      TCanvas *XYBundleNegCanvas = NULL;
-      TCanvas *XYBundleCanvas = NULL;   
+      TCanvas *summaryBundleCanvas = nullptr;
+      TCanvas *RZBundleCanvas = nullptr;
+      TCanvas *XYBundleNegCanvas = nullptr;
+      TCanvas *XYBundleCanvas = nullptr;   
       std::vector<TCanvas*> XYBundleCanvasesDisk;
       std::vector<TCanvas*> XYSurfacesDisk;
    
@@ -1247,12 +1247,12 @@ namespace insur {
       }
 
       // Modules to DTCs
-      TCanvas *summaryDTCCanvas = NULL;
-      TCanvas *RZDTCCanvas = NULL;
-      TCanvas *XYDTCNegCanvas = NULL;
-      TCanvas *XYDTCNegFlatCanvas = NULL;
-      TCanvas *XYDTCCanvas = NULL; 
-      TCanvas *XYDTCFlatCanvas = NULL; 
+      TCanvas *summaryDTCCanvas = nullptr;
+      TCanvas *RZDTCCanvas = nullptr;
+      TCanvas *XYDTCNegCanvas = nullptr;
+      TCanvas *XYDTCNegFlatCanvas = nullptr;
+      TCanvas *XYDTCCanvas = nullptr; 
+      TCanvas *XYDTCFlatCanvas = nullptr; 
       std::vector<TCanvas*> XYDTCCanvasesDisk;
        
       myContent = new RootWContent("Modules to DTCs");
@@ -1298,7 +1298,7 @@ namespace insur {
       RootWContent* filesContent = new RootWContent("Cabling files", true);
       myPage->addContent(filesContent);   
       RootWTextFile* myTextFile;
-      RootWInfo* myInfo = NULL;
+      RootWInfo* myInfo = nullptr;
       // POSITIVE CABLING SIDE
       bool isPositiveCablingSide = true;
       RootWTable* positiveSideName = new RootWTable();
@@ -6806,7 +6806,7 @@ namespace insur {
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
-      if (dtc.second != NULL) {
+      if (dtc.second != nullptr) {
 	std::stringstream DTCInfo;
 	DTCInfo << dtc.second->name() << ","
 		<< dtc.second->phiSectorRef() << ","

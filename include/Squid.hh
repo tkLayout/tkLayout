@@ -83,7 +83,7 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    bool buildCablingMap(bool cablingOption);
+    bool buildCablingMap(const bool cablingOption);
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
@@ -97,7 +97,7 @@ namespace insur {
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool reportCablingMapSite(bool cablingOption);
+    bool reportCablingMapSite(const bool cablingOption, const std::string layoutName);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
     bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
