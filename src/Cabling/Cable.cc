@@ -2,39 +2,29 @@
 #include "Cabling/DTC.hh"
 
 
-//void Cable::build() {}
-
-
-
-Cable::Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
-  // Generic cable characteristics
+Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) : 
+  phiSectorWidth_(phiSectorWidth),
+  phiSectorRef_(phiSectorRef),
+  type_(type),
+  slot_(slot),
+  isPositiveCablingSide_(isPositiveCablingSide)
+{ 
   myid(id);
-  phiSectorWidth_ = phiSectorWidth;
-  phiSectorRef_ = phiSectorRef;
-  isPositiveCablingSide_ = isPositiveCablingSide;
-  type_ = type;
-  slot_ = slot;
-
-  // Assign cable a servicesChannel
+  // Assign a servicesChannel to the cable
   servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
 
-
-
   // Build DTC asociated to the cable
-  std::ostringstream dtcNameStream;
-  if (!isPositiveCablingSide) dtcNameStream << "neg_";
-  dtcNameStream << phiSectorRef << "_" << any2str(type) << "_" << slot;
-  std::string dtcName = dtcNameStream.str();
-
-  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
-  dtc->addCable(this);
-  myDTC_ = dtc;
+  buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
 };
 
 
+Cable::~Cable() {
+  delete myDTC_;       // TO DO: switch to smart pointers and remove this!
+  myDTC_ = nullptr;
+}
 
 
-int Cable::computeServicesChannel(int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
+const int Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int servicesChannel = 0;
   if (type == Category::PS10G) {
     if (phiSectorRef == 0) servicesChannel = 1;
@@ -103,4 +93,22 @@ int Cable::computeServicesChannel(int phiSectorRef, Category type, int slot, boo
   }
 
   return servicesChannel;
+}
+
+
+// Build DTC asociated to the cable
+void Cable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
+  std::string dtcName = computeDTCName(phiSectorRef, type, slot, isPositiveCablingSide);
+  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
+  dtc->addCable(this);
+  myDTC_ = dtc;
+}
+
+
+const std::string Cable::computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
+  std::ostringstream dtcNameStream;
+  if (!isPositiveCablingSide) dtcNameStream << "neg_";
+  dtcNameStream << phiSectorRef << "_" << any2str(type) << "_" << slot;
+  const std::string dtcName = dtcNameStream.str();
+  return dtcName;
 }

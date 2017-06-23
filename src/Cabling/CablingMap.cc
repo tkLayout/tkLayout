@@ -87,8 +87,6 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
     const int layerDiskNumber = myBundle->layerDiskNumber();
 
     int cablePhiSectorRef = phiSectorRef;
-
-    // Used to build cableId
     int slot = 0;
 
     if (cableType == Category::PS10G) {
@@ -209,14 +207,14 @@ void CablingMap::createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cab
   auto found = cables.find(cableId);
   if (found == cables.end()) {
     Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
-    connectBundleToCable(myBundle, cable);
+    connectOneBundleToOneCable(myBundle, cable);
     cables.insert(std::make_pair(cableId, cable));
 
     const DTC* dtc = cable->getDTC();
     DTCs.insert(std::make_pair(dtc->name(), dtc));      
   }
   else {
-    connectBundleToCable(myBundle, found->second);
+    connectOneBundleToOneCable(myBundle, found->second);
   }
 }
 
@@ -238,7 +236,7 @@ const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cabl
 }
 
 
-void CablingMap::connectBundleToCable(Bundle* bundle, Cable* cable) const {
+void CablingMap::connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const {
   cable->addBundle(bundle);
   bundle->setCable(cable);
 }

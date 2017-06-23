@@ -11,7 +11,6 @@
 namespace insur { class DTC; }
 using insur::DTC;
 
-
 /*using std::string;
 using std::vector;
 using std::pair;
@@ -19,46 +18,24 @@ using std::unique_ptr;*/
 
 //class Cable : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Cable : public PropertyObject, public Buildable, public Identifiable<int> {
-  double phiSectorWidth_;
-  int phiSectorRef_;
-  Category type_;
-  int slot_;
-  bool isPositiveCablingSide_;
-
-  int servicesChannel_;
-
-  DTC* myDTC_ = NULL;
-
   typedef PtrVector<Bundle> Container;
-  Container bundles_;
-
-  int computeServicesChannel(int phiSectorRef, Category type, int slot, bool isPositiveCablingSide);
-
-  //Property<int, Default> nBundlesPerCable;
-
 public:
-  Cable(int id, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide);
+  Cable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
+  ~Cable();
+
+  const Container& bundles() const { return bundles_; }
+
+  void addBundle(Bundle* b) { bundles_.push_back(b); }
+  int numBundles() const { return bundles_.size(); }
+
+  const DTC* getDTC() const { return myDTC_; }
 
   const Category type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
-
   const int servicesChannel() const { return servicesChannel_; }
-
-  const DTC* getDTC() const { return myDTC_; }
-
-
-  void addBundle(Bundle* b) { bundles_.push_back(b); }
-  const Container& bundles() const { return bundles_; }
-
-  int numBundles() const { return bundles_.size(); }
-
-
-
-
-
 
 
   /*Cable() :
@@ -66,7 +43,7 @@ public:
   {}
 
   void setup() {}
-
+  Property<int, Default> nBundlesPerCable;
 
   Container& bundles() { return bundles_; }
  
@@ -86,6 +63,21 @@ public:
     for (const auto& b :bundles_) { b.accept(v); }
     }*/
 
+private:
+  const int computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
+  const std::string computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  
+  Container bundles_;
+
+  DTC* myDTC_ = nullptr;
+
+  double phiSectorWidth_;
+  int phiSectorRef_;
+  Category type_;
+  int slot_;
+  bool isPositiveCablingSide_;
+  int servicesChannel_;
 };
 
 

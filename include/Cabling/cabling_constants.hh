@@ -25,6 +25,8 @@ static const std::string cabling_tb2s = "TB2S";
 static const std::string cabling_tedd1 = "TEDD_1";
 static const std::string cabling_tedd2 = "TEDD_2";
 
+static const std::string cabling_negativePrefix = "neg";
+
 enum Category { UNDEFINED, PS10G, PS5G, PS5GA, PS5GB, SS };
 
 
