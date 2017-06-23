@@ -461,62 +461,54 @@ std::string DetectorModule::summaryFullType() const  {
 };
 
 
-const int DetectorModule::bundlePlotColor() const {
-  int bundlePlotColor = 0;
-  const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
-    bundlePlotColor = myBundle->plotColor();
-  }
-  return bundlePlotColor;
-}
-
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
+  if (myBundle != nullptr) {
     isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
   }
   return isPositiveCablingSide;
 }
 
-const DTC* DetectorModule::getDTC() const {
-  const DTC* myDTC = NULL;
+
+const int DetectorModule::bundlePlotColor() const {
+  int bundlePlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
+  if (myBundle != nullptr) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
+
+const DTC* DetectorModule::getDTC() const {
+  const DTC* myDTC = nullptr;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
     const Cable* myCable = myBundle->getCable();
-    if (myCable != NULL) {
+    if (myCable != nullptr) {
       myDTC = myCable->getDTC();
     }
   }
   return myDTC;
 }
 
+
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
-  const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
-    const Cable* myCable = myBundle->getCable();
-    if (myCable != NULL) {
-      const DTC* myDTC = myCable->getDTC();
-      if (myDTC != NULL) {
-	dtcPlotColor = myDTC->plotColor();
-      }
-    }
+  const DTC* myDTC = getDTC();
+  if (myDTC != nullptr) {
+    dtcPlotColor = myDTC->plotColor();
   }
   return dtcPlotColor;
 }
 
+
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
-  const Bundle* myBundle = getBundle();
-  if (myBundle != NULL) {
-    const Cable* myCable = myBundle->getCable();
-    if (myCable != NULL) {
-      const DTC* myDTC = myCable->getDTC();
-      if (myDTC != NULL) {
-	dtcPhiSectorRef = myDTC->phiSectorRef();
-      }
-    }
+  const DTC* myDTC = getDTC();
+  if (myDTC != nullptr) {
+    dtcPhiSectorRef = myDTC->phiSectorRef();
   }
   return dtcPhiSectorRef;
 }
