@@ -15,56 +15,25 @@ using std::unique_ptr;*/
 
 //class DTC : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
-  std::string name_;
-
-  double phiSectorWidth_;
-  int phiSectorRef_;
-  Category type_;
-  int slot_;
-  bool isPositiveCablingSide_;
-
-  int plotColor_;
-
-
   typedef PtrVector<Cable> Container;
-  Container cable_;
-
-
   //typedef PtrVector<Cable> Container;
   //Container cables_;
 
-  //Property<int, Default> nCablesPerDTC;
-
 public:
+  DTC(const std::string name, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
 
-  DTC(std::string name, const double phiSectorWidth, int phiSectorRef, Category type, int slot, bool isPositiveCablingSide) {
-    name_ = name;
-    phiSectorWidth_ = phiSectorWidth;
-    phiSectorRef_ = phiSectorRef;
-    type_ = type;
-    slot_ = slot;
-    isPositiveCablingSide_ = isPositiveCablingSide;
+  const Container& cable() const { return cable_; }
 
-    if (type == Category::PS10G || type == Category::PS5G) plotColor_ = slot;
-    else if (type == Category::SS) plotColor_ = 6 + slot;
-    plotColor_ += 12 * phiSectorRef;
-  };
-
+  void addCable(Cable* c) { cable_.push_back(c); }
 
   const std::string name() const { return name_; }
-  const Category type() const { return type_; }
+  const Category& type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
-
-  void addCable(Cable* c) { cable_.push_back(c); }
-  const Container& cable() const { return cable_; }
-
   const int plotColor() const { return plotColor_; }
-
-
 
   /*DTC() :
             nCablesPerDTC      ("nCablesPerDTC"      , parsedAndChecked(), 1)
@@ -80,7 +49,7 @@ public:
   
   void check() override;
   void build();
-
+  Property<int, Default> nCablesPerDTC;
 
   void accept(CablingVisitor& v) { 
     v.visit(*this); 
@@ -91,6 +60,20 @@ public:
     for (const auto& c :cables_) { c.accept(v); }
     }*/
 
+private:
+  const int computePlotColor(const int phiSectorRef, const Category& type, const int slot) const;
+
+  Container cable_;
+
+  std::string name_;
+
+  double phiSectorWidth_;
+  int phiSectorRef_;
+  Category type_;
+  int slot_;
+  bool isPositiveCablingSide_;
+
+  int plotColor_;
 };
 
 

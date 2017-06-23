@@ -107,8 +107,8 @@ void Cable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const 
 
 const std::string Cable::computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   std::ostringstream dtcNameStream;
-  if (!isPositiveCablingSide) dtcNameStream << "neg_";
-  dtcNameStream << phiSectorRef << "_" << any2str(type) << "_" << slot;
+  if (!isPositiveCablingSide) dtcNameStream << cabling_negativePrefix;
+  dtcNameStream << "_" << phiSectorRef << "_" << any2str(type) << "_" << slot;
   const std::string dtcName = dtcNameStream.str();
   return dtcName;
 }

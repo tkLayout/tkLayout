@@ -30,7 +30,7 @@ public:
 
   const DTC* getDTC() const { return myDTC_; }
 
-  const Category type() const { return type_; }
+  const Category& type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }

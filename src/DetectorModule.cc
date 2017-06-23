@@ -521,12 +521,6 @@ const int DetectorModule::dtcPhiSectorRef() const {
   return dtcPhiSectorRef;
 }
 
-//BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
-//setup();
-                                    // this was already commented
-                                    //myModuleCap_ = new ModuleCap(this);
-                                    //myModuleCap_->setCategory(MaterialProperties::b_mod);
-//}
 
 void BarrelModule::check() {
   PropertyObject::check();
@@ -553,13 +547,6 @@ void BarrelModule::build() {
   cleanup();
   builtok(true);
 }
-
-//EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
-//setup();
-                                         // this was already commented
-                                         //myModuleCap_ = new ModuleCap(this);
-                                         //myModuleCap_->setCategory(MaterialProperties::e_mod);
-//} 
 
 
 void EndcapModule::check() {
