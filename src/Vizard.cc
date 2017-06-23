@@ -1185,13 +1185,9 @@ namespace insur {
 
 
   bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-
-    std::cout << "Firstttttttt Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
-
     bool isPixelTracker = tracker.isPixelTracker();
-    if (!isPixelTracker) {
-      std::cout << "Seconddddd Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
 
+    if (!isPixelTracker) {
       std::string name = "Outer";
 
       std::string pageTitle = "Cabling";
@@ -1222,9 +1218,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
-      std::cout << "Thirddd Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
       createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, XYBundleCanvasesDisk, XYSurfacesDisk);
-      std::cout << "Fourth Building optical Cabling map here cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
 
       if (RZBundleCanvas) {
 	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
@@ -1299,11 +1293,6 @@ namespace insur {
       
       
       const CablingMap* myCablingMap = tracker.getCablingMap();
-      std::cout << "First vizard cables size " << tracker.getCablingMap()->getCables().size() << std::endl;
-
-      std::cout << "(myCablingMap == NULL) " << (myCablingMap == NULL) << std::endl;
-      std::cout << "Vizaaaard" << myCablingMap->getCables().size() << std::endl;
-
 
       // CSV files
       RootWContent* filesContent = new RootWContent("Cabling files", true);
@@ -6816,8 +6805,6 @@ namespace insur {
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Cable ServicesChannel/I, Bundle #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
-    std::cout << "myDTCs.size() =" << myDTCs.size() << std::endl;
-    std::cout << "myCables.size() =" << myCablingMap->getCables().size() << std::endl;
     for (const auto& dtc : myDTCs) {
       if (dtc.second != NULL) {
 	std::stringstream DTCInfo;
