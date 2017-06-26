@@ -6,17 +6,12 @@
 
 #include "Property.hh"
 #include "Bundle.hh"
-//#include "CablingVisitable.h"
+
 
 namespace insur { class DTC; }
 using insur::DTC;
 
-/*using std::string;
-using std::vector;
-using std::pair;
-using std::unique_ptr;*/
 
-//class Cable : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Cable : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Bundle> Container;
 public:
@@ -39,31 +34,6 @@ public:
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const int servicesChannel() const { return servicesChannel_; }
 
-
-  /*Cable() :
-            nBundlesPerCable      ("nBundlesPerCable"      , parsedAndChecked(), 12)
-  {}
-
-  void setup() {}
-  Property<int, Default> nBundlesPerCable;
-
-  Container& bundles() { return bundles_; }
- 
-  int nBundles() const { return bundles_.size(); }
-  int maxBundles() {return nBundlesPerCable(); }
-   
-  void check() override;
-  void build();
-
-
-  void accept(CablingVisitor& v) { 
-    v.visit(*this); 
-    for (auto& b : bundles_) { b.accept(v); }
-  }
-  void accept(ConstCablingVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& b :bundles_) { b.accept(v); }
-    }*/
 
 private:
   const int computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;

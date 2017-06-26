@@ -8,19 +8,11 @@
 #include "Module.hh"
 #include "Cabling/PhiPosition.hh"
 
-//#include "CoordinateOperations.hh"
-//#include "CablingVisitable.h"
-//#include "CablingVisitor.h"
-/*using std::string;
-using std::vector;
-using std::pair;
-using std::unique_ptr;*/
 
 namespace insur { class Cable; }
 using insur::Cable;
 
 
-//class Bundle : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class Bundle : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Module> Container; 
 
@@ -37,11 +29,6 @@ public:
   // CABLE THE BUNDLE IS CONNECTED TO.
   const Cable* getCable() const { return cable_; }
   void setCable(Cable* cable) { cable_ = cable; }
-  
-  /*void removeModule(Module* m) {
-    int detId = m->myDetId();
-    modules_.erase_if([detId](Module& m) { return (m.myDetId() == detId); });
-    }*/
 
   void moveMaxPhiModuleFromOtherBundle(Bundle* otherBundle);
   void moveMinPhiModuleFromOtherBundle(Bundle* otherBundle);
@@ -62,37 +49,9 @@ public:
   const int plotColor() const { return plotColor_; }
 
 
-  /*Bundle() :
-            nModulesPerBundle      ("nModulesPerBundle"      , parsedAndChecked(), 6)
-  {}
-  void setup() {
-  }
-
-  Container& modules() { return detectormodules_; }
-  const Container& modules() const { return detectormodules_; }
-  int nModules() const { return detectormodules_.size(); }
-  int maxModules() {return nModulesPerBundle(); }
-  
-  void check() override;
-  void build();
-
-  void addModule(Module& m) {}
-
-  void accept(CablingVisitor& v) { 
-    v.visit(*this); 
-    for (Module& m : detectormodules_) { m.accept(v); }
-  }
-  void accept(ConstCablingVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& m : detectormodules_) { m.accept(v); }
-    }*/
-
-
 private:
   const int computePlotColor(const int id, const bool isPositiveCablingSide) const;
 
-  //typedef PtrSet<Module> Container;
-  //Property<int, Default> nModulesPerBundle;
   Container modules_;
 
   Cable* cable_ = nullptr;

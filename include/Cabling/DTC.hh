@@ -8,16 +8,8 @@
 #include "Module.hh"
 
 
-/*using std::string;
-using std::vector;
-using std::pair;
-using std::unique_ptr;*/
-
-//class DTC : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Cable> Container;
-  //typedef PtrVector<Cable> Container;
-  //Container cables_;
 
 public:
   DTC(const std::string name, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
@@ -36,30 +28,6 @@ public:
 
   const int plotColor() const { return plotColor_; }
 
-  /*DTC() :
-            nCablesPerDTC      ("nCablesPerDTC"      , parsedAndChecked(), 1)
-  {}
-
-  void setup() {
-  }
-
-  Container& cables() { return cables_; }
-  const Container& cables() const { return cables_; }
-  int nCables() const { return cables_.size(); }
-  int maxCables() {return nCablesPerDTC(); }
-  
-  void check() override;
-  void build();
-  Property<int, Default> nCablesPerDTC;
-
-  void accept(CablingVisitor& v) { 
-    v.visit(*this); 
-    for (auto& c : cables_) { c.accept(v); }
-  }
-  void accept(ConstCablingVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& c :cables_) { c.accept(v); }
-    }*/
 
 private:
   const int computePlotColor(const int phiSectorRef, const Category& type, const int slot) const;
