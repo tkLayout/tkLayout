@@ -6469,7 +6469,7 @@ namespace insur {
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
       line->SetLineWidth(2); 
       line->Draw("same");
     }
@@ -6565,7 +6565,7 @@ namespace insur {
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
       line->SetLineWidth(2); 
       line->Draw("same");
     }
@@ -6578,7 +6578,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     // Spider lines
     for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(M_PI - i * phiSectorWidth), phiSectorBoundaryRadius * sin(M_PI - i * phiSectorWidth)); 
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
       line->SetLineWidth(2); 
       line->Draw("same");
     }

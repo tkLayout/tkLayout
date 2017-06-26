@@ -41,14 +41,6 @@ namespace CoordinateOperations {
 /**
  * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
  */
-
-  static double stereoPhi(const XYZVector& v) {
-    double phiStereo = 0.;
-    if (v.Z() >= 0.) phiStereo = v.Phi();
-    else phiStereo = M_PI - v.Phi();
-    return phiStereo;
-  }
-
   template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
     Polygon* midPoly = new Polygon();
 
