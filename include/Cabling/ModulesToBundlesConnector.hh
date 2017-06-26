@@ -7,10 +7,16 @@
 #include "Cabling/DTC.hh"
 
 
+/* This class is used to CONNECT MODULES TO BUNDLES.
+ * The idea is to compute the Phi position references asociated to each module.
+ * Then, a bundle corresponding to that position is built or found.
+ * Lastly, the module is connected to that bundle, and vice-versa.
+ * At the end of the process, 2 maps containing all the bundles which have been built are returned.
+*/
 class ModulesToBundlesConnector : public GeometryVisitor {
 public:
-  std::map<int, Bundle*> getBundles() { return bundles_; }
-  std::map<int, Bundle*> getNegBundles() { return negBundles_; }
+  std::map<int, Bundle*> getBundles() { return bundles_; }        // positive cabling side
+  std::map<int, Bundle*> getNegBundles() { return negBundles_; }  // negative cabling side
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -25,6 +31,7 @@ public:
   void postVisit();
 
 private:
+  // BUILDING
   const bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const;
 
   const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
@@ -34,17 +41,20 @@ private:
   Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
   void connectModuleToBundle(DetectorModule& m, Bundle* bundle) const;
 
+  // STAGERRING
   void staggerModules(std::map<int, Bundle*>& bundles);
+
+  // CHECKING
   void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
 
-  std::map<int, Bundle*> bundles_;
-  std::map<int, Bundle*> negBundles_;
+  std::map<int, Bundle*> bundles_;     // positive cabling side bundles.
+  std::map<int, Bundle*> negBundles_;  // negative cabling side bundles.
 
   bool isBarrel_;
   std::string barrelName_;
   int layerNumber_;
   int numRods_;
-  int totalNumFlatRings_;
+  int totalNumFlatRings_;              // Total number of flat rings on both (+Z) side and (-Z) side
   double rodPhi_; 
 
   std::string endcapName_;
