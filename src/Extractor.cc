@@ -641,7 +641,6 @@ namespace insur {
 	  // both modRings 1 and 2 have to be taken into account because of small delta
 	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
 	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
-	  //std::cout << 
 	}
       }
 
@@ -1222,7 +1221,7 @@ namespace insur {
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
       if (isTilted && !isPixelTracker) shape.name_tag = rodname.str() + "Full";
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
-      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
+      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
       if (isPixelTracker || isTimingLayer) shape.dy = rodWidth.at(layer) + xml_epsilon;
