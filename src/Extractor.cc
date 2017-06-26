@@ -841,7 +841,7 @@ namespace insur {
 		pos.trans.dz = partner->getModule().center().Z();
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
-pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
+		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
 		p.push_back(pos);
 	      }
@@ -1088,14 +1088,6 @@ pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		  logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
 		  l.push_back(logic);
 
-		  // test
-		  /*shape.name_tag = crystalName + "Test";
-		  s.push_back(shape);
-		  logic.name_tag = shape.name_tag;
-		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-		  l.push_back(logic);*/
-
-
 		  // LOOP ON ALL CRYSTALS IN THE MODULE
 		  for (int j = 0; j < numCrystalsY; j++) {
 		    for (int i = 0; i < numCrystalsX; i++) {		  	         
@@ -1131,11 +1123,6 @@ pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		      pos.rotref = "";
 		    }
 		  } // loop on crystals
-
-		  // Test
-		  /*pos.parent_tag = pos.child_tag;
-		  pos.child_tag = trackerXmlTags.nspace + ":" + crystalName + "Test";
-		  p.push_back(pos);*/
 
 		  // Topology
 		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), crystalName) == mspec.partselectors.end()) {
