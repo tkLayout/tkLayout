@@ -28,11 +28,13 @@ public:
   Bundle(const int id, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
   ~Bundle();
 
+  // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
   Container& modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
   void addModule(Module* m) { modules_.push_back(m); }
 
+  // CABLE THE BUNDLE IS CONNECTED TO.
   const Cable* getCable() const { return cable_; }
   void setCable(Cable* cable) { cable_ = cable; }
   

@@ -10,10 +10,10 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
   isPositiveCablingSide_(isPositiveCablingSide)
 { 
   myid(id);
-  // Assign a servicesChannel to the cable
+  // ASSIGN A SERVICESCHANNEL TO THE CABLE
   servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
 
-  // Build DTC asociated to the cable
+  // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
 };
 
@@ -24,6 +24,10 @@ Cable::~Cable() {
 }
 
 
+/* Compute services channels.
+ * They are the channels where the optical cables are routed when they exit the tracker.
+ * They are closely related to the phiSector ref.
+ */
 const int Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int servicesChannel = 0;
   if (type == Category::PS10G) {
@@ -86,6 +90,16 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
     }
   }
 
+  // NEGATIVE CABLING SIDE.
+  // This is the following transformation:
+  // 1 -> 6
+  // 2 -> 5
+  // 3 -> 4
+  // 7 -> 12
+  // 8 -> 11
+  // 9 -> 10
+  // This is so that the numbering follows a rotation of 180 degrees around CMS_Y for the negative cabling side.
+  // The services channel is then set to negative on negative cabling side.
   if (!isPositiveCablingSide) {
     double pivot = (servicesChannel <= 6 ? 3.5 : 9.5);
     servicesChannel = servicesChannel + round( 2. * (pivot - servicesChannel) );
@@ -96,7 +110,8 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
 }
 
 
-// Build DTC asociated to the cable
+/* Build DTC asociated to the cable.
+ */
 void Cable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
   std::string dtcName = computeDTCName(phiSectorRef, type, slot, isPositiveCablingSide);
   DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
@@ -105,6 +120,8 @@ void Cable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const 
 }
 
 
+/* Compute DTC name.
+ */
 const std::string Cable::computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   std::ostringstream dtcNameStream;
   if (!isPositiveCablingSide) dtcNameStream << cabling_negativePrefix << "_";

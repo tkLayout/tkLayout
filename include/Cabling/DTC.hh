@@ -22,6 +22,7 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   DTC(const std::string name, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
 
+  // CABLE CONNECTED TO THE DTC
   const Container& cable() const { return cable_; }
 
   void addCable(Cable* c) { cable_.push_back(c); }

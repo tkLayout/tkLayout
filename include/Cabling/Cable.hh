@@ -23,11 +23,13 @@ public:
   Cable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
   ~Cable();
 
+  // BUNDLES CONNECTED TO THE CABLE.
   const Container& bundles() const { return bundles_; }
 
   void addBundle(Bundle* b) { bundles_.push_back(b); }
   int numBundles() const { return bundles_.size(); }
 
+  // DTC THE CABLE IS CONNECTED TO.
   const DTC* getDTC() const { return myDTC_; }
 
   const Category& type() const { return type_; }
