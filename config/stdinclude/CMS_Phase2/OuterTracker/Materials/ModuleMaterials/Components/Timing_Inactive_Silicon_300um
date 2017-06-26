@@ -1,0 +1,14 @@
+// Timing inactive silicon for 300 um sensors
+
+Component {
+  componentName "Timing Inactive silicon"
+  service false
+  scaleOnSensor 0
+  //Sensor inactive edges
+  Element {
+    elementName Si
+    quantity 0.578
+    unit g
+    targetVolume 0
+  }
+}

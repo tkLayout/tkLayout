@@ -9,16 +9,20 @@
 void DetIdentifiable::buildDetId(std::map<int, uint32_t> geometryHierarchyIds, std::vector<int> geometryHierarchySizes) {
   geometryHierarchyIds_ = geometryHierarchyIds;
 
-  for (int level = 0; level < geometryHierarchySizes.size(); level++) {
-    uint32_t id = geometryHierarchyIds.at(level);
-    int shift = geometryHierarchySizes.at(level);
+  int numLevels = geometryHierarchySizes.size(); // Number of geometry hierarchy levels, as expected by the DetId scheme.
+  if (geometryHierarchyIds.size() == numLevels) {
+    for (int level = 0; level < numLevels; level++) {
+      uint32_t id = geometryHierarchyIds.at(level);
+      int shift = geometryHierarchySizes.at(level);
 
-    if (id <= pow(2, shift) ) {
-      myDetId_ <<= shift;  // Shift by the hierarchy level's number of bits.
-      myDetId_ |= id;      // Add the hierarchy level Id.
+      if (id <= pow(2, shift) ) {
+	myDetId_ <<= shift;  // Shift by the hierarchy level's number of bits.
+	myDetId_ |= id;      // Add the hierarchy level Id.
+      }
+
+      // Check that the hierarchy level's number of bits is not too small !
+      else logWARNING("buildDetId : At rank " + any2str(level) + ", id number " + any2str(id) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
     }
-
-    // Check that the hierarchy level's number of bits is not too small !
-    else logWARNING("buildDetId : At rank " + any2str(level) + ", id number " + any2str(id) + " is reached, while size allocated by the DetId scheme is 2^" + any2str(shift) + ".");
   }
+  else logWARNING("buildDetId : the geometry hierarchy does not match the DetId scheme specified in the cfg files. You did not specify an appropriate DetId scheme in the cfg files, or the DetId building code is not adapted to the present geometry.");
 }
