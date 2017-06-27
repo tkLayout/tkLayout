@@ -1227,12 +1227,12 @@ namespace insur {
       }
       if (XYBundleNegCanvas) {
 	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side");
+	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYBundleCanvas) {
 	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side");
+	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
@@ -6491,7 +6491,7 @@ namespace insur {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
 	TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					    Form("(XY) Projection : Endcap %s, any Disk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	XYCanvasDisk->cd();
 	PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
@@ -6516,7 +6516,7 @@ namespace insur {
 	for (auto& surfaceModules : allSurfaceModules) {
 	  iSurface++;
 	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), iSurface),
-					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d", anEndcap.myid().c_str(), iSurface),
+					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), iSurface),
 					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYSurfaceDisk->cd();
 	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
@@ -6614,7 +6614,7 @@ namespace insur {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
 	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
-					      Form("(XY) Projection : Endcap %s Disk %d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
