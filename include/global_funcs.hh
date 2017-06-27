@@ -118,6 +118,16 @@ template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgTyp
   return result;
 }
 
+
+template<typename ArgType> inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
+  ArgType result = fmod(phi, base);
+  if (fabs(result - base) < 1.e-5) result -= base;
+  if (result < -1.e-5) result += base;
+  if (fabs(result) < 1.e-5) result = 0;
+  return result;
+}
+
+
 template<typename ArgType> inline int signum(const ArgType& x) {
   return (x > ArgType(0)) - (x < ArgType(0));
 }
