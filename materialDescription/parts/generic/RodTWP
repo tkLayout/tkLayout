@@ -1,6 +1,0 @@
-// 1 TWP/rod
-// (This is a bus line: service does not accumulate)
-comp = Twisted pairs
-M Cu 0 0 0 0.339 g/m E; // Two conductors and a drain
-M PE 0 0 0 0.194 g/m E; // Two insulations
-M Al 0 0 0 0.330 g/m E; // Aluminium polyester foil

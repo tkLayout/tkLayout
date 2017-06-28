@@ -36,6 +36,14 @@ public:
   ReadonlyProperty<double, Computable> minR, maxR;
   ReadonlyProperty<double, Computable> minZ, maxZ;
   ReadonlyProperty<double, AutoDefault> powerPerChannel;
+  // Timing barrel module : approximated as 1 single sensor made of crystals (for the XML export)
+  ReadonlyProperty<int, AutoDefault> numCrystalsX;
+  ReadonlyProperty<int, AutoDefault> numCrystalsY;
+  ReadonlyProperty<double, AutoDefault> alveolaShift;
+  ReadonlyProperty<double, AutoDefault> crystalWidth;
+  ReadonlyProperty<double, AutoDefault> crystalLength;
+  ReadonlyProperty<double, AutoDefault> crystalThickness;
+  ReadonlyProperty<double, AutoDefault> crystalTiltAngle;
   
  Sensor() :
   numStripsAcross("numStripsAcross", parsedOnly()),
@@ -46,7 +54,14 @@ public:
     numROCY("numROCY", parsedOnly()),
     sensorThickness("sensorThickness", parsedAndChecked()),
     type("sensorType", parsedOnly(), SensorType::None),
-    powerPerChannel("powerPerChannel", parsedOnly())
+    powerPerChannel("powerPerChannel", parsedOnly()),
+    numCrystalsX("numCrystalsX", parsedOnly()),
+    numCrystalsY("numCrystalsY", parsedOnly()),
+    alveolaShift("alveolaShift", parsedOnly()),
+    crystalWidth("crystalWidth", parsedOnly()),
+    crystalLength("crystalLength", parsedOnly()),
+    crystalThickness("crystalThickness", parsedOnly()),
+    crystalTiltAngle("crystalTiltAngle", parsedOnly())   
       {}
 
   void parent(const DetectorModule* m) { parent_ = m; }
@@ -68,6 +83,10 @@ public:
   int numROCCols() const { return numSegmentsEstimate() / numROCY(); }
 
   int totalROCs() const { return numROCX() * numROCY(); }
+
+  int numCrystals() const { return numCrystalsX() * numCrystalsY(); }
+  double alveolaWidth() const;
+  double alveolaLength() const;
 
   double sensorNormalOffset() const;             // normal offset of the sensor center, in the frame of reference of the module
   const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor

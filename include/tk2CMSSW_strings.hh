@@ -182,6 +182,8 @@ namespace insur {
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
     static const std::string xml_ring = "Ring";
+    static const std::string xml_positive_z = "PositiveZ";
+    static const std::string xml_negative_z = "NegativeZ";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
     static const std::string xml_barrel_module = "BModule";
@@ -192,6 +194,7 @@ namespace insur {
     static const std::string xml_hybrid_comp = "hybridcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_sensor_silicon = "SenSi";
+    static const std::string xml_sensor_LYSO = "SenLYSO";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
@@ -263,7 +266,9 @@ namespace insur {
     static const std::string xml_OT_places_flipped_mod_in_rod = "OUTERTRACKERRODTOFLIPPEDMODULE";
     static const std::string xml_PX_places_unflipped_mod_in_rod = "INNERTRACKERRODTOMODULE";
     static const std::string xml_PX_places_flipped_mod_in_rod = "INNERTRACKERRODTOFLIPPEDMODULE";
-    static const std::string xml_Y180 = "Y180"; 
+    static const std::string xml_positive_z_tilted_mod_rot = "POSITIVEZMODULETILT"; 
+    static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
+    static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants

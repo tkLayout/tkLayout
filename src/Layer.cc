@@ -149,9 +149,9 @@ void Layer::check() {
   if (!isTilted()) {
     if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
     if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
-    if (!phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
-    if (!phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
-    if (numRods.state()) throw PathfulException("Flat layer : numRods should not be specified.");
+    if (numRods.state() && (phiOverlap.state() || phiSegments.state())) throw PathfulException("Flat layer : Only one between numRods  and (phiOverlap + phiSegments) can be specified.");
+    if (!numRods.state() && !phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
+    if (!numRods.state() && !phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
   }
 
@@ -217,7 +217,8 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   float moduleWidth = (*rodTemplate.rbegin())->minWidth();
   float f = moduleWidth/2 - phiOverlap()/2;
   float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
-  float tentativeModsPerSegment = 2*M_PI/(gamma * phiSegments());
+
+  float tentativeModsPerSegment = 2. * M_PI / (gamma * phiSegments());
 
   float optimalRadius;
   int optimalModsPerSegment;
@@ -304,9 +305,14 @@ void Layer::buildStraight(bool isFlatPart) {
   RodTemplate rodTemplate = makeRodTemplate();
 
   if (!isFlatPart) {
-    std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
-    placeRadius_ = optimalLayerParms.first; 
-    numRods(optimalLayerParms.second);
+    if (!numRods.state()) {
+      std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
+      placeRadius_ = optimalLayerParms.first; 
+      numRods(optimalLayerParms.second);
+    }
+    else {
+      placeRadius_ = placeRadiusHint();
+    }
   }
   else {
     placeRadius_ = placeRadiusHint();
@@ -317,7 +323,17 @@ void Layer::buildStraight(bool isFlatPart) {
     maxBuildRadius(placeRadius_);
   }
 
-  float rodPhiRotation = 2*M_PI/numRods();
+  double rodPhiWidth = 0;
+  double forbiddenPhiLowerA, forbiddenPhiUpperA, forbiddenPhiLowerB, forbiddenPhiUpperB;
+  if (!phiForbiddenRanges.state()) rodPhiWidth = 2. * M_PI / numRods();
+  else {
+    forbiddenPhiLowerA = phiForbiddenRanges.at(0) * M_PI / 180.;
+    forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
+    forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
+    forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
+    double forbiddenPhiCircumference = forbiddenPhiUpperA - forbiddenPhiLowerA + forbiddenPhiUpperB - forbiddenPhiLowerB;
+    rodPhiWidth = (2*M_PI - forbiddenPhiCircumference) / numRods();
+  }
 
   // FIRST ROD : assign common properties
   StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
@@ -341,6 +357,8 @@ void Layer::buildStraight(bool isFlatPart) {
   first->isOuterRadiusRod(isPlusBigDeltaRod);
   first->build(rodTemplate, isPlusBigDeltaRod);
   first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
+  double firstRodPhi = (!phiForbiddenRanges.state() ? 0. : (forbiddenPhiUpperA + rodPhiWidth / 2.));
+  first->rotateZ(firstRodPhi);
   if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
   else { flatPartRods_.push_back(first); }
 
@@ -350,7 +368,8 @@ void Layer::buildStraight(bool isFlatPart) {
   second->isOuterRadiusRod(isPlusBigDeltaRod);
   second->build(rodTemplate, isPlusBigDeltaRod);
   second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  second->rotateZ(rodPhiRotation);
+  double secondRodPhi = firstRodPhi + rodPhiWidth;
+  second->rotateZ(secondRodPhi);
   if (!isFlatPart) { rods_.push_back(second); }
   else { flatPartRods_.push_back(second); }
 
@@ -358,7 +377,18 @@ void Layer::buildStraight(bool isFlatPart) {
   for (int i = 2; i < numRods(); i++) {
     StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+
+    // Phi rotation
+    double deltaPhi = rodPhiWidth * (i%2 ? i-1 : i);  // Extra Phi, added to the copy of secondRod or firstRod respectively.
+    if (phiForbiddenRanges.state()) {
+      double iRodPhi = (i%2 ? secondRodPhi : firstRodPhi) + deltaPhi;  // Total Phi of rod number i.
+      if (moduloComp(forbiddenPhiLowerB, iRodPhi, 2. * M_PI)) {
+	deltaPhi += (forbiddenPhiUpperB - forbiddenPhiLowerB);  // Shift all Phi : + Phi forbidden range B circumference when relevant.
+      }
+    }
+    rod->rotateZ(deltaPhi);
+
+    // Store
     if (!isFlatPart) { rods_.push_back(rod); }
     else { flatPartRods_.push_back(rod); }
   }
@@ -540,7 +570,7 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodPhiRotation = 2*M_PI/numRods();
+  float rodPhiWidth = 2*M_PI/numRods();
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
@@ -554,13 +584,13 @@ void Layer::buildTilted() {
   second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
-  second->rotateZ(rodPhiRotation);
+  second->rotateZ(rodPhiWidth);
   rods_.push_back(second);
 
   for (int i = 2; i < numRods(); i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    rod->rotateZ(rodPhiWidth*(i%2 ? i-1 : i));
     rods_.push_back(rod);
     }
 
@@ -612,6 +642,7 @@ void Layer::build() {
     throw; 
   }
 }
+
 
 const MaterialObject& Layer::materialObject() const{
   return materialObject_;

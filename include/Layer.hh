@@ -111,6 +111,7 @@ public:
   Property<double, Default> layerRotation;
 
   Property<int, NoDefault> numRods;
+  FixedSizeMultiProperty<std::vector<double>, 4,','> phiForbiddenRanges;
 
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
@@ -127,6 +128,7 @@ public:
 	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
 	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
 	    numRods        ("numRods"        , parsedOnly()),
+	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
             stationsNode   ("Station"        , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),
@@ -177,6 +179,8 @@ public:
 
   void layerNumber(int num) { layerNumber_ = num; }
   int layerNumber() const { return layerNumber_; }
+
+  bool isTiming() const { return rods_.front().isTiming(); }
   /*int calculateTotalNumRings(int numModulesSide) const { 
     int num = 0;
     if (rods_.size() !=0) {
