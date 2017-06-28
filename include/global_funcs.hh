@@ -118,11 +118,9 @@ template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgTyp
   return result;
 }
 
-
+// Same as femod, but in case the result is an approximation of 0., round it to 0 !
 template<typename ArgType> inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
-  ArgType result = fmod(phi, base);
-  if (fabs(result - base) < 1.e-5) result -= base;
-  if (result < -1.e-5) result += base;
+  ArgType result = femod(phi, base);
   if (fabs(result) < 1.e-5) result = 0;
   return result;
 }
