@@ -38,6 +38,7 @@ LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 OUT_DIR+=$(LIBDIR)
 OUT_DIR+=$(BINDIR)
 OUT_DIR+=$(LIBDIR)/AnalyzerVisitors
+OUT_DIR+=$(LIBDIR)/Cabling
 MKDIR_P = mkdir -p
 .PHONY: directories
 
@@ -133,12 +134,22 @@ ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 ANALYZERVISITORS+=ModuleCount
 
+CABLING+=Bundle
+CABLING+=Cable
+CABLING+=cabling_constants
+CABLING+=cabling_functions
+CABLING+=CablingMap
+CABLING+=DTC
+CABLING+=ModulesToBundlesConnector
+CABLING+=PhiPosition
+
 EXES+=tklayout
 EXES+=setup
 EXES+=diskPlace
 
 OBJECTFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${OBJS}))
 ANALYZERVISITORFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/AnalyzerVisitors/,${ANALYZERVISITORS}))
+CABLINGFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/Cabling/,${CABLING}))
 EXEFILES=$(addprefix ${BINDIR}/,${EXES})
 EXELIBFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${EXES}))
 
@@ -170,6 +181,11 @@ all_analyzerVisitors: ${ANALYZERVISITORFILES}
 clean_analyzerVisitors:
 	@rm -f ${ANALYZERVISITORFILES}
 
+all_cabling: ${CABLINGFILES}
+
+clean_cabling:
+	@rm -f ${CABLINGFILES}	
+
 # General rule to build objects
 $(LIBDIR)/%.o: $(SRCDIR)/%.cc $(INCDIR)/%.hh
 	$(COMP) $(ROOTFLAGS) -o $@ -c $<
@@ -181,6 +197,13 @@ $(LIBDIR)/AnalyzerVisitors/%.o: $(SRCDIR)/AnalyzerVisitors/%.cc $(INCDIR)/Analyz
 	mkdir -p $(LIBDIR)/AnalyzerVisitors
 	$(COMP) $(ROOTFLAGS) -c -o $@ $<
 	@echo "Built AnalyzerVisitor $@"
+	
+# Cabling in its own directory
+$(LIBDIR)/Cabling/%.o: $(SRCDIR)/Cabling/%.cc $(INCDIR)/Cabling/%.hh
+	@echo "Building Cabling $@..."
+	mkdir -p $(LIBDIR)/Cabling
+	$(COMP) $(ROOTFLAGS) -c -o $@ $<
+	@echo "Built Cabling $@"
 
 # Special rule for objects with a "main"
 $(EXELIBFILES): $(LIBDIR)/%.o: $(SRCDIR)/%.cc
@@ -188,11 +211,11 @@ $(EXELIBFILES): $(LIBDIR)/%.o: $(SRCDIR)/%.cc
 	@echo "Main object $@ built"
 
 # General rule to build executables
-$(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) getRevisionDefine
+$(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) $(CABLINGFILES) getRevisionDefine
 	# Let's make the revision object first
 	$(COMP) $(SVNREVISIONDEFINE) -c $(SRCDIR)/SvnRevision.cc -o $(LIBDIR)/SvnRevision.o
 	# Now we just have to link standard objects, revision and main object
-	$(LINK) $< $(OBJECTFILES) $(ANALYZERVISITORFILES) $(LIBDIR)/SvnRevision.o \
+	$(LINK) $< $(OBJECTFILES) $(ANALYZERVISITORFILES) $(CABLINGFILES) $(LIBDIR)/SvnRevision.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $@
 	@echo "Executable $@ built"
@@ -207,7 +230,7 @@ $(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR
 	-o $(BINDIR)/setup
 
 # Clean and documentation
-clean: clean_exes clean_objects clean_analyzerVisitors
+clean: clean_exes clean_objects clean_analyzerVisitors clean_cabling
 
 doc: doxydoc
 

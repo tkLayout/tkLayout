@@ -21,8 +21,14 @@
 #include "Visitable.hh"
 #include "MaterialObject.hh"
 
+
 using namespace boost::accumulators;
 using material::MaterialObject;
+
+namespace insur { class Bundle; }
+using insur::Bundle;
+namespace insur { class DTC; }
+using insur::DTC;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -43,6 +49,7 @@ struct UniRef { string cnt; int layer, ring, phi, side; };
 namespace insur {
   class ModuleCap;
 }
+
 using insur::ModuleCap;
 using material::ElementsVector;
 
@@ -52,6 +59,8 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
+
+  Bundle* bundle_ = NULL;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -321,6 +330,14 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
   std::string summaryType() const;
   std::string summaryFullType() const;
+
+  void setBundle(Bundle* bundle) { bundle_ = bundle ; }
+  const Bundle* getBundle() const { return bundle_; }  
+  const int isPositiveCablingSide() const;
+  const int bundlePlotColor() const;  
+  const DTC* getDTC() const;
+  const int dtcPlotColor() const;
+  const int dtcPhiSectorRef() const;  
 };
 
 

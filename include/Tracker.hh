@@ -18,11 +18,15 @@
 #include "SupportStructure.hh"
 #include "Visitor.hh"
 #include "Visitable.hh"
+#include "Cabling/CablingMap.hh"
+//#include "Cabling/DTC.hh"
 #include "MainConfigHandler.hh"
 #include "DetIdBuilder.hh"
 
 using std::set;
 using material::SupportStructure;
+
+
 
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
@@ -71,7 +75,10 @@ private:
   Property<std::string, AutoDefault> barrelDetIdScheme;
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
-  Tracker(const Tracker&) = default;
+  //std::map<uint32_t, Module> modules_;
+  std::unique_ptr<const CablingMap> myCablingMap_;
+
+  //Tracker(const Tracker& otherTracker) = default;
 public:
 
   Tracker() :
@@ -146,6 +153,12 @@ public:
   void addLayerDiskNumbers();
   void buildDetIds();
   void checkDetIds();
+
+  void setCablingMap(std::unique_ptr<const CablingMap> map) { myCablingMap_ = std::move(map); }
+  const CablingMap* getCablingMap() const {
+    if (!myCablingMap_) throw PathfulException("Tracker has no cabling map, but one tries to access it.");
+    return myCablingMap_.get();
+  }
 
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }

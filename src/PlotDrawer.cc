@@ -32,7 +32,14 @@ int g
 ;
 
 template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
-  std::string name = std::string("frameYZ") + nextString();
+  std::string name = std::string("frameXY") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  frame->GetYaxis()->SetTitleOffset(1.3);
+  return frame;
+}
+
+template<> TH2C* FrameGetter<XYNeg>::operator()(double viewportX, double viewportY) const {
+  std::string name = std::string("frameXYNeg") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
@@ -122,7 +129,16 @@ template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas&, DrawerP
   drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
+template<> void SummaryFrameStyle<YZFull>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+}
+
 template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();    
+}
+
+template<> void SummaryFrameStyle<XYNeg>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();    
 }
 
