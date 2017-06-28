@@ -18,10 +18,10 @@
   <ZSection z="-291.0*cm" rMin="6.3*cm" rMax="120.0*cm"/>
   <ZSection z="-150.0*cm" rMin="6.3*cm" rMax="120.0*cm"/>
   <ZSection z="-150.0*cm" rMin="2.8*cm" rMax="120.0*cm"/>
-  <ZSection z="-22.7*cm" rMin="2.8*cm" rMax="120.0*cm"/>
-  <ZSection z="-22.7*cm" rMin="2.6*cm" rMax="120.0*cm"/>
-  <ZSection z="22.7*cm" rMin="2.6*cm" rMax="120.0*cm"/>
-  <ZSection z="22.7*cm" rMin="2.8*cm" rMax="120.0*cm"/>
+  <ZSection z="-22.70*cm" rMin="2.8*cm" rMax="120.0*cm"/>    <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker : z="-39.00*cm" -->
+  <ZSection z="-22.70*cm" rMin="2.6*cm" rMax="120.0*cm"/>    <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker : z="-39.00*cm" -->
+  <ZSection z="22.70*cm" rMin="2.6*cm" rMax="120.0*cm"/>     <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker : z="39.00*cm" -->
+  <ZSection z="22.70*cm" rMin="2.8*cm" rMax="120.0*cm"/>     <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker : z="39.00*cm" -->
   <ZSection z="150.0*cm" rMin="2.8*cm" rMax="120.0*cm"/>
   <ZSection z="150.0*cm" rMin="6.3*cm" rMax="120.0*cm"/>
   <ZSection z="291.0*cm" rMin="6.3*cm" rMax="120.0*cm"/>

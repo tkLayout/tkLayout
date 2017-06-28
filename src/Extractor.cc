@@ -198,7 +198,7 @@ namespace insur {
     std::cout << "Endcap discs done." << std::endl;
     // Analyse services
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
-    std::cout << "Barrel services done." << std::endl;
+    std::cout << "Services done." << std::endl;
     // Analyse supports
     analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Support structures done." << std::endl;
@@ -565,8 +565,7 @@ namespace insur {
       // is the layer tilted ?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
 
-      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();     
-
+      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
       // ALL THIS SHOULD BE DELETED AND REPLACED BY module->minRwithHybrids() GETTERS.
 
@@ -577,7 +576,6 @@ namespace insur {
       double ymin = std::numeric_limits<double>::max();
       double ymax = 0;
       // straight or tilted layer : z and r extrema of rod (straight layer), or of {rod part + tilted ring} (tilted layer)
-      //double zmin = std::numeric_limits<double>::max();
       double zmax = 0;
       double rmin = std::numeric_limits<double>::max();
       double rmax = 0;
@@ -642,7 +640,6 @@ namespace insur {
 	  // both modRings 1 and 2 have to be taken into account because of small delta
 	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
 	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
-	  //std::cout << 
 	}
       }
 
@@ -676,6 +673,7 @@ namespace insur {
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
       int timingModuleCopyNumber = 0;
+
 
       bool hasPhiForbiddenRanges = lagg.getBarrelLayers()->at(layer - 1)->phiForbiddenRanges.state();
       std::map<int, double> phiForbiddenRanges;
@@ -829,6 +827,7 @@ namespace insur {
 	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
+
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
@@ -839,6 +838,7 @@ namespace insur {
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
+
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
@@ -1231,9 +1231,9 @@ namespace insur {
       // rod(s)
       shape.name_tag = rodname.str();
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
-      if (isTilted) shape.name_tag = rodname.str() + "Full";
+      if (isTilted && !isPixelTracker) shape.name_tag = rodname.str() + "Full";
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
-      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
+      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
       if (isPixelTracker || isTimingLayer) shape.dy = rodWidth.at(layer) + xml_epsilon;
@@ -1242,7 +1242,9 @@ namespace insur {
       s.push_back(shape);
 
       // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
-      if (isTilted && flatPartNumModules >= 2) {
+      // This trick is only used for the Outer Tracker.
+      // For the Inner Tracker, this trick doesn't make sense, since in priciple smallDelta = 0.
+      if (isTilted && !isPixelTracker && flatPartNumModules >= 2) {
 	shape.name_tag = rodname.str() + "Air";
 	shape.dx = shape.dx / 2.0;
 	shape.dy = shape.dy + xml_epsilon;
@@ -2173,6 +2175,7 @@ namespace insur {
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
 
+
   /**
    * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
    * it creates a composite material information struct for each barrel service, and it adds the remaining information about
@@ -2214,7 +2217,7 @@ namespace insur {
     for (iter = bs.begin(); iter != guard; iter++) {
 #if 1
       if ( (int)(iter->getZOffset()) == 0 ) {
-        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;  
+        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;
         else previousInnerRadius = (int)(iter->getInnerRadius());
       }
 #endif
@@ -2232,9 +2235,8 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -2265,7 +2267,7 @@ namespace insur {
 	  else {
 	    // VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. 
 	    // TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr.
-	    if ((iter->getInnerRadius() + iter->getRWidth()) <= 1160.) { // BTL
+	    //if (!isTimingLayout || (isTimingLayout && (iter->getInnerRadius() + iter->getRWidth()) <= 1160.)) { // BTL
 
 	      // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
 	      if (iter->getZOffset() < startEndcaps) {
@@ -2294,7 +2296,7 @@ namespace insur {
 		pos.copy = 2;
 		pos.trans.dz = -pos.trans.dz;
 		pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
-		p.push_back(pos);	      
+		p.push_back(pos);
 
 		pos.copy = 1;
 		pos.rotref.clear();
@@ -2341,8 +2343,8 @@ namespace insur {
 		pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 		p.push_back(pos);
 	      }
-	    }
-	    else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
+	      //}
+	      //else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
 	  }
 
 
@@ -2422,12 +2424,15 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
+
 
 	  // BARREL supports
-	  if (iter->getZOffset() < startEndcaps ) {
+	  if ( (!isPixelTracker && iter->getZOffset() < startEndcaps)
+	       || (isPixelTracker && ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps))
+	       ) {
+
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
 	    shape.rmin = iter->getInnerRadius();
@@ -2453,6 +2458,61 @@ namespace insur {
 
 	  // ENDCAPS supports
 	  else {
+
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	    if (isPixelTracker && iter->getZOffset() < startEndcaps) {
+	      std::ostringstream shapenameBarrel, shapenameEndcaps;
+	      shapenameBarrel << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "BarrelPart";
+	      shapenameEndcaps << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "EndcapsPart";
+
+	      // Barrel part
+	      shape.name_tag = shapenameBarrel.str();
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+	      if (shape.rmin < supportBarrelRMin) supportBarrelRMin = shape.rmin;
+	      if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
+
+	      logic.name_tag = shapenameBarrel.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
+	      p.push_back(pos);
+	      pos.copy = 2;
+	      pos.trans.dz = -pos.trans.dz;
+	      pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
+	      p.push_back(pos);
+
+	      pos.copy = 1;
+	      pos.rotref.clear();
+
+	      // Endcaps part
+	      shape.name_tag = shapenameEndcaps.str();
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);    
+	      if (shape.rmin < supportEndcapsRMin) supportEndcapsRMin = shape.rmin;
+	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
+
+	      logic.name_tag = shapenameEndcaps.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
+	      p.push_back(pos);
+	    }
+
+	    // ENDCAPS-only services
+	    else {
 	      shape.name_tag = shapename.str();
 	      shape.dz = iter->getZLength() / 2.0;
 	      shape.rmin = iter->getInnerRadius();
@@ -2470,6 +2530,7 @@ namespace insur {
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
+	    }
 	  }
 
 

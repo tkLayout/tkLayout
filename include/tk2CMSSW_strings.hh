@@ -17,6 +17,9 @@ namespace insur {
     static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
+    static const double xml_outerTrackerEndcapsMinZ = 1250.;
+    static const double xml_innerTrackerEndcapsMinZ = 227.;  // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
+    static const double xml_innerTiltedTrackerEndcapsMinZ = 390.; 
     /**
      * XML tags and attributes
      */
@@ -298,10 +301,10 @@ namespace insur {
     static const std::string xml_PX_topo_straight_rod_value = "PixelBarrelLadder";
 
     static const std::string xml_OT_topo_tilted_ring_name = "OuterTrackerPixelBarrelRing";
-    static const std::string xml_PX_topo_tilted_ring_name = "InnerPixelBarrelRing";
+    static const std::string xml_PX_topo_tilted_ring_name = "InnerTrackerBarrelRing";
 
     static const std::string xml_OT_topo_tilted_ring_value = "Phase2OTBarrelPanel";
-    static const std::string xml_PX_topo_tilted_ring_value = "";
+    static const std::string xml_PX_topo_tilted_ring_value = "Phase2ITBarrelPanel";
 
     static const std::string xml_OT_topo_bmodule_name = "OuterTrackerBarrelStack";
     static const std::string xml_PX_topo_bmodule_name = "InnerPixelBarrelStack";
