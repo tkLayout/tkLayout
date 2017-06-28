@@ -271,7 +271,7 @@ namespace insur {
     static const std::string xml_PX_places_flipped_mod_in_rod = "INNERTRACKERRODTOFLIPPEDMODULE";
     static const std::string xml_positive_z_tilted_mod_rot = "POSITIVEZMODULETILT"; 
     static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
-    static const std::string xml_Y180 = "Y180"; 
+    static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
