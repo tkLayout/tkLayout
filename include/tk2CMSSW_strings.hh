@@ -17,6 +17,9 @@ namespace insur {
     static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
+    static const double xml_outerTrackerEndcapsMinZ = 1250.;
+    static const double xml_innerTrackerEndcapsMinZ = 227.;  // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
+    static const double xml_innerTiltedTrackerEndcapsMinZ = 390.; 
     /**
      * XML tags and attributes
      */

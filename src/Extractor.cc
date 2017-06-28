@@ -198,7 +198,7 @@ namespace insur {
     std::cout << "Endcap discs done." << std::endl;
     // Analyse services
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
-    std::cout << "Barrel services done." << std::endl;
+    std::cout << "Services done." << std::endl;
     // Analyse supports
     analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Support structures done." << std::endl;
@@ -2093,6 +2093,7 @@ namespace insur {
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
 
+
   /**
    * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
    * it creates a composite material information struct for each barrel service, and it adds the remaining information about
@@ -2138,7 +2139,7 @@ namespace insur {
     for (iter = bs.begin(); iter != guard; iter++) {
 #if 1
       if ( (int)(iter->getZOffset()) == 0 ) {
-        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;  
+        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;
         else previousInnerRadius = (int)(iter->getInnerRadius());
       }
 #endif
@@ -2156,11 +2157,10 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
 	  else {
-	    if (!isWithTiltedPixel) startEndcaps = 227.;   // PIXEL 4_0_2_1
-	    else startEndcaps = 390.;
+	    if (!isWithTiltedPixel) startEndcaps = xml_innerTrackerEndcapsMinZ;
+	    else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
 	  }
           
 	  // BARREL services
@@ -2351,11 +2351,10 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
 	  else {
-	    if (!isWithTiltedPixel) startEndcaps = 227.;   // PIXEL 4_0_2_1
-	    else startEndcaps = 390.;
+	    if (!isWithTiltedPixel) startEndcaps = xml_innerTrackerEndcapsMinZ;
+	    else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
 	  }
 
 
