@@ -2109,10 +2109,6 @@ namespace insur {
   void Extractor::analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 					std::vector<Composite>& c, std::vector<LogicalInfo>& l,
                                         std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
-
-    bool isTimingLayout = false;
-    bool isWithTiltedPixel = true;
-
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2158,10 +2154,7 @@ namespace insur {
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
-	  else {
-	    if (!isWithTiltedPixel) startEndcaps = xml_innerTrackerEndcapsMinZ;
-	    else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
-	  }
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -2192,7 +2185,7 @@ namespace insur {
 	  else {
 	    // VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. 
 	    // TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr.
-	    if (!isTimingLayout || (isTimingLayout && (iter->getInnerRadius() + iter->getRWidth()) <= 1160.)) { // BTL
+	    //if (!isTimingLayout || (isTimingLayout && (iter->getInnerRadius() + iter->getRWidth()) <= 1160.)) { // BTL
 
 	      // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
 	      if (iter->getZOffset() < startEndcaps) {
@@ -2268,8 +2261,8 @@ namespace insur {
 		pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 		p.push_back(pos);
 	      }
-	    }
-	    else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
+	      //}
+	      //else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
 	  }
 
 
@@ -2309,8 +2302,6 @@ namespace insur {
   void Extractor::analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 				  std::vector<Composite>& c, std::vector<LogicalInfo>& l,
                                   std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
-    bool isWithTiltedPixel = true;
-
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2352,10 +2343,7 @@ namespace insur {
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
-	  else {
-	    if (!isWithTiltedPixel) startEndcaps = xml_innerTrackerEndcapsMinZ;
-	    else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
-	  }
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
 
 
 	  // BARREL supports
