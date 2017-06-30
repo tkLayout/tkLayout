@@ -227,6 +227,7 @@ struct XY : public std::pair<int, int>, private Rounder {
   int y() const { return this->second; }
 };
 
+// Same as XY, but for (-Z) side.
 struct XYNeg : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.

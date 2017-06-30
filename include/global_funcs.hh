@@ -111,17 +111,32 @@ std::string ctrim(std::string str, const std::string& chars);
 // In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
 // Here, femod is the Euclidian modulo operator (ie 0 <= result < base).
 // Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
-template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgType& base) {
+template<typename ArgType> 
+inline ArgType femod(const ArgType& phi, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
   ArgType result = fmod(phi, base);
   if (fabs(result - base) < 1.e-5) result -= base;
   if (result < -1.e-5) result += base;
   return result;
 }
 
+
+// Same as femod, but handles the case where the result is closed to 0.
+template<typename ArgType> 
+inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  ArgType result = femod(phi, base);
+  if (fabs(result) < 1.e-5) result = 0;
+  return result;
+}
+
+
 // Particulary useful for angles comparison.
 // Returns true is phi1 < phi2, false otherwise.
 // For comparing angles, this considers the part of the circle where the 2 angles are the closest to each other.
-template<typename ArgType> inline bool moduloComp(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+template<typename ArgType> 
+inline bool moduloComp(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
   ArgType modPhi1 = femod(phi1, base);
   ArgType modPhi2 = femod(phi2, base);
   if (fabs(modPhi1 -  modPhi2) > fabs(base / 2.)) {
@@ -130,6 +145,7 @@ template<typename ArgType> inline bool moduloComp(const ArgType& phi1, const Arg
   }
   return (modPhi1 < modPhi2);
 }
+
 
 template<typename ArgType> inline int signum(const ArgType& x) {
   return (x > ArgType(0)) - (x < ArgType(0));
