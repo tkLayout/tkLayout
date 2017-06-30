@@ -126,12 +126,8 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        //CoordExportVisitor v(t->myid());
-        //ModuleDataVisitor v1(t->myid());
-        //t->accept(v);
-        //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
-        else tr = t;
+        else { tr = t; }
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -179,27 +175,20 @@ namespace insur {
     return true;
   }
 
- /*
-  bool Squid::buildNewTracker() {
-    boost::ptree pt;
-    info_parser::read_info(getGeometryFile(), pt);
-  }
-*/
+
   /**
-   * Dress the previously created geometry with module options. The modified tracker object remains
-   * in the squid as the current tracker until it is overwritten by a call to another function that creates
-   * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
-   * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
-   * pixel detector remains in the squid until it is replaced by a call to another function creating a new
-   * one.
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @return True if there was an existing tracker to dress, false otherwise
+   * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
+   * Can actually be reused for power cables routing.
+   * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
+   * The underlying cabling was designed for TDR layout OT613_200_IT4025, and will not work for any other layout.
    */
-/*  bool Squid::dressTracker() {
+  bool Squid::buildCablingMap(const bool cablingOption) {
+    startTaskClock("Building optical Cabling map.");
     if (tr) {
-      startTaskClock("Assigning module types to tracker and pixel");
-      cp.dressTracker(tr, getSettingsFile());
-      if (px) cp.dressPixels(px, getSettingsFile());
+      // BUILD CABLING MAP.	
+      std::unique_ptr<const CablingMap> map(new CablingMap(tr));
+      // std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
+      tr->setCablingMap(std::move(map));
       stopTaskClock();
       return true;
     }
@@ -209,7 +198,7 @@ namespace insur {
       return false;
     }
   }
-*/
+
 
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
@@ -491,6 +480,27 @@ namespace insur {
     }
   }
 
+
+  /**
+   * Add the optical cabling map to the website.
+   */
+  bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
+    startTaskClock("Creating optical Cabling map report.");
+    if (layoutName != default_tdrLayoutName) logERROR("Cabling map is designed and implemented for TDR layout only.");
+    if (tr) {
+      // CREATE REPORT ON WEBSITE.
+      v.cablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
     if (detailed) {
@@ -575,7 +585,7 @@ namespace insur {
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, is, site, debugResolution);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");
+      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");     
       stopTaskClock();
       return true;
     } else {

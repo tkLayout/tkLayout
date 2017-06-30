@@ -1,6 +1,12 @@
 
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
+#include "Cabling/Bundle.hh"
+
+#include "Cabling/Cable.hh"
+#include "Cabling/DTC.hh"
+
+
 
 void DetectorModule::build() {
   check();
@@ -454,12 +460,59 @@ std::string DetectorModule::summaryFullType() const  {
   return result;
 };
 
-//BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
-//setup();
-                                    // this was already commented
-                                    //myModuleCap_ = new ModuleCap(this);
-                                    //myModuleCap_->setCategory(MaterialProperties::b_mod);
-//}
+
+const int DetectorModule::isPositiveCablingSide() const {
+  int isPositiveCablingSide = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
+    isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
+  }
+  return isPositiveCablingSide;
+}
+
+
+const int DetectorModule::bundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
+
+const DTC* DetectorModule::getDTC() const {
+  const DTC* myDTC = nullptr;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
+    const Cable* myCable = myBundle->getCable();
+    if (myCable != nullptr) {
+      myDTC = myCable->getDTC();
+    }
+  }
+  return myDTC;
+}
+
+
+const int DetectorModule::dtcPlotColor() const {
+  int dtcPlotColor = 0;
+  const DTC* myDTC = getDTC();
+  if (myDTC != nullptr) {
+    dtcPlotColor = myDTC->plotColor();
+  }
+  return dtcPlotColor;
+}
+
+
+const int DetectorModule::dtcPhiSectorRef() const {
+  int dtcPhiSectorRef = 0;
+  const DTC* myDTC = getDTC();
+  if (myDTC != nullptr) {
+    dtcPhiSectorRef = myDTC->phiSectorRef();
+  }
+  return dtcPhiSectorRef;
+}
+
 
 void BarrelModule::check() {
   PropertyObject::check();
@@ -486,13 +539,6 @@ void BarrelModule::build() {
   cleanup();
   builtok(true);
 }
-
-//EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
-//setup();
-                                         // this was already commented
-                                         //myModuleCap_ = new ModuleCap(this);
-                                         //myModuleCap_->setCategory(MaterialProperties::e_mod);
-//} 
 
 
 void EndcapModule::check() {

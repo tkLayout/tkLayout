@@ -198,7 +198,7 @@ namespace insur {
     std::cout << "Endcap discs done." << std::endl;
     // Analyse services
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
-    std::cout << "Barrel services done." << std::endl;
+    std::cout << "Services done." << std::endl;
     // Analyse supports
     analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Support structures done." << std::endl;
@@ -564,7 +564,8 @@ namespace insur {
       
       // is the layer tilted ?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
-     
+
+      bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
       // ALL THIS SHOULD BE DELETED AND REPLACED BY module->minRwithHybrids() GETTERS.
 
@@ -575,7 +576,6 @@ namespace insur {
       double ymin = std::numeric_limits<double>::max();
       double ymax = 0;
       // straight or tilted layer : z and r extrema of rod (straight layer), or of {rod part + tilted ring} (tilted layer)
-      //double zmin = std::numeric_limits<double>::max();
       double zmax = 0;
       double rmin = std::numeric_limits<double>::max();
       double rmax = 0;
@@ -640,7 +640,6 @@ namespace insur {
 	  // both modRings 1 and 2 have to be taken into account because of small delta
 	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
 	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
-	  //std::cout << 
 	}
       }
 
@@ -671,6 +670,14 @@ namespace insur {
 
       double rodStartPhiAngle, rodNextPhiStartPhiAngle;
 
+      std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
+      bool newTimingModuleType = true;
+      int timingModuleCopyNumber = 0;
+
+
+      bool hasPhiForbiddenRanges = lagg.getBarrelLayers()->at(layer - 1)->phiForbiddenRanges.state();
+      std::map<int, double> phiForbiddenRanges;
+
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
@@ -678,6 +685,27 @@ namespace insur {
 
       // LOOP ON MODULE CAPS 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+
+	if (hasPhiForbiddenRanges) {
+	  int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  int forbiddenPhiUpperAIndex = numRods / 2;
+	  int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
+
+	  std::vector<int> phiForbiddenRangesIndexes;
+	  phiForbiddenRangesIndexes.push_back(1);
+	  phiForbiddenRangesIndexes.push_back(forbiddenPhiUpperAIndex);
+	  phiForbiddenRangesIndexes.push_back(forbiddenPhiLowerBIndex);
+	  phiForbiddenRangesIndexes.push_back(numRods);
+
+	  for (const auto& i : phiForbiddenRangesIndexes) {
+	    if (iiter->getModule().uniRef().phi == i) {
+	      auto found = phiForbiddenRanges.find(i);
+	      if (found == phiForbiddenRanges.end()) {
+		phiForbiddenRanges.insert(std::make_pair(i, iiter->getModule().center().Phi()));
+	      }
+	    }
+	  }
+	}
         
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
@@ -693,19 +721,27 @@ namespace insur {
 
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  std::ostringstream mnameBase;
+	  std::ostringstream mnameNeg;
+	  if (!iiter->getModule().isTimingModule()) mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  // Timing layer : insert both +Z and -Z sides
+	  else {
+	    mnameBase << xml_barrel_module << modRing << lname.str();
+	    mname << xml_barrel_module << modRing << lname.str() << xml_positive_z;
+	    mnameNeg << xml_barrel_module << modRing << lname.str() << xml_negative_z;
+	  }
 
-	  // parent module name
-	  std::string parentName = mname.str();
-
-	  std::vector<ModuleCap>::iterator partner;
 
 	  // build module volumes, with hybrids taken into account
+	  std::string parentName = mname.str();
 	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
 	  modcomplex.buildSubVolumes();
 #ifdef __DEBUGPRINT__
 	  modcomplex.print();
 #endif
+
+	  std::vector<ModuleCap>::iterator partner = findPartnerModule(iiter, oiter->end(), modRing);
+	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {           
@@ -718,68 +754,116 @@ namespace insur {
 
 	    // MODULE
 
-	    // For SolidSection in tracker.xml : module's box shape
-            shape.name_tag = mname.str();
-            //shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-            //shape.dy = iiter->getModule().length() / 2.0;
-            //shape.dz = iiter->getModule().thickness() / 2.0;
-            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
-            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
-            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
-	    s.push_back(shape);
-	    
+	    // Special case : timing module.
+	    // Only define a new module if no module of the same type already defined.
+	    // This is for shortening the size of the XML files.
+	    std::tuple<int, int, int, int> crystalProperties;
+	    std::string childName;
+	    if (iiter->getModule().isTimingModule()) {
+	      if (iiter->getModule().numSensors() > 0) {
+		double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
+		double crystalLength = iiter->getModule().sensors().front().crystalLength();
+		double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
+		double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
+		crystalProperties = std::make_tuple(round(crystalWidth * 10.), round(crystalLength * 10.), round(crystalThickness * 10.), round(crystalTiltAngle * 10.));
 
-	    // For LogicalPartSection in tracker.xml : module's material
-            //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-            logic.material_tag = xml_material_air;
-            logic.name_tag = mname.str();
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-	    l.push_back(logic);	    
-	    // module composite material
-            //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
-            //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
-            
+		// Define new timing module type.
+		if (timingModuleNames.count(crystalProperties) == 0) {
+		  newTimingModuleType = true;
+		  timingModuleNames.insert(std::make_pair(crystalProperties, mnameBase.str()));
+		}
+		// Uses an already defined timing module with same properties.
+		else { newTimingModuleType = false; }
+	      }
+	      else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
+	    }
+
+	    // Standard case
+	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
+	      // For SolidSection in tracker.xml : module's box shape
+	      shape.name_tag = mname.str();
+	      shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+	      shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+	      shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+	      s.push_back(shape);
+	    
+	      // For LogicalPartSection in tracker.xml : module's material
+	      logic.material_tag = xml_material_air;
+	      logic.name_tag = mname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      l.push_back(logic);
+
+	      // Timing layer : insert both +Z and -Z sides
+	      if (iiter->getModule().isTimingModule()) {
+		shape.name_tag = mnameNeg.str();
+		s.push_back(shape);
+		logic.name_tag = mnameNeg.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+	      }	    
+	    }
+            	  
 
 	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
             if (!isTilted || (isTilted && (tiltAngle == 0))) {
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodname.str();
-	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-	      partner = findPartnerModule(iiter, oiter->end(), modRing);
-
+	      // DEFINE CHILD : MODULE TO BE PLACED IN A ROD.
+	      // Standard case
+	      if (!iiter->getModule().isTimingModule()) {
+		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+	      }
+	      // For timing barrel layer : Child, to place in a rod, can be a copy of an existing module.	      
+	      else {
+		// Define new timing module child.
+		if (newTimingModuleType) {
+		  childName = trackerXmlTags.nspace + ":" + mnameBase.str();
+		  timingModuleCopyNumber = 1;
+		}
+		// Uses an already defined timing module with same properties.
+		else {
+		  childName = trackerXmlTags.nspace + ":" + timingModuleNames.at(crystalProperties);
+		  timingModuleCopyNumber += 1;
+		}
+	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
+
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
+	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
+	      if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_positive_z;
 	      p.push_back(pos);
 	      
-	      // This is a copy of the BModule (FW/BW barrel half)
+	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
+
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
-		pos.copy = 2; 
+		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
+		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
 		p.push_back(pos);
-		pos.copy = 1;
 	      }
+	      // reset
+	      pos.copy = 1;
 	      pos.rotref = "";
 	    }
 	  }
+
 
 	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-	      partner = findPartnerModule(iiter, oiter->end(), modRing);
-
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
-	      // This is a copy of the BModule (FW/BW barrel half)
+	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
 		pos.trans.dz = partner->getModule().center().Z();
@@ -793,206 +877,319 @@ namespace insur {
 	    }
 	  }
 
+
 	  if (iiter->getModule().uniRef().phi == 1) {
+	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
-	    std::ostringstream ringname;
-	    ringname << xml_ring << modRing << lname.str();
+	      std::ostringstream ringname;
+	      ringname << xml_ring << modRing << lname.str();
 
-	    // Topology
-	    sspec.partselectors.push_back(mname.str());
-	    sspec.moduletypes.push_back(minfo_zero);
+	      // Topology
+	      sspec.partselectors.push_back(mname.str());
+	      sspec.moduletypes.push_back(minfo_zero);
+	      if (iiter->getModule().isTimingModule()) { 
+		sspec.partselectors.push_back(mnameNeg.str());
+		sspec.moduletypes.push_back(minfo_zero);
+	      }
+	      
 
 
-            // WAFER
-            string xml_base_lowerupper = "";
-            if (iiter->getModule().numSensors() == 2) {
-	      xml_base_lowerupper = xml_base_lower;
-	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-	    }	    
-	    else {
-	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
-	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
-	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-	    }
-
-	    // SolidSection
-            shape.name_tag = shape.name_tag;
-	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-	    shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().sensorThickness() / 2.0;
-            s.push_back(shape);   
-
-	    // LogicalPartSection
-            logic.name_tag = shape.name_tag;
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_material_air;
-            l.push_back(logic);
-
-	    // PosPart section
-            pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
-            pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-            pos.trans.dx = 0.0;
-            pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
-            p.push_back(pos);
-
-            if (iiter->getModule().numSensors() == 2) {
-
-              xml_base_lowerupper = xml_base_upper;
+	      // WAFER
+	      string xml_base_lowerupper = "";
+	      if (iiter->getModule().numSensors() == 2) {
+		xml_base_lowerupper = xml_base_lower;
+		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	      }	    
+	      else {
+		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+		else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      }
 
 	      // SolidSection
-              shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
-              s.push_back(shape);
+	      shape.name_tag = shape.name_tag;
+	      shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	      shape.dy = iiter->getModule().length() / 2.0;
+	      shape.dz = iiter->getModule().sensorThickness() / 2.0;
+	      s.push_back(shape);   
 
 	      // LogicalPartSection
-              logic.name_tag = shape.name_tag;
-              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-              l.push_back(logic);
+	      logic.name_tag = shape.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      logic.material_tag = xml_material_air;
+	      l.push_back(logic);
 
 	      // PosPart section
-              pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-              pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
-              //pos.copy = 2;
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+	      pos.trans.dx = 0.0;
+	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
+	      p.push_back(pos);
 
-              if (iiter->getModule().stereoRotation() != 0) {
-                rot.name = type_stereo + mname.str();
-                rot.thetax = 90.0;
-                rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
-                rot.thetay = 90.0;
-                rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
-                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-                pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
-              }
-              p.push_back(pos);
+	      // Timing layer : insert both +Z and -Z sides
+	      if (iiter->getModule().isTimingModule()) {
+		shape.name_tag = mnameNeg.str() + xml_timing + xml_base_waf;
+		s.push_back(shape);
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+		pos.parent_tag = trackerXmlTags.nspace + ":" + mnameNeg.str();
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		p.push_back(pos);
+	      }
 
-              // Now reset
-              pos.rotref.clear();
-              rot.name.clear();
-              rot.thetax = 0.0;
-              rot.phix = 0.0;
-              rot.thetay = 0.0;
-              rot.phiy = 0.0;
-              pos.copy = 1;
-            }
+	      if (iiter->getModule().numSensors() == 2) {
+
+		xml_base_lowerupper = xml_base_upper;
+
+		// SolidSection
+		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+		s.push_back(shape);
+
+		// LogicalPartSection
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+
+		// PosPart section
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
+		//pos.copy = 2;
+
+		if (iiter->getModule().stereoRotation() != 0) {
+		  rot.name = type_stereo + mname.str();
+		  rot.thetax = 90.0;
+		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
+		  rot.thetay = 90.0;
+		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
+		}
+		p.push_back(pos);
+
+		// Now reset
+		pos.rotref.clear();
+		rot.name.clear();
+		rot.thetax = 0.0;
+		rot.phix = 0.0;
+		rot.thetay = 0.0;
+		rot.phiy = 0.0;
+		pos.copy = 1;
+	      }
 
 
-            // ACTIVE SURFACE
-            xml_base_lowerupper = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
+	      // ACTIVE SURFACE
+	      xml_base_lowerupper = "";
+	      if ( !iiter->getModule().isTimingModule()) {
+		if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
-	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
-	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-	    else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-	    else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
-	    else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
+		else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    
+		// SolidSection
+		shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+		shape.dy = iiter->getModule().length() / 2.0;
+		shape.dz = iiter->getModule().sensorThickness() / 2.0;
+		s.push_back(shape);   
 
-	    // SolidSection
-	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-	    shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().sensorThickness() / 2.0;
-            s.push_back(shape);   
+		// LogicalPartSection
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + (iiter->getModule().isTimingModule() && iiter->getModule().subdet() == BARREL ? xml_sensor_LYSO : xml_sensor_silicon);
+		l.push_back(logic);
 
-	    // LogicalPartSection
-            logic.name_tag = shape.name_tag;
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_silicon;
-            l.push_back(logic);
-
-	    // PosPart section
-	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	    else {
-	      if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-	      else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
-	      else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-	    }
-            pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-            pos.trans.dz = 0.0;
+		// PosPart section
+		if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		else {
+		  if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		}
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-            pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
+		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
-            p.push_back(pos);
+		p.push_back(pos);
 
-            // Topology
-	    minfo.name		= iiter->getModule().moduleType();
-            mspec.partselectors.push_back(shape.name_tag);
-            minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
-            minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
-            minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
-            minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-            mspec.moduletypes.push_back(minfo);
+		// Topology
+		minfo.name		= iiter->getModule().moduleType();
+		mspec.partselectors.push_back(shape.name_tag);
+		minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
+		minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+		minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+		minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+		mspec.moduletypes.push_back(minfo);
 
-            if (iiter->getModule().numSensors() == 2) { 
+		if (iiter->getModule().numSensors() == 2) { 
 
-              xml_base_lowerupper = xml_base_upper;
+		  xml_base_lowerupper = xml_base_upper;
 
-	      // SolidSection
-	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
-	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
-	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
-              s.push_back(shape);
+		  // SolidSection
+		  if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+		  else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+		  else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		  s.push_back(shape);
 
-	      // LogicalPartSection
-              logic.name_tag = shape.name_tag;
-              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-              l.push_back(logic);
+		  // LogicalPartSection
+		  logic.name_tag = shape.name_tag;
+		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		  l.push_back(logic);
 
-	      // PosPart section
-	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-              pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		  // PosPart section
+		  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		  pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
-              pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
-              p.push_back(pos);
+		  p.push_back(pos);
 
-              // Topology
-              mspec.partselectors.push_back(shape.name_tag);
-              minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
-              minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
-              minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
-              minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
-              mspec.moduletypes.push_back(minfo);
-	    } // End of replica for Pt-modules
+		  // Topology
+		  mspec.partselectors.push_back(shape.name_tag);
+		  minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
+		  minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
+		  minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
+		  minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		  mspec.moduletypes.push_back(minfo);
+		} // End of replica for Pt-modules
+	      }
 
-	    modcomplex.addMaterialInfo(c);
-	    modcomplex.addShapeInfo(s);
-	    modcomplex.addLogicInfo(l);
-	    modcomplex.addPositionInfo(p);
+	      // Barrel timing modules : add crystals volumes within the wafer volume
+	      else {
+		if (iiter->getModule().numSensors() > 0) {
+
+		  int numCrystalsX = iiter->getModule().sensors().front().numCrystalsX();
+		  int numCrystalsY = iiter->getModule().sensors().front().numCrystalsY();
+
+		  double alveolaWidth = iiter->getModule().sensors().front().alveolaWidth();
+		  double alveolaLength = iiter->getModule().sensors().front().alveolaLength();
+		  double alveolaShift = iiter->getModule().sensors().front().alveolaShift();
+
+		  std::string crystalName = mnameBase.str() + xml_timing + xml_base_act;
+
+		  double crystalWidth = iiter->getModule().sensors().front().crystalWidth();
+		  double crystalLength = iiter->getModule().sensors().front().crystalLength();
+		  double crystalThickness = iiter->getModule().sensors().front().crystalThickness();
+		  double crystalTiltAngle = iiter->getModule().sensors().front().crystalTiltAngle();
+		  		 		 
+		  // SolidSection		  
+		  shape.name_tag = crystalName;
+		  shape.dx = crystalWidth / 2.0;
+		  shape.dy = crystalLength / 2.0;
+		  shape.dz = crystalThickness / 2.0;
+		  s.push_back(shape);
+
+		  // LogicalPartSection
+		  logic.name_tag = shape.name_tag;
+		  logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		  logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_LYSO;
+		  l.push_back(logic);
+
+		  // LOOP ON ALL CRYSTALS IN THE MODULE
+		  for (int j = 0; j < numCrystalsY; j++) {
+		    for (int i = 0; i < numCrystalsX; i++) {		  	         
+	    
+		      // PosPart section		 
+		      pos.child_tag = trackerXmlTags.nspace + ":" + crystalName;
+		      int crystalIndex = j * numCrystalsX + i + 1;
+		      pos.copy = crystalIndex;
+		      double midX = numCrystalsX / 2 - 0.5;
+		      pos.trans.dx = (i - midX) * alveolaWidth;
+		      double midY = numCrystalsY / 2 - 0.5;
+		      pos.trans.dy = (j - midY) * alveolaLength;
+		      pos.trans.dz = pow(-1., i + j) * alveolaShift;
+
+		      addTiltedModuleRot(r, crystalTiltAngle);
+		      std::ostringstream tilt;
+		      tilt << round(crystalTiltAngle);
+
+		      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		      pos.rotref = trackerXmlTags.nspace + ":" + xml_positive_z_tilted_mod_rot + tilt.str();
+		      p.push_back(pos);
+
+		      // -Z side
+		      pos.parent_tag = trackerXmlTags.nspace + ":" + mnameNeg.str() + xml_timing + xml_base_waf;
+		      pos.rotref = trackerXmlTags.nspace + ":" + xml_negative_z_tilted_mod_rot + tilt.str();
+		      p.push_back(pos);
+
+		      // reset
+		      pos.copy = 1;
+		      pos.trans.dx = 0.;
+		      pos.trans.dy = 0.;
+		      pos.trans.dz = 0.;
+		      pos.rotref = "";
+		    }
+		  } // loop on crystals
+
+		  // Topology
+		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), crystalName) == mspec.partselectors.end()) {
+		    minfo.name		= iiter->getModule().moduleType();
+		    mspec.partselectors.push_back(crystalName);
+		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
+		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+		    mspec.moduletypes.push_back(minfo);
+		  }
+		}
+		else { std::cout << "ERROR !! Barrel timing module with no sensor." << std::endl; }
+	      }
+
+	      modcomplex.addMaterialInfo(c);
+	      modcomplex.addShapeInfo(s);
+	      modcomplex.addLogicInfo(l);
+	      modcomplex.addPositionInfo(p);
+	      // -Z side
+	      if ( iiter->getModule().isTimingModule()) {
+		std::string parentNameNeg = mnameNeg.str();
+		ModuleComplex modcomplexNeg(mnameNeg.str(),parentNameNeg,*partner);
+		modcomplexNeg.buildSubVolumes();
+		modcomplexNeg.addMaterialInfo(c);
+		modcomplexNeg.addShapeInfo(s);
+		modcomplexNeg.addLogicInfo(l);
+		modcomplexNeg.addPositionInfo(p);
+	      }
 #ifdef __DEBUGPRINT__
-	    modcomplex.print();
+	      modcomplex.print();
 #endif
 	    
 
-	    // collect tilted ring info
-	    if (isTilted && (tiltAngle != 0)) {
-	      BTiltedRingInfo rinf;
-	      // ring on positive-z side
-	      rinf.name = ringname.str() + xml_plus;	      
-	      rinf.childname = mname.str();
-	      rinf.isZPlus = 1;
-	      rinf.tiltAngle = tiltAngle;
-	      rinf.bw_flipped = iiter->getModule().flipped();
-	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
-	      rinf.r1 = iiter->getModule().center().Rho();
-	      rinf.z1 = iiter->getModule().center().Z();
-	      rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
-	      rinf.rmin = modcomplex.getRmin();
-	      rinf.zmin = modcomplex.getZmin();
-	      rinf.rminatzmin = modcomplex.getRminatZmin();      
-	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+	      // collect tilted ring info
+	      if (isTilted && (tiltAngle != 0)) {
+		BTiltedRingInfo rinf;
+		// ring on positive-z side
+		rinf.name = ringname.str() + xml_plus;	      
+		rinf.childname = mname.str();
+		rinf.isZPlus = 1;
+		rinf.tiltAngle = tiltAngle;
+		rinf.bw_flipped = iiter->getModule().flipped();
+		rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+		rinf.r1 = iiter->getModule().center().Rho();
+		rinf.z1 = iiter->getModule().center().Z();
+		rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
+		rinf.rmin = modcomplex.getRmin();
+		rinf.zmin = modcomplex.getZmin();
+		rinf.rminatzmin = modcomplex.getRminatZmin();      
+		rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 
-	      // same ring on negative-z side
-	      rinf.name = ringname.str() + xml_minus;
-	      rinf.isZPlus = 0;
-	      rinf.z1 = - iiter->getModule().center().Z();
-	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+		// same ring on negative-z side
+		rinf.name = ringname.str() + xml_minus;
+		rinf.isZPlus = 0;
+		rinf.z1 = - iiter->getModule().center().Z();
+		rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+	      }
 	    }
 
 
-            // material properties
-            rtotal = rtotal + iiter->getRadiationLength();
-            itotal = itotal + iiter->getInteractionLength();
-            count++;
+	    // material properties
+	    rtotal = rtotal + iiter->getRadiationLength();
+	    itotal = itotal + iiter->getInteractionLength();
+	    count++;
 	    //double dt = modcomplex.getExpandedModuleThickness();
-	  }
+	  }	  
 
 
 	  // ONLY MODULES WITH UNIREF PHI == 2 OF THE TILTED RINGS (TILTED LAYER)
@@ -1034,18 +1231,20 @@ namespace insur {
       // rod(s)
       shape.name_tag = rodname.str();
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
-      if (isTilted) shape.name_tag = rodname.str() + "Full";
+      if (isTilted && !isPixelTracker) shape.name_tag = rodname.str() + "Full";
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
-      if (isPixelTracker) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
+      if (isPixelTracker || isTimingLayer) shape.dx = rodThickness.at(layer) + xml_epsilon;
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
-      if (isPixelTracker) shape.dy = rodWidth.at(layer) + xml_epsilon;
+      if (isPixelTracker || isTimingLayer) shape.dy = rodWidth.at(layer) + xml_epsilon;
       shape.dz = zmax + xml_epsilon;
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
 
       // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
-      if (isTilted && flatPartNumModules >= 2) {
+      // This trick is only used for the Outer Tracker.
+      // For the Inner Tracker, this trick doesn't make sense, since in priciple smallDelta = 0.
+      if (isTilted && !isPixelTracker && flatPartNumModules >= 2) {
 	shape.name_tag = rodname.str() + "Air";
 	shape.dx = shape.dx / 2.0;
 	shape.dy = shape.dy + xml_epsilon;
@@ -1094,34 +1293,104 @@ namespace insur {
 
       
       // rods in layer algorithm(s)
+      // OUTER TRACKER
       if (!isPixelTracker) {
-	alg.name = xml_phialt_algo;
-	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
-	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
-	// It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
-	// 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
-	pconverter.str("");
-	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
-	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << RadiusIn << "*mm";
-	alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-	pconverter.str("");
-	pconverter << RadiusOut << "*mm";
-	alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-	alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-	a.push_back(alg);
-	alg.parameters.clear();
+	if (!hasPhiForbiddenRanges) {
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+	}
+	else {
+	  int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	  int forbiddenPhiUpperAIndex = numRods / 2;
+	  int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
+
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << phiForbiddenRanges.at(1) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << numRods / 2;
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+
+	  alg.name = xml_phialt_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter.str("");
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  pconverter.str("");
+	  pconverter << phiForbiddenRanges.at(forbiddenPhiLowerBIndex) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusIn << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << RadiusOut << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  pconverter << numRods / 2;
+	  alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << forbiddenPhiLowerBIndex;
+	  alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  a.push_back(alg);
+	  pconverter.str("");
+	  alg.parameters.clear();
+	}
       }
+
+      // INNER TRACKER
       else {
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
@@ -1906,6 +2175,7 @@ namespace insur {
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
 
+
   /**
    * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
    * it creates a composite material information struct for each barrel service, and it adds the remaining information about
@@ -1947,7 +2217,7 @@ namespace insur {
     for (iter = bs.begin(); iter != guard; iter++) {
 #if 1
       if ( (int)(iter->getZOffset()) == 0 ) {
-        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;  
+        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;
         else previousInnerRadius = (int)(iter->getInnerRadius());
       }
 #endif
@@ -1965,9 +2235,8 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -1996,81 +2265,86 @@ namespace insur {
 
 	  // ENDCAPS services
 	  else {
-	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
-	    if (iter->getZOffset() < startEndcaps) {
-	      std::ostringstream shapenameBarrel, shapenameEndcaps;
-	      shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
-	      shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
+	    // VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. 
+	    // TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr.
+	    //if (!isTimingLayout || (isTimingLayout && (iter->getInnerRadius() + iter->getRWidth()) <= 1160.)) { // BTL
 
-	      // Barrel part
-	      shape.name_tag = shapenameBarrel.str();
-	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);
-	      if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
-	      if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
+	      // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	      if (iter->getZOffset() < startEndcaps) {
+		std::ostringstream shapenameBarrel, shapenameEndcaps;
+		shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
+		shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
 
-	      logic.name_tag = shapenameBarrel.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
+		// Barrel part
+		shape.name_tag = shapenameBarrel.str();
+		shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);
+		if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
+		if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
-	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
-	      p.push_back(pos);
-	      pos.copy = 2;
-	      pos.trans.dz = -pos.trans.dz;
-	      pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
-	      p.push_back(pos);
-	      
+		logic.name_tag = shapenameBarrel.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
 
-	      pos.copy = 1;
-	      pos.rotref.clear();
+		pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
+		p.push_back(pos);
+		pos.copy = 2;
+		pos.trans.dz = -pos.trans.dz;
+		pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
+		p.push_back(pos);
 
-	      // Endcaps part
-	      shape.name_tag = shapenameEndcaps.str();
-	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);    
-	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
-	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
+		pos.copy = 1;
+		pos.rotref.clear();
 
-	      logic.name_tag = shapenameEndcaps.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
+		// Endcaps part
+		shape.name_tag = shapenameEndcaps.str();
+		shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);    
+		if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+		if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
-	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
-	      p.push_back(pos);
+		logic.name_tag = shapenameEndcaps.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
+
+		pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
+		p.push_back(pos);
 
 
-	    }
+	      }
 
-	    // ENDCAPS-only services
-	    else {
-	      shape.name_tag = shapename.str();
-	      shape.dz = iter->getZLength() / 2.0;
-	      shape.rmin = iter->getInnerRadius();
-	      shape.rmax = shape.rmin + iter->getRWidth();
-	      s.push_back(shape);
-	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
-	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
+	      // ENDCAPS-only services
+	      else {
+		shape.name_tag = shapename.str();
+		shape.dz = iter->getZLength() / 2.0;
+		shape.rmin = iter->getInnerRadius();
+		shape.rmax = shape.rmin + iter->getRWidth();
+		s.push_back(shape);
+		if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+		if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
-	      logic.name_tag = shapename.str();
-	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
-	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	      l.push_back(logic);
+		logic.name_tag = shapename.str();
+		logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+		logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+		l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
-	      pos.child_tag = logic.shape_tag;
-	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
-	      p.push_back(pos);
-	    }
+		pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
+		p.push_back(pos);
+	      }
+	      //}
+	      //else { std::cout << "VERY IMPORTANT : Barrel timing Layer : Services from Tracker endcaps removed. TEMPORARY !! This is because the Timing Layer is put in the tracker, and hence tracker and timing services are grouped togetehr. TO DO : Place timing layer in an independant container." << std::endl; }
 	  }
 
 
@@ -2150,12 +2424,15 @@ namespace insur {
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
-	  if (!isPixelTracker) startEndcaps = 1250.;
-	  //else startEndcaps = 300.; // PIXEL 1_1_1
-	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
+	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
+
 
 	  // BARREL supports
-	  if (iter->getZOffset() < startEndcaps ) {
+	  if ( (!isPixelTracker && iter->getZOffset() < startEndcaps)
+	       || (isPixelTracker && ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps))
+	       ) {
+
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
 	    shape.rmin = iter->getInnerRadius();
@@ -2181,6 +2458,61 @@ namespace insur {
 
 	  // ENDCAPS supports
 	  else {
+
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	    if (isPixelTracker && iter->getZOffset() < startEndcaps) {
+	      std::ostringstream shapenameBarrel, shapenameEndcaps;
+	      shapenameBarrel << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "BarrelPart";
+	      shapenameEndcaps << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset()) << "EndcapsPart";
+
+	      // Barrel part
+	      shape.name_tag = shapenameBarrel.str();
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+	      if (shape.rmin < supportBarrelRMin) supportBarrelRMin = shape.rmin;
+	      if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
+
+	      logic.name_tag = shapenameBarrel.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
+	      p.push_back(pos);
+	      pos.copy = 2;
+	      pos.trans.dz = -pos.trans.dz;
+	      pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
+	      p.push_back(pos);
+
+	      pos.copy = 1;
+	      pos.rotref.clear();
+
+	      // Endcaps part
+	      shape.name_tag = shapenameEndcaps.str();
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0 - xml_epsilon;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);    
+	      if (shape.rmin < supportEndcapsRMin) supportEndcapsRMin = shape.rmin;
+	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
+
+	      logic.name_tag = shapenameEndcaps.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
+	      p.push_back(pos);
+	    }
+
+	    // ENDCAPS-only services
+	    else {
 	      shape.name_tag = shapename.str();
 	      shape.dz = iter->getZLength() / 2.0;
 	      shape.rmin = iter->getInnerRadius();
@@ -2198,6 +2530,7 @@ namespace insur {
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
+	    }
 	  }
 
 
@@ -2220,7 +2553,42 @@ namespace insur {
     std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;*/
   }
 
+
   //private
+
+  // Add a tilted module rotation to the map of rotations
+  // This rotation is defined as the following : axial rotation, with axis X (local X of the module), and angle tiltAngle.
+  void Extractor::addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle) {
+    std::ostringstream tilt;
+    tilt << round(tiltAngle);
+
+    std::string positiveZName = xml_positive_z_tilted_mod_rot + tilt.str();
+    if (rotations.count(positiveZName) == 0) {
+      Rotation rot;
+      rot.name = positiveZName;
+      rot.thetax = 90.0;
+      rot.phix = 0.0;
+      rot.thetay = 90.0 + tiltAngle;
+      rot.phiy = 90.0;
+      rot.thetaz = tiltAngle;
+      rot.phiz = 90.0;
+      rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
+
+    std::string negativeZName = xml_negative_z_tilted_mod_rot + tilt.str();
+    if (rotations.count(negativeZName) == 0) {
+      Rotation rot;
+      rot.name = negativeZName;
+      rot.thetax = 90.0;
+      rot.phix = 0.0;
+      rot.thetay = 90.0 - tiltAngle;
+      rot.phiy = 90.0;
+      rot.thetaz = tiltAngle;
+      rot.phiz = 270.0;
+      rotations.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+    }
+  }
+
   /**
    * Bundle the information for a composite material from a list of components into an instance of a <i>Composite</i> struct.
    * The function includes an option to skip the sensor silicon in the list of elementary materials, omitting it completely when
@@ -2240,7 +2608,7 @@ namespace insur {
     comp.method = wt;
     double m = 0.0;
     for (const auto& it : mp.getLocalMasses()) {   
-      if (!nosensors || (it.first.compare(xml_sensor_silicon) != 0)) { // SenSi element is not treated here. 
+      if (!nosensors || ( (it.first.compare(xml_sensor_silicon) != 0) && (it.first.compare(xml_sensor_LYSO) != 0)) ) { // SenSi element is not treated here. 
 	if (comp.elements.find(it.first) != comp.elements.end()) { // should not be necessary, but better safe than sorry
 	  throw PathfulException("Tried to insert several times " + it.first + " in component " + comp.name);
         } 
@@ -2445,7 +2813,7 @@ namespace insur {
     if (nosensors) {
       double m = 0.0;
       for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
-        if (it->first.compare(xml_sensor_silicon) != 0) m += it->second;
+        if (it->first.compare(xml_sensor_silicon) != 0 && it->first.compare(xml_sensor_LYSO) != 0) m += it->second;
       }
       d = 1000 * m / d;
     }
@@ -2624,7 +2992,8 @@ namespace insur {
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
     if (!module.isPixelModule()) {
-      expandedModThickness = sensorDistance + 2.0 * (supportPlateThickness + sensorThickness);   
+      if (!module.isTimingModule()) expandedModThickness = sensorDistance + 2.0 * (supportPlateThickness + sensorThickness);
+      else expandedModThickness = sensorThickness + 2.0 * MAX(supportPlateThickness, hybridThickness);
       prefix_xmlfile = xml_fileident + ":";
       nTypes = 9;
     }

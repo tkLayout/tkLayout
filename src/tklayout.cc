@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
     ("resolution,r", "Report resolution analysis.")
     ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("pattern-reco,P", "Report pattern recognition analysis.")
+    ("cablingMap,c", "Build an optical cabling map, which connects each module to a bundle, cable, DTC. Can actually be reused for power cables.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
@@ -129,13 +130,13 @@ int main(int argc, char* argv[]) {
 
     // The tracker (and possibly pixel) must be build in any case
   if (!squid.buildTracker()) return EXIT_FAILURE;
-
+  if (vm.count("cablingMap") && !squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
+  
   if (!vm.count("tracksim")) {
     // The tracker should pick the types here but in case it does not,
     // we can still write something
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
-
-
+    
     if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
@@ -156,15 +157,11 @@ int main(int argc, char* argv[]) {
         if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);
       }
     }
-
+    
+    if (vm.count("cablingMap") && !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
-    /*if (vm.count("pixelxml")) {
-        squid.pixelExtraction(xmldir);
-	}*/
-    
-    //if( vm.count("xml") || vm.count("pixelxml") )    squid.createAdditionalXmlSite(xmldir);
     if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
 
     if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;

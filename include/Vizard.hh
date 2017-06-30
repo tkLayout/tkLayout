@@ -41,6 +41,7 @@
 #include <global_constants.hh>
 // Custom objects
 #include <Tracker.hh>
+#include "Cabling/CablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
 
@@ -61,6 +62,8 @@ namespace material {
 
 using namespace boost::accumulators;
 using material::WeightDistributionGrid;
+//namespace insur { class CablingMap; }
+//using insur::CablingMap;
 
 namespace insur {
 
@@ -115,6 +118,7 @@ namespace insur {
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
+    bool cablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -160,6 +164,10 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
+    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
+    RootWTable* createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
@@ -206,6 +214,9 @@ namespace insur {
     std::string createEndcapModulesCsv(const Tracker& t);
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
+
+    std::string createModulesToDTCsCsv(const Tracker& t, bool isPositiveCablingSide);
+    std::string createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide);
 
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);

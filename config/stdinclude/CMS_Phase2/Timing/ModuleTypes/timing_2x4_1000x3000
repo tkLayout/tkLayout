@@ -1,4 +1,4 @@
-// Lindsey Gray version
+// Lindsey Gray version : Endcap Timing module
 
 moduleType timing_2x4_1000x3000  // timing modules should always have a type starting with keyword 'timing_'
 // Active silicon size
@@ -24,7 +24,7 @@ physicalLength 96        // to avoid collisions with previous module in barrels
 reduceCombinatorialBackground true 
 
 Sensor 1 {
-  sensorType pad
+  sensorType largepix
   numStripsAcross 48  // 48mm/1mm
   numSegments 32 // 96mm/3mm
   numROCX 2

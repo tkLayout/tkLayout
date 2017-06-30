@@ -1,8 +1,0 @@
-// 6 TWP/Rod
-// (4 for sensors and 2 for converters)
-#include <generic/RodTWP>
-#include <generic/RodTWP>
-#include <generic/RodTWP>
-#include <generic/RodTWP>
-#include <generic/RodTWP>
-#include <generic/RodTWP>

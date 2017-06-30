@@ -466,3 +466,72 @@ void TrackerSensorVisitor::visit(Sensor& s) {
 
 std::string TrackerSensorVisitor::output() const { return output_.str(); }
    
+
+    //************************************//
+    //*               Visitor             //
+    //*            ModulesToDTCsCsv       //
+    //*                                   //
+    //************************************//
+ModulesToDTCsVisitor::ModulesToDTCsVisitor(bool isPositiveCablingSide) {
+  isPositiveCablingSide_ = isPositiveCablingSide;
+}
+
+void ModulesToDTCsVisitor::preVisit() {
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, Cable ServicesChannel/I, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
+}
+
+void ModulesToDTCsVisitor::visit(const Barrel& b) {
+  sectionName_ = b.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Endcap& e) {
+  sectionName_ = e.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Layer& l) {
+  layerId_ = l.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Disk& d) {
+  layerId_ = d.myid();
+}
+
+void ModulesToDTCsVisitor::visit(const Module& m) {
+  const Bundle* myBundle = m.getBundle();
+  if (myBundle != nullptr) {
+    if (myBundle->isPositiveCablingSide() == isPositiveCablingSide_) {
+      std::stringstream moduleInfo;
+      moduleInfo << m.myDetId() << ","
+		 << sectionName_ << ", "
+		 << layerId_ << ", "
+		 << m.moduleRing() << ", "
+		 << std::fixed << std::setprecision(6)
+		 << m.center().Phi() * 180. / M_PI << ", ";
+
+      std::stringstream bundleInfo;
+      bundleInfo << myBundle->myid() << ",";
+
+      const Cable* myCable = myBundle->getCable();
+      if (myCable != nullptr) {
+	std::stringstream cableInfo;
+	cableInfo << myCable->myid() << ","
+		  << any2str(myCable->type()) << ","
+		  << myCable->servicesChannel() << ",";
+	
+	const DTC* myDTC = myCable->getDTC();
+	if (myDTC != nullptr) {
+	  std::stringstream DTCInfo;
+	  DTCInfo << myDTC->name() << ","
+		  << myDTC->phiSectorRef() << ","
+		  << any2str(myDTC->type()) << ","
+		  << myDTC->slot() << ","
+		  << std::fixed << std::setprecision(6)
+		  << myDTC->phiSectorWidth() * 180. / M_PI;
+	  output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << DTCInfo.str() << std::endl;
+	}
+	else output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << std::endl;
+      }
+      else output_ << moduleInfo.str() << bundleInfo.str() << std::endl;
+    }
+  }
+}

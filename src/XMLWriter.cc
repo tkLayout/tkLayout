@@ -997,6 +997,9 @@ namespace insur {
 	      if (refstring.find(xml_barrel_module) != std::string::npos) {
 		mnumber = refstring.substr(xml_barrel_module.size());
 		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
+
+		bool isTiming = (refstring.find(xml_timing) != std::string::npos);
+		std::string postfixPos, postfixNeg;
 		
 		if ((!isTilted) // For untilted layer, takes all modules. e.g. BModule1 to BModule15 for Layer1.
 		    // For tilted layer, in case of rod, takes modules until first tilted ring. e.g. BModule1 to BModule4 for Layer1.
@@ -1016,10 +1019,19 @@ namespace insur {
 		    }
 
 		    else
-		      if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
+		      if (!isPixelTracker && !isTiming) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
+		      else if (isTiming) {
+			postfixPos = trackerXmlTags.nspace + ":" + postfix + xml_positive_z + "/" + postfix + xml_positive_z + xml_timing + xml_base_waf + "/" + refstring;
+			postfixNeg = trackerXmlTags.nspace + ":" + postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
+		      }
 		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
-
-		    paths.push_back(prefix + "/" + postfix);
+		    if (!isTiming) {
+		      paths.push_back(prefix + "/" + postfix);
+		    }
+		    else {
+		      paths.push_back(prefix + "/" + postfixPos);
+		      paths.push_back(prefix + "/" + postfixNeg);
+		    }
 		  }
 		}
 	      }

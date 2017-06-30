@@ -17,6 +17,9 @@ namespace insur {
     static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
+    static const double xml_outerTrackerEndcapsMinZ = 1250.;
+    static const double xml_innerTrackerEndcapsMinZ = 227.;  // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
+    static const double xml_innerTiltedTrackerEndcapsMinZ = 390.; 
     /**
      * XML tags and attributes
      */
@@ -182,6 +185,8 @@ namespace insur {
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
     static const std::string xml_ring = "Ring";
+    static const std::string xml_positive_z = "PositiveZ";
+    static const std::string xml_negative_z = "NegativeZ";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
     static const std::string xml_barrel_module = "BModule";
@@ -192,6 +197,7 @@ namespace insur {
     static const std::string xml_hybrid_comp = "hybridcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_sensor_silicon = "SenSi";
+    static const std::string xml_sensor_LYSO = "SenLYSO";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
@@ -263,7 +269,9 @@ namespace insur {
     static const std::string xml_OT_places_flipped_mod_in_rod = "OUTERTRACKERRODTOFLIPPEDMODULE";
     static const std::string xml_PX_places_unflipped_mod_in_rod = "INNERTRACKERRODTOMODULE";
     static const std::string xml_PX_places_flipped_mod_in_rod = "INNERTRACKERRODTOFLIPPEDMODULE";
-    static const std::string xml_Y180 = "Y180"; 
+    static const std::string xml_positive_z_tilted_mod_rot = "POSITIVEZMODULETILT"; 
+    static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
+    static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
@@ -293,10 +301,10 @@ namespace insur {
     static const std::string xml_PX_topo_straight_rod_value = "PixelBarrelLadder";
 
     static const std::string xml_OT_topo_tilted_ring_name = "OuterTrackerPixelBarrelRing";
-    static const std::string xml_PX_topo_tilted_ring_name = "InnerPixelBarrelRing";
+    static const std::string xml_PX_topo_tilted_ring_name = "InnerTrackerBarrelRing";
 
     static const std::string xml_OT_topo_tilted_ring_value = "Phase2OTBarrelPanel";
-    static const std::string xml_PX_topo_tilted_ring_value = "";
+    static const std::string xml_PX_topo_tilted_ring_value = "Phase2ITBarrelPanel";
 
     static const std::string xml_OT_topo_bmodule_name = "OuterTrackerBarrelStack";
     static const std::string xml_PX_topo_bmodule_name = "InnerPixelBarrelStack";
