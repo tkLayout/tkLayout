@@ -1,4 +1,0 @@
-// Cooling for the module
-comp = Cooling
-M Steel 0 0 0 7.860696517 g/m E;
-M CO2 0 0 0 1.791044776 g/m E;

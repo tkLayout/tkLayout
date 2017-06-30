@@ -1,4 +1,0 @@
-// e-port(320Mbps) + i2c
-// 2 twisted pairs
-#include <generic/ModTWP>
-#include <generic/ModTWP>

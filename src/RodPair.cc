@@ -430,8 +430,12 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
-    if (tmspecs[i].gamma == 0) { mod->flipped(i%2); } // flat part of the tilted rod, i is the ring number
-    else { mod->flipped(flip); } // tilted part of the tilted rod
+    if (tmspecs[i].gamma == 0) { // FLAT PART OF THE TILTED ROD
+      if (!mod->isPixelModule()) mod->flipped(i%2);         // Rod in Outer Tracker: alternates flip along z. i is the ring number.
+      else mod->flipped(flip);                              // Rod in Inner Tracker: all modules of a given rod have same flip. 
+                                                            // (Modules of the lower radius rods are all flipped).
+    } 
+    else { mod->flipped(flip); } // TILTED PART OF THE TILTED ROD
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);
   }

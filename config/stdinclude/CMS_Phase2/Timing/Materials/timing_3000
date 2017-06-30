@@ -1,0 +1,8 @@
+// timing module
+// GBT on the module
+
+Materials timing_3000 {
+  type module
+  @include-std CMS_Phase2/Timing/Materials/ModuleMaterials/timing_3000_components
+}
+

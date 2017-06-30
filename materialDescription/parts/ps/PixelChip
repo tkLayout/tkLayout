@@ -1,3 +1,0 @@
-// 200 um thick pixel readout chip and correlator
-comp = ASICs
-M Si 0 0 0 0.2 mm L ;

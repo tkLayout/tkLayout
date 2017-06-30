@@ -108,8 +108,8 @@ std::string lctrim(std::string str, const std::string& chars);
 std::string rctrim(std::string str, const std::string& chars);
 std::string ctrim(std::string str, const std::string& chars);
 
-// In C++11, the default modulo operator fmod is the truncated modulo.
-// Here, femod is the Euclidian modulo operator.
+// In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
+// Here, femod is the Euclidian modulo operator (ie 0 <= result < base).
 // Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
 template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgType& base) {
   ArgType result = fmod(phi, base);
@@ -118,11 +118,26 @@ template<typename ArgType> inline ArgType femod(const ArgType& phi, const ArgTyp
   return result;
 }
 
-// Same as femod, but in case the result is an approximation of 0., round it to 0 !
+
+// Same as femod, but handles the case where the result is closed to 0.
 template<typename ArgType> inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
   ArgType result = femod(phi, base);
   if (fabs(result) < 1.e-5) result = 0;
   return result;
+}
+
+
+// Particulary useful for angles comparison.
+// Returns true is phi1 < phi2, false otherwise.
+// For comparing angles, this considers the part of the circle where the 2 angles are the closest to each other.
+template<typename ArgType> inline bool moduloComp(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+  ArgType modPhi1 = femod(phi1, base);
+  ArgType modPhi2 = femod(phi2, base);
+  if (fabs(modPhi1 -  modPhi2) > fabs(base / 2.)) {
+    if (modPhi1 < modPhi2) modPhi1 += base;
+    else modPhi2 += base;
+  }
+  return (modPhi1 < modPhi2);
 }
 
 

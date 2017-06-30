@@ -98,6 +98,7 @@ namespace insur {
 			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                          std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
   private:
+    void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);

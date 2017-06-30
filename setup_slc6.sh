@@ -9,3 +9,5 @@ export DOXYGEN_PATH=/afs/cern.ch/sw/lcg/external/doxygen/1.8.2/x86_64-slc6-gcc47
 if [ -d $DOXYGEN_PATH ] ; then
   export PATH=${DOXYGEN_PATH}:${PATH}
 fi
+
+export PATH=`pwd`/bin:$PATH
