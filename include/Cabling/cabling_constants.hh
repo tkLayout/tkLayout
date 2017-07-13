@@ -48,7 +48,7 @@ static const std::string cabling_negativePrefix = "neg";
 // A or B is an extra distinction between groups of modules, used in TEDD.
 // Modules associated to different cabling types should not be mixed with each other.
 // Modules with the same cabling type have to be conected to the same DTC type (PS10G, PS5G, or SS).
-enum Category { UNDEFINED, PS10G, PS5G, PS5GA, PS5GB, SS };
+enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 
 
 #endif  // CABLING_CONSTANTS_HH
