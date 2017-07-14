@@ -107,18 +107,12 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 
     // PS10G
     if (cableType == Category::PS10G) {
-      bool isTiltedWithFlat;
-      if (subDetectorName == cabling_tbps && myBundle->isTiltedPart()) {
-	if (isPositiveCablingSide) isTiltedWithFlat = ((phiSegmentRef % 2) == 0);
-	else isTiltedWithFlat = ((phiSegmentRef % 2) == 1);
-      }
-
-      // BARREL FLAT PART + ENDCAPS DISKS 2, 4
-      if ((subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == cabling_tbps && myBundle->isTiltedPart() && isTiltedWithFlat) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)) {
+      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ((subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
 	slot = 1;
       }
-      // BARREL TILTED PART +  ENDCAPS DISKS 1, 3, 5
-      if ((subDetectorName == cabling_tbps && myBundle->isTiltedPart() && !isTiltedWithFlat) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
+      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
+      if ((subDetectorName == cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)) {
 	slot = 2;
       }
     }
