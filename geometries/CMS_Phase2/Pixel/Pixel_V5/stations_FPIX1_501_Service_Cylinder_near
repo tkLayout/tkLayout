@@ -12,26 +12,33 @@ Station {
 Station {
   stationName FPIX1_2
   type second
-  minZ 613.00
-  maxZ 663.00
+  minZ 579.65
+  maxZ 629.65
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
   stationName FPIX1_3
   type second
-  minZ 809.00
-  maxZ 859.00
+  minZ 723.83
+  maxZ 773.83
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
   stationName FPIX1_4
   type second
-  minZ 1071.00
-  maxZ 1121.00
+  minZ 1005.60
+  maxZ 1055.16
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
   stationName FPIX1_5
+  type second
+  minZ 1133.20
+  maxZ 1183.20
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+Station {
+  stationName FPIX1_6
   type second
   minZ 1420.00
   maxZ 1470.00
