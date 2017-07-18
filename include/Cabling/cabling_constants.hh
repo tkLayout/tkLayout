@@ -45,7 +45,8 @@ static const std::string cabling_negativePrefix = "neg";
 // CABLING TYPE
 // PS or SS stands for the module type.
 // 10G or 5G stands for the speed in the optical fibers (Gb/s).
-// A or B is an extra distinction between groups of modules, used in TEDD.
+// A or B is an extra distinction between groups of modules, used in TEDD. 
+// PS10GB is used for modules which could be connected to 5G links, but, for data rates reduction purposes, are assigned to 10G.
 // Modules associated to different cabling types should not be mixed with each other.
 // Modules with the same cabling type have to be conected to the same DTC type (PS10G, PS5G, or SS).
 enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };

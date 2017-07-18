@@ -77,7 +77,7 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
       else if (phiSectorRef == 7) servicesChannel = 10;
       else if (phiSectorRef == 8) servicesChannel = 12;
     }
-    if (slot == 1 || slot == 2) {
+    else {
       if (phiSectorRef == 0) servicesChannel = 1;
       else if (phiSectorRef == 1) servicesChannel = 2;
       else if (phiSectorRef == 2) servicesChannel = 4;
