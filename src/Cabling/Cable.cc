@@ -42,7 +42,7 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
     else if (phiSectorRef == 8) servicesChannel = 12;   
   }
   else if (type == Category::PS5G) {
-    if (slot != 3) {
+    if (slot == 3) {
       if (phiSectorRef == 0) servicesChannel = 1;
       else if (phiSectorRef == 1) servicesChannel = 3;
       else if (phiSectorRef == 2) servicesChannel = 4;
@@ -57,11 +57,11 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
       if (phiSectorRef == 0) servicesChannel = 1;
       else if (phiSectorRef == 1) servicesChannel = 3;
       else if (phiSectorRef == 2) servicesChannel = 4;
-      else if (phiSectorRef == 3) servicesChannel = 5;
-      else if (phiSectorRef == 4) servicesChannel = 6;
-      else if (phiSectorRef == 5) servicesChannel = 7;
-      else if (phiSectorRef == 6) servicesChannel = 9;
-      else if (phiSectorRef == 7) servicesChannel = 10;
+      else if (phiSectorRef == 3) servicesChannel = 6;
+      else if (phiSectorRef == 4) servicesChannel = 7;
+      else if (phiSectorRef == 5) servicesChannel = 8;
+      else if (phiSectorRef == 6) servicesChannel = 10;
+      else if (phiSectorRef == 7) servicesChannel = 11;
       else if (phiSectorRef == 8) servicesChannel = 12;
     }
   }
