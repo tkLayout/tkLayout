@@ -211,7 +211,7 @@ OT613_200_IT501.cfg                  OT Version 6.1.3
                                          (b) still the same 1-chip modules in the tilted part of layers 1-2 (dimensions 16.4 x 22, rotated by 90 degrees)
                                          (c) larger modules with 2x2 chips in the flat part of layers 3-4 (dimensions 33 x 44.2)
                                          (d) 1x2 modules in the tilted part of layers 3-4 (dimensions 16.4 x 44.2, rotated by 90 degrees) 
-                                     FPIX1 : 3 disks were removed with respect to TDR version.
+                                     FPIX1 : 2 disks were removed with respect to TDR version.
                                      FPIX2 : same as TDR version.
                                                                                                            
 
