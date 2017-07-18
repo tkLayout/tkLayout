@@ -1,5 +1,5 @@
 
-Materials FPIX_R3 {
+Materials FPIX_R3_2x2_10000 {
   type module
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
