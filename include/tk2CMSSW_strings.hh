@@ -18,8 +18,8 @@ namespace insur {
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
     static const double xml_outerTrackerEndcapsMinZ = 1250.;
-    static const double xml_innerTrackerEndcapsMinZ = 227.;  // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
-    static const double xml_innerTiltedTrackerEndcapsMinZ = 390.; 
+    static const double xml_innerTrackerEndcapsMinZ = 227.;    // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
+  static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
     /**
      * XML tags and attributes
      */
