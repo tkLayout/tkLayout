@@ -78,7 +78,7 @@ Module* Bundle::maxPhiModule() const {
 const int Bundle::computePlotColor(const int id, const bool isPositiveCablingSide) const {
   int plotColor = 0;
   int plotId = (isPositiveCablingSide ? id : (id - 20000));
-  int plotType = 2 + plotId % 2;  // Barrel : Identifies Flat vs Tilted. Endcap : Identifies PS10G vs PG5GA vs PS5GB vs 2S type.
+  int plotType = 2 + plotId % 2;  // Barrel : Identifies Flat vs Tilted. Endcap : Identifies PS10GA vs PG10GB vs PS5G vs 2S type.
   int dizaine = plotId / 10;
   int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
   plotColor = plotType * 3 + plotPhi;

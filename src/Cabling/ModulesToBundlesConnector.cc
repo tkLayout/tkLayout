@@ -152,17 +152,17 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
   else {
     // TEDD_1
     if (subDetectorName == cabling_tedd1) {
-      if (ringNumber <= 4) bundleType = Category::PS10G;
-      else if (ringNumber >= 5 && ringNumber <= 7) bundleType = Category::PS5GA;
-      else if (ringNumber >= 8 && ringNumber <= 10) bundleType = Category::PS5GB;
+      if (ringNumber <= 4) bundleType = Category::PS10GA;
+      else if (ringNumber >= 5 && ringNumber <= 7) bundleType = Category::PS10GB;
+      else if (ringNumber >= 8 && ringNumber <= 10) bundleType = Category::PS5G;
       else if (ringNumber >= 11) bundleType = Category::SS;
     }
 
     // TEDD_2
     else if (subDetectorName == cabling_tedd2) {
       if (ringNumber <= 3) bundleType = Category::UNDEFINED;
-      else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS5GA;
-      else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5GB;
+      else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS10GB;
+      else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5G;
       else if (ringNumber >= 11) bundleType = Category::SS;
     }
   }
@@ -223,9 +223,9 @@ const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel,
   }
   // ENDCAPS
   else {
-    if (bundleType == Category::PS10G) bundleTypeIndex = 0;
-    else if (bundleType == Category::PS5GA) bundleTypeIndex = 1;
-    else if (bundleType == Category::PS5GB) bundleTypeIndex = 2;
+    if (bundleType == Category::PS10GA) bundleTypeIndex = 0;
+    else if (bundleType == Category::PS10GB) bundleTypeIndex = 1;
+    else if (bundleType == Category::PS5G) bundleTypeIndex = 2;
     else if (bundleType == Category::SS) bundleTypeIndex = 3;
   }
   return bundleTypeIndex;
