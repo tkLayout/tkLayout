@@ -2236,7 +2236,7 @@ namespace insur {
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
-	  else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -2425,7 +2425,7 @@ namespace insur {
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = xml_outerTrackerEndcapsMinZ;
-	  else startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
+	  else startEndcaps = xml_innerTrackerEndcapsMinZ;  // Tilted Inner Tracker : startEndcaps = xml_innerTiltedTrackerEndcapsMinZ;
 
 
 	  // BARREL supports
