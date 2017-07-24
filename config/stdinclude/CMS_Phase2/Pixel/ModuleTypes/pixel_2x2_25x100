@@ -1,4 +1,5 @@
 // 2x2 chips pixel module (25um x 100um)
+// Chip size 17x19
 moduleType pixel_2x2_25x100  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
@@ -22,4 +23,4 @@ Sensor 1 {
   powerPerChannel 0.0 // mW
 }
 
-plotColor 4
+plotColor 10  // orange

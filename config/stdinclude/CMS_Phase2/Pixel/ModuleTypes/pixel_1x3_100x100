@@ -22,4 +22,4 @@ Sensor 1 {
   powerPerChannel 0.0 // mW
 }
 
-plotColor 4
+plotColor 0
