@@ -198,14 +198,21 @@ OT613_200_IT4025.cfg	Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                         xy plane is exactly the same
                         
 OT613_200_IT500.cfg                  OT Version 6.1.3
-                                     Inner Tracker version 5.0.0 : tilted Inner Tracker. 
-                                     Head of series : geometry is obviously first jet and needs to be more optimized :)
+                                     Inner Tracker version 5.0.0 : tilted Inner Tracker. Head of series.
+                                     First-jet optimization :)
+                                     1-chip modules everywhere in the tilted Barrel.
+                                     FPIX1 : 2 disks were removed with respect to TDR version.
+                                     FPIX2 : same as TDR version.
                                      
 OT613_200_IT501.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.1 : tilted Inner Tracker. 
-                                     Adjusted tilt angle on Layer 3 + Slightly adjusted last tilted rings' outerZ, so that all 4 layers have closer maxZ.
-                                     
-                                     
-
+                                     Barrel : Modules are bigger than in IT500, hence significant reduction of number of modules. Barrel modules: 3748 (IT500) -> 1844 (IT501).
+                                         (a) longer modules with two chips in the flat part of layers 1-2 (dimensions 16.4 x 44.2)
+                                         (b) still the same 1-chip modules in the tilted part of layers 1-2 (dimensions 16.4 x 22, rotated by 90 degrees)
+                                         (c) larger modules with 2x2 chips in the flat part of layers 3-4 (dimensions 33 x 44.2)
+                                         (d) 1x2 modules in the tilted part of layers 3-4 (dimensions 16.4 x 44.2, rotated by 90 degrees) 
+                                     FPIX1 : 2 disks were removed with respect to TDR version.
+                                     FPIX2 : same as TDR version.
+                                                                                                           
 
 OT613_200_IT4125.cfg	Like above, but with 50x50 pixels instead of 25x100
