@@ -6814,7 +6814,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Cable ServicesChannel/I, Bundle #/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
@@ -6831,13 +6831,15 @@ namespace insur {
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
 	  cableInfo << cable.myid() << ","
-		    << any2str(cable.type()) << ","
-		    << cable.servicesChannel() << ",";
+		    << any2str(cable.type()) << ",";
+	  int servicesChannel = cable.servicesChannel();
+	  std::string servicesChannelSection = cable.servicesChannelSection();
 
 	  const PtrVector<Bundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
-	    bundleInfo << bundle.myid() << ",";
+	    bundleInfo << bundle.myid() << ","
+		       << servicesChannel << " " << servicesChannelSection << ",";
 
 	    const PtrVector<Module>& myModules = bundle.modules();
 	    for (const auto& module : myModules) {

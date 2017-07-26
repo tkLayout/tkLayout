@@ -477,7 +477,7 @@ ModulesToDTCsVisitor::ModulesToDTCsVisitor(bool isPositiveCablingSide) {
 }
 
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, Cable #/I, Cable type/C, Cable ServicesChannel/I, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, PWR Services Channel/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -515,8 +515,8 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
       if (myCable != nullptr) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ","
-		  << any2str(myCable->type()) << ","
-		  << myCable->servicesChannel() << ",";
+		  << any2str(myCable->type()) << ",";
+	bundleInfo << myCable->servicesChannel() << " " << myCable->servicesChannelSection() << ",";
 	
 	const DTC* myDTC = myCable->getDTC();
 	if (myDTC != nullptr) {
