@@ -1312,6 +1312,16 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+      // Aggregation patterns
+      for (auto& anEndcap : tracker.endcaps()) {
+	for (auto& aDisk : anEndcap.disks()) {
+	  std::vector<std::set<const Module*> > allSurfaceModules = aDisk.getModuleSurfaces();
+	}
+      } 
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles: Aggregation Patterns in Endcaps Disks");
+      myTextFile->addText(createAggregationPatternsCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
       RootWTable* spacer = new RootWTable();
@@ -1330,6 +1340,8 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+
+      
 
 
       // Cabling efficiency
@@ -6861,6 +6873,62 @@ namespace insur {
     if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
 
     return modulesToDTCsCsv.str();
+  }
+
+
+
+  std::string Vizard::createAggregationPatternsCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
+
+    std::stringstream patternsCsv;
+    patternsCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    for (const auto& dtc : myDTCs) {
+      if (dtc.second != nullptr) {
+	const PtrVector<Cable>& myCables = dtc.second->cable();
+	for (const auto& cable : myCables) {
+	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  for (const auto& bundle : myBundles) {
+	    std::string subDetectorName = bundle.subDetectorName();
+	    if (subDetectorName == "TEDD_1" || subDetectorName == "TEDD_2") {
+	      std::map<int, int> pattern;
+	      std::vector<std::string > moduleInfoVec;
+	      std::stringstream bundleInfo;
+	      bundleInfo << bundle.myid() << ",";
+
+	      const PtrVector<Module>& myModules = bundle.modules();
+	      for (const auto& module : myModules) {
+		int diskSurface = module.endcapDiskSurface();
+		pattern[diskSurface] += 1;
+		std::stringstream moduleInfo;
+		moduleInfo << module.myDetId() << ", "
+			   << module.uniRef().cnt << ", "
+			   << module.uniRef().layer << ", "
+			   << module.moduleRing() << ", "
+			   << module.center().Phi() * 180. / M_PI;
+		moduleInfoVec.push_back(moduleInfo.str());
+	      }
+	      std::stringstream patternInfo;
+	      if (pattern.size() == 4) patternInfo << pattern[0] << "-" << pattern[1] << "-" << pattern[2] << "-" << pattern[3] << ", ";
+	      else std::cout << "bundle does not connect 4 surfaces !" << std::endl;
+	      int count = 0;
+	      patternsCsv << bundleInfo.str() << patternInfo.str();
+	      for (const auto& modInfo : moduleInfoVec) {
+		count++;
+		if (count != 1) patternsCsv << ", " << ", ";
+		patternsCsv << modInfo << std::endl;
+	      }
+	      if (myModules.size() == 0) patternsCsv << std::endl;
+	    }
+	  }
+	  //if (myBundles.size() == 0) patternsCsv << std::endl;
+	}
+	//if (myCables.size() == 0) patternsCsv << std::endl;
+      }
+    }
+    //if (myDTCs.size() == 0) patternsCsv << std::endl;
+
+    return patternsCsv.str();
   }
 
 

@@ -331,7 +331,7 @@ const std::vector<ConversionStation*>& Disk::secondConversionStations() const {
 }
 
 std::vector<std::set<const Module*>> Disk::getModuleSurfaces() const {
-  class SurfaceSplitterVisitor : public ConstGeometryVisitor {
+  class SurfaceSplitterVisitor : public GeometryVisitor {
   private:
     int sideIndex;
     double ringAvgZ;
@@ -339,15 +339,16 @@ std::vector<std::set<const Module*>> Disk::getModuleSurfaces() const {
   public:
     double diskAverageZ;
     std::set<const Module*> mod[4];
-    void visit(const Ring& r) {
+    void visit(Ring& r) {
       sideIndex = 0;
       ringAvgZ = r.averageZ();
       if (ringAvgZ>diskAverageZ) sideIndex+=2;
     }
-    void visit(const Module& m) {
+    void visit(Module& m) {
       int deltaSide=0;
       if (m.center().Z()>ringAvgZ) deltaSide+=1;
       mod[sideIndex+deltaSide].insert(&m);
+      m.endcapDiskSurface(sideIndex+deltaSide);
     }
   };
   SurfaceSplitterVisitor v;

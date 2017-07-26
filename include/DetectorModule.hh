@@ -122,6 +122,7 @@ public:
   Property<double, Default> supportPlateThickness;
   Property<double, Default> chipThickness;
 
+  Property<int, AutoDefault> endcapDiskSurface;
   Property<bool, Default> removeModule;
 
   int16_t cntId() const { return cntId_; }
@@ -159,7 +160,8 @@ public:
       hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
-      removeModule             ("removeModule"             , parsedOnly(), false)
+    removeModule             ("removeModule"             , parsedOnly(), false),
+    endcapDiskSurface          ("endcapDiskSurface"        , parsedOnly())
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;
