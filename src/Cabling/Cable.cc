@@ -11,7 +11,9 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 { 
   myid(id);
   // ASSIGN A SERVICESCHANNEL TO THE CABLE
-  servicesChannel_ = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
+  const std::pair<int, std::string>& servicesChannelInfo = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
+  servicesChannel_ = servicesChannelInfo.first;
+  servicesChannelSection_ = servicesChannelInfo.second;
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
@@ -28,65 +30,78 @@ Cable::~Cable() {
  * They are the channels where the optical cables are routed when they exit the tracker.
  * They are closely related to the phiSector ref.
  */
-const int Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
+const std::pair<int, std::string> Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int servicesChannel = 0;
+  std::string servicesChannelSection;
+
   if (type == Category::PS10G) {
-    if (phiSectorRef == 0) servicesChannel = 1;
-    else if (phiSectorRef == 1) servicesChannel = 3;
-    else if (phiSectorRef == 2) servicesChannel = 4;
-    else if (phiSectorRef == 3) servicesChannel = 5;
-    else if (phiSectorRef == 4) servicesChannel = 6;
-    else if (phiSectorRef == 5) servicesChannel = 7;
-    else if (phiSectorRef == 6) servicesChannel = 9;
-    else if (phiSectorRef == 7) servicesChannel = 10;
-    else if (phiSectorRef == 8) servicesChannel = 12;   
+    if (phiSectorRef == 0) { servicesChannel = 1; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 1) { servicesChannel = 2; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 2) { servicesChannel = 3; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 3) { servicesChannel = 4; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 4) { servicesChannel = 6; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 6) { servicesChannel = 9; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 7) { servicesChannel = 10; servicesChannelSection = "C"; }
+    else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "C"; }   
   }
   else if (type == Category::PS5G) {
     if (slot == 3) {
-      if (phiSectorRef == 0) servicesChannel = 1;
-      else if (phiSectorRef == 1) servicesChannel = 3;
-      else if (phiSectorRef == 2) servicesChannel = 4;
-      else if (phiSectorRef == 3) servicesChannel = 6;
-      else if (phiSectorRef == 4) servicesChannel = 7;
-      else if (phiSectorRef == 5) servicesChannel = 8;
-      else if (phiSectorRef == 6) servicesChannel = 10;
-      else if (phiSectorRef == 7) servicesChannel = 11;
-      else if (phiSectorRef == 8) servicesChannel = 12;
+      if (phiSectorRef == 0) { servicesChannel = 1; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 1) { servicesChannel = 2; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 2) { servicesChannel = 3; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 3) { servicesChannel = 4; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 4) { servicesChannel = 6; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 6) { servicesChannel = 9; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 7) { servicesChannel = 10; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "C"; }
     }
     else {
-      if (phiSectorRef == 0) servicesChannel = 1;
-      else if (phiSectorRef == 1) servicesChannel = 3;
-      else if (phiSectorRef == 2) servicesChannel = 4;
-      else if (phiSectorRef == 3) servicesChannel = 6;
-      else if (phiSectorRef == 4) servicesChannel = 7;
-      else if (phiSectorRef == 5) servicesChannel = 8;
-      else if (phiSectorRef == 6) servicesChannel = 10;
-      else if (phiSectorRef == 7) servicesChannel = 11;
-      else if (phiSectorRef == 8) servicesChannel = 12;
+      if (phiSectorRef == 0) { servicesChannel = 1; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 1) { servicesChannel = 2; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 2) { servicesChannel = 4; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 3) { servicesChannel = 5; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 4) { servicesChannel = 6; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 6) { servicesChannel = 10; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 7) { servicesChannel = 11; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "C"; }
     }
   }
   else if (type == Category::SS) {
-    if (slot != 1 && slot != 2) {
-      if (phiSectorRef == 0) servicesChannel = 1;
-      else if (phiSectorRef == 1) servicesChannel = 2;
-      else if (phiSectorRef == 2) servicesChannel = 4;
-      else if (phiSectorRef == 3) servicesChannel = 5;
-      else if (phiSectorRef == 4) servicesChannel = 6;
-      else if (phiSectorRef == 5) servicesChannel = 7;
-      else if (phiSectorRef == 6) servicesChannel = 9;
-      else if (phiSectorRef == 7) servicesChannel = 10;
-      else if (phiSectorRef == 8) servicesChannel = 12;
+    if (slot == 1 || slot == 2) {
+      if (phiSectorRef == 0) { servicesChannel = 2; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 1) { servicesChannel = 3; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 2) { servicesChannel = 4; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 3) { servicesChannel = 6; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 4) { servicesChannel = 7; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 6) { servicesChannel = 9; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 7) { servicesChannel = 10; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "A"; }
+    }
+    else if (slot == 3) {
+      if (phiSectorRef == 0) { servicesChannel = 2; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 1) { servicesChannel = 3; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 2) { servicesChannel = 4; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 3) { servicesChannel = 6; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 4) { servicesChannel = 7; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 6) { servicesChannel = 9; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 7) { servicesChannel = 10; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "A"; }
     }
     else {
-      if (phiSectorRef == 0) servicesChannel = 1;
-      else if (phiSectorRef == 1) servicesChannel = 2;
-      else if (phiSectorRef == 2) servicesChannel = 4;
-      else if (phiSectorRef == 3) servicesChannel = 6;
-      else if (phiSectorRef == 4) servicesChannel = 7;
-      else if (phiSectorRef == 5) servicesChannel = 8;
-      else if (phiSectorRef == 6) servicesChannel = 10;
-      else if (phiSectorRef == 7) servicesChannel = 11;
-      else if (phiSectorRef == 8) servicesChannel = 12;
+      if (phiSectorRef == 0) { servicesChannel = 2; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 1) { servicesChannel = 4; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 2) { servicesChannel = 5; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 3) { servicesChannel = 6; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 4) { servicesChannel = 7; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 5) { servicesChannel = 8; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 6) { servicesChannel = 10; servicesChannelSection = "A"; }
+      else if (phiSectorRef == 7) { servicesChannel = 11; servicesChannelSection = "C"; }
+      else if (phiSectorRef == 8) { servicesChannel = 12; servicesChannelSection = "A"; }
     }
   }
 
@@ -104,9 +119,10 @@ const int Cable::computeServicesChannel(const int phiSectorRef, const Category& 
     double pivot = (servicesChannel <= 6 ? 3.5 : 9.5);
     servicesChannel = servicesChannel + round( 2. * (pivot - servicesChannel) );
     servicesChannel *= -1;
+    servicesChannelSection = (servicesChannelSection == "A" ? "C" : "A");
   }
 
-  return servicesChannel;
+  return std::make_pair(servicesChannel, servicesChannelSection);
 }
 
 

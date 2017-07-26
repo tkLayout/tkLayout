@@ -1373,6 +1373,7 @@ namespace insur {
       // POSITIVE CABLING SIDE
       isPositiveCablingSide = true;
       channelsContent->addItem(positiveSideName);
+      // GENERAL
       // Fill services channels maps
       std::map<int, std::vector<int> > cablesPerChannelPlus;
       std::map<int, int> psBundlesPerChannelPlus;
@@ -1381,10 +1382,35 @@ namespace insur {
       // Create table
       RootWTable* channelsTablePlus = createServicesChannelTable(cablesPerChannelPlus, psBundlesPerChannelPlus, ssBundlesPerChannelPlus, isPositiveCablingSide);
       channelsContent->addItem(channelsTablePlus);
+
+      // SECTION A
+      std::string servicesChannelSection = "A";
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelPlusA;
+      std::map<int, int> psBundlesPerChannelPlusA;
+      std::map<int, int> ssBundlesPerChannelPlusA;
+      analyzeServicesChannels(myCablingMap, cablesPerChannelPlusA, psBundlesPerChannelPlusA, ssBundlesPerChannelPlusA, isPositiveCablingSide, servicesChannelSection);
+      // Create table
+      RootWTable* channelsTablePlusA = createServicesChannelTable(cablesPerChannelPlusA, psBundlesPerChannelPlusA, ssBundlesPerChannelPlusA, isPositiveCablingSide, servicesChannelSection);
+      channelsContent->addItem(channelsTablePlusA);
+
+      // SECTION C
+      servicesChannelSection = "C";
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelPlusC;
+      std::map<int, int> psBundlesPerChannelPlusC;
+      std::map<int, int> ssBundlesPerChannelPlusC;
+      analyzeServicesChannels(myCablingMap, cablesPerChannelPlusC, psBundlesPerChannelPlusC, ssBundlesPerChannelPlusC, isPositiveCablingSide, servicesChannelSection);
+      // Create table
+      RootWTable* channelsTablePlusC = createServicesChannelTable(cablesPerChannelPlusC, psBundlesPerChannelPlusC, ssBundlesPerChannelPlusC, isPositiveCablingSide, servicesChannelSection);
+      channelsContent->addItem(channelsTablePlusC);
+
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
       channelsContent->addItem(spacer);
       channelsContent->addItem(negativeSideName);
+      // GENERAL
+      servicesChannelSection = "";
       // Fill services channels maps
       std::map<int, std::vector<int> > cablesPerChannelMinus;
       std::map<int, int> psBundlesPerChannelMinus;
@@ -1393,6 +1419,28 @@ namespace insur {
       // Create table
       RootWTable* channelsTableMinus = createServicesChannelTable(cablesPerChannelMinus, psBundlesPerChannelMinus, ssBundlesPerChannelMinus, isPositiveCablingSide);
       channelsContent->addItem(channelsTableMinus);
+
+      // SECTION A
+      servicesChannelSection = "A";
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelMinusA;
+      std::map<int, int> psBundlesPerChannelMinusA;
+      std::map<int, int> ssBundlesPerChannelMinusA;
+      analyzeServicesChannels(myCablingMap, cablesPerChannelMinusA, psBundlesPerChannelMinusA, ssBundlesPerChannelMinusA, isPositiveCablingSide, servicesChannelSection);
+      // Create table
+      RootWTable* channelsTableMinusA = createServicesChannelTable(cablesPerChannelMinusA, psBundlesPerChannelMinusA, ssBundlesPerChannelMinusA, isPositiveCablingSide, servicesChannelSection);
+      channelsContent->addItem(channelsTableMinusA);
+
+      // SECTION C
+      servicesChannelSection = "C";
+      // Fill services channels maps
+      std::map<int, std::vector<int> > cablesPerChannelMinusC;
+      std::map<int, int> psBundlesPerChannelMinusC;
+      std::map<int, int> ssBundlesPerChannelMinusC;
+      analyzeServicesChannels(myCablingMap, cablesPerChannelMinusC, psBundlesPerChannelMinusC, ssBundlesPerChannelMinusC, isPositiveCablingSide, servicesChannelSection);
+      // Create table
+      RootWTable* channelsTableMinusC = createServicesChannelTable(cablesPerChannelMinusC, psBundlesPerChannelMinusC, ssBundlesPerChannelMinusC, isPositiveCablingSide, servicesChannelSection);
+      channelsContent->addItem(channelsTableMinusC);
 
 
       // Distinct DTCs 2D map
@@ -1417,28 +1465,33 @@ namespace insur {
 
 
 
-  void Vizard::analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
+  void Vizard::analyzeServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide, std::string requestedSection) {
 
     const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
     for (const auto& myCable : cables) {
-      int channel = myCable.second->servicesChannel();
+      std::string section = myCable.second->servicesChannelSection();
 
-      int cableId = myCable.first;
-      cablesPerChannel[channel].push_back(cableId);
+      if (requestedSection == "" || (requestedSection != "" && section == requestedSection)) {
 
-      Category cableType = myCable.second->type();      
-      int numBundles = myCable.second->numBundles();
+	int channel = myCable.second->servicesChannel();
 
-      if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channel] += numBundles;
-      else if (cableType == Category::SS) ssBundlesPerChannel[channel] += numBundles;
-      else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+	int cableId = myCable.first;
+	cablesPerChannel[channel].push_back(cableId);
+
+	Category cableType = myCable.second->type();      
+	int numBundles = myCable.second->numBundles();
+
+	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channel] += numBundles;
+	else if (cableType == Category::SS) ssBundlesPerChannel[channel] += numBundles;
+	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+      }
     }
   }
 
 
 
-  RootWTable* Vizard::createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide) {
+  RootWTable* Vizard::createServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, bool isPositiveCablingSide, std::string requestedSection) {
 
     RootWTable* channelsTable = new RootWTable();
 
@@ -1464,6 +1517,7 @@ namespace insur {
       // Channel name
       std::stringstream channelName;
       channelName << "OT" << channel;
+      if (requestedSection != "") channelName << " " << requestedSection;
       channelsTable->setContent(i, 0, channelName.str());
 
       channelsTable->setContent(i, 1, numCablesPerChannel);
