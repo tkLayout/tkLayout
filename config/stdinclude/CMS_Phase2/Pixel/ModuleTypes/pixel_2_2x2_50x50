@@ -24,4 +24,4 @@ Sensor 1 {
   powerPerChannel 0.0 // mW
 }
 
-plotColor 2
+plotColor 3  // yellow
