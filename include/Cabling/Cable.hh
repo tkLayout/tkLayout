@@ -33,11 +33,11 @@ public:
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const int servicesChannel() const { return servicesChannel_; }
-  const std::string servicesChannelSection() const { return servicesChannelSection_; }
+  const ChannelSection& servicesChannelSection() const { return servicesChannelSection_; }
 
 
 private:
-  const std::pair<int, std::string> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  const std::pair<int, ChannelSection> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
   const std::string computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   
@@ -51,7 +51,7 @@ private:
   int slot_;
   bool isPositiveCablingSide_;
   int servicesChannel_;
-  std::string servicesChannelSection_;
+  ChannelSection servicesChannelSection_;
 };
 
 
