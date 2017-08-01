@@ -30,25 +30,25 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
   int nbins_;
   double bunchSpacingNs_, nMB_, interestingPt_;
 
-  void setupSummaries(const string& cntName) {
-    triggerFrequencyTrueSummaries[cntName].setHeader("Layer", "Ring");
-    triggerFrequencyFakeSummaries[cntName].setHeader("Layer", "Ring");
-    triggerFrequencyInterestingSummaries[cntName].setHeader("Layer", "Ring");
-    triggerFrequencyMisfilteredSummaries[cntName].setHeader("Layer", "Ring");
-    triggerFrequencyCombinatorialSummaries[cntName].setHeader("Layer", "Ring");
-    triggerRateSummaries[cntName].setHeader("Layer", "Ring");
-    triggerEfficiencySummaries[cntName].setHeader("Layer", "Ring");
-    triggerPuritySummaries[cntName].setHeader("Layer", "Ring");
-    triggerDataBandwidthSummaries[cntName].setHeader("Layer", "Ring");
-    triggerFrequencyTrueSummaries[cntName].setPrecision(3);
-    triggerFrequencyFakeSummaries[cntName].setPrecision(3);
-    triggerFrequencyInterestingSummaries[cntName].setPrecision(3);
-    triggerFrequencyInterestingSummaries[cntName].setPrecision(3);
-    triggerFrequencyMisfilteredSummaries[cntName].setPrecision(3);
-    triggerRateSummaries[cntName].setPrecision(3);
-    triggerEfficiencySummaries[cntName].setPrecision(3);
-    triggerPuritySummaries[cntName].setPrecision(3);
-    triggerDataBandwidthSummaries[cntName].setPrecision(3);
+  void setupSummaries(const string& subdetectorName) {
+    triggerFrequencyTrueSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerFrequencyFakeSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerFrequencyInterestingSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerFrequencyMisfilteredSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerFrequencyCombinatorialSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerRateSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerEfficiencySummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerPuritySummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerDataBandwidthSummaries[subdetectorName].setHeader("Layer", "Ring");
+    triggerFrequencyTrueSummaries[subdetectorName].setPrecision(3);
+    triggerFrequencyFakeSummaries[subdetectorName].setPrecision(3);
+    triggerFrequencyInterestingSummaries[subdetectorName].setPrecision(3);
+    triggerFrequencyInterestingSummaries[subdetectorName].setPrecision(3);
+    triggerFrequencyMisfilteredSummaries[subdetectorName].setPrecision(3);
+    triggerRateSummaries[subdetectorName].setPrecision(3);
+    triggerEfficiencySummaries[subdetectorName].setPrecision(3);
+    triggerPuritySummaries[subdetectorName].setPrecision(3);
+    triggerDataBandwidthSummaries[subdetectorName].setPrecision(3);
   }
 public:
   std::map<std::string, std::map<std::pair<int,int>, double>> triggerFrequenciesPerEvent;

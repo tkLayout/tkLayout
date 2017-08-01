@@ -107,7 +107,7 @@ public:
 
   void visit(const BarrelModule& aModule) {
 
-    std::string myName = aModule.cntName() + "_L" + any2str(aModule.layer()) + "R" + any2str(aModule.ring());
+    std::string myName = aModule.subdetectorName() + "_L" + any2str(aModule.layer()) + "R" + any2str(aModule.ring());
 
     std::vector<const DetectorModule*>& theseBarrelModules = selectedModules_[myName];
 
@@ -177,7 +177,7 @@ public:
 
 
 
-    string myBaseName = any2str(aModule.cntName()) + "_D" + any2str(aModule.disk());
+    string myBaseName = any2str(aModule.subdetectorName()) + "_D" + any2str(aModule.disk());
 
     if ((aModule.dsDistance()<=0) || (aModule.triggerWindow()==0)) return;
 

@@ -42,9 +42,9 @@ enum HitType { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
 
 
-struct PosRef { int subDetectorId, z, rho, phi; };
+struct PosRef { int subdetectorId, z, rho, phi; };
 struct TableRef { string table; int row, col; };
-struct UniRef { string subDetectorName; int layer, ring, phi, side; };
+struct UniRef { string subdetectorName; int layer, ring, phi, side; };
 
 namespace insur {
   class ModuleCap;

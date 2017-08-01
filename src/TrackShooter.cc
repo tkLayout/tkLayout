@@ -420,7 +420,7 @@ void TrackShooter::exportGeometryData() {
   ModuleData mdata;
 
   TTree* tree = new TTree("geomdata", "Geometry data");
-  tree->Branch("mdata", &mdata, "x/D:y:z:rho:phi:widthlo:widthhi:height:stereo:pitchlo:pitchhi:striplen:yres:inefftype/B:refcnt:refz:refrho:refphi:type"); 
+  tree->Branch("mdata", &mdata, "x/D:y:z:rho:phi:widthlo:widthhi:height:stereo:pitchlo:pitchhi:striplen:yres:inefftype/B:subdetectorName:refz:refrho:refphi:type"); 
 
   for (std::vector<Module*>::const_iterator it = allMods_.begin(); it != allMods_.end(); ++it) {
     Module* mod = (*it);
@@ -434,7 +434,7 @@ void TrackShooter::exportGeometryData() {
                           mod->getStripLength(), 
                           mod->getResolutionYTrigger(),
                           mod->getModuleType()->getInefficiencyType(),
-                          posref.cnt, posref.z, posref.rho, posref.phi,
+                          posref.subdetectorId, posref.z, posref.rho, posref.phi,
                           mod->getSubdetectorType() };
 
     tree->Fill();
@@ -535,7 +535,7 @@ void TrackShooter::shootTracks() {
             float deltaStrips = modPtError->pToStrips(pt);
             XYVector locv = convertToLocalCoords(collisions[0], mod); 
             PosRef posref = mod->getPositionalReference();
-            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi/*, -1., -1., eta*/);
+            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, subdetectorId, posref.z, posref.rho, posref.phi/*, -1., -1., eta*/);
             collisions.clear();
             //planarcoll = true;
             //numpl++;
@@ -558,7 +558,7 @@ void TrackShooter::shootTracks() {
            // double dist = planarcoll ? sqrt((xrot - xpl)*(xrot - xpl) + (yrot - ypl)*(yrot - ypl) + (z - zpl)*(z - zpl)) : -1.;
             double distx = planarcoll ? fabs(locv.X() - xpl) : -1.;
             double disty = planarcoll ? fabs(locv.Y() - ypl) : -1.;
-            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, distx, disty, eta);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, subdetectorId, posref.z, posref.rho, posref.phi, distx, disty, eta);
 
             numcyl++;
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
@@ -610,7 +610,7 @@ void TrackShooter::shootTracks() {
             double ypl = collisions[0].Y();
             double zpl = collisions[0].Z();
             XYVector locv = convertToLocalCoords(collisions[0], mod);
-            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, subdetectorId, posref.z, posref.rho, posref.phi);
             collisions.clear();
             if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }
@@ -628,7 +628,7 @@ void TrackShooter::shootTracks() {
             PosRef posref = mod->getPositionalReference();
             XYVector locv = convertToLocalCoords(XYZVector(xrot, yrot, z), mod);
 
-            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, subdetectorId, posref.z, posref.rho, posref.phi, -1., -1.);
 
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }      
