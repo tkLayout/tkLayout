@@ -1312,14 +1312,9 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
-      // Aggregation patterns
-      for (auto& anEndcap : tracker.endcaps()) {
-	for (auto& aDisk : anEndcap.disks()) {
-	  std::vector<std::set<const Module*> > allSurfaceModules = aDisk.getModuleSurfaces();
-	}
-      } 
-      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles: Aggregation Patterns in Endcaps Disks");
-      myTextFile->addText(createAggregationPatternsCsv(myCablingMap, isPositiveCablingSide));
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
       // NEGATIVE CABLING SIDE
@@ -6464,24 +6459,28 @@ namespace insur {
       if (anEndcap.disks().size()>0) {
 	const Disk& lastDisk = anEndcap.disks().back();
      
-	std::vector<std::set<const Module*>> modZ = lastDisk.getModuleSurfaces();
-	int iSurface=0;
-	for (std::set<const Module*>& moduleSet : modZ) {
-	  iSurface++; //for (int iSurface=1; iSurface<=4; ++iSurface) {
-	  TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), iSurface),
-					    Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), iSurface),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYCanvasEC->cd();
-	  PlotDrawer<XY, Type> xyEndcapDrawer;
+	const std::map<int, std::set<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {
+	    const std::set<const Module*>& surfaceModules = found->second;
+	    TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
+					      Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	    XYCanvasEC->cd();
+	    PlotDrawer<XY, Type> xyEndcapDrawer;
 
-	  xyEndcapDrawer.addModules(moduleSet.begin(), moduleSet.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	  xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-	  xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-	  xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
-	  XYCanvasesEC.push_back(XYCanvasEC);
+	    xyEndcapDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+	    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+	    xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
+	    XYCanvasesEC.push_back(XYCanvasEC);
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
 	}
       }
     }
+
   }
 
 
@@ -6541,20 +6540,23 @@ namespace insur {
     // ENDCAPS DISK SURFACE.
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
-	const Disk& lastDisk = anEndcap.disks().back();
-	std::vector<std::set<const Module*> > allSurfaceModules = lastDisk.getModuleSurfaces();
-	int iSurface = 0;
-	for (auto& surfaceModules : allSurfaceModules) {
-	  iSurface++;
-	  TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), iSurface),
-					       Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), iSurface),
-					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	  XYSurfaceDisk->cd();
-	  PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	  xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	  XYSurfacesDisk.push_back(XYSurfaceDisk);
+	const Disk& lastDisk = anEndcap.disks().back();	
+	const std::map<int, std::set<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {
+	    const std::set<const Module*>& surfaceModules = found->second;
+	    TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						 Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), surfaceIndex),
+						 vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	    XYSurfaceDisk->cd();
+	    PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	    xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	    xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	    xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	    XYSurfacesDisk.push_back(XYSurfaceDisk);
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
 	}
       }
     }
@@ -6796,6 +6798,8 @@ namespace insur {
   }
 
 
+  /* Create csv file, navigating from Module hierarchy level to DTC hierarchy level.
+   */
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, bool isPositiveCablingSide) {
     ModulesToDTCsVisitor v(isPositiveCablingSide);
     v.preVisit();
@@ -6804,6 +6808,8 @@ namespace insur {
   }
 
 
+  /* Create csv file, navigating from DTC hierarchy level to Module hierarchy level.
+   */
   std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
@@ -6858,59 +6864,91 @@ namespace insur {
   }
 
 
+  /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
+     This also provides modules aggregation patterns. 
+     This is, for a given bundle, the number of connected modules per disk surface.
+     The disk surfaces are sorted per increasing |Z|.
+     For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
+     - 3 modules from disk surface 1 (the disk surface with lowest |Z|).
+     - 4 modules from disk surface 2.
+     - 3 modules from disk surface 3.
+     - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
+   */
+  std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
 
-  std::string Vizard::createAggregationPatternsCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
-
-    std::stringstream patternsCsv;
-    patternsCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    std::stringstream bundlesToEndcapModulesCsv;
+    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
+
 	const PtrVector<Cable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
+
 	  const PtrVector<Bundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
+
 	    std::string subDetectorName = bundle.subDetectorName();
-	    if (subDetectorName == "TEDD_1" || subDetectorName == "TEDD_2") {
-	      std::map<int, int> pattern;
-	      std::vector<std::string > moduleInfoVec;
+	    // Only in TEDD.
+	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	      // Bundle related info.
 	      std::stringstream bundleInfo;
 	      bundleInfo << bundle.myid() << ",";
 
+	      // Create pattern related to the bundle.
+	      std::map<int, int> pattern;
+	      std::vector<std::string> modulesInBundleInfo;
 	      const PtrVector<Module>& myModules = bundle.modules();
 	      for (const auto& module : myModules) {
-		int diskSurface = module.endcapDiskSurface();
-		pattern[diskSurface] += 1;
+		// Module related info.
 		std::stringstream moduleInfo;
 		moduleInfo << module.myDetId() << ", "
 			   << module.uniRef().cnt << ", "
 			   << module.uniRef().layer << ", "
 			   << module.moduleRing() << ", "
 			   << module.center().Phi() * 180. / M_PI;
-		moduleInfoVec.push_back(moduleInfo.str());
+		modulesInBundleInfo.push_back(moduleInfo.str());
+
+		// Get which disk surface the module belongs to.
+		int surfaceIndex = module.diskSurface();
+		// Count the number of modules per disk surface.
+		pattern[surfaceIndex] += 1; 
 	      }
+
+	      // Checks pattern makes sense, and put it in a-b-c-d format.
 	      std::stringstream patternInfo;
-	      if (pattern.size() == 4) patternInfo << pattern[0] << "-" << pattern[1] << "-" << pattern[2] << "-" << pattern[3] << ", ";
-	      else std::cout << "bundle does not connect 4 surfaces !" << std::endl;
-	      int count = 0;
-	      patternsCsv << bundleInfo.str() << patternInfo.str();
-	      for (const auto& modInfo : moduleInfoVec) {
-		count++;
-		if (count != 1) patternsCsv << ", " << ", ";
-		patternsCsv << modInfo << std::endl;
+	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+		auto found = pattern.find(surfaceIndex);
+		if (found != pattern.end()) {
+		  if (surfaceIndex != 1) patternInfo << "-";
+		  patternInfo << found->second;
+		}
+		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
+			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
 	      }
-	      if (myModules.size() == 0) patternsCsv << std::endl;
+	      patternInfo << ", ";
+	      
+	      // Print info in csv file: bundle info + pattern info + associated modules info.
+	      bundlesToEndcapModulesCsv << bundleInfo.str() << patternInfo.str();
+	      int numModulesInBundle = modulesInBundleInfo.size();
+	      for (int i = 0; i < numModulesInBundle; i++) {
+		// Set empty the first 2 columns, since they are the same for all modules belonging to a given bundle.
+		if (i != 0) bundlesToEndcapModulesCsv << ", " << ", ";
+		// List info from all modules belonging to the same bundle.
+		bundlesToEndcapModulesCsv << modulesInBundleInfo.at(i) << std::endl;
+	      }
+	      if (myModules.size() == 0) bundlesToEndcapModulesCsv << std::endl;
 	    }
 	  }
-	  //if (myBundles.size() == 0) patternsCsv << std::endl;
+	  if (myBundles.size() == 0) bundlesToEndcapModulesCsv << std::endl;
 	}
-	//if (myCables.size() == 0) patternsCsv << std::endl;
+	if (myCables.size() == 0) bundlesToEndcapModulesCsv << std::endl;
       }
     }
-    //if (myDTCs.size() == 0) patternsCsv << std::endl;
+    if (myDTCs.size() == 0) bundlesToEndcapModulesCsv << std::endl;
 
-    return patternsCsv.str();
+    return bundlesToEndcapModulesCsv.str();
   }
 
 

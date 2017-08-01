@@ -118,6 +118,8 @@ public:
   int diskNumber() const { return diskNumber_; }
   int numEmptyRings() const { return count_if(rings_.begin(), rings_.end(), [](const Ring& r) { return r.numModules() == 0; }); }
 
+  const std::map<int, std::set<const Module*> > getSurfaceModules() const;
+
   const std::pair<double, bool> computeIntersectionWithZAxis(double lastZ, double lastRho, double newZ, double newRho) const;
   void computeActualCoverage();
   void computeActualZCoverage();
@@ -137,7 +139,6 @@ public:
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;
   const std::vector<ConversionStation*>& secondConversionStations() const;
-  std::vector< std::set<const Module*> > getModuleSurfaces() const;
  };
 
 #endif

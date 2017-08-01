@@ -227,6 +227,25 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 }
 
 
+const std::map<int, std::set<const Module*> > Disk::getSurfaceModules() const {
+
+  class SurfaceSplitterVisitor : public ConstGeometryVisitor {
+  public:
+    const std::map<int, std::set<const Module*> > surfaceModules() const { return surfaceModules_; }
+    void visit(const EndcapModule& m) {
+      surfaceModules_[m.diskSurface()].insert(&m);    
+    }
+  private:
+    std::map<int, std::set<const Module*> > surfaceModules_;
+  };
+
+  SurfaceSplitterVisitor v;
+  accept(v);
+  const std::map<int, std::set<const Module*> >& surfaceModules = v.surfaceModules();
+  return surfaceModules;
+}
+
+
 /** Binds the 2 points which are provided as arguments, and returns corresponding zError (intersection with (Z) axis).
  */
 const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, double lastRho, double newZ, double newRho) const {
@@ -328,33 +347,4 @@ ConversionStation* Disk::flangeConversionStation() const {
 
 const std::vector<ConversionStation*>& Disk::secondConversionStations() const {
   return secondConversionStations_;
-}
-
-std::vector<std::set<const Module*>> Disk::getModuleSurfaces() const {
-  class SurfaceSplitterVisitor : public GeometryVisitor {
-  private:
-    int sideIndex;
-    double ringAvgZ;
-    int iRing=0;
-  public:
-    double diskAverageZ;
-    std::set<const Module*> mod[4];
-    void visit(Ring& r) {
-      sideIndex = 0;
-      ringAvgZ = r.averageZ();
-      if (ringAvgZ>diskAverageZ) sideIndex+=2;
-    }
-    void visit(Module& m) {
-      int deltaSide=0;
-      if (m.center().Z()>ringAvgZ) deltaSide+=1;
-      mod[sideIndex+deltaSide].insert(&m);
-      m.endcapDiskSurface(sideIndex+deltaSide);
-    }
-  };
-  SurfaceSplitterVisitor v;
-  v.diskAverageZ = averageZ_;
-  this->accept(v);
-  std::vector<std::set<const Module*>> result;
-  for (int i=0; i<4; ++i) result.push_back(v.mod[i]);
-  return result;
 }
