@@ -6459,11 +6459,11 @@ namespace insur {
       if (anEndcap.disks().size()>0) {
 	const Disk& lastDisk = anEndcap.disks().back();
      
-	const std::map<int, std::set<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
-	    const std::set<const Module*>& surfaceModules = found->second;
+	    const std::vector<const Module*>& surfaceModules = found->second;
 	    TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
 					      Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6541,11 +6541,11 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();	
-	const std::map<int, std::set<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
-	    const std::set<const Module*>& surfaceModules = found->second;
+	    const std::vector<const Module*>& surfaceModules = found->second;
 	    TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						 Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), surfaceIndex),
 						 vis_min_canvas_sizeX, vis_min_canvas_sizeY );

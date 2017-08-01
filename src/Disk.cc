@@ -227,21 +227,21 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 }
 
 
-const std::map<int, std::set<const Module*> > Disk::getSurfaceModules() const {
+const std::map<int, std::vector<const Module*> > Disk::getSurfaceModules() const {
 
   class SurfaceSplitterVisitor : public ConstGeometryVisitor {
   public:
-    const std::map<int, std::set<const Module*> > surfaceModules() const { return surfaceModules_; }
+    const std::map<int, std::vector<const Module*> > surfaceModules() const { return surfaceModules_; }
     void visit(const EndcapModule& m) {
-      surfaceModules_[m.diskSurface()].insert(&m);    
+      surfaceModules_[m.diskSurface()].push_back(&m);    
     }
   private:
-    std::map<int, std::set<const Module*> > surfaceModules_;
+    std::map<int, std::vector<const Module*> > surfaceModules_;
   };
 
   SurfaceSplitterVisitor v;
   accept(v);
-  const std::map<int, std::set<const Module*> >& surfaceModules = v.surfaceModules();
+  const std::map<int, std::vector<const Module*> >& surfaceModules = v.surfaceModules();
   return surfaceModules;
 }
 
