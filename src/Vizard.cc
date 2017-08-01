@@ -6800,7 +6800,7 @@ namespace insur {
 
   /* Create csv file, navigating from Module hierarchy level to DTC hierarchy level.
    */
-  std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, bool isPositiveCablingSide) {
+  std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, const bool isPositiveCablingSide) {
     ModulesToDTCsVisitor v(isPositiveCablingSide);
     v.preVisit();
     tracker.accept(v);
@@ -6810,7 +6810,7 @@ namespace insur {
 
   /* Create csv file, navigating from DTC hierarchy level to Module hierarchy level.
    */
-  std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
+  std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
@@ -6831,8 +6831,8 @@ namespace insur {
 	  std::stringstream cableInfo;
 	  cableInfo << cable.myid() << ","
 		    << any2str(cable.type()) << ",";
-	  int servicesChannel = cable.servicesChannel();
-	  ChannelSection servicesChannelSection = cable.servicesChannelSection();
+	  const int servicesChannel = cable.servicesChannel();
+	  const ChannelSection servicesChannelSection = cable.servicesChannelSection();
 
 	  const PtrVector<Bundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
@@ -6874,7 +6874,7 @@ namespace insur {
      - 3 modules from disk surface 3.
      - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
    */
-  std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, bool isPositiveCablingSide) {
+  std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream bundlesToEndcapModulesCsv;
     bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
@@ -6911,7 +6911,7 @@ namespace insur {
 		modulesInBundleInfo.push_back(moduleInfo.str());
 
 		// Get which disk surface the module belongs to.
-		int surfaceIndex = module.diskSurface();
+		const int surfaceIndex = module.diskSurface();
 		// Count the number of modules per disk surface.
 		pattern[surfaceIndex] += 1; 
 	      }
@@ -6931,7 +6931,7 @@ namespace insur {
 	      
 	      // Print info in csv file: bundle info + pattern info + associated modules info.
 	      bundlesToEndcapModulesCsv << bundleInfo.str() << patternInfo.str();
-	      int numModulesInBundle = modulesInBundleInfo.size();
+	      const int numModulesInBundle = modulesInBundleInfo.size();
 	      for (int i = 0; i < numModulesInBundle; i++) {
 		// Set empty the first 2 columns, since they are the same for all modules belonging to a given bundle.
 		if (i != 0) bundlesToEndcapModulesCsv << ", " << ", ";
