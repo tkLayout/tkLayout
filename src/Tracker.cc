@@ -87,20 +87,53 @@ void Tracker::build() {
  */
 void Tracker::addHierarchyInfoToModules() {
  
-  class HierarchicalNameVisitor : public GeometryVisitor {
+  class HierarchicalNameVisitor : public GeometryVisitor {  
+  public:
+    void visit(Barrel& b) { 
+      cnt = b.myid(); 
+      cntId++; 
+    }
+    void visit(Endcap& e) { 
+      cnt = e.myid(); 
+      cntId++; 
+    }
+    void visit(Layer& l)  { 
+      c1 = l.myid(); 
+    }
+    void visit(Disk& d)   { 
+      c1 = d.myid();
+      diskAverageZ_ = d.averageZ();
+    }
+    void visit(RodPair& r){ 
+      c2 = r.myid(); 
+    }
+    void visit(Ring& r) { 
+      c2 = r.myid();
+      ringAverageZ_ = r.averageZ();
+      bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);
+    }
+    void visit(Module& m) { 
+      m.cntNameId(cnt, cntId); 
+    }
+    void visit(BarrelModule& m) { 
+      m.layer(c1); 
+      m.rod(c2); 
+    }
+    void visit(EndcapModule& m) { 
+      m.disk(c1);
+      m.ring(c2);
+      int smallDeltaIndex = ((fabs(m.center().Z()) > fabs(ringAverageZ_)) ? 1 : 0);
+      int diskSurfaceIndex = 1 + bigDeltaIndex_ + smallDeltaIndex;
+      m.endcapDiskSurface(diskSurfaceIndex);
+    }
+
+  private:
     int cntId = 0;
     string cnt;
     int c1, c2;
-  public:
-    void visit(Barrel& b) { cnt = b.myid(); cntId++; }
-    void visit(Endcap& e) { cnt = e.myid(); cntId++; }
-    void visit(Layer& l)  { c1 = l.myid(); }
-    void visit(Disk& d)   { c1 = d.myid(); }
-    void visit(RodPair& r){ c2 = r.myid(); }
-    void visit(Ring& r)   { c2 = r.myid(); }
-    void visit(Module& m) { m.cntNameId(cnt, cntId); }
-    void visit(BarrelModule& m) { m.layer(c1); m.rod(c2); }
-    void visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
+    double diskAverageZ_;
+    double ringAverageZ_;
+    int bigDeltaIndex_;
   };
 
   HierarchicalNameVisitor cntNameVisitor;

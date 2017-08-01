@@ -45,11 +45,22 @@ static const std::string cabling_negativePrefix = "neg";
 // CABLING TYPE
 // PS or SS stands for the module type.
 // 10G or 5G stands for the speed in the optical fibers (Gb/s).
-// A or B is an extra distinction between groups of modules, used in TEDD. 
-// PS10GB is used for modules which could be connected to 5G links, but, for data rates reduction purposes, are assigned to 10G.
-// Modules associated to different cabling types should not be mixed with each other.
 // Modules with the same cabling type have to be conected to the same DTC type (PS10G, PS5G, or SS).
+
+// A or B is an extra distinction for PS10G modules, used in TEDD only. 
+// PS10GA is used for modules which should be connected to 10G links (because of their location in the Tracker).
+// PS10GB is used for modules which could actually in theory be connected to 5G links. These modules are connected to 10G links for data rates reduction purposes only.
 enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
+
+
+// SERVICES CHANNEL SECTION
+// There are 3 sections for cables in PP1: A, B, and C.
+// The optical bundles are always placed in section B.
+// Though, the cabling map is also used for power cables. 1 optical bundle = 1 power cable. 
+// As a result, the full optical cabling map can be used for power cables mapping.
+// The only difference is that power cables are assigned to section A or C in PP1.
+// This additional info is dealt with by ChannelSection.
+enum ChannelSection { UNKNOWN, A, C };
 
 
 #endif  // CABLING_CONSTANTS_HH

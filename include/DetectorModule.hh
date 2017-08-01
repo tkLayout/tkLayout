@@ -318,6 +318,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual TableRef tableRef() const = 0;
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
+  virtual const int diskSurface() const { return -1; }
 
   inline bool isPixelModule() const { return (moduleType().find(insur::type_pixel) != std::string::npos); }
   inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
@@ -518,6 +519,8 @@ public:
   int16_t moduleRing() const { return ring(); };
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
+  Property<int, AutoDefault> endcapDiskSurface;
+  const int diskSurface() const override { return endcapDiskSurface(); }
   //bool hasAnyResolutionLocalXParam() override { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
   //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
