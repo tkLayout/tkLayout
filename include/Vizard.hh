@@ -219,6 +219,7 @@ namespace insur {
     std::string createModulesToDTCsCsv(const Tracker& t, const bool isPositiveCablingSide);
     std::string createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
     std::string createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
 
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);

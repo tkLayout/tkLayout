@@ -6870,7 +6870,7 @@ namespace insur {
 
   /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
      This also provides modules aggregation patterns. 
-     This is, for a given bundle, the number of connected modules per disk surface.
+     A pattern is, for a given bundle, the number of connected modules per disk surface.
      The disk surfaces are sorted per increasing |Z|.
      For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
      - 3 modules from disk surface 1 (the disk surface with lowest |Z|).
@@ -6879,9 +6879,12 @@ namespace insur {
      - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
    */
   std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
-
     std::stringstream bundlesToEndcapModulesCsv;
-    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
+    bundlesToEndcapModulesCsv << summaryText << std::endl;
+
+    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
@@ -6926,13 +6929,14 @@ namespace insur {
 		auto found = pattern.find(surfaceIndex);
 		if (found != pattern.end()) {
 		  if (surfaceIndex != 1) patternInfo << "-";
-		  patternInfo << found->second;
+		  const int numModulesPerDiskSurface = found->second;
+		  patternInfo << numModulesPerDiskSurface;
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
 			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
 	      }
 	      patternInfo << ", ";
-	      
+  
 	      // Print info in csv file: bundle info + pattern info + associated modules info.
 	      bundlesToEndcapModulesCsv << bundleInfo.str() << patternInfo.str();
 	      const int numModulesInBundle = modulesInBundleInfo.size();
@@ -6952,7 +6956,77 @@ namespace insur {
     }
     if (myDTCs.size() == 0) bundlesToEndcapModulesCsv << std::endl;
 
+
     return bundlesToEndcapModulesCsv.str();
+  }
+
+
+  /* Provide a summary text file, with the distribution of modules aggregation patterns which are encountered in TEDD.
+     A pattern is, for a given bundle, the number of connected modules per disk surface.
+     Here, patterns are irrespective of the disk surface ordering.
+     For example, 1-2-3-4 or 3-4-1-2 are both considered to be combination 1-2-3-4.
+     All this is because Mechanics will need, in TEDD, custom aggregation patch cords, to group the fibers from each disk surface into one bundle.
+     One need to know how many customs aggregation patch cords are needed!
+  */
+  std::string Vizard::countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+    std::stringstream summaryText;
+    summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
+
+    std::map<std::multiset<int>, int> combinationsDistribution;
+
+    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    for (const auto& dtc : myDTCs) {
+      if (dtc.second != nullptr) {
+
+	const PtrVector<Cable>& myCables = dtc.second->cable();
+	for (const auto& cable : myCables) {
+
+	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  for (const auto& bundle : myBundles) {
+
+	    std::string subDetectorName = bundle.subDetectorName();
+	    // Only in TEDD.
+	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	      // Create pattern related to the bundle.
+	      std::map<int, int> pattern;
+
+	      const PtrVector<Module>& myModules = bundle.modules();
+	      for (const auto& module : myModules) {
+		// Get which disk surface the module belongs to.
+		const int surfaceIndex = module.diskSurface();
+		// Count the number of modules per disk surface.
+		pattern[surfaceIndex] += 1; 
+	      }
+
+	      // Checks pattern makes sense, and put it in a-b-c-d format.
+	      std::multiset<int> combination;
+	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+		auto found = pattern.find(surfaceIndex);
+		if (found != pattern.end()) {
+		  const int numModulesPerDiskSurface = found->second;
+		  combination.insert(numModulesPerDiskSurface);
+		}
+		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
+			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
+	      }
+	      combinationsDistribution[combination] += 1;
+	    }
+	  }	 
+	}
+      }
+    }
+
+    for (const auto& comb : combinationsDistribution) {
+      summaryText << "Combination";
+      std::multiset<int> combination = comb.first;
+      for (const auto& numModules : combination) {
+	summaryText << " " << numModules;
+      }
+      summaryText << " appears " << comb.second << " times." << std::endl;
+    } 
+    summaryText << std::endl;
+
+    return summaryText.str();
   }
 
 
