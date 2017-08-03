@@ -6956,7 +6956,6 @@ namespace insur {
     }
     if (myDTCs.size() == 0) bundlesToEndcapModulesCsv << std::endl;
 
-
     return bundlesToEndcapModulesCsv.str();
   }
 
@@ -6999,17 +6998,22 @@ namespace insur {
 		pattern[surfaceIndex] += 1; 
 	      }
 
-	      // Checks pattern makes sense, and put it in a-b-c-d format.
-	      std::multiset<int> combination;
+	      // Checks pattern makes sense, and create the corresponding combination.
+	      // A combination is the number of modules per disk surface, irrespective of the surface |Z| ordering.
+	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
+	      // Duplicates are allowed: combination 1-2-3-3 can happen!
+	      std::multiset<int> combination;  
 	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 		auto found = pattern.find(surfaceIndex);
 		if (found != pattern.end()) {
 		  const int numModulesPerDiskSurface = found->second;
+		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
 			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
 	      }
+	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;
 	    }
 	  }	 
@@ -7017,6 +7021,7 @@ namespace insur {
       }
     }
 
+    // Print the different encountered combinations, and their occurences.
     for (const auto& comb : combinationsDistribution) {
       summaryText << "Combination";
       std::multiset<int> combination = comb.first;
