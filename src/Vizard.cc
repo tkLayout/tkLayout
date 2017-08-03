@@ -6965,7 +6965,8 @@ namespace insur {
      A pattern is, for a given bundle, the number of connected modules per disk surface.
      Here, patterns are irrespective of the disk surface ordering.
      For example, 1-2-3-4 or 3-4-1-2 are both considered to be combination 1-2-3-4.
-     All this is because Mechanics will need, in TEDD, custom aggregation patch cords, to group the fibers from each disk surface into one bundle.
+     All this is because Electronics/Mechanics will need, in TEDD, custom aggregation patch cords, 
+     to group the fibers from each disk surface into one bundle.
      One need to know how many customs aggregation patch cords are needed!
   */
   std::string Vizard::countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
