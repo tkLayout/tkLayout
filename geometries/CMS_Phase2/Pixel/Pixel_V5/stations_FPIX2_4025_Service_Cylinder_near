@@ -2,28 +2,28 @@
 // twisted pairs->GBT
 
 Station {
-  stationName FPIX9
+  stationName FPIX2_1
   type second
   minZ 1770.00
   maxZ 1820.00
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
-  stationName FPIX10
+  stationName FPIX2_2
   type second
   minZ 2005.43
   maxZ 2055.43
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
-  stationName FPIX11
+  stationName FPIX2_3
   type second
   minZ 2270.83
   maxZ 2320.83
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 Station {
-  stationName FPIX12
+  stationName FPIX2_4
   type second
   minZ 2570.00
   maxZ 2620.00

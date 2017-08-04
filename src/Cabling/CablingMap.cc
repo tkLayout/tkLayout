@@ -60,7 +60,7 @@ void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::ma
  */
 const Category CablingMap::computeCableType(const Category& bundleType) const {
  Category cableType = bundleType;
- if (bundleType == Category::PS5GA || bundleType == Category::PS5GB) cableType = Category::PS5G;
+ if (bundleType == Category::PS10GA || bundleType == Category::PS10GB) cableType = Category::PS10G;
  return cableType;
 }
 
@@ -85,6 +85,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 
     // COLLECT RELEVANT INFO
     const PhiPosition& bundlePhiPosition = myBundle->phiPosition();
+    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef(); 
     const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();  
    
@@ -98,25 +99,36 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
     const std::string subDetectorName = myBundle->subDetectorName();
     const int layerDiskNumber = myBundle->layerDiskNumber();
 
+    const bool isPositiveCablingSide = myBundle->isPositiveCablingSide();
+
     // by default
     int cablePhiSectorRef = phiSectorRef;
     int slot = 0;
 
     // PS10G
     if (cableType == Category::PS10G) {
-      if (subDetectorName == cabling_tbps || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2)) {
+      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ((subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
 	slot = 1;
+      }
+      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
+      if ((subDetectorName == cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)) {
+	slot = 2;
       }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == Category::PS5GA) ) {
-	slot = 2;
+      if (subDetectorName == cabling_tbps && layerDiskNumber == 2) {
+	slot = 3;
+      }
+
+      else if ((subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
+	slot = 4;
       }
 
       // STAGGERING
-      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3 && bundleType == Category::PS5GB) ) {
+      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
 	// TBPS
 	if (subDetectorName == cabling_tbps) {
 	  // TILTED PART
@@ -129,7 +141,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 	      Layer3TiltedPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      cablePhiSectorRef = nextPhiSectorRef;
 	    }
-	    slot = 3;
+	    slot = 6;
 	  }
 	  // FLAT PART : assign TBPS bundles with TEDD bundles
 	  else {
@@ -141,19 +153,14 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 	      Layer3FlatPhiSectorsCounter[nextPhiSectorRef] += 1;
 	      cablePhiSectorRef = nextPhiSectorRef;
 	    }
-	    slot = 4;
+	    slot = 5;
 	  }
 	}
 	// TEDD_2
-	else slot = 4;
-      }
-
-      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
-	slot = 5;
-      }
-
-      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5) ) {
-	slot = 6;
+	else {
+	  if (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) slot = 5;
+	  else if (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) slot = 6;
+	}
       }
     }
 
@@ -210,7 +217,10 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
       }
     }
   
-    if (slot == 0) logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
+    if (slot == 0) {
+      std::cout << "bundleType = "  << bundleType << " cableType = " << cableType <<  " subDetectorName  =" << subDetectorName << " layerDiskNumber = " << layerDiskNumber << " isPositiveCablingSide = " << isPositiveCablingSide << std::endl;
+      logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
+    }
 
 
     // COLLECT phiSectorRef and slots which have been computed.

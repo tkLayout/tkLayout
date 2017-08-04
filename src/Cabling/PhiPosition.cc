@@ -40,12 +40,12 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
     // This is because for several cases, there can be too many modules per bundle, hence the phi width is defined smaller.
     phiRegionWidth_ = 0;	  
     phiRegionStart_ = 0.;
-    // PS10G, PS5GA
-    if (bundleType == Category::PS10G || bundleType == Category::PS5GA ) {
+    // PS10GA, PS10GB
+    if (bundleType == Category::PS10GA || bundleType == Category::PS10GB ) {
       phiRegionWidth_ = cabling_nonantWidth;
     }
-    // PS5GB
-    else if (bundleType == Category::PS5GB ) {
+    // PS5G
+    else if (bundleType == Category::PS5G ) {
       phiRegionWidth_ = cabling_semiNonantWidth;
     }
     // 2S
