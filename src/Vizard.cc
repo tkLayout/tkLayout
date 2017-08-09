@@ -905,6 +905,88 @@ namespace insur {
 
 
 
+      // SERVICES DETAILS (TRACKING VOLUME)
+      myContent = new RootWContent("Services details (Tracking volume)", false);
+      myPage->addContent(myContent);
+
+      myTable = new RootWTable();
+      sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+      myTable->setContent(0, 0, titleString);
+      myTable->setContent(0, 1, "Radiation length");
+      myTable->setContent(0, 2, "Interaction length");
+
+      THStack* rServicesDetailsTrackingVolumeStack = new THStack("rservicescomptrackingvolumestack", "Radiation Length by Component");
+      THStack* iServicesDetailsTrackingVolumeStack = new THStack("iservicescomptrackingvolumestack", "Interaction Length by Component");
+
+      TLegend* servicesTrackingVolumeLegend = new TLegend(0.1,0.6,0.35,0.9);
+
+      myCanvas = new TCanvas(("ServicesDetailsTrackingVolumeRI"+name).c_str());
+      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->Divide(2, 1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(color_pad_background);
+
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      std::map<std::string, TH1D*> rServicesDetailsTrackingVolume;
+      if (name == "outer") {
+	rServicesDetailsTrackingVolume = a.getHistoServicesDetailsOuterTrackingVolumeR();
+	rServicesDetailsPixelTrackingVolume_ = a.getHistoServicesDetailsPixelTrackingVolumeR();
+      }
+      else rServicesDetailsTrackingVolume = rServicesDetailsPixelTrackingVolume_;
+      int servicesTrackingVolumeIndex = 1;
+      for (const auto& it : rServicesDetailsTrackingVolume) {
+	prof = newProfile((TH1D*)it.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	histo = prof->ProjectionX();     
+	histo->SetLineColor(Palette::color(servicesTrackingVolumeIndex));
+	histo->SetFillColor(Palette::color(servicesTrackingVolumeIndex));
+	histo->SetTitle(it.first.c_str());
+	servicesTrackingVolumeLegend->AddEntry(histo, it.first.c_str());
+	rServicesDetailsTrackingVolumeStack->Add(histo);
+	myTable->setContent(servicesTrackingVolumeIndex, 0, it.first);
+	myTable->setContent(servicesTrackingVolumeIndex++, 1, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
+      }
+      rServicesDetailsTrackingVolumeStack->Draw("hist");  
+      //rServicesDetailsTrackingVolumeStack->GetXaxis()->SetTitle("#eta"); 
+      //myCanvas->Modified();
+      servicesTrackingVolumeLegend->Draw();
+
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      std::map<std::string, TH1D*> iServicesDetailsTrackingVolume;
+      if (name == "outer") {
+	iServicesDetailsTrackingVolume = a.getHistoServicesDetailsOuterTrackingVolumeI();
+	iServicesDetailsPixelTrackingVolume_ = a.getHistoServicesDetailsPixelTrackingVolumeI();
+      }
+      else iServicesDetailsTrackingVolume = iServicesDetailsPixelTrackingVolume_;
+
+      servicesTrackingVolumeIndex = 1;
+      for (const auto& it : iServicesDetailsTrackingVolume) {
+	prof = newProfile((TH1D*)it.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	histo = prof->ProjectionX();
+	histo->SetLineColor(Palette::color(servicesTrackingVolumeIndex));
+	histo->SetFillColor(Palette::color(servicesTrackingVolumeIndex));
+	histo->SetTitle(it.first.c_str());
+	iServicesDetailsTrackingVolumeStack->Add(histo);
+	myTable->setContent(servicesTrackingVolumeIndex++, 2, averageHistogramValues(*histo, a.getEtaMaxMaterial()), 5);
+      }
+      iServicesDetailsTrackingVolumeStack->Draw("hist");
+      //rServicesCompStack->GetXaxis()->SetTitle("#eta"); 
+      //myCanvas->Modified();
+      servicesTrackingVolumeLegend->Draw();
+
+      myContent->addItem(myTable);
+      myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Radiation and interaction length distribution in eta by component type in services");
+      myImage->setName("matServicesDetailsTrackingVolume");
+      myContent->addItem(myImage);
+
+
+
+
+
+
+
     // Work area re-init
     myCanvas = new TCanvas(name_countourMaterial.c_str());
     myCanvas->SetFillColor(color_plot_background);
