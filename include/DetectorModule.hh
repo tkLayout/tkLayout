@@ -416,39 +416,8 @@ public:
     resolutionLocalYBarrelParam9            ("resolutionLocalYBarrelParam9"            , parsedOnly())
   { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { 
-    return ( resolutionLocalXBarrelParam0Inf.state() 
-	     || resolutionLocalXBarrelParam1Inf.state() 
-	     || resolutionLocalXBarrelParam2Inf.state() 
-	     || resolutionLocalXBarrelParam0Sup.state() 
-	     || resolutionLocalXBarrelParam1Sup.state() 
-	     || resolutionLocalXBarrelParam2Sup.state()
-	     || resolutionLocalXBarrelParam0.state() 
-	     || resolutionLocalXBarrelParam1.state() 
-	     || resolutionLocalXBarrelParam2.state() 
-	     || resolutionLocalXBarrelParam3.state() 
-	     || resolutionLocalXBarrelParam4.state()
-	     || resolutionLocalXBarrelParam5.state() 
-	     || resolutionLocalXBarrelParam6.state() 
-	     || resolutionLocalXBarrelParam7.state()
-	     || resolutionLocalXBarrelParam8.state() 
-	     || resolutionLocalXBarrelParam9.state()
-	     ); 
-  }
-
-  bool hasAnyResolutionLocalYParam() const { 
-    return ( resolutionLocalYBarrelParam0.state() 
-	     || resolutionLocalYBarrelParam1.state() 
-	     || resolutionLocalYBarrelParam2.state() 
-	     || resolutionLocalYBarrelParam3.state() 
-	     || resolutionLocalYBarrelParam4.state()
-	     || resolutionLocalYBarrelParam5.state() 
-	     || resolutionLocalYBarrelParam6.state() 
-	     || resolutionLocalYBarrelParam7.state()
-	     || resolutionLocalYBarrelParam8.state() 
-	     || resolutionLocalYBarrelParam9.state()
-	     ); 
-  }
+  bool hasAnyResolutionLocalXParam() const;
+  bool hasAnyResolutionLocalYParam() const;
 
   void accept(GeometryVisitor& v) {
     v.visit(*this);
