@@ -1,0 +1,25 @@
+// Used to compute Local X Resolution for a tilted module (tilt around X). 
+// pitch in X = 25 um.
+resolutionLocalXBarrelParam0 -9.48828e-04      // mm
+resolutionLocalXBarrelParam1 1.70985e-03       // mm
+resolutionLocalXBarrelParam2 1.06496e-03       // mm
+resolutionLocalXBarrelParam3 2.01324e+01      
+resolutionLocalXBarrelParam4 -2.39650e+00      
+resolutionLocalXBarrelParam5 1.07969e-01       // mm
+resolutionLocalXBarrelParam6 -6.22536e-01      
+resolutionLocalXBarrelParam7 2.72934e-01      
+resolutionLocalXBarrelParam8 5.59325e-03       // mm
+resolutionLocalXBarrelParam9 2.82157e+00      
+
+
+
+
+
+
+
+
+
+
+
+
+

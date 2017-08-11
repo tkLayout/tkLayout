@@ -356,14 +356,32 @@ public:
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Sup;
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Sup;
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam3;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam4;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam5;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam6;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam7;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam8;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam9;
+
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam1;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam2;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam3;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam4;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam5;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam6;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam7;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam8;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam9;
 
- BarrelModule(Decorated* decorated) :
-  DetectorModule(decorated),
+  BarrelModule(Decorated* decorated) :
+    DetectorModule(decorated),
+    // Local X resolution parameters
+    // UNTILTED MODULE
     cotalphaLimit                           ("cotalphaLimit"                           , parsedOnly()),
     resolutionLocalXBarrelParam0Inf         ("resolutionLocalXBarrelParam0Inf"         , parsedOnly()),
     resolutionLocalXBarrelParam1Inf         ("resolutionLocalXBarrelParam1Inf"         , parsedOnly()),
@@ -371,16 +389,65 @@ public:
     resolutionLocalXBarrelParam0Sup         ("resolutionLocalXBarrelParam0Sup"         , parsedOnly()),
     resolutionLocalXBarrelParam1Sup         ("resolutionLocalXBarrelParam1Sup"         , parsedOnly()),
     resolutionLocalXBarrelParam2Sup         ("resolutionLocalXBarrelParam2Sup"         , parsedOnly()),
+    // TILTED MODULE
+    resolutionLocalXBarrelParam0            ("resolutionLocalXBarrelParam0"            , parsedOnly()),
+    resolutionLocalXBarrelParam1            ("resolutionLocalXBarrelParam1"            , parsedOnly()),
+    resolutionLocalXBarrelParam2            ("resolutionLocalXBarrelParam2"            , parsedOnly()),
+    resolutionLocalXBarrelParam3            ("resolutionLocalXBarrelParam3"            , parsedOnly()),
+    resolutionLocalXBarrelParam4            ("resolutionLocalXBarrelParam4"            , parsedOnly()),
+    resolutionLocalXBarrelParam5            ("resolutionLocalXBarrelParam5"            , parsedOnly()),
+    resolutionLocalXBarrelParam6            ("resolutionLocalXBarrelParam6"            , parsedOnly()),
+    resolutionLocalXBarrelParam7            ("resolutionLocalXBarrelParam7"            , parsedOnly()),
+    resolutionLocalXBarrelParam8            ("resolutionLocalXBarrelParam8"            , parsedOnly()),
+    resolutionLocalXBarrelParam9            ("resolutionLocalXBarrelParam9"            , parsedOnly()),
+    // Local Y resolution parameters
+    // UNTILTED MODULE
     resolutionLocalYBarrelParam0            ("resolutionLocalYBarrelParam0"            , parsedOnly()),
     resolutionLocalYBarrelParam1            ("resolutionLocalYBarrelParam1"            , parsedOnly()),
     resolutionLocalYBarrelParam2            ("resolutionLocalYBarrelParam2"            , parsedOnly()),
     resolutionLocalYBarrelParam3            ("resolutionLocalYBarrelParam3"            , parsedOnly()),
-    resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly())
-      { setup(); }
+    resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly()),
+    // extra parameters for TILTED MODULE
+    resolutionLocalYBarrelParam5            ("resolutionLocalYBarrelParam5"            , parsedOnly()),
+    resolutionLocalYBarrelParam6            ("resolutionLocalYBarrelParam6"            , parsedOnly()),
+    resolutionLocalYBarrelParam7            ("resolutionLocalYBarrelParam7"            , parsedOnly()),
+    resolutionLocalYBarrelParam8            ("resolutionLocalYBarrelParam8"            , parsedOnly()),
+    resolutionLocalYBarrelParam9            ("resolutionLocalYBarrelParam9"            , parsedOnly())
+  { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXBarrelParam0Inf.state() || resolutionLocalXBarrelParam1Inf.state() || resolutionLocalXBarrelParam2Inf.state() || resolutionLocalXBarrelParam0Sup.state() || resolutionLocalXBarrelParam1Sup.state() || resolutionLocalXBarrelParam2Sup.state()); }
+  bool hasAnyResolutionLocalXParam() const { 
+    return ( resolutionLocalXBarrelParam0Inf.state() 
+	     || resolutionLocalXBarrelParam1Inf.state() 
+	     || resolutionLocalXBarrelParam2Inf.state() 
+	     || resolutionLocalXBarrelParam0Sup.state() 
+	     || resolutionLocalXBarrelParam1Sup.state() 
+	     || resolutionLocalXBarrelParam2Sup.state()
+	     || resolutionLocalXBarrelParam0.state() 
+	     || resolutionLocalXBarrelParam1.state() 
+	     || resolutionLocalXBarrelParam2.state() 
+	     || resolutionLocalXBarrelParam3.state() 
+	     || resolutionLocalXBarrelParam4.state()
+	     || resolutionLocalXBarrelParam5.state() 
+	     || resolutionLocalXBarrelParam6.state() 
+	     || resolutionLocalXBarrelParam7.state()
+	     || resolutionLocalXBarrelParam8.state() 
+	     || resolutionLocalXBarrelParam9.state()
+	     ); 
+  }
 
-  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYBarrelParam0.state() || resolutionLocalYBarrelParam1.state() || resolutionLocalYBarrelParam2.state() || resolutionLocalYBarrelParam3.state() || resolutionLocalYBarrelParam4.state()); }
+  bool hasAnyResolutionLocalYParam() const { 
+    return ( resolutionLocalYBarrelParam0.state() 
+	     || resolutionLocalYBarrelParam1.state() 
+	     || resolutionLocalYBarrelParam2.state() 
+	     || resolutionLocalYBarrelParam3.state() 
+	     || resolutionLocalYBarrelParam4.state()
+	     || resolutionLocalYBarrelParam5.state() 
+	     || resolutionLocalYBarrelParam6.state() 
+	     || resolutionLocalYBarrelParam7.state()
+	     || resolutionLocalYBarrelParam8.state() 
+	     || resolutionLocalYBarrelParam9.state()
+	     ); 
+  }
 
   void accept(GeometryVisitor& v) {
     v.visit(*this);
@@ -496,14 +563,9 @@ public:
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { 
-    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
-    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
-    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
-    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2);
-}
+  double calculateParameterizedResolutionLocalX(double trackPhi) const;
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
+  double calculateParameterizedResolutionLocalY(double theta) const;
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }

@@ -541,6 +541,55 @@ void BarrelModule::build() {
 }
 
 
+double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) const { 
+  double resolutionLocalX;
+
+  // UNTILTED MODULE
+  if (!isTilted()) {
+    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
+    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
+    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
+    resolutionLocalX = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2);
+  }
+
+  // TILTED MODULE
+  else {
+    //double tanLorentzAngle = 0.1078 * insur::magnetic_field * cos(tiltAngle());
+    double tanLorentzAngle = 0.1078 * 3.8* cos(tiltAngle());
+    double x = fabs(-1./tan(alpha(trackPhi)) - tanLorentzAngle);
+
+    resolutionLocalX = resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * x 
+      + resolutionLocalXBarrelParam2() * exp(-resolutionLocalXBarrelParam9() * x) * cos(resolutionLocalXBarrelParam3() * x + resolutionLocalXBarrelParam4())
+      + resolutionLocalXBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalXBarrelParam6())/resolutionLocalXBarrelParam7()), 2))
+      + resolutionLocalXBarrelParam8() * pow(x, 0.5);
+  }
+
+  return resolutionLocalX;
+}
+
+
+double BarrelModule::calculateParameterizedResolutionLocalY(double theta) const {
+  double resolutionLocalY;
+
+  // UNTILTED MODULE
+  if (!isTilted()) {
+    resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); 
+  }
+
+  // TILTED MODULE
+  else {
+    double x = fabs(-1./tan(beta(theta)));
+
+    resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * x 
+      + resolutionLocalYBarrelParam2() * exp(-resolutionLocalYBarrelParam9() * x) * cos(resolutionLocalYBarrelParam3() * x + resolutionLocalYBarrelParam4())
+      + resolutionLocalYBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalYBarrelParam6())/resolutionLocalYBarrelParam7()), 2))
+      + resolutionLocalYBarrelParam8() * pow(x, 0.5);
+  }
+
+  return resolutionLocalY;
+}
+
+
 void EndcapModule::check() {
   PropertyObject::check();
 

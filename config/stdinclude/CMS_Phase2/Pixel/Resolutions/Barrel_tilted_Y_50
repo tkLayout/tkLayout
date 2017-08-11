@@ -1,0 +1,24 @@
+// Used to compute Local Y Resolution for a tilted module (tilt around X). 
+// pitch in Y = 50 um.
+resolutionLocalYBarrelParam0 2.87984e-03       // mm
+resolutionLocalYBarrelParam1 2.37996e-03       // mm
+resolutionLocalYBarrelParam2 3.30803e-03       // mm
+resolutionLocalYBarrelParam3 1.08865e+01      
+resolutionLocalYBarrelParam4 -2.67656e+00      
+resolutionLocalYBarrelParam5 4.65702e-01       // mm
+resolutionLocalYBarrelParam6 -1.40435e+00      
+resolutionLocalYBarrelParam7 5.32738e-01      
+resolutionLocalYBarrelParam8 1.51683e-08       // mm
+resolutionLocalYBarrelParam9 1.64498e+00      
+
+
+
+
+
+
+
+
+
+
+
+
