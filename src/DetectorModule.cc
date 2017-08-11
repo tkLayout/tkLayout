@@ -522,7 +522,7 @@ void BarrelModule::check() {
 
   if (hasAnyResolutionLocalXParam()) {
     // UNTILTED MODULE
-    /*if (!isTilted()) {
+    if (!isTilted()) {
       if ( !resolutionLocalXBarrelParam0Inf.state() 
 	   || !resolutionLocalXBarrelParam1Inf.state() 
 	   || !resolutionLocalXBarrelParam2Inf.state() 
@@ -532,7 +532,7 @@ void BarrelModule::check() {
 	   ) throw PathfulException("Local X spatial resolution, untilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to an untilted module.");
     }
     // TILTED MODULE
-    else {*/
+    else {
       if ( !resolutionLocalXBarrelParam0.state() 
 	   || !resolutionLocalXBarrelParam1.state() 
 	   || !resolutionLocalXBarrelParam2.state() 
@@ -544,7 +544,7 @@ void BarrelModule::check() {
 	   || !resolutionLocalXBarrelParam8.state() 
 	   || !resolutionLocalXBarrelParam9.state()
 	   ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
-      //}
+    }
   }
 
   // LOCAL Y RESOLUTION PARAMETERS
@@ -552,7 +552,7 @@ void BarrelModule::check() {
 
   if (hasAnyResolutionLocalYParam()) {
     // UNTILTED MODULE
-    /*if (!isTilted()) {
+    if (!isTilted()) {
       if ( !resolutionLocalYBarrelParam0.state() 
 	   || !resolutionLocalYBarrelParam1.state() 
 	   || !resolutionLocalYBarrelParam2.state() 
@@ -561,7 +561,7 @@ void BarrelModule::check() {
 	   ) throw PathfulException("Local Y spatial resolution, untilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to an untilted module.");
     }
     // TILTED MODULE
-    else {*/
+    else {
       if ( !resolutionLocalYBarrelParam0.state() 
 	   || !resolutionLocalYBarrelParam1.state() 
 	   || !resolutionLocalYBarrelParam2.state() 
@@ -573,7 +573,7 @@ void BarrelModule::check() {
 	   || !resolutionLocalYBarrelParam8.state() 
 	   || !resolutionLocalYBarrelParam9.state()
 	   ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
-      // }
+    }
   }
 
 }
