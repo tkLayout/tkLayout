@@ -13,6 +13,7 @@
 #include <boost/accumulators/statistics/count.hpp>
 
 #include "global_constants.hh"
+#include "SimParms.hh"
 #include "MessageLogger.hh"
 #include "Sensor.hh"
 #include "ModuleBase.hh"
