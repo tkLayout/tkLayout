@@ -114,7 +114,7 @@ HitNew::HitNew(double rPos, double zPos) {
  * //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
  * @param myModule pointer to the module with the hit 
  */
-HitNew::HitNew(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+HitNew::HitNew(double rPos, double zPos, DetectorModule* myModule, HitType activeHitType) {
     m_detName          = "Undefined";
     m_distance         = sqrt(rPos*rPos + zPos*zPos);
     m_rPos             = rPos;
@@ -139,7 +139,7 @@ HitNew::HitNew(double rPos, double zPos, const DetectorModule* myModule, HitType
  * Setter for the pointer to the active surface that caused the hit.
  * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
  */
-void HitNew::setHitModule(const DetectorModule* myModule) {
+void HitNew::setHitModule(DetectorModule* myModule) {
 
   if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
@@ -182,6 +182,7 @@ double HitNew::getTrackTheta() {
   return (m_track->getTheta());
 };
 
+
 /**
  * Getter for the final, angle corrected pair of radiation and interaction lengths.
  * @return A copy of the pair containing the requested values; radiation length first, interaction length second
@@ -189,6 +190,25 @@ double HitNew::getTrackTheta() {
 RILength HitNew::getCorrectedMaterial() {
     return m_correctedMaterial;
 }
+
+
+
+
+void HitNew::computeLocalResolution() {
+  if (!isActive()) {
+    std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
+  } else {
+    if (m_hitModule) {
+      double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      
+      if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
+      if (m_hitModule->hasAnyResolutionLocalYParam()) m_hitModule->rollingParametrizedResolutionLocalY(resolutionLocalY);
+    }
+  }
+}
+
+
 
 /**
  * Getter for the rPhi resolution (local x coordinate for a module)
@@ -292,6 +312,17 @@ double HitNew::getResolutionZ(double trackRadius) {
     else return m_resolutionZ;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * Checks wether a module belongs to the outer endcap (no pixel allowed)

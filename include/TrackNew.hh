@@ -91,6 +91,8 @@ public:
   //
   // Print methods
 
+  void computeLocalResolution();
+
   //! Helper method printing track covariance matrices in R-Phi
   void printErrors();
 
