@@ -1151,19 +1151,16 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	  InactiveElement* inactive = hit->getHitInactiveElement();
 	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 	  for (const auto& it : servicesComponentsRI) {
-	    Material res;
-	    res.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
-	    res.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
-	    if (rComponentsServicesDetails[it.first]==NULL) {
-	      rComponentsServicesDetails[it.first] = new TH1D();
-	      rComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    rComponentsServicesDetails[it.first]->Fill(eta, res.radiation);
-	    if (iComponentsServicesDetails[it.first]==NULL) { 
-	      iComponentsServicesDetails[it.first] = new TH1D();
-	      iComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    iComponentsServicesDetails[it.first]->Fill(eta, res.interaction);
+	    std::string componentName = it.first;
+
+	    Material correctedMat;
+	    correctedMat.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
+	    correctedMat.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+
+	    fillRIComponentsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
+				   componentName,
+				   correctedMat, eta, 
+				   nTracks, etaMax);
 	  }
 	}
       }
@@ -1173,38 +1170,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) {
-
-      // RADIATION LENGTH HISTOGRAM
-      // If histo does not exist yet, create it!
-      if (rComponentsHistos[componentName] == NULL) {
-	rComponentsHistos[componentName] = new TH1D();
-	rComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
-      }
-      // Fill!
-      rComponentsHistos[componentName]->Fill(eta, correctedMat.radiation);
-
-      // INTERACTION LENGTH HISTOGRAM
-      // If histo does not exist yet, create it!
-      if (iComponentsHistos[componentName] == NULL) {
-	iComponentsHistos[componentName] = new TH1D();
-	iComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
-      }
-      // Fill!
-      iComponentsHistos[componentName]->Fill(eta, correctedMat.interaction);
-    }
+    
 
 
 
@@ -1341,10 +1307,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 				   nTracks, etaMax);
 	  }
 	}	  
-	//}
 
 	// SERVICES DETAILS: OUTER TRACKING VOLUME
-	// for (const auto& hit : track.getHitV()) {
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  
 	  InactiveElement* inactive = hit->getHitInactiveElement();
@@ -1370,6 +1334,30 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
     }
 
+  }
+
+
+
+
+  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) {
+
+    // RADIATION LENGTH HISTOGRAM
+    // If histo does not exist yet, create it!
+    if (rComponentsHistos[componentName] == NULL) {
+      rComponentsHistos[componentName] = new TH1D();
+      rComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
+    }
+    // Fill!
+    rComponentsHistos[componentName]->Fill(eta, correctedMat.radiation);
+
+    // INTERACTION LENGTH HISTOGRAM
+    // If histo does not exist yet, create it!
+    if (iComponentsHistos[componentName] == NULL) {
+      iComponentsHistos[componentName] = new TH1D();
+      iComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
+    }
+    // Fill!
+    iComponentsHistos[componentName]->Fill(eta, correctedMat.interaction);
   }
 
 
