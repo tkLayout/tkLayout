@@ -1144,7 +1144,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
     if (eta >= 0.) {
 
-      // FULL VOLUME, SERVICES DETAILS
+      // EXTRA PLOTS: SERVICES DETAILS (FULL VOLUMES)
       for (const auto& hit : track.getHitV()) {
 	if (!hit->isPixel() && hit->getObjectCategory() == Hit::Service) {
 	  
@@ -1170,167 +1170,16 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       // TRACKING VOLUME MATERIAL BUDGET PLOTS    
       if (mb.getTracker().myid() == outer_tracker_id) {
 
-	// ASSIGN TRACKING VOLUME IDENTIFIERS TO ALL HITS OF THE TRACK:
+	// 1) ASSIGN TRACKING VOLUME IDENTIFIERS TO ALL HITS OF THE TRACK:
 	// Is the hit within Inner Tracker Tracking Volume ? Outer Tracking Volume ? In between ? Outside ?
 	track.assignTrackingVolumesToHits();
 
-
-	// BEAM PIPE MATERIAL BUDGET  
-	// Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
-	for (const auto& hit : track.getHitV()) {
-	  if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
-	    const Material& correctedMat = hit->getCorrectedMaterial();
-	    fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
-				   beam_pipe, 
-				   correctedMat, eta, 
-				   nTracks, etaMax);
-	  }
-
-	  // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
-	  // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
-	  if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
-	    const Material& correctedMat = hit->getCorrectedMaterial();
-	    fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
-				   services_under_pixel_tracking_volume, 
-				   correctedMat, eta, 
-				   nTracks, etaMax);
-	  }
-	}
-    
-
-
-	// MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
-	// Material (IT or OT) located between first and last active hit on the Inner Tracker.
-
-	// A: modules
-	for (const auto& it : ignoredPixelSumComponentsRI) {
-	  std::string componentName = it.first;
-	  const Material& correctedMat = it.second;
-	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-				 componentName,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-
-
-
-
-      for (const auto& hit : track.getHitV()) {
-	// B: services
-	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-				 services_in_pixel_tracking_volume, 
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-
-
-	// C: supports
-	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-				 supports_in_pixel_tracking_volume, 
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-
-
-
-	// MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
-	// Material (IT or OT) located between last active hit on the Inner Tracker and first active hit on the Outer Tracker.
-	if (hit->isIntersticeVolume()) {
-	  const Material& correctedMat =  hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsInterstice, iComponentsInterstice,
-				 services_and_supports_in_interstice,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-      }
-
-
-      // MATERIAL BUDGET WITHIN OUTER TRACKER TRACKING VOLUME: D + E + F
-      // Material (IT or OT) located between first and last active hit on the Outer Tracker.
-
-      // D: modules
-      for (const auto& it : sumComponentsRI) {
-	std::string componentName = it.first;
-	const Material& correctedMat = it.second;
-	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-			       componentName,
-			       correctedMat, eta, 
-			       nTracks, etaMax);
-      }
- 
-
-      for (const auto& hit : track.getHitV()) {
-
-	// E: services
-	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-				 services_in_outer_tracking_volume,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-
-	// F: supports
-	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-				 supports_in_outer_tracking_volume,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-      }
-
-
-
-
-      // EXTRA PLOTS: SERVICES DETAILS
-      for (const auto& hit : track.getHitV()) {
-	// DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
-	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  
-	  InactiveElement* inactive = hit->getHitInactiveElement();
-	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-
-	  for (const auto& it : servicesComponentsRI) {
-	   
-	    std::string componentName = it.first;
-	    const Material& uncorrectedMat = it.second;
-	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical()); 
-
-	    fillRIComponentsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
-				   componentName,
-				   correctedMat, eta, 
-				   nTracks, etaMax);
-	  }
-	}	  
-
-	// DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
-	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  
-	  InactiveElement* inactive = hit->getHitInactiveElement();
-	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-
-	  for (const auto& it : servicesComponentsRI) {
-
-	    std::string componentName = it.first;
-	    const Material& uncorrectedMat = it.second;
-	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
-
-	    fillRIComponentsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
-				   componentName,
-				   correctedMat, eta, 
-				   nTracks, etaMax);
-	  }
-	}	  
-      }
-
-
+	// 2) FILL THE TRACKING VOLUME MATERIAL BUDGET HISTOGRAMS
+	computeTrackingVolumeMaterialBudget(track, nTracks, ignoredPixelSumComponentsRI, sumComponentsRI);
       }
     }
+
+
   }
 
 
@@ -1351,6 +1200,172 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 #endif // MATERIAL_SHADOW
 
 }
+
+
+
+
+  void Analyzer::computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI) {
+    double eta = track.getEta();
+    double theta = track.getTheta();
+    double etaMax = getEtaMaxMaterial();
+
+    // BEAM PIPE MATERIAL BUDGET  
+    // Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
+    for (const auto& hit : track.getHitV()) {
+      if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
+			       beam_pipe, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+      // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
+      // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
+      if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
+			       services_under_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+    
+
+
+    // MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
+    // Material (IT or OT) located between first and last active hit on the Inner Tracker.
+
+    // A: modules
+    for (const auto& it : innerTrackerModulesComponentsRI) {
+      std::string componentName = it.first;
+      const Material& correctedMat = it.second;
+      fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+
+
+
+
+    for (const auto& hit : track.getHitV()) {
+      // B: services
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			       services_in_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+
+      // C: supports
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			       supports_in_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+
+
+      // MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
+      // Material (IT or OT) located between last active hit on the Inner Tracker and first active hit on the Outer Tracker.
+      if (hit->isIntersticeVolume()) {
+	const Material& correctedMat =  hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsInterstice, iComponentsInterstice,
+			       services_and_supports_in_interstice,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+
+
+    // MATERIAL BUDGET WITHIN OUTER TRACKER TRACKING VOLUME: D + E + F
+    // Material (IT or OT) located between first and last active hit on the Outer Tracker.
+
+    // D: modules
+    for (const auto& it : outerTrackerModulesComponentsRI) {
+      std::string componentName = it.first;
+      const Material& correctedMat = it.second;
+      fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+ 
+
+    for (const auto& hit : track.getHitV()) {
+
+      // E: services
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			       services_in_outer_tracking_volume,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+      // F: supports
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			       supports_in_outer_tracking_volume,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+
+
+
+
+    // EXTRA PLOTS: SERVICES DETAILS (TRACKING VOLUMES)
+    for (const auto& hit : track.getHitV()) {
+      // DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	  
+	InactiveElement* inactive = hit->getHitInactiveElement();
+	std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+
+	for (const auto& it : servicesComponentsRI) {
+	   
+	  std::string componentName = it.first;
+	  const Material& uncorrectedMat = it.second;
+	  const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical()); 
+
+	  fillRIComponentsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
+				 componentName,
+				 correctedMat, eta, 
+				 nTracks, etaMax);
+	}
+      }	  
+
+      // DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	  
+	InactiveElement* inactive = hit->getHitInactiveElement();
+	std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+
+	for (const auto& it : servicesComponentsRI) {
+
+	  std::string componentName = it.first;
+	  const Material& uncorrectedMat = it.second;
+	  const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
+
+	  fillRIComponentsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
+				 componentName,
+				 correctedMat, eta, 
+				 nTracks, etaMax);
+	}
+      }	  
+    }
+
+
+  }
+
+
 
 
 
