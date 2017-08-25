@@ -1140,22 +1140,22 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-
+    double etaMax = getEtaMaxMaterial();
 
     if (eta >= 0.) {
 
+      // FULL VOLUME, SERVICES DETAILS
       for (const auto& hit : track.getHitV()) {
-	// SERVICES DETAILS
 	if (!hit->isPixel() && hit->getObjectCategory() == Hit::Service) {
 	  
 	  InactiveElement* inactive = hit->getHitInactiveElement();
 	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-	  for (const auto& it : servicesComponentsRI) {
-	    std::string componentName = it.first;
 
-	    Material correctedMat;
-	    correctedMat.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
-	    correctedMat.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+	  for (const auto& it : servicesComponentsRI) {
+	   
+	    std::string componentName = it.first;
+	    const Material& uncorrectedMat = it.second;
+	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
 
 	    fillRIComponentsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
 				   componentName,
@@ -1165,66 +1165,58 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	}
       }
 
-    }
 
 
+      // TRACKING VOLUME MATERIAL BUDGET PLOTS    
+      if (mb.getTracker().myid() == outer_tracker_id) {
+
+	// ASSIGN TRACKING VOLUME IDENTIFIERS TO ALL HITS OF THE TRACK:
+	// Is the hit within Inner Tracker Tracking Volume ? Outer Tracking Volume ? In between ? Outside ?
+	track.assignTrackingVolumesToHits();
 
 
+	// BEAM PIPE MATERIAL BUDGET  
+	// Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
+	for (const auto& hit : track.getHitV()) {
+	  if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
+	    const Material& correctedMat = hit->getCorrectedMaterial();
+	    fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
+				   beam_pipe, 
+				   correctedMat, eta, 
+				   nTracks, etaMax);
+	  }
+
+	  // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
+	  // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
+	  if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
+	    const Material& correctedMat = hit->getCorrectedMaterial();
+	    fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
+				   services_under_pixel_tracking_volume, 
+				   correctedMat, eta, 
+				   nTracks, etaMax);
+	  }
+	}
     
 
 
+	// MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
+	// Material (IT or OT) located between first and last active hit on the Inner Tracker.
 
-
-
-
-
-
-
-
-
-
-    
-    if (mb.getTracker().myid() == outer_tracker_id && eta >= 0.) {
-      track.assignTrackingVolumesToHits();
-
-      double etaMax = getEtaMaxMaterial();
-
-      
-      for (const auto& hit : track.getHitV()) {
-	if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
-				 beam_pipe, 
+	// A: modules
+	for (const auto& it : ignoredPixelSumComponentsRI) {
+	  std::string componentName = it.first;
+	  const Material& correctedMat = it.second;
+	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+				 componentName,
 				 correctedMat, eta, 
 				 nTracks, etaMax);
 	}
-
-	if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
-	  const Material& correctedMat = hit->getCorrectedMaterial();
-	  fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
-				 services_under_pixel_tracking_volume, 
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
-      }
-    
-
-
-
-      for (const auto& it : ignoredPixelSumComponentsRI) {
-	std::string componentName = it.first;
-	const Material& correctedMat = it.second;
-	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-			       componentName,
-			       correctedMat, eta, 
-			       nTracks, etaMax);
-      }
 
 
 
 
       for (const auto& hit : track.getHitV()) {
-
+	// B: services
 	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  const Material& correctedMat = hit->getCorrectedMaterial();
 	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
@@ -1234,7 +1226,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	}
 
 
-
+	// C: supports
 	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
 	  const Material& correctedMat = hit->getCorrectedMaterial();
 	  fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
@@ -1244,6 +1236,9 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	}
 
 
+
+	// MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
+	// Material (IT or OT) located between last active hit on the Inner Tracker and first active hit on the Outer Tracker.
 	if (hit->isIntersticeVolume()) {
 	  const Material& correctedMat =  hit->getCorrectedMaterial();
 	  fillRIComponentsHistos(rComponentsInterstice, iComponentsInterstice,
@@ -1254,6 +1249,10 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       }
 
 
+      // MATERIAL BUDGET WITHIN OUTER TRACKER TRACKING VOLUME: D + E + F
+      // Material (IT or OT) located between first and last active hit on the Outer Tracker.
+
+      // D: modules
       for (const auto& it : sumComponentsRI) {
 	std::string componentName = it.first;
 	const Material& correctedMat = it.second;
@@ -1266,6 +1265,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
       for (const auto& hit : track.getHitV()) {
 
+	// E: services
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  const Material& correctedMat = hit->getCorrectedMaterial();
 	  fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
@@ -1274,6 +1274,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 				 nTracks, etaMax);
 	}
 
+	// F: supports
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
 	  const Material& correctedMat = hit->getCorrectedMaterial();
 	  fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
@@ -1286,20 +1287,19 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-      
+      // EXTRA PLOTS: SERVICES DETAILS
       for (const auto& hit : track.getHitV()) {
-	// SERVICES DETAILS: PIXEL TRACKING VOLUME
+	// DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
 	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  
 	  InactiveElement* inactive = hit->getHitInactiveElement();
 	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
 	  for (const auto& it : servicesComponentsRI) {
+	   
 	    std::string componentName = it.first;
-	    
-	    Material correctedMat;
-	    correctedMat.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
-	    correctedMat.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+	    const Material& uncorrectedMat = it.second;
+	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical()); 
 
 	    fillRIComponentsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
 				   componentName,
@@ -1308,18 +1308,17 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 	  }
 	}	  
 
-	// SERVICES DETAILS: OUTER TRACKING VOLUME
+	// DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
 	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	  
 	  InactiveElement* inactive = hit->getHitInactiveElement();
 	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
 	  for (const auto& it : servicesComponentsRI) {
-	    std::string componentName = it.first;
 
-	    Material correctedMat;
-	    correctedMat.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
-	    correctedMat.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
+	    std::string componentName = it.first;
+	    const Material& uncorrectedMat = it.second;
+	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
 
 	    fillRIComponentsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
 				   componentName,
@@ -1330,15 +1329,34 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       }
 
 
-
-
+      }
     }
-
   }
 
 
 
 
+
+
+#ifdef MATERIAL_SHADOW       
+  // integration over eta
+  for (unsigned int i = 0; i < cells.size(); i++) {
+    for (unsigned int j = 1; j < cells.at(i).size(); j++) {
+      cells.at(i).at(j).rlength = cells.at(i).at(j).rlength + cells.at(i).at(j - 1).rlength;
+      cells.at(i).at(j).ilength = cells.at(i).at(j).ilength + cells.at(i).at(j - 1).ilength;
+    }
+  }
+  // transformation from (eta, r) to (z, r) coordinates
+  transformEtaToZ();
+#endif // MATERIAL_SHADOW
+
+}
+
+
+
+  /* Fill histograms with corrected Material Budget: left pad for Radiation Length, right pad for Interaction Length.
+   * The MB is split by component category.
+   */
   void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) {
 
     // RADIATION LENGTH HISTOGRAM
@@ -1361,21 +1379,14 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   }
 
 
-
-#ifdef MATERIAL_SHADOW       
-  // integration over eta
-  for (unsigned int i = 0; i < cells.size(); i++) {
-    for (unsigned int j = 1; j < cells.at(i).size(); j++) {
-      cells.at(i).at(j).rlength = cells.at(i).at(j).rlength + cells.at(i).at(j - 1).rlength;
-      cells.at(i).at(j).ilength = cells.at(i).at(j).ilength + cells.at(i).at(j - 1).ilength;
-    }
+  /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
+   */
+  const Material Analyzer::computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) {
+    Material correctedMat;
+    correctedMat.radiation = uncorrectedMat.radiation / (isInactiveVolumeVertical ? cos(theta) : sin(theta));  
+    correctedMat.interaction = uncorrectedMat.interaction / (isInactiveVolumeVertical ? cos(theta) : sin(theta));
+    return correctedMat;
   }
-  // transformation from (eta, r) to (z, r) coordinates
-  transformEtaToZ();
-#endif // MATERIAL_SHADOW
-
-}
-
 
 
 

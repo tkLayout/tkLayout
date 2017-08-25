@@ -499,6 +499,7 @@ namespace insur {
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
 
     void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax);
+    const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical);
 
     static int bsCounter;
     
