@@ -228,7 +228,7 @@ public:
     decorated().translate(v);
     clearSensorPolys();
   }
-  void mirrorZ() { 
+  void mirrorZ() {
     side(-side());
     double zTranslation = -center().Z();
     double zRotation = -center().Phi();
@@ -236,7 +236,7 @@ public:
     rotateZ(zRotation);
     rotateY(M_PI);
     translateZ(zTranslation);
-    rotateZ(-zRotation);
+    rotateZ(zRotation);
     //decorated().mirror(XYZVector(1., 1., -1.));
     clearSensorPolys();
   }
