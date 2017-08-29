@@ -1147,24 +1147,11 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       // EXTRA PLOTS: SERVICES DETAILS (FULL VOLUMES)
       for (const auto& hit : track.getHitV()) {
 	if (!hit->isPixel() && hit->getObjectCategory() == Hit::Service) {
-	  
-	  InactiveElement* inactive = hit->getHitInactiveElement();
-	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
-	  for (const auto& it : servicesComponentsRI) {
-	   
-	    std::string componentName = it.first;
-	    const Material& uncorrectedMat = it.second;
-	    const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
-
-	    fillRIComponentsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
-				   componentName,
-				   correctedMat, eta, 
-				   nTracks, etaMax);
-	  }
+	  fillRIServicesDetailsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
+				      hit, eta, theta, nTracks, etaMax);
 	}
       }
-
 
 
       // TRACKING VOLUME MATERIAL BUDGET PLOTS    
@@ -1180,7 +1167,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     }
 
 
-  }
+  } // loop on eta
 
 
 
@@ -1202,12 +1189,12 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 }
 
 
-
-
+  /* Compute Tracking Volume Material Budget plots.
+   */
   void Analyzer::computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI) {
-    double eta = track.getEta();
-    double theta = track.getTheta();
-    double etaMax = getEtaMaxMaterial();
+    const double eta = track.getEta();
+    const double theta = track.getTheta();
+    const double etaMax = getEtaMaxMaterial();
 
     // BEAM PIPE MATERIAL BUDGET  
     // Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
@@ -1325,40 +1312,16 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     for (const auto& hit : track.getHitV()) {
       // DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
       if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  
-	InactiveElement* inactive = hit->getHitInactiveElement();
-	std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
-	for (const auto& it : servicesComponentsRI) {
-	   
-	  std::string componentName = it.first;
-	  const Material& uncorrectedMat = it.second;
-	  const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical()); 
-
-	  fillRIComponentsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
-				 componentName,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
+	fillRIServicesDetailsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
+				    hit, eta, theta, nTracks, etaMax);
       }	  
 
       // DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
       if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  
-	InactiveElement* inactive = hit->getHitInactiveElement();
-	std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
-	for (const auto& it : servicesComponentsRI) {
-
-	  std::string componentName = it.first;
-	  const Material& uncorrectedMat = it.second;
-	  const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
-
-	  fillRIComponentsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
-				 componentName,
-				 correctedMat, eta, 
-				 nTracks, etaMax);
-	}
+	fillRIServicesDetailsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
+				    hit, eta, theta, nTracks, etaMax);
       }	  
     }
 
@@ -1366,6 +1329,30 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   }
 
 
+
+
+  /* Fill histograms with services details Material Budget.
+   * The MB is detailed per component category.
+   * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
+   * Then Analyzer::fillRIComponentsHistos is directly used.
+   */
+  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) {
+
+    const InactiveElement* inactive = hitOnService->getHitInactiveElement();
+    std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+
+    for (const auto& it : servicesComponentsRI) {
+
+      const std::string componentName = it.first;
+      const Material& uncorrectedMat = it.second;
+      const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
+
+      fillRIComponentsHistos(rServicesDetails, iServicesDetails,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+  }
 
 
 
@@ -1375,23 +1362,31 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) {
 
     // RADIATION LENGTH HISTOGRAM
+    auto& rComponentsHisto = rComponentsHistos[componentName];
+
     // If histo does not exist yet, create it!
-    if (rComponentsHistos[componentName] == NULL) {
-      rComponentsHistos[componentName] = new TH1D();
-      rComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
+    if (rComponentsHisto == nullptr) {
+      rComponentsHisto = new TH1D();
+      rComponentsHisto->SetBins(nTracks, 0.0, etaMax); 
     }
+
     // Fill!
-    rComponentsHistos[componentName]->Fill(eta, correctedMat.radiation);
+    rComponentsHisto->Fill(eta, correctedMat.radiation);
+
 
     // INTERACTION LENGTH HISTOGRAM
+    auto& iComponentsHisto = iComponentsHistos[componentName];
+
     // If histo does not exist yet, create it!
-    if (iComponentsHistos[componentName] == NULL) {
-      iComponentsHistos[componentName] = new TH1D();
-      iComponentsHistos[componentName]->SetBins(nTracks, 0.0, etaMax); 
+    if (iComponentsHisto == nullptr) {
+      iComponentsHisto = new TH1D();
+      iComponentsHisto->SetBins(nTracks, 0.0, etaMax);
     }
+
     // Fill!
-    iComponentsHistos[componentName]->Fill(eta, correctedMat.interaction);
+    iComponentsHisto->Fill(eta, correctedMat.interaction);
   }
+
 
 
   /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
@@ -1402,7 +1397,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     correctedMat.interaction = uncorrectedMat.interaction / (isInactiveVolumeVertical ? cos(theta) : sin(theta));
     return correctedMat;
   }
-
 
 
 
