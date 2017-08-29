@@ -3692,7 +3692,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
    * Then Analyzer::fillRIComponentsHistos is directly used.
    */
-  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) {
+  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const {
 
     const InactiveElement* inactive = hitOnService->getHitInactiveElement();
     std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
@@ -3715,7 +3715,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
   /* Fill histograms with corrected Material Budget: left pad for Radiation Length, right pad for Interaction Length.
    * The MB is split by component category.
    */
-  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) {
+  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const {
 
     // RADIATION LENGTH HISTOGRAM
     auto& rComponentsHisto = rComponentsHistos[componentName];
@@ -3745,7 +3745,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
   /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
    */
-  const Material Analyzer::computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) {
+  const Material Analyzer::computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const {
     Material correctedMat;
     correctedMat.radiation = uncorrectedMat.radiation / (isInactiveVolumeVertical ? cos(theta) : sin(theta));  
     correctedMat.interaction = uncorrectedMat.interaction / (isInactiveVolumeVertical ? cos(theta) : sin(theta));

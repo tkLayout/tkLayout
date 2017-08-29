@@ -499,9 +499,9 @@ namespace insur {
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
 
     void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
-    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax);
-    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax);
-    const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical);
+    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
+    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const;
+    const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const;
 
     static int bsCounter;
     
