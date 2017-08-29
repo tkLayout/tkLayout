@@ -3573,6 +3573,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			       nTracks, etaMax);
       }
 
+
       // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
       // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
       if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
@@ -3583,7 +3584,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			       nTracks, etaMax);
       }
     }
-    
 
 
     // MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
@@ -3599,9 +3599,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			     nTracks, etaMax);
     }
 
-
-
-
     for (const auto& hit : track.getHitV()) {
       // B: services
       if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
@@ -3612,7 +3609,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			       nTracks, etaMax);
       }
 
-
       // C: supports
       if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
@@ -3621,7 +3617,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			       correctedMat, eta, 
 			       nTracks, etaMax);
       }
-
 
 
       // MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
@@ -3648,10 +3643,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			     correctedMat, eta, 
 			     nTracks, etaMax);
     }
- 
 
     for (const auto& hit : track.getHitV()) {
-
       // E: services
       if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
@@ -3670,7 +3663,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			       nTracks, etaMax);
       }
     }
-
 
 
     // EXTRA PLOTS: SERVICES DETAILS (TRACKING VOLUMES)
@@ -3733,7 +3725,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       rComponentsHisto = new TH1D();
       rComponentsHisto->SetBins(nTracks, 0.0, etaMax); 
     }
-
     // Fill!
     rComponentsHisto->Fill(eta, correctedMat.radiation);
 
@@ -3746,7 +3737,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       iComponentsHisto = new TH1D();
       iComponentsHisto->SetBins(nTracks, 0.0, etaMax);
     }
-
     // Fill!
     iComponentsHisto->Fill(eta, correctedMat.interaction);
   }
