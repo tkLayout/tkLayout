@@ -1,13 +1,23 @@
-// Small square barrel pixel
-cotalphaLimit 0.1                       //if (cot(alpha) < cotalphaLimit), the 'Inf' parameters resolutionLocalXBarrelParamiInf are used, otherwise the 'Sup' parameters resolutionLocalXBarrelParamiSup are used.
-resolutionLocalXBarrelParam0Inf 0.0075  // mm
-resolutionLocalXBarrelParam1Inf 0.016   // mm
-resolutionLocalXBarrelParam2Inf 0.077   // mm
-resolutionLocalXBarrelParam0Sup 0.010   // mm
-resolutionLocalXBarrelParam1Sup 0.      // mm
-resolutionLocalXBarrelParam2Sup 0.      // mm
-resolutionLocalYBarrelParam0    0.014   // mm
-resolutionLocalYBarrelParam1    21.     // mm
-resolutionLocalYBarrelParam2    2.6
-resolutionLocalYBarrelParam3    -0.003
-resolutionLocalYBarrelParam4    0.
+// pitch in X = 50 um. 
+resolutionLocalXBarrelParam0 3.41648e+00      // mm
+resolutionLocalXBarrelParam1 4.61053e+00       // mm
+resolutionLocalXBarrelParam2 2.86098e+00       // mm
+resolutionLocalXBarrelParam3 1.61260e+01       
+resolutionLocalXBarrelParam4 -2.91438e+00      
+resolutionLocalXBarrelParam5 1.62592e+01       // mm
+resolutionLocalXBarrelParam6 -1.03994e-01      
+resolutionLocalXBarrelParam7 1.53349e-01      
+resolutionLocalXBarrelParam8 -6.56691e-01       // mm
+resolutionLocalXBarrelParam9 2.15709e+00      
+
+// pitch in Y = 50 um.
+resolutionLocalXBarrelParam0 3.41648e+00      // mm
+resolutionLocalXBarrelParam1 4.61053e+00       // mm
+resolutionLocalXBarrelParam2 2.86098e+00       // mm
+resolutionLocalXBarrelParam3 1.61260e+01       
+resolutionLocalXBarrelParam4 -2.91438e+00      
+resolutionLocalXBarrelParam5 1.62592e+01       // mm
+resolutionLocalXBarrelParam6 -1.03994e-01      
+resolutionLocalXBarrelParam7 1.53349e-01      
+resolutionLocalXBarrelParam8 -6.56691e-01       // mm
+resolutionLocalXBarrelParam9 2.15709e+00      
