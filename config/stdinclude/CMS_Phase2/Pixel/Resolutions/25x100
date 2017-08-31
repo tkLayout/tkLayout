@@ -1,0 +1,37 @@
+// pitch in X = 25 um. 
+resolutionLocalXParam0 -6.15857e-04      // mm
+resolutionLocalXParam1 9.22867e-03       // mm
+resolutionLocalXParam2 4.84721e-02       // mm
+resolutionLocalXParam3 1.09706e+01      
+resolutionLocalXParam4 -4.07886e+00      
+resolutionLocalXParam5 3.47398e-02       // mm
+resolutionLocalXParam6 6.01453e-03      
+resolutionLocalXParam7 8.42837e-02      
+resolutionLocalXParam8 3.17987e-07       // mm
+resolutionLocalXParam9 1.13696e+01      
+
+// pitch in Y = 100 um.
+resolutionLocalYParam0 1.61244e-02       // mm
+resolutionLocalYParam1 8.56184e-03       // mm
+resolutionLocalYParam2 1.27882e-02       // mm
+resolutionLocalYParam3 8.92478e+00      
+resolutionLocalYParam4 -3.51805e+00      
+resolutionLocalYParam5 2.49831e-02       // mm
+resolutionLocalYParam6 3.26179e-02      
+resolutionLocalYParam7 1.45786e-01      
+resolutionLocalYParam8 -1.53009e-02      // mm
+resolutionLocalYParam9 2.02518e+00   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
