@@ -603,8 +603,8 @@ double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) con
   double resolutionLocalX;
 
   double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-  double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = Pi/2 - alpha   => than(theta) = cotan(alpha)
-  double x = fabs(cotanAlpha - tanLorentzAngle);  
+  double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+  double x = fabs(-cotanAlpha - tanLorentzAngle);  
 
   resolutionLocalX = resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * x 
     + resolutionLocalXBarrelParam2() * exp(-resolutionLocalXBarrelParam9() * x) * cos(resolutionLocalXBarrelParam3() * x + resolutionLocalXBarrelParam4())
@@ -618,8 +618,8 @@ double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) con
 double BarrelModule::calculateParameterizedResolutionLocalY(double theta) const {
   double resolutionLocalY;
 
-  double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = Pi/2 - beta   => than(theta) = cotan(beta)
-  double x = fabs(cotanBeta);                     
+  double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+  double x = fabs(-cotanBeta);                     
 
   resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * x 
     + resolutionLocalYBarrelParam2() * exp(-resolutionLocalYBarrelParam9() * x) * cos(resolutionLocalYBarrelParam3() * x + resolutionLocalYBarrelParam4())
