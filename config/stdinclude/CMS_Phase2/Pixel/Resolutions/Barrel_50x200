@@ -11,13 +11,13 @@ resolutionLocalXBarrelParam8 -1.54980e-03      // mm
 resolutionLocalXBarrelParam9 2.33742e+00      
 
 // pitch in Y = 200 um.
-resolutionLocalXBarrelParam0 2.82738e-02       // mm
-resolutionLocalXBarrelParam1 7.51176e-03       // mm
-resolutionLocalXBarrelParam2 2.68446e-02       // mm
-resolutionLocalXBarrelParam3 5.11001e+00       
-resolutionLocalXBarrelParam4 2.11492e+00      
-resolutionLocalXBarrelParam5 5.15419e-02       // mm
-resolutionLocalXBarrelParam6 1.45038e-01      
-resolutionLocalXBarrelParam7 2.82116e-01      
-resolutionLocalXBarrelParam8 -1.99992e-02      // mm
-resolutionLocalXBarrelParam9 1.23263e+00      
+resolutionLocalYBarrelParam0 2.82738e-02       // mm
+resolutionLocalYBarrelParam1 7.51176e-03       // mm
+resolutionLocalYBarrelParam2 2.68446e-02       // mm
+resolutionLocalYBarrelParam3 5.11001e+00       
+resolutionLocalYBarrelParam4 2.11492e+00      
+resolutionLocalYBarrelParam5 5.15419e-02       // mm
+resolutionLocalYBarrelParam6 1.45038e-01      
+resolutionLocalYBarrelParam7 2.82116e-01      
+resolutionLocalYBarrelParam8 -1.99992e-02      // mm
+resolutionLocalYBarrelParam9 1.23263e+00      
