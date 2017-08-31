@@ -521,59 +521,34 @@ void BarrelModule::check() {
   if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
 
   if (hasAnyResolutionLocalXParam()) {
-    // UNTILTED MODULE
-    if (!isTilted()) {
-      if ( !resolutionLocalXBarrelParam0Inf.state() 
-	   || !resolutionLocalXBarrelParam1Inf.state() 
-	   || !resolutionLocalXBarrelParam2Inf.state() 
-	   || !resolutionLocalXBarrelParam0Sup.state() 
-	   || !resolutionLocalXBarrelParam1Sup.state() 
-	   || !resolutionLocalXBarrelParam2Sup.state()  
-	   ) throw PathfulException("Local X spatial resolution, untilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to an untilted module.");
-    }
-    // TILTED MODULE
-    else {
-      if ( !resolutionLocalXBarrelParam0.state() 
-	   || !resolutionLocalXBarrelParam1.state() 
-	   || !resolutionLocalXBarrelParam2.state() 
-	   || !resolutionLocalXBarrelParam3.state() 
-	   || !resolutionLocalXBarrelParam4.state()
-	   || !resolutionLocalXBarrelParam5.state() 
-	   || !resolutionLocalXBarrelParam6.state() 
-	   || !resolutionLocalXBarrelParam7.state()
-	   || !resolutionLocalXBarrelParam8.state() 
-	   || !resolutionLocalXBarrelParam9.state()
-	   ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
-    }
+    if ( !resolutionLocalXBarrelParam0.state() 
+	 || !resolutionLocalXBarrelParam1.state() 
+	 || !resolutionLocalXBarrelParam2.state() 
+	 || !resolutionLocalXBarrelParam3.state() 
+	 || !resolutionLocalXBarrelParam4.state()
+	 || !resolutionLocalXBarrelParam5.state() 
+	 || !resolutionLocalXBarrelParam6.state() 
+	 || !resolutionLocalXBarrelParam7.state()
+	 || !resolutionLocalXBarrelParam8.state() 
+	 || !resolutionLocalXBarrelParam9.state()
+	 ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
   }
 
   // LOCAL Y RESOLUTION PARAMETERS
   if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
 
   if (hasAnyResolutionLocalYParam()) {
-    // UNTILTED MODULE
-    if (!isTilted()) {
-      if ( !resolutionLocalYBarrelParam0.state() 
-	   || !resolutionLocalYBarrelParam1.state() 
-	   || !resolutionLocalYBarrelParam2.state() 
-	   || !resolutionLocalYBarrelParam3.state() 
-	   || !resolutionLocalYBarrelParam4.state()
-	   ) throw PathfulException("Local Y spatial resolution, untilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to an untilted module.");
-    }
-    // TILTED MODULE
-    else {
-      if ( !resolutionLocalYBarrelParam0.state() 
-	   || !resolutionLocalYBarrelParam1.state() 
-	   || !resolutionLocalYBarrelParam2.state() 
-	   || !resolutionLocalYBarrelParam3.state() 
-	   || !resolutionLocalYBarrelParam4.state()
-	   || !resolutionLocalYBarrelParam5.state() 
-	   || !resolutionLocalYBarrelParam6.state() 
-	   || !resolutionLocalYBarrelParam7.state()
-	   || !resolutionLocalYBarrelParam8.state() 
-	   || !resolutionLocalYBarrelParam9.state()
-	   ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
-    }
+    if ( !resolutionLocalYBarrelParam0.state() 
+	 || !resolutionLocalYBarrelParam1.state() 
+	 || !resolutionLocalYBarrelParam2.state() 
+	 || !resolutionLocalYBarrelParam3.state() 
+	 || !resolutionLocalYBarrelParam4.state()
+	 || !resolutionLocalYBarrelParam5.state() 
+	 || !resolutionLocalYBarrelParam6.state() 
+	 || !resolutionLocalYBarrelParam7.state()
+	 || !resolutionLocalYBarrelParam8.state() 
+	 || !resolutionLocalYBarrelParam9.state()
+	 ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
   }
 
 }
@@ -596,13 +571,7 @@ void BarrelModule::build() {
 
 
 bool BarrelModule::hasAnyResolutionLocalXParam() const { 
-  return ( resolutionLocalXBarrelParam0Inf.state() 
-	   || resolutionLocalXBarrelParam1Inf.state() 
-	   || resolutionLocalXBarrelParam2Inf.state() 
-	   || resolutionLocalXBarrelParam0Sup.state() 
-	   || resolutionLocalXBarrelParam1Sup.state() 
-	   || resolutionLocalXBarrelParam2Sup.state()
-	   || resolutionLocalXBarrelParam0.state() 
+  return ( resolutionLocalXBarrelParam0.state() 
 	   || resolutionLocalXBarrelParam1.state() 
 	   || resolutionLocalXBarrelParam2.state() 
 	   || resolutionLocalXBarrelParam3.state() 
@@ -612,7 +581,7 @@ bool BarrelModule::hasAnyResolutionLocalXParam() const {
 	   || resolutionLocalXBarrelParam7.state()
 	   || resolutionLocalXBarrelParam8.state() 
 	   || resolutionLocalXBarrelParam9.state()
-	   ); 
+	   );
 }
 
 bool BarrelModule::hasAnyResolutionLocalYParam() const { 
@@ -626,32 +595,21 @@ bool BarrelModule::hasAnyResolutionLocalYParam() const {
 	   || resolutionLocalYBarrelParam7.state()
 	   || resolutionLocalYBarrelParam8.state() 
 	   || resolutionLocalYBarrelParam9.state()
-	   ); 
+	   );
 }
 
 
 double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) const { 
   double resolutionLocalX;
 
-  // UNTILTED MODULE
-  if (!isTilted()) {
-    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
-    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
-    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
-    resolutionLocalX = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2);
-  }
+  double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = Pi/2 - alpha   => than(theta) = cotan(alpha)
+  double x = fabs(cotanAlpha - tanLorentzAngle);  
 
-  // TILTED MODULE
-  else {
-    double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-    double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = Pi/2 - alpha   => than(theta) = cotan(alpha)
-    double x = fabs(cotanAlpha - tanLorentzAngle);  
-
-    resolutionLocalX = resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * x 
-      + resolutionLocalXBarrelParam2() * exp(-resolutionLocalXBarrelParam9() * x) * cos(resolutionLocalXBarrelParam3() * x + resolutionLocalXBarrelParam4())
-      + resolutionLocalXBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalXBarrelParam6())/resolutionLocalXBarrelParam7()), 2))
-      + resolutionLocalXBarrelParam8() * pow(x, 0.5);
-  }
+  resolutionLocalX = resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * x 
+    + resolutionLocalXBarrelParam2() * exp(-resolutionLocalXBarrelParam9() * x) * cos(resolutionLocalXBarrelParam3() * x + resolutionLocalXBarrelParam4())
+    + resolutionLocalXBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalXBarrelParam6())/resolutionLocalXBarrelParam7()), 2))
+    + resolutionLocalXBarrelParam8() * pow(x, 0.5);
 
   return resolutionLocalX;
 }
@@ -660,21 +618,13 @@ double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) con
 double BarrelModule::calculateParameterizedResolutionLocalY(double theta) const {
   double resolutionLocalY;
 
-  // UNTILTED MODULE
-  if (!isTilted()) {
-    resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); 
-  }
+  double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = Pi/2 - beta   => than(theta) = cotan(beta)
+  double x = fabs(cotanBeta);                     
 
-  // TILTED MODULE
-  else {
-    double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = Pi/2 - beta   => than(theta) = cotan(beta)
-    double x = fabs(cotanBeta);                     
-
-    resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * x 
-      + resolutionLocalYBarrelParam2() * exp(-resolutionLocalYBarrelParam9() * x) * cos(resolutionLocalYBarrelParam3() * x + resolutionLocalYBarrelParam4())
-      + resolutionLocalYBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalYBarrelParam6())/resolutionLocalYBarrelParam7()), 2))
-      + resolutionLocalYBarrelParam8() * pow(x, 0.5);
-  }
+  resolutionLocalY = resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * x 
+    + resolutionLocalYBarrelParam2() * exp(-resolutionLocalYBarrelParam9() * x) * cos(resolutionLocalYBarrelParam3() * x + resolutionLocalYBarrelParam4())
+    + resolutionLocalYBarrelParam5() * exp(-0.5 * pow(((x-resolutionLocalYBarrelParam6())/resolutionLocalYBarrelParam7()), 2))
+    + resolutionLocalYBarrelParam8() * pow(x, 0.5);
 
   return resolutionLocalY;
 }

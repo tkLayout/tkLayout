@@ -350,13 +350,6 @@ public:
   int16_t ring() const { return (int16_t)myid(); }
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
-  ReadonlyProperty<double, NoDefault> cotalphaLimit;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Sup;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Sup;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Sup;
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1;
   ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2;
@@ -382,15 +375,6 @@ public:
   BarrelModule(Decorated* decorated) :
     DetectorModule(decorated),
     // Local X resolution parameters
-    // UNTILTED MODULE
-    cotalphaLimit                           ("cotalphaLimit"                           , parsedOnly()),
-    resolutionLocalXBarrelParam0Inf         ("resolutionLocalXBarrelParam0Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam1Inf         ("resolutionLocalXBarrelParam1Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam2Inf         ("resolutionLocalXBarrelParam2Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam0Sup         ("resolutionLocalXBarrelParam0Sup"         , parsedOnly()),
-    resolutionLocalXBarrelParam1Sup         ("resolutionLocalXBarrelParam1Sup"         , parsedOnly()),
-    resolutionLocalXBarrelParam2Sup         ("resolutionLocalXBarrelParam2Sup"         , parsedOnly()),
-    // TILTED MODULE
     resolutionLocalXBarrelParam0            ("resolutionLocalXBarrelParam0"            , parsedOnly()),
     resolutionLocalXBarrelParam1            ("resolutionLocalXBarrelParam1"            , parsedOnly()),
     resolutionLocalXBarrelParam2            ("resolutionLocalXBarrelParam2"            , parsedOnly()),
@@ -402,13 +386,11 @@ public:
     resolutionLocalXBarrelParam8            ("resolutionLocalXBarrelParam8"            , parsedOnly()),
     resolutionLocalXBarrelParam9            ("resolutionLocalXBarrelParam9"            , parsedOnly()),
     // Local Y resolution parameters
-    // UNTILTED MODULE
     resolutionLocalYBarrelParam0            ("resolutionLocalYBarrelParam0"            , parsedOnly()),
     resolutionLocalYBarrelParam1            ("resolutionLocalYBarrelParam1"            , parsedOnly()),
     resolutionLocalYBarrelParam2            ("resolutionLocalYBarrelParam2"            , parsedOnly()),
     resolutionLocalYBarrelParam3            ("resolutionLocalYBarrelParam3"            , parsedOnly()),
     resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly()),
-    // extra parameters for TILTED MODULE
     resolutionLocalYBarrelParam5            ("resolutionLocalYBarrelParam5"            , parsedOnly()),
     resolutionLocalYBarrelParam6            ("resolutionLocalYBarrelParam6"            , parsedOnly()),
     resolutionLocalYBarrelParam7            ("resolutionLocalYBarrelParam7"            , parsedOnly()),
