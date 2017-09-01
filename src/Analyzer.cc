@@ -1140,264 +1140,37 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 
 
-
+    double etaMax = getEtaMaxMaterial();
 
     if (eta >= 0.) {
 
+      // EXTRA PLOTS: SERVICES DETAILS (FULL VOLUMES)
       for (const auto& hit : track.getHitV()) {
-	// SERVICES DETAILS
 	if (!hit->isPixel() && hit->getObjectCategory() == Hit::Service) {
-	  
-	  InactiveElement* inactive = hit->getHitInactiveElement();
-	  std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-	  for (const auto& it : servicesComponentsRI) {
-	    Material res;
-	    res.radiation = it.second.radiation / (inactive->isVertical() ? cos(theta) : sin(theta));  
-	    res.interaction = it.second.interaction / (inactive->isVertical() ? cos(theta) : sin(theta));
-	    if (rComponentsServicesDetails[it.first]==NULL) {
-	      rComponentsServicesDetails[it.first] = new TH1D();
-	      rComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    rComponentsServicesDetails[it.first]->Fill(eta, res.radiation);
-	    if (iComponentsServicesDetails[it.first]==NULL) { 
-	      iComponentsServicesDetails[it.first] = new TH1D();
-	      iComponentsServicesDetails[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    iComponentsServicesDetails[it.first]->Fill(eta, res.interaction);
-	  }
 
-	  /*if (servicesComponentsRI.size() == 0) {
-	    if (rComponentsServicesDetails["Services : others"]==NULL) {
-	      rComponentsServicesDetails["Services : others"] = new TH1D();
-	      rComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    rComponentsServicesDetails["Services : others"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	    if (iComponentsServicesDetails["Services : others"]==NULL) {
-	      iComponentsServicesDetails["Services : others"] = new TH1D();
-	      iComponentsServicesDetails["Services : others"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	    }
-	    iComponentsServicesDetails["Services : others"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	    }*/
-	}
-      }
-
-	  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    if (mb.getTracker().myid() == "Outer" && eta >= 0.) {
-      track.assignTrackingVolumesToHits();
-
-
-      
-      for (const auto& hit : track.getHitV()) {
-	if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
-	  if (rComponentsBeamPipe["Beam Pipe"]==NULL) {
-	    rComponentsBeamPipe["Beam Pipe"] = new TH1D();
-	    rComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsBeamPipe["Beam Pipe"]==NULL) { 
-	    iComponentsBeamPipe["Beam Pipe"] = new TH1D();
-	    iComponentsBeamPipe["Beam Pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsBeamPipe["Beam Pipe"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	}
-
-	if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
-	  if (rComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) {
-	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
-	    rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsPixelInterstice["Services under Pixel Tracking Volume"]==NULL) { 
-	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"] = new TH1D();
-	    iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsPixelInterstice["Services under Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	}
-	}
-    
-
-
-
-     
-      for (const auto& it : ignoredPixelSumComponentsRI) {
-	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
-	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
-	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	rComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsPixelTrackingVolume[it.first]==NULL) {
-	  iComponentsPixelTrackingVolume[it.first] = new TH1D();
-	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-      }
-
-
-
-
-
-
-
-
-
-      // WRONG
-      /*for (const auto& it : ignoredPixelSumServicesComponentsRI) {
-	if (rComponentsPixelTrackingVolume[it.first]==NULL) {
-	  rComponentsPixelTrackingVolume[it.first] = new TH1D();
-	  rComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	rComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsPixelTrackingVolume[it.first]==NULL) {
-	  iComponentsPixelTrackingVolume[it.first] = new TH1D();
-	  iComponentsPixelTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	iComponentsPixelTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-	}*/
-
-
-      for (const auto& hit : track.getHitV()) {
-
-	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  if (rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) {	   
-	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]==NULL) { 
-	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"] = new TH1D();
-	    iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsPixelTrackingVolume["Services in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	  }
-
-
-
-	if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  if (rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) {
-	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
-	    rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]==NULL) { 
-	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"] = new TH1D();
-	    iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsPixelTrackingVolume["Supports in Pixel Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	}
-
-
-	if (hit->isIntersticeVolume()) {
-	  if (rComponentsInterstice["Services and supports in interstice"]==NULL) {
-	    rComponentsInterstice["Services and supports in interstice"] = new TH1D();
-	    rComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsInterstice["Services and supports in interstice"]==NULL) { 
-	    iComponentsInterstice["Services and supports in interstice"] = new TH1D();
-	    iComponentsInterstice["Services and supports in interstice"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsInterstice["Services and supports in interstice"]->Fill(eta, hit->getCorrectedMaterial().interaction);
+	  fillRIServicesDetailsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
+				      hit, eta, theta, nTracks, etaMax);
 	}
       }
 
 
+      // TRACKING VOLUME MATERIAL BUDGET PLOTS    
+      if (mb.getTracker().myid() == outer_tracker_id) {
 
+	// 1) ASSIGN TRACKING VOLUME IDENTIFIERS TO ALL HITS OF THE TRACK:
+	// Is the hit within Inner Tracker Tracking Volume ? Outer Tracking Volume ? In between ? Outside ?
+	track.assignTrackingVolumesToHits();
 
-      for (const auto& it : sumComponentsRI) {
-	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
-	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
-	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	rComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsOuterTrackingVolume[it.first]==NULL) {
-	  iComponentsOuterTrackingVolume[it.first] = new TH1D();
-	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-	}
-
-      // WRONG
-      /*for (const auto& it : sumServicesComponentsRI) {
-	if (rComponentsOuterTrackingVolume[it.first]==NULL) {
-	  rComponentsOuterTrackingVolume[it.first] = new TH1D();
-	  rComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	rComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.radiation);
-	if (iComponentsOuterTrackingVolume[it.first]==NULL) {
-	  iComponentsOuterTrackingVolume[it.first] = new TH1D();
-	  iComponentsOuterTrackingVolume[it.first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	}
-	iComponentsOuterTrackingVolume[it.first]->Fill(eta, it.second.interaction);
-	}*/
- 
-
-      for (const auto& hit : track.getHitV()) {
-
-	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
-	  if (rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) {	   
-	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
-	    rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]==NULL) { 
-	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"] = new TH1D();
-	    iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsOuterTrackingVolume["Services in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	  }
-
-
-	if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
-	  if (rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) {	    
-	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
-	    rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  rComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().radiation);
-	  if (iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]==NULL) { 
-	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"] = new TH1D();
-	    iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-	  }
-	  iComponentsOuterTrackingVolume["Supports in Outer Tracking Volume"]->Fill(eta, hit->getCorrectedMaterial().interaction);
-	  }
+	// 2) FILL THE TRACKING VOLUME MATERIAL BUDGET HISTOGRAMS
+	computeTrackingVolumeMaterialBudget(track, nTracks, ignoredPixelSumComponentsRI, sumComponentsRI);
       }
-
-
-
     }
 
 
+  } // loop on eta
 
-  }
+
+
 
 
 
@@ -1414,8 +1187,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 #endif // MATERIAL_SHADOW
 
 }
-
-
 
 
 
@@ -3781,6 +3552,206 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
       return averages;
     }
+
+
+
+  /* Compute Tracking Volume Material Budget plots.
+   */
+  void Analyzer::computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI) {
+    const double eta = track.getEta();
+    const double theta = track.getTheta();
+    const double etaMax = getEtaMaxMaterial();
+
+    // BEAM PIPE MATERIAL BUDGET  
+    // Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
+    for (const auto& hit : track.getHitV()) {
+      if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
+			       beam_pipe, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+
+      // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
+      // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
+      if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
+			       services_under_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+
+
+    // MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
+    // Material (IT or OT) located between first and last active hit on the Inner Tracker.
+
+    // A: modules
+    for (const auto& it : innerTrackerModulesComponentsRI) {
+      std::string componentName = it.first;
+      const Material& correctedMat = it.second;
+      fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+
+    for (const auto& hit : track.getHitV()) {
+      // B: services
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			       services_in_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+      // C: supports
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
+			       supports_in_pixel_tracking_volume, 
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+
+      // MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
+      // Material (IT or OT) located between last active hit on the Inner Tracker and first active hit on the Outer Tracker.
+      if (hit->isIntersticeVolume()) {
+	const Material& correctedMat =  hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsInterstice, iComponentsInterstice,
+			       services_and_supports_in_interstice,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+
+
+    // MATERIAL BUDGET WITHIN OUTER TRACKER TRACKING VOLUME: D + E + F
+    // Material (IT or OT) located between first and last active hit on the Outer Tracker.
+
+    // D: modules
+    for (const auto& it : outerTrackerModulesComponentsRI) {
+      std::string componentName = it.first;
+      const Material& correctedMat = it.second;
+      fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+
+    for (const auto& hit : track.getHitV()) {
+      // E: services
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			       services_in_outer_tracking_volume,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+
+      // F: supports
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+	const Material& correctedMat = hit->getCorrectedMaterial();
+	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
+			       supports_in_outer_tracking_volume,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
+    }
+
+
+    // EXTRA PLOTS: SERVICES DETAILS (TRACKING VOLUMES)
+    for (const auto& hit : track.getHitV()) {
+      // DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
+      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+
+	fillRIServicesDetailsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
+				    hit, eta, theta, nTracks, etaMax);
+      }	  
+
+      // DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
+      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+
+	fillRIServicesDetailsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
+				    hit, eta, theta, nTracks, etaMax);
+      }	 
+    }
+
+
+  }
+
+
+
+  /* Fill histograms with services details Material Budget.
+   * The MB is detailed per component category.
+   * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
+   * Then Analyzer::fillRIComponentsHistos is directly used.
+   */
+  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const {
+
+    const InactiveElement* inactive = hitOnService->getHitInactiveElement();
+    std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+
+    for (const auto& it : servicesComponentsRI) {
+
+      const std::string componentName = it.first;
+      const Material& uncorrectedMat = it.second;
+      const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
+
+      fillRIComponentsHistos(rServicesDetails, iServicesDetails,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }
+  }
+
+
+
+  /* Fill histograms with corrected Material Budget: left pad for Radiation Length, right pad for Interaction Length.
+   * The MB is split by component category.
+   */
+  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const {
+
+    // RADIATION LENGTH HISTOGRAM
+    auto& rComponentsHisto = rComponentsHistos[componentName];
+
+    // If histo does not exist yet, create it!
+    if (rComponentsHisto == nullptr) {
+      rComponentsHisto = new TH1D();
+      rComponentsHisto->SetBins(nTracks, 0.0, etaMax); 
+    }
+    // Fill!
+    rComponentsHisto->Fill(eta, correctedMat.radiation);
+
+
+    // INTERACTION LENGTH HISTOGRAM
+    auto& iComponentsHisto = iComponentsHistos[componentName];
+
+    // If histo does not exist yet, create it!
+    if (iComponentsHisto == nullptr) {
+      iComponentsHisto = new TH1D();
+      iComponentsHisto->SetBins(nTracks, 0.0, etaMax);
+    }
+    // Fill!
+    iComponentsHisto->Fill(eta, correctedMat.interaction);
+  }
+
+
+
+  /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
+   */
+  const Material Analyzer::computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const {
+    Material correctedMat;
+    correctedMat.radiation = uncorrectedMat.radiation / (isInactiveVolumeVertical ? cos(theta) : sin(theta));  
+    correctedMat.interaction = uncorrectedMat.interaction / (isInactiveVolumeVertical ? cos(theta) : sin(theta));
+    return correctedMat;
+  }
+
 
 
     std::map<int, TGraph>& Analyzer::getRhoGraphs(bool ideal, bool isTrigger) {

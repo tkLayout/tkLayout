@@ -59,6 +59,21 @@ namespace insur {
    */
   static const std::string msg_module_warning = "Warning: tracker module with undefined subdetector type found.";
 
+
+  /**
+   * Constants specific to the Analyzer
+   */
+  static const std::string outer_tracker_id = "Outer";
+  static const std::string beam_pipe = "Beam Pipe";
+  static const std::string services_under_pixel_tracking_volume = "Services under Pixel Tracking Volume";
+  static const std::string services_in_pixel_tracking_volume = "Services in Pixel Tracking Volume";
+  static const std::string supports_in_pixel_tracking_volume = "Supports in Pixel Tracking Volume";
+  static const std::string services_and_supports_in_interstice = "Services and supports in interstice";
+  static const std::string services_in_outer_tracking_volume = "Services in Outer Tracking Volume";
+  static const std::string supports_in_outer_tracking_volume = "Supports in Outer Tracking Volume";
+
+
+
   /**
    * Two comparison functions for <i>std::pair<int, int></i> entries.
    */
@@ -91,22 +106,30 @@ namespace insur {
   class Analyzer : private AnalyzerTools {
   public:
     Analyzer();
-    virtual ~Analyzer() {}
+    virtual ~Analyzer() {}  
     std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
+    // TRACKING VOLUMES PLOTS
+    // Beam pipe
     std::map<std::string, TH1D*>& getHistoBeamPipeR() { return rComponentsBeamPipe; }
     std::map<std::string, TH1D*>& getHistoBeamPipeI() { return iComponentsBeamPipe; }
+    // Pixel interstice (between Beam pipe and Pixel tracking volumes)
     std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
     std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
+    // Pixel tracking volume
     std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
     std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
+    // Interstice (betweenPixel and Outer tracking volumes)
     std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
     std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
+    // Outer tracking volume
     std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
     std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
-    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeR() { return rComponentsTotalTrackingVolume; }
-    //std::map<std::string, TH1D*>& getHistoTotalTrackingVolumeI() { return iComponentsTotalTrackingVolume; }
-    //std::vector<std::string>& getComponentsTrackingVolume() { return componentsTotalTrackingVolumeOrder; }
+    // SERVICES DETAILS (in Pixel and Outer tracking volumes only)
+    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeR() { return rComponentsServicesDetailsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeI() { return iComponentsServicesDetailsPixelTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeR() { return rComponentsServicesDetailsOuterTrackingVolume; }
+    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeI() { return iComponentsServicesDetailsOuterTrackingVolume; }
     TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
     TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
     TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
@@ -317,6 +340,8 @@ namespace insur {
     std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
     std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
     std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
+    std::map<std::string, TH1D*> rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume;
+    std::map<std::string, TH1D*> rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume;
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
     TH2I mapRadiationCount, mapInteractionCount;
@@ -472,6 +497,11 @@ namespace insur {
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+
+    void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
+    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
+    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const;
+    const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const;
 
     static int bsCounter;
     

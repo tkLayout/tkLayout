@@ -86,7 +86,7 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
-  InactiveElement* getHitInactiveElement() { return hitInactiveElement_; };
+  InactiveElement* getHitInactiveElement() const { return hitInactiveElement_; };
   void computeLocalResolution();
   double getResolutionRphi(double trackR);
   double getResolutionZ(double trackR);
