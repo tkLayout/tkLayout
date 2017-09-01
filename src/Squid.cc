@@ -97,7 +97,7 @@ namespace insur {
       const char sep = '\t';
     public:
       ModuleDataVisitor(std::string ofname) : of(ofname + "_mods.txt") {
-         of << "cntName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
+         of << "subdetectorName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
             << "centerZ" << sep << "centerRho" << sep << "centerPhi" << sep
             << "dsDist" << sep << "thickn" << sep
             << "minW" << sep << "maxW" << sep << "len" << sep
@@ -107,7 +107,7 @@ namespace insur {
       }
       void visit(const DetectorModule& m) override {
         if (m.minZ() < 0.) return; // || m.posRef().phi != 1) return;
-        of << m.cntName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
+        of << m.subdetectorName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
            << m.center().Z() << sep << m.center().Rho() << sep << m.center().Phi() << sep
            << m.dsDistance() << sep << m.thickness() << sep
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep

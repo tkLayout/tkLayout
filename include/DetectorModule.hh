@@ -42,9 +42,9 @@ enum HitType { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
 
 
-struct PosRef { int cnt, z, rho, phi; };
+struct PosRef { int subdetectorId, z, rho, phi; };
 struct TableRef { string table; int row, col; };
-struct UniRef { string cnt; int layer, ring, phi, side; };
+struct UniRef { string subdetectorName; int layer, ring, phi, side; };
 
 namespace insur {
   class ModuleCap;
@@ -64,8 +64,8 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
-  std::string cntName_;
-  int16_t cntId_;
+  std::string subdetectorName_;
+  int16_t subdetectorId_;
   mutable double cachedZError_ = -1.;
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
@@ -124,9 +124,9 @@ public:
 
   Property<bool, Default> removeModule;
 
-  int16_t cntId() const { return cntId_; }
-  const std::string& cntName() const { return cntName_; }
-  void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
+  int16_t subdetectorId() const { return subdetectorId_; }
+  const std::string& subdetectorName() const { return subdetectorName_; }
+  void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
   
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
@@ -505,9 +505,9 @@ public:
 
   double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
 
-  PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
-  TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }
-  UniRef uniRef() const { return UniRef{ cntName(), layer(), ring(), rod(), side() }; }
+  PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
+  TableRef tableRef() const { return (TableRef){ subdetectorName(), layer(), ring() }; }
+  UniRef uniRef() const { return UniRef{ subdetectorName(), layer(), ring(), rod(), side() }; }
 };
 
 
@@ -703,9 +703,9 @@ public:
     return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta)));
   }
 
-  PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
-  TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }
-  UniRef uniRef() const { return UniRef{ cntName(), disk(), ring(), blade(), side() }; }
+  PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
+  TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }
+  UniRef uniRef() const { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
 };
 
 

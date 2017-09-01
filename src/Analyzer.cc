@@ -839,7 +839,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
              curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*SimParms::getInstance().numMinBiasEvents() * bgReductionFactor;
 
-             std::string layerName = hitModule->uniRef().cnt + "_" + any2str(hitModule->uniRef().layer);
+             std::string layerName = hitModule->uniRef().subdetectorName + "_" + any2str(hitModule->uniRef().layer);
              if (modAndType.second == HitType::STUB) {
                std::string momentumString = any2str(*itMomentum, 2);
                if (stubEfficiencyCoverageProfiles[layerName].count(momentumString) == 0) {
@@ -1275,7 +1275,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       myModule = &(myModuleCap->getModule());
       if (myModule->posRef().phi==1) {
         pair<int, int> myIndex = make_pair(myModule->tableRef().row, myModule->tableRef().col);
-        tempString = myModule->cntName();
+        tempString = myModule->subdetectorName();
         if (!typeTaken[tempString][myIndex]) {
           typeTaken[tempString][myIndex]=true;
           // TODO: put this in a better place
@@ -1285,11 +1285,11 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
             Visitor(std::map<std::string, SummaryTable>& result_) : result(result_) {}
             void visit(const BarrelModule& m) {
-              string s = m.cntName() + " (L" + any2str(m.layer()) + ")";
+              string s = m.subdetectorName() + " (L" + any2str(m.layer()) + ")";
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
             void visit(const EndcapModule& m) {
-              string s = m.cntName() + " (D" + any2str(m.disk()) + ")";
+              string s = m.subdetectorName() + " (D" + any2str(m.disk()) + ")";
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
           };
@@ -1347,7 +1347,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       if (myModule->posRef().phi == 1) {
         // If we did not write this module type yet
         pair<int, int> myIndex = make_pair(myModule->tableRef().row/*+myModule->getDisk()*/, myModule->tableRef().col);
-        tempString = myModule->cntName();
+        tempString = myModule->subdetectorName();
         if (!typeWritten[tempString][myIndex]) {
           typeWritten[tempString][myIndex]=true;
           if (tempString!="") {
@@ -1458,7 +1458,7 @@ Material Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
 }
 
 void printPosRefString(std::ostream& os, const Module& m, const string& delim = " ") {
-  os << "cnt=" << m.posRef().cnt << delim << "z=" << m.posRef().z << delim << "rho=" << m.posRef().rho << " (" << m.center().Rho() << ")" << delim << "phi=" << m.posRef().phi << delim << "side=" << m.side();
+  os << "subdetectorId=" << m.posRef().subdetectorId << delim << "z=" << m.posRef().z << delim << "rho=" << m.posRef().rho << " (" << m.center().Rho() << ")" << delim << "phi=" << m.posRef().phi << delim << "side=" << m.side();
 } 
 
 /**
@@ -3242,7 +3242,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         int layerStub = 0;
         for (auto mh : hitModules) {
           UniRef ur = mh.first->uniRef();
-          if (layerName == (ur.cnt + " " + any2str(ur.layer))) {
+          if (layerName == (ur.subdetectorName + " " + any2str(ur.layer))) {
             layerHit=1;
             if (mh.second == HitType::STUB) layerStub=1;
             if (layerHit && layerStub) break;
