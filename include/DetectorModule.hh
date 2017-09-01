@@ -228,16 +228,9 @@ public:
     decorated().translate(v);
     clearSensorPolys();
   }
-  void mirrorZ() {
+  void rotateToNegativeZSide() {
     side(-side());
-    double zTranslation = -center().Z();
-    double zRotation = -center().Phi();
-    translateZ(zTranslation);
-    rotateZ(zRotation);
-    rotateY(M_PI);
-    translateZ(zTranslation);
-    rotateZ(zRotation);
-    //decorated().mirror(XYZVector(1., 1., -1.));
+    rotateY(M_PI);  // Rotation around CMS_Y of angle Pi
     clearSensorPolys();
   }
 
