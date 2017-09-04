@@ -153,7 +153,8 @@ namespace insur {
   private:
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     TProfile* totalEtaProfileLayers_ = 0, *totalEtaProfileLayersPixel_ = 0;
-    std::map<std::string, TH1D*> rCompsPixelTrackingVolume_, iCompsPixelTrackingVolume_;  
+    std::map<std::string, TH1D*> rCompsPixelTrackingVolume_, iCompsPixelTrackingVolume_;
+    std::map<std::string, TH1D*> rServicesDetailsPixelTrackingVolume_, iServicesDetailsPixelTrackingVolume_;
   bool geometry_created;
     std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,

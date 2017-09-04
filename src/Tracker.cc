@@ -84,60 +84,65 @@ void Tracker::build() {
 
 /** 
  * Add geometry hierarchy information to modules.
+ * The Ids here have nothing to do with DetIds: they are the numbers which appear in the configuration files.
  */
 void Tracker::addHierarchyInfoToModules() {
  
-  class HierarchicalNameVisitor : public GeometryVisitor {  
+  class HierarchyInfoToModulesVisitor : public GeometryVisitor {  
   public:
     void visit(Barrel& b) { 
-      cnt = b.myid(); 
-      cntId++; 
+      subdetectorName_ = b.myid(); 
+      subdetectorId_++; 
     }
     void visit(Endcap& e) { 
-      cnt = e.myid(); 
-      cntId++; 
+      subdetectorName_ = e.myid(); 
+      subdetectorId_++; 
     }
     void visit(Layer& l)  { 
-      c1 = l.myid(); 
+      layerDiskId_ = l.myid(); 
     }
     void visit(Disk& d)   { 
-      c1 = d.myid();
+      layerDiskId_ = d.myid();
       diskAverageZ_ = d.averageZ();
     }
     void visit(RodPair& r){ 
-      c2 = r.myid(); 
+      rodRingId_ = r.myid(); 
     }
     void visit(Ring& r) { 
-      c2 = r.myid();
+      rodRingId_ = r.myid();
       ringAverageZ_ = r.averageZ();
       bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);
     }
     void visit(Module& m) { 
-      m.cntNameId(cnt, cntId); 
+      m.subdetectorNameId(subdetectorName_, subdetectorId_); 
     }
     void visit(BarrelModule& m) { 
-      m.layer(c1); 
-      m.rod(c2); 
+      m.layer(layerDiskId_); 
+      m.rod(rodRingId_); 
     }
     void visit(EndcapModule& m) { 
-      m.disk(c1);
-      m.ring(c2);
+      m.disk(layerDiskId_);
+      m.ring(rodRingId_);
       int smallDeltaIndex = ((fabs(m.center().Z()) > fabs(ringAverageZ_)) ? 1 : 0);
+      // Get which disk surface the module belongs to.
+      // Disk Surface 1 is the surface with the lowest |Z|.
+      // Disk Surface 4 is the surface with the biggest |Z|.
       int diskSurfaceIndex = 1 + bigDeltaIndex_ + smallDeltaIndex;
       m.endcapDiskSurface(diskSurfaceIndex);
     }
 
   private:
-    int cntId = 0;
-    string cnt;
-    int c1, c2;
+    string subdetectorName_;
+    int subdetectorId_ = 0;
+    int layerDiskId_;
+    int rodRingId_;
     double diskAverageZ_;
     double ringAverageZ_;
     int bigDeltaIndex_;
   };
 
-  HierarchicalNameVisitor cntNameVisitor;
-  accept(cntNameVisitor);
+  HierarchyInfoToModulesVisitor v;
+  accept(v);
 }
 
 

@@ -32,7 +32,7 @@ public:
   static string makeSensorTag(const BarrelModule& m) {
     stringstream ss;
     ss << "Barrel" 
-       << "/Tag=" << m.cntName() << "L" << setfill('0') << setw(2) << m.layer() // << "R" << m.ring();
+       << "/Tag=" << m.subdetectorName() << "L" << setfill('0') << setw(2) << m.layer() // << "R" << m.ring();
        << "/Width=" << m.maxWidth() 
        << "/Height=" << m.length()
        << "/Thickness=" << m.thickness()
@@ -43,7 +43,7 @@ public:
   static string makeSensorTag(const EndcapModule& m) {
     stringstream ss;
     ss << "Endcap"
-       << "/Tag=" << m.cntName() << "R" << setfill('0') << setw(2) << m.ring() << "D" << m.disk() 
+       << "/Tag=" << m.subdetectorName() << "R" << setfill('0') << setw(2) << m.ring() << "D" << m.disk() 
        << "/WidthLo=" << m.minWidth()
        << "/WidthHi=" << m.maxWidth()
        << "/Height="  << m.length()
@@ -83,13 +83,13 @@ public:
 
   static string makePosTag(const BarrelModule& m) {
     stringstream ss;
-    ss << m.cntName() << "L" << setfill('0') << setw(2) << m.layer() /*<< "R" << m.ring() */;
+    ss << m.subdetectorName() << "L" << setfill('0') << setw(2) << m.layer() /*<< "R" << m.ring() */;
     return ss.str();
   }
 
   static string makePosTag(const EndcapModule& m) {
     stringstream ss;
-    ss << m.cntName() << "R" << setfill('0') << setw(2) << m.ring();
+    ss << m.subdetectorName() << "R" << setfill('0') << setw(2) << m.ring();
     //<< "D" << m.disk();
     return ss.str();
   }

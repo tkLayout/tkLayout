@@ -213,9 +213,9 @@ void Ring::translateZ(double z) {
   }
 }
 
-void Ring::mirrorZ() {
+void Ring::rotateToNegativeZSide() {
   for (auto& m : modules_) {
-    m.mirrorZ();
+    m.rotateToNegativeZSide();
   }
 }
 

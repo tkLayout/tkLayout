@@ -73,9 +73,11 @@ void Endcap::build() {
       // Build
       diskp->build(extremaDisksInfo);
 
-      // Mirror discs
+      // Disk on (+Z) side is duplicated to (-Z) side.
+      // Please note that the duplication is a rotation of axis CMS_Y and angle Pi !
+      // This is because one does not want to build different disks for both sides, so no 'mirror' should be considered!
       Disk* diskn = GeometryFactory::clone(*diskp);
-      diskn->mirrorZ();
+      diskn->rotateToNegativeZSide();
 
       // Compute coverage on +Z side after built (TO DO : adapt for -Z side, and add a Tracker::computeActualCoverage(), completely independant from build() )
       diskp->computeActualCoverage();

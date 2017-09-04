@@ -28,8 +28,8 @@ void MaterialBillAnalyzer::inspectModules(std::vector<std::vector<insur::ModuleC
       // (and make a better module typing)
       struct Visitor : public ConstGeometryVisitor {
         std::string id_;
-        void visit(const BarrelModule& m) { id_ = m.cntName() + "_L" + any2str(m.layer()); }
-        void visit(const EndcapModule& m) { id_ = m.cntName() + "_D" + any2str(m.disk()); }
+        void visit(const BarrelModule& m) { id_ = m.subdetectorName() + "_L" + any2str(m.layer()); }
+        void visit(const EndcapModule& m) { id_ = m.subdetectorName() + "_D" + any2str(m.disk()); }
       };
       Visitor v;
       myModule->accept(v);

@@ -332,9 +332,9 @@ void Disk::computeActualCoverage() {
 
 void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 
-void Disk::mirrorZ() {
+void Disk::rotateToNegativeZSide() {
   averageZ_ = -averageZ_;
-  for (auto& r : rings_) r.mirrorZ();
+  for (auto& r : rings_) r.rotateToNegativeZSide();
 }
 
 const MaterialObject& Disk::materialObject() const {
