@@ -513,7 +513,7 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 
 /*
  * Compute the alpha incident angle.
- * See wiki for definition of alpha angle.
+ * See README for definition of alpha angle.
  * This depends on the Phi-angle of the track and the Phi-position of the Module.
  */
 const double DetectorModule::alpha(const double trackPhi) const {
@@ -529,7 +529,7 @@ const double DetectorModule::alpha(const double trackPhi) const {
 
 /*
  * Compute the beta incident angle.
- * See wiki for definition of beta angle.
+ * See README for definition of beta angle.
  * This depends on the theta-angle of the track and the tilt angle of the Module.
  */
 const double DetectorModule::beta(const double theta) const { 
