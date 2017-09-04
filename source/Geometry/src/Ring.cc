@@ -105,12 +105,12 @@ void Ring::translateZ(double zOffset) {
 }
 
 //
-// Helper method mirroring the whole Ringc from zPos to -zPos or vice versa
+// Helper method duplicating the whole Ring from zPos to -zPos or vice versa
 //
-void Ring::mirrorZ() {
+void Ring::rotateToNegativeZSide() {
   m_averageZ *= -1;
   for (auto& m : m_modules) {
-    m.mirrorZ();
+    m.rotateToNegativeZSide();
   }
 }
 

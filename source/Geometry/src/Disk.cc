@@ -254,9 +254,9 @@ void Disk::accept(ConstGeometryVisitor& v) const {
 void Disk::translateZ(double z) { m_averageZ += z; for (auto& r : m_rings) r.translateZ(z); }
 
 //
-// Helper method mirroring the whole Disc from zPos to -zPos or vice versa
+// Helper method to place the whole Disc from zPos to -zPos or vice versa (rotation around axis FCC_Y with angle Pi).
 //
-void Disk::mirrorZ() {
+void Disk::rotateToNegativeZSide() {
   m_averageZ = -m_averageZ;
-  for (auto& r : m_rings) r.mirrorZ();
+  for (auto& r : m_rings) r.rotateToNegativeZSide();
 }

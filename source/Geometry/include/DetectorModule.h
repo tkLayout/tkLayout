@@ -170,7 +170,7 @@ public:
   void mirror(   const XYZVector& vector) { m_moduleGeom->mirror(vector); clearSensorPolys(); }
   void translateZ(double z)               { m_moduleGeom->translate(XYZVector(0, 0, z)); clearSensorPolys(); }
   void translateR(double radius)          { XYZVector v = m_rAxis.Unit()*radius; m_moduleGeom->translate(v); clearSensorPolys();}
-  void mirrorZ();
+  void rotateToNegativeZSide();
   void rotateX(double angle)              { m_moduleGeom->rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle)              { m_moduleGeom->rotateY(angle); clearSensorPolys(); }
   void rotateZ(double angle)              { m_moduleGeom->rotateZ(angle); clearSensorPolys(); m_rAxis = ROOT::Math::RotationZ(angle)(m_rAxis); }
