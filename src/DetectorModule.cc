@@ -37,7 +37,6 @@ void DetectorModule::setup() {
 };
 
 
-
 void DetectorModule::check() {
   PropertyObject::check();
 
@@ -78,7 +77,6 @@ void DetectorModule::check() {
 }
 
 
-
 void DetectorModule::build() {
   check();
 
@@ -115,10 +113,6 @@ void DetectorModule::build() {
   materialObject_.store(propertyTree());
   materialObject_.build();
 }
-
-
-
-
 
 
 std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
@@ -335,11 +329,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
   }
 
 
-
-
-
-
-
 std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) const {
   if (cachedZError_ != zError) {
     cachedZError_ = zError;
@@ -352,6 +341,7 @@ std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) cons
   }
   return cachedMinMaxEtaWithError_;
 }
+
 
 bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 
@@ -388,9 +378,7 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 //}
 
 
-
-
-bool DetectorModule::hasAnyResolutionLocalXParam() const { 
+const bool DetectorModule::hasAnyResolutionLocalXParam() const { 
   return ( resolutionLocalXParam0.state() 
 	   || resolutionLocalXParam1.state() 
 	   || resolutionLocalXParam2.state() 
@@ -404,7 +392,8 @@ bool DetectorModule::hasAnyResolutionLocalXParam() const {
 	   );
 }
 
-bool DetectorModule::hasAnyResolutionLocalYParam() const { 
+
+const bool DetectorModule::hasAnyResolutionLocalYParam() const { 
   return ( resolutionLocalYParam0.state() 
 	   || resolutionLocalYParam1.state() 
 	   || resolutionLocalYParam2.state() 
@@ -419,11 +408,62 @@ bool DetectorModule::hasAnyResolutionLocalYParam() const {
 }
 
 
+const double DetectorModule::calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const {
+  double resolutionLocalAxis;
+
+  const double param0 = (isLocalXAxis ? resolutionLocalXParam0() : resolutionLocalYParam0());
+  const double param1 = (isLocalXAxis ? resolutionLocalXParam1() : resolutionLocalYParam1());
+  const double param2 = (isLocalXAxis ? resolutionLocalXParam2() : resolutionLocalYParam2());
+  const double param3 = (isLocalXAxis ? resolutionLocalXParam3() : resolutionLocalYParam3());
+  const double param4 = (isLocalXAxis ? resolutionLocalXParam4() : resolutionLocalYParam4());
+  const double param5 = (isLocalXAxis ? resolutionLocalXParam5() : resolutionLocalYParam5());
+  const double param6 = (isLocalXAxis ? resolutionLocalXParam6() : resolutionLocalYParam6());
+  const double param7 = (isLocalXAxis ? resolutionLocalXParam7() : resolutionLocalYParam7());
+  const double param8 = (isLocalXAxis ? resolutionLocalXParam8() : resolutionLocalYParam8());
+  const double param9 = (isLocalXAxis ? resolutionLocalXParam9() : resolutionLocalYParam9());
+
+  const double x = fabsTanDeepAngle;
+
+  resolutionLocalAxis = param0 + param1 * x 
+    + param2 * exp(-param9 * x) * cos(param3 * x + param4)
+    + param5 * exp(-0.5 * pow(((x - param6) / param7), 2))
+    + param8 * pow(x, 0.5);
+
+  return resolutionLocalAxis;
+}
+
+
+const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const { 
+  double resolutionLocalX;
+
+  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+  const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
+
+  const bool isLocalXAxis = true;
+  resolutionLocalX = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalX;
+}
+
+
+const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
+  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+  const double fabsTanDeepAngle = fabs(-cotanBeta); 
+                 
+  const bool isLocalXAxis = false;
+  const double resolutionLocalY = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalY;
+}
+
+
 double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
   double B = A/sqrt(1-A*A);
   return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX,2) + pow(B*sin(tiltAngle()) * resolutionLocalY,2));
 }
+
 
 double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
@@ -602,40 +642,6 @@ void BarrelModule::build() {
 }
 
 
-
-
-double BarrelModule::calculateParameterizedResolutionLocalX(double trackPhi) const { 
-  double resolutionLocalX;
-
-  double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-  double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
-  double x = fabs(-cotanAlpha - tanLorentzAngle);  
-
-  resolutionLocalX = resolutionLocalXParam0() + resolutionLocalXParam1() * x 
-    + resolutionLocalXParam2() * exp(-resolutionLocalXParam9() * x) * cos(resolutionLocalXParam3() * x + resolutionLocalXParam4())
-    + resolutionLocalXParam5() * exp(-0.5 * pow(((x-resolutionLocalXParam6())/resolutionLocalXParam7()), 2))
-    + resolutionLocalXParam8() * pow(x, 0.5);
-
-  return resolutionLocalX;
-}
-
-
-double BarrelModule::calculateParameterizedResolutionLocalY(double theta) const {
-  double resolutionLocalY;
-
-  double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
-  double x = fabs(-cotanBeta);                     
-
-  resolutionLocalY = resolutionLocalYParam0() + resolutionLocalYParam1() * x 
-    + resolutionLocalYParam2() * exp(-resolutionLocalYParam9() * x) * cos(resolutionLocalYParam3() * x + resolutionLocalYParam4())
-    + resolutionLocalYParam5() * exp(-0.5 * pow(((x-resolutionLocalYParam6())/resolutionLocalYParam7()), 2))
-    + resolutionLocalYParam8() * pow(x, 0.5);
-
-  return resolutionLocalY;
-}
-
-
-
 void EndcapModule::build() {
   try {
     DetectorModule::build();
@@ -649,43 +655,6 @@ void EndcapModule::build() {
   cleanup();
   builtok(true);
 }
-
-
-double EndcapModule::calculateParameterizedResolutionLocalX(double trackPhi) const { 
-  double resolutionLocalX;
-
-  double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
-  double x = fabs(-cotanAlpha);  
-
-  resolutionLocalX = resolutionLocalXParam0() + resolutionLocalXParam1() * x 
-    + resolutionLocalXParam2() * exp(-resolutionLocalXParam9() * x) * cos(resolutionLocalXParam3() * x + resolutionLocalXParam4())
-    + resolutionLocalXParam5() * exp(-0.5 * pow(((x-resolutionLocalXParam6())/resolutionLocalXParam7()), 2))
-    + resolutionLocalXParam8() * pow(x, 0.5);
-
-  return resolutionLocalX;
-}
-
-
-double EndcapModule::calculateParameterizedResolutionLocalY(double theta) const {
-  double resolutionLocalY;
-
-  double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
-  double x = fabs(-cotanBeta);                     
-
-  resolutionLocalY = resolutionLocalYParam0() + resolutionLocalYParam1() * x 
-    + resolutionLocalYParam2() * exp(-resolutionLocalYParam9() * x) * cos(resolutionLocalYParam3() * x + resolutionLocalYParam4())
-    + resolutionLocalYParam5() * exp(-0.5 * pow(((x-resolutionLocalYParam6())/resolutionLocalYParam7()), 2))
-    + resolutionLocalYParam8() * pow(x, 0.5);
-
-  return resolutionLocalY;
-}
-
-
-//double DetectorModule::calculateParameterizedResolutionLocalAxis(double x) {
-
-
-
-//}
 
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };

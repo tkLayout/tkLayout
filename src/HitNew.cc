@@ -155,8 +155,8 @@ void HitNew::fillModuleLocalResolutionStats() {
   } else {
     if (m_hitModule) {
       // Compute hit module local resolution.
-      double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
       
       // Fill the module statistics.
       if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
@@ -244,8 +244,8 @@ double HitNew::getResolutionRphi(double trackRadius) {
       double B         = A/sqrt(1-A*A);
       double tiltAngle = m_hitModule->tiltAngle();
       double skewAngle = m_hitModule->skewAngle();
-      double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
 //      if (isBarrel() && (m_detName=="Inner_BRL_0" || m_detName=="Inner_BRL_1") && m_rPos>30) tiltAngle = M_PI/2.-m_track->getTheta();
 //      if (isBarrel() && m_detName=="Outer_BRL" && m_rPos<900) tiltAngle = M_PI/2.-m_track->getTheta();
@@ -299,8 +299,8 @@ double HitNew::getResolutionZ(double trackRadius) {
         double D         = m_track->getCotgTheta()/sqrt(1-A*A);
         double tiltAngle = m_hitModule->tiltAngle();
         double skewAngle = m_hitModule->skewAngle();
-        double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-        double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+        const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+        const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
 //        if (isBarrel() && (m_detName=="Inner_BRL_0" || m_detName=="Inner_BRL_1") && m_rPos>30) tiltAngle = M_PI/2.-m_track->getTheta();
 //        if (isBarrel() && m_detName=="Outer_BRL" && m_rPos<900) tiltAngle = M_PI/2.-m_track->getTheta();

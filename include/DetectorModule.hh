@@ -76,6 +76,8 @@ protected:
   
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
+  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
+
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
@@ -208,9 +210,6 @@ public:
       removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
-  bool hasAnyResolutionLocalXParam() const;
-  bool hasAnyResolutionLocalYParam() const;
-
   virtual void setup();
   void check() override;
   virtual void build();
@@ -253,13 +252,15 @@ public:
     return alpha;
   }
   double beta (double theta) const { return theta + tiltAngle(); }
-  virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
-  virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
-  double resolutionLocalX(double phi) const {
+  const bool hasAnyResolutionLocalXParam() const;
+  const bool hasAnyResolutionLocalYParam() const;
+  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
+  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  const double resolutionLocalX(const double phi) const {
     if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
     else { return calculateParameterizedResolutionLocalX(phi); }
   }
-  double resolutionLocalY(double theta) const {
+  const double resolutionLocalY(const double theta) const {
     if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
     else { return calculateParameterizedResolutionLocalY(theta); }
   }
@@ -514,9 +515,6 @@ public:
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const;
-  double calculateParameterizedResolutionLocalY(double theta) const;
-
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }
   UniRef uniRef() const { return UniRef{ cntName(), layer(), ring(), rod(), side() }; }
@@ -687,9 +685,6 @@ public:
 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
-
-  double calculateParameterizedResolutionLocalX(double trackPhi) const;
-  double calculateParameterizedResolutionLocalY(double theta) const;
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }
