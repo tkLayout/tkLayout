@@ -145,6 +145,27 @@ void HitNew::setHitModule(DetectorModule* myModule) {
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
 }
 
+
+/*
+ * Fill local spatial resolution statistics to hit module.
+ */
+void HitNew::fillModuleLocalResolutionStats() {
+  if (!isActive()) {
+    std::cerr << "ERROR: Hit::fillModuleLocalResolutionStats called on a non-active hit" << std::endl;
+  } else {
+    if (m_hitModule) {
+      // Compute hit module local resolution.
+      double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      
+      // Fill the module statistics.
+      if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
+      if (m_hitModule->hasAnyResolutionLocalYParam()) m_hitModule->rollingParametrizedResolutionLocalY(resolutionLocalY);
+    }
+  }
+}
+
+
 /*
  * Get unique ID of layer or disc to which the hit belongs to (if not link return -1)
  */
@@ -190,24 +211,6 @@ double HitNew::getTrackTheta() {
 RILength HitNew::getCorrectedMaterial() {
     return m_correctedMaterial;
 }
-
-
-
-
-void HitNew::computeLocalResolution() {
-  if (!isActive()) {
-    std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
-  } else {
-    if (m_hitModule) {
-      double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
-      
-      if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
-      if (m_hitModule->hasAnyResolutionLocalYParam()) m_hitModule->rollingParametrizedResolutionLocalY(resolutionLocalY);
-    }
-  }
-}
-
 
 
 /**
@@ -312,17 +315,6 @@ double HitNew::getResolutionZ(double trackRadius) {
     else return m_resolutionZ;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /*
  * Checks wether a module belongs to the outer endcap (no pixel allowed)

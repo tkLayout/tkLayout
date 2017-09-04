@@ -107,6 +107,7 @@ public:
   Property<double, AutoDefault> sensorsIrradiationMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
+  // Local X resolution parameters
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam1;
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam2;
@@ -117,7 +118,7 @@ public:
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam7;
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam8;
   ReadonlyProperty<double, NoDefault> resolutionLocalXParam9;
- 
+  // Local Y resolution parameters
   ReadonlyProperty<double, NoDefault> resolutionLocalYParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYParam1;
   ReadonlyProperty<double, NoDefault> resolutionLocalYParam2;
@@ -179,25 +180,25 @@ public:
       // Local X resolution parameters
       resolutionLocalXParam0            ("resolutionLocalXParam0"            , parsedOnly()),
       resolutionLocalXParam1            ("resolutionLocalXParam1"            , parsedOnly()),
-    resolutionLocalXParam2            ("resolutionLocalXParam2"            , parsedOnly()),
-    resolutionLocalXParam3            ("resolutionLocalXParam3"            , parsedOnly()),
-    resolutionLocalXParam4            ("resolutionLocalXParam4"            , parsedOnly()),
-    resolutionLocalXParam5            ("resolutionLocalXParam5"            , parsedOnly()),
-    resolutionLocalXParam6            ("resolutionLocalXParam6"            , parsedOnly()),
-    resolutionLocalXParam7            ("resolutionLocalXParam7"            , parsedOnly()),
-    resolutionLocalXParam8            ("resolutionLocalXParam8"            , parsedOnly()),
-    resolutionLocalXParam9            ("resolutionLocalXParam9"            , parsedOnly()),
-    // Local Y resolution parameters
-    resolutionLocalYParam0            ("resolutionLocalYParam0"            , parsedOnly()),
-    resolutionLocalYParam1            ("resolutionLocalYParam1"            , parsedOnly()),
-    resolutionLocalYParam2            ("resolutionLocalYParam2"            , parsedOnly()),
-    resolutionLocalYParam3            ("resolutionLocalYParam3"            , parsedOnly()),
-    resolutionLocalYParam4            ("resolutionLocalYParam4"            , parsedOnly()),
-    resolutionLocalYParam5            ("resolutionLocalYParam5"            , parsedOnly()),
-    resolutionLocalYParam6            ("resolutionLocalYParam6"            , parsedOnly()),
-    resolutionLocalYParam7            ("resolutionLocalYParam7"            , parsedOnly()),
-    resolutionLocalYParam8            ("resolutionLocalYParam8"            , parsedOnly()),
-    resolutionLocalYParam9            ("resolutionLocalYParam9"            , parsedOnly()),
+      resolutionLocalXParam2            ("resolutionLocalXParam2"            , parsedOnly()),
+      resolutionLocalXParam3            ("resolutionLocalXParam3"            , parsedOnly()),
+      resolutionLocalXParam4            ("resolutionLocalXParam4"            , parsedOnly()),
+      resolutionLocalXParam5            ("resolutionLocalXParam5"            , parsedOnly()),
+      resolutionLocalXParam6            ("resolutionLocalXParam6"            , parsedOnly()),
+      resolutionLocalXParam7            ("resolutionLocalXParam7"            , parsedOnly()),
+      resolutionLocalXParam8            ("resolutionLocalXParam8"            , parsedOnly()),
+      resolutionLocalXParam9            ("resolutionLocalXParam9"            , parsedOnly()),
+      // Local Y resolution parameters
+      resolutionLocalYParam0            ("resolutionLocalYParam0"            , parsedOnly()),
+      resolutionLocalYParam1            ("resolutionLocalYParam1"            , parsedOnly()),
+      resolutionLocalYParam2            ("resolutionLocalYParam2"            , parsedOnly()),
+      resolutionLocalYParam3            ("resolutionLocalYParam3"            , parsedOnly()),
+      resolutionLocalYParam4            ("resolutionLocalYParam4"            , parsedOnly()),
+      resolutionLocalYParam5            ("resolutionLocalYParam5"            , parsedOnly()),
+      resolutionLocalYParam6            ("resolutionLocalYParam6"            , parsedOnly()),
+      resolutionLocalYParam7            ("resolutionLocalYParam7"            , parsedOnly()),
+      resolutionLocalYParam8            ("resolutionLocalYParam8"            , parsedOnly()),
+      resolutionLocalYParam9            ("resolutionLocalYParam9"            , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),

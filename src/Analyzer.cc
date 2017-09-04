@@ -222,7 +222,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
           trackPt->resetPt(pT);
           //trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
           if (trackPt->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
-            trackPt->computeLocalResolution();
+            trackPt->fillModuleLocalResolutionStats();
             TrackNewCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackNewCollection &myCollection = myMap[parameter];
             myCollection.push_back(std::move(trackPt));
@@ -233,7 +233,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
           idealTrackPt->resetPt(pT);
           idealTrackPt->removeMaterial();
           if (idealTrackPt->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
-            idealTrackPt->computeLocalResolution();
+            idealTrackPt->fillModuleLocalResolutionStats();
             TrackNewCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackNewCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(std::move(idealTrackPt));
@@ -247,7 +247,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
           trackP->resetPt(pT);
           //trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
           if (trackP->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
-            trackP->computeLocalResolution();
+            trackP->fillModuleLocalResolutionStats();
             TrackNewCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackNewCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(std::move(trackP));
@@ -258,7 +258,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
           idealTrackP->resetPt(pT);
           idealTrackP->removeMaterial();
           if (idealTrackP->getNActiveHits(tag,useIPConstraint)>=3) { // Only keep tracks which have minimum 3 active hits
-            idealTrackP->computeLocalResolution();
+            idealTrackP->fillModuleLocalResolutionStats();
             TrackNewCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackNewCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(std::move(idealTrackP));

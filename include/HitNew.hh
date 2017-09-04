@@ -70,7 +70,7 @@ public:
   void setBeamPipe(bool isBeamPipe)                 { m_detName = "BeamPipe"; m_isBeamPipe = isBeamPipe;}
   void setIP(bool newIP)                            { m_detName = "IP";       m_isIP = newIP; }
   void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
-  void computeLocalResolution();
+  void fillModuleLocalResolutionStats();
   void setResolutionRphi(double newRes)             { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
   void setResolutionZ(double newRes)                { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
   void setResolutionY(double newRes)                { setResolutionZ(newRes); }    // Used for compatibility only -> use setResolutionZ(double newRes) instead

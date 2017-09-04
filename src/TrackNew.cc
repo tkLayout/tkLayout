@@ -126,19 +126,6 @@ TrackNew::~TrackNew() {
   m_hits.clear();
 }
 
-
-
-void TrackNew::computeLocalResolution() {
-  for (auto& hit : m_hits) {
-    //if (hit->isActive()) {
-    if (!hit->isPassive()) {
-      hit->computeLocalResolution();
-    }
-  }
-}
-
-
-
 //
 // Main method calculating track parameters in s-z plane only, using linear fit with parameters: cotg(theta), z0 -> internally calling computation of covMatrixRZ
 // As the Multiple scattering effects must be set in a way to have then correct propagation of errors up-to ref. point [rPos,zPos] (including all dead materials between the
@@ -620,6 +607,17 @@ void TrackNew::removeMaterial() {
   // Cov. matrices need to be recalculated
   m_covRPhiDone = false;
   m_covRZDone   = false;
+}
+
+//
+// Fill local spatial resolution statistics to all modules hit along the track.
+//
+void TrackNew::fillModuleLocalResolutionStats() {
+  for (auto& hit : m_hits) {
+    if (hit->isActive()) {
+      hit->fillModuleLocalResolutionStats();
+    }
+  }
 }
 
 //

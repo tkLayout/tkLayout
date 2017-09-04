@@ -681,6 +681,13 @@ double EndcapModule::calculateParameterizedResolutionLocalY(double theta) const 
 }
 
 
+//double DetectorModule::calculateParameterizedResolutionLocalAxis(double x) {
+
+
+
+//}
+
+
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
 define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
 define_enum_strings(ReadoutType) = { "strip", "pixel", "pt" };
