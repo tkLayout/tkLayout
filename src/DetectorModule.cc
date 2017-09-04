@@ -378,6 +378,109 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 //}
 
 
+/*
+ * RETURN GLOBAL SPATIAL RESOLUTION ON X AXIS.
+ */
+double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const {
+  double A = hitRho/(2*trackR); 
+  double B = A/sqrt(1-A*A);
+  return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX,2) + pow(B*sin(tiltAngle()) * resolutionLocalY,2));
+}
+
+
+/*
+ * RETURN GLOBAL SPATIAL RESOLUTION ON Y AXIS.
+ */
+double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const {
+  double A = hitRho/(2*trackR); 
+  double D = trackCotgTheta/sqrt(1-A*A);
+  return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX,2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY,2));
+}
+
+
+/*
+ * RETURN LOCAL SPATIAL RESOLUTION ON X AXIS.
+ * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
+ */
+const double DetectorModule::resolutionLocalX(const double phi) const {
+  if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
+  else { return calculateParameterizedResolutionLocalX(phi); }
+}
+
+
+/*
+ * RETURN LOCAL SPATIAL RESOLUTION ON Y AXIS.
+ * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
+ */
+const double DetectorModule::resolutionLocalY(const double theta) const {
+  if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
+  else { return calculateParameterizedResolutionLocalY(theta); }
+}
+
+
+/*
+ * Compute parametrized local spatial resolution on X axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const {
+  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+  const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
+
+  const bool isLocalXAxis = true;
+  const double resolutionLocalX = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalX;
+}
+
+
+/*
+ * Compute parametrized local spatial resolution on Y axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
+  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+  const double fabsTanDeepAngle = fabs(-cotanBeta); 
+                 
+  const bool isLocalXAxis = false;
+  const double resolutionLocalY = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalY;
+}
+
+
+/*
+ * Compute spatial resolution on a local axis as a function of |tan(deepAngle)|.
+ * This is the parametrization model from Riccardo del Burgo, ETZ.
+ * The model itself is the same for both X axis and Y axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const {
+  // Parameter values
+  const double param0 = (isLocalXAxis ? resolutionLocalXParam0() : resolutionLocalYParam0());
+  const double param1 = (isLocalXAxis ? resolutionLocalXParam1() : resolutionLocalYParam1());
+  const double param2 = (isLocalXAxis ? resolutionLocalXParam2() : resolutionLocalYParam2());
+  const double param3 = (isLocalXAxis ? resolutionLocalXParam3() : resolutionLocalYParam3());
+  const double param4 = (isLocalXAxis ? resolutionLocalXParam4() : resolutionLocalYParam4());
+  const double param5 = (isLocalXAxis ? resolutionLocalXParam5() : resolutionLocalYParam5());
+  const double param6 = (isLocalXAxis ? resolutionLocalXParam6() : resolutionLocalYParam6());
+  const double param7 = (isLocalXAxis ? resolutionLocalXParam7() : resolutionLocalYParam7());
+  const double param8 = (isLocalXAxis ? resolutionLocalXParam8() : resolutionLocalYParam8());
+  const double param9 = (isLocalXAxis ? resolutionLocalXParam9() : resolutionLocalYParam9());
+
+  // |tan(deepAngle)|
+  const double x = fabsTanDeepAngle;
+
+  // Use of parametrization model
+  const double resolutionLocalAxis = param0 + param1 * x 
+    + param2 * exp(-param9 * x) * cos(param3 * x + param4)
+    + param5 * exp(-0.5 * pow(((x - param6) / param7), 2))
+    + param8 * pow(x, 0.5);
+
+  return resolutionLocalAxis;
+}
+
+
+/*
+ * Chekc whether the value of at least one parameter to compute a parametrized spatial resolution in X, is specified.
+ */
 const bool DetectorModule::hasAnyResolutionLocalXParam() const { 
   return ( resolutionLocalXParam0.state() 
 	   || resolutionLocalXParam1.state() 
@@ -393,6 +496,9 @@ const bool DetectorModule::hasAnyResolutionLocalXParam() const {
 }
 
 
+/*
+ * Chekc whether the value of at least one parameter to compute a parametrized spatial resolution in Y, is specified.
+ */
 const bool DetectorModule::hasAnyResolutionLocalYParam() const { 
   return ( resolutionLocalYParam0.state() 
 	   || resolutionLocalYParam1.state() 
@@ -408,67 +514,29 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 }
 
 
-const double DetectorModule::calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const {
-  double resolutionLocalAxis;
-
-  const double param0 = (isLocalXAxis ? resolutionLocalXParam0() : resolutionLocalYParam0());
-  const double param1 = (isLocalXAxis ? resolutionLocalXParam1() : resolutionLocalYParam1());
-  const double param2 = (isLocalXAxis ? resolutionLocalXParam2() : resolutionLocalYParam2());
-  const double param3 = (isLocalXAxis ? resolutionLocalXParam3() : resolutionLocalYParam3());
-  const double param4 = (isLocalXAxis ? resolutionLocalXParam4() : resolutionLocalYParam4());
-  const double param5 = (isLocalXAxis ? resolutionLocalXParam5() : resolutionLocalYParam5());
-  const double param6 = (isLocalXAxis ? resolutionLocalXParam6() : resolutionLocalYParam6());
-  const double param7 = (isLocalXAxis ? resolutionLocalXParam7() : resolutionLocalYParam7());
-  const double param8 = (isLocalXAxis ? resolutionLocalXParam8() : resolutionLocalYParam8());
-  const double param9 = (isLocalXAxis ? resolutionLocalXParam9() : resolutionLocalYParam9());
-
-  const double x = fabsTanDeepAngle;
-
-  resolutionLocalAxis = param0 + param1 * x 
-    + param2 * exp(-param9 * x) * cos(param3 * x + param4)
-    + param5 * exp(-0.5 * pow(((x - param6) / param7), 2))
-    + param8 * pow(x, 0.5);
-
-  return resolutionLocalAxis;
+/*
+ * Compute the alpha incident angle.
+ * See wiki for definition of alpha angle.
+ * This depends on the Phi-angle of the track and the Phi-position of the Module.
+ */
+const double DetectorModule::alpha(const double trackPhi) const {
+  double deltaPhi = center().Phi() + skewAngle() - trackPhi;
+  if (fabs(deltaPhi) > M_PI/2.) {
+    if (deltaPhi < 0.) deltaPhi += 2.*M_PI;
+    else deltaPhi -= 2.*M_PI;
+  }
+  const double alpha = deltaPhi + M_PI / 2.;
+  return alpha;
 }
 
 
-const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const { 
-  double resolutionLocalX;
-
-  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
-  const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
-
-  const bool isLocalXAxis = true;
-  resolutionLocalX = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
-
-  return resolutionLocalX;
-}
-
-
-const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
-  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
-  const double fabsTanDeepAngle = fabs(-cotanBeta); 
-                 
-  const bool isLocalXAxis = false;
-  const double resolutionLocalY = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
-
-  return resolutionLocalY;
-}
-
-
-double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const {
-  double A = hitRho/(2*trackR); 
-  double B = A/sqrt(1-A*A);
-  return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX,2) + pow(B*sin(tiltAngle()) * resolutionLocalY,2));
-}
-
-
-double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const {
-  double A = hitRho/(2*trackR); 
-  double D = trackCotgTheta/sqrt(1-A*A);
-  return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX,2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY,2));
+/*
+ * Compute the beta incident angle.
+ * See wiki for definition of beta angle.
+ * This depends on the theta-angle of the track and the tilt angle of the Module.
+ */
+const double DetectorModule::beta(const double theta) const { 
+  return theta + tiltAngle(); 
 }
 
 
