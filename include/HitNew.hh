@@ -116,7 +116,7 @@ protected:
   HitNewActivity m_activity;      //!< HitNew defined as pure material (inactive) or measurement point (active)
   HitType        m_activeHitType; //!< HitNew coming from inner, outer, stub, ... module
   
-  DetectorModule* m_hitModule;  //!< Const pointer to the hit module
+  DetectorModule* m_hitModule;  //!< pointer to the hit module
   const TrackNew*       m_track;      //!< Const pointer to the track, into which the hit was assigned
   
   RILength m_correctedMaterial; //!< Material in the way of particle shot at m_track direction, i.e. theta, module tilt angles corrected

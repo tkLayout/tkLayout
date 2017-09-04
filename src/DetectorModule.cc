@@ -10,8 +10,6 @@
 void DetectorModule::setup() {
   nominalResolutionLocalX.setup([this]() {
       // only set up this if no model parameter specified
-      //std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
-
       if (!hasAnyResolutionLocalXParam()) {
 	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	double res = 0;
@@ -24,7 +22,6 @@ void DetectorModule::setup() {
   nominalResolutionLocalY.setup([this]() {
       // only set up this if no model parameters not specified
       if (!hasAnyResolutionLocalYParam()) {
-	//std::cout << "resolutionLocalY and resolutionLocalYBarrel parameters are all unset. Use of default formulae." << std::endl;
 	if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
 	else {
 	  return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
