@@ -272,27 +272,28 @@ void Disk::computeActualZCoverage() {
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     if (i != numRings()) {
-      // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
-
-      // Calculation : Min coordinates of ring (i+1) with max coordinates of ring (i)
+      // CALCULATE THE COVERAGE IN Z OF RING (i) WITH RESPECT TO RING (i+1).
+      // RING (i+1) HAS BIGGER RADIUS, ring (i) HAS SMALLER RADIUS.
+     
       // Find the radii and Z of the most stringent points in ring (i).
       double newMaxRho = rings_.at(i-1).buildStartRadius();
       double newMaxZ = rings_.at(i-1).maxZ();
 
+      // Calculation : Min coordinates of ring (i+1) with max coordinates of ring (i)
       std::pair<double, bool> intersectionWithZAxis = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
       double zErrorCoverage = intersectionWithZAxis.first;
       bool isPositiveSlope = intersectionWithZAxis.second;
       
-      // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
+      // CASE WHERE RING (i+1) HAS SMALLER Z, AND RING (i) HAS BIGGER Z.
       if (parity > 0.) {
-	zErrorCoverage = zErrorCoverage;
-	if (!isPositiveSlope) zErrorCoverage = -std::numeric_limits<double>::infinity();
+	if (isPositiveSlope) zErrorCoverage = zErrorCoverage;
+	else zErrorCoverage = -std::numeric_limits<double>::infinity();
       }
 
-      // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
+      // CASE WHERE RING (i+1) HAS BIGGER Z, AND RING (i) HAS SMALLER Z.
       else {
-	zErrorCoverage = -zErrorCoverage;
-	if (!isPositiveSlope) zErrorCoverage = std::numeric_limits<double>::infinity();
+	if (isPositiveSlope) zErrorCoverage = -zErrorCoverage;
+	else zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
       // STORE THE RESULT
