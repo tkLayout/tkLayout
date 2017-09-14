@@ -287,7 +287,7 @@ void Disk::computeActualZCoverage() {
       // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
       if (parity > 0.) {
 	zErrorCoverage = zErrorCoverageA; // Only consider calculation A
-	if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;  // doesn't really make sense to have negative zError!
+	//if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;  // doesn't really make sense to have negative zError!
       }
 
       // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
@@ -301,8 +301,11 @@ void Disk::computeActualZCoverage() {
 	double zErrorCoverageB = intersectionWithZAxisB.first;
 
 	// Consider the most stringent of calculations A and B
-	if (zErrorCoverageA * zErrorCoverageB < 0. || !isPositiveSlopeA) zErrorCoverage = MIN( fabs(zErrorCoverageA), fabs(zErrorCoverageB));
-	else zErrorCoverage = 0.;
+	/*
+	if (zErrorCoverageA * zErrorCoverageB < 0. || !isPositiveSlopeA) zErrorCoverage = MIN( fabs(zErrorCoverageA), fabs(zErrorCoverageB));	
+	else zErrorCoverage = 0.;*/
+	zErrorCoverage = zErrorCoverageB;
+	if (!isPositiveSlopeA) 	zErrorCoverage = -std::numeric_limits<double>::infinity();  // case not handled yet
       }
       
       // STORE THE RESULT
