@@ -283,29 +283,25 @@ void Disk::computeActualZCoverage() {
       std::pair<double, bool> intersectionWithZAxisA = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
       double zErrorCoverageA = intersectionWithZAxisA.first;
       bool isPositiveSlopeA = intersectionWithZAxisA.second;
+
+      // Calculation B : Max coordinates of ring (i+1) with min coordinates of ring (i)
+      // Find the radii and Z of the most stringent points in ring (i).
+      double newMinRho = rings_.at(i-1).minR();
+      double newMinZ = rings_.at(i-1).minZ();
+
+      std::pair<double, bool> intersectionWithZAxisB = computeIntersectionWithZAxis(lastMaxZ, lastMaxRho, newMinZ, newMinRho);
+      double zErrorCoverageB = intersectionWithZAxisB.first;
       
       // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
       if (parity > 0.) {
 	zErrorCoverage = zErrorCoverageA; // Only consider calculation A
-	//if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;  // doesn't really make sense to have negative zError!
+	if (!isPositiveSlopeA) 	zErrorCoverage = -std::numeric_limits<double>::infinity();
       }
 
       // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
       else {
-	// Calculation B : Max coordinates of ring (i+1) with min coordinates of ring (i)
-	// Find the radii and Z of the most stringent points in ring (i).
-	double newMinRho = rings_.at(i-1).minR();
-	double newMinZ = rings_.at(i-1).minZ();
-
-	std::pair<double, bool> intersectionWithZAxisB = computeIntersectionWithZAxis(lastMaxZ, lastMaxRho, newMinZ, newMinRho);
-	double zErrorCoverageB = intersectionWithZAxisB.first;
-
-	// Consider the most stringent of calculations A and B
-	/*
-	if (zErrorCoverageA * zErrorCoverageB < 0. || !isPositiveSlopeA) zErrorCoverage = MIN( fabs(zErrorCoverageA), fabs(zErrorCoverageB));	
-	else zErrorCoverage = 0.;*/
-	zErrorCoverage = zErrorCoverageB;
-	if (!isPositiveSlopeA) 	zErrorCoverage = -std::numeric_limits<double>::infinity();  // case not handled yet
+	zErrorCoverage = -zErrorCoverageA;  // Only consider calculation B
+	if (!isPositiveSlopeA) 	zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
       // STORE THE RESULT
