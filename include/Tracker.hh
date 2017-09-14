@@ -142,7 +142,7 @@ public:
 	    // check whether all endcaps outer radii are identical with each other
 	    // if radii are not all identical, there is an endcap step !
 	    hasStep = !std::equal(endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(), 
-				  [&](const Endcap& e1, const Endcap& e2) { return (e1.maxRwithHybrids() == e2.maxRwithHybrids()); });
+				  [&](const Endcap& e1, const Endcap& e2) { return (fabs(e1.maxRwithHybrids() - e2.maxRwithHybrids()) < insur::geom_epsilon); });
 	  }
 	  return hasStep;
 	});

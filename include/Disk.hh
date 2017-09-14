@@ -104,7 +104,7 @@ public:
   void check() override;
   void build(const ScanEndcapInfo& extremaDisksInfo);
   void translateZ(double z);
-  void mirrorZ();
+  void rotateToNegativeZSide();
   void cutAtEta(double eta);
 
   double averageZ() const { return averageZ_; }

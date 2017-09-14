@@ -224,7 +224,7 @@ public:
   void check() override;
 
   void translateZ(double z);
-  void mirrorZ();
+  void rotateToNegativeZSide();
   double averageZ() const {
     double averageZ = 0;
     for (const auto& m : modules_) { averageZ = averageZ + m.center().Z(); } 
