@@ -286,13 +286,13 @@ void Disk::computeActualZCoverage() {
       // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
       if (parity > 0.) {
 	zErrorCoverage = zErrorCoverage;
-	if (!isPositiveSlope) 	zErrorCoverage = -std::numeric_limits<double>::infinity();
+	if (!isPositiveSlope) zErrorCoverage = -std::numeric_limits<double>::infinity();
       }
 
       // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
       else {
 	zErrorCoverage = -zErrorCoverage;
-	if (!isPositiveSlope) 	zErrorCoverage = std::numeric_limits<double>::infinity();
+	if (!isPositiveSlope) zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
       // STORE THE RESULT
