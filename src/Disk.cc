@@ -300,7 +300,7 @@ void Disk::computeActualZCoverage() {
 
       // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
       else {
-	zErrorCoverage = -zErrorCoverageA;  // Only consider calculation B
+	zErrorCoverage = -zErrorCoverageA;  // Only consider calculation A
 	if (!isPositiveSlopeA) 	zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
