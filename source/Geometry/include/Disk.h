@@ -39,9 +39,10 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
 
   //! Build recursively individual subdetector systems: rings -> modules & conversion stations
   void build(const vector<double>& buildDsDistances);
-
-  //! Position newly individual rings of given disc -> mirror them in Z after cloning positive <->negative Disk
-  void buildMirror(int id) { myid(id); mirrorZ(); }
+   
+  //! Position newly individual rings of given disc -> clone (+Z) side disks and rotate them around FCC_Y with angle Pi.
+  // One does not want to build different disks for both sides, hence no 'mirror' should be considered.
+  void buildMirror(int id) { myid(id); rotateToNegativeZSide(); }
 
   //! Position newly individual rings of given disc -> offset them in Z after cloning
   void buildClone(int id, double offset) { myid(id); translateZ(offset); }
@@ -107,7 +108,7 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   void translateZ(double z);
 
   //! Helper method mirroring the whole Disc from zPos to -zPos or vice versa
-  void mirrorZ();
+  void rotateToNegativeZSide();
 
   Rings          m_rings;             //!< Disk rings
   RingIndexMap   m_ringIndexMap;

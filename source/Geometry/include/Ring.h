@@ -146,8 +146,8 @@ public:
   //! Helper method translating Ring z position by given offset
   void translateZ(double zOffset);
 
-  //! Helper method mirroring the whole Ringc from zPos to -zPos or vice versa
-  void mirrorZ();
+  //! Helper method duplicating the whole Ring from zPos to -zPos or vice versa
+  void rotateToNegativeZSide();
 
   //! Return average disc Z position
   double averageZ()  const { return m_averageZ; }
