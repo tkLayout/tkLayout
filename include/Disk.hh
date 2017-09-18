@@ -21,7 +21,7 @@ namespace material {
 using material::MaterialObject;
 using material::ConversionStation;
 
-typedef std::pair<std::vector<double>, std::vector<double> > ScanDiskInfo;
+typedef std::tuple<std::vector<double>, std::vector<double>, double > ScanDiskInfo;
 typedef std::pair<ScanDiskInfo, ScanDiskInfo> ScanEndcapInfo;
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
@@ -49,6 +49,7 @@ private:
 
   const std::vector<double> scanSmallDeltas() const;
   const std::vector<double> scanDsDistances() const;
+  const double scanSensorThickness() const;
   inline const double getRingInfo(const vector<double>& ringsInfo, int ringNumber) const;
 
   std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
@@ -99,7 +100,7 @@ public:
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
-  const std::pair<std::vector<double>, std::vector<double> > scanPropertyTree() const;
+  const ScanDiskInfo scanPropertyTree() const;
 
   void check() override;
   void build(const ScanEndcapInfo& extremaDisksInfo);
