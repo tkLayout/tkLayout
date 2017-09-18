@@ -110,7 +110,6 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     const vector<double>& innermostDiskSmallDeltas = std::get<0>(innermostDiskInfo);
     const vector<double>& innermostDiskDsDistances = std::get<1>(innermostDiskInfo);
     double sensorThickness = std::get<2>(innermostDiskInfo);
-    std::cout << " sensorThickness = " <<  sensorThickness << std::endl;
 
     lastSmallDelta = getRingInfo(innermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(innermostDiskSmallDeltas, i);
@@ -130,7 +129,6 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     const vector<double>& outermostDiskSmallDeltas = std::get<0>(outermostDiskInfo);
     const vector<double>& outermostDiskDsDistances = std::get<1>(outermostDiskInfo);
     double sensorThickness = std::get<2>(outermostDiskInfo);
-    std::cout << " sensorThickness = " <<  sensorThickness << std::endl;
 
     lastSmallDelta = getRingInfo(outermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(outermostDiskSmallDeltas, i);
