@@ -154,11 +154,10 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
   double nextRhoWithZError   = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
   // Case B : Consider rOverlap
-  //double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+  double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
       
   // Takes the most stringent of cases A and B
-  //double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
-  double nextRho = nextRhoWithZError;
+  double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
 
   return nextRho;
 }
