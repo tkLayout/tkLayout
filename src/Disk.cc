@@ -30,13 +30,28 @@ const std::vector<double> Disk::scanDsDistances() const {
   return ringsDsDistances;
 }
 
+/** Scan Property Tree and returns the rings' sensorThickness.
+ */
+const double Disk::scanSensorThickness() const {
+  double ringsSensorThickness;
+
+  int i = numRings(); // Look at only 1 Ring, assumes sensorThickness is identical everywhere in the Disk!
+  RectangularModule* modTemplate = GeometryFactory::make<RectangularModule>();
+  modTemplate->store(propertyTree());
+  if (ringNode.count(i) > 0) modTemplate->store(ringNode.at(i));
+  ringsSensorThickness = modTemplate->sensorThickness();
+
+  return ringsSensorThickness;
+}
+
 /** Scan Property Tree and gathers relevant info which is needed for building a disk.
  */
 const ScanDiskInfo Disk::scanPropertyTree() const {
 
   const std::vector<double>& ringsSmallDeltas = scanSmallDeltas();
   const std::vector<double>& ringsDsDistances = scanDsDistances();
-  const ScanDiskInfo& diskInfo = std::make_pair(ringsSmallDeltas, ringsDsDistances);
+  const double ringsSensorThickness = scanSensorThickness();
+  const ScanDiskInfo& diskInfo = std::make_tuple(ringsSmallDeltas, ringsDsDistances, ringsSensorThickness);
   return diskInfo; 
 }
 
@@ -92,8 +107,10 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     // IN THIS CASE, THE INNERMOST DISK OF THE ENDCAPS BLOCK IS THE MOST STRINGENT.
     // AS A RESULT, GEOMETRY INFORMATION IS TAKEN FROM THAT DISK.
     const ScanDiskInfo& innermostDiskInfo = extremaDisksInfo.first;
-    const vector<double>& innermostDiskSmallDeltas = innermostDiskInfo.first;
-    const vector<double>& innermostDiskDsDistances = innermostDiskInfo.second;
+    const vector<double>& innermostDiskSmallDeltas = std::get<0>(innermostDiskInfo);
+    const vector<double>& innermostDiskDsDistances = std::get<1>(innermostDiskInfo);
+    double sensorThickness = std::get<2>(innermostDiskInfo);
+    std::cout << " sensorThickness = " <<  sensorThickness << std::endl;
 
     lastSmallDelta = getRingInfo(innermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(innermostDiskSmallDeltas, i);
@@ -101,8 +118,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     newDsDistance = getRingInfo(innermostDiskDsDistances, i);
 
     // Calculates Z of the most stringent points
-    lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
-    newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2.;
+    lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2. - sensorThickness / 2.;
+    newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2. + sensorThickness / 2.;
   }
 
   // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
@@ -110,8 +127,10 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     // IN THIS CASE, THE OUTERMOST DISK OF THE ENDCAPS BLOCK IS THE MOST STRINGENT.
     // AS A RESULT, GEOMETRY INFORMATION IS TAKEN FROM THAT DISK.
     const ScanDiskInfo& outermostDiskInfo = extremaDisksInfo.second;
-    const vector<double>& outermostDiskSmallDeltas = outermostDiskInfo.first;
-    const vector<double>& outermostDiskDsDistances = outermostDiskInfo.second;
+    const vector<double>& outermostDiskSmallDeltas = std::get<0>(outermostDiskInfo);
+    const vector<double>& outermostDiskDsDistances = std::get<1>(outermostDiskInfo);
+    double sensorThickness = std::get<2>(outermostDiskInfo);
+    std::cout << " sensorThickness = " <<  sensorThickness << std::endl;
 
     lastSmallDelta = getRingInfo(outermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(outermostDiskSmallDeltas, i);
@@ -119,8 +138,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     newDsDistance = getRingInfo(outermostDiskDsDistances, i);
 
     // Calculates Z of the most stringent points
-    lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
-    newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2.;
+    lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2. - sensorThickness / 2.;
+    newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2. + sensorThickness / 2.;
   }
 
   return std::make_pair(lastZ, newZ);
@@ -137,10 +156,11 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
   double nextRhoWithZError   = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
   // Case B : Consider rOverlap
-  double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+  //double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
       
   // Takes the most stringent of cases A and B
-  double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+  //double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+  double nextRho = nextRhoWithZError;
 
   return nextRho;
 }
