@@ -14,6 +14,7 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
   const std::pair<int, ChannelSection>& servicesChannelInfo = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
   servicesChannel_ = servicesChannelInfo.first;
   servicesChannelSection_ = servicesChannelInfo.second;
+  servicesChannelPlotColor_ = computeServicesChannelPlotColor(servicesChannel_, servicesChannelSection_);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
@@ -123,6 +124,14 @@ const std::pair<int, ChannelSection> Cable::computeServicesChannel(const int phi
   }
 
   return std::make_pair(servicesChannel, servicesChannelSection);
+}
+
+
+const int Cable::computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const {
+  int plotColor = 0;
+  plotColor = servicesChannel_;
+  if (servicesChannelSection_ == ChannelSection::C) plotColor += 12 * 4;
+  return plotColor;
 }
 
 

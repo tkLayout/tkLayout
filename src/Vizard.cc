@@ -1367,6 +1367,53 @@ namespace insur {
 	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
 	  myContent->addItem(myImage);
       }
+
+
+      // Modules to Services Channels
+      TCanvas *summaryChannelCanvas = nullptr;
+      TCanvas *RZChannelCanvas = nullptr;
+      TCanvas *XYChannelNegCanvas = nullptr;
+      TCanvas *XYChannelNegFlatCanvas = nullptr;
+      TCanvas *XYChannelCanvas = nullptr; 
+      TCanvas *XYChannelFlatCanvas = nullptr; 
+      std::vector<TCanvas*> XYChannelCanvasesDisk;
+       
+      myContent = new RootWContent("Modules to Channels");
+      myPage->addContent(myContent);
+
+      createSummaryCanvasCablingChannelNicer(tracker, RZChannelCanvas, XYChannelNegCanvas, XYChannelNegFlatCanvas, XYChannelCanvas, XYChannelFlatCanvas, XYChannelCanvasesDisk);
+
+      if (RZChannelCanvas) {
+	myImage = new RootWImage(RZChannelCanvas, RZChannelCanvas->GetWindowWidth(), RZChannelCanvas->GetWindowHeight() );
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Services Channels. 1 color = 1 Channel.");
+	myContent->addItem(myImage);
+      }
+      if (XYChannelNegCanvas) {
+	myImage = new RootWImage(XYChannelNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYChannelNegFlatCanvas) {
+	myImage = new RootWImage(XYChannelNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYChannelCanvas) {
+	myImage = new RootWImage(XYChannelCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYChannelFlatCanvas) {
+	myImage = new RootWImage(XYChannelFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYChannelCanvasDisk : XYChannelCanvasesDisk ) {
+	myImage = new RootWImage(XYChannelCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYChannelCanvasDisk->GetTitle());
+	myContent->addItem(myImage);
+      }
+
       
       
       const CablingMap* myCablingMap = tracker.getCablingMap();
@@ -6720,6 +6767,84 @@ namespace insur {
       }
     }
   }
+
+
+  void Vizard::createSummaryCanvasCablingChannelNicer(Tracker& tracker,
+						  TCanvas *&RZCanvas, 
+						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+						  std::vector<TCanvas*> &XYCanvasesDisk) {
+    double scaleFactor = tracker.maxR()/600;
+
+    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+
+    const std::set<Module*>& trackerModules = tracker.modules();
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZFull, TypeChannelTransparentColor> yzDrawer;
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
+      } );
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+
+    // NEGATIVE CABLING SIDE. BARREL.
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypeChannelColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+
+    // NEGATIVE CABLING SIDE. BARREL FLAT PART.
+    XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegFlatCanvas->cd();
+    PlotDrawer<XYNeg, TypeChannelColor> xyNegFlatBarrelDrawer;
+    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
+    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
+    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
+    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+
+    // POSITIVE CABLING SIDE. BARREL.
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeChannelColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+
+    // POSITIVE CABLING SIDE. BARREL FLAT PART.
+    XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYFlatCanvas->cd();
+    PlotDrawer<XY, TypeChannelColor> xyBarrelFlatDrawer;
+    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
+    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
+    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
+    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    
+    // ENDCAPS DISK.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      for (auto& aDisk : anEndcap.disks() ) {
+	if (aDisk.side()) {
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYCanvasDisk->cd();
+	  PlotDrawer<XY, TypeChannelColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(aDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	}
+      }
+    }
+  }
+
 
 
 

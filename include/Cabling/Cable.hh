@@ -34,10 +34,12 @@ public:
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const int servicesChannel() const { return servicesChannel_; }
   const ChannelSection& servicesChannelSection() const { return servicesChannelSection_; }
+  const int servicesChannelPlotColor() const { return servicesChannelPlotColor_; }
 
 
 private:
   const std::pair<int, ChannelSection> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  const int computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const;
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
   const std::string computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   
@@ -52,6 +54,7 @@ private:
   bool isPositiveCablingSide_;
   int servicesChannel_;
   ChannelSection servicesChannelSection_;
+  int servicesChannelPlotColor_;
 };
 
 
