@@ -38,7 +38,7 @@ public:
 
 
 private:
-  const std::pair<int, ChannelSection> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  const std::tuple<int, ChannelSection, int> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   const int computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const;
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
   const std::string computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;

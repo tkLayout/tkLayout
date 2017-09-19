@@ -11,10 +11,10 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 { 
   myid(id);
   // ASSIGN A SERVICESCHANNEL TO THE CABLE
-  const std::pair<int, ChannelSection>& servicesChannelInfo = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
-  servicesChannel_ = servicesChannelInfo.first;
-  servicesChannelSection_ = servicesChannelInfo.second;
-  servicesChannelPlotColor_ = computeServicesChannelPlotColor(servicesChannel_, servicesChannelSection_);
+  const std::tuple<int, ChannelSection, int>& servicesChannelInfo = computeServicesChannel(phiSectorRef, type, slot, isPositiveCablingSide);
+  servicesChannel_ = std::get<0>(servicesChannelInfo);
+  servicesChannelSection_ = std::get<1>(servicesChannelInfo);
+  servicesChannelPlotColor_ = std::get<2>(servicesChannelInfo);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
@@ -31,7 +31,7 @@ Cable::~Cable() {
  * They are the channels where the optical cables are routed when they exit the tracker.
  * They are closely related to the phiSector ref.
  */
-const std::pair<int, ChannelSection> Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
+const std::tuple<int, ChannelSection, int> Cable::computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int servicesChannel = 0;
   ChannelSection servicesChannelSection = ChannelSection::UNKNOWN;
 
@@ -106,6 +106,15 @@ const std::pair<int, ChannelSection> Cable::computeServicesChannel(const int phi
     }
   }
 
+
+  // VERY IMPORTANT!
+  // COMPUTE SERVICES CHANNEL PLOT COLOR, FOR BOTH SIDES, BEFORE THE CHANNEL NUMBERING IS MIRRORED FOR (-Z) SIDE.
+  // THIS IS BECAUSE A GIVEN SERVICE CHANNEL IS IDENTICAL ALL ALONG Z (going from (+z) to (-Z) side).
+  // HENCE, EVEN IF THE NUMBERING IS MIRRORED, WE DONT CARE, AND WE ACTUALLY WANT A GIVEN CHANNEL COLORED BY A UNIQUE COLOR!!
+  int servicesChannelPlotColor = computeServicesChannelPlotColor(servicesChannel, servicesChannelSection);
+  std::cout << "servicesChannelPlotColor = " << servicesChannelPlotColor << std::endl;
+
+
   // NEGATIVE CABLING SIDE.
   // This is the following transformation:
   // 1 -> 6
@@ -123,14 +132,14 @@ const std::pair<int, ChannelSection> Cable::computeServicesChannel(const int phi
     servicesChannelSection = (servicesChannelSection == ChannelSection::A ? ChannelSection::C : ChannelSection::A);
   }
 
-  return std::make_pair(servicesChannel, servicesChannelSection);
+  return std::make_tuple(servicesChannel, servicesChannelSection, servicesChannelPlotColor);
 }
 
 
 const int Cable::computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const {
   int plotColor = 0;
-  plotColor = servicesChannel_;
-  if (servicesChannelSection_ == ChannelSection::C) plotColor += 12 * 4;
+  plotColor = servicesChannel;
+  //if (servicesChannelSection_ == ChannelSection::C) plotColor += 12 * 4;
   return plotColor;
 }
 

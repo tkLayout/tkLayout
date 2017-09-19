@@ -1378,7 +1378,7 @@ namespace insur {
       TCanvas *XYChannelFlatCanvas = nullptr; 
       std::vector<TCanvas*> XYChannelCanvasesDisk;
        
-      myContent = new RootWContent("Modules to Channels");
+      myContent = new RootWContent("Modules to Services Channels");
       myPage->addContent(myContent);
 
       createSummaryCanvasCablingChannelNicer(tracker, RZChannelCanvas, XYChannelNegCanvas, XYChannelNegFlatCanvas, XYChannelCanvas, XYChannelFlatCanvas, XYChannelCanvasesDisk);
