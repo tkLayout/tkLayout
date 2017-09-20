@@ -278,7 +278,7 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
     std::cout << "shift = " << shift << std::endl;*/
 
 
-    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
   }
  
   return paletteIndex;

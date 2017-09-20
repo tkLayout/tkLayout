@@ -1369,6 +1369,113 @@ namespace insur {
       }
 
 
+      
+      
+      const CablingMap* myCablingMap = tracker.getCablingMap();
+
+      // CSV files
+      RootWContent* filesContent = new RootWContent("Cabling files", true);
+      myPage->addContent(filesContent);   
+      RootWTextFile* myTextFile;
+      RootWInfo* myInfo = nullptr;
+      // POSITIVE CABLING SIDE
+      bool isPositiveCablingSide = true;
+      RootWTable* positiveSideName = new RootWTable();
+      positiveSideName->setContent(0, 0, "Positive cabling side:");
+      filesContent->addItem(positiveSideName);
+      // Modules to DTCs
+      myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // DTCs to modules
+      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      /*This is used for bundle assembly.
+	For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
+	- 3 modules from disk surface 1 (the disk surface with lowest |Z|).
+	- 4 modules from disk surface 2.
+	- 3 modules from disk surface 3.
+	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+
+      // NEGATIVE CABLING SIDE
+      isPositiveCablingSide = false;
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      filesContent->addItem(spacer);
+      RootWTable* negativeSideName = new RootWTable();
+      negativeSideName->setContent(0, 0, "Negative cabling side:");
+      filesContent->addItem(negativeSideName);
+      // Modules to DTCs
+      myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // DTCs to modules
+      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+
+
+      // Cabling efficiency
+      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
+      myPage->addContent(efficiencyContent);
+      // Links
+      myInfo = new RootWInfo("Total number of fiber links (one side)");
+      int numLinks = tracker.modules().size() / 2;
+      myInfo->setValue(numLinks);
+      efficiencyContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of fiber bundles (one side)");
+      int numBundles = myCablingMap->getBundles().size();
+      myInfo->setValue(numBundles);
+      efficiencyContent->addItem(myInfo);
+      // Bundles efficiency
+      myInfo = new RootWInfo("Fiber bundles efficiency (%)");
+      double bundleEfficiency = numLinks / (numBundles * 12.);
+      myInfo->setValue(bundleEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Cables
+      myInfo = new RootWInfo("Total number of fiber cables (one side)");
+      int numCables = myCablingMap->getCables().size();
+      myInfo->setValue(numCables);
+      efficiencyContent->addItem(myInfo);
+      // Cables efficiency
+      myInfo = new RootWInfo("Fiber cables efficiency (%)");
+      double cableEfficiency = numBundles / (numCables * 6.);
+      myInfo->setValue(cableEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Overall efficiency
+      myInfo = new RootWInfo("Overall cabling efficiency (%)");
+      double overallEfficiency = cableEfficiency * bundleEfficiency;
+      myInfo->setValue(overallEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+
+
+      // Distinct DTCs 2D map
+      RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
+      myPage->addContent(dtcMapContent);
+      
+      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      hitMapDTCCanvas->cd();
+      hitMapDTCCanvas->SetFillColor(color_plot_background);
+      hitMapDTCCanvas->SetBorderMode(0);
+      hitMapDTCCanvas->SetBorderSize(0);
+      analyzer.getMapPhiEtaDTC().Draw("colz");
+      analyzer.getMapPhiEtaDTC().SetStats(0);
+      hitMapDTCCanvas->Modified();
+      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Number of distinct DTCs per track");
+      dtcMapContent->addItem(myImage);
+
+
+
+
       // Modules to Services Channels (optical)
       TCanvas *summaryChannelOpticalCanvas = nullptr;
       TCanvas *RZChannelOpticalCanvas = nullptr;
@@ -1461,98 +1568,8 @@ namespace insur {
       }
 
 
-
-
-      
-      
-      const CablingMap* myCablingMap = tracker.getCablingMap();
-
-      // CSV files
-      RootWContent* filesContent = new RootWContent("Cabling files", true);
-      myPage->addContent(filesContent);   
-      RootWTextFile* myTextFile;
-      RootWInfo* myInfo = nullptr;
-      // POSITIVE CABLING SIDE
-      bool isPositiveCablingSide = true;
-      RootWTable* positiveSideName = new RootWTable();
-      positiveSideName->setContent(0, 0, "Positive cabling side:");
-      filesContent->addItem(positiveSideName);
-      // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
-      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-      // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-      // Bundles to Modules: Aggregation Patterns in TEDD
-      /*This is used for bundle assembly.
-	For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-	- 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-	- 4 modules from disk surface 2.
-	- 3 modules from disk surface 3.
-	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
-      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
-      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-
-      // NEGATIVE CABLING SIDE
-      isPositiveCablingSide = false;
-      RootWTable* spacer = new RootWTable();
-      spacer->setContent(0, 0, " ");
-      spacer->setContent(1, 0, " ");
-      spacer->setContent(2, 0, " ");
-      filesContent->addItem(spacer);
-      RootWTable* negativeSideName = new RootWTable();
-      negativeSideName->setContent(0, 0, "Negative cabling side:");
-      filesContent->addItem(negativeSideName);
-      // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
-      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-      // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-
-
-      // Cabling efficiency
-      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
-      myPage->addContent(efficiencyContent);
-      // Links
-      myInfo = new RootWInfo("Total number of fiber links (one side)");
-      int numLinks = tracker.modules().size() / 2;
-      myInfo->setValue(numLinks);
-      efficiencyContent->addItem(myInfo);
-      // Bundles
-      myInfo = new RootWInfo("Total number of fiber bundles (one side)");
-      int numBundles = myCablingMap->getBundles().size();
-      myInfo->setValue(numBundles);
-      efficiencyContent->addItem(myInfo);
-      // Bundles efficiency
-      myInfo = new RootWInfo("Fiber bundles efficiency (%)");
-      double bundleEfficiency = numLinks / (numBundles * 12.);
-      myInfo->setValue(bundleEfficiency * 100, 0);
-      efficiencyContent->addItem(myInfo);
-      // Cables
-      myInfo = new RootWInfo("Total number of fiber cables (one side)");
-      int numCables = myCablingMap->getCables().size();
-      myInfo->setValue(numCables);
-      efficiencyContent->addItem(myInfo);
-      // Cables efficiency
-      myInfo = new RootWInfo("Fiber cables efficiency (%)");
-      double cableEfficiency = numBundles / (numCables * 6.);
-      myInfo->setValue(cableEfficiency * 100, 0);
-      efficiencyContent->addItem(myInfo);
-      // Overall efficiency
-      myInfo = new RootWInfo("Overall cabling efficiency (%)");
-      double overallEfficiency = cableEfficiency * bundleEfficiency;
-      myInfo->setValue(overallEfficiency * 100, 0);
-      efficiencyContent->addItem(myInfo);
-
-
       // Services channels
-      RootWContent* channelsContent = new RootWContent("Services per channel", true);
+      RootWContent* channelsContent = new RootWContent("Services per channel", false);
       myPage->addContent(channelsContent);
       // POSITIVE CABLING SIDE
       isPositiveCablingSide = true;
@@ -1585,24 +1602,6 @@ namespace insur {
       requestedSection = ChannelSection::C;
       RootWTable* channelsTableMinusC = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinusC);
-
-
-      // Distinct DTCs 2D map
-      RootWContent* dtcMapContent = new RootWContent("DTCs per track", true);
-      myPage->addContent(dtcMapContent);
-      
-      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      hitMapDTCCanvas->cd();
-      hitMapDTCCanvas->SetFillColor(color_plot_background);
-      hitMapDTCCanvas->SetBorderMode(0);
-      hitMapDTCCanvas->SetBorderSize(0);
-      analyzer.getMapPhiEtaDTC().Draw("colz");
-      analyzer.getMapPhiEtaDTC().SetStats(0);
-      hitMapDTCCanvas->Modified();
-      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Number of distinct DTCs per track");
-      dtcMapContent->addItem(myImage);
-
     }
     return true;
   }
