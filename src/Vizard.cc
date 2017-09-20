@@ -1383,11 +1383,11 @@ namespace insur {
 
       createSummaryCanvasCablingChannelNicer(tracker, RZChannelCanvas, XYChannelNegCanvas, XYChannelNegFlatCanvas, XYChannelCanvas, XYChannelFlatCanvas, XYChannelCanvasesDisk);
 
-      if (RZChannelCanvas) {
+      /*if (RZChannelCanvas) {
 	myImage = new RootWImage(RZChannelCanvas, RZChannelCanvas->GetWindowWidth(), RZChannelCanvas->GetWindowHeight() );
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Services Channels. 1 color = 1 Channel.");
 	myContent->addItem(myImage);
-      }
+	}*/
       if (XYChannelNegCanvas) {
 	myImage = new RootWImage(XYChannelNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
@@ -6773,6 +6773,7 @@ namespace insur {
 						  TCanvas *&RZCanvas, 
 						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 						  std::vector<TCanvas*> &XYCanvasesDisk) {
+
     double scaleFactor = tracker.maxR()/600;
 
     int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
@@ -6798,6 +6799,7 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawServicesChannelsLegend();
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6807,6 +6809,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawServicesChannelsLegend();
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6816,6 +6819,7 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawServicesChannelsLegend();
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6825,6 +6829,7 @@ namespace insur {
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawServicesChannelsLegend();
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -6840,6 +6845,7 @@ namespace insur {
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
 	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawServicesChannelsLegend();
 	}
       }
     }
@@ -7260,8 +7266,28 @@ namespace insur {
     for (int i = 0; i < numPhiSectors; i++) {
       TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
       line->SetLineWidth(2); 
-      line->Draw("same");
+      line->Draw("same");     
     }
+  }
+
+
+  void Vizard::drawServicesChannelsLegend() {
+    TLegend* leg = new TLegend(0.905,0.3,1.0,0.8);
+
+    for (int i = 1; i <= 12; i++) {
+      Double_t x[5] = {0., 1.};
+      Double_t y[5] = {0., 0.};
+      TPolyLine* line = new TPolyLine(2, x, y);
+      line->SetLineColor(Palette::colorChannel(i));
+      line->SetFillColor(Palette::colorChannel(i));
+      
+      std::stringstream channelStream;
+      channelStream << "OT" << i << std::endl;
+      std::string channel = channelStream.str();
+      leg->AddEntry(line, channel.c_str(), "f"); 
+    }
+
+    leg->Draw("same");
   }
 
 

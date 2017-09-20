@@ -128,14 +128,14 @@ struct TypeDTCTransparentColor { // Module-maintained DTC color
 
 struct TypeChannelColor { // Module-maintained channel color
   double operator()(const Module& m) {
-    return Palette::colorDTC(m.channelPlotColor());
+    return Palette::colorChannel(m.channelPlotColor());
   }
 };
 
 struct TypeChannelTransparentColor { // Module-maintained channel color
   double operator()(const Module& m) {
     bool isTransparent = (m.isPositiveCablingSide() < 0);
-    return Palette::colorDTC(m.channelPlotColor(), isTransparent);
+    return Palette::colorChannel(m.channelPlotColor(), isTransparent);
   }
 };
 

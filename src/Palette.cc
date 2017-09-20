@@ -162,6 +162,129 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
 }
 
 
+Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
+
+  short zone = femod(colorIndex % 12, 12);
+  int shift = (colorIndex - 1) / 12;
+  
+  short paletteIndex;
+
+  if (colorIndex == 0) paletteIndex = 1;
+
+
+  /* These are the colors used by Palette::colorDTC !!
+    
+    else {
+    switch (zone) {
+    case 0 :
+      paletteIndex= kYellow - 2;
+      break;
+    case 1 :
+      paletteIndex= kOrange - 1;
+      break;
+    case 2 :
+      paletteIndex= kRed - 2;
+      break;
+    case 3 :
+      paletteIndex=kPink - 3;
+      break;
+    case 4 :
+      paletteIndex=kMagenta - 4;
+      break;
+    case 5 :
+      paletteIndex=kViolet - 5;
+      break;
+    case 6 :
+      paletteIndex=kBlue - 6;
+      break;
+    case 7 :
+      paletteIndex=kAzure - 7;
+      break;
+    case 8 :
+      paletteIndex=kCyan - 8;
+      break;
+    case 9 :
+      paletteIndex=kTeal - 9;
+      break;
+    case 10 :
+      paletteIndex=kGreen;
+      break;
+    case 11 :
+      paletteIndex=kSpring - 1;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    paletteIndex -= shift - 2;*/
+
+
+
+
+  else {
+    switch (zone) {
+    case 1 :
+      paletteIndex= kYellow;
+      break;
+    case 2 :
+      paletteIndex= kOrange - 3;
+      break;
+    case 3 :
+      paletteIndex= kOrange + 3;
+      break;
+    case 4 :
+      paletteIndex=kRed;
+      break;
+    case 5 :
+      paletteIndex=kGray + 1;
+      break;
+    case 6 :
+      paletteIndex=kMagenta - 7;
+      break;
+    case 7 :
+      paletteIndex=kViolet - 1;
+      break;
+    case 8 :
+      paletteIndex=kBlue;
+      break;
+    case 9 :
+      paletteIndex=kAzure + 1;
+      break;
+    case 10 :
+      paletteIndex=kCyan;
+      break;
+    case 11 :
+      paletteIndex=kGreen + 2;
+      break;
+    case 0 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    paletteIndex -= shift;
+
+
+
+    /*std::cout << "colorIndex = " << colorIndex << std::endl;
+    std::cout << "paletteIndex = " << paletteIndex << std::endl;
+    std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
+    std::cout << "zone =" << zone << std::endl;
+    std::cout << "shift = " << shift << std::endl;*/
+
+
+    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+  }
+ 
+  return paletteIndex;
+}
+
+
 // TO DO : Why the hell is TColor::GetColorTransparent not recognized as a method of TColor ?? 
 // Temporary : use this instead.  
 Int_t Palette::GetColorTransparent(Int_t colorIndex, Float_t ratio) {

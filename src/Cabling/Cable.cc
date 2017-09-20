@@ -112,7 +112,7 @@ const std::tuple<int, ChannelSection, int> Cable::computeServicesChannel(const i
   // THIS IS BECAUSE A GIVEN SERVICE CHANNEL IS IDENTICAL ALL ALONG Z (going from (+z) to (-Z) side).
   // HENCE, EVEN IF THE NUMBERING IS MIRRORED, WE DONT CARE, AND WE ACTUALLY WANT A GIVEN CHANNEL COLORED BY A UNIQUE COLOR!!
   int servicesChannelPlotColor = computeServicesChannelPlotColor(servicesChannel, servicesChannelSection);
-  std::cout << "servicesChannelPlotColor = " << servicesChannelPlotColor << std::endl;
+  //std::cout << "servicesChannelPlotColor = " << servicesChannelPlotColor << std::endl;
 
 
   // NEGATIVE CABLING SIDE.
@@ -139,7 +139,7 @@ const std::tuple<int, ChannelSection, int> Cable::computeServicesChannel(const i
 const int Cable::computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const {
   int plotColor = 0;
   plotColor = servicesChannel;
-  //if (servicesChannelSection_ == ChannelSection::C) plotColor += 12 * 4;
+  //if (servicesChannelSection == ChannelSection::C) plotColor += 12 * 1;
   return plotColor;
 }
 
