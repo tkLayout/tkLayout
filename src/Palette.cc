@@ -267,7 +267,7 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
       break;
     }
 
-    paletteIndex -= shift;
+    //paletteIndex -= shift;
 
 
 

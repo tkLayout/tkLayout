@@ -139,7 +139,7 @@ const std::tuple<int, ChannelSection, int> Cable::computeServicesChannel(const i
 const int Cable::computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const {
   int plotColor = 0;
   plotColor = servicesChannel;
-  //if (servicesChannelSection == ChannelSection::C) plotColor += 12 * 1;
+  if (servicesChannelSection == ChannelSection::A) plotColor += 12 * 1;
   return plotColor;
 }
 
