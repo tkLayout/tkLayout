@@ -14,7 +14,7 @@ class Palette {
   static Color_t color(const std::string& objectName);
   static Color_t color(const unsigned int& colorIndex, bool isTransparent = false);
   static Color_t colorDTC(const int& colorIndex, bool isTransparent = false);
-  static Color_t colorChannel(const int& colorIndex, bool isTransparent = false);
+  static Color_t colorChannel(const int& colorIndex, bool isTransparentActivated = false);
   static const Color_t color_invalid_module = kGray + 1;
  private:
   static std::map<std::string, int> colorPickMap;

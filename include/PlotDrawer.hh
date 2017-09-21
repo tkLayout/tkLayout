@@ -134,10 +134,8 @@ struct TypeChannelColor { // Module-maintained channel color
 
 struct TypeChannelTransparentColor { // Module-maintained channel color
   double operator()(const Module& m) {
-
-    int isTrans = (m.channelPlotColor() - 1) / 12.;
-    bool isTransparent = (isTrans > 0.9);
-    return Palette::colorChannel(m.channelPlotColor(), isTransparent);
+    bool isTransparentActivated = true;
+    return Palette::colorChannel(m.channelPlotColor(), isTransparentActivated);
   }
 };
 

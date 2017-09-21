@@ -239,8 +239,7 @@ namespace insur {
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth);
-    void computeServicesChannelsLegend(TLegend* leg);
-    void computePowerServicesChannelsLegend(TLegend* leg);
+    void computeServicesChannelsLegend(TLegend* leg, const bool isTransparentActivated = false);
   };
 
 

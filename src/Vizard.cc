@@ -6927,7 +6927,8 @@ namespace insur {
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
     TLegend* channelsLegend = new TLegend(0.905, 0., 1., 1.);
-    computePowerServicesChannelsLegend(channelsLegend);
+    bool isTransparentActivated = true;
+    computeServicesChannelsLegend(channelsLegend, isTransparentActivated);
 
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7409,54 +7410,39 @@ namespace insur {
   }
 
 
-  void Vizard::computeServicesChannelsLegend(TLegend* leg) {
+  void Vizard::computeServicesChannelsLegend(TLegend* leg, const bool isTransparentActivated) {
     //leg->SetHeader("Channels (+Z side numbering)");
 
     for (int i = 1; i <= 12; i++) {
-      Double_t x[5] = {0., 1.};
-      Double_t y[5] = {0., 0.};
-      TPolyLine* line = new TPolyLine(2, x, y);
+      Double_t x[1] = {0.};
+      Double_t y[1] = {0.};
+      TPolyLine* line = new TPolyLine(1, x, y);
       line->SetLineColor(Palette::colorChannel(i));
       line->SetFillColor(Palette::colorChannel(i));
       
       std::stringstream channelStream;
-      channelStream << "OT" << i << std::endl;
-      std::string channel = channelStream.str();
-      leg->AddEntry(line, channel.c_str(), "f"); 
-    }
-  }
+      channelStream << "OT" << i;
+      if (!isTransparentActivated) channelStream << std::endl;
+      else channelStream << "C" << std::endl;
 
-
-  void Vizard::computePowerServicesChannelsLegend(TLegend* leg) {   
-    //leg->SetHeader("Channels (+Z side numbering)");
-
-    for (int i = 1; i <= 12; i++) {
-      Double_t x[5] = {0., 1.};
-      Double_t y[5] = {0., 0.};
-      TPolyLine* line = new TPolyLine(2, x, y);
-      line->SetLineColor(Palette::colorChannel(i));
-      line->SetFillColor(Palette::colorChannel(i));
-      
-      std::stringstream channelStream;
-      channelStream << "OT" << i << "C" << std::endl;
       std::string channel = channelStream.str();
       leg->AddEntry(line, channel.c_str(), "f"); 
 
 
-      if ((i % 2) == 0) {
-	bool isTransparent = true;
-	Double_t xTrans[5] = {0., 1.};
-	Double_t yTrans[5] = {0., 0.};
-	TPolyLine* lineTrans = new TPolyLine(2, xTrans, yTrans);
-	lineTrans->SetLineColor(Palette::colorChannel(i, isTransparent));
-	lineTrans->SetFillColor(Palette::colorChannel(i, isTransparent));
+      if (isTransparentActivated && ((i % 2) == 0)) {
+	Double_t xTrans[1] = {0.};
+	Double_t yTrans[1] = {0.};
+	TPolyLine* lineTrans = new TPolyLine(1, xTrans, yTrans);
+	lineTrans->SetLineColor(Palette::colorChannel(i + 12, isTransparentActivated));
+	lineTrans->SetFillColor(Palette::colorChannel(i + 12, isTransparentActivated));
       
 	std::stringstream channelStreamTrans;
 	channelStreamTrans << "OT" << i << "A" << std::endl;
 	std::string channelTrans = channelStreamTrans.str();
 	leg->AddEntry(lineTrans, channelTrans.c_str(), "f"); 
       }
-  
+
+
     }
   }
 

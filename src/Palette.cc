@@ -162,7 +162,7 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
 }
 
 
-Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
+Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated) {
 
   short zone = femod(colorIndex % 12, 12);
   int shift = (colorIndex - 1) / 12;
@@ -220,6 +220,11 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
 
     paletteIndex -= shift - 2;*/
 
+  /*std::cout << "colorIndex = " << colorIndex << std::endl;
+    std::cout << "paletteIndex = " << paletteIndex << std::endl;
+    std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
+    std::cout << "zone =" << zone << std::endl;
+    std::cout << "shift = " << shift << std::endl;*/
 
 
 
@@ -269,16 +274,12 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparent) {
 
     //paletteIndex -= shift;
 
+    if (isTransparentActivated) {
+      bool isTransparent = (shift > 0.9);
+      if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
+    }
 
 
-    /*std::cout << "colorIndex = " << colorIndex << std::endl;
-    std::cout << "paletteIndex = " << paletteIndex << std::endl;
-    std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
-    std::cout << "zone =" << zone << std::endl;
-    std::cout << "shift = " << shift << std::endl;*/
-
-
-    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
   }
  
   return paletteIndex;
