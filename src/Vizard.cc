@@ -6839,6 +6839,9 @@ namespace insur {
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
+    TLegend* channelsLegend = new TLegend(0.905,0.3,1.0,0.8);
+    computeServicesChannelsLegend(channelsLegend);
+
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
@@ -6847,7 +6850,8 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawServicesChannelsLegend();
+    channelsLegend->Draw("same");
+    
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6857,7 +6861,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawServicesChannelsLegend();
+    channelsLegend->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6867,7 +6871,7 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawServicesChannelsLegend();
+    channelsLegend->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6877,7 +6881,7 @@ namespace insur {
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawServicesChannelsLegend();
+    channelsLegend->Draw("same");
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -6893,7 +6897,7 @@ namespace insur {
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
 	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-	  drawServicesChannelsLegend();
+	  channelsLegend->Draw("same");
 	}
       }
     }
@@ -6922,6 +6926,9 @@ namespace insur {
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
+    TLegend* channelsLegend = new TLegend(0.905, 0., 1., 1.);
+    computePowerServicesChannelsLegend(channelsLegend);
+
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
@@ -6930,7 +6937,7 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawPowerServicesChannelsLegend();
+    channelsLegend->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6940,7 +6947,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawPowerServicesChannelsLegend();
+    channelsLegend->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6950,7 +6957,7 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawPowerServicesChannelsLegend();
+    channelsLegend->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6960,7 +6967,7 @@ namespace insur {
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    drawPowerServicesChannelsLegend();
+    channelsLegend->Draw("same");
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -6976,7 +6983,7 @@ namespace insur {
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
 	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-	  drawPowerServicesChannelsLegend();
+	  channelsLegend->Draw("same");
 	}
       }
     }
@@ -7402,8 +7409,7 @@ namespace insur {
   }
 
 
-  void Vizard::drawServicesChannelsLegend() {
-    TLegend* leg = new TLegend(0.905,0.3,1.0,0.8);
+  void Vizard::computeServicesChannelsLegend(TLegend* leg) {
     //leg->SetHeader("Channels (+Z side numbering)");
 
     for (int i = 1; i <= 12; i++) {
@@ -7418,13 +7424,10 @@ namespace insur {
       std::string channel = channelStream.str();
       leg->AddEntry(line, channel.c_str(), "f"); 
     }
-
-    leg->Draw("same");
   }
 
 
-  void Vizard::drawPowerServicesChannelsLegend() {
-    TLegend* leg = new TLegend(0.905, 0., 1., 1.);
+  void Vizard::computePowerServicesChannelsLegend(TLegend* leg) {   
     //leg->SetHeader("Channels (+Z side numbering)");
 
     for (int i = 1; i <= 12; i++) {
@@ -7453,11 +7456,8 @@ namespace insur {
 	std::string channelTrans = channelStreamTrans.str();
 	leg->AddEntry(lineTrans, channelTrans.c_str(), "f"); 
       }
-
-    
+  
     }
-
-    leg->Draw("same");
   }
 
 
