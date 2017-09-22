@@ -1488,7 +1488,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (optical)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasOpticalCablingChannelNicer(tracker, RZChannelOpticalCanvas, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
+      createSummaryCanvasOpticalCablingChannelNicer(tracker, myCablingMap, RZChannelOpticalCanvas, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
 
       /*if (RZChannelOpticalCanvas) {
 	myImage = new RootWImage(RZChannelOpticalCanvas, RZChannelOpticalCanvas->GetWindowWidth(), RZChannelOpticalCanvas->GetWindowHeight() );
@@ -1534,7 +1534,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (powering)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasPowerCablingChannelNicer(tracker, RZChannelPowerCanvas, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk);
+      createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, RZChannelPowerCanvas, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk);
 
       /*if (RZChannelPowerCanvas) {
 	myImage = new RootWImage(RZChannelPowerCanvas, RZChannelPowerCanvas->GetWindowWidth(), RZChannelPowerCanvas->GetWindowHeight() );
@@ -6817,7 +6817,7 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker,
+  void Vizard::createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
 							   TCanvas *&RZCanvas, 
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
@@ -6839,8 +6839,13 @@ namespace insur {
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
-    TLegend* channelsLegend = new TLegend(0.905,0.3,1.0,0.8);
-    computeServicesChannelsLegend(channelsLegend);
+    bool isPowerCabling = false;
+    bool isPositiveCablingSide = true;
+    TLegend* channelsLegendPos = new TLegend(0.905,0.3,1.0,0.8);
+    computeServicesChannelsLegend(channelsLegendPos, myCablingMap, isPositiveCablingSide, isPowerCabling);
+    isPositiveCablingSide = false;
+    TLegend* channelsLegendNeg = new TLegend(0.905,0.3,1.0,0.8);
+    computeServicesChannelsLegend(channelsLegendNeg, myCablingMap, isPositiveCablingSide, isPowerCabling);
 
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6850,7 +6855,7 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendNeg->Draw("same");
     
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
@@ -6861,7 +6866,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6871,7 +6876,7 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6881,7 +6886,7 @@ namespace insur {
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendPos->Draw("same");
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -6897,14 +6902,14 @@ namespace insur {
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
 	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-	  channelsLegend->Draw("same");
+	  channelsLegendPos->Draw("same");
 	}
       }
     }
   }
 
 
-  void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker,
+  void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
 							   TCanvas *&RZCanvas, 
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
@@ -6926,9 +6931,13 @@ namespace insur {
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
-    TLegend* channelsLegend = new TLegend(0.905, 0., 1., 1.);
-    bool isTransparentActivated = true;
-    computeServicesChannelsLegend(channelsLegend, isTransparentActivated);
+    bool isPowerCabling = true;
+    bool isPositiveCablingSide = true;
+    TLegend* channelsLegendPos = new TLegend(0.905, 0., 1., 1.);
+    computeServicesChannelsLegend(channelsLegendPos, myCablingMap, isPositiveCablingSide, isPowerCabling);
+    isPositiveCablingSide = false;
+    TLegend* channelsLegendNeg = new TLegend(0.905, 0., 1., 1.);
+    computeServicesChannelsLegend(channelsLegendNeg, myCablingMap, isPositiveCablingSide, isPowerCabling);
 
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6938,7 +6947,7 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendNeg->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6948,7 +6957,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6958,7 +6967,7 @@ namespace insur {
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -6968,7 +6977,7 @@ namespace insur {
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegend->Draw("same");
+    channelsLegendPos->Draw("same");
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -6984,7 +6993,7 @@ namespace insur {
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
 	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-	  channelsLegend->Draw("same");
+	  channelsLegendPos->Draw("same");
 	}
       }
     }
@@ -7410,39 +7419,43 @@ namespace insur {
   }
 
 
-  void Vizard::computeServicesChannelsLegend(TLegend* leg, const bool isTransparentActivated) {
+  void Vizard::computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
     //leg->SetHeader("Channels (+Z side numbering)");
+    std::map<std::string, int > channelsColors;
 
-    for (int i = 1; i <= 12; i++) {
+
+    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+
+    for (const auto& myCable : cables) {
+      const int& myNumber = myCable.second->servicesChannel();
+      const int& myPlotColor = myCable.second->servicesChannelPlotColor();
+
+      std::stringstream channelNameStream;
+      channelNameStream << "OT" << myNumber;
+      // If power cabling, one is also interedted in the section (A or C).
+      if (isPowerCabling) { 
+	const ChannelSection& mySection = myCable.second->servicesChannelSection();
+	channelNameStream << any2str(mySection); 
+      } 
+      channelNameStream << std::endl;
+      const std::string channelName = channelNameStream.str();
+
+      if (channelsColors.find(channelName) == channelsColors.end()) {
+	channelsColors[channelName] = myPlotColor;
+      }
+    }
+
+    for (const auto& it : channelsColors) {
+      const std::string channelName = it.first;
+      const int& myPlotColor = it.second;
+
       Double_t x[1] = {0.};
       Double_t y[1] = {0.};
       TPolyLine* line = new TPolyLine(1, x, y);
-      line->SetLineColor(Palette::colorChannel(i));
-      line->SetFillColor(Palette::colorChannel(i));
-      
-      std::stringstream channelStream;
-      channelStream << "OT" << i;
-      if (!isTransparentActivated) channelStream << std::endl;
-      else channelStream << "C" << std::endl;
-
-      std::string channel = channelStream.str();
-      leg->AddEntry(line, channel.c_str(), "f"); 
-
-
-      if (isTransparentActivated && ((i % 2) == 0)) {
-	Double_t xTrans[1] = {0.};
-	Double_t yTrans[1] = {0.};
-	TPolyLine* lineTrans = new TPolyLine(1, xTrans, yTrans);
-	lineTrans->SetLineColor(Palette::colorChannel(i + 12, isTransparentActivated));
-	lineTrans->SetFillColor(Palette::colorChannel(i + 12, isTransparentActivated));
-      
-	std::stringstream channelStreamTrans;
-	channelStreamTrans << "OT" << i << "A" << std::endl;
-	std::string channelTrans = channelStreamTrans.str();
-	leg->AddEntry(lineTrans, channelTrans.c_str(), "f"); 
-      }
-
-
+      const bool isTransparentActivated = isPowerCabling;
+      line->SetLineColor(Palette::colorChannel(myPlotColor, isTransparentActivated));
+      line->SetFillColor(Palette::colorChannel(myPlotColor, isTransparentActivated));
+      legend->AddEntry(line, channelName.c_str(), "f");
     }
   }
 
