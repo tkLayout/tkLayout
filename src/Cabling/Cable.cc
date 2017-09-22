@@ -125,12 +125,12 @@ const std::tuple<int, ChannelSection, int> Cable::computeServicesChannel(const i
   // 9 -> 10
   // This is so that the numbering follows a rotation of 180 degrees around CMS_Y for the negative cabling side.
   // The services channel is then set to negative on negative cabling side.
-  if (!isPositiveCablingSide) {
+  /*if (!isPositiveCablingSide) {
     double pivot = (servicesChannel <= 6 ? 3.5 : 9.5);
     servicesChannel = servicesChannel + round( 2. * (pivot - servicesChannel) );
     servicesChannel *= -1;
     servicesChannelSection = (servicesChannelSection == ChannelSection::A ? ChannelSection::C : ChannelSection::A);
-  }
+    }*/
 
   return std::make_tuple(servicesChannel, servicesChannelSection, servicesChannelPlotColor);
 }
