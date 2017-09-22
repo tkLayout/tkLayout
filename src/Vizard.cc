@@ -7431,8 +7431,13 @@ namespace insur {
       const int& myPlotColor = myCable.second->servicesChannelPlotColor();
 
       std::stringstream channelNameStream;
-      channelNameStream << "OT" << myNumber;
-      // If power cabling, one is also interedted in the section (A or C).
+      channelNameStream << "OT";
+      if (fabs(myNumber) <= 9) {
+	if (myNumber >= 0) channelNameStream << "0" << myNumber;  // add a 0 in front of single-digit numbers, so that the map is directly properly sorted.
+	else channelNameStream << "-0" << fabs(myNumber);
+      }
+      else channelNameStream << myNumber;
+      // If power cabling, one is also interested in the section (A or C).
       if (isPowerCabling) { 
 	const ChannelSection& mySection = myCable.second->servicesChannelSection();
 	channelNameStream << any2str(mySection); 
