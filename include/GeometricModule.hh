@@ -68,7 +68,7 @@ public:
   virtual double maxWidth() const = 0;
   virtual double minWidth() const = 0;
   virtual double meanWidth() const = 0;
-  double thickness() const { return dsDistance() + 0.1; } // for Geometric modules it is assumed they have a 0.1 mm thick generic sensor
+  double thickness() const { return dsDistance() + sensorThickness(); }
  
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
