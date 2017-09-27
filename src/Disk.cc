@@ -301,6 +301,7 @@ void Disk::computeActualZCoverage() {
       double zIntersection = intersectionWithZAxis.first;
       bool isPositiveSlope = intersectionWithZAxis.second;
       
+      double zErrorCoverage = 0.;
       // CASE WHERE RING (i+1) HAS SMALLER Z, AND RING (i) HAS BIGGER Z.
       if (parity > 0.) {
 	if (isPositiveSlope) zErrorCoverage = zIntersection;
