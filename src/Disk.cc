@@ -281,11 +281,11 @@ const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, d
 
 /** This computes the actual coverage in Z of a disk (after it is built).
     It calculates the actual zError, using the relevant coordinates of the disk.
- */
+*/
 void Disk::computeActualZCoverage() {
 
-  double lastMinRho, lastMaxRho;
-  double lastMinZ, lastMaxZ;
+  double lastMinRho;
+  double lastMinZ;
 
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
@@ -320,12 +320,9 @@ void Disk::computeActualZCoverage() {
       ringIndexMap_[i]->actualZError(zErrorCoverage);
     }
 
-    // Keep for next calculation : radii and Z of the most stringent points in ring (i+1).
+    // Keep for next calculation : radii and Z of the most stringent point in ring (i+1).
     lastMinRho = rings_.at(i-1).minR();
     lastMinZ = rings_.at(i-1).minZ();
-
-    lastMaxRho = rings_.at(i-1).maxR();
-    lastMaxZ = rings_.at(i-1).maxZ();
   }
 }
 
