@@ -263,18 +263,18 @@ const std::map<int, std::vector<const Module*> > Disk::getSurfaceModules() const
 }
 
 
-/** Binds the 2 points which are provided as arguments, and returns corresponding zError (intersection with (Z) axis).
+/** Binds the 2 points which are provided as arguments, and returns corresponding Z of intersection with (Z) axis.
  */
 const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, double lastRho, double newZ, double newRho) const {
   // Slope of the line that binds the most stringent points of ring (i) and ring (i+1).
   double slope = (newRho - lastRho) / (newZ - lastZ);
   bool isPositiveSlope = (slope > 0.);
 
-  // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
-  double zErrorCoverage;
-  zErrorCoverage = newZ - newRho / slope;  // Intersection of the line with (Z) axis.
+  // Used to calculate the coverage in Z of ring (i) with respect to ring (i+1).
+  double zIntersection;
+  zIntersection = newZ - newRho / slope;  // Intersection of the line with (Z) axis.
 
-  return std::make_pair(zErrorCoverage, isPositiveSlope);
+  return std::make_pair(zIntersection, isPositiveSlope);
 }
 
 
@@ -298,18 +298,19 @@ void Disk::computeActualZCoverage() {
 
       // Calculation : Min coordinates of ring (i+1) with max coordinates of ring (i)
       std::pair<double, bool> intersectionWithZAxis = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
-      double zErrorCoverage = intersectionWithZAxis.first;
+      double zIntersection = intersectionWithZAxis.first;
       bool isPositiveSlope = intersectionWithZAxis.second;
       
+      double zErrorCoverage = 0.;
       // CASE WHERE RING (i+1) HAS SMALLER Z, AND RING (i) HAS BIGGER Z.
       if (parity > 0.) {
-	if (isPositiveSlope) zErrorCoverage = zErrorCoverage;
+	if (isPositiveSlope) zErrorCoverage = zIntersection;
 	else zErrorCoverage = -std::numeric_limits<double>::infinity();
       }
 
       // CASE WHERE RING (i+1) HAS BIGGER Z, AND RING (i) HAS SMALLER Z.
       else {
-	if (isPositiveSlope) zErrorCoverage = -zErrorCoverage;
+	if (isPositiveSlope) zErrorCoverage = -zIntersection;
 	else zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
