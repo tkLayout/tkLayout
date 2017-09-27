@@ -145,20 +145,19 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
 
 
 /** Calculates ring (i) radiusHigh, using ring (i+1).
-    The most stringent of zError and rOverlap is used.
+   zError constraint is used, as well as a rSafetyMargin.
  */
-double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRho) {
+double Disk::computeNextRho(const int parity, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
-  // Case A : Consider zError
+  // Consider zError.
   double zErrorShift   = (parity > 0 ? zError() : - zError());
-  double nextRhoWithZError   = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
+  double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
-  // Case B : Consider rOverlap
-  //double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
-      
-  // Takes the most stringent of cases A and B
-  //double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
-  double nextRho = nextRhoWithZError;
+  // If relevant, consider rSafetyMargin.
+  if (oneBeforeLastRho > 1.) {
+    double nextRhoSafe = oneBeforeLastRho - rSafetyMargin();
+    nextRho = MIN(nextRho, nextRhoSafe);
+  }
 
   return nextRho;
 }
@@ -170,8 +169,9 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-  double lastRho;
-  
+  double oneBeforeLastRho = 0.;
+  double lastRho = 0.;
+
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
@@ -194,7 +194,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
       double newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
       
       // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
-      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho);
+      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho, oneBeforeLastRho);
 
       // 3) NOW, CAN ASSIGN THE CALCULATED RADIUS TO RING (i) ! 
       ring->buildStartRadius(nextRho);
@@ -209,6 +209,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
+    oneBeforeLastRho = lastRho;
     lastRho = ring->minR();
   }
 }
