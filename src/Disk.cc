@@ -147,10 +147,10 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
 /** Calculates ring (i) radiusHigh, using ring (i+1).
    zError constraint is used, as well as a rSafetyMargin.
  */
-double Disk::computeNextRho(const int parity, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
+double Disk::computeNextRho(const int parity, const double zError, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
   // Consider zError.
-  double zErrorShift   = (parity > 0 ? zError() : - zError());
+  double zErrorShift   = (parity > 0 ? zError : - zError);
   double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
   // If relevant, consider rSafetyMargin.
@@ -194,7 +194,8 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
       double newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
       
       // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
-      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho, oneBeforeLastRho);
+      double zError = ring->zError();
+      double nextRho = computeNextRho(parity, zError, lastZ, newZ, lastRho, oneBeforeLastRho);
 
       // 3) NOW, CAN ASSIGN THE CALCULATED RADIUS TO RING (i) ! 
       ring->buildStartRadius(nextRho);
