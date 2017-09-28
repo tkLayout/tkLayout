@@ -107,8 +107,6 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
   
   short paletteIndex;
   if (colorIndex == 0) paletteIndex = 1;
-  //else paletteIndex = 300 + colorIndex * 5;
-  //else paletteIndex = 300 + zone * 50 + 5 * phiSector;
 
   else {
     switch (zone) {
@@ -156,6 +154,60 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
 
     paletteIndex -= phiSector;
     if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+
+    /* These are the colors used by Palette::colorDTC !!
+    
+       else {
+       switch (zone) {
+       case 0 :
+       paletteIndex= kYellow - 2;
+       break;
+       case 1 :
+       paletteIndex= kOrange - 1;
+       break;
+       case 2 :
+       paletteIndex= kRed - 2;
+       break;
+       case 3 :
+       paletteIndex=kPink - 3;
+       break;
+       case 4 :
+       paletteIndex=kMagenta - 4;
+       break;
+       case 5 :
+       paletteIndex=kViolet - 5;
+       break;
+       case 6 :
+       paletteIndex=kBlue - 6;
+       break;
+       case 7 :
+       paletteIndex=kAzure - 7;
+       break;
+       case 8 :
+       paletteIndex=kCyan - 8;
+       break;
+       case 9 :
+       paletteIndex=kTeal - 9;
+       break;
+       case 10 :
+       paletteIndex=kGreen;
+       break;
+       case 11 :
+       paletteIndex=kSpring - 1;
+       break;
+       default :
+       std::cerr << "ERROR: modulo 12" << std::endl;
+       paletteIndex=kWhite;
+       break;
+       }
+
+       paletteIndex -= shift - 2;*/
+
+    /*std::cout << "colorIndex = " << colorIndex << std::endl;
+      std::cout << "paletteIndex = " << paletteIndex << std::endl;
+      std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
+      std::cout << "zone =" << zone << std::endl;
+      std::cout << "shift = " << shift << std::endl;*/
   }
  
   return paletteIndex;
@@ -164,69 +216,12 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
 
 Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated) {
 
-  short zone = femod(colorIndex % 12, 12);
-  int shift = (colorIndex - 1) / 12;
+  const short zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int shift = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
   
   short paletteIndex;
 
   if (colorIndex == 0) paletteIndex = 1;
-
-
-  /* These are the colors used by Palette::colorDTC !!
-    
-    else {
-    switch (zone) {
-    case 0 :
-      paletteIndex= kYellow - 2;
-      break;
-    case 1 :
-      paletteIndex= kOrange - 1;
-      break;
-    case 2 :
-      paletteIndex= kRed - 2;
-      break;
-    case 3 :
-      paletteIndex=kPink - 3;
-      break;
-    case 4 :
-      paletteIndex=kMagenta - 4;
-      break;
-    case 5 :
-      paletteIndex=kViolet - 5;
-      break;
-    case 6 :
-      paletteIndex=kBlue - 6;
-      break;
-    case 7 :
-      paletteIndex=kAzure - 7;
-      break;
-    case 8 :
-      paletteIndex=kCyan - 8;
-      break;
-    case 9 :
-      paletteIndex=kTeal - 9;
-      break;
-    case 10 :
-      paletteIndex=kGreen;
-      break;
-    case 11 :
-      paletteIndex=kSpring - 1;
-      break;
-    default :
-      std::cerr << "ERROR: modulo 12" << std::endl;
-      paletteIndex=kWhite;
-      break;
-    }
-
-    paletteIndex -= shift - 2;*/
-
-  /*std::cout << "colorIndex = " << colorIndex << std::endl;
-    std::cout << "paletteIndex = " << paletteIndex << std::endl;
-    std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
-    std::cout << "zone =" << zone << std::endl;
-    std::cout << "shift = " << shift << std::endl;*/
-
-
 
   else {
     switch (zone) {
@@ -273,12 +268,10 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated
     }
 
     //paletteIndex -= shift;
-
     if (isTransparentActivated) {
-      bool isTransparent = (shift > 0.9);
+      const bool isTransparent = (shift > 0.9); // set transparent if 12 has been added, hence if shift >= 1
       if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
     }
-
 
   }
  

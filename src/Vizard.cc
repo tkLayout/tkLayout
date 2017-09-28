@@ -1323,6 +1323,7 @@ namespace insur {
 	  myContent->addItem(myImage);
       }
 
+
       // Modules to DTCs
       TCanvas *summaryDTCCanvas = nullptr;
       TCanvas *RZDTCCanvas = nullptr;
@@ -1367,8 +1368,6 @@ namespace insur {
 	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
 	  myContent->addItem(myImage);
       }
-
-
       
       
       const CablingMap* myCablingMap = tracker.getCablingMap();
@@ -1472,8 +1471,6 @@ namespace insur {
       myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Number of distinct DTCs per track");
       dtcMapContent->addItem(myImage);
-
-
 
 
       // Modules to Services Channels (optical)
@@ -7000,8 +6997,6 @@ namespace insur {
   }
 
 
-
-
   /*
    * Returns always the same color for a given momentum index
    * @param iMomentum index of the momentum
@@ -7405,7 +7400,7 @@ namespace insur {
 
 
   /*
-  *  Draw spider net to delimit the Phi Sectors
+  *  Draw spider net to delimit the Phi Sectors.
   */
   void Vizard::drawPhiSectorsBoundaries(const double phiSectorWidth) {
     int numPhiSectors = round(2. * M_PI / phiSectorWidth);
@@ -7419,25 +7414,35 @@ namespace insur {
   }
 
 
+  /*
+   * Compute colored legend for services channels.
+   * This just lists all the cables associated to a given cabling side, and sum up all the encountered colors.
+   * isPowerCabling is added because in case of non-optical cabling, one wants also the possibility of transparent colors.
+   * Transparent colors are used to distinguish channels sections A and C, which are specific to power cabling.
+   * TO DO: Would be nicer to have this drawn on the fly while the plots are created.
+   */
   void Vizard::computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
-    //leg->SetHeader("Channels (+Z side numbering)");
     std::map<std::string, int > channelsColors;
 
-
+    // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
     const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
+    // Loop on all the encountered cables
     for (const auto& myCable : cables) {
       const int& myNumber = myCable.second->servicesChannel();
       const int& myPlotColor = myCable.second->servicesChannelPlotColor();
 
+      // This is simply to add 0 in front of single-digit numbers, so that the sorting directly makes sense.
       std::stringstream channelNameStream;
       channelNameStream << "OT";
-      if (fabs(myNumber) <= 9) {
-	if (myNumber >= 0) channelNameStream << "0" << myNumber;  // add a 0 in front of single-digit numbers, so that the map is directly properly sorted.
-	else channelNameStream << "-0" << fabs(myNumber);
+      // Find single-digit numbers
+      if (fabs(myNumber) <= 9) {	
+	if (myNumber >= 0) channelNameStream << "0" << myNumber; // Add 0 in front of positive digit	
+	else channelNameStream << "-0" << fabs(myNumber); // Add -0 in front of negative digit
       }
       else channelNameStream << myNumber;
-      // If power cabling, one is also interested in the section (A or C).
+
+      // If the legend is for power cabling, one need to distinguish sections A and C.
       if (isPowerCabling) { 
 	const ChannelSection& mySection = myCable.second->servicesChannelSection();
 	channelNameStream << any2str(mySection); 
@@ -7445,18 +7450,22 @@ namespace insur {
       channelNameStream << std::endl;
       const std::string channelName = channelNameStream.str();
 
+      // ADD CHANNEL COLOR TO THE MAP
       if (channelsColors.find(channelName) == channelsColors.end()) {
 	channelsColors[channelName] = myPlotColor;
       }
     }
 
+    // Create legenda
     for (const auto& it : channelsColors) {
-      const std::string channelName = it.first;
+      const std::string& channelName = it.first;
       const int& myPlotColor = it.second;
 
+      // Just fakely used to add an entry, not drawn!
       Double_t x[1] = {0.};
       Double_t y[1] = {0.};
       TPolyLine* line = new TPolyLine(1, x, y);
+      // Obtain the channel color.
       const bool isTransparentActivated = isPowerCabling;
       line->SetLineColor(Palette::colorChannel(myPlotColor, isTransparentActivated));
       line->SetFillColor(Palette::colorChannel(myPlotColor, isTransparentActivated));
