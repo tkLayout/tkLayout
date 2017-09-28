@@ -41,7 +41,6 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default>   rSafetyMargin;
   Property<int   , Default>   bigParity;
 
   PropertyNode<int> ringNode;
@@ -53,7 +52,7 @@ private:
   inline const double getRingInfo(const vector<double>& ringsInfo, int ringNumber) const;
 
   std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
-  double computeNextRho(const int parity, const double zError, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho);
+  double computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho);
   void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
   double averageZ_ = 0;
@@ -76,7 +75,6 @@ public:
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
-    rSafetyMargin("rSafetyMargin"   , parsedOnly(), 0.),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),

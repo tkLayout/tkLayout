@@ -164,6 +164,7 @@ public:
   Property<BuildDirection, NoDefault> buildDirection;
   Property<int   , AutoDefault> disk;
   Property<double, NoDefault> zError;
+  Property<double, Default>   rSafetyMargin;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
@@ -189,6 +190,7 @@ public:
       materialObject_(MaterialObject::ROD),
       moduleShape           ("moduleShape"           , parsedAndChecked()),
       zError                ("zError"                , parsedAndChecked()),
+      rSafetyMargin         ("rSafetyMargin"         , parsedOnly(), 0.),
       phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
       phiSegments           ("phiSegments"           , parsedOnly(), 4),
