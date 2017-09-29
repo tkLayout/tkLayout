@@ -149,15 +149,22 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
  */
 double Disk::computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
-  // Consider zError.
+  // // Case A: Consider zError.
   double zErrorShift   = (parity > 0 ? zError : - zError);
   double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
+
+  // Case B : Consider rOverlap
+  if (rOverlap.state()) {
+    double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+    // Takes the most stringent of cases A and B
+    double nextRho = MAX(nextRho, nextRhoWithROverlap);
+  }
 
   // If relevant, consider rSafetyMargin.
   if (oneBeforeLastRho > 1.) {
     double nextRhoSafe = oneBeforeLastRho - rSafetyMargin;
     nextRho = MIN(nextRho, nextRhoSafe);
-  }
+  }    
 
   return nextRho;
 }

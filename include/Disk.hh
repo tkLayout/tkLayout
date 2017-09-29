@@ -42,6 +42,7 @@ private:
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
   Property<int   , Default>   bigParity;
+  Property<double, NoDefault> rOverlap;
 
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
@@ -75,6 +76,7 @@ public:
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
+    rOverlap(    "rOverlap"   , parsedOnly()),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),
