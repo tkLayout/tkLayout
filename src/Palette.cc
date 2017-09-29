@@ -98,12 +98,16 @@ Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
 }
 
 
+/*
+  This allows to have one different color for each of the 12 DTC slots.
+  A shift in the color scheme is also done for each of the 9 possible phi sectors.
+ */
 Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
   //TColor::CreateColorWheel();
- //return gROOT->GetColor(paletteIndex);
+  //return gROOT->GetColor(paletteIndex);
 
-  short phiSector = colorIndex % 10;
-  short zone = femod(colorIndex % 12, 12);
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int phiSector = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
   
   short paletteIndex;
   if (colorIndex == 0) paletteIndex = 1;
@@ -111,7 +115,7 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
   else {
     switch (zone) {
     case 0 :
-      paletteIndex= kYellow;
+      paletteIndex= kYellow ;
       break;
     case 1 :
       paletteIndex= kOrange;
@@ -152,72 +156,21 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
       break;
     }
 
-    paletteIndex -= phiSector;
+    paletteIndex -= (colorIndex % 10);  // should be -= phiSector, but decision was made to keep things like this, since color scheme cannot be perfectly unique anyway.
     if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
-
-    /* These are the colors used by Palette::colorDTC !!
-    
-       else {
-       switch (zone) {
-       case 0 :
-       paletteIndex= kYellow - 2;
-       break;
-       case 1 :
-       paletteIndex= kOrange - 1;
-       break;
-       case 2 :
-       paletteIndex= kRed - 2;
-       break;
-       case 3 :
-       paletteIndex=kPink - 3;
-       break;
-       case 4 :
-       paletteIndex=kMagenta - 4;
-       break;
-       case 5 :
-       paletteIndex=kViolet - 5;
-       break;
-       case 6 :
-       paletteIndex=kBlue - 6;
-       break;
-       case 7 :
-       paletteIndex=kAzure - 7;
-       break;
-       case 8 :
-       paletteIndex=kCyan - 8;
-       break;
-       case 9 :
-       paletteIndex=kTeal - 9;
-       break;
-       case 10 :
-       paletteIndex=kGreen;
-       break;
-       case 11 :
-       paletteIndex=kSpring - 1;
-       break;
-       default :
-       std::cerr << "ERROR: modulo 12" << std::endl;
-       paletteIndex=kWhite;
-       break;
-       }
-
-       paletteIndex -= shift - 2;*/
-
-    /*std::cout << "colorIndex = " << colorIndex << std::endl;
-      std::cout << "paletteIndex = " << paletteIndex << std::endl;
-      std::cout << "(colorIndex % 10) = " << (colorIndex % 10) << std::endl;
-      std::cout << "zone =" << zone << std::endl;
-      std::cout << "shift = " << shift << std::endl;*/
   }
  
   return paletteIndex;
 }
 
 
+/* This allows to have one color for each of the 12 services channels.
+   If 12 is added, the color is set to transparent (if transparent colors allowed by isTransparentActivated).
+ */
 Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated) {
 
-  const short zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
-  const int shift = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int shift = (colorIndex - 1) / 12;      // dizain digit (in a numbering of base 12)
   
   short paletteIndex;
 
@@ -267,12 +220,10 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated
       break;
     }
 
-    //paletteIndex -= shift;
     if (isTransparentActivated) {
-      const bool isTransparent = (shift > 0.9); // set transparent if 12 has been added, hence if shift >= 1
+      const bool isTransparent = (shift >= 1); // set transparent if 12 has been added
       if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
     }
-
   }
  
   return paletteIndex;
