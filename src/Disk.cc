@@ -50,8 +50,7 @@ const ScanDiskInfo Disk::scanPropertyTree() const {
 
   const std::vector<double>& ringsSmallDeltas = scanSmallDeltas();
   const std::vector<double>& ringsDsDistances = scanDsDistances();
-  const double ringsSensorThickness = scanSensorThickness();
-  const ScanDiskInfo& diskInfo = std::make_tuple(ringsSmallDeltas, ringsDsDistances, ringsSensorThickness);
+  const ScanDiskInfo& diskInfo = std::make_pair(ringsSmallDeltas, ringsDsDistances);
   return diskInfo; 
 }
 
@@ -107,9 +106,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     // IN THIS CASE, THE INNERMOST DISK OF THE ENDCAPS BLOCK IS THE MOST STRINGENT.
     // AS A RESULT, GEOMETRY INFORMATION IS TAKEN FROM THAT DISK.
     const ScanDiskInfo& innermostDiskInfo = extremaDisksInfo.first;
-    const vector<double>& innermostDiskSmallDeltas = std::get<0>(innermostDiskInfo);
-    const vector<double>& innermostDiskDsDistances = std::get<1>(innermostDiskInfo);
-    double sensorThickness = std::get<2>(innermostDiskInfo);
+    const vector<double>& innermostDiskSmallDeltas = innermostDiskInfo.first;
+    const vector<double>& innermostDiskDsDistances = innermostDiskInfo.second;
 
     lastSmallDelta = getRingInfo(innermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(innermostDiskSmallDeltas, i);
@@ -117,8 +115,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     newDsDistance = getRingInfo(innermostDiskDsDistances, i);
 
     // Calculates Z of the most stringent points
-    lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2. - sensorThickness / 2.;
-    newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2. + sensorThickness / 2.;
+    lastZ = buildZ() - zHalfLength() - bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+    newZ  = buildZ() - zHalfLength() + bigDelta() + newSmallDelta + newDsDistance / 2.;
   }
 
   // Case where Ring (i+1) is the outermost ring, and Ring (i) is the innermost ring.
@@ -126,9 +124,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     // IN THIS CASE, THE OUTERMOST DISK OF THE ENDCAPS BLOCK IS THE MOST STRINGENT.
     // AS A RESULT, GEOMETRY INFORMATION IS TAKEN FROM THAT DISK.
     const ScanDiskInfo& outermostDiskInfo = extremaDisksInfo.second;
-    const vector<double>& outermostDiskSmallDeltas = std::get<0>(outermostDiskInfo);
-    const vector<double>& outermostDiskDsDistances = std::get<1>(outermostDiskInfo);
-    double sensorThickness = std::get<2>(outermostDiskInfo);
+    const vector<double>& outermostDiskSmallDeltas = outermostDiskInfo.first;
+    const vector<double>& outermostDiskDsDistances = outermostDiskInfo.second;
 
     lastSmallDelta = getRingInfo(outermostDiskSmallDeltas, i+1);
     newSmallDelta = getRingInfo(outermostDiskSmallDeltas, i);
@@ -136,8 +133,8 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
     newDsDistance = getRingInfo(outermostDiskDsDistances, i);
 
     // Calculates Z of the most stringent points
-    lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2. - sensorThickness / 2.;
-    newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2. + sensorThickness / 2.;
+    lastZ = buildZ() + zHalfLength() + bigDelta() - lastSmallDelta - lastDsDistance / 2.;
+    newZ  = buildZ() + zHalfLength() - bigDelta() + newSmallDelta + newDsDistance / 2.;
   }
 
   return std::make_pair(lastZ, newZ);
@@ -146,18 +143,26 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
 
 /** Calculates ring (i) radiusHigh, using ring (i+1).
     The most stringent of zError and rOverlap is used.
+    rSafetyMargin is also taken into account.
  */
-double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRho) {
+double Disk::computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
-  // Case A : Consider zError
-  double zErrorShift   = (parity > 0 ? zError() : - zError());
-  double nextRhoWithZError   = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
+  // Case A: Consider zError.
+  double zErrorShift   = (parity > 0 ? zError : - zError);
+  double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
   // Case B : Consider rOverlap
-  double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
-      
-  // Takes the most stringent of cases A and B
-  double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+  if (rOverlap.state()) {
+    double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+    // Takes the most stringent of cases A and B
+    double nextRho = MAX(nextRho, nextRhoWithROverlap);
+  }
+
+  // If relevant, consider rSafetyMargin.
+  if (oneBeforeLastRho > 1.) {
+    double nextRhoSafe = oneBeforeLastRho - rSafetyMargin;
+    nextRho = MIN(nextRho, nextRhoSafe);
+  }    
 
   return nextRho;
 }
@@ -169,8 +174,9 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-  double lastRho;
-  
+  double oneBeforeLastRho = 0.;
+  double lastRho = 0.;
+
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
@@ -193,7 +199,9 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
       double newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
       
       // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
-      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho);
+      double zError = ring->zError();
+      double rSafetyMargin = ring->rSafetyMargin();
+      double nextRho = computeNextRho(parity, zError, rSafetyMargin, lastZ, newZ, lastRho, oneBeforeLastRho);
 
       // 3) NOW, CAN ASSIGN THE CALCULATED RADIUS TO RING (i) ! 
       ring->buildStartRadius(nextRho);
@@ -208,6 +216,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
+    oneBeforeLastRho = lastRho;
     lastRho = ring->minR();
   }
 }
@@ -280,11 +289,12 @@ const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, d
 
 /** This computes the actual coverage in Z of a disk (after it is built).
     It calculates the actual zError, using the relevant coordinates of the disk.
- */
+*/
 void Disk::computeActualZCoverage() {
-
-  double lastMinRho, lastMaxRho;
-  double lastMinZ, lastMaxZ;
+  
+  double lastMinRho;
+  double lastMinZ;
+  const double ringsSensorThickness = scanSensorThickness();
 
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
@@ -294,7 +304,7 @@ void Disk::computeActualZCoverage() {
      
       // Find the radii and Z of the most stringent points in ring (i).
       double newMaxRho = rings_.at(i-1).buildStartRadius();
-      double newMaxZ = rings_.at(i-1).maxZ();
+      double newMaxZ = rings_.at(i-1).maxZ() - ringsSensorThickness / 2.;
 
       // Calculation : Min coordinates of ring (i+1) with max coordinates of ring (i)
       std::pair<double, bool> intersectionWithZAxis = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
@@ -319,12 +329,9 @@ void Disk::computeActualZCoverage() {
       ringIndexMap_[i]->actualZError(zErrorCoverage);
     }
 
-    // Keep for next calculation : radii and Z of the most stringent points in ring (i+1).
+    // Keep for next calculation : radii and Z of the most stringent point in ring (i+1).
     lastMinRho = rings_.at(i-1).minR();
-    lastMinZ = rings_.at(i-1).minZ();
-
-    lastMaxRho = rings_.at(i-1).maxR();
-    lastMaxZ = rings_.at(i-1).maxZ();
+    lastMinZ = rings_.at(i-1).minZ() + ringsSensorThickness / 2.;
   }
 }
 

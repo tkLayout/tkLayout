@@ -21,7 +21,7 @@ namespace material {
 using material::MaterialObject;
 using material::ConversionStation;
 
-typedef std::tuple<std::vector<double>, std::vector<double>, double > ScanDiskInfo;
+typedef std::pair<std::vector<double>, std::vector<double> > ScanDiskInfo;
 typedef std::pair<ScanDiskInfo, ScanDiskInfo> ScanEndcapInfo;
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
@@ -41,8 +41,8 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default>   rOverlap;
   Property<int   , Default>   bigParity;
+  Property<double, NoDefault> rOverlap;
 
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
@@ -53,13 +53,12 @@ private:
   inline const double getRingInfo(const vector<double>& ringsInfo, int ringNumber) const;
 
   std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
-  double computeNextRho(int parity, double lastZ, double newZ, double lastRho);
+  double computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho);
   void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
   double averageZ_ = 0;
 public:
   Property<int, NoDefault>    numRings;
-  Property<double, NoDefault> zError;
   Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;
   Property<double, NoDefault> placeZ;
@@ -76,9 +75,8 @@ public:
     innerRadius( "innerRadius", parsedAndChecked()),
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
-    zError(      "zError"     , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
-    rOverlap(    "rOverlap"   , parsedOnly(), 0.),
+    rOverlap(    "rOverlap"   , parsedOnly()),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),
