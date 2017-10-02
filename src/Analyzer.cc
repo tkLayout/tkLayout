@@ -2235,6 +2235,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
 
       const int nBins = 500;
+      const int nBinsDistr = 300;
 
       const double resoXMin = 0.;
       const double resoXMax = 30.;
@@ -2289,78 +2290,78 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       // Modules' parametrized spatial resolution distributions
       parametrizedResolutionLocalXBarrelDistribution[myTag].Reset();
-      parametrizedResolutionLocalXBarrelDistribution[myTag].SetNameTitle("resoXBarDistr","Distribution of the resolution on local X coordinate (barrel modules)");
+      parametrizedResolutionLocalXBarrelDistribution[myTag].SetNameTitle("resoXBarDistr","Distribution of resolutions on local X coordinate (barrel modules)");
       parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(nBins, resoXMin, resoXMax);
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalXEndcapsDistribution[myTag].Reset();
-      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetNameTitle("resoXEndDistr","Distribution of the resolution on local X coordinate (endcaps modules)");
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetNameTitle("resoXEndDistr","Distribution of resolutions on local X coordinate (endcaps modules)");
       parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(nBins, resoXMin, resoXMax);
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYBarrelDistribution[myTag].Reset();
-      parametrizedResolutionLocalYBarrelDistribution[myTag].SetNameTitle("resoYBarDistr","Distribution of the resolution on local Y coordinate (barrel modules)");
+      parametrizedResolutionLocalYBarrelDistribution[myTag].SetNameTitle("resoYBarDistr","Distribution of resolutions on local Y coordinate (barrel modules)");
       parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(nBins, resoYMin, resoYMax);
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYEndcapsDistribution[myTag].Reset();
-      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetNameTitle("resoYEndDistr","Distribution of the resolution on local Y coordinate (endcaps modules)");
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetNameTitle("resoYEndDistr","Distribution of resolutions on local Y coordinate (endcaps modules)");
       parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(nBins, resoYMin, resoYMax);
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
 
       // Incident angles distributions (view from modules)
       incidentAngleLocalXBarrelDistribution_[myTag].Reset();
-      incidentAngleLocalXBarrelDistribution_[myTag].SetNameTitle("angleXBarDistr","Distribution of the incident angles on local X (barrel modules)");
-      incidentAngleLocalXBarrelDistribution_[myTag].SetBins(nBins, incidentAngleXBarrelMin, incidentAngleXBarrelMax);
+      incidentAngleLocalXBarrelDistribution_[myTag].SetNameTitle("angleXBarDistr","Distribution of incident angles alpha (barrel modules)");
+      incidentAngleLocalXBarrelDistribution_[myTag].SetBins(nBinsDistr, incidentAngleXBarrelMin, incidentAngleXBarrelMax);
       incidentAngleLocalXBarrelDistribution_[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       incidentAngleLocalXBarrelDistribution_[myTag].GetXaxis()->CenterTitle();
 
       incidentAngleLocalXEndcapsDistribution_[myTag].Reset();
-      incidentAngleLocalXEndcapsDistribution_[myTag].SetNameTitle("angleXEndDistr","Distribution of the incident angles on local X (endcaps modules)");
-      incidentAngleLocalXEndcapsDistribution_[myTag].SetBins(nBins, incidentAngleXEndcapsMin, incidentAngleXEndcapsMax);
+      incidentAngleLocalXEndcapsDistribution_[myTag].SetNameTitle("angleXEndDistr","Distribution of incident angles alpha (endcaps modules)");
+      incidentAngleLocalXEndcapsDistribution_[myTag].SetBins(nBinsDistr, incidentAngleXEndcapsMin, incidentAngleXEndcapsMax);
       incidentAngleLocalXEndcapsDistribution_[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       incidentAngleLocalXEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();
 
       incidentAngleLocalYBarrelDistribution_[myTag].Reset();
-      incidentAngleLocalYBarrelDistribution_[myTag].SetNameTitle("angleYBarDistr","Distribution of the incident angles on local Y (barrel modules)");
-      incidentAngleLocalYBarrelDistribution_[myTag].SetBins(nBins, incidentAngleYBarrelMin, incidentAngleYBarrelMax);
+      incidentAngleLocalYBarrelDistribution_[myTag].SetNameTitle("angleYBarDistr","Distribution of incident angles beta (barrel modules)");
+      incidentAngleLocalYBarrelDistribution_[myTag].SetBins(nBinsDistr, incidentAngleYBarrelMin, incidentAngleYBarrelMax);
       incidentAngleLocalYBarrelDistribution_[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
       incidentAngleLocalYBarrelDistribution_[myTag].GetXaxis()->CenterTitle();
 
       incidentAngleLocalYEndcapsDistribution_[myTag].Reset();
-      incidentAngleLocalYEndcapsDistribution_[myTag].SetNameTitle("angleYEndDistr","Distribution of the incident angles on local Y (endcaps modules)");
-      incidentAngleLocalYEndcapsDistribution_[myTag].SetBins(nBins, incidentAngleYEndcapsMin, incidentAngleYEndcapsMax);
+      incidentAngleLocalYEndcapsDistribution_[myTag].SetNameTitle("angleYEndDistr","Distribution of incident angles beta (endcaps modules)");
+      incidentAngleLocalYEndcapsDistribution_[myTag].SetBins(nBinsDistr, incidentAngleYEndcapsMin, incidentAngleYEndcapsMax);
       incidentAngleLocalYEndcapsDistribution_[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
       incidentAngleLocalYEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();
 
       // Track angles distributions (global coordinates)
-      /*trackPhiBarrelDistribution_[myTag].Reset();
-      trackPhiBarrelDistribution_[myTag].SetNameTitle("angleXBarDistr","Distribution of the incident angles on local X (barrel modules)");
-      trackPhiBarrelDistribution_[myTag].SetBins(nBins, 0., 2.*M_PI);
-      trackPhiBarrelDistribution_[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      trackPhiBarrelDistribution_[myTag].Reset();
+      trackPhiBarrelDistribution_[myTag].SetNameTitle("trackPhiBarDistr","Distribution of incident tracks Phi (barrel modules)");
+      trackPhiBarrelDistribution_[myTag].SetBins(nBinsDistr, 0., 2.*M_PI);
+      trackPhiBarrelDistribution_[myTag].GetXaxis()->SetTitle("Track Phi");
       trackPhiBarrelDistribution_[myTag].GetXaxis()->CenterTitle();
 
       trackPhiEndcapsDistribution_[myTag].Reset();
-      trackPhiEndcapsDistribution_[myTag].SetNameTitle("angleXEndDistr","Distribution of the incident angles on local X (endcaps modules)");
-      trackPhiEndcapsDistribution_[myTag].SetBins(nBins, 0., 2.*M_PI);
-      trackPhiEndcapsDistribution_[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      trackPhiEndcapsDistribution_[myTag].SetNameTitle("trackPhiEndDistr","Distribution of incident tracks Phi (endcaps modules)");
+      trackPhiEndcapsDistribution_[myTag].SetBins(nBinsDistr, 0., 2.*M_PI);
+      trackPhiEndcapsDistribution_[myTag].GetXaxis()->SetTitle("Track Phi");
       trackPhiEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();
 
       trackEtaBarrelDistribution_[myTag].Reset();
-      trackEtaBarrelDistribution_[myTag].SetNameTitle("angleYBarDistr","Distribution of the incident angles on local Y (barrel modules)");
-      trackEtaBarrelDistribution_[myTag].SetBins(nBins, -0.1, 4.1);
-      trackEtaBarrelDistribution_[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
+      trackEtaBarrelDistribution_[myTag].SetNameTitle("trackEtaBarDistr","Distribution of incident tracks Eta (barrel modules)");
+      trackEtaBarrelDistribution_[myTag].SetBins(nBinsDistr, -0.1, 4.1);
+      trackEtaBarrelDistribution_[myTag].GetXaxis()->SetTitle("Track Eta");
       trackEtaBarrelDistribution_[myTag].GetXaxis()->CenterTitle();
 
       trackEtaEndcapsDistribution_[myTag].Reset();
-      trackEtaEndcapsDistribution_[myTag].SetNameTitle("angleYEndDistr","Distribution of the incident angles on local Y (endcaps modules)");
-      trackEtaEndcapsDistribution_[myTag].SetBins(nBins, -0.1, 4.1);
-      trackEtaEndcapsDistribution_[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
-      trackEtaEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();*/
+      trackEtaEndcapsDistribution_[myTag].SetNameTitle("trackEtaEndDistr","Distribution of incident tracks Eta (endcaps modules)");
+      trackEtaEndcapsDistribution_[myTag].SetBins(nBinsDistr, -0.1, 4.1);
+      trackEtaEndcapsDistribution_[myTag].GetXaxis()->SetTitle("Track Eta");
+      trackEtaEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();
 
       int XBarHits = 0;
       int YBarHits = 0;
@@ -2387,18 +2388,18 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		    //if (hitModule->isPixelModule()) {
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
-		  const double trackPhi = myTrack->getPhi();
-		  double cotAlpha = 1./tan(hitModule->alpha(myTrack->getPhi()));
-		  double resolutionLocalX = hitModule->resolutionLocalX(myTrack->getPhi())/Units::um; // um
+		  double trackPhi = myTrack->getPhi();
+		  double cotAlpha = 1./tan(hitModule->alpha(trackPhi));
+		  double resolutionLocalX = hitModule->resolutionLocalX(trackPhi)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
-		    //trackPhiBarrelDistribution_[myTag].Fill(trackPhi);
+		    trackPhiBarrelDistribution_[myTag].Fill(trackPhi);
 		    incidentAngleLocalXBarrelDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);		    
 		    XBarHits++;
 		  }
 		  if ( hitModule->subdet() == ENDCAP ) {
-		    //trackPhiEndcapsDistribution_[myTag].Fill(myTrack->getPhi());
+		    trackPhiEndcapsDistribution_[myTag].Fill(trackPhi);
 		    incidentAngleLocalXEndcapsDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXEndcapsDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXEndcapsMap[myTag].Fill(cotAlpha, resolutionLocalX);
@@ -2407,17 +2408,19 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		}
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
-		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack->getTheta())));
-		  double resolutionLocalY = hitModule->resolutionLocalY(myTrack->getTheta())/Units::um; // um
+		  double trackEta = myTrack->getEta();
+		  double trackTheta = myTrack->getTheta();
+		  double absCotBeta = fabs(1./tan(hitModule->beta(trackTheta)));
+		  double resolutionLocalY = hitModule->resolutionLocalY(trackTheta)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
-		    //trackEtaBarrelDistribution_[myTag].Fill(myTrack->getEta());
+		    trackEtaBarrelDistribution_[myTag].Fill(trackEta);
 		    incidentAngleLocalYBarrelDistribution_[myTag].Fill(absCotBeta);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
 		    parametrizedResolutionLocalYBarrelMap[myTag].Fill(absCotBeta, resolutionLocalY);
 		    YBarHits++;
 		  }
 		  if (hitModule->subdet() == ENDCAP ) {
-		    //trackEtaEndcapsDistribution_[myTag].Fill(myTrack->getEta());
+		    trackEtaEndcapsDistribution_[myTag].Fill(trackEta);
 		    incidentAngleLocalYEndcapsDistribution_[myTag].Fill(absCotBeta);	    
 		    parametrizedResolutionLocalYEndcapsDistribution[myTag].Fill(resolutionLocalY);
 		    parametrizedResolutionLocalYEndcapsMap[myTag].Fill(absCotBeta, resolutionLocalY);

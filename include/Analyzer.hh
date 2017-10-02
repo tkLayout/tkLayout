@@ -279,14 +279,18 @@ namespace insur {
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalYBarrelMap() { return parametrizedResolutionLocalYBarrelMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalYEndcapsMap() { return parametrizedResolutionLocalYEndcapsMap; }
-    std::map<std::string, TH1D>& getIncidentAngleLocalXBarrelDistribution() {return incidentAngleLocalXBarrelDistribution_; }
-    std::map<std::string, TH1D>& getIncidentAngleLocalXEndcapsDistribution() { return incidentAngleLocalXEndcapsDistribution_; }
-    std::map<std::string, TH1D>& getIncidentAngleLocalYBarrelDistribution() { return incidentAngleLocalYBarrelDistribution_; }
-    std::map<std::string, TH1D>& getIncidentAngleLocalYEndcapsDistribution() { return incidentAngleLocalYEndcapsDistribution_; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXBarrelDistribution() {return incidentAngleLocalXBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXEndcapsDistribution() { return incidentAngleLocalXEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYBarrelDistribution() { return incidentAngleLocalYBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYEndcapsDistribution() { return incidentAngleLocalYEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getTrackPhiBarrelDistribution() { return trackPhiBarrelDistribution_; }
+    std::map<std::string, TH1D>& getTrackPhiEndcapsDistribution() { return trackPhiEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getTrackEtaBarrelDistribution() { return trackEtaBarrelDistribution_; }
+    std::map<std::string, TH1D>& getTrackEtaEndcapsDistribution() { return trackEtaEndcapsDistribution_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
@@ -376,14 +380,18 @@ namespace insur {
     std::map<std::string, TH2D> parametrizedResolutionLocalXEndcapsMap;
     std::map<std::string, TH2D> parametrizedResolutionLocalYBarrelMap;
     std::map<std::string, TH2D> parametrizedResolutionLocalYEndcapsMap; 
-    std::map<std::string, TH1D> incidentAngleLocalXBarrelDistribution_;
-    std::map<std::string, TH1D> incidentAngleLocalXEndcapsDistribution_;
-    std::map<std::string, TH1D> incidentAngleLocalYBarrelDistribution_;
-    std::map<std::string, TH1D> incidentAngleLocalYEndcapsDistribution_;
     std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
+    std::map<std::string, TH1D> incidentAngleLocalXBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalXEndcapsDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYEndcapsDistribution_;
+    std::map<std::string, TH1D> trackPhiBarrelDistribution_;
+    std::map<std::string, TH1D> trackPhiEndcapsDistribution_;
+    std::map<std::string, TH1D> trackEtaBarrelDistribution_;
+    std::map<std::string, TH1D> trackEtaEndcapsDistribution_;
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;

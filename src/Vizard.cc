@@ -2287,17 +2287,23 @@ namespace insur {
       std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
       std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
 
-      // Modules' incident angles distributions
-      std::map<std::string, TH1D>& incidentAngleLocalXBarrelDistribution = analyzer.getIncidentAngleLocalXBarrelDistribution();
-      std::map<std::string, TH1D>& incidentAngleLocalYBarrelDistribution = analyzer.getIncidentAngleLocalYBarrelDistribution();
-      std::map<std::string, TH1D>& incidentAngleLocalXEndcapsDistribution = analyzer.getIncidentAngleLocalXEndcapsDistribution();
-      std::map<std::string, TH1D>& incidentAngleLocalYEndcapsDistribution = analyzer.getIncidentAngleLocalYEndcapsDistribution();
-
       // Modules' parametrized spatial resolution distributions
       std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
       std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
       std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
       std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+      // Modules' incident angles distributions (view from modules)
+      std::map<std::string, TH1D>& incidentAngleLocalXBarrelDistribution = analyzer.getIncidentAngleLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalYBarrelDistribution = analyzer.getIncidentAngleLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalXEndcapsDistribution = analyzer.getIncidentAngleLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalYEndcapsDistribution = analyzer.getIncidentAngleLocalYEndcapsDistribution();
+
+      // Tracks angles distributions (global coordinates)
+      std::map<std::string, TH1D>& trackPhiBarrelDistribution = analyzer.getTrackPhiBarrelDistribution();
+      std::map<std::string, TH1D>& trackEtaBarrelDistribution = analyzer.getTrackEtaBarrelDistribution();
+      std::map<std::string, TH1D>& trackPhiEndcapsDistribution = analyzer.getTrackPhiEndcapsDistribution();
+      std::map<std::string, TH1D>& trackEtaEndcapsDistribution = analyzer.getTrackEtaEndcapsDistribution();
 
       if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
 	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
@@ -2333,6 +2339,10 @@ namespace insur {
 	  myPad->cd();
 	  incidentAngleLocalXBarrelDistribution[tag].SetStats(1);
 	  incidentAngleLocalXBarrelDistribution[tag].DrawNormalized();
+	  myPad = resoXBarCanvas.GetPad(4);
+	  myPad->cd();
+	  trackPhiBarrelDistribution[tag].SetStats(1);
+	  trackPhiBarrelDistribution[tag].DrawNormalized();
 	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
@@ -2355,6 +2365,10 @@ namespace insur {
 	  myPad->cd();
 	  incidentAngleLocalYBarrelDistribution[tag].SetStats(1);
 	  incidentAngleLocalYBarrelDistribution[tag].DrawNormalized();
+	  myPad = resoYBarCanvas.GetPad(4);
+	  myPad->cd();
+	  trackEtaBarrelDistribution[tag].SetStats(1);
+	  trackEtaBarrelDistribution[tag].DrawNormalized();
 	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
@@ -2377,6 +2391,10 @@ namespace insur {
 	  myPad->cd();
 	  incidentAngleLocalXEndcapsDistribution[tag].SetStats(1);
 	  incidentAngleLocalXEndcapsDistribution[tag].DrawNormalized();
+	  myPad = resoXEndCanvas.GetPad(4);
+	  myPad->cd();
+	  trackPhiEndcapsDistribution[tag].SetStats(1);
+	  trackPhiEndcapsDistribution[tag].DrawNormalized();
 	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
@@ -2399,6 +2417,10 @@ namespace insur {
 	  myPad->cd();
 	  incidentAngleLocalYEndcapsDistribution[tag].SetStats(1);
 	  incidentAngleLocalYEndcapsDistribution[tag].DrawNormalized();
+	  myPad = resoYEndCanvas.GetPad(4);
+	  myPad->cd();
+	  trackEtaEndcapsDistribution[tag].SetStats(1);
+	  trackEtaEndcapsDistribution[tag].DrawNormalized();
 	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
