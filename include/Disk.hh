@@ -21,7 +21,7 @@ namespace material {
 using material::MaterialObject;
 using material::ConversionStation;
 
-typedef std::tuple<std::vector<double>, std::vector<double>, double > ScanDiskInfo;
+typedef std::pair<std::vector<double>, std::vector<double> > ScanDiskInfo;
 typedef std::pair<ScanDiskInfo, ScanDiskInfo> ScanEndcapInfo;
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
