@@ -2287,6 +2287,12 @@ namespace insur {
       std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
       std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
 
+      // Modules' incident angles distributions
+      std::map<std::string, TH1D>& incidentAngleLocalXBarrelDistribution = analyzer.getIncidentAngleLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalYBarrelDistribution = analyzer.getIncidentAngleLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalXEndcapsDistribution = analyzer.getIncidentAngleLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& incidentAngleLocalYEndcapsDistribution = analyzer.getIncidentAngleLocalYEndcapsDistribution();
+
       // Modules' parametrized spatial resolution distributions
       std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
       std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
@@ -2312,7 +2318,7 @@ namespace insur {
 	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
 	  TCanvas resoXBarCanvas;
 	  resoXBarCanvas.SetFillColor(color_plot_background);
-	  resoXBarCanvas.Divide(2,1);
+	  resoXBarCanvas.Divide(2,2);
 	  TVirtualPad* myPad;
 	  myPad = resoXBarCanvas.GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
@@ -2323,6 +2329,10 @@ namespace insur {
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
 	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  myPad = resoXBarCanvas.GetPad(3);
+	  myPad->cd();
+	  incidentAngleLocalXBarrelDistribution[tag].SetStats(1);
+	  incidentAngleLocalXBarrelDistribution[tag].DrawNormalized();
 	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
@@ -2330,7 +2340,7 @@ namespace insur {
 	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
 	  TCanvas resoYBarCanvas;
 	  resoYBarCanvas.SetFillColor(color_plot_background);
-	  resoYBarCanvas.Divide(2,1);
+	  resoYBarCanvas.Divide(2,2);
 	  TVirtualPad* myPad;
 	  myPad = resoYBarCanvas.GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
@@ -2341,6 +2351,10 @@ namespace insur {
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
 	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  myPad = resoYBarCanvas.GetPad(3);
+	  myPad->cd();
+	  incidentAngleLocalYBarrelDistribution[tag].SetStats(1);
+	  incidentAngleLocalYBarrelDistribution[tag].DrawNormalized();
 	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
@@ -2348,7 +2362,7 @@ namespace insur {
 	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
 	  TCanvas resoXEndCanvas;
 	  resoXEndCanvas.SetFillColor(color_plot_background);
-	  resoXEndCanvas.Divide(2,1);
+	  resoXEndCanvas.Divide(2,2);
 	  TVirtualPad* myPad;
 	  myPad = resoXEndCanvas.GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
@@ -2359,6 +2373,10 @@ namespace insur {
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  myPad = resoXEndCanvas.GetPad(3);
+	  myPad->cd();
+	  incidentAngleLocalXEndcapsDistribution[tag].SetStats(1);
+	  incidentAngleLocalXEndcapsDistribution[tag].DrawNormalized();
 	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
@@ -2366,7 +2384,7 @@ namespace insur {
 	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
 	  TCanvas resoYEndCanvas;
 	  resoYEndCanvas.SetFillColor(color_plot_background);
-	  resoYEndCanvas.Divide(2,1);
+	  resoYEndCanvas.Divide(2,2);
 	  TVirtualPad* myPad;
 	  myPad = resoYEndCanvas.GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
@@ -2377,6 +2395,10 @@ namespace insur {
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  myPad = resoYEndCanvas.GetPad(3);
+	  myPad->cd();
+	  incidentAngleLocalYEndcapsDistribution[tag].SetStats(1);
+	  incidentAngleLocalYEndcapsDistribution[tag].DrawNormalized();
 	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));

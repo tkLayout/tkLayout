@@ -279,6 +279,10 @@ namespace insur {
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalYBarrelMap() { return parametrizedResolutionLocalYBarrelMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalYEndcapsMap() { return parametrizedResolutionLocalYEndcapsMap; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXBarrelDistribution() {return incidentAngleLocalXBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXEndcapsDistribution() { return incidentAngleLocalXEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYBarrelDistribution() { return incidentAngleLocalYBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYEndcapsDistribution() { return incidentAngleLocalYEndcapsDistribution_; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
@@ -372,6 +376,10 @@ namespace insur {
     std::map<std::string, TH2D> parametrizedResolutionLocalXEndcapsMap;
     std::map<std::string, TH2D> parametrizedResolutionLocalYBarrelMap;
     std::map<std::string, TH2D> parametrizedResolutionLocalYEndcapsMap; 
+    std::map<std::string, TH1D> incidentAngleLocalXBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalXEndcapsDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYEndcapsDistribution_;
     std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
