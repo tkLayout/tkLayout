@@ -142,11 +142,12 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
 
 
 /** Calculates ring (i) radiusHigh, using ring (i+1).
-   zError constraint is used, as well as a rSafetyMargin.
+    The most stringent of zError and rOverlap is used.
+    rSafetyMargin is also taken into account.
  */
 double Disk::computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
-  // // Case A: Consider zError.
+  // Case A: Consider zError.
   double zErrorShift   = (parity > 0 ? zError : - zError);
   double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
