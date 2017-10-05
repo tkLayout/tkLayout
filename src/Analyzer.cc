@@ -2235,7 +2235,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       TrackNewCollectionMap& myTrackCollection = ttcmIt.second;
 
       const int nBins = 500;
-      const int nBinsDistr = 300;
+      const int nBinsDistr = 200;
 
       const double resoXMin = 0.;
       const double resoXMax = 30.;
@@ -2363,10 +2363,6 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       trackEtaEndcapsDistribution_[myTag].GetXaxis()->SetTitle("Track Eta");
       trackEtaEndcapsDistribution_[myTag].GetXaxis()->CenterTitle();
 
-      int XBarHits = 0;
-      int YBarHits = 0;
-      int XEndHits = 0;
-      int YEndHits = 0;
  
       for (const auto& tcmIt : myTrackCollection) {
 	//const int &parameter = tcmIt.first;
@@ -2385,7 +2381,6 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 	      if ((*iHit)->isActive() && (*iHit)->getHitModule()) {
 		
 		    const auto& hitModule = (*iHit)->getHitModule();
-		    //if (hitModule->isPixelModule()) {
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double trackPhi = myTrack->getPhi();
@@ -2396,14 +2391,12 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		    incidentAngleLocalXBarrelDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);		    
-		    XBarHits++;
 		  }
 		  if ( hitModule->subdet() == ENDCAP ) {
 		    trackPhiEndcapsDistribution_[myTag].Fill(trackPhi);
 		    incidentAngleLocalXEndcapsDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXEndcapsDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXEndcapsMap[myTag].Fill(cotAlpha, resolutionLocalX);
-		    XEndHits++;
 		  }
 		}
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
@@ -2417,27 +2410,20 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		    incidentAngleLocalYBarrelDistribution_[myTag].Fill(absCotBeta);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
 		    parametrizedResolutionLocalYBarrelMap[myTag].Fill(absCotBeta, resolutionLocalY);
-		    YBarHits++;
 		  }
 		  if (hitModule->subdet() == ENDCAP ) {
 		    trackEtaEndcapsDistribution_[myTag].Fill(trackEta);
 		    incidentAngleLocalYEndcapsDistribution_[myTag].Fill(absCotBeta);	    
 		    parametrizedResolutionLocalYEndcapsDistribution[myTag].Fill(resolutionLocalY);
 		    parametrizedResolutionLocalYEndcapsMap[myTag].Fill(absCotBeta, resolutionLocalY);
-		    YEndHits++;
 		  }
 		}
-		// }
 	      }
 	    }
 
 	  } // hit loop
 	} // track loop
       } // collection loop
-      std::cout << "XBarHits = " << XBarHits << std::endl;
-      std::cout << "XEndHits = " << XEndHits << std::endl;
-      std::cout << "YBarHits = " << YBarHits << std::endl;
-      std::cout << "YEndHits = " << YEndHits << std::endl;
     } // tag loop
 }
 
