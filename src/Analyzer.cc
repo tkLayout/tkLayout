@@ -2387,13 +2387,13 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		  double cotAlpha = 1./tan(hitModule->alpha(trackPhi));
 		  double resolutionLocalX = hitModule->resolutionLocalX(trackPhi)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
-		    trackPhiBarrelDistribution_[myTag].Fill(trackPhi);
+		    trackPhiBarrelDistribution_[myTag].Fill(femod(trackPhi, 2.*M_PI));
 		    incidentAngleLocalXBarrelDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);		    
 		  }
 		  if ( hitModule->subdet() == ENDCAP ) {
-		    trackPhiEndcapsDistribution_[myTag].Fill(trackPhi);
+		    trackPhiEndcapsDistribution_[myTag].Fill(femod(trackPhi, 2.*M_PI));
 		    incidentAngleLocalXEndcapsDistribution_[myTag].Fill(cotAlpha);
 		    parametrizedResolutionLocalXEndcapsDistribution[myTag].Fill(resolutionLocalX);
 		    parametrizedResolutionLocalXEndcapsMap[myTag].Fill(cotAlpha, resolutionLocalX);
