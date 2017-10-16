@@ -60,7 +60,7 @@ enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 // As a result, the full optical cabling map can be used for power cables mapping.
 // The only difference is that power cables are assigned to section A or C in PP1.
 // This additional info is dealt with by ChannelSection.
-enum ChannelSection { UNKNOWN, A, C };
+enum ChannelSection { UNKNOWN, A, B, C };
 
 
 #endif  // CABLING_CONSTANTS_HH
