@@ -165,7 +165,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
-    track.setOrigin(0., 0., 0.); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+    track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.)); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
     //track.setTheta(theta);
     //track.setPhi(phi);
 
@@ -2247,7 +2247,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       const double incidentAngleXEndcapsMin = -0.3;
       const double incidentAngleXEndcapsMax = 0.3;
       const double incidentAngleYBarrelMin = 0.;
-      const double incidentAngleYBarrelMax = 5.;
+      const double incidentAngleYBarrelMax = 10.;
       const double incidentAngleYEndcapsMin = 0.;
       const double incidentAngleYEndcapsMax = 0.8;
 
