@@ -31,6 +31,9 @@ private:
   // CONNECT MODULES TO BUNDLES
   void connectModulesToBundles(Tracker* tracker);
 
+  void connectBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles);
+  std::pair<int, ChannelSection> computePowerServicesChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide);
+
   // CONNECT BUNDLES TO CABLES
   void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
   const Category computeCableType(const Category& bundleType) const;
@@ -39,6 +42,7 @@ private:
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
   void createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
   void connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const;
+  void checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles);
   void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);  // check bundles to cables connections
 
   // positive cabling side

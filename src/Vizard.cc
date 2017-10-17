@@ -1572,15 +1572,16 @@ namespace insur {
       isPositiveCablingSide = true;
       channelsContent->addItem(positiveSideName);
       // GENERAL
-      RootWTable* channelsTablePlus = servicesChannels(myCablingMap, isPositiveCablingSide);
+      ChannelSection requestedSection = ChannelSection::B;
+      RootWTable* channelsTablePlus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTablePlus);
       // SECTION A
-      ChannelSection requestedSection = ChannelSection::A;
-      RootWTable* channelsTablePlusA = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      requestedSection = ChannelSection::A;
+      RootWTable* channelsTablePlusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTablePlusA);
       // SECTION C
       requestedSection = ChannelSection::C;
-      RootWTable* channelsTablePlusC = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      RootWTable* channelsTablePlusC = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTablePlusC);
 
       // NEGATIVE CABLING SIDE
@@ -1588,16 +1589,16 @@ namespace insur {
       channelsContent->addItem(spacer);
       channelsContent->addItem(negativeSideName);
       // GENERAL
-      requestedSection = ChannelSection::UNKNOWN;
-      RootWTable* channelsTableMinus = servicesChannels(myCablingMap, isPositiveCablingSide);
+      requestedSection = ChannelSection::B;
+      RootWTable* channelsTableMinus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinus);
       // SECTION A
       requestedSection = ChannelSection::A;
-      RootWTable* channelsTableMinusA = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      RootWTable* channelsTableMinusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinusA);
       // SECTION C
       requestedSection = ChannelSection::C;
-      RootWTable* channelsTableMinusC = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      RootWTable* channelsTableMinusC = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinusC);
     }
     return true;
@@ -1659,9 +1660,9 @@ namespace insur {
 
     // Header table
     channelsTable->setContent(0, 1, "# MFC");
-    channelsTable->setContent(0, 2, "# PWR PS");
-    channelsTable->setContent(0, 3, "# PWR 2S");
-    channelsTable->setContent(0, 4, "# PWR Total");
+    channelsTable->setContent(0, 2, "# MFB PS");
+    channelsTable->setContent(0, 3, "# MFB 2S");
+    channelsTable->setContent(0, 4, "# MFB Total");
 
     int totalCables = 0;
     int totalPsBundles = 0;
@@ -1697,6 +1698,93 @@ namespace insur {
     channelsTable->setContent(13, 2, totalPsBundles);
     channelsTable->setContent(13, 3, totalSsBundles);
     channelsTable->setContent(13, 4, totalBundles);
+
+    return channelsTable;
+  }
+
+
+/* Interface to gather information on powerServices channels, and create a table storing it.
+   */
+  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
+    std::map<int, int> psBundlesPerChannel;
+    std::map<int, int> ssBundlesPerChannel;
+
+    // Fill powerServices channels maps.
+    analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+
+    // Create table.
+    RootWTable* channelsTable = createPowerServicesChannelTable(psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+
+    return channelsTable;
+  }
+
+
+  /* Get the requested PowerServices Channels info from the cabling map.
+   */
+  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
+
+    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+
+    for (const auto& myBundle : bundles) {
+      const ChannelSection& mySection = myBundle.second->powerServicesChannelSection();
+
+      // If necessary, can select the PowerServices Channels corresponding to the requested section.
+      if ( requestedSection == ChannelSection::UNKNOWN 
+	   || (requestedSection != ChannelSection::UNKNOWN && mySection == requestedSection)
+	   ) {
+
+	const int channel = myBundle.second->powerServicesChannel();
+
+	const Category bundleType = myBundle.second->type();      
+
+	if (bundleType == Category::PS10G || bundleType == Category::PS10GA || bundleType == Category::PS10GB || bundleType == Category::PS5G) psBundlesPerChannel[channel] += 1;
+	else if (bundleType == Category::SS) ssBundlesPerChannel[channel] += 1;
+	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+      }
+    }
+  }
+
+
+  /* Create the table with PowerServices Channel information.
+   */
+  RootWTable* Vizard::createPowerServicesChannelTable(const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    // Header table
+    channelsTable->setContent(0, 1, "# PWR PS");
+    channelsTable->setContent(0, 2, "# PWR 2S");
+    channelsTable->setContent(0, 3, "# PWR Total");
+
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      const int channel = (isPositiveCablingSide ? i : -i);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channel) != 0 ? psBundlesPerChannel.at(channel) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channel) != 0 ? ssBundlesPerChannel.at(channel) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channel;
+      if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection);
+      channelsTable->setContent(i, 0, channelName.str());
+
+      channelsTable->setContent(i, 1, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 2, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 3, numBundlesPerChannel);
+
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, 0, "Total");
+    channelsTable->setContent(13, 1, totalPsBundles);
+    channelsTable->setContent(13, 2, totalSsBundles);
+    channelsTable->setContent(13, 3, totalBundles);
 
     return channelsTable;
   }
@@ -7424,37 +7512,70 @@ namespace insur {
   void Vizard::computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
     std::map<std::string, int > channelsColors;
 
-    // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+    if (!isPowerCabling) {
+      // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
+      const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
-    // Loop on all the encountered cables
-    for (const auto& myCable : cables) {
-      const int& myNumber = myCable.second->servicesChannel();
-      const int& myPlotColor = myCable.second->servicesChannelPlotColor();
+      // Loop on all the encountered cables
+      for (const auto& myCable : cables) {
+	const int& myNumber = myCable.second->servicesChannel();
+	const int& myPlotColor = myCable.second->servicesChannelPlotColor();
 
-      // This is simply to add 0 in front of single-digit numbers, so that the sorting directly makes sense.
-      std::stringstream channelNameStream;
-      channelNameStream << "OT";
-      // Find single-digit numbers
-      if (fabs(myNumber) <= 9) {	
-	if (myNumber >= 0) channelNameStream << "0" << myNumber; // Add 0 in front of positive digit	
-	else channelNameStream << "-0" << fabs(myNumber); // Add -0 in front of negative digit
-      }
-      else channelNameStream << myNumber;
+	// This is simply to add 0 in front of single-digit numbers, so that the sorting directly makes sense.
+	std::stringstream channelNameStream;
+	channelNameStream << "OT";
+	// Find single-digit numbers
+	if (fabs(myNumber) <= 9) {	
+	  if (myNumber >= 0) channelNameStream << "0" << myNumber; // Add 0 in front of positive digit	
+	  else channelNameStream << "-0" << fabs(myNumber); // Add -0 in front of negative digit
+	}
+	else channelNameStream << myNumber;
 
-      // If the legend is for power cabling, one need to distinguish sections A and C.
-      if (isPowerCabling) { 
+	// If the legend is for power cabling, one need to distinguish sections A and C.
 	const ChannelSection& mySection = myCable.second->servicesChannelSection();
-	channelNameStream << any2str(mySection); 
-      } 
-      channelNameStream << std::endl;
-      const std::string channelName = channelNameStream.str();
+	channelNameStream << any2str(mySection);
+	channelNameStream << std::endl;
+	const std::string channelName = channelNameStream.str();
 
-      // ADD CHANNEL COLOR TO THE MAP
-      if (channelsColors.find(channelName) == channelsColors.end()) {
-	channelsColors[channelName] = myPlotColor;
+	// ADD CHANNEL COLOR TO THE MAP
+	if (channelsColors.find(channelName) == channelsColors.end()) {
+	  channelsColors[channelName] = myPlotColor;
+	}
       }
     }
+
+    else {
+      // Only consider the relevant bundles: bundles from (+Z) side or (-Z) side.
+      const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+
+      // Loop on all the encountered bundles
+      for (const auto& myBundle : bundles) {
+	const int& myNumber = myBundle.second->powerServicesChannel();
+	const int& myPlotColor = myBundle.second->powerServicesChannelPlotColor();
+
+	// This is simply to add 0 in front of single-digit numbers, so that the sorting directly makes sense.
+	std::stringstream channelNameStream;
+	channelNameStream << "OT";
+	// Find single-digit numbers
+	if (fabs(myNumber) <= 9) {	
+	  if (myNumber >= 0) channelNameStream << "0" << myNumber; // Add 0 in front of positive digit	
+	  else channelNameStream << "-0" << fabs(myNumber); // Add -0 in front of negative digit
+	}
+	else channelNameStream << myNumber;
+
+	// If the legend is for power cabling, one need to distinguish sections A and C.
+	const ChannelSection& mySection = myBundle.second->powerServicesChannelSection();
+	channelNameStream << any2str(mySection);
+	channelNameStream << std::endl;
+	const std::string channelName = channelNameStream.str();
+
+	// ADD CHANNEL COLOR TO THE MAP
+	if (channelsColors.find(channelName) == channelsColors.end()) {
+	  channelsColors[channelName] = myPlotColor;
+	}
+      }
+    }
+
 
     // Create legenda
     for (const auto& it : channelsColors) {

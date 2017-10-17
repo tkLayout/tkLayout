@@ -35,6 +35,7 @@ public:
 
   const double minPhi() const;
   const double maxPhi() const;
+  const double meanPhi() const;
 
   Module* minPhiModule() const;
   Module* maxPhiModule() const;
@@ -48,9 +49,20 @@ public:
 
   const int plotColor() const { return plotColor_; }
 
+  const int powerServicesChannel() const { return powerServicesChannel_; }
+  const ChannelSection& powerServicesChannelSection() const { return powerServicesChannelSection_; }
+  const int powerServicesChannelPlotColor() const { return powerServicesChannelPlotColor_; }
+
+  void setPowerServicesChannel(std::pair<int, ChannelSection>& powerServicesChannel) {
+    powerServicesChannel_ = powerServicesChannel.first;
+    powerServicesChannelSection_ = powerServicesChannel.second;
+    powerServicesChannelPlotColor_ = computePowerServicesChannelPlotColor(powerServicesChannel);
+  }
+
 
 private:
   const int computePlotColor(const int id, const bool isPositiveCablingSide) const;
+  int computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>& powerServicesChannel) const;
 
   Container modules_;
 
@@ -64,6 +76,10 @@ private:
   bool isTiltedPart_;
 
   int plotColor_;
+
+  int powerServicesChannel_;
+  ChannelSection powerServicesChannelSection_;
+  int powerServicesChannelPlotColor_;
 };
 
 

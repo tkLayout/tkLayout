@@ -481,6 +481,16 @@ const int DetectorModule::bundlePlotColor() const {
 }
 
 
+const int DetectorModule::powerChannelPlotColor() const {
+  int powerChannelPlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
+    powerChannelPlotColor = myBundle->powerServicesChannelPlotColor();
+  }
+  return powerChannelPlotColor;
+}
+
+
 const int DetectorModule::channelPlotColor() const {
   int channelPlotColor = 0;
   const Bundle* myBundle = getBundle();

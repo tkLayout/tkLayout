@@ -56,6 +56,23 @@ const double Bundle::maxPhi() const {
   for (const auto& m : modules_) { max = MAX(max, femodRounded(m.center().Phi(), 2. * M_PI) ); } return max;
 }
 
+const double Bundle::meanPhi() const { 
+  std::vector<double> modPhis;
+
+  for (const auto& m : modules_) { 
+    double phi = femodRounded(m.center().Phi(), 2. * M_PI);
+    if (modPhis.size() > 0 && (fabs(modPhis.back() - phi) > M_PI)) {
+      if (phi < modPhis.back()) phi += 2.*M_PI;
+      else phi -= 2.*M_PI;
+    }
+    modPhis.push_back(phi);
+  } 
+
+  double mean = 0.;
+  for (const auto& phi : modPhis) { mean += phi; }
+  mean /= numModules();
+  return mean;
+}
 
 Module* Bundle::minPhiModule() const {
   const Module* mod = &(*std::min_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
@@ -82,5 +99,18 @@ const int Bundle::computePlotColor(const int id, const bool isPositiveCablingSid
   int dizaine = plotId / 10;
   int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
   plotColor = plotType * 3 + plotPhi;
+  return plotColor;
+}
+
+
+int Bundle::computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>& powerServicesChannel) const {
+  int plotColor = 0;
+  const int channel = powerServicesChannel.first;
+  plotColor = fabs(channel);
+  if ( (channel > 0 && powerServicesChannel.second == ChannelSection::A)
+       || (channel < 0 && powerServicesChannel.second == ChannelSection::C)
+       ) {
+    plotColor += 12;
+  }
   return plotColor;
 }
