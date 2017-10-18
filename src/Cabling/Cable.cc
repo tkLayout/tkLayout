@@ -160,37 +160,46 @@ const int Cable::computeServicesChannelPlotColor(const int servicesChannel, cons
 
 
 void Cable::assignPowerServicesChannels() {
-  std::vector<std::pair<int, double> > myBundlesPhis;
-  for (auto& myBundle : bundles_) {
+  /*std::vector<std::pair<int, double> > myBundlesPhis;
+    for (auto& myBundle : bundles_) {
     const int bundleId = myBundle.myid();
     const double bundlePhi = myBundle.meanPhi();
     myBundlesPhis.push_back(std::make_pair(bundleId, bundlePhi));
-  }
-  std::sort(myBundlesPhis.begin(), myBundlesPhis.end(), 
-	    [] (std::pair<int, double> a, std::pair<int, double> b) { 
-	      return (moduloComp(a.second, b.second, 2.*M_PI)); 
-	    } 
-	    );
+    }
+    std::sort(myBundlesPhis.begin(), myBundlesPhis.end(), 
+    [] (std::pair<int, double> a, std::pair<int, double> b) { 
+    return (moduloComp(a.second, b.second, 2.*M_PI)); 
+    } 
+    );*/
+
+
+  //for (auto& myBundle : bundles_) {
+  /*const int bundleId = myBundle.myid();
+    const int phiIndex = std::distance(myBundlesPhis.begin(), it);
+    const int semiPhiRegionIndex = (phiIndex <= 2 ? 0 : 1);
+    const int semiPhiRegionRef = 2 * phiSectorRef_ + semiPhiRegionIndex;
+    std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide_);
+    myBundle.setPowerServicesChannel(powerServicesChannel);
+    /*} 
+    else {
+    std::cout << "ERROR: bundle Id not found in my own bundles vector!" << std::endl;
+    }    */
+
 
 
   for (auto& myBundle : bundles_) {
-    const int bundleId = myBundle.myid();
-    auto it = std::find_if(myBundlesPhis.begin(), myBundlesPhis.end(), 
-			   [bundleId] (const std::pair<const int, const double> bundlePhi) { 
-			     return (bundlePhi.first == bundleId); 
-			   } 
-			   );
+    const double bundlePhi = myBundle.meanPhi();
 
-    if (it != myBundlesPhis.end()) {
-      const int phiIndex = std::distance(myBundlesPhis.begin(), it);
-      const int semiPhiRegionIndex = (phiIndex <= 2 ? 0 : 1);
-      const int semiPhiRegionRef = 2 * phiSectorRef_ + semiPhiRegionIndex;
-      std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide_);
-      myBundle.setPowerServicesChannel(powerServicesChannel);
-    } 
-    else {
+    const int phiIndex = 
+    const int semiPhiRegionIndex = (phiIndex <= 2 ? 0 : 1);
+
+    const int semiPhiRegionRef = 2 * phiSectorRef_ + semiPhiRegionIndex;
+    std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide_);
+    myBundle.setPowerServicesChannel(powerServicesChannel);
+    /*} 
+      else {
       std::cout << "ERROR: bundle Id not found in my own bundles vector!" << std::endl;
-    }    
+      }    */
   }
 }
 
