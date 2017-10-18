@@ -24,6 +24,8 @@ public:
   void addBundle(Bundle* b) { bundles_.push_back(b); }
   int numBundles() const { return bundles_.size(); }
 
+  void assignPowerServicesChannels();
+
   // DTC THE CABLE IS CONNECTED TO.
   const DTC* getDTC() const { return myDTC_; }
 
@@ -40,6 +42,8 @@ public:
 private:
   const std::tuple<int, ChannelSection, int> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   const int computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const;
+  std::pair<int, ChannelSection> computePowerServicesChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide);
+
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
   const std::string computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   

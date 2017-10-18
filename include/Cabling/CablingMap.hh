@@ -31,8 +31,7 @@ private:
   // CONNECT MODULES TO BUNDLES
   void connectModulesToBundles(Tracker* tracker);
 
-  void connectBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles);
-  std::pair<int, ChannelSection> computePowerServicesChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide);
+  void computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables);
 
   // CONNECT BUNDLES TO CABLES
   void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);

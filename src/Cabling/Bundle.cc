@@ -56,7 +56,7 @@ const double Bundle::maxPhi() const {
   for (const auto& m : modules_) { max = MAX(max, femodRounded(m.center().Phi(), 2. * M_PI) ); } return max;
 }
 
-const double Bundle::meanPhi() const { 
+const double Bundle::meanPhi() const {
   std::vector<double> modPhis;
 
   for (const auto& m : modules_) { 

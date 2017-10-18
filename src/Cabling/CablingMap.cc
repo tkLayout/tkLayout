@@ -7,13 +7,13 @@ CablingMap::CablingMap(Tracker* tracker) {
     // CONNECT MODULES TO BUNDLES
     connectModulesToBundles(tracker);
 
-    // ASSIGN POWER SERVICES CHANNELS
-    connectBundlesToPowerServicesChannels(bundles_);
-    connectBundlesToPowerServicesChannels(negBundles_);
-
     // CONNECT BUNDLES TO CABLES
     connectBundlesToCables(bundles_, cables_, DTCs_);
     connectBundlesToCables(negBundles_, negCables_, negDTCs_);
+
+    // COMPUTE POWER SERVICES CHANNELS
+    computePowerServicesChannels(bundles_, cables_);
+    computePowerServicesChannels(negBundles_, negCables_);
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
@@ -33,9 +33,12 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 /* BUNDLES TO POWER SERVICE CHANNELS CONNECTIONS.
  */
-void CablingMap::connectBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles) {
+void CablingMap::computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables) {
 
-  for (auto& b : bundles) {
+  for (auto& c : cables) {
+    c.second->assignPowerServicesChannels();
+
+    /*
     const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 
     const double meanPhiOfficial = b.second->meanPhi();
@@ -44,57 +47,13 @@ void CablingMap::connectBundlesToPowerServicesChannels(std::map<int, Bundle*>& b
     const int semiPhiRegionRef = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);
 
     std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide);
-    b.second->setPowerServicesChannel(powerServicesChannel);
+    b.second->setPowerServicesChannel(powerServicesChannel);*/
   }
 
   // CHECK POWER SERVICES CHANNELS
   checkBundlesToPowerServicesChannels(bundles);
 }
 
-
-std::pair<int, ChannelSection> CablingMap::computePowerServicesChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide) {
-
-  int servicesChannel = 0;
-  ChannelSection servicesChannelSection = ChannelSection::B;
-
-  if (semiPhiRegionRef == 0) { servicesChannel = 1; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 1) { servicesChannel = 2; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 2) { servicesChannel = 2; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 3) { servicesChannel = 3; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 4) { servicesChannel = 4; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 5) { servicesChannel = 4; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 6) { servicesChannel = 5; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 7) { servicesChannel = 6; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 8) { servicesChannel = 6; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 9) { servicesChannel = 7; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 10) { servicesChannel = 8; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 11) { servicesChannel = 8; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 12) { servicesChannel = 9; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 13) { servicesChannel = 10; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 14) { servicesChannel = 10; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 15) { servicesChannel = 11; servicesChannelSection = ChannelSection::C; }
-  else if (semiPhiRegionRef == 16) { servicesChannel = 12; servicesChannelSection = ChannelSection::A; }
-  else if (semiPhiRegionRef == 17) { servicesChannel = 12; servicesChannelSection = ChannelSection::C; }
-  else { std::cout << "ERROR: semiPhiRegionRef = " << semiPhiRegionRef << std::endl; }
-
-  // This is the following transformation:
-  // 1 -> 6
-  // 2 -> 5
-  // 3 -> 4
-  // 7 -> 12
-  // 8 -> 11
-  // 9 -> 10
-  // This is so that the numbering follows a rotation of 180 degrees around CMS_Y for the negative cabling side.
-  // The services channel is then set to negative on negative cabling side.
-  if (!isPositiveCablingSide) {
-    const double pivot = (servicesChannel <= 6 ? 3.5 : 9.5);
-    servicesChannel = servicesChannel + round( 2. * (pivot - servicesChannel) );
-    servicesChannel *= -1;
-    servicesChannelSection = (servicesChannelSection == ChannelSection::A ? ChannelSection::C : ChannelSection::A);
-  }
-
-  return std::make_pair(servicesChannel, servicesChannelSection);
-}
 
 
 /* BUNDLES TO CABLES CONNECTIONS.
@@ -355,9 +314,12 @@ void CablingMap::connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const 
 void CablingMap::checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles) {
   std::map<std::pair<const int, const ChannelSection >, int > channels;
   for (auto& b : bundles) {
-    const int& servicesChannel = b.second->powerServicesChannel();
-    const ChannelSection& servicesChannelSection = b.second->powerServicesChannelSection();
-    if (servicesChannel == 0 || servicesChannel >= 13) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
+    const int servicesChannel = b.second->powerServicesChannel();
+    const ChannelSection servicesChannelSection = b.second->powerServicesChannelSection();
+
+    std::cout << "Power services channel " << servicesChannel   << " section " << servicesChannelSection << std::endl;
+
+    if (fabs(servicesChannel) == 0 || fabs(servicesChannel) >= 13) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
     if (servicesChannelSection != ChannelSection::A && servicesChannelSection != ChannelSection::C) std::cout << "ERROR: power servicesChannelSection = " << servicesChannelSection << std::endl;
     std::pair<const int, const ChannelSection > myChannel = std::make_pair(servicesChannel, servicesChannelSection);
     channels[myChannel] += 1;
