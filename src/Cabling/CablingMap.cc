@@ -317,8 +317,6 @@ void CablingMap::checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bun
     const int servicesChannel = b.second->powerServicesChannel();
     const ChannelSection servicesChannelSection = b.second->powerServicesChannelSection();
 
-    std::cout << "Power services channel " << servicesChannel   << " section " << servicesChannelSection << std::endl;
-
     if (fabs(servicesChannel) == 0 || fabs(servicesChannel) >= 13) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
     if (servicesChannelSection != ChannelSection::A && servicesChannelSection != ChannelSection::C) std::cout << "ERROR: power servicesChannelSection = " << servicesChannelSection << std::endl;
     std::pair<const int, const ChannelSection > myChannel = std::make_pair(servicesChannel, servicesChannelSection);

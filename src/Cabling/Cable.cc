@@ -186,20 +186,41 @@ void Cable::assignPowerServicesChannels() {
     }    */
 
 
-
   for (auto& myBundle : bundles_) {
-    const double bundlePhi = myBundle.meanPhi();
 
-    const int phiIndex = 
-    const int semiPhiRegionIndex = (phiIndex <= 2 ? 0 : 1);
+    const double meanPhiPositiveSide = femod(myBundle.meanPhi(), 2.*M_PI);
+    const double meanPhiNegativeSide = femod(M_PI - meanPhiPositiveSide + cabling_semiNonantWidth, 2.*M_PI);
+    double meanPhi = (isPositiveCablingSide_ ? meanPhiPositiveSide : meanPhiNegativeSide);
 
-    const int semiPhiRegionRef = 2 * phiSectorRef_ + semiPhiRegionIndex;
+    const int cablePhiSectorRefPositiveSide =  phiSectorRef_;
+    int cablePhiSectorRefNegativeSide = 0;
+    if (cablePhiSectorRefPositiveSide == 0) cablePhiSectorRefNegativeSide = 4;
+    else if (cablePhiSectorRefPositiveSide == 1) cablePhiSectorRefNegativeSide = 3;
+    else if (cablePhiSectorRefPositiveSide == 2) cablePhiSectorRefNegativeSide = 2;
+    else if (cablePhiSectorRefPositiveSide == 3) cablePhiSectorRefNegativeSide = 1;
+    else if (cablePhiSectorRefPositiveSide == 4) cablePhiSectorRefNegativeSide = 0;
+    else if (cablePhiSectorRefPositiveSide == 5) cablePhiSectorRefNegativeSide = 8;
+    else if (cablePhiSectorRefPositiveSide == 6) cablePhiSectorRefNegativeSide = 7;
+    else if (cablePhiSectorRefPositiveSide == 7) cablePhiSectorRefNegativeSide = 6;
+    else if (cablePhiSectorRefPositiveSide == 8) cablePhiSectorRefNegativeSide = 5;
+    const int cablePhiSectorRef = (isPositiveCablingSide_ ? cablePhiSectorRefPositiveSide : cablePhiSectorRefNegativeSide);
+
+    /*double semiPhiRegionStart = cablePhiSectorRef * cabling_nonantWidth;
+    if (fabs(meanPhi - semiPhiRegionStart) > M_PI) {
+      if (meanPhi < semiPhiRegionStart) meanPhi += 2.*M_PI;
+      else semiPhiRegionStart += 2.*M_PI;
+    }
+    const int semiPhiRegionIndex = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);*/
+
+    const std::string subDetectorName = myBundle.subDetectorName();
+    const double phiMargin = ((subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) ? 5. : -1.) * M_PI / 180.;
+    const double phiLimit = cablePhiSectorRef * cabling_nonantWidth + cabling_semiNonantWidth + phiMargin;
+    const bool isLower = moduloComp(meanPhi, phiLimit, 2.*M_PI);
+    const int semiPhiRegionIndex = (isLower ? 0 : 1);
+    const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
+
     std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide_);
     myBundle.setPowerServicesChannel(powerServicesChannel);
-    /*} 
-      else {
-      std::cout << "ERROR: bundle Id not found in my own bundles vector!" << std::endl;
-      }    */
   }
 }
 
@@ -248,24 +269,24 @@ std::pair<int, ChannelSection> Cable::computePowerServicesChannel(const int semi
     }*/
 
   else {
-    if (semiPhiRegionRef == 0) { servicesChannel = -1; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 1) { servicesChannel = -1; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 2) { servicesChannel = -2; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 3) { servicesChannel = -3; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 4) { servicesChannel = -3; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 5) { servicesChannel = -4; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 6) { servicesChannel = -5; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 7) { servicesChannel = -5; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 8) { servicesChannel = -6; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 9) { servicesChannel = -7; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 10) { servicesChannel = -7; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 11) { servicesChannel = -8; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 12) { servicesChannel = -9; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 13) { servicesChannel = -9; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 14) { servicesChannel = -10; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 15) { servicesChannel = -11; servicesChannelSection = ChannelSection::A; }
-    else if (semiPhiRegionRef == 16) { servicesChannel = -11; servicesChannelSection = ChannelSection::C; }
-    else if (semiPhiRegionRef == 17) { servicesChannel = -12; servicesChannelSection = ChannelSection::A; }
+    if (semiPhiRegionRef == 1) { servicesChannel = -6; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 2) { servicesChannel = -5; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 3) { servicesChannel = -5; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 4) { servicesChannel = -4; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 5) { servicesChannel = -3; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 6) { servicesChannel = -3; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 7) { servicesChannel = -2; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 8) { servicesChannel = -1; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 9) { servicesChannel = -1; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 10) { servicesChannel = -12; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 11) { servicesChannel = -11; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 12) { servicesChannel = -11; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 13) { servicesChannel = -10; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 14) { servicesChannel = -9; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 15) { servicesChannel = -9; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 16) { servicesChannel = -8; servicesChannelSection = ChannelSection::A; }
+    else if (semiPhiRegionRef == 17) { servicesChannel = -7; servicesChannelSection = ChannelSection::C; }
+    else if (semiPhiRegionRef == 0) { servicesChannel = -7; servicesChannelSection = ChannelSection::A; }
     else { std::cout << "ERROR: semiPhiRegionRef = " << semiPhiRegionRef << std::endl; }
   }
 
