@@ -7284,7 +7284,7 @@ namespace insur {
 		       << servicesChannel << " " 
 		       << any2str(servicesChannelSection) << ","
 		       << bundle.powerServicesChannel() << " " 
-		       << any2str(bundle.powerServicesChannelSection());
+		       << any2str(bundle.powerServicesChannelSection()) << ",";
 
 	    const PtrVector<Module>& myModules = bundle.modules();
 	    for (const auto& module : myModules) {
