@@ -47,7 +47,7 @@ template<> TH2C* FrameGetter<XYNeg>::operator()(double viewportX, double viewpor
 
 template<> TH2C* FrameGetter<XYNegRotateY180>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameXYNegRotateY180") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C* frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }

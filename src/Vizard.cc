@@ -1521,33 +1521,20 @@ namespace insur {
 
       // Modules to Services Channels (powering)
       TCanvas *summaryChannelPowerCanvas = nullptr;
-      TCanvas *RZChannelPowerCanvas = nullptr;
       TCanvas *XYChannelPowerNegCanvas = nullptr;
       TCanvas *XYChannelPowerNegFlatCanvas = nullptr;
       TCanvas *XYChannelPowerCanvas = nullptr; 
       TCanvas *XYChannelPowerFlatCanvas = nullptr; 
       std::vector<TCanvas*> XYChannelPowerCanvasesDisk;
+      std::vector<TCanvas*> XYNegChannelPowerCanvasesDisk;
        
       myContent = new RootWContent("Modules to Services Channels (powering)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, RZChannelPowerCanvas, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk);
+      createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
 
-      /*if (RZChannelPowerCanvas) {
-	myImage = new RootWImage(RZChannelPowerCanvas, RZChannelPowerCanvas->GetWindowWidth(), RZChannelPowerCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Services ChannelPowers. 1 color = 1 ChannelPower.");
-	myContent->addItem(myImage);
-	}*/
-      if (XYChannelPowerNegCanvas) {
-	myImage = new RootWImage(XYChannelPowerNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYChannelPowerNegFlatCanvas) {
-	myImage = new RootWImage(XYChannelPowerNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
+      // POSITIVE CABLING SIDE
+      myContent->addItem(positiveSideName);  
       if (XYChannelPowerCanvas) {
 	myImage = new RootWImage(XYChannelPowerCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
@@ -1563,9 +1550,28 @@ namespace insur {
 	myImage->setComment(XYChannelPowerCanvasDisk->GetTitle());
 	myContent->addItem(myImage);
       }
+     
+      // NEGATIVE CABLING SIDE
+      myContent->addItem(spacer);
+      myContent->addItem(negativeSideName);
+      if (XYChannelPowerNegCanvas) {
+	myImage = new RootWImage(XYChannelPowerNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards the depth of the screen)");
+	myContent->addItem(myImage);
+      }
+      if (XYChannelPowerNegFlatCanvas) {
+	myImage = new RootWImage(XYChannelPowerNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards the depth of the screen)");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYNegChannelPowerCanvasDisk : XYNegChannelPowerCanvasesDisk ) {
+	myImage = new RootWImage(XYNegChannelPowerCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYNegChannelPowerCanvasDisk->GetTitle());
+	myContent->addItem(myImage);
+      }
 
 
-      // Services channels
+      // SERVICES CHANNELS TABLES
       RootWContent* channelsContent = new RootWContent("Services per channel", false);
       myPage->addContent(channelsContent);
       // POSITIVE CABLING SIDE
@@ -6994,31 +7000,11 @@ namespace insur {
   }
 
 
-  //template<class CoordType>
   void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
-							   //CoordType& XYNegType,
-							   TCanvas *&RZCanvas, 
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-							   std::vector<TCanvas*> &XYCanvasesDisk) {
-
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
-    RZCanvas->cd();
-    PlotDrawer<YZFull, TypeChannelTransparentColor> yzDrawer;
-    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
-	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
-      } );
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
-
+							   std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
+
     bool isPositiveCablingSide = true;
     TLegend* channelsLegendPos = new TLegend(0.905, 0., 1., 1.);
     computeServicesChannelsLegend(channelsLegendPos, myCablingMap, isPositiveCablingSide, isPowerCabling);
@@ -7069,10 +7055,11 @@ namespace insur {
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
-    // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
+	// POSITIVE CABLING SIDE. ENDCAPS DISK.
 	if (aDisk.side()) {
+	  isRotatedY180 = false;
 	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7082,8 +7069,23 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendPos->Draw("same");
+	}
+	// NEGATIVE CABLING SIDE. ENDCAPS DISK.
+	else {
+	  isRotatedY180 = true;
+	  TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards the depth of the screen)", anEndcap.myid().c_str(), aDisk.myid()),
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	  XYNegCanvasDisk->cd();
+	  PlotDrawer<XYNegRotateY180, TypeChannelTransparentColor> xyDiskDrawer;
+	  xyDiskDrawer.addModules(aDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
+	  XYNegCanvasesDisk.push_back(XYNegCanvasDisk);
+	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	  channelsLegendNeg->Draw("same");
 	}
       }
     }
