@@ -1551,8 +1551,10 @@ namespace insur {
 	myContent->addItem(myImage);
       }
      
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
       // NEGATIVE CABLING SIDE
-      myContent->addItem(spacer);
+      //myContent->addItem(spacer);
       myContent->addItem(negativeSideName);
       if (XYChannelPowerNegCanvas) {
 	myImage = new RootWImage(XYChannelPowerNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
