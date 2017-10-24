@@ -241,7 +241,7 @@ namespace insur {
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
-    void drawPhiSectorsBoundaries(const double phiSectorWidth);
+    void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
     void computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
   };
 

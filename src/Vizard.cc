@@ -6994,7 +6994,9 @@ namespace insur {
   }
 
 
+  //template<class CoordType>
   void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
+							   //CoordType& XYNegType,
 							   TCanvas *&RZCanvas, 
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
@@ -7025,26 +7027,29 @@ namespace insur {
     computeServicesChannelsLegend(channelsLegendNeg, myCablingMap, isPositiveCablingSide, isPowerCabling);
 
     // NEGATIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = true;
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
-    PlotDrawer<XYNeg, TypeChannelTransparentColor> xyNegBarrelDrawer;
+    PlotDrawer<XYNegRotateY180, TypeChannelTransparentColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
+    isRotatedY180 = true;
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegFlatCanvas->cd();
-    PlotDrawer<XYNeg, TypeChannelTransparentColor> xyNegFlatBarrelDrawer;
+    PlotDrawer<XYNegRotateY180, TypeChannelTransparentColor> xyNegFlatBarrelDrawer;
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
+    isRotatedY180 = false;
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, TypeChannelTransparentColor> xyBarrelDrawer;
@@ -7492,12 +7497,14 @@ namespace insur {
   /*
   *  Draw spider net to delimit the Phi Sectors.
   */
-  void Vizard::drawPhiSectorsBoundaries(const double phiSectorWidth) {
+  void Vizard::drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180) {
     int numPhiSectors = round(2. * M_PI / phiSectorWidth);
     double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
 
     for (int i = 0; i < numPhiSectors; i++) {
-      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(i * phiSectorWidth), phiSectorBoundaryRadius * sin(i * phiSectorWidth)); 
+      const double angle = i * phiSectorWidth;
+      const double rotatedAngle = (isRotatedY180 ?  M_PI - angle : angle);
+      TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(rotatedAngle), phiSectorBoundaryRadius * sin(rotatedAngle)); 
       line->SetLineWidth(2); 
       line->Draw("same");     
     }
