@@ -17,8 +17,12 @@ class Bundle : public PropertyObject, public Buildable, public Identifiable<int>
   typedef PtrVector<Module> Container; 
 
 public:
-  Bundle(const int id, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
+  Bundle(const int id, const int complementaryBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
   ~Bundle();
+
+  const int complementaryBundleId() const { return complementaryBundleId_; }
+  void setIsInLowerSemiPhiSectorStereo(const bool isLower) { isInLowerSemiPhiSectorStereo_ = isLower; }
+  const bool isInLowerSemiPhiSectorStereo() const { return isInLowerSemiPhiSectorStereo_; }
 
   // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
@@ -47,6 +51,9 @@ public:
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
   const bool isTiltedPart() const { return isTiltedPart_; }
 
+  const bool isBarrel() const { return (subDetectorName_ == cabling_tbps || subDetectorName_ == cabling_tb2s); }
+  const bool isPSFlatPart() const { return (!isTiltedPart_ && type_ != Category::SS); }
+
   const int plotColor() const { return plotColor_; }
 
   const int powerServicesChannel() const { return powerServicesChannel_; }
@@ -63,6 +70,9 @@ public:
 private:
   const int computePlotColor(const int id, const bool isPositiveCablingSide) const;
   int computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>& powerServicesChannel) const;
+
+  int complementaryBundleId_;
+  bool isInLowerSemiPhiSectorStereo_;
 
   Container modules_;
 

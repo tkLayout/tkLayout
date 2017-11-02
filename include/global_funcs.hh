@@ -122,7 +122,7 @@ inline ArgType femod(const ArgType& phi, const ArgType& base) {
 
 
 // Same as femod, but handles the case where the result is closed to 0.
-template<typename ArgType> 
+template<typename ArgType>
 inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
   static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
   ArgType result = femod(phi, base);

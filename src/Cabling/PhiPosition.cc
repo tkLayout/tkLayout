@@ -13,6 +13,9 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
     phiSegmentStart_ = computePhiSegmentStart(rodPhi, phiSegmentWidth_, isPositiveCablingSide);
     phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart_, phiSegmentWidth_, isPositiveCablingSide);
 
+    complementaryPhiSegmentStart_ = computePhiSegmentStart(femod(M_PI - rodPhi, 2.*M_PI), phiSegmentWidth_, isPositiveCablingSide);
+    complementaryPhiSegmentRef_ = computePhiSegmentRef(femod(M_PI - rodPhi, 2.*M_PI), complementaryPhiSegmentStart_, phiSegmentWidth_, isPositiveCablingSide);
+
     // PHI REGION
     // Depending on the layer number, different phiRegionWidth are assigned.
     // This is because for several layers, there can be too many modules per DTC, hence the phi width is defined smaller.	

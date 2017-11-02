@@ -2,7 +2,8 @@
 #include "Cabling/Cable.hh"
 
 
-Bundle::Bundle(const int id, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
+Bundle::Bundle(const int id, const int complementaryBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
+  complementaryBundleId_(complementaryBundleId),
   type_(type),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
@@ -110,6 +111,7 @@ int Bundle::computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>&
   if ( (channel > 0 && powerServicesChannel.second == ChannelSection::A)
        || (channel < 0 && powerServicesChannel.second == ChannelSection::C)
        ) {
+    //if (powerServicesChannel.second == ChannelSection::A) {
     plotColor += 12;
   }
   return plotColor;

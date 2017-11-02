@@ -175,10 +175,16 @@ void Cable::assignPowerServicesChannels() {
     }
     const int semiPhiRegionIndex = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);*/
 
-    const std::string subDetectorName = myBundle.subDetectorName();
-    const double phiMargin = ((subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) ? 5. : -1.) * M_PI / 180.;
-    const double phiLimit = cablePhiSectorRef * cabling_nonantWidth + cabling_semiNonantWidth + phiMargin;
-    const bool isLower = moduloComp(meanPhi, phiLimit, 2.*M_PI);
+    const bool isBarrel = myBundle.isBarrel();
+
+    bool isLower;
+    if (isBarrel) { isLower = myBundle.isInLowerSemiPhiSectorStereo(); }
+    else {
+      const double phiMargin = ((!isBarrel) ? 5. : -1.) * M_PI / 180.;
+      const double phiLimit = cablePhiSectorRef * cabling_nonantWidth + cabling_semiNonantWidth + phiMargin;
+      isLower = moduloComp(meanPhi, phiLimit, 2.*M_PI);
+    }
+
     const int semiPhiRegionIndex = (isLower ? 0 : 1);
     const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
 

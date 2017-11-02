@@ -185,6 +185,9 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
   const int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
   const int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
 
+  const int complemetaryPhiSliceRef = (isBarrel ? modulePhiPosition.complementaryPhiSegmentRef() : 0); //modulePhiPosition.complementaryPhiRegionRef());
+  const int complementaryBundleId = computeComplementaryBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, complemetaryPhiSliceRef, bundleTypeIndex);
+
   // bundles map
   const std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
 
@@ -192,7 +195,7 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
   Bundle* bundle = nullptr;
   auto found = stereoBundles.find(bundleId);
   if (found == stereoBundles.end()) {
-    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+    bundle = createAndStoreBundle(bundles, negBundles, bundleId, complementaryBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
   }
   else {
     bundle = found->second;
@@ -248,12 +251,22 @@ const int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const 
 }
 
 
+/* Compute the Id associated to each complementary bundle.
+ */
+const int ModulesToBundlesConnector::computeComplementaryBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int complementaryPhiRef, const int bundleTypeIndex) const {
+  const bool complementarySide = !isPositiveCablingSide;
+  const int complementaryBundleId = computeBundleId(isBarrel, complementarySide, layerDiskNumber, complementaryPhiRef, bundleTypeIndex);
+
+  return complementaryBundleId;
+}
+
+
 /* Create a bundle, if it does not exist yet.
  *  Store it in the bundles_ or negBundles_ containers.
  */
-Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
+Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const int complementaryBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, complementaryBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));

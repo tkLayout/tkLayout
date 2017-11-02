@@ -11,6 +11,9 @@ CablingMap::CablingMap(Tracker* tracker) {
     connectBundlesToCables(bundles_, cables_, DTCs_);
     connectBundlesToCables(negBundles_, negCables_, negDTCs_);
 
+    assignBundlesStereoSemiBoundaries(bundles_, negBundles_);
+    assignBundlesStereoSemiBoundaries(negBundles_, bundles_);
+
     // COMPUTE POWER SERVICES CHANNELS
     computePowerServicesChannels(bundles_, cables_);
     computePowerServicesChannels(negBundles_, negCables_);
@@ -29,6 +32,64 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
   bundles_ = bundlesBuilder.getBundles();
   negBundles_ = bundlesBuilder.getNegBundles();
 }
+
+
+void CablingMap::assignBundlesStereoSemiBoundaries(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& complementaryBundles) {
+  int phiSectorRefMarker = 0;
+  int complementaryPhiSectorRefMarker = 0;
+
+  for (auto& b : bundles) {
+    Bundle* myBundle = b.second;
+    const bool isBarrel = myBundle->isBarrel();
+    const bool isPSFlatPart = myBundle->isPSFlatPart();
+
+    if (isBarrel && !isPSFlatPart) {
+      bool isLower;
+
+      const int phiSectorRef = myBundle->getCable()->phiSectorRef();
+      if (phiSectorRef != phiSectorRefMarker) {
+	phiSectorRefMarker = phiSectorRef;
+	complementaryPhiSectorRefMarker = -1;
+	isLower = true;
+      }
+
+      const int complementaryBundleId = myBundle->complementaryBundleId();
+      auto found = complementaryBundles.find(complementaryBundleId);
+      if (found != complementaryBundles.end()) {
+	Bundle* myComplementaryBundle = found->second;
+	const int complementaryPhiSectorRef = myComplementaryBundle->getCable()->phiSectorRef();
+	
+	if (complementaryPhiSectorRefMarker != -1 && complementaryPhiSectorRefMarker != complementaryPhiSectorRef) isLower = false;
+	myBundle->setIsInLowerSemiPhiSectorStereo(isLower);
+	complementaryPhiSectorRefMarker = complementaryPhiSectorRef;
+      }
+      else { std::cout << "Coud not find complementary bundle id " << complementaryBundleId << std::endl; }
+    }
+  }
+
+
+  for (auto& b : bundles) {
+    Bundle* myBundle = b.second;
+    const bool isBarrel = myBundle->isBarrel();
+    const bool isPSFlatPart = myBundle->isPSFlatPart();
+
+    if (isBarrel && isPSFlatPart) {
+      const int bundleId = myBundle->myid();
+      const int tiltedBundleId = bundleId - femod(bundleId, 10);
+ 
+      auto found = bundles.find(tiltedBundleId);
+      if (found != bundles.end()) {
+	Bundle* myTiltedBundle = found->second;
+	const bool isLower = myTiltedBundle->isInLowerSemiPhiSectorStereo();
+	myBundle->setIsInLowerSemiPhiSectorStereo(isLower);
+      }
+      else { std::cout << "Coud not find tilted bundle id " << tiltedBundleId << std::endl; }
+    }
+  }
+
+
+}
+
 
 
 /* BUNDLES TO POWER SERVICE CHANNELS CONNECTIONS.

@@ -31,8 +31,6 @@ private:
   // CONNECT MODULES TO BUNDLES
   void connectModulesToBundles(Tracker* tracker);
 
-  void computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables);
-
   // CONNECT BUNDLES TO CABLES
   void connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
   const Category computeCableType(const Category& bundleType) const;
@@ -43,6 +41,10 @@ private:
   void connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const;
   void checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles);
   void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);  // check bundles to cables connections
+
+  void assignBundlesStereoSemiBoundaries(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& complementaryBundles);
+
+  void computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables);
 
   // positive cabling side
   std::map<int, Bundle*> bundles_;
