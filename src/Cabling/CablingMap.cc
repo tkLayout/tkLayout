@@ -35,8 +35,8 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 
 void CablingMap::assignBundlesStereoSemiBoundaries(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& complementaryBundles) {
-  int phiSectorRefMarker = 0;
-  int complementaryPhiSectorRefMarker = 0;
+  int phiSectorRefMarker = -1;
+  int complementaryPhiSectorRefMarker = -1;
 
   for (auto& b : bundles) {
     Bundle* myBundle = b.second;
