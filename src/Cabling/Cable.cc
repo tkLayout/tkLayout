@@ -149,38 +149,16 @@ const int Cable::computeServicesChannelPlotColor(const int servicesChannel, cons
 void Cable::assignPowerServicesChannels() {
   for (auto& myBundle : bundles_) {
 
-    const double meanPhiPositiveSide = femod(myBundle.meanPhi(), 2.*M_PI);
-    //const double meanPhiNegativeSide = femod(M_PI - meanPhiPositiveSide + cabling_semiNonantWidth, 2.*M_PI);
-    //double meanPhi = (isPositiveCablingSide_ ? meanPhiPositiveSide : meanPhiNegativeSide);
-    double meanPhi = meanPhiPositiveSide;
-
-    const int cablePhiSectorRefPositiveSide =  phiSectorRef_;
-    /*int cablePhiSectorRefNegativeSide = 0;
-    if (cablePhiSectorRefPositiveSide == 0) cablePhiSectorRefNegativeSide = 4;
-    else if (cablePhiSectorRefPositiveSide == 1) cablePhiSectorRefNegativeSide = 3;
-    else if (cablePhiSectorRefPositiveSide == 2) cablePhiSectorRefNegativeSide = 2;
-    else if (cablePhiSectorRefPositiveSide == 3) cablePhiSectorRefNegativeSide = 1;
-    else if (cablePhiSectorRefPositiveSide == 4) cablePhiSectorRefNegativeSide = 0;
-    else if (cablePhiSectorRefPositiveSide == 5) cablePhiSectorRefNegativeSide = 8;
-    else if (cablePhiSectorRefPositiveSide == 6) cablePhiSectorRefNegativeSide = 7;
-    else if (cablePhiSectorRefPositiveSide == 7) cablePhiSectorRefNegativeSide = 6;
-    else if (cablePhiSectorRefPositiveSide == 8) cablePhiSectorRefNegativeSide = 5;*/
-    //const int cablePhiSectorRef = (isPositiveCablingSide_ ? cablePhiSectorRefPositiveSide : cablePhiSectorRefNegativeSide);
-    const int cablePhiSectorRef = cablePhiSectorRefPositiveSide;
-
-    /*double semiPhiRegionStart = cablePhiSectorRef * cabling_nonantWidth;
-    if (fabs(meanPhi - semiPhiRegionStart) > M_PI) {
-      if (meanPhi < semiPhiRegionStart) meanPhi += 2.*M_PI;
-      else semiPhiRegionStart += 2.*M_PI;
-    }
-    const int semiPhiRegionIndex = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);*/
+    const double meanPhi = femod(myBundle.meanPhi(), 2.*M_PI);
+    const int cablePhiSectorRef = phiSectorRef_;
 
     const bool isBarrel = myBundle.isBarrel();
+    const Category& type = type_;
 
     bool isLower;
     if (isBarrel) { isLower = myBundle.isInLowerSemiPhiSectorStereo(); }
     else {
-      const double phiMargin = ((!isBarrel) ? 5. : -1.) * M_PI / 180.;
+      const double phiMargin = ((type == Category::SS) ? 5. : -5.) * M_PI / 180.;
       const double phiLimit = cablePhiSectorRef * cabling_nonantWidth + cabling_semiNonantWidth + phiMargin;
       isLower = moduloComp(meanPhi, phiLimit, 2.*M_PI);
     }
