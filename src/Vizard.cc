@@ -1534,7 +1534,7 @@ namespace insur {
       createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
 
       // POSITIVE CABLING SIDE
-      myContent->addItem(positiveSideName);  
+      myContent->addItem(positiveSideName);
       if (XYChannelPowerCanvas) {
 	myImage = new RootWImage(XYChannelPowerCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
@@ -1574,16 +1574,24 @@ namespace insur {
 
 
       // SERVICES CHANNELS TABLES
-      RootWContent* channelsContent = new RootWContent("Services per channel", false);
+      RootWContent* channelsContent = new RootWContent("Services per channel and PP1", false);
       myPage->addContent(channelsContent);
+
+      RootWTable* opticalName = new RootWTable();
+      opticalName->setContent(0, 0, "Optical:");
+      RootWTable* poweringName = new RootWTable();
+      poweringName->setContent(0, 0, "Powering:");
+
       // POSITIVE CABLING SIDE
       isPositiveCablingSide = true;
       channelsContent->addItem(positiveSideName);
       // GENERAL
+      channelsContent->addItem(opticalName);
       ChannelSection requestedSection = ChannelSection::B;
       RootWTable* channelsTablePlus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTablePlus);
       // SECTION A
+      channelsContent->addItem(poweringName);
       requestedSection = ChannelSection::A;
       RootWTable* channelsTablePlusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTablePlusA);
@@ -1595,12 +1603,15 @@ namespace insur {
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
       channelsContent->addItem(spacer);
+      channelsContent->addItem(spacer);
       channelsContent->addItem(negativeSideName);
       // GENERAL
+      channelsContent->addItem(opticalName);
       requestedSection = ChannelSection::B;
       RootWTable* channelsTableMinus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinus);
       // SECTION A
+      channelsContent->addItem(poweringName);
       requestedSection = ChannelSection::A;
       RootWTable* channelsTableMinusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
       channelsContent->addItem(channelsTableMinusA);
@@ -1667,10 +1678,10 @@ namespace insur {
     RootWTable* channelsTable = new RootWTable();
 
     // Header table
-    channelsTable->setContent(0, 1, "# MFC");
-    channelsTable->setContent(0, 2, "# MFB PS");
-    channelsTable->setContent(0, 3, "# MFB 2S");
-    channelsTable->setContent(0, 4, "# MFB Total");
+    channelsTable->setContent(0, 2, "# MFC");
+    channelsTable->setContent(0, 3, "# MFB PS");
+    channelsTable->setContent(0, 4, "# MFB 2S");
+    channelsTable->setContent(0, 5, "# MFB Total");
 
     int totalCables = 0;
     int totalPsBundles = 0;
@@ -1685,27 +1696,35 @@ namespace insur {
       int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channel) != 0 ? ssBundlesPerChannel.at(channel) : 0);
       int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
 
+      // PP1 name
+      const int pp1 = channel + (channel >= 0 ? (fabs(channel) <= 6 ? 2 : 5) : -(fabs(channel) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSection != ChannelSection::UNKNOWN) pp1Name << " " << any2str(requestedSection) << " ";
+      channelsTable->setContent(i, 0, pp1Name.str());
+
       // Channel name
       std::stringstream channelName;
       channelName << "OT" << channel;
-      if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection);
-      channelsTable->setContent(i, 0, channelName.str());
+      if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection) << " ";
+      channelsTable->setContent(i, 1, channelName.str());
 
-      channelsTable->setContent(i, 1, numCablesPerChannel);
-      channelsTable->setContent(i, 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numBundlesPerChannel);
+      channelsTable->setContent(i, 2, numCablesPerChannel);
+      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 5, numBundlesPerChannel);
 
       totalCables += numCablesPerChannel;
       totalPsBundles += numPsBundlesPerChannel;
       totalSsBundles += numSsBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
-    channelsTable->setContent(13, 0, "Total");
-    channelsTable->setContent(13, 1, totalCables);
-    channelsTable->setContent(13, 2, totalPsBundles);
-    channelsTable->setContent(13, 3, totalSsBundles);
-    channelsTable->setContent(13, 4, totalBundles);
+    channelsTable->setContent(13, 1, "Total");
+    channelsTable->setContent(13, 2, totalCables);
+    channelsTable->setContent(13, 3, totalPsBundles);
+    channelsTable->setContent(13, 4, totalSsBundles);
+    channelsTable->setContent(13, 5, totalBundles);
 
     return channelsTable;
   }
@@ -1760,9 +1779,9 @@ namespace insur {
     RootWTable* channelsTable = new RootWTable();
 
     // Header table
-    channelsTable->setContent(0, 1, "# PWR PS");
-    channelsTable->setContent(0, 2, "# PWR 2S");
-    channelsTable->setContent(0, 3, "# PWR Total");
+    channelsTable->setContent(0, 2, "# PWR PS");
+    channelsTable->setContent(0, 3, "# PWR 2S");
+    channelsTable->setContent(0, 4, "# PWR Total");
 
     int totalPsBundles = 0;
     int totalSsBundles = 0;
@@ -1775,24 +1794,32 @@ namespace insur {
       int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channel) != 0 ? ssBundlesPerChannel.at(channel) : 0);
       int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
 
+      // PP1 name
+      const int pp1 = channel + (channel >= 0 ? (fabs(channel) <= 6 ? 2 : 5) : -(fabs(channel) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSection != ChannelSection::UNKNOWN) pp1Name << " " << any2str(requestedSection);
+      channelsTable->setContent(i, 0, pp1Name.str());
+
       // Channel name
       std::stringstream channelName;
       channelName << "OT" << channel;
       if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection);
-      channelsTable->setContent(i, 0, channelName.str());
+      channelsTable->setContent(i, 1, channelName.str());
 
-      channelsTable->setContent(i, 1, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 2, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 3, numBundlesPerChannel);
+      channelsTable->setContent(i, 2, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 3, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numBundlesPerChannel);
 
       totalPsBundles += numPsBundlesPerChannel;
       totalSsBundles += numSsBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
-    channelsTable->setContent(13, 0, "Total");
-    channelsTable->setContent(13, 1, totalPsBundles);
-    channelsTable->setContent(13, 2, totalSsBundles);
-    channelsTable->setContent(13, 3, totalBundles);
+    channelsTable->setContent(13, 1, "Total");
+    channelsTable->setContent(13, 2, totalPsBundles);
+    channelsTable->setContent(13, 3, totalSsBundles);
+    channelsTable->setContent(13, 4, totalBundles);
 
     return channelsTable;
   }
@@ -7302,7 +7329,7 @@ namespace insur {
 			 << module.uniRef().subdetectorName << ", "
 			 << module.uniRef().layer << ", "
 			 << module.moduleRing() << ", "
-			 << module.center().Phi() * 180. / M_PI << ", ";
+			 << module.center().Phi() * 180. / M_PI;
 	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << moduleInfo.str() << std::endl;
 	    }
 	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << std::endl;

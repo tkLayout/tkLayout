@@ -194,13 +194,16 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated
       paletteIndex=kGray + 1;
       break;
     case 6 :
-      paletteIndex=kMagenta - 7;
+      //paletteIndex=kMagenta - 7;
+      paletteIndex=kMagenta;
       break;
     case 7 :
-      paletteIndex=kViolet - 1;
+      //paletteIndex=kViolet - 1;
+      paletteIndex=kViolet - 6;
       break;
     case 8 :
-      paletteIndex=kBlue;
+      //paletteIndex=kBlue;
+      paletteIndex=kBlue + 1;
       break;
     case 9 :
       paletteIndex=kAzure + 1;
