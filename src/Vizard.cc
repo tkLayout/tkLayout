@@ -1574,7 +1574,7 @@ namespace insur {
 
 
       // SERVICES CHANNELS TABLES
-      RootWContent* channelsContent = new RootWContent("Services per channel and PP1", false);
+      RootWContent* channelsContent = new RootWContent("Services per PP1 and channel", false);
       myPage->addContent(channelsContent);
 
       RootWTable* opticalName = new RootWTable();
@@ -1585,40 +1585,35 @@ namespace insur {
       // POSITIVE CABLING SIDE
       isPositiveCablingSide = true;
       channelsContent->addItem(positiveSideName);
-      // GENERAL
+      // SECTION B
       channelsContent->addItem(opticalName);
       ChannelSection requestedSection = ChannelSection::B;
-      RootWTable* channelsTablePlus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTablePlus);
-      // SECTION A
+      RootWTable* channelsTablePlusB = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      channelsContent->addItem(channelsTablePlusB);
+      // SECTIONS A AND C
+      channelsContent->addItem(spacer);
       channelsContent->addItem(poweringName);
-      requestedSection = ChannelSection::A;
-      RootWTable* channelsTablePlusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTablePlusA);
-      // SECTION C
-      requestedSection = ChannelSection::C;
-      RootWTable* channelsTablePlusC = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTablePlusC);
+      std::vector<ChannelSection> sections;
+      sections.push_back(ChannelSection::A);
+      sections.push_back(ChannelSection::C);
+      RootWTable* channelsTablePlusAC = powerServicesChannels(myCablingMap, isPositiveCablingSide, sections);
+      channelsContent->addItem(channelsTablePlusAC);
 
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
       channelsContent->addItem(spacer);
       channelsContent->addItem(spacer);
       channelsContent->addItem(negativeSideName);
-      // GENERAL
+      // SECTION B
       channelsContent->addItem(opticalName);
       requestedSection = ChannelSection::B;
-      RootWTable* channelsTableMinus = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTableMinus);
-      // SECTION A
+      RootWTable* channelsTableMinusB = servicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
+      channelsContent->addItem(channelsTableMinusB);
+      // SECTIONS A AND C
+      channelsContent->addItem(spacer);
       channelsContent->addItem(poweringName);
-      requestedSection = ChannelSection::A;
-      RootWTable* channelsTableMinusA = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTableMinusA);
-      // SECTION C
-      requestedSection = ChannelSection::C;
-      RootWTable* channelsTableMinusC = powerServicesChannels(myCablingMap, isPositiveCablingSide, requestedSection);
-      channelsContent->addItem(channelsTableMinusC);
+      RootWTable* channelsTableMinusAC = powerServicesChannels(myCablingMap, isPositiveCablingSide, sections);
+      channelsContent->addItem(channelsTableMinusAC);
     }
     return true;
   }
@@ -1678,6 +1673,7 @@ namespace insur {
     RootWTable* channelsTable = new RootWTable();
 
     // Header table
+    channelsTable->setContent(0, 1, any2str(requestedSection));
     channelsTable->setContent(0, 2, "# MFC");
     channelsTable->setContent(0, 3, "# MFB PS");
     channelsTable->setContent(0, 4, "# MFB 2S");
@@ -1701,13 +1697,13 @@ namespace insur {
       std::stringstream pp1Name;
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
-      if (requestedSection != ChannelSection::UNKNOWN) pp1Name << " " << any2str(requestedSection) << " ";
+      if (requestedSection != ChannelSection::UNKNOWN) pp1Name << " " << any2str(requestedSection);
       channelsTable->setContent(i, 0, pp1Name.str());
 
       // Channel name
       std::stringstream channelName;
       channelName << "OT" << channel;
-      if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection) << " ";
+      if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection);
       channelsTable->setContent(i, 1, channelName.str());
 
       channelsTable->setContent(i, 2, numCablesPerChannel);
@@ -1732,15 +1728,20 @@ namespace insur {
 
 /* Interface to gather information on powerServices channels, and create a table storing it.
    */
-  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
-    std::map<int, int> psBundlesPerChannel;
-    std::map<int, int> ssBundlesPerChannel;
+  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSection>& sections) {
 
-    // Fill powerServices channels maps.
-    analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+    RootWTable* channelsTable = new RootWTable();
 
-    // Create table.
-    RootWTable* channelsTable = createPowerServicesChannelTable(psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+    for (const auto& requestedSection : sections) {
+      std::map<int, int> psBundlesPerChannel;
+      std::map<int, int> ssBundlesPerChannel;
+
+      // Fill powerServices channels maps.
+      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+
+      // Create table.
+      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSection);
+    }
 
     return channelsTable;
   }
@@ -1774,14 +1775,16 @@ namespace insur {
 
   /* Create the table with PowerServices Channel information.
    */
-  RootWTable* Vizard::createPowerServicesChannelTable(const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
+  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSection requestedSection) {
 
-    RootWTable* channelsTable = new RootWTable();
+    const int maxCol = channelsTable->maxCol();
+    const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
 
     // Header table
-    channelsTable->setContent(0, 2, "# PWR PS");
-    channelsTable->setContent(0, 3, "# PWR 2S");
-    channelsTable->setContent(0, 4, "# PWR Total");
+    channelsTable->setContent(0, startCol + 1, any2str(requestedSection));
+    channelsTable->setContent(0, startCol + 2, "# PWR PS");
+    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
+    channelsTable->setContent(0, startCol + 4, "# PWR Total");
 
     int totalPsBundles = 0;
     int totalSsBundles = 0;
@@ -1800,28 +1803,26 @@ namespace insur {
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
       if (requestedSection != ChannelSection::UNKNOWN) pp1Name << " " << any2str(requestedSection);
-      channelsTable->setContent(i, 0, pp1Name.str());
+      channelsTable->setContent(i, startCol, pp1Name.str());
 
       // Channel name
       std::stringstream channelName;
       channelName << "OT" << channel;
       if (requestedSection != ChannelSection::UNKNOWN) channelName << " " << any2str(requestedSection);
-      channelsTable->setContent(i, 1, channelName.str());
+      channelsTable->setContent(i, startCol + 1, channelName.str());
 
-      channelsTable->setContent(i, 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
 
       totalPsBundles += numPsBundlesPerChannel;
       totalSsBundles += numSsBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
-    channelsTable->setContent(13, 1, "Total");
-    channelsTable->setContent(13, 2, totalPsBundles);
-    channelsTable->setContent(13, 3, totalSsBundles);
-    channelsTable->setContent(13, 4, totalBundles);
-
-    return channelsTable;
+    channelsTable->setContent(13, startCol + 1, "Total");
+    channelsTable->setContent(13, startCol + 2, totalPsBundles);
+    channelsTable->setContent(13, startCol + 3, totalSsBundles);
+    channelsTable->setContent(13, startCol + 4, totalBundles);
   }
 
 
