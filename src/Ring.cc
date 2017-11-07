@@ -84,7 +84,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->myid(i+1);
-    mod->rotateZ(2*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
+    mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
     mod->flipped(parity != 1);
