@@ -1285,17 +1285,19 @@ namespace insur {
       RootWImage* myImage;
 
       // Modules to Bundles
-      TCanvas *summaryBundleCanvas = nullptr;
       TCanvas *RZBundleCanvas = nullptr;
       TCanvas *XYBundleNegCanvas = nullptr;
       TCanvas *XYBundleCanvas = nullptr;   
-      std::vector<TCanvas*> XYBundleCanvasesDisk;
-      std::vector<TCanvas*> XYSurfacesDisk;
+      std::vector<TCanvas*> XYPosBundlesDisks;
+      std::vector<TCanvas*> XYPosBundlesDiskSurfaces;
+      std::vector<TCanvas*> XYNegBundlesDisks;
+      std::vector<TCanvas*> XYNegBundlesDiskSurfaces;
    
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, XYBundleCanvasesDisk, XYSurfacesDisk);
+      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, 
+					    XYPosBundlesDisks, XYPosBundlesDiskSurfaces, XYNegBundlesDisks, XYNegBundlesDiskSurfaces);
 
       if (RZBundleCanvas) {
 	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
@@ -1312,14 +1314,36 @@ namespace insur {
 	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYBundleCanvasDisk : XYBundleCanvasesDisk ) {
-	  myImage = new RootWImage(XYBundleCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYBundleCanvasDisk->GetTitle());
+      // POSITIVE CABLING SIDE
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      RootWTable* positiveSideName = new RootWTable();
+      positiveSideName->setContent(0, 0, "Positive cabling side:");
+      myContent->addItem(positiveSideName);
+      for (const auto& XYPosDisk : XYPosBundlesDisks) {
+	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYPosDisk->GetTitle());
 	  myContent->addItem(myImage);
       }
-      for (const auto& XYSurface : XYSurfacesDisk ) {
-	  myImage = new RootWImage(XYSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYSurface->GetTitle());
+      for (const auto& XYPosSurface : XYPosBundlesDiskSurfaces) {
+	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYPosSurface->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      // NEGATIVE CABLING SIDE
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      RootWTable* negativeSideName = new RootWTable();
+      negativeSideName->setContent(0, 0, "Negative cabling side:");
+      myContent->addItem(negativeSideName);
+      for (const auto& XYNegDisk : XYNegBundlesDisks) {
+	  myImage = new RootWImage(XYNegDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYNegDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      for (const auto& XYNegSurface : XYNegBundlesDiskSurfaces) {
+	  myImage = new RootWImage(XYNegSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYNegSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
 
@@ -1379,8 +1403,6 @@ namespace insur {
       RootWInfo* myInfo = nullptr;
       // POSITIVE CABLING SIDE
       bool isPositiveCablingSide = true;
-      RootWTable* positiveSideName = new RootWTable();
-      positiveSideName->setContent(0, 0, "Positive cabling side:");
       filesContent->addItem(positiveSideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
@@ -1408,8 +1430,6 @@ namespace insur {
       spacer->setContent(1, 0, " ");
       spacer->setContent(2, 0, " ");
       filesContent->addItem(spacer);
-      RootWTable* negativeSideName = new RootWTable();
-      negativeSideName->setContent(0, 0, "Negative cabling side:");
       filesContent->addItem(negativeSideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
@@ -1475,7 +1495,6 @@ namespace insur {
 
       // Modules to Services Channels (optical)
       TCanvas *summaryChannelOpticalCanvas = nullptr;
-      TCanvas *RZChannelOpticalCanvas = nullptr;
       TCanvas *XYChannelOpticalNegCanvas = nullptr;
       TCanvas *XYChannelOpticalNegFlatCanvas = nullptr;
       TCanvas *XYChannelOpticalCanvas = nullptr; 
@@ -1485,13 +1504,8 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (optical)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasOpticalCablingChannelNicer(tracker, myCablingMap, RZChannelOpticalCanvas, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
+      createSummaryCanvasOpticalCablingChannelNicer(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
 
-      /*if (RZChannelOpticalCanvas) {
-	myImage = new RootWImage(RZChannelOpticalCanvas, RZChannelOpticalCanvas->GetWindowWidth(), RZChannelOpticalCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Services Channels. 1 color = 1 Channel.");
-	myContent->addItem(myImage);
-	}*/
       if (XYChannelOpticalNegCanvas) {
 	myImage = new RootWImage(XYChannelOpticalNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
@@ -6782,9 +6796,10 @@ namespace insur {
 
 
   void Vizard::createSummaryCanvasCablingBundleNicer(const Tracker& tracker,
-					       TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYSurfacesDisk) {
-
+						     TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+						     std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
+						     std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
+    
     double scaleFactor = tracker.maxR()/600;
 
     int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
@@ -6817,11 +6832,12 @@ namespace insur {
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
 
+    // POSITIVE CABLING SIDE.
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	XYCanvasDisk->cd();
@@ -6830,7 +6846,7 @@ namespace insur {
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-	XYCanvasesDisk.push_back(XYCanvasDisk);
+	XYPosBundlesDisks.push_back(XYCanvasDisk);
       }
     }
 
@@ -6841,17 +6857,101 @@ namespace insur {
 	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {  
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    if ((surfaceIndex % 2) == 1) {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180BundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards the depth of the screen)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XYRotateY180, TypeBundleColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      const bool isRotatedY180 = true;
+	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	    // (+Z) towards you
+	    else {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
+	}
+      }
+    }
+
+    // NEGATIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& firstDisk = anEndcap.disks().front();
+	TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					       Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards the depth of the screen)", 
+						    anEndcap.myid().c_str()),
+					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	XYNegCanvasDisk->cd();
+	PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	xyDiskDrawer.addModules(firstDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
+	const bool isRotatedY180 = true;
+	drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	XYNegBundlesDisks.push_back(XYNegCanvasDisk);
+      }
+    }
+
+    // ENDCAPS DISK SURFACE.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& firstDisk = anEndcap.disks().front();	
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = firstDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
-	    const std::vector<const Module*>& surfaceModules = found->second;
-	    TCanvas* XYSurfaceDisk = new TCanvas(Form("XYSurfaceEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						 Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), surfaceIndex),
-						 vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	    XYSurfaceDisk->cd();
-	    PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
-	    xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	    xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	    xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	    XYSurfacesDisk.push_back(XYSurfaceDisk);
+	    // (+Z) towards you
+	    if ((surfaceIndex % 2) == 1) {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						      Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", 
+							   anEndcap.myid().c_str(), surfaceIndex),
+						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYNegSurfaceDisk->cd();
+	      PlotDrawer<XYNeg, TypeBundleColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
+	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
+	    }
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    else {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						      Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards the depth of the screen)", 
+							   anEndcap.myid().c_str(), surfaceIndex),
+						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYNegSurfaceDisk->cd();
+	      PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
+	      const bool isRotatedY180 = true;
+	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
+	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
 	}
@@ -6922,7 +7022,7 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosDTCEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
@@ -6939,27 +7039,8 @@ namespace insur {
 
 
   void Vizard::createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
-							   TCanvas *&RZCanvas, 
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
-
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
-    RZCanvas->cd();
-    PlotDrawer<YZFull, TypeChannelColor> yzDrawer;
-    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
-	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
-      } );
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
-
     bool isPowerCabling = false;
     bool isPositiveCablingSide = true;
     TLegend* channelsLegendPos = new TLegend(0.905,0.3,1.0,0.8);
@@ -6976,8 +7057,7 @@ namespace insur {
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
-    channelsLegendNeg->Draw("same");
-    
+    channelsLegendNeg->Draw("same"); 
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7013,7 +7093,7 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosOpticalChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
@@ -7090,7 +7170,7 @@ namespace insur {
 	// POSITIVE CABLING SIDE. ENDCAPS DISK.
 	if (aDisk.side()) {
 	  isRotatedY180 = false;
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYCanvasDisk->cd();
@@ -7105,7 +7185,7 @@ namespace insur {
 	// NEGATIVE CABLING SIDE. ENDCAPS DISK.
 	else {
 	  isRotatedY180 = true;
-	  TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegCanvasEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards the depth of the screen)", anEndcap.myid().c_str(), aDisk.myid()),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	  XYNegCanvasDisk->cd();

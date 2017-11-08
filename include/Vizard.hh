@@ -165,9 +165,12 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, std::vector<TCanvas*> &XYCanvasEC, std::vector<TCanvas*> &XYSurfacesDisk);
-    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
+					       std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
+					       std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces);
+    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, 
+					    TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
     void createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
 						     TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk);

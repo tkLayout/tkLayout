@@ -385,7 +385,7 @@ void CablingMap::checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bun
   }
 
   for (const auto& c : channels) { 
-    if (c.second > 36) std::cout << "Power services channel " << c.first.first << " section " << c.first.second << " has " << c.second << " bundles." << std::endl;
+    if (c.second > 48) std::cout << "Power services channel " << c.first.first << " section " << c.first.second << " has " << c.second << " bundles." << std::endl;
   }
 }
 

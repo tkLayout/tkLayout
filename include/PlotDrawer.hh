@@ -241,6 +241,19 @@ struct XY : public std::pair<int, int>, private Rounder {
 };
 
 // Same as XY, but for (-Z) side.
+struct XYRotateY180 : public std::pair<int, int>, private Rounder {
+  const bool valid;
+  // XY coordinates of the centre of module m.
+ XYRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  // XY coordinates of vector v.
+ XYRotateY180(const XYZVector& v) : std::pair<int, int>(round(-v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
+ XYRotateY180(const XYZVector& v, const Module& m) : XYRotateY180(v) {}
+  int x() const { return this->first; }
+  int y() const { return this->second; }
+};
+
+// Same as XY, but for (-Z) side.
 struct XYNeg : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.

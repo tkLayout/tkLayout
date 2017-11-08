@@ -21,7 +21,7 @@ static const double cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;   
 
 // Offset are sometimes used to set the phi slices.
 // This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)
-static const double cabling_tedd1StripStripPhiRegionStart = 0.07 * M_PI / 180.;
+static const double cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;
 static const double cabling_tedd2StripStripPhiRegionStart = 0.;
 
 
