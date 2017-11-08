@@ -30,6 +30,20 @@ const std::vector<double> Disk::scanDsDistances() const {
   return ringsDsDistances;
 }
 
+/** Scan Property Tree and returns the rings' sensorThickness.
+ */
+const double Disk::scanSensorThickness() const {
+  double ringsSensorThickness;
+
+  int i = numRings(); // Look at only 1 Ring, assumes sensorThickness is identical everywhere in the Disk!
+  RectangularModule* modTemplate = GeometryFactory::make<RectangularModule>();
+  modTemplate->store(propertyTree());
+  if (ringNode.count(i) > 0) modTemplate->store(ringNode.at(i));
+  ringsSensorThickness = modTemplate->sensorThickness();
+
+  return ringsSensorThickness;
+}
+
 /** Scan Property Tree and gathers relevant info which is needed for building a disk.
  */
 const ScanDiskInfo Disk::scanPropertyTree() const {
@@ -129,18 +143,26 @@ std::pair<double, double> Disk::computeStringentZ(int i, int parity, const ScanE
 
 /** Calculates ring (i) radiusHigh, using ring (i+1).
     The most stringent of zError and rOverlap is used.
+    rSafetyMargin is also taken into account.
  */
-double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRho) {
+double Disk::computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho) {
 
-  // Case A : Consider zError
-  double zErrorShift   = (parity > 0 ? zError() : - zError());
-  double nextRhoWithZError   = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
+  // Case A: Consider zError.
+  double zErrorShift   = (parity > 0 ? zError : - zError);
+  double nextRho = lastRho / (lastZ - zErrorShift) * (newZ - zErrorShift);
 
   // Case B : Consider rOverlap
-  double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
-      
-  // Takes the most stringent of cases A and B
-  double nextRho = MAX(nextRhoWithZError, nextRhoWithROverlap);
+  if (rOverlap.state()) {
+    double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
+    // Takes the most stringent of cases A and B
+    double nextRho = MAX(nextRho, nextRhoWithROverlap);
+  }
+
+  // If relevant, consider rSafetyMargin.
+  if (oneBeforeLastRho > 1.) {
+    double nextRhoSafe = oneBeforeLastRho - rSafetyMargin;
+    nextRho = MIN(nextRho, nextRhoSafe);
+  }    
 
   return nextRho;
 }
@@ -152,8 +174,9 @@ double Disk::computeNextRho(int parity, double lastZ, double newZ, double lastRh
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
-  double lastRho;
-  
+  double oneBeforeLastRho = 0.;
+  double lastRho = 0.;
+
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
@@ -176,7 +199,9 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
       double newZ = stringentZ.second;           // Z of the most stringent point in Ring (i)
       
       // 2) CALCULATES RING (i) RADIUSHIGH USING RING (i+1)
-      double nextRho = computeNextRho(parity, lastZ, newZ, lastRho);
+      double zError = ring->zError();
+      double rSafetyMargin = ring->rSafetyMargin();
+      double nextRho = computeNextRho(parity, zError, rSafetyMargin, lastZ, newZ, lastRho, oneBeforeLastRho);
 
       // 3) NOW, CAN ASSIGN THE CALCULATED RADIUS TO RING (i) ! 
       ring->buildStartRadius(nextRho);
@@ -191,6 +216,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ringIndexMap_[i] = ring;
 
     // Keep for next calculation
+    oneBeforeLastRho = lastRho;
     lastRho = ring->minR();
   }
 }
@@ -246,63 +272,56 @@ const std::map<int, std::vector<const Module*> > Disk::getSurfaceModules() const
 }
 
 
-/** Binds the 2 points which are provided as arguments, and returns corresponding zError (intersection with (Z) axis).
+/** Binds the 2 points which are provided as arguments, and returns corresponding Z of intersection with (Z) axis.
  */
 const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, double lastRho, double newZ, double newRho) const {
   // Slope of the line that binds the most stringent points of ring (i) and ring (i+1).
   double slope = (newRho - lastRho) / (newZ - lastZ);
   bool isPositiveSlope = (slope > 0.);
 
-  // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
-  double zErrorCoverage;
-  zErrorCoverage = newZ - newRho / slope;  // Intersection of the line with (Z) axis.
+  // Used to calculate the coverage in Z of ring (i) with respect to ring (i+1).
+  double zIntersection;
+  zIntersection = newZ - newRho / slope;  // Intersection of the line with (Z) axis.
 
-  return std::make_pair(zErrorCoverage, isPositiveSlope);
+  return std::make_pair(zIntersection, isPositiveSlope);
 }
 
 
 /** This computes the actual coverage in Z of a disk (after it is built).
     It calculates the actual zError, using the relevant coordinates of the disk.
- */
+*/
 void Disk::computeActualZCoverage() {
-
-  double lastMinRho, lastMaxRho;
-  double lastMinZ, lastMaxZ;
+  
+  double lastMinRho;
+  double lastMinZ;
+  const double ringsSensorThickness = scanSensorThickness();
 
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     if (i != numRings()) {
-      // Calculate the coverage in Z of ring (i) with respect to ring (i+1).
-      double zErrorCoverage;
-
-      // Calculation A : Min coordinates of ring (i+1) with max coordinates of ring (i)
+      // CALCULATE THE COVERAGE IN Z OF RING (i) WITH RESPECT TO RING (i+1).
+      // RING (i+1) HAS BIGGER RADIUS, ring (i) HAS SMALLER RADIUS.
+     
       // Find the radii and Z of the most stringent points in ring (i).
       double newMaxRho = rings_.at(i-1).buildStartRadius();
-      double newMaxZ = rings_.at(i-1).maxZ();
+      double newMaxZ = rings_.at(i-1).maxZ() - ringsSensorThickness / 2.;
 
-      std::pair<double, bool> intersectionWithZAxisA = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
-      double zErrorCoverageA = intersectionWithZAxisA.first;
-      bool isPositiveSlopeA = intersectionWithZAxisA.second;
+      // Calculation : Min coordinates of ring (i+1) with max coordinates of ring (i)
+      std::pair<double, bool> intersectionWithZAxis = computeIntersectionWithZAxis(lastMinZ, lastMinRho, newMaxZ, newMaxRho);
+      double zIntersection = intersectionWithZAxis.first;
+      bool isPositiveSlope = intersectionWithZAxis.second;
       
-      // CASE WHERE RING (i+1) IS THE INNERMOST RING, AND RING (i) IS THE OUTERMOST RING.
+      double zErrorCoverage = 0.;
+      // CASE WHERE RING (i+1) HAS SMALLER Z, AND RING (i) HAS BIGGER Z.
       if (parity > 0.) {
-	zErrorCoverage = zErrorCoverageA; // Only consider calculation A
-	if (zErrorCoverage <= 0. || !isPositiveSlopeA) zErrorCoverage = 0.;  // doesn't really make sense to have negative zError!
+	if (isPositiveSlope) zErrorCoverage = zIntersection;
+	else zErrorCoverage = -std::numeric_limits<double>::infinity();
       }
 
-      // CASE WHERE RING (i+1) IS THE OUTERMOST RING, AND RING (i) IS THE INNERMOST RING.
+      // CASE WHERE RING (i+1) HAS BIGGER Z, AND RING (i) HAS SMALLER Z.
       else {
-	// Calculation B : Max coordinates of ring (i+1) with min coordinates of ring (i)
-	// Find the radii and Z of the most stringent points in ring (i).
-	double newMinRho = rings_.at(i-1).minR();
-	double newMinZ = rings_.at(i-1).minZ();
-
-	std::pair<double, bool> intersectionWithZAxisB = computeIntersectionWithZAxis(lastMaxZ, lastMaxRho, newMinZ, newMinRho);
-	double zErrorCoverageB = intersectionWithZAxisB.first;
-
-	// Consider the most stringent of calculations A and B
-	if (zErrorCoverageA * zErrorCoverageB < 0. || !isPositiveSlopeA) zErrorCoverage = MIN( fabs(zErrorCoverageA), fabs(zErrorCoverageB));
-	else zErrorCoverage = 0.;
+	if (isPositiveSlope) zErrorCoverage = -zIntersection;
+	else zErrorCoverage = std::numeric_limits<double>::infinity();
       }
       
       // STORE THE RESULT
@@ -310,12 +329,9 @@ void Disk::computeActualZCoverage() {
       ringIndexMap_[i]->actualZError(zErrorCoverage);
     }
 
-    // Keep for next calculation : radii and Z of the most stringent points in ring (i+1).
+    // Keep for next calculation : radii and Z of the most stringent point in ring (i+1).
     lastMinRho = rings_.at(i-1).minR();
-    lastMinZ = rings_.at(i-1).minZ();
-
-    lastMaxRho = rings_.at(i-1).maxR();
-    lastMaxZ = rings_.at(i-1).maxZ();
+    lastMinZ = rings_.at(i-1).minZ() + ringsSensorThickness / 2.;
   }
 }
 

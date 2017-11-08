@@ -481,6 +481,19 @@ const int DetectorModule::bundlePlotColor() const {
 }
 
 
+const int DetectorModule::channelPlotColor() const {
+  int channelPlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle != nullptr) {
+    const Cable* myCable = myBundle->getCable();
+    if (myCable != nullptr) {   
+      channelPlotColor = myCable->servicesChannelPlotColor();
+    }
+  }
+  return channelPlotColor;
+}
+
+
 const DTC* DetectorModule::getDTC() const {
   const DTC* myDTC = nullptr;
   const Bundle* myBundle = getBundle();
