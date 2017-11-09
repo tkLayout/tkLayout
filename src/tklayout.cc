@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     ("resolution,r", "Report resolution analysis.")
     ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("pattern-reco,P", "Report pattern recognition analysis.")
-    ("cablingMap,c", "Build an optical cabling map, which connects each module to a bundle, cable, DTC. Can actually be reused for power cables.")
+    ("cablingMap,c", "Build an optical cabling map, which connects each module to a bundle, cable, DTC + Build a power cabling map. Also provide info on routing of services into channels.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
@@ -158,7 +158,11 @@ int main(int argc, char* argv[]) {
       }
     }
     
-    if (vm.count("cablingMap") && !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
+    // Cabling map: Only computed for a specific layout (for which the map is designed).
+    // It is also computed if ever the user forces computation by using 'cabling' option.
+    if (((vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) || vm.count("cablingMap")) 
+	&& !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
+
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
