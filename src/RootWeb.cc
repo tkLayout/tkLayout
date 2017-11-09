@@ -463,6 +463,7 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TLatex") ||
 	       (myClass=="TLegend") ||
 	       (myClass=="TLine") ||
+	       (myClass=="TArrow") ||
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
 	       (myClass=="TText") ||

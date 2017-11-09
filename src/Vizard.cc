@@ -6776,7 +6776,7 @@ namespace insur {
 	  if (found != allSurfaceModules.end()) {
 	    const std::vector<const Module*>& surfaceModules = found->second;
 	    TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
-					      Form("XY projection of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
+					      Form("XY section of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	    XYCanvasEC->cd();
 	    PlotDrawer<XY, Type> xyEndcapDrawer;
@@ -6862,7 +6862,7 @@ namespace insur {
 	    if ((surfaceIndex % 2) == 1) {
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180BundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						   Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards the depth of the screen)", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XYRotateY180, TypeBundleColor> xyDiskDrawer;
@@ -6877,7 +6877,7 @@ namespace insur {
 	    else {
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						   Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
@@ -6925,7 +6925,7 @@ namespace insur {
 	    if ((surfaceIndex % 2) == 1) {
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						      Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards you)", 
+						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYNegSurfaceDisk->cd();
@@ -6940,7 +6940,7 @@ namespace insur {
 	    else {
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						      Form("(XY) Projection : Endcap %s, any Disk, Surface %d. (CMS +Z points towards the depth of the screen)", 
+						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYNegSurfaceDisk->cd();
@@ -7619,6 +7619,67 @@ namespace insur {
       TLine* line = new TLine(0., 0., phiSectorBoundaryRadius * cos(rotatedAngle), phiSectorBoundaryRadius * sin(rotatedAngle)); 
       line->SetLineWidth(2); 
       line->Draw("same");     
+    }
+    drawFrameOfReference(isRotatedY180);
+  }
+
+
+  /*
+   *  Draw frame of reference reminder.
+   */
+  void Vizard::drawFrameOfReference(const bool isRotatedY180) {
+    
+    // CMS reference frame of reference
+    if (!isRotatedY180) {
+      TArrow* arrowX = new TArrow(900, 900, 1100, 900, 0.02, "|>");
+      arrowX->Draw();
+      TLatex* textX = new TLatex(1000, 820, "X");
+      textX->SetTextSize(0.025);
+      textX->Draw("same");
+
+      TArrow* arrowY = new TArrow(900, 900, 900, 1100, 0.02, "|>");
+      arrowY->Draw();
+      TLatex* textY = new TLatex(820, 1000, "Y");
+      textY->SetTextSize(0.025);
+      textY->Draw("same");
+
+      TEllipse* circleZ = new TEllipse(1050, 1050, 50, 50);
+      circleZ->SetLineWidth(2);
+      circleZ->Draw("same");
+      TEllipse* pointZ = new TEllipse(1050, 1050, 10, 10);
+      pointZ->SetFillColor(kBlack);
+      pointZ->Draw("same");
+      TLatex* textZ = new TLatex(1030, 1110, "Z");
+      textZ->SetTextSize(0.025);
+      textZ->Draw("same");
+    }
+
+    // CMS frame of reference rotated by 180 degrees around CMS_Y
+    else {
+      TArrow* arrowX = new TArrow(1100, 900, 900, 900, 0.02, "|>");
+      arrowX->Draw();
+      TLatex* textX = new TLatex(950, 820, "X");
+      textX->SetTextSize(0.025);
+      textX->Draw("same");
+
+      TArrow* arrowY = new TArrow(1100, 900, 1100, 1100, 0.02, "|>");
+      arrowY->Draw();
+      TLatex* textY = new TLatex(1020, 1000, "Y");
+      textY->SetTextSize(0.025);
+      textY->Draw("same");
+
+      TEllipse* circleZ = new TEllipse(850, 1050, 50, 50);
+      circleZ->SetLineWidth(2);
+      circleZ->Draw("same");
+      TLine* lineU = new TLine(815, 1015, 885, 1085);
+      lineU->SetLineWidth(2);
+      lineU->Draw("same");
+      TLine* lineD = new TLine(815, 1085, 885, 1015);
+      lineD->SetLineWidth(2);
+      lineD->Draw("same");
+      TLatex* textZ = new TLatex(830, 1110, "Z");
+      textZ->SetTextSize(0.025);
+      textZ->Draw("same");
     }
   }
 

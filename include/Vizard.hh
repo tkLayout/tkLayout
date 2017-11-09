@@ -29,6 +29,8 @@
 #include <TLatex.h>
 #include <TColor.h>
 #include <TLine.h>
+#include <TArrow.h>
+#include <TEllipse.h>
 #include <TView.h>
 #include <TLegend.h>
 #include <TGraph.h>
@@ -247,6 +249,7 @@ namespace insur {
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
+    void drawFrameOfReference(const bool isRotatedY180);
     void computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
   };
 
