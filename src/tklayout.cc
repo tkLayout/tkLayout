@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Cabling map: Only computed for a specific layout (for which the map is designed).
-    // It is also computed if ever the user forces computation by using 'cabling' option.
+    // It is also computed if ever the user forces computation by using 'cablingMap' option.
     if (((vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) || vm.count("cablingMap")) 
 	&& !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
 
