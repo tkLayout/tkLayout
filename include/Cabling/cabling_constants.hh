@@ -21,8 +21,8 @@ static const double cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;   
 
 // Offset are sometimes used to set the phi slices.
 // This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)
-static const double cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.; // For OT613 (TDR): use -0.55 * M_PI / 180.
-static const double cabling_tedd2StripStripPhiRegionStart = 0.; // For OT613 (TDR): use -0.001 * M_PI / 180.
+static const double cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
+static const double cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
 
 
 // ROUNDING
@@ -61,6 +61,16 @@ enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 // The only difference is that power cables are assigned to section A or C in PP1.
 // This additional info is dealt with by ChannelSection.
 enum ChannelSection { UNKNOWN, A, B, C };
+
+// Number of outer tracker services channels (per cabling side)
+static const int cabling_numServicesChannels = 12;
+// Maximum number of power cables per channel (used for cross-checking)
+static const int cabling_maxNumPowerCablesPerChannel = 48;
+// Maximum number of optical fiber bundles per channel (used for cross-checking)
+static const int cabling_maxNumOpticalBundlesPerChannel = 72;
+
+static const double cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
+static const double cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
 
 
 #endif  // CABLING_CONSTANTS_HH

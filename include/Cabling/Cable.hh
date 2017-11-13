@@ -34,14 +34,14 @@ public:
   const int phiSectorRef() const { return phiSectorRef_; }
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
-  const int servicesChannel() const { return servicesChannel_; }
-  const ChannelSection& servicesChannelSection() const { return servicesChannelSection_; }
-  const int servicesChannelPlotColor() const { return servicesChannelPlotColor_; }
+  const int servicesChannel() const { return opticalServicesChannel_; }
+  const ChannelSection& servicesChannelSection() const { return opticalServicesChannelSection_; }
+  const int servicesChannelPlotColor() const { return opticalServicesChannelPlotColor_; }
 
 
 private:
-  const std::tuple<int, ChannelSection, int> computeServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
-  const int computeServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const;
+  const std::tuple<int, ChannelSection, int> computeOpticalServicesChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  const int computeOpticalServicesChannelPlotColor(const int servicesChannel, const ChannelSection& servicesChannelSection) const;
   std::pair<int, ChannelSection> computePowerServicesChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide);
 
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
@@ -56,9 +56,9 @@ private:
   Category type_;
   int slot_;
   bool isPositiveCablingSide_;
-  int servicesChannel_;
-  ChannelSection servicesChannelSection_;
-  int servicesChannelPlotColor_;
+  int opticalServicesChannel_;
+  ChannelSection opticalServicesChannelSection_;
+  int opticalServicesChannelPlotColor_;
 };
 
 

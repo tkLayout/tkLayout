@@ -378,14 +378,14 @@ void CablingMap::checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bun
     const int servicesChannel = b.second->powerServicesChannel();
     const ChannelSection servicesChannelSection = b.second->powerServicesChannelSection();
 
-    if (fabs(servicesChannel) == 0 || fabs(servicesChannel) >= 13) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
+    if (fabs(servicesChannel) == 0 || fabs(servicesChannel) > cabling_numServicesChannels) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
     if (servicesChannelSection != ChannelSection::A && servicesChannelSection != ChannelSection::C) std::cout << "ERROR: power servicesChannelSection = " << servicesChannelSection << std::endl;
     std::pair<const int, const ChannelSection > myChannel = std::make_pair(servicesChannel, servicesChannelSection);
     channels[myChannel] += 1;
   }
 
   for (const auto& c : channels) { 
-    if (c.second > 48) std::cout << "Power services channel " << c.first.first << " section " << c.first.second << " has " << c.second << " bundles." << std::endl;
+    if (c.second > cabling_maxNumPowerCablesPerChannel) std::cout << "Power services channel " << c.first.first << " section " << c.first.second << " has " << c.second << " bundles." << std::endl;
   }
 }
 
