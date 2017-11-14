@@ -53,7 +53,7 @@ private:
   Category type_;
   int slot_;
   bool isPositiveCablingSide_;
-  ServicesChannel* opticalChannel_;
+  ServicesChannel* opticalChannel_ = nullptr;
 };
 
 

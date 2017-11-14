@@ -11,7 +11,7 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 { 
   myid(id);
   // ASSIGN AN OPTICAL SERVICESCHANNEL TO THE CABLE
-  ServicesChannel* opticalChannel_ = GeometryFactory::make<OpticalChannel>(phiSectorRef, type, slot, isPositiveCablingSide);
+  opticalChannel_ = GeometryFactory::make<OpticalChannel>(phiSectorRef, type, slot, isPositiveCablingSide);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  

@@ -85,7 +85,7 @@ private:
 
   int plotColor_;
 
-  ServicesChannel* powerChannel_;
+  ServicesChannel* powerChannel_ = nullptr;
 };
 
 
