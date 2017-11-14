@@ -11,7 +11,7 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 { 
   myid(id);
   // ASSIGN AN OPTICAL SERVICESCHANNEL TO THE CABLE
-  ServicesChannel* opticalChannel_ = GeometryFactory::make<ServicesChannel>(phiSectorRef, type, slot, isPositiveCablingSide);
+  ServicesChannel* opticalChannel_ = GeometryFactory::make<OpticalChannel>(phiSectorRef, type, slot, isPositiveCablingSide);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
@@ -46,7 +46,7 @@ void Cable::assignPowerServicesChannels() {
     const int semiPhiRegionIndex = (isLower ? 0 : 1);
     const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
 
-    ServicesChannel* powerChannel = GeometryFactory::make<ServicesChannel>(semiPhiRegionRef, isPositiveCablingSide_);
+    ServicesChannel* powerChannel = GeometryFactory::make<PowerChannel>(semiPhiRegionRef, isPositiveCablingSide_);
     myBundle.setPowerServicesChannel(powerChannel);
   }
 }
