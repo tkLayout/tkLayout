@@ -15,7 +15,7 @@ public:
   const int plotColor() const { return plotColor_; }
 
 protected:
-  void build(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor);
+  void build(const int id, const ChannelSection section, const bool isPositiveCablingSide, const int plotColor);
 
   ChannelSection section_ = ChannelSection::UNKNOWN;
   bool isPositiveCablingSide_;  

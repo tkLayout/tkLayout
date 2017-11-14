@@ -21,6 +21,9 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 Cable::~Cable() {
   delete myDTC_;       // TO DO: switch to smart pointers and remove this!
   myDTC_ = nullptr;
+
+  delete opticalChannel_;
+  opticalChannel_ = nullptr;
 }
 
 

@@ -19,6 +19,9 @@ Bundle::Bundle(const int id, const int complementaryBundleId, const Category& ty
 Bundle::~Bundle() {
   delete cable_;    // TO DO: switch to smart pointers and remove this!
   cable_ = nullptr; 
+
+  delete powerChannel_;
+  powerChannel_ = nullptr;
 }
 
 

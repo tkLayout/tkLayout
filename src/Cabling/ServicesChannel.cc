@@ -1,7 +1,7 @@
 #include "Cabling/ServicesChannel.hh"
 
 
-void ServicesChannel::build(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor) {
+void ServicesChannel::build(const int id, const ChannelSection section, const bool isPositiveCablingSide, const int plotColor) {
   section_ = section;
   isPositiveCablingSide_ = isPositiveCablingSide;
   plotColor_ = plotColor;
