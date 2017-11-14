@@ -10,14 +10,13 @@
 
 class ServicesChannel : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
-  ServicesChannel(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor);
-
   const ChannelSection& section() const { return section_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
- 
   const int plotColor() const { return plotColor_; }
 
 protected:
+  void build(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor);
+
   ChannelSection section_ = ChannelSection::UNKNOWN;
   bool isPositiveCablingSide_;  
   int plotColor_;
@@ -30,8 +29,8 @@ public:
   OpticalChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
 
 private:
-  const int computeOpticalChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
-  int computeOpticalChannelPlotColor(const int number) const;
+  const int computeChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
+  int computeChannelPlotColor(const int number) const;
 
 };
 
@@ -42,8 +41,8 @@ public:
   PowerChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide);
 
 private:
-  std::pair<int, ChannelSection> computePowerChannelNumberAndSection(const int semiPhiRegionRef, const bool isPositiveCablingSide) const;
-  int computePowerChannelPlotColor(const int number, const ChannelSection& section, const bool isPositiveCablingSide) const;
+  std::pair<int, ChannelSection> computeChannelNumberAndSection(const int semiPhiRegionRef, const bool isPositiveCablingSide) const;
+  int computeChannelPlotColor(const int number, const ChannelSection& section, const bool isPositiveCablingSide) const;
 
 };
 

@@ -1,22 +1,21 @@
 #include "Cabling/ServicesChannel.hh"
 
 
-/*ServicesChannel(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor) :
-  section_(section),
-  isPositiveCablingSide_(isPositiveCablingSide),
-  plotColor_(plotColor) 
-{ 
+void ServicesChannel::build(const int id, const ChannelSection& section, const bool isPositiveCablingSide, const int plotColor) {
+  section_ = section;
+  isPositiveCablingSide_ = isPositiveCablingSide;
+  plotColor_ = plotColor;
   myid(id); 
-  };*/
+};
 
 
-OpticalChannel::OpticalChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) :
-  section_(ChannelSection::B),
-  isPositiveCablingSide_(isPositiveCablingSide)
-{
-  const int number = computeOpticalChannelNumber(phiSectorRef, type, slot, isPositiveCablingSide);
-  myid(number);
-  plotColor_ = computeOpticalChannelPlotColor(number);
+OpticalChannel::OpticalChannel(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
+  const ChannelSection& section = ChannelSection::B;
+
+  const int number = computeChannelNumber(phiSectorRef, type, slot, isPositiveCablingSide);
+  const int plotColor = computeChannelPlotColor(number);
+
+  build(number, section, isPositiveCablingSide, plotColor);
 };
 
 
@@ -24,7 +23,7 @@ OpticalChannel::OpticalChannel(const int phiSectorRef, const Category& type, con
  * They are the channels where the optical cables are routed when they exit the tracker.
  * They are closely related to the phiSector ref.
  */
-const int OpticalChannel::computeOpticalChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
+const int OpticalChannel::computeChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int servicesChannel = 0;
 
   if (type == Category::PS10G) {
@@ -123,25 +122,24 @@ const int OpticalChannel::computeOpticalChannelNumber(const int phiSectorRef, co
 
 /* Compute color associated to services channel.
  */
-int OpticalChannel::computeOpticalChannelPlotColor(const int number) const {
+int OpticalChannel::computeChannelPlotColor(const int number) const {
   int plotColor = fabs(number);
   return plotColor;
 }
 
 
-PowerChannel::PowerChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide) //:
-//isPositiveCablingSide_(isPositiveCablingSide)
-{
-  isPositiveCablingSide_ = isPositiveCablingSide;
-  const std::pair<int, ChannelSection> numberAndSection = computePowerChannelNumberAndSection(semiPhiRegionRef, isPositiveCablingSide);
+PowerChannel::PowerChannel(const int semiPhiRegionRef, const bool isPositiveCablingSide) {
+
+  const std::pair<int, ChannelSection> numberAndSection = computeChannelNumberAndSection(semiPhiRegionRef, isPositiveCablingSide);
   const int number = numberAndSection.first;
-  myid(number);
-  section_ = numberAndSection.second;
-  plotColor_ = computePowerChannelPlotColor(number, section_, isPositiveCablingSide);
+  const ChannelSection& section = numberAndSection.second;
+  const int plotColor = computeChannelPlotColor(number, section, isPositiveCablingSide);
+
+  build(number, section, isPositiveCablingSide, plotColor);
 };
 
 
-std::pair<int, ChannelSection> PowerChannel::computePowerChannelNumberAndSection(const int semiPhiRegionRef, const bool isPositiveCablingSide) const {
+std::pair<int, ChannelSection> PowerChannel::computeChannelNumberAndSection(const int semiPhiRegionRef, const bool isPositiveCablingSide) const {
 
   int servicesChannel = 0;
   ChannelSection servicesChannelSection = ChannelSection::UNKNOWN;
@@ -194,7 +192,7 @@ std::pair<int, ChannelSection> PowerChannel::computePowerChannelNumberAndSection
 }
 
 
-int PowerChannel::computePowerChannelPlotColor(const int number, const ChannelSection& section, const bool isPositiveCablingSide) const {
+int PowerChannel::computeChannelPlotColor(const int number, const ChannelSection& section, const bool isPositiveCablingSide) const {
   int plotColor = fabs(number);
   if ( (isPositiveCablingSide && section == ChannelSection::A)
        || (!isPositiveCablingSide && section == ChannelSection::C)
