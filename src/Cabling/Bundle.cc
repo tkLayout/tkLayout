@@ -102,17 +102,3 @@ const int Bundle::computePlotColor(const int id, const bool isPositiveCablingSid
   plotColor = plotType * 3 + plotPhi;
   return plotColor;
 }
-
-
-int Bundle::computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>& powerServicesChannel) const {
-  int plotColor = 0;
-  const int channel = powerServicesChannel.first;
-  plotColor = fabs(channel);
-  if ( (channel > 0 && powerServicesChannel.second == ChannelSection::A)
-       || (channel < 0 && powerServicesChannel.second == ChannelSection::C)
-       ) {
-    //if (powerServicesChannel.second == ChannelSection::A) {
-    plotColor += 12;
-  }
-  return plotColor;
-}

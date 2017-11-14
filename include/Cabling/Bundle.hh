@@ -7,6 +7,7 @@
 #include "Property.hh"
 #include "Module.hh"
 #include "Cabling/PhiPosition.hh"
+#include "Cabling/ServicesChannel.hh"
 
 
 namespace insur { class Cable; }
@@ -56,20 +57,17 @@ public:
 
   const int plotColor() const { return plotColor_; }
 
-  const int powerServicesChannel() const { return powerServicesChannel_; }
-  const ChannelSection& powerServicesChannelSection() const { return powerServicesChannelSection_; }
-  const int powerServicesChannelPlotColor() const { return powerServicesChannelPlotColor_; }
+  const int powerServicesChannel() const { return powerChannel_->myid(); }
+  const ChannelSection& powerServicesChannelSection() const { return powerChannel_->section(); }
+  const int powerServicesChannelPlotColor() const { return powerChannel_->plotColor(); }
 
-  void setPowerServicesChannel(std::pair<int, ChannelSection>& powerServicesChannel) {
-    powerServicesChannel_ = powerServicesChannel.first;
-    powerServicesChannelSection_ = powerServicesChannel.second;
-    powerServicesChannelPlotColor_ = computePowerServicesChannelPlotColor(powerServicesChannel);
+  void setPowerServicesChannel(ServicesChannel* powerChannel) {
+    powerChannel_ = powerChannel;
   }
 
 
 private:
   const int computePlotColor(const int id, const bool isPositiveCablingSide) const;
-  int computePowerServicesChannelPlotColor(std::pair<int, ChannelSection>& powerServicesChannel) const;
 
   int complementaryBundleId_;
   bool isInLowerSemiPhiSectorStereo_;
@@ -87,9 +85,7 @@ private:
 
   int plotColor_;
 
-  int powerServicesChannel_;
-  ChannelSection powerServicesChannelSection_;
-  int powerServicesChannelPlotColor_;
+  ServicesChannel* powerChannel_;
 };
 
 
