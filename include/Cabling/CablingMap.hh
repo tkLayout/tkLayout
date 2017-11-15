@@ -39,12 +39,12 @@ private:
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
   void createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
   void connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const;
-  void checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles);
   void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);  // check bundles to cables connections
 
-  void assignBundlesStereoSemiBoundaries(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& complementaryBundles);
-
-  void computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables);
+  // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
+  void computePowerServicesChannels();
+  void routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide);
+  void checkBundlesToPowerServicesChannels(const std::map<int, Bundle*>& bundles);
 
   // positive cabling side
   std::map<int, Bundle*> bundles_;

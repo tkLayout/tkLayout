@@ -2,8 +2,8 @@
 #include "Cabling/Cable.hh"
 
 
-Bundle::Bundle(const int id, const int complementaryBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
-  complementaryBundleId_(complementaryBundleId),
+Bundle::Bundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
+  stereoBundleId_(stereoBundleId),
   type_(type),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
@@ -111,4 +111,34 @@ const ChannelSection* Bundle::opticalChannelSection() const {
   const ChannelSection* opticalSection = nullptr;
   if (cable_ != nullptr) opticalSection = cable_->opticalChannelSection();
   return opticalSection;
+}
+
+
+/* Untilted TBPS only: Id of the bundle located on the same Phi, but connected to the tilted modules.
+ */
+const int Bundle::tiltedBundleId() const {
+  if (!isBarrel() || !isPSFlatPart()) logERROR("Tried to access tiltedBundleId, but not in TBPS flat part.");
+  const int bundleId = myid();
+  const int tiltedBundleId = bundleId - femod(bundleId, 10);
+  return tiltedBundleId;
+}
+
+
+/* Id of the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
+ */
+const int Bundle::stereoBundleId() const {
+  if (!isBarrel()) logERROR("Tried to access stereoBundleId in TEDD, where it is not implemented (only implemented for Barrel).");
+  return stereoBundleId_;
+}
+
+
+void Bundle::setIsPowerRoutedToBarrelLowerSemiNonant(const bool isLower) {
+  if (!isBarrel()) logERROR("Tried to set Barrel power routing on a Bundle located in TEDD.");
+  isPowerRoutedToBarrelLowerSemiNonant_ = isLower;
+}
+
+
+const bool Bundle::isPowerRoutedToBarrelLowerSemiNonant() const {
+  if (!isBarrel()) logERROR("Tried to access Barrel power routing from a Bundle located in TEDD.");
+  return isPowerRoutedToBarrelLowerSemiNonant_;
 }

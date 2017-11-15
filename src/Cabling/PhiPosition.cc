@@ -13,8 +13,10 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
     phiSegmentStart_ = computePhiSegmentStart(rodPhi, phiSegmentWidth_);
     phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart_, phiSegmentWidth_);
 
-    complementaryPhiSegmentStart_ = computePhiSegmentStart(femod(M_PI - rodPhi, 2.*M_PI), phiSegmentWidth_);
-    complementaryPhiSegmentRef_ = computePhiSegmentRef(femod(M_PI - rodPhi, 2.*M_PI), complementaryPhiSegmentStart_, phiSegmentWidth_);
+    // STEREO PHI SEGMENT
+    double stereoRodPhi = femod(M_PI - rodPhi, 2.*M_PI);
+    stereoPhiSegmentStart_ = computePhiSegmentStart(stereoRodPhi, phiSegmentWidth_);
+    stereoPhiSegmentRef_ = computePhiSegmentRef(stereoRodPhi, stereoPhiSegmentStart_, phiSegmentWidth_);
 
     // PHI REGION
     // Depending on the layer number, different phiRegionWidth are assigned.
@@ -37,6 +39,11 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
     phiSegmentWidth_ = (2.*M_PI) / numModulesInRing;
     phiSegmentStart_ = computePhiSegmentStart(modPhi, phiSegmentWidth_);
     phiSegmentRef_ = computePhiSegmentRef(modPhi, phiSegmentStart_, phiSegmentWidth_);
+
+    // STEREO PHI SEGMENT
+    double stereoModPhi =  femod(M_PI - modPhi, 2.*M_PI);
+    stereoPhiSegmentStart_ = computePhiSegmentStart(stereoModPhi, phiSegmentWidth_);
+    stereoPhiSegmentRef_ = computePhiSegmentRef(stereoModPhi, stereoPhiSegmentStart_, phiSegmentWidth_);
 	
     // PHI REGION
     // Depending on the disk number and cabling type, different phiRegionWidth are assigned.

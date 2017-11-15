@@ -34,7 +34,9 @@ public:
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
   // SERVICES CHANNELS INFORMATION
+  // Optical
   const ChannelSection* opticalChannelSection() const { return opticalChannelSection_; }
+  // Power
   void assignPowerChannelSections();
 
 private:
@@ -50,6 +52,7 @@ private:
   Category type_;
   int slot_;
   bool isPositiveCablingSide_;
+
   ChannelSection* opticalChannelSection_ = nullptr;
 };
 

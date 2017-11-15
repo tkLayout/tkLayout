@@ -27,9 +27,9 @@ public:
   const double phiSegmentStart() const { return phiSegmentStart_; }
   const int phiSegmentRef() const { return phiSegmentRef_; }
 
-  // COMPLEMENTARY PHI SEGMENT
-  const double complementaryPhiSegmentStart() const { return complementaryPhiSegmentStart_; }
-  const int complementaryPhiSegmentRef() const { return complementaryPhiSegmentRef_; }
+  // STEREO PHI SEGMENT
+  const double stereoPhiSegmentStart() const { return stereoPhiSegmentStart_; }
+  const int stereoPhiSegmentRef() const { return stereoPhiSegmentRef_; }
   
   // PHI REGION
   const double phiRegionWidth() const { return phiRegionWidth_; }
@@ -47,9 +47,9 @@ private:
   double phiSegmentStart_;
   int phiSegmentRef_;
 
-  // COMPLEMETARY PHI SEGMENT
-  double complementaryPhiSegmentStart_;
-  int complementaryPhiSegmentRef_;
+  // STEREO PHI SEGMENT
+  double stereoPhiSegmentStart_;
+  int stereoPhiSegmentRef_;
 
   // PHI REGION
   double phiRegionWidth_;
