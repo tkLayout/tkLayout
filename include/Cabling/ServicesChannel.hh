@@ -20,7 +20,6 @@
 // A map of all Tracker ServicesChannels could then be assigned to the CablingMap.
 
 
-
 /*class ServicesChannel : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<ChannelSection> Container;
 public:
@@ -35,6 +34,14 @@ protected:
   };*/
 
 
+/* Section of a services channel.
+   As all cables exit the Tracker, they are routed through a services channel.
+ * A services channel is divided into 3 sections: A, B and C.
+ * The optical bundles are always routed in section B.
+ * The power cables are always routed in section A or C.
+ * The cooling pipes are always routed in section A or C.
+ * IMPORTANT NOTE: SECTION IN SERVICES CHANNEL = SECTION IN PP1 (Patch Panel 1).
+ */
 class ChannelSection : public PropertyObject, public Buildable {
   //typedef PtrVector<Bundle> Container;
 public:
@@ -55,7 +62,8 @@ protected:
 };
 
 
-
+/* Channel Section filled by optical bundles.
+ */
 class OpticalSection : public ChannelSection {
 public:
   OpticalSection(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
@@ -63,11 +71,12 @@ public:
 private:
   const int computeChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const;
   const int computeChannelPlotColor(const int number) const;
-
 };
 
 
-
+/* Channel Section filled by power cables. 
+ * NB: In the CablingMap, 1 Bundle = 1 Power cable.
+ */
 class PowerSection : public ChannelSection {
 public:
   PowerSection(const int semiPhiRegionRef, const bool isPositiveCablingSide);
@@ -75,12 +84,7 @@ public:
 private:
   std::pair<int, ChannelSlot> computeChannelNumberAndSlot(const int semiPhiRegionRef, const bool isPositiveCablingSide) const;
   const int computeChannelPlotColor(const int number, const ChannelSlot& channelSlot, const bool isPositiveCablingSide) const;
-
 };
-
-
-
-
 
 
 

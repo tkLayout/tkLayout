@@ -1568,7 +1568,6 @@ namespace insur {
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       // NEGATIVE CABLING SIDE
-      //myContent->addItem(spacer);
       myContent->addItem(negativeSideName);
       if (XYChannelPowerNegCanvas) {
 	myImage = new RootWImage(XYChannelPowerNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1843,8 +1842,6 @@ namespace insur {
     channelsTable->setContent(13, startCol + 3, totalSsBundles);
     channelsTable->setContent(13, startCol + 4, totalBundles);
   }
-
-
 
 
   /**
@@ -6727,6 +6724,7 @@ namespace insur {
     //return summaryCanvas;
   }
 
+
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         std::vector<TCanvas*> &XYCanvasesEC) {
@@ -7613,7 +7611,10 @@ namespace insur {
 
 
   /*
-  *  Draw spider net to delimit the Phi Sectors.
+  * Draw spider net to delimit the Phi Sectors.
+  * bool isRotatedY180 : 
+  - false: draws in CMS global frame of reference.
+  - true: draws in CMS global frame of reference rotated of 180° around CMS_Y.
   */
   void Vizard::drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180) {
     int numPhiSectors = round(2. * M_PI / phiSectorWidth);
@@ -7635,7 +7636,7 @@ namespace insur {
    */
   void Vizard::drawFrameOfReference(const bool isRotatedY180) {
     
-    // CMS reference frame of reference
+    // CMS reference frame of reference.
     if (!isRotatedY180) {
       TArrow* arrowX = new TArrow(900, 900, 1100, 900, 0.02, "|>");
       arrowX->Draw();
@@ -7660,7 +7661,7 @@ namespace insur {
       textZ->Draw("same");
     }
 
-    // CMS frame of reference rotated by 180 degrees around CMS_Y
+    // CMS frame of reference rotated by 180 degrees around CMS_Y.
     else {
       TArrow* arrowX = new TArrow(1100, 900, 900, 900, 0.02, "|>");
       arrowX->Draw();

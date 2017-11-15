@@ -9,8 +9,10 @@ void ChannelSection::build(const int channelNumber, const ChannelSlot& channelSl
 };
 
 
+/* Channel Section filled by optical bundles. 
+ */
 OpticalSection::OpticalSection(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
-  const ChannelSlot& channelSlot = ChannelSlot::B;
+  const ChannelSlot& channelSlot = ChannelSlot::B;  // The optical bundles are always routed in section B.
 
   const int channelNumber = computeChannelNumber(phiSectorRef, type, slot, isPositiveCablingSide);
   const int plotColor = computeChannelPlotColor(channelNumber);
@@ -19,9 +21,9 @@ OpticalSection::OpticalSection(const int phiSectorRef, const Category& type, con
 };
 
 
-/* Compute optical services channels.
- * They are the channels where the optical cables are routed when they exit the tracker.
- * They are closely related to the phiSector ref.
+/* Compute the number of the Channel, through which the optical bundles are routed when they exit the Tracker.
+ * This number is closely related to the phiSector ref.
+ * This is done in a way to avoid crossings between fiber bundles, as they exit the tracker.
  */
 const int OpticalSection::computeChannelNumber(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   int channelNumber = 0;
@@ -86,7 +88,6 @@ const int OpticalSection::computeChannelNumber(const int phiSectorRef, const Cat
     }
   }
 
-
   // NEGATIVE CABLING SIDE.
   // A given services channel is simplified as a straight line all along (Z).
   // THIS DEFINES THE CHANNEL NUMBERING ON THE (-Z) SIDE.
@@ -120,7 +121,7 @@ const int OpticalSection::computeChannelNumber(const int phiSectorRef, const Cat
 }
 
 
-/* Compute color associated to services channel.
+/* Compute color associated to optical channel section.
  */
 const int OpticalSection::computeChannelPlotColor(const int channelNumber) const {
   int plotColor = fabs(channelNumber);
@@ -128,6 +129,9 @@ const int OpticalSection::computeChannelPlotColor(const int channelNumber) const
 }
 
 
+/* Channel Section filled by power cables. 
+ * NB: In the CablingMap, 1 Bundle = 1 Power cable.
+ */
 PowerSection::PowerSection(const int semiPhiRegionRef, const bool isPositiveCablingSide) {
 
   const std::pair<int, ChannelSlot> channelNumberAndSlot = computeChannelNumberAndSlot(semiPhiRegionRef, isPositiveCablingSide);
@@ -139,6 +143,12 @@ PowerSection::PowerSection(const int semiPhiRegionRef, const bool isPositiveCabl
 };
 
 
+/* Compute the number of the Channel, through which the power cables are routed when they exit the Tracker.
+ * Also compute the channel slot on which the power cables are routed.
+ * This is done in a way that leaves space free for the cooling pipes routing.
+ * Positive cabling side: 1A, 3A, 5A, 7A, 9A, 11A used for cooling pipes.
+ * Negative cabling side: 2C, 4C, 6C, 8C, 10C, 12C used for cooling pipes.
+ */
 std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int semiPhiRegionRef, const bool isPositiveCablingSide) const {
 
   int channelNumber = 0;
@@ -192,13 +202,15 @@ std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int 
 }
 
 
+/* Compute color associated to power channel section.
+ */
 const int PowerSection::computeChannelPlotColor(const int channelNumber, const ChannelSlot& channelSlot, const bool isPositiveCablingSide) const {
   int plotColor = fabs(channelNumber);
   if ( (isPositiveCablingSide && channelSlot == ChannelSlot::A)
        || (!isPositiveCablingSide && channelSlot == ChannelSlot::C)
        ) {
     //if (channelSlot == ChannelSlot::A) {
-    plotColor += 12;
+    plotColor += 12;  // This is used to activate transparency.
   }
   return plotColor;
 }
