@@ -11,7 +11,7 @@ Cable::Cable(const int id, const double phiSectorWidth, const int phiSectorRef, 
 { 
   myid(id);
   // ASSIGN AN OPTICAL SERVICESCHANNEL TO THE CABLE
-  opticalChannel_ = GeometryFactory::make<OpticalChannel>(phiSectorRef, type, slot, isPositiveCablingSide);
+  opticalChannelSection_ = GeometryFactory::make<OpticalSection>(phiSectorRef, type, slot, isPositiveCablingSide);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
@@ -22,12 +22,12 @@ Cable::~Cable() {
   delete myDTC_;       // TO DO: switch to smart pointers and remove this!
   myDTC_ = nullptr;
 
-  delete opticalChannel_;
-  opticalChannel_ = nullptr;
+  delete opticalChannelSection_;
+  opticalChannelSection_ = nullptr;
 }
 
 
-void Cable::assignPowerServicesChannels() {
+void Cable::assignPowerChannelSections() {
   for (auto& myBundle : bundles_) {
 
     const double meanPhi = femod(myBundle.meanPhi(), 2.*M_PI);
@@ -49,8 +49,8 @@ void Cable::assignPowerServicesChannels() {
     const int semiPhiRegionIndex = (isLower ? 0 : 1);
     const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
 
-    ServicesChannel* powerChannel = GeometryFactory::make<PowerChannel>(semiPhiRegionRef, isPositiveCablingSide_);
-    myBundle.setPowerServicesChannel(powerChannel);
+    ChannelSection* powerChannelSection = GeometryFactory::make<PowerSection>(semiPhiRegionRef, isPositiveCablingSide_);
+    myBundle.setPowerChannelSection(powerChannelSection);
   }
 }
 

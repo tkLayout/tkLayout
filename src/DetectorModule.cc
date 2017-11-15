@@ -481,26 +481,29 @@ const int DetectorModule::bundlePlotColor() const {
 }
 
 
-const int DetectorModule::powerChannelPlotColor() const {
-  int powerChannelPlotColor = 0;
+const int DetectorModule::opticalChannelSectionPlotColor() const {
+  int opticalChannelPlotColor = 0;
   const Bundle* myBundle = getBundle();
   if (myBundle != nullptr) {
-    powerChannelPlotColor = myBundle->powerServicesChannelPlotColor();
+    const ChannelSection* mySection = myBundle->opticalChannelSection();
+    if (mySection != nullptr) {
+      opticalChannelPlotColor = mySection->plotColor();
+    }
   }
-  return powerChannelPlotColor;
+  return opticalChannelPlotColor;
 }
 
 
-const int DetectorModule::channelPlotColor() const {
-  int channelPlotColor = 0;
+const int DetectorModule::powerChannelSectionPlotColor() const {
+  int powerChannelPlotColor = 0;
   const Bundle* myBundle = getBundle();
   if (myBundle != nullptr) {
-    const Cable* myCable = myBundle->getCable();
-    if (myCable != nullptr) {   
-      channelPlotColor = myCable->servicesChannelPlotColor();
+    const ChannelSection* mySection = myBundle->powerChannelSection();
+    if (mySection != nullptr) {
+      powerChannelPlotColor = mySection->plotColor();
     }
   }
-  return channelPlotColor;
+  return powerChannelPlotColor;
 }
 
 

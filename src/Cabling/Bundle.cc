@@ -20,8 +20,8 @@ Bundle::~Bundle() {
   delete cable_;    // TO DO: switch to smart pointers and remove this!
   cable_ = nullptr; 
 
-  delete powerChannel_;
-  powerChannel_ = nullptr;
+  delete powerChannelSection_;
+  powerChannelSection_ = nullptr;
 }
 
 
@@ -104,4 +104,11 @@ const int Bundle::computePlotColor(const int id, const bool isPositiveCablingSid
   int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
   plotColor = plotType * 3 + plotPhi;
   return plotColor;
+}
+
+
+const ChannelSection* Bundle::opticalChannelSection() const {
+  const ChannelSection* opticalSection = nullptr;
+  if (cable_ != nullptr) opticalSection = cable_->opticalChannelSection();
+  return opticalSection;
 }

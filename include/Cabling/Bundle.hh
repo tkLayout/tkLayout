@@ -57,12 +57,10 @@ public:
 
   const int plotColor() const { return plotColor_; }
 
-  const int powerServicesChannel() const { return powerChannel_->myid(); }
-  const ChannelSection& powerServicesChannelSection() const { return powerChannel_->section(); }
-  const int powerServicesChannelPlotColor() const { return powerChannel_->plotColor(); }
-
-  void setPowerServicesChannel(ServicesChannel* powerChannel) {
-    powerChannel_ = powerChannel;
+  const ChannelSection* opticalChannelSection() const;
+  const ChannelSection* powerChannelSection() const { return powerChannelSection_; }
+  void setPowerChannelSection(ChannelSection* powerChannelSection) {
+    powerChannelSection_ = powerChannelSection;
   }
 
 
@@ -85,7 +83,7 @@ private:
 
   int plotColor_;
 
-  ServicesChannel* powerChannel_ = nullptr;
+  ChannelSection* powerChannelSection_ = nullptr;
 };
 
 

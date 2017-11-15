@@ -516,10 +516,10 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ","
 		  << any2str(myCable->type()) << ",";
-	bundleInfo << myCable->servicesChannel() << " " 
-		   << any2str(myCable->servicesChannelSection()) << ","
-		   << myBundle->powerServicesChannel() << " " 
-		   << any2str(myBundle->powerServicesChannelSection()) << ",";
+	bundleInfo << myCable->opticalChannelSection()->channelNumber() << " " 
+		   << any2str(myCable->opticalChannelSection()->channelSlot()) << ","
+		   << myBundle->powerChannelSection()->channelNumber() << " " 
+		   << any2str(myBundle->powerChannelSection()->channelSlot()) << ",";
 	
 	const DTC* myDTC = myCable->getDTC();
 	if (myDTC != nullptr) {

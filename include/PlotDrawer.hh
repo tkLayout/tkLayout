@@ -126,16 +126,16 @@ struct TypeDTCTransparentColor { // Module-maintained DTC color
   }
 };
 
-struct TypeChannelColor { // Module-maintained channel color
+struct TypeOpticalChannelColor { // Module-maintained channel color
   double operator()(const Module& m) {
-    return Palette::colorChannel(m.channelPlotColor());
+    return Palette::colorChannel(m.opticalChannelSectionPlotColor());
   }
 };
 
-struct TypeChannelTransparentColor { // Module-maintained channel color
+struct TypePowerChannelColor { // Module-maintained channel color
   double operator()(const Module& m) {
     bool isTransparentActivated = true;
-    return Palette::colorChannel(m.powerChannelPlotColor(), isTransparentActivated);
+    return Palette::colorChannel(m.powerChannelSectionPlotColor(), isTransparentActivated);
   }
 };
 

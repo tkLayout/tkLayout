@@ -24,8 +24,6 @@ public:
   void addBundle(Bundle* b) { bundles_.push_back(b); }
   int numBundles() const { return bundles_.size(); }
 
-  void assignPowerServicesChannels();
-
   // DTC THE CABLE IS CONNECTED TO.
   const DTC* getDTC() const { return myDTC_; }
 
@@ -35,10 +33,9 @@ public:
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
-  const int servicesChannel() const { return opticalChannel_->myid(); }
-  const ChannelSection& servicesChannelSection() const { return opticalChannel_->section(); }
-  const int servicesChannelPlotColor() const { return opticalChannel_->plotColor(); }
-
+  // SERVICES CHANNELS INFORMATION
+  const ChannelSection* opticalChannelSection() const { return opticalChannelSection_; }
+  void assignPowerChannelSections();
 
 private:
   void buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
@@ -53,7 +50,7 @@ private:
   Category type_;
   int slot_;
   bool isPositiveCablingSide_;
-  ServicesChannel* opticalChannel_ = nullptr;
+  ChannelSection* opticalChannelSection_ = nullptr;
 };
 
 

@@ -97,7 +97,7 @@ void CablingMap::assignBundlesStereoSemiBoundaries(std::map<int, Bundle*>& bundl
 void CablingMap::computePowerServicesChannels(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables) {
 
   for (auto& c : cables) {
-    c.second->assignPowerServicesChannels();
+    c.second->assignPowerChannelSections();
 
     /*
     const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
@@ -107,7 +107,7 @@ void CablingMap::computePowerServicesChannels(std::map<int, Bundle*>& bundles, s
     const double semiPhiRegionStart = 0.;
     const int semiPhiRegionRef = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);
 
-    std::pair<int, ChannelSection> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide);
+    std::pair<int, ChannelSlot> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide);
     b.second->setPowerServicesChannel(powerServicesChannel);*/
   }
 
@@ -373,14 +373,15 @@ void CablingMap::connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const 
 
 
 void CablingMap::checkBundlesToPowerServicesChannels(std::map<int, Bundle*>& bundles) {
-  std::map<std::pair<const int, const ChannelSection >, int > channels;
+  std::map<std::pair<const int, const ChannelSlot >, int > channels;
   for (auto& b : bundles) {
-    const int servicesChannel = b.second->powerServicesChannel();
-    const ChannelSection servicesChannelSection = b.second->powerServicesChannelSection();
+    const ChannelSection* mySection = b.second->powerChannelSection();
+    const int myChannelNumber = mySection->channelNumber();
+    const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
-    if (fabs(servicesChannel) == 0 || fabs(servicesChannel) > cabling_numServicesChannels) std::cout << "ERROR: power servicesChannel = " << servicesChannel << std::endl;
-    if (servicesChannelSection != ChannelSection::A && servicesChannelSection != ChannelSection::C) std::cout << "ERROR: power servicesChannelSection = " << servicesChannelSection << std::endl;
-    std::pair<const int, const ChannelSection > myChannel = std::make_pair(servicesChannel, servicesChannelSection);
+    if (fabs(myChannelNumber) == 0 || fabs(myChannelNumber) > cabling_numServicesChannels) std::cout << "ERROR: power myChannelNumber = " << myChannelNumber << std::endl;
+    if (myChannelSlot != ChannelSlot::A && myChannelSlot != ChannelSlot::C) std::cout << "ERROR: power myChannelSlot = " << myChannelSlot << std::endl;
+    std::pair<const int, const ChannelSlot > myChannel = std::make_pair(myChannelNumber, myChannelSlot);
     channels[myChannel] += 1;
   }
 
