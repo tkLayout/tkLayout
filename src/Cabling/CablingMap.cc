@@ -105,7 +105,7 @@ void CablingMap::computePowerServicesChannels(std::map<int, Bundle*>& bundles, s
     const double meanPhiOfficial = b.second->meanPhi();
     const double meanPhi = (isPositiveCablingSide ? meanPhiOfficial : (M_PI - meanPhiOfficial));
     const double semiPhiRegionStart = 0.;
-    const int semiPhiRegionRef = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth, true);
+    const int semiPhiRegionRef = computePhiSliceRef(meanPhi, semiPhiRegionStart, cabling_semiNonantWidth);
 
     std::pair<int, ChannelSlot> powerServicesChannel = computePowerServicesChannel(semiPhiRegionRef, isPositiveCablingSide);
     b.second->setPowerServicesChannel(powerServicesChannel);*/

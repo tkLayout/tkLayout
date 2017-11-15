@@ -20,7 +20,7 @@
 */
 class PhiPosition {
 public:
-  PhiPosition(const double phi, const int numPhiSegments, const bool isPositiveCablingSide, const bool isBarrel, const int layerDiskNumber, const std::string subDetectorName = "", const Category& bundleType = Category::UNDEFINED);
+  PhiPosition(const double phi, const int numPhiSegments, const bool isBarrel, const int layerDiskNumber, const std::string subDetectorName = "", const Category& bundleType = Category::UNDEFINED);
 
   // PHI SEGMENT
   const double phiSegmentWidth() const { return phiSegmentWidth_; }

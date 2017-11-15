@@ -65,7 +65,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   }
 
   // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
+  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isBarrel_, layerNumber_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
@@ -98,7 +98,7 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
   bool isPositiveCablingSide = side_;    // Alyways true in the Endcaps : cabling side and geometrical side are the same.
 
   // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isPositiveCablingSide, isBarrel_, diskNumber_, endcapName_, bundleType_);
+  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isBarrel_, diskNumber_, endcapName_, bundleType_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
@@ -123,8 +123,8 @@ void ModulesToBundlesConnector::postVisit() {
 */
 const bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const {
   // Compute the phi position of the rod (in one cabling side frame of reference).
-  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth, true);
-  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);
+  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth);
+  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth);
   // Assign the full rod to the positive cabling side or the negative cabling side alternatively.
   const bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
   return isPositiveCablingSide;
