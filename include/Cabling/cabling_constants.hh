@@ -53,7 +53,7 @@ static const std::string cabling_negativePrefix = "neg";
 enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 
 
-// SERVICES CHANNEL SECTION
+// SERVICES CHANNELS INFO
 // There are 3 sections for cables in PP1: A, B, and C.
 // The optical bundles are always placed in section B.
 // Though, the cabling map is also used for power cables. 1 optical bundle = 1 power cable. 
@@ -62,15 +62,16 @@ enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 // This additional info is dealt with by ChannelSlot.
 enum ChannelSlot { UNKNOWN, A, B, C };
 
+// Offsets used in TEDD to split power cables coming from the same Phi nonant.
+static const double cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
+static const double cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
+
 // Number of outer tracker services channels (per cabling side)
 static const int cabling_numServicesChannels = 12;
 // Maximum number of power cables per channel (used for cross-checking)
 static const int cabling_maxNumPowerCablesPerChannel = 48;
 // Maximum number of optical fiber bundles per channel (used for cross-checking)
 static const int cabling_maxNumOpticalBundlesPerChannel = 72;
-
-static const double cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
-static const double cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
 
 
 #endif  // CABLING_CONSTANTS_HH
