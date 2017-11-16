@@ -7,6 +7,72 @@
 #include "Cabling/DTC.hh"
 
 
+void DetectorModule::setup() {
+  nominalResolutionLocalX.setup([this]() {
+      // only set up this if no model parameter specified
+      if (!hasAnyResolutionLocalXParam()) {
+	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
+	double res = 0;
+	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
+	return sqrt(res)/numSensors();
+      }
+      // if model parameters specified, return -1
+      else return -1.0;
+    });
+  nominalResolutionLocalY.setup([this]() {
+      // only set up this if no model parameters not specified
+      if (!hasAnyResolutionLocalYParam()) {
+	if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
+	else {
+	  return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
+	}
+      }
+      // if model parameters specified, return -1
+      else return -1.0;
+    });
+  for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
+};
+
+
+void DetectorModule::check() {
+  PropertyObject::check();
+
+  // LOCAL X RESOLUTION PARAMETERS
+  if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXParameters can be specified.");
+
+  if (hasAnyResolutionLocalXParam()) {
+    if ( !resolutionLocalXParam0.state() 
+	 || !resolutionLocalXParam1.state() 
+	 || !resolutionLocalXParam2.state() 
+	 || !resolutionLocalXParam3.state() 
+	 || !resolutionLocalXParam4.state()
+	 || !resolutionLocalXParam5.state() 
+	 || !resolutionLocalXParam6.state() 
+	 || !resolutionLocalXParam7.state()
+	 || !resolutionLocalXParam8.state() 
+	 || !resolutionLocalXParam9.state()
+	 ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
+  }
+
+  // LOCAL Y RESOLUTION PARAMETERS
+  if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYParameters can be specified.");
+
+  if (hasAnyResolutionLocalYParam()) {
+    if ( !resolutionLocalYParam0.state() 
+	 || !resolutionLocalYParam1.state() 
+	 || !resolutionLocalYParam2.state() 
+	 || !resolutionLocalYParam3.state() 
+	 || !resolutionLocalYParam4.state()
+	 || !resolutionLocalYParam5.state() 
+	 || !resolutionLocalYParam6.state() 
+	 || !resolutionLocalYParam7.state()
+	 || !resolutionLocalYParam8.state() 
+	 || !resolutionLocalYParam9.state()
+	 ) throw PathfulException("Local Y spatial resolution, tilted module. Resolution cfg file not properly chosen. You did not assign a resolution cfg file specific to a tilted module.");
+  }
+
+}
+
 
 void DetectorModule::build() {
   check();
@@ -44,40 +110,6 @@ void DetectorModule::build() {
   materialObject_.store(propertyTree());
   materialObject_.build();
 }
-
-
-void DetectorModule::setup() {
-  nominalResolutionLocalX.setup([this]() {
-      // only set up this if no model parameter specified
-      //std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
-
-      if (!hasAnyResolutionLocalXParam()) {
-	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
-	double res = 0;
-	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
-	return sqrt(res)/numSensors();
-      }
-      // if model parameters specified, return -1
-      else return -1.0;
-    });
-  nominalResolutionLocalY.setup([this]() {
-      // only set up this if no model parameters not specified
-      if (!hasAnyResolutionLocalYParam()) {
-	//std::cout << "resolutionLocalY and resolutionLocalYBarrel parameters are all unset. Use of default formulae." << std::endl;
-	if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
-	else {
-	  return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-	}
-      }
-      // if model parameters specified, return -1
-      else return -1.0;
-    });
-  for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
-};
-
-
-
-
 
 
 std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
@@ -294,11 +326,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
   }
 
 
-
-
-
-
-
 std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) const {
   if (cachedZError_ != zError) {
     cachedZError_ = zError;
@@ -311,6 +338,7 @@ std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) cons
   }
   return cachedMinMaxEtaWithError_;
 }
+
 
 bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 
@@ -347,16 +375,165 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 //}
 
 
+/*
+ * RETURN GLOBAL SPATIAL RESOLUTION ON X AXIS.
+ */
 double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
   double B = A/sqrt(1-A*A);
   return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX,2) + pow(B*sin(tiltAngle()) * resolutionLocalY,2));
 }
 
+
+/*
+ * RETURN GLOBAL SPATIAL RESOLUTION ON Y AXIS.
+ */
 double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
   double D = trackCotgTheta/sqrt(1-A*A);
   return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX,2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY,2));
+}
+
+
+/*
+ * RETURN LOCAL SPATIAL RESOLUTION ON X AXIS.
+ * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
+ */
+const double DetectorModule::resolutionLocalX(const double phi) const {
+  if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
+  else { return calculateParameterizedResolutionLocalX(phi); }
+}
+
+
+/*
+ * RETURN LOCAL SPATIAL RESOLUTION ON Y AXIS.
+ * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
+ */
+const double DetectorModule::resolutionLocalY(const double theta) const {
+  if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
+  else { return calculateParameterizedResolutionLocalY(theta); }
+}
+
+
+/*
+ * Compute parametrized local spatial resolution on X axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const {
+  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+  const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
+
+  const bool isLocalXAxis = true;
+  const double resolutionLocalX = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalX;
+}
+
+
+/*
+ * Compute parametrized local spatial resolution on Y axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
+  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+  const double fabsTanDeepAngle = fabs(-cotanBeta); 
+                 
+  const bool isLocalXAxis = false;
+  const double resolutionLocalY = calculateParameterizedResolutionLocalAxis(fabsTanDeepAngle, isLocalXAxis);
+
+  return resolutionLocalY;
+}
+
+
+/*
+ * Compute spatial resolution on a local axis as a function of |tan(deepAngle)|.
+ * This is the parametrization model from Riccardo del Burgo, ETZ.
+ * The model itself is the same for both X axis and Y axis.
+ */
+const double DetectorModule::calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const {
+  // Parameter values
+  const double param0 = (isLocalXAxis ? resolutionLocalXParam0() : resolutionLocalYParam0());
+  const double param1 = (isLocalXAxis ? resolutionLocalXParam1() : resolutionLocalYParam1());
+  const double param2 = (isLocalXAxis ? resolutionLocalXParam2() : resolutionLocalYParam2());
+  const double param3 = (isLocalXAxis ? resolutionLocalXParam3() : resolutionLocalYParam3());
+  const double param4 = (isLocalXAxis ? resolutionLocalXParam4() : resolutionLocalYParam4());
+  const double param5 = (isLocalXAxis ? resolutionLocalXParam5() : resolutionLocalYParam5());
+  const double param6 = (isLocalXAxis ? resolutionLocalXParam6() : resolutionLocalYParam6());
+  const double param7 = (isLocalXAxis ? resolutionLocalXParam7() : resolutionLocalYParam7());
+  const double param8 = (isLocalXAxis ? resolutionLocalXParam8() : resolutionLocalYParam8());
+  const double param9 = (isLocalXAxis ? resolutionLocalXParam9() : resolutionLocalYParam9());
+
+  // |tan(deepAngle)|
+  const double x = fabsTanDeepAngle;
+
+  // Use of parametrization model
+  const double resolutionLocalAxis = param0 + param1 * x 
+    + param2 * exp(-param9 * x) * cos(param3 * x + param4)
+    + param5 * exp(-0.5 * pow(((x - param6) / param7), 2))
+    + param8 * pow(x, 0.5);
+
+  return resolutionLocalAxis;
+}
+
+
+/*
+ * Chekc whether the value of at least one parameter to compute a parametrized spatial resolution in X, is specified.
+ */
+const bool DetectorModule::hasAnyResolutionLocalXParam() const { 
+  return ( resolutionLocalXParam0.state() 
+	   || resolutionLocalXParam1.state() 
+	   || resolutionLocalXParam2.state() 
+	   || resolutionLocalXParam3.state() 
+	   || resolutionLocalXParam4.state()
+	   || resolutionLocalXParam5.state() 
+	   || resolutionLocalXParam6.state() 
+	   || resolutionLocalXParam7.state()
+	   || resolutionLocalXParam8.state() 
+	   || resolutionLocalXParam9.state()
+	   );
+}
+
+
+/*
+ * Chekc whether the value of at least one parameter to compute a parametrized spatial resolution in Y, is specified.
+ */
+const bool DetectorModule::hasAnyResolutionLocalYParam() const { 
+  return ( resolutionLocalYParam0.state() 
+	   || resolutionLocalYParam1.state() 
+	   || resolutionLocalYParam2.state() 
+	   || resolutionLocalYParam3.state() 
+	   || resolutionLocalYParam4.state()
+	   || resolutionLocalYParam5.state() 
+	   || resolutionLocalYParam6.state() 
+	   || resolutionLocalYParam7.state()
+	   || resolutionLocalYParam8.state() 
+	   || resolutionLocalYParam9.state()
+	   );
+}
+
+
+/*
+ * Compute the alpha incident angle.
+ * See README for definition of alpha angle.
+ * This depends on the Phi-angle of the track and the Phi-position of the Module.
+ */
+const double DetectorModule::alpha(const double trackPhi) const {
+  double deltaPhi = center().Phi() + skewAngle() - trackPhi;
+  if (fabs(deltaPhi) > M_PI/2.) {
+    if (deltaPhi < 0.) deltaPhi += 2.*M_PI;
+    else deltaPhi -= 2.*M_PI;
+  }
+  const double alpha = deltaPhi + M_PI / 2.;
+  return alpha;
+}
+
+
+/*
+ * Compute the beta incident angle.
+ * See README for definition of beta angle.
+ * This depends on the theta-angle of the track and the tilt angle of the Module.
+ */
+const double DetectorModule::beta(const double theta) const { 
+  return theta + tiltAngle(); 
 }
 
 
@@ -464,7 +641,7 @@ std::string DetectorModule::summaryFullType() const  {
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
   }
   return isPositiveCablingSide;
@@ -474,32 +651,45 @@ const int DetectorModule::isPositiveCablingSide() const {
 const int DetectorModule::bundlePlotColor() const {
   int bundlePlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
   return bundlePlotColor;
 }
 
 
-const int DetectorModule::channelPlotColor() const {
-  int channelPlotColor = 0;
+const int DetectorModule::opticalChannelSectionPlotColor() const {
+  int opticalChannelPlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
-    const Cable* myCable = myBundle->getCable();
-    if (myCable != nullptr) {   
-      channelPlotColor = myCable->servicesChannelPlotColor();
+  if (myBundle) {
+    const ChannelSection* mySection = myBundle->opticalChannelSection();
+    if (mySection) {
+      opticalChannelPlotColor = mySection->plotColor();
     }
   }
-  return channelPlotColor;
+  return opticalChannelPlotColor;
+}
+
+
+const int DetectorModule::powerChannelSectionPlotColor() const {
+  int powerChannelPlotColor = 0;
+  const Bundle* myBundle = getBundle();
+  if (myBundle) {
+    const ChannelSection* mySection = myBundle->powerChannelSection();
+    if (mySection) {
+      powerChannelPlotColor = mySection->plotColor();
+    }
+  }
+  return powerChannelPlotColor;
 }
 
 
 const DTC* DetectorModule::getDTC() const {
   const DTC* myDTC = nullptr;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     const Cable* myCable = myBundle->getCable();
-    if (myCable != nullptr) {
+    if (myCable) {
       myDTC = myCable->getDTC();
     }
   }
@@ -527,17 +717,6 @@ const int DetectorModule::dtcPhiSectorRef() const {
 }
 
 
-void BarrelModule::check() {
-  PropertyObject::check();
-
-  //std::cout <<  "hasAnyResolutionLocalYParam() = " <<  hasAnyResolutionLocalYParam() << std::endl;
-
-  if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
-
-  if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
-}
-
-
 void BarrelModule::build() {
   try {
     DetectorModule::build();
@@ -554,15 +733,6 @@ void BarrelModule::build() {
 }
 
 
-void EndcapModule::check() {
-  PropertyObject::check();
-
- if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
-
- if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified.");
-}
-
-
 void EndcapModule::build() {
   try {
     DetectorModule::build();
@@ -576,8 +746,6 @@ void EndcapModule::build() {
   cleanup();
   builtok(true);
 }
-
-
 
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };

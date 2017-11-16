@@ -88,6 +88,9 @@ public:
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
 
+  // Fill local spatial resolution statistics to all modules hit along the track
+  void fillModuleLocalResolutionStats();
+
   //
   // Print methods
 

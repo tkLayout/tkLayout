@@ -180,15 +180,22 @@ namespace insur {
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
    * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
-   * The underlying cabling was designed for TDR layout OT613_200_IT4025, and will not work for any other layout.
+   * The underlying cabling was designed for OT614, and will not work for any other layout.
    */
   bool Squid::buildCablingMap(const bool cablingOption) {
     startTaskClock("Building optical Cabling map.");
     if (tr) {
-      // BUILD CABLING MAP.	
-      std::unique_ptr<const CablingMap> map(new CablingMap(tr));
-      // std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
-      tr->setCablingMap(std::move(map));
+      try {
+	// BUILD CABLING MAP.	
+	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
+	tr->setCablingMap(std::move(map));
+      }
+      catch (PathfulException& e) {
+	std::cerr << e.path() << " : " << e.what() << std::endl;  // should improve this!
+	stopTaskClock();
+	return false;
+	}
       stopTaskClock();
       return true;
     }
@@ -486,7 +493,7 @@ namespace insur {
    */
   bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
     startTaskClock("Creating optical Cabling map report.");
-    if (layoutName != default_tdrLayoutName) logERROR("Cabling map is designed and implemented for TDR layout only.");
+    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT614 only.");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
       v.cablingSummary(a, *tr, site);

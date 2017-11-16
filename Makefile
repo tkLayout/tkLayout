@@ -142,6 +142,7 @@ CABLING+=CablingMap
 CABLING+=DTC
 CABLING+=ModulesToBundlesConnector
 CABLING+=PhiPosition
+CABLING+=ServicesChannel
 
 EXES+=tklayout
 EXES+=setup

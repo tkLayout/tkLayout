@@ -114,7 +114,7 @@ HitNew::HitNew(double rPos, double zPos) {
  * //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
  * @param myModule pointer to the module with the hit 
  */
-HitNew::HitNew(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+HitNew::HitNew(double rPos, double zPos, DetectorModule* myModule, HitType activeHitType) {
     m_detName          = "Undefined";
     m_distance         = sqrt(rPos*rPos + zPos*zPos);
     m_rPos             = rPos;
@@ -139,11 +139,32 @@ HitNew::HitNew(double rPos, double zPos, const DetectorModule* myModule, HitType
  * Setter for the pointer to the active surface that caused the hit.
  * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
  */
-void HitNew::setHitModule(const DetectorModule* myModule) {
+void HitNew::setHitModule(DetectorModule* myModule) {
 
   if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");
 }
+
+
+/*
+ * Fill local spatial resolution statistics to hit module.
+ */
+void HitNew::fillModuleLocalResolutionStats() {
+  if (!isActive()) {
+    std::cerr << "ERROR: Hit::fillModuleLocalResolutionStats called on a non-active hit" << std::endl;
+  } else {
+    if (m_hitModule) {
+      // Compute hit module local resolution.
+      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      
+      // Fill the module statistics.
+      if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
+      if (m_hitModule->hasAnyResolutionLocalYParam()) m_hitModule->rollingParametrizedResolutionLocalY(resolutionLocalY);
+    }
+  }
+}
+
 
 /*
  * Get unique ID of layer or disc to which the hit belongs to (if not link return -1)
@@ -182,6 +203,7 @@ double HitNew::getTrackTheta() {
   return (m_track->getTheta());
 };
 
+
 /**
  * Getter for the final, angle corrected pair of radiation and interaction lengths.
  * @return A copy of the pair containing the requested values; radiation length first, interaction length second
@@ -189,6 +211,7 @@ double HitNew::getTrackTheta() {
 RILength HitNew::getCorrectedMaterial() {
     return m_correctedMaterial;
 }
+
 
 /**
  * Getter for the rPhi resolution (local x coordinate for a module)
@@ -221,8 +244,8 @@ double HitNew::getResolutionRphi(double trackRadius) {
       double B         = A/sqrt(1-A*A);
       double tiltAngle = m_hitModule->tiltAngle();
       double skewAngle = m_hitModule->skewAngle();
-      double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
 //      if (isBarrel() && (m_detName=="Inner_BRL_0" || m_detName=="Inner_BRL_1") && m_rPos>30) tiltAngle = M_PI/2.-m_track->getTheta();
 //      if (isBarrel() && m_detName=="Outer_BRL" && m_rPos<900) tiltAngle = M_PI/2.-m_track->getTheta();
@@ -276,8 +299,8 @@ double HitNew::getResolutionZ(double trackRadius) {
         double D         = m_track->getCotgTheta()/sqrt(1-A*A);
         double tiltAngle = m_hitModule->tiltAngle();
         double skewAngle = m_hitModule->skewAngle();
-        double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-        double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+        const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+        const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
 //        if (isBarrel() && (m_detName=="Inner_BRL_0" || m_detName=="Inner_BRL_1") && m_rPos>30) tiltAngle = M_PI/2.-m_track->getTheta();
 //        if (isBarrel() && m_detName=="Outer_BRL" && m_rPos<900) tiltAngle = M_PI/2.-m_track->getTheta();

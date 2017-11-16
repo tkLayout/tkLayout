@@ -144,7 +144,7 @@ namespace insur {
    */
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
-  static const std::string default_tdrLayoutName                         = "OT613_200_IT4025.cfg";
+  static const std::string default_cabledOTName                  = "OT614";
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
   static const std::string default_irradiationdir                = "config";

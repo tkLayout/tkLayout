@@ -32,8 +32,15 @@ int g
 ;
 
 template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
-  std::string name = std::string("frameXY") + nextString();
+  std::string name = std::string("frameXYPos") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  frame->GetYaxis()->SetTitleOffset(1.3);
+  return frame;
+}
+
+template<> TH2C* FrameGetter<XYRotateY180>::operator()(double viewportX, double viewportY) const {
+  std::string name = std::string("frameXYPosRotateY180") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
@@ -41,6 +48,13 @@ template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY)
 template<> TH2C* FrameGetter<XYNeg>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameXYNeg") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  frame->GetYaxis()->SetTitleOffset(1.3);
+  return frame;
+}
+
+template<> TH2C* FrameGetter<XYNegRotateY180>::operator()(double viewportX, double viewportY) const {
+  std::string name = std::string("frameXYNegRotateY180") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
@@ -138,7 +152,15 @@ template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerP
   frame.Draw();    
 }
 
+template<> void SummaryFrameStyle<XYRotateY180>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();    
+}
+
 template<> void SummaryFrameStyle<XYNeg>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();    
+}
+
+template<> void SummaryFrameStyle<XYNegRotateY180>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();    
 }
 
