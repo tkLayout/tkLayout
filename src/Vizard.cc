@@ -7618,7 +7618,7 @@ namespace insur {
   */
   void Vizard::drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180) {
     int numPhiSectors = round(2. * M_PI / phiSectorWidth);
-    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX; 
+    double phiSectorBoundaryRadius = 2 * vis_min_canvas_sizeX;
 
     for (int i = 0; i < numPhiSectors; i++) {
       const double angle = i * phiSectorWidth;
@@ -7635,57 +7635,82 @@ namespace insur {
    *  Draw frame of reference reminder.
    */
   void Vizard::drawFrameOfReference(const bool isRotatedY180) {
+    const double arrowMin = 900;
+    const double arrowMax = 1100;
+    const double circleZRadius = 50;
+    const double arrowWidth = 0.02;
+    const double textSize = 0.025;
     
     // CMS reference frame of reference.
     if (!isRotatedY180) {
-      TArrow* arrowX = new TArrow(900, 900, 1100, 900, 0.02, "|>");
+      TArrow* arrowX = new TArrow(arrowMin, arrowMin, arrowMax, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      TLatex* textX = new TLatex(1000, 820, "X");
-      textX->SetTextSize(0.025);
+      const double textXAbs = 1000;
+      const double textXOrd = 820;
+      TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
+      textX->SetTextSize(textSize);
       textX->Draw("same");
 
-      TArrow* arrowY = new TArrow(900, 900, 900, 1100, 0.02, "|>");
+      TArrow* arrowY = new TArrow(arrowMin, arrowMin, arrowMin, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      TLatex* textY = new TLatex(820, 1000, "Y");
-      textY->SetTextSize(0.025);
+      const double textYAbs = 820;
+      const double textYOrd = 1000;
+      TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
+      textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      TEllipse* circleZ = new TEllipse(1050, 1050, 50, 50);
+      const double circleZCentre = 1050;
+      const double pointZRadius = 10;
+      TEllipse* circleZ = new TEllipse(circleZCentre, circleZCentre, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
-      TEllipse* pointZ = new TEllipse(1050, 1050, 10, 10);
+      TEllipse* pointZ = new TEllipse(circleZCentre, circleZCentre, pointZRadius, pointZRadius);
       pointZ->SetFillColor(kBlack);
       pointZ->Draw("same");
-      TLatex* textZ = new TLatex(1030, 1110, "Z");
-      textZ->SetTextSize(0.025);
+      const double textZAbs = 1030;
+      const double textZOrd = 1110;
+      TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
+      textZ->SetTextSize(textSize);
       textZ->Draw("same");
     }
 
     // CMS frame of reference rotated by 180 degrees around CMS_Y.
     else {
-      TArrow* arrowX = new TArrow(1100, 900, 900, 900, 0.02, "|>");
+      TArrow* arrowX = new TArrow(arrowMax, arrowMin, arrowMin, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      TLatex* textX = new TLatex(950, 820, "X");
-      textX->SetTextSize(0.025);
+      const double textXAbs = 950;
+      const double textXOrd = 820;
+      TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
+      textX->SetTextSize(textSize);
       textX->Draw("same");
 
-      TArrow* arrowY = new TArrow(1100, 900, 1100, 1100, 0.02, "|>");
+      TArrow* arrowY = new TArrow(arrowMax, arrowMin, arrowMax, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      TLatex* textY = new TLatex(1020, 1000, "Y");
-      textY->SetTextSize(0.025);
+      const double textYAbs = 1020;
+      const double textYOrd = 1000;
+      TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
+      textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      TEllipse* circleZ = new TEllipse(850, 1050, 50, 50);
+      const double circleZCentreAbs = 850;
+      const double circleZCentreOrd = 1050;
+      TEllipse* circleZ = new TEllipse(circleZCentreAbs, circleZCentreOrd, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
-      TLine* lineU = new TLine(815, 1015, 885, 1085);
+      const double crossMinAbs = 815;
+      const double crossMaxAbs = 885;
+      const double crossMinOrd = 1015;
+      const double crossMaxOrd = 1085;
+      TLine* lineU = new TLine(crossMinAbs, crossMinOrd, crossMaxAbs, crossMaxOrd);
       lineU->SetLineWidth(2);
       lineU->Draw("same");
-      TLine* lineD = new TLine(815, 1085, 885, 1015);
+      TLine* lineD = new TLine(crossMinAbs, crossMaxOrd, crossMaxAbs, crossMinOrd);
       lineD->SetLineWidth(2);
       lineD->Draw("same");
-      TLatex* textZ = new TLatex(830, 1110, "Z");
-      textZ->SetTextSize(0.025);
+      const double textZAbs = 830;
+      const double textZOrd = 1110;
+      TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
+      textZ->SetTextSize(textSize);
       textZ->Draw("same");
     }
   }
