@@ -7,25 +7,25 @@
 
 
 // pitch in X = 25 um. 
-resolutionLocalXParam0 -6.15857e-04      // mm
-resolutionLocalXParam1 9.22867e-03       // mm
-resolutionLocalXParam2 4.84721e-02       // mm
-resolutionLocalXParam3 1.09706e+01      
-resolutionLocalXParam4 -4.07886e+00      
-resolutionLocalXParam5 3.47398e-02       // mm
-resolutionLocalXParam6 6.01453e-03      
-resolutionLocalXParam7 8.42837e-02      
-resolutionLocalXParam8 3.17987e-07       // mm
-resolutionLocalXParam9 1.13696e+01      
+resolutionLocalXParam0 -1.65887e-03      // mm
+resolutionLocalXParam1 -2.22576e-03      // mm
+resolutionLocalXParam2 1.17684e-02       // mm
+resolutionLocalXParam3 2.10522e+00      
+resolutionLocalXParam4 1.61396e+00      
+resolutionLocalXParam5 1.40810e-02       // mm
+resolutionLocalXParam6 -1.18373e-01       
+resolutionLocalXParam7 1.08128e-01      
+resolutionLocalXParam8 2.04617e-02       // mm
+resolutionLocalXParam9 7.24302e-01      
 
 // pitch in Y = 100 um.
-resolutionLocalYParam0 1.61244e-02       // mm
-resolutionLocalYParam1 8.56184e-03       // mm
-resolutionLocalYParam2 1.27882e-02       // mm
-resolutionLocalYParam3 8.92478e+00      
-resolutionLocalYParam4 -3.51805e+00      
-resolutionLocalYParam5 2.49831e-02       // mm
-resolutionLocalYParam6 3.26179e-02      
-resolutionLocalYParam7 1.45786e-01      
-resolutionLocalYParam8 -1.53009e-02      // mm
-resolutionLocalYParam9 2.02518e+00
+resolutionLocalYParam0 1.36198e-02       // mm
+resolutionLocalYParam1 2.69508e-03       // mm
+resolutionLocalYParam2 2.07958e-03       // mm
+resolutionLocalYParam3 8.80011e+00      
+resolutionLocalYParam4 -3.82634e+00      
+resolutionLocalYParam5 1.66384e-02       // mm
+resolutionLocalYParam6 2.60254e-02      
+resolutionLocalYParam7 2.39881e-01      
+resolutionLocalYParam8 -7.20557e-03      // mm
+resolutionLocalYParam9 4.02918e-01
