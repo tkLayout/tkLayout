@@ -23,6 +23,8 @@ struct FactoryCloneAllocator {
 
 template<class T> using PtrVector = boost::ptr_vector<T, FactoryCloneAllocator>;
 
+//template<class T> using PtrSet = boost::ptr_set<T, FactoryCloneAllocator>;
+
 template<class K, class V> using PtrMap = boost::ptr_multimap<K, V, std::less<K>, FactoryCloneAllocator>;
 
 

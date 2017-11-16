@@ -41,6 +41,11 @@ private:
   void connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const;
   void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);  // check bundles to cables connections
 
+  // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
+  void computePowerServicesChannels();
+  void routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide);
+  void checkBundlesToPowerServicesChannels(const std::map<int, Bundle*>& bundles);
+
   // positive cabling side
   std::map<int, Bundle*> bundles_;
   std::map<int, Cable*> cables_;
