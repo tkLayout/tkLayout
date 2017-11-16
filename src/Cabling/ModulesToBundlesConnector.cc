@@ -65,7 +65,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   }
 
   // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isPositiveCablingSide, isBarrel_, layerNumber_);
+  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isBarrel_, layerNumber_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
@@ -98,7 +98,7 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
   bool isPositiveCablingSide = side_;    // Alyways true in the Endcaps : cabling side and geometrical side are the same.
 
   // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isPositiveCablingSide, isBarrel_, diskNumber_, endcapName_, bundleType_);
+  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isBarrel_, diskNumber_, endcapName_, bundleType_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
@@ -123,8 +123,8 @@ void ModulesToBundlesConnector::postVisit() {
 */
 const bool ModulesToBundlesConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const {
   // Compute the phi position of the rod (in one cabling side frame of reference).
-  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth, true);
-  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth, true);
+  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth);
+  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth);
   // Assign the full rod to the positive cabling side or the negative cabling side alternatively.
   const bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
   return isPositiveCablingSide;
@@ -185,14 +185,19 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
   const int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
   const int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
 
-  // bundles map
-  const std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? bundles : negBundles);
+  // COMPUTE STEREO BUNDLE ID (BARREL ONLY, NOT NEEDED FOR THE ENDCAPS SO FAR)
+  // The stereo bundle is the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
+  const int stereoPhiSliceRef = (isBarrel ? modulePhiPosition.stereoPhiSegmentRef() : 0); // modulePhiPosition.stereoPhiRegionRef());
+  const int stereoBundleId = computeStereoBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, stereoPhiSliceRef, bundleTypeIndex);
+
+  // All Bundles from one cabling side
+  const std::map<int, Bundle*>& bundlesOneSide = (isPositiveCablingSide ? bundles : negBundles);
 
   // CREATE BUNDLE IF NECESSARY
   Bundle* bundle = nullptr;
-  auto found = stereoBundles.find(bundleId);
-  if (found == stereoBundles.end()) {
-    bundle = createAndStoreBundle(bundles, negBundles, bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  auto found = bundlesOneSide.find(bundleId);
+  if (found == bundlesOneSide.end()) {
+    bundle = createAndStoreBundle(bundles, negBundles, bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
   }
   else {
     bundle = found->second;
@@ -248,12 +253,26 @@ const int ModulesToBundlesConnector::computeBundleId(const bool isBarrel, const 
 }
 
 
+/* Compute the Id associated to each stereo bundle.
+ * The stereo bundle is the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
+ */
+const int ModulesToBundlesConnector::computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int stereoPhiRef, const int bundleTypeIndex) const {
+  int stereoBundleId = 0;
+  if (isBarrel) {
+    const bool stereoSide = !isPositiveCablingSide;
+    stereoBundleId = computeBundleId(isBarrel, stereoSide, layerDiskNumber, stereoPhiRef, bundleTypeIndex);
+  }
+
+  return stereoBundleId;
+}
+
+
 /* Create a bundle, if it does not exist yet.
  *  Store it in the bundles_ or negBundles_ containers.
  */
-Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
+Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));

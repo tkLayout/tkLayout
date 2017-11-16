@@ -132,6 +132,8 @@ void RootWTable::setColor(int row, int column, int newColor) {
 void RootWTable::setContent(int row, int column, string content) {
   // std::cerr << "setContent("<<row<<", "<<column<<", "<<content<<")"<<endl; // debug
   tableContent_[make_pair(row, column)] = content;
+  maxRow_ = MAX(maxRow_, row);
+  maxCol_ = MAX(maxCol_, column);
 }
 
 void RootWTable::setContent(int row, int column, int number) {
@@ -140,6 +142,8 @@ void RootWTable::setContent(int row, int column, int number) {
   myNum_.clear();
   myNum_ << dec << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
+  maxRow_ = MAX(maxRow_, row);
+  maxCol_ = MAX(maxCol_, column);
 }
 
 void RootWTable::setContent(int row, int column, double number, int precision) {
@@ -148,6 +152,8 @@ void RootWTable::setContent(int row, int column, double number, int precision) {
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
+  maxRow_ = MAX(maxRow_, row);
+  maxCol_ = MAX(maxCol_, column);
 }
 
 pair<int, int> RootWTable::addContent(string myContent) {
@@ -457,6 +463,7 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TLatex") ||
 	       (myClass=="TLegend") ||
 	       (myClass=="TLine") ||
+	       (myClass=="TArrow") ||
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
 	       (myClass=="TText") ||

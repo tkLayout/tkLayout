@@ -92,10 +92,13 @@ public:
   pair<int, int> addContent(double number, int precision);
   pair<int, int> newLine();
   bool isTable() {return true;};
+  const int maxRow() const { return maxRow_; }
+  const int maxCol() const { return maxCol_; }
 private:
   rootWTableContent tableContent_;
   rootWTableContentColor tableContentColor_;
   int serialRow_, serialCol_;
+  int maxRow_, maxCol_;
 };
 
 typedef string RootWImageSize;
