@@ -40,7 +40,7 @@ public:
 
   const bool isTiltedPart() const { return isTiltedPart_; }
   const bool isBarrel() const { return (subDetectorName_ == cabling_tbps || subDetectorName_ == cabling_tb2s); }
-  const bool isPSFlatPart() const { return (!isTiltedPart_ && type_ != Category::SS); }
+  const bool isBarrelPSFlatPart() const { return (isBarrel() && type_ != Category::SS && !isTiltedPart_); }
 
   const int plotColor() const { return plotColor_; }
 

@@ -117,7 +117,7 @@ const ChannelSection* Bundle::opticalChannelSection() const {
 /* Untilted TBPS only: Id of the bundle located on the same Phi, but connected to the tilted modules.
  */
 const int Bundle::tiltedBundleId() const {
-  if (!isBarrel() || !isPSFlatPart()) logERROR("Tried to access tiltedBundleId, but not in TBPS flat part.");
+  if (!isBarrelPSFlatPart()) logERROR("Tried to access tiltedBundleId, but not in TBPS flat part.");
   const int bundleId = myid();
   const int tiltedBundleId = bundleId - femod(bundleId, 10);
   return tiltedBundleId;

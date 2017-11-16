@@ -371,10 +371,10 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
   for (auto& b : bundles) {
     Bundle* myBundle = b.second;
     const bool isBarrel = myBundle->isBarrel();
-    const bool isPSFlatPart = myBundle->isPSFlatPart();
+    const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
     // Only for Barrel: tilted TBPS, or TB2S.
-    if (isBarrel && !isPSFlatPart) {
+    if (isBarrel && !isBarrelPSFlatPart) {
       // Should the bundle be assigned to the lower or upper semi-nonant ?
       // 'lower' and 'upper' are defined by 'smaller' or 'bigger' Phi, 
       // in the trigonometric sense in the (XY) plane in CMS global frame of reference.
@@ -430,11 +430,10 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
     Bundle* myBundle = b.second;
-    const bool isBarrel = myBundle->isBarrel();
-    const bool isPSFlatPart = myBundle->isPSFlatPart();
+    const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
     // Only for Barrel: flat part of TBPS
-    if (isBarrel && isPSFlatPart) {
+    if (isBarrelPSFlatPart) {
       const int tiltedBundleId = myBundle->tiltedBundleId();
  
       // Get the bundle located at the same Phi, but connected to the tilted modules.
