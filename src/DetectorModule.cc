@@ -464,7 +464,7 @@ std::string DetectorModule::summaryFullType() const  {
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
   }
   return isPositiveCablingSide;
@@ -474,7 +474,7 @@ const int DetectorModule::isPositiveCablingSide() const {
 const int DetectorModule::bundlePlotColor() const {
   int bundlePlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
   return bundlePlotColor;
@@ -484,9 +484,9 @@ const int DetectorModule::bundlePlotColor() const {
 const int DetectorModule::opticalChannelSectionPlotColor() const {
   int opticalChannelPlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     const ChannelSection* mySection = myBundle->opticalChannelSection();
-    if (mySection != nullptr) {
+    if (mySection) {
       opticalChannelPlotColor = mySection->plotColor();
     }
   }
@@ -497,9 +497,9 @@ const int DetectorModule::opticalChannelSectionPlotColor() const {
 const int DetectorModule::powerChannelSectionPlotColor() const {
   int powerChannelPlotColor = 0;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     const ChannelSection* mySection = myBundle->powerChannelSection();
-    if (mySection != nullptr) {
+    if (mySection) {
       powerChannelPlotColor = mySection->plotColor();
     }
   }
@@ -510,9 +510,9 @@ const int DetectorModule::powerChannelSectionPlotColor() const {
 const DTC* DetectorModule::getDTC() const {
   const DTC* myDTC = nullptr;
   const Bundle* myBundle = getBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     const Cable* myCable = myBundle->getCable();
-    if (myCable != nullptr) {
+    if (myCable) {
       myDTC = myCable->getDTC();
     }
   }

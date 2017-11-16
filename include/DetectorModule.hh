@@ -326,7 +326,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryFullType() const;
 
   void setBundle(Bundle* bundle) { bundle_ = bundle ; }
-  const Bundle* getBundle() const { return bundle_; }  
+  const Bundle* getBundle() const { return bundle_; }
   const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
   const int opticalChannelSectionPlotColor() const;

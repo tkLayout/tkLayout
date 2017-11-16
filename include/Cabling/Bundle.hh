@@ -28,7 +28,10 @@ public:
   void addModule(Module* m) { modules_.push_back(m); }
 
   // CABLE THE BUNDLE IS CONNECTED TO.
-  const Cable* getCable() const { return cable_; }
+  const Cable* getCable() const {
+    if (!cable_) throw PathfulException("cable_ is nullptr");
+    return cable_;
+  }
   void setCable(Cable* cable) { cable_ = cable; }
 
   // GENERAL INFO ON THE BUNDLE
@@ -65,7 +68,10 @@ public:
   // Optical
   const ChannelSection* opticalChannelSection() const;
   // Power
-  const ChannelSection* powerChannelSection() const { return powerChannelSection_; }
+  const ChannelSection* powerChannelSection() const {
+    if (!powerChannelSection_) throw PathfulException("powerChannelSection_ is nullptr");
+    return powerChannelSection_; 
+  }
   void setPowerChannelSection(ChannelSection* powerChannelSection) {
     powerChannelSection_ = powerChannelSection;
   }

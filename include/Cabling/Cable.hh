@@ -25,7 +25,10 @@ public:
   int numBundles() const { return bundles_.size(); }
 
   // DTC THE CABLE IS CONNECTED TO.
-  const DTC* getDTC() const { return myDTC_; }
+  const DTC* getDTC() const {
+    if (!myDTC_) throw PathfulException("myDTC_ is nullptr");
+    return myDTC_; 
+  }
 
   const Category& type() const { return type_; }
   const double phiSectorWidth() const { return phiSectorWidth_; }
@@ -35,7 +38,10 @@ public:
 
   // SERVICES CHANNELS INFORMATION
   // Optical
-  const ChannelSection* opticalChannelSection() const { return opticalChannelSection_; }
+  const ChannelSection* opticalChannelSection() const {
+    if (!opticalChannelSection_) throw PathfulException("opticalChannelSection_ is nullptr");
+    return opticalChannelSection_; 
+  }
   // Power
   void assignPowerChannelSections();
 

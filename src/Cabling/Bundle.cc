@@ -109,7 +109,8 @@ const int Bundle::computePlotColor(const int id, const bool isPositiveCablingSid
 
 const ChannelSection* Bundle::opticalChannelSection() const {
   const ChannelSection* opticalSection = nullptr;
-  if (cable_ != nullptr) opticalSection = cable_->opticalChannelSection();
+  if (cable_) opticalSection = cable_->opticalChannelSection();
+  if (!cable_ || !opticalSection) throw PathfulException("cable_ or opticalSection is nullptr");
   return opticalSection;
 }
 
