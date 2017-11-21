@@ -2,7 +2,7 @@
 // Simulation parameters:
 // sensor thickness: 150 um
 // threshold= 1500 e-
-// gaussian noise: μ =400 e-, σ = 40 e-
+// gaussian noise: μ = 0 e-, σ = 120 e-
 // μRH= 0.1078
 
 // pitch in X = 50 um. 
