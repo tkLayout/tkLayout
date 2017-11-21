@@ -1847,6 +1847,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
   double s_normal = 0;
   double s_alternate = 0;
   while (iter != guard) {
+
     // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
     // only volumes of the requested category, or those without one (which should not exist) are examined
     if ((iter->getZOffset() + iter->getZLength()) > 0) {
@@ -2380,7 +2381,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 	      // Consider hit modules	
 	      if ((*iHit)->isActive() && (*iHit)->getHitModule()) {
 		
-		    const auto& hitModule = (*iHit)->getHitModule();
+		const auto& hitModule = (*iHit)->getHitModule();
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double trackPhi = myTrack->getPhi();
