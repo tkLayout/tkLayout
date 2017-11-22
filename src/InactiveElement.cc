@@ -76,6 +76,11 @@ namespace insur {
      * @param zlength The total length of the element along the z-axis
      */
     void InactiveElement::setZLength(double zlength) { z_length = zlength; }
+
+    /**
+     * @return Max Z.
+     */
+    const double InactiveElement::getZMax() const { return z_offset + z_length; }
     
     /**
      * Get the inner radius of the element.
@@ -94,12 +99,17 @@ namespace insur {
      * @return The distance from the innermost to the outermost point of the element in the xy-plane
      */
     double InactiveElement::getRWidth() const { return w_radius; }
-    
+
     /**
      * Set the width of the element.
      * @param rwidth The distance from the innermost to the outermost point of the element in the xy-plane
      */
     void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
+
+    /**
+     * @return Max Rho.
+     */
+    const double InactiveElement::getOuterRadius() const { return i_radius + w_radius; }
     
     double InactiveElement::getLength() const {
       if(is_vertical) {
@@ -112,6 +122,78 @@ namespace insur {
     double InactiveElement::getVolume() const {
       return M_PI * w_radius * (w_radius + 2*i_radius) * z_length;
     }
+
+
+  /**
+   * Calculate and return the Eta range of the element, with respect to the origin.
+   * @return The pair <i>(Eta_min, Eta_max)</i>
+   */
+    std::pair<double, double> InactiveElement::getEtaMinMax() const {
+      std::pair<double, double> res;
+      double theta0, theta1;
+
+      // rings
+      if (isVertical()) {
+	// up point
+	theta0 = atan((getInnerRadius() + getRWidth()) / (getZLength() / 2.0 + getZOffset()));
+	// down point
+	theta1 = atan(getInnerRadius() / (getZLength() / 2.0 + getZOffset()));
+      }
+
+      // tubes
+      else {
+	// left point
+	theta0 = atan((getRWidth() / 2.0 + getInnerRadius()) / getZOffset());
+	// right point
+	theta1 = atan((getRWidth() / 2.0 + getInnerRadius()) / (getZOffset() + getZLength()));
+      }
+
+      // convert angle theta to pseudorapidity eta
+      res.first = -1 * log(tan(theta0 / 2.0));    // TODO change to the default converters
+      res.second = -1 * log(tan(theta1 / 2.0));   // TODO change to the default converters
+      return res;
+    }
+
+
+  const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const double& trackEta) const {
+
+    double etaMin, etaMax;
+
+    // rings
+    if (isVertical()) {
+      // outer radius point
+      const double outerRadius = getOuterRadius();
+      const double averageZ = getZOffset() + getZLength() / 2.;
+      const XYZVector outerRadiusPoint(outerRadius, 0., averageZ);
+      const XYZVector& origToOuterRadiusPoint = outerRadiusPoint - trackOrig;
+      etaMin = origToOuterRadiusPoint.Eta();
+
+      // inner radius point
+      const double innerRadius = getInnerRadius();
+      const XYZVector innerRadiusPoint(innerRadius, 0., averageZ);
+      const XYZVector& origToInnerRadiusPoint = innerRadiusPoint - trackOrig;
+      etaMax = origToInnerRadiusPoint.Eta();
+    }
+
+    // tubs
+    else {
+      // inner Z point
+      const double innerZ = getZOffset();
+      const double averageRadius = getInnerRadius() + getRWidth() / 2.;
+      const XYZVector innerZPoint(averageRadius, 0., innerZ);
+      const XYZVector& origToInnerZPoint = innerZPoint - trackOrig;
+      etaMin = origToInnerZPoint.Eta();
+
+      // outer Z point
+      const double outerZ = getZMax();   
+      const XYZVector outerZPoint(averageRadius, 0., outerZ);
+      const XYZVector& origToOuterZPoint = outerZPoint - trackOrig;
+      etaMax = origToOuterZPoint.Eta();
+    }
+
+    return (trackEta > etaMin && trackEta < etaMax);
+  }
+
 
     /**
      * Get the index of the element's feeder volume.
@@ -184,36 +266,6 @@ namespace insur {
      * @param ilength The new overall interaction length, averaged over all the different material that occur in the inactive element
      */
     void InactiveElement::setInteractionLength(double ilength) { i_length = ilength; }
-    
-    /**
-     * Calculate and return the Eta range of the element
-     * @return The pair <i>(Eta_min, Eta_max)</i>
-     */
-    std::pair<double, double> InactiveElement::getEtaMinMax() {
-      std::pair<double, double> res;
-      double theta0, theta1;
-
-      // rings
-      if (isVertical()) {
-	// upper centre of tube wall above z-axis
-	theta0 = atan((getInnerRadius() + getRWidth()) / (getZLength() / 2.0 + getZOffset()));
-	// lower centre of tube wall above z-axis
-	theta1 = atan(getInnerRadius() / (getZLength() / 2.0 + getZOffset()));
-      }
-
-      // tubes
-      else {
-	// centre left of tube wall above z-axis
-	theta0 = atan((getRWidth() / 2.0 + getInnerRadius()) / getZOffset());
-	// centre right of tube wall above z-axis
-	theta1 = atan((getRWidth() / 2.0 + getInnerRadius()) / (getZOffset() + getZLength()));
-      }
-
-      // convert angle theta to pseudorapidity eta
-      res.first = -1 * log(tan(theta0 / 2.0));    // TODO change to the default converters
-      res.second = -1 * log(tan(theta1 / 2.0));   // TODO change to the default converters
-      return res;
-    }
     
     /**
      * Print the geometry-specific parameters of the inactive element including the orientation.

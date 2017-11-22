@@ -165,7 +165,13 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
+
+
     track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.)); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+    //track.setOrigin(0., 0., 0.); 
+
+
+
     //track.setTheta(theta);
     //track.setPhi(phi);
 
@@ -1846,20 +1852,27 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
   std::pair<double, double> tmp;
   double s_normal = 0;
   double s_alternate = 0;
+
+
+  const XYZVector& trackOrig = t.getOrigin();
+  const double trackOrigZ = trackOrig.Z();
+  const double& trackEta = t.getEta();
+
   while (iter != guard) {
 
     // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
     // only volumes of the requested category, or those without one (which should not exist) are examined
     if ((iter->getZOffset() + iter->getZLength()) > 0) {
-      // collision detection: check eta range
-      tmp = iter->getEtaMinMax();
-      // Volume was hit if:
-      if ((tmp.first < t.getEta()) && (tmp.second > t.getEta())) {
+
+      // Volume is hit
+      bool isHit = iter->checkTrackHits(trackOrig, trackEta);
+      if (isHit) {
+
         double r, z;
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) { // Element is vertical
-          z = iter->getZOffset() + iter->getZLength() / 2.0;
-          r = z * tan(t.getTheta());
+          z = iter->getZOffset() + iter->getZLength() / 2.;
+          r = (z - trackOrigZ) * tan(t.getTheta());
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite radial size
@@ -1881,6 +1894,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
         // radiation and interaction length scaling for horizontal volumes
         else { // Element is horizontal
           r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+	  z = r / tan(t.getTheta()) + trackOrigZ;
 
           // In case we are crossing the material with a very shallow angle
           // we have to take into account its finite z length
@@ -1898,10 +1912,11 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
             res += corr;
           }
-        }
+	}
+
         // Create Hit object with appropriate parameters, add to Track t
         double rPos = r;
-        double zPos = r/tan(t.getTheta());
+        double zPos = z;
 
         HitNewPtr hit(new HitNew(rPos, zPos));
         hit->setAsPassive();
@@ -1918,6 +1933,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 	// std::cout << "OLD USED" << std::endl;
       }
     }
+
     iter++;
   }
   return res;

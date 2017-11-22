@@ -16,6 +16,7 @@
 
 #include "MaterialProperties.hh"
 #include "global_constants.hh"
+#include "CoordinateOperations.hh"
 namespace insur {
   /**
    * @class InactiveElement
@@ -42,12 +43,17 @@ namespace insur {
     void setZOffset(double zoffset);
     double getZLength() const;
     void setZLength(double zlength);
+    const double getZMax() const;
     double getInnerRadius() const;
     void setInnerRadius(double iradius);
     double getRWidth() const;
     void setRWidth(double width);
+    const double getOuterRadius() const;
     virtual double getLength() const;
     double getVolume() const;
+    std::pair<double, double> getEtaMinMax() const;
+    //bool checkTrackHits(const XYZVector& trackOrig, const Polar3DVector& trackDir, Material& hitMaterial, XYZVector& hitPos) const;
+    const bool checkTrackHits(const XYZVector& trackOrig, const double& trackEta) const;
     int getFeederIndex();
     void setFeederIndex(int layer);
     InType getFeederType();
@@ -60,7 +66,6 @@ namespace insur {
     void setLocalMass(double mass);
     void setRadiationLength(double rlength);
     void setInteractionLength(double ilength);
-    std::pair<double, double> getEtaMinMax();
     virtual void print();
   protected:
     bool is_vertical, is_final;
