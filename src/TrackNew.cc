@@ -610,6 +610,17 @@ void TrackNew::removeMaterial() {
 }
 
 //
+// Fill local spatial resolution statistics to all modules hit along the track.
+//
+void TrackNew::fillModuleLocalResolutionStats() {
+  for (auto& hit : m_hits) {
+    if (hit->isActive()) {
+      hit->fillModuleLocalResolutionStats();
+    }
+  }
+}
+
+//
 // Helper method printing track covariance matrices in R-Phi
 //
 void TrackNew::printErrors() {
