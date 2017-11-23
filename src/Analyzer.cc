@@ -1672,8 +1672,8 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
-            tmp.radiation = tmp.radiation / sin(t.getTheta());
-            tmp.interaction = tmp.interaction / sin(t.getTheta());
+            tmp.radiation = tmp.radiation / sin(t.getTheta() + iter->getModule().tiltAngle());
+            tmp.interaction = tmp.interaction / sin(t.getTheta() + iter->getModule().tiltAngle());
           }
           // radiation and interaction length scaling for endcaps
           else {
