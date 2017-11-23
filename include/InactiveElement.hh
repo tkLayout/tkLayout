@@ -17,6 +17,7 @@
 #include "MaterialProperties.hh"
 #include "global_constants.hh"
 #include "CoordinateOperations.hh"
+#include "MessageLogger.hh"
 namespace insur {
   /**
    * @class InactiveElement
@@ -52,7 +53,7 @@ namespace insur {
     virtual double getLength() const;
     double getVolume() const;
     std::pair<double, double> getEtaMinMax() const;
-    //bool checkTrackHits(const XYZVector& trackOrig, const Polar3DVector& trackDir, Material& hitMaterial, XYZVector& hitPos) const;
+    const bool checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, XYZVector& hitPos);
     const bool checkTrackHits(const XYZVector& trackOrig, const double& trackEta) const;
     int getFeederIndex();
     void setFeederIndex(int layer);

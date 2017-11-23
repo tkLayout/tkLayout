@@ -194,6 +194,186 @@ namespace insur {
     return (trackEta > etaMin && trackEta < etaMax);
   }
 
+  
+  //
+  // Check if track hit the inactive element -> if yes, return true with passed material & hit position vector
+  //
+  const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, XYZVector& hitPos) {
+    // Initialize: hit was found, material, hitPos & relative hit path length wrt perpendicular passage
+    hitMaterial.radiation   = 0.;
+    hitMaterial.interaction = 0.;
+    hitPos.SetX(0.);
+    hitPos.SetY(0.);
+    hitPos.SetZ(0.);
+
+    bool      hitFound         = false;
+    double    hitRelPathLength = 0;
+
+    // Calculate hit only if inactive element non-transparent, otherwise no effect in tracking or material budget etc.
+    if (getRadiationLength()!=0 || getInteractionLength()!=0) {
+
+      // Disc
+      if (isVertical()) {
+
+	// Find number k as: vec_orig + k*vec_dir = intersection, i.e. z position of (vec_orig + k*vec_dir) equals to disc z position
+	double innerZPos = getZOffset();
+	double outerZPos = getZOffset() + getZLength();
+	double kInner    = (innerZPos - trackOrig.z())/trackDir.z();
+	double kOuter    = (outerZPos - trackOrig.z())/trackDir.z();
+
+	// Assume origin to be "before" the disc (reasonable assumption for tkLayout)
+	if (fabs(trackOrig.z())>innerZPos) {
+
+	  //logWARNING("InactiveElement::checkTrackHits - track origin inside tube: zInner= "+any2str(innerZPos,1)+", zOuter= "+any2str(outerZPos,1)+", check!");
+	  return false;
+	}
+
+	// Take only positive solution, so in the given direction
+	if (kInner>0 && kOuter>0) {
+
+	  XYZVector vecInner   = trackOrig + kInner*trackDir;
+	  XYZVector vecOuter   = trackOrig + kOuter*trackDir;
+
+	  // Track passes through "central" part of the disc
+	  if (vecInner.rho()>=getInnerRadius() && vecInner.rho()<=getOuterRadius() && vecOuter.rho()>=getInnerRadius() && vecOuter.rho()<=getOuterRadius()) {
+
+	    hitFound = true;
+	  }
+	  // Track passes the inner z, but not the outer z
+	  else if (vecInner.rho()>=getInnerRadius() && vecInner.rho()<=getOuterRadius()) {
+
+	    // kOuter fixed then by getInnerRadius() or getOuterRadius()
+	    double a  = trackDir.rho()*trackDir.rho();
+	    double b  = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
+	    double ci = trackOrig.rho()*trackOrig.rho() - getInnerRadius()*getInnerRadius();
+	    double Di = b*b - 4*a*ci;
+	    double co = trackOrig.rho()*trackOrig.rho() - getOuterRadius()*getOuterRadius();
+	    double Do = b*b - 4*a*co;
+	    if      (Di>0 && (-b +sqrt(Di)/2./a)>0) kOuter = (-b + sqrt(Di))/2./a; // Take only positive solution, so in the given direction
+	    else if (Do>0 && (-b +sqrt(Do)/2./a)>0) kOuter = (-b + sqrt(Do))/2./a; // Take only positive solution, so in the given direction))
+	    else {
+
+	      logWARNING("InactiveElement::checkTrackHits - track passes dic inner z, but not outer z and can't find the z-pos -> seems as a bug!");
+	      return false;
+	    }
+
+	    hitFound = true;
+	    vecOuter = trackOrig + kOuter*trackDir;
+	  }
+	  // Track passes the outer z, but not the inner z
+	  else if (vecOuter.rho()>=getInnerRadius() && vecOuter.rho()<=getOuterRadius()) {
+
+	    // kInner fixed then by getInnerRadius() or getOuterRadius()
+	    double a  = trackDir.rho()*trackDir.rho();
+	    double b  = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
+	    double ci = trackOrig.rho()*trackOrig.rho() - getInnerRadius()*getInnerRadius();
+	    double Di = b*b - 4*a*ci;
+	    double co = trackOrig.rho()*trackOrig.rho() - getOuterRadius()*getOuterRadius();
+	    double Do = b*b - 4*a*co;
+	    if      (Di>0 && (-b +sqrt(Di)/2./a)>0) kInner = (-b + sqrt(Di))/2./a; // Take only positive solution, so in the given direction
+	    else if (Do>0 && (-b +sqrt(Do)/2./a)>0) kInner = (-b + sqrt(Do))/2./a; // Take only positive solution, so in the given direction))
+	    else {
+
+	      logWARNING("InactiveElement::checkTrackHits - track passes dic outer z, but not inner z and can't find the z-pos -> seems as a bug!");
+	      return false;
+	    }
+
+	    hitFound = true;
+	    vecInner = trackOrig + kInner*trackDir;
+	  }
+
+	  if (hitFound) {
+
+	    hitFound                = true;
+	    hitRelPathLength        = fabs(kOuter-kInner)*trackDir.r()/getZLength();
+	    hitMaterial.radiation   = getRadiationLength()*hitRelPathLength;
+	    hitMaterial.interaction = getInteractionLength()*hitRelPathLength;
+	    hitPos                  = (vecInner + vecOuter)/2.;
+	  }
+	}
+      }
+      // Tube
+      else {
+
+	// Find number k as: vec_orig + k*vec_dir = intersection, i.e. radial position of (vec_orig + k*vec_dir) equals radial position
+	double innerRPos = getInnerRadius();
+	double outerRPos = getOuterRadius();
+	double kInner    = -1;
+	double kOuter    = -1;
+
+	// Assume origin to be inside the tube (reasonable assumption for tkLayout)
+	if (trackOrig.rho()>innerRPos) {
+	  logWARNING("InactiveElement::checkTrackHits - track origin outside of tube inner radius= "+any2str(innerRPos,1)+", check!");
+	  return false;
+	}
+
+	// Calculate kInner & kOuter: (vec_orig_X + k*vec_dir_X)^2 + (vec_orig_Y + k*vec_dir_Y)^2 = r^2
+	double a = trackDir.rho()*trackDir.rho();
+	double b = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
+	double c = trackOrig.rho()*trackOrig.rho() - innerRPos*innerRPos;
+	double D = b*b - 4*a*c;
+	if (D>0) kInner = (-b + sqrt(D))/2/a; // Take only positive solution, so in the given direction
+
+	c = trackOrig.rho()*trackOrig.rho() - outerRPos*outerRPos;
+	D = b*b - 4*a*c;
+	if (D>0) kOuter = (-b + sqrt(D))/2/a; // Take only positive solution, so in the given direction
+
+	// Due to condition on trackOrig, both solutions exist
+	XYZVector vecInner   = trackOrig + kInner*trackDir;
+	XYZVector vecOuter   = trackOrig + kOuter*trackDir;
+
+	// Track passes through "central" part of the tube
+	if (vecInner.z()>=getZOffset() && vecInner.z()<=(getZOffset()+getZLength()) &&
+	    vecOuter.z()>=getZOffset() && vecOuter.z()<=(getZOffset()+getZLength())) {
+
+	  hitFound = true;
+	}
+	// Track passes the inner radius, but not the outer radius
+	else if (vecInner.z()>=getZOffset() && vecInner.z()<=(getZOffset()+getZLength())) {
+
+	  // kOuter fixed then by getZOffset() + getZLength() or getZOffset()
+	  if     (((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z()>0 ) kOuter = ((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z();
+	  else if((getZOffset() - trackOrig.z())/trackDir.z()>0 )               kOuter = (getZOffset() - trackOrig.z())/trackDir.z();
+	  else {
+	    logWARNING("InactiveElement::checkTrackHits - track passes tube inner radius, but not outer radius and can't find the radius -> seems as a bug!");
+	    return false;
+	  }
+
+	  hitFound = true;
+	  vecOuter = trackOrig + kOuter*trackDir;
+	}
+	// Track passes the Z leftmost corner
+	else if (vecOuter.z()>=getZOffset() && vecOuter.z()<=(getZOffset()+getZLength())) {
+
+	  // kInner fixed then by getZOffset() + getZLength() or getZOffset()
+	  if     (((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z()>0 ) kInner = ((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z();
+	  else if((getZOffset() - trackOrig.z())/trackDir.z()>0 )               kInner = (getZOffset() - trackOrig.z())/trackDir.z();
+	  else {
+	    logWARNING("InactiveElement::checkTrackHits - track passes tube outer radius, but not inner radius and can't find the radius -> seems as a bug!");
+	    return false;
+	  }
+
+	  hitFound = true;
+	  vecInner = trackOrig + kInner*trackDir;
+	}
+
+	if (hitFound) {
+
+	  hitFound                = true;
+	  hitRelPathLength        = fabs(kOuter-kInner)*trackDir.r()/getRWidth();
+	  hitMaterial.radiation   = getRadiationLength()*hitRelPathLength;
+	  hitMaterial.interaction = getInteractionLength()*hitRelPathLength;
+	  hitPos                  = (vecInner + vecOuter)/2.;
+	}
+
+      } // Tube
+    }
+
+    return hitFound;
+  }
+
+  
+
 
     /**
      * Get the index of the element's feeder volume.

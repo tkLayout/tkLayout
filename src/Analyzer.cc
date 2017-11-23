@@ -1861,17 +1861,20 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
   const double trackOrigZ = trackOrig.Z();
   const double& trackEta = t.getEta();
 
+  XYZVector trackDir;
+  trackDir = t.getDirection();
+  //const Polar3DVector& trackDir = t.getDirection();
+  Material hitMaterial;
+  XYZVector hitPos;
+
   while (iter != guard) {
 
-    // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
-    // only volumes of the requested category, or those without one (which should not exist) are examined
-    
-    //if ((iter->getZOffset() + iter->getZLength()) > 0) {
-
-      // Volume is hit
-      bool isHit = iter->checkTrackHits(trackOrig, trackEta);
+    // Volume is hit
+    bool isHit = iter->checkTrackHits(trackOrig, trackDir, hitMaterial, hitPos);
+    //bool isHit = iter->checkTrackHits(trackOrig, trackEta);
       if (isHit) {
 
+	/*
         double r, z;
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) { // Element is vertical
@@ -1916,15 +1919,21 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
             corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
             res += corr;
           }
-	}
+	  }
 
         // Create Hit object with appropriate parameters, add to Track t
         double rPos = r;
-        double zPos = z;
+        double zPos = z;*/
 
-        HitNewPtr hit(new HitNew(rPos, zPos));
+	auto hitRPos = hitPos.rho();
+	auto hitZPos = hitPos.z();
+
+
+        //HitNewPtr hit(new HitNew(rPos, zPos));
+	HitNewPtr hit(new HitNew(hitRPos, hitZPos));
         hit->setAsPassive();
-        hit->setCorrectedMaterial(corr);
+        //hit->setCorrectedMaterial(corr);
+	hit->setCorrectedMaterial(hitMaterial);
         t.addHit(std::move(hit));
 
 //        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
@@ -1936,7 +1945,6 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 //        t.addHit(hit);
 	// std::cout << "OLD USED" << std::endl;
       }
-      //}
 
     iter++;
   }
