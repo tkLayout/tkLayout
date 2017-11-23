@@ -1654,7 +1654,10 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
   // set the track direction vector
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    if (iter->getModule().maxZ() > 0) {
+    //if (iter->getModule().maxZ() > 0) {
+
+
+
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
         //distance = iter->getModule().trackCross(origin, direction);
@@ -1688,7 +1691,7 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
           if (isPixel) hit->setAsPixel();
           t.addHit(std::move(hit));
         }
-    }
+	//}
     iter++;
   }
   return res;
@@ -1862,7 +1865,8 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 
     // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
     // only volumes of the requested category, or those without one (which should not exist) are examined
-    if ((iter->getZOffset() + iter->getZLength()) > 0) {
+    
+    //if ((iter->getZOffset() + iter->getZLength()) > 0) {
 
       // Volume is hit
       bool isHit = iter->checkTrackHits(trackOrig, trackEta);
@@ -1932,7 +1936,7 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 //        t.addHit(hit);
 	// std::cout << "OLD USED" << std::endl;
       }
-    }
+      //}
 
     iter++;
   }
