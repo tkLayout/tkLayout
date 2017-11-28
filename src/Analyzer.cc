@@ -162,8 +162,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     Material tmp;
     TrackNew track;
     eta = i_eta * etaStep;
-    theta = 2 * atan(exp(-eta));
-    //std::cout << " track's phi = " << phi << std::endl; 
+    theta = 2 * atan(exp(-eta)); 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
 
     // TO DO: Add proper parametrization for shape of luminous region
