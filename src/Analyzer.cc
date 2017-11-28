@@ -166,14 +166,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     //std::cout << " track's phi = " << phi << std::endl; 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
 
-
-    track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.)); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
-    //track.setOrigin(0., 0., 0.); 
-
-
-
-    //track.setTheta(theta);
-    //track.setPhi(phi);
+    // TO DO: Add proper parametrization for shape of luminous region
+    track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
 
     // Assign material to the track
     tmp = findAllHits(mb, pm, track);
@@ -1646,28 +1640,15 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
   XYZVector origin, direction;
   origin    = t.getOrigin();
   direction = t.getDirection();
-  double distance;
-  //double r;
   int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
   while (iter != guard) {
-    // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    //if (iter->getModule().maxZ() > 0) {
-
-
-
-        // same method as in Tracker, same function used
-        // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-        //distance = iter->getModule().trackCross(origin, direction);
         auto h = iter->getModule().checkTrackHits(origin, direction); 
         if (h.second != HitType::NONE) {
-        //if (distance > 0) {
-          double distance = h.first.R();
           // module was hit
           hits++;
-          // r = distance * sin(theta);
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
@@ -1691,7 +1672,6 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
           if (isPixel) hit->setAsPixel();
           t.addHit(std::move(hit));
         }
-	//}
     iter++;
   }
   return res;

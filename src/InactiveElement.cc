@@ -154,7 +154,6 @@ namespace insur {
       return res;
     }
 
-  
 
   /**
    * Checks whether track hits the inactive element -> if yes, return true with passed hit position vector & material. 
