@@ -154,389 +154,137 @@ namespace insur {
       return res;
     }
 
-
-  const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const double& trackEta) const {
-
-    double etaMin, etaMax;
-
-    // rings
-    if (isVertical()) {
-      // outer radius point
-      const double outerRadius = getOuterRadius();
-      const double averageZ = getZOffset() + getZLength() / 2.;
-      const XYZVector outerRadiusPoint(outerRadius, 0., averageZ);
-      const XYZVector& origToOuterRadiusPoint = outerRadiusPoint - trackOrig;
-      etaMin = origToOuterRadiusPoint.Eta();
-
-      // inner radius point
-      const double innerRadius = getInnerRadius();
-      const XYZVector innerRadiusPoint(innerRadius, 0., averageZ);
-      const XYZVector& origToInnerRadiusPoint = innerRadiusPoint - trackOrig;
-      etaMax = origToInnerRadiusPoint.Eta();
-    }
-
-    // tubs
-    else {
-      // inner Z point
-      const double innerZ = getZOffset();
-      const double averageRadius = getInnerRadius() + getRWidth() / 2.;
-      const XYZVector innerZPoint(averageRadius, 0., innerZ);
-      const XYZVector& origToInnerZPoint = innerZPoint - trackOrig;
-      etaMin = origToInnerZPoint.Eta();
-
-      // outer Z point
-      const double outerZ = getZMax();   
-      const XYZVector outerZPoint(averageRadius, 0., outerZ);
-      const XYZVector& origToOuterZPoint = outerZPoint - trackOrig;
-      etaMax = origToOuterZPoint.Eta();
-    }
-
-    return (trackEta > etaMin && trackEta < etaMax);
-  }
-
   
 
-  //
-  // Check if track hit the inactive element -> if yes, return true with passed material & hit position vector
-  // Assume (0.,0., Z) origin and straigh tracks
-  //
+  /**
+   * Checks whether track hits the inactive element -> if yes, return true with passed hit position vector & material. 
+   * Only implemeted for eta >= 0. (should work out of the box for eta < 0. but need to be tested in that case).
+   * Assumes tracks are straight lines!
+   * IP should be on (Z) axis, and track not parallel to (Z) axis.
+   */
   const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, XYZVector& hitPos, Material& hitMaterial) {
-    // check trackOrigRho = 0
-    // check eta > 0
-    // trackDirRho != 0.0001 et > 0
 
-    // Initialize: hit was found, material, hitPos & relative hit path length wrt perpendicular passage
+    // Initialize
     hitPos.SetX(0.);
     hitPos.SetY(0.);
     hitPos.SetZ(0.);
     hitMaterial.radiation   = 0.;
     hitMaterial.interaction = 0.;
-
-    const double trackOrigZ = trackOrig.Z();
-    const double trackDirZ = trackDir.Z();
-    const double trackDirRho = trackDir.Rho();
-
-    const double innerZ = getZOffset();
-    const double outerZ = getZMax();
-    const double innerRho = getInnerRadius();
-    const double outerRho = getOuterRadius();
-
-
-    // Hit on inner Z plane
-    double trackDirFactorA;
-    if (fabs(trackDirZ) != 0.0001) trackDirFactorA = (innerZ - trackOrigZ) / trackDirZ;
-    else trackDirFactorA = innerRho / trackDirRho;
-    const XYZVector hitOnInnerZPlane = trackOrig + trackDirFactorA * trackDir;
-
-    // Hit on outer Z plane
-    double trackDirFactorB;
-    if (fabs(trackDirZ) != 0.0001) trackDirFactorB = (outerZ - trackOrigZ) / trackDirZ;
-    else trackDirFactorB = outerRho / trackDirRho;
-    const XYZVector hitOnOuterZPlane = trackOrig + trackDirFactorB * trackDir;
-
-    // Hit on inner radius cylinder
-    const double trackDirFactorC = innerRho / trackDirRho;
-    const XYZVector hitOnInnerRhoCylinder = trackOrig + trackDirFactorC * trackDir;
-
-    // Hit on outer radius cylinder
-    const double trackDirFactorD = outerRho / trackDirRho;
-    const XYZVector hitOnInnerRhoCylinder = trackOrig + trackDirFactorD * trackDir;
-
-
-    bool hitFound = false;
-    double hitPathLength = 0.;
-
-    if ( (hitOnInnerZPlane.Rho() >= innerRadius && hitOnInnerZPlane.Rho() <= outerRadius)
-	 && (hitOnOuterZPlane.Rho() >= innerRadius && hitOnOuterZPlane.Rho() <= outerRadius)
-	 ) {
-      hitFound = true;
-      hitPos = (hitOnInnerZPlane + hitOnOuterZPlane) / 2.;
-      hitPathLength = hitOnOuterZPlane.R() - hitOnInnerZPlane.R();
-    }
-    else if (hitOnInnerZPlane.Rho() >= innerRadius && hitOnInnerZPlane.Rho() <= outerRadius) {
-      const XYZVector hitExit =  hitOnInnerZPlane * outerRho / hitOnInnerZPlane.Rho();
-      hitFound = true;
-      hitPos = (hitOnInnerZPlane + hitExit) / 2.;
-      hitPathLength = hitExit.R() - hitOnInnerZPlane.R();
-    }
-    else if (hitOnOuterZPlane.Rho() >= innerRadius && hitOnOuterZPlane.Rho() <= outerRadius) {
-      const XYZVector hitExit =  hitOnOuterZPlane * innerRho / hitOnOuterZPlane.Rho;
-      hitFound = true;
-      hitPos = (hitExit + hitOnOuterZPlane) / 2.;
-      hitPathLength = hitOnOuterZPlane.R() - hitExit.R();
-    }
-    else if ( (hitOnInnerRhoCylinder.Z() >= innerZ && hitOnInnerRhoCylinder.Z() <= outerZ)
-	      && (hitOnOuterRhoCylinder.Z() >= innerZ && hitOnOuterRhoCylinder.Z() <= outerZ)
-	      ) {
-      hitFound = true;
-      hitPos = (hitOnInnerRhoCylinder + hitOnOuterRhoCylinder) / 2.;
-      hitPathLength = hitOnOuterRhoCylinder.R() - hitOnInnerRhoCylinder.R();
-    }
-
-
-
-    if (hitFound) {
-      const double normalizationFactor = 1. / (isVertical() ? getZLength() : getRWidth());
-      hitMaterial.radiation   = getRadiationLength() * normalizationFactor * hitPathLength;
-      hitMaterial.interaction = getInteractionLength() * normalizationFactor * hitPathLength;
-    }
-
-	// check hit is in volume
-	//check pathLength is > 0
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-  //
-  // Check if track hit the inactive element -> if yes, return true with passed material & hit position vector
-  //
-  const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, XYZVector& hitPos, double& factor) {
-    // Initialize: hit was found, material, hitPos & relative hit path length wrt perpendicular passage
-    hitMaterial.radiation   = 0.;
-    hitMaterial.interaction = 0.;
-    hitPos.SetX(0.);
-    hitPos.SetY(0.);
-    hitPos.SetZ(0.);
-
-    bool      hitFound         = false;
-    double    hitRelPathLength = 0;
-
-    if (getRadiationLength() == 0 && getInteractionLength() == 0) {
-      std::cout << "(getRadiationLength() == 0 && getInteractionLength() == 0)" << std::endl;
-    }
 
     // Calculate hit only if inactive element non-transparent, otherwise no effect in tracking or material budget etc.
-    if (getRadiationLength()!=0 || getInteractionLength()!=0) {
+    if (getRadiationLength() != 0. || getInteractionLength() != 0.) {
 
-      // Disc
-      if (isVertical()) {
+      // eta >= 0.
+      if (trackDir.Eta() >= 0.) {
+	// IP should be on (Z) axis, and track not parallel to (Z) axis.
+	if (trackOrig.Rho() == 0. && trackDir.Rho() > geom_zero) {	
 
-	// Find number k as: vec_orig + k*vec_dir = intersection, i.e. z position of (vec_orig + k*vec_dir) equals to disc z position
-	double innerZPos = getZOffset();
-	double outerZPos = getZOffset() + getZLength();
-	double kInner    = (innerZPos - trackOrig.z())/trackDir.z();
-	double kOuter    = (outerZPos - trackOrig.z())/trackDir.z();
+	  // IP position + track direction parameters of interest for the calculation
+	  const double trackOrigZ = trackOrig.Z();
+	  const double trackDirZ = trackDir.Z();
+	  const double trackDirRho = trackDir.Rho();
 
-	// Assume origin to be "before" the disc (reasonable assumption for tkLayout)
-	if (fabs(trackOrig.z())>innerZPos) {
+	  // Geometric extrema of the inactive volume in (RZ) plane
+	  const double innerZ = getZOffset();
+	  const double outerZ = getZMax();
+	  const double innerRho = getInnerRadius();
+	  const double outerRho = getOuterRadius();
 
-	  std::cout << "AHH innerZPos < fabs(trackOrig.z())" << std::endl;
-	  //logWARNING("InactiveElement::checkTrackHits - track origin inside tube: zInner= "+any2str(innerZPos,1)+", zOuter= "+any2str(outerZPos,1)+", check!");
-	  //return false;
-	}
+	  // PART A
+	  // COMPUTE THE PROJECTION OF THE TRACK IN THE 4 EXTREMA SURFACES OF THE INACTIVE VOLUME.
+	  // Hit on inner (Z) plane
+	  const double kInnerZPlane = (fabs(trackDirZ) > geom_zero ? (innerZ - trackOrigZ) / trackDirZ : -1.);
+	  XYZVector hitOnInnerZPlane;
+	  if (kInnerZPlane > 0.) hitOnInnerZPlane = trackOrig + kInnerZPlane * trackDir;
 
-	// Take only positive solution, so in the given direction
-	if (kInner>0 && kOuter>0) {
+	  // Hit on outer (Z) plane
+	  const double kOuterZPlane = (fabs(trackDirZ) > geom_zero ? (outerZ - trackOrigZ) / trackDirZ : -1.);
+	  XYZVector hitOnOuterZPlane;
+	  if (kOuterZPlane > 0.) hitOnOuterZPlane = trackOrig + kOuterZPlane * trackDir;
 
-	  XYZVector vecInner   = trackOrig + kInner*trackDir;
-	  XYZVector vecOuter   = trackOrig + kOuter*trackDir;
+	  // Hit on inner radius cylinder
+	  const double kInnerRhoCylinder = innerRho / trackDirRho;
+	  const XYZVector hitOnInnerRhoCylinder = trackOrig + kInnerRhoCylinder * trackDir;
 
-	  // Track passes through "central" part of the disc
-	  if (vecInner.rho()>=getInnerRadius() && vecInner.rho()<=getOuterRadius() && vecOuter.rho()>=getInnerRadius() && vecOuter.rho()<=getOuterRadius()) {
+	  // Hit on outer radius cylinder
+	  const double kOuterRhoCylinder = outerRho / trackDirRho;
+	  const XYZVector hitOnOuterRhoCylinder = trackOrig + kOuterRhoCylinder * trackDir;
+	
 
-	    std::cout << "Disc: track IN BETWEEN" << std::endl;
-	    std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	    std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
+	  // PART B
+	  // FIND OUT WHETHER THE TRACK CROSSES THE INSIDE OF THE VOLUME.
+	  // IF SO, COMPUTES HIT POSITION AND PATH LENGTH.
+	  bool hitFound = false;
+	  double hitPathLength = 0.;  // length of the track path crossing the volume.
 
-
+	  // Track enters and exits the volume between extrema radii cylinders.
+	  if ( kInnerZPlane > 0. && kOuterZPlane > 0.
+	       && (hitOnInnerZPlane.Rho() >= innerRho && hitOnInnerZPlane.Rho() <= outerRho)
+	       && (hitOnOuterZPlane.Rho() >= innerRho && hitOnOuterZPlane.Rho() <= outerRho)
+	       ) {
 	    hitFound = true;
+	    hitPos = (hitOnInnerZPlane + hitOnOuterZPlane) / 2.;
+	    hitPathLength = (hitOnOuterZPlane - hitOnInnerZPlane).R();
 	  }
-	  // Track passes the inner z, but not the outer z
-	  else if (vecInner.rho()>=getInnerRadius() && vecInner.rho()<=getOuterRadius()) {
-
-	    // kOuter fixed then by getInnerRadius() or getOuterRadius()
-	    /*double a  = trackDir.rho()*trackDir.rho();
-	    double b  = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
-	    double ci = trackOrig.rho()*trackOrig.rho() - getInnerRadius()*getInnerRadius();
-	    double Di = b*b - 4*a*ci;
-	    double co = trackOrig.rho()*trackOrig.rho() - getOuterRadius()*getOuterRadius();
-	    double Do = b*b - 4*a*co;
-	    if      (Di>0 && (-b +sqrt(Di)/2./a)>0) kOuter = (-b + sqrt(Di))/2./a; // Take only positive solution, so in the given direction
-	    else if (Do>0 && (-b +sqrt(Do)/2./a)>0) kOuter = (-b + sqrt(Do))/2./a; // Take only positive solution, so in the given direction))
-	    else {
-
-	      logWARNING("InactiveElement::checkTrackHits - track passes dic inner z, but not outer z and can't find the z-pos -> seems as a bug!");
-	      return false;
-	      }*/
-
-	    // SIMPLE!!
-	    kOuter = kInner * (getOuterRadius() / vecInner.Rho()); 
-
+	  // Top left corner.
+	  else if (kInnerZPlane > 0. 
+		   && hitOnInnerZPlane.Rho() >= innerRho && hitOnInnerZPlane.Rho() <= outerRho) {
+	    const double exitFactor = outerRho / hitOnInnerZPlane.Rho();
+	    const XYZVector hitExit = trackOrig + (kInnerZPlane * exitFactor) * trackDir;
 	    hitFound = true;
-	    vecOuter = trackOrig + kOuter*trackDir;
-
-	    std::cout << "Disc: track Above cut" << std::endl;
-	    std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	    std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
+	    hitPos = (hitOnInnerZPlane + hitExit) / 2.;
+	    hitPathLength = (hitExit - hitOnInnerZPlane).R();
 	  }
-	  // Track passes the outer z, but not the inner z
-	  else if (vecOuter.rho()>=getInnerRadius() && vecOuter.rho()<=getOuterRadius()) {
-
-	    // kInner fixed then by getInnerRadius() or getOuterRadius()
-	    /*double a  = trackDir.rho()*trackDir.rho();
-	    double b  = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
-	    double ci = trackOrig.rho()*trackOrig.rho() - getInnerRadius()*getInnerRadius();
-	    double Di = b*b - 4*a*ci;
-	    double co = trackOrig.rho()*trackOrig.rho() - getOuterRadius()*getOuterRadius();
-	    double Do = b*b - 4*a*co;
-	    if      (Di>0 && (-b +sqrt(Di)/2./a)>0) kInner = (-b + sqrt(Di))/2./a; // Take only positive solution, so in the given direction
-	    else if (Do>0 && (-b +sqrt(Do)/2./a)>0) kInner = (-b + sqrt(Do))/2./a; // Take only positive solution, so in the given direction))
-	    else {
-
-	      logWARNING("InactiveElement::checkTrackHits - track passes dic outer z, but not inner z and can't find the z-pos -> seems as a bug!");
-	      return false;
-	      }*/
-
-	    // SIMPLE!!
-	    kInner = kOuter * (getInnerRadius() / vecOuter.Rho()); 
-
+	  // Bottom right corner.
+	  else if (kOuterZPlane > 0. 
+		   && hitOnOuterZPlane.Rho() >= innerRho && hitOnOuterZPlane.Rho() <= outerRho) {
+	    const double exitFactor = innerRho / hitOnOuterZPlane.Rho();
+	    const XYZVector hitExit =  trackOrig + (kOuterZPlane * exitFactor) * trackDir;
 	    hitFound = true;
-	    vecInner = trackOrig + kInner*trackDir;
-
-	    std::cout << "Disc: track below cut" << std::endl;
-	    std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	    std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
+	    hitPos = (hitExit + hitOnOuterZPlane) / 2.;
+	    hitPathLength = (hitOnOuterZPlane - hitExit).R();
+	  }
+	  // Track enters and exists the volume between extrema Z planes.
+	  else if ( (hitOnInnerRhoCylinder.Z() >= innerZ && hitOnInnerRhoCylinder.Z() <= outerZ)
+		    && (hitOnOuterRhoCylinder.Z() >= innerZ && hitOnOuterRhoCylinder.Z() <= outerZ)
+		    ) {
+	    hitFound = true;
+	    hitPos = (hitOnInnerRhoCylinder + hitOnOuterRhoCylinder) / 2.;
+	    hitPathLength = (hitOnOuterRhoCylinder - hitOnInnerRhoCylinder).R();
 	  }
 
-	  else {
-	    std::cout << "Disc: very steep angle, nottaken into account!!!!" << std::endl;
-	  }
-
+	  // If hit was found, the computed path length allows to compute Material estimate.
 	  if (hitFound) {
-
-	    hitFound                = true;
-	    hitRelPathLength        = fabs(kOuter-kInner)*trackDir.r()/getZLength();
-	    hitMaterial.radiation   = getRadiationLength()*hitRelPathLength;
-	    hitMaterial.interaction = getInteractionLength()*hitRelPathLength;
-	    hitPos                  = (vecInner + vecOuter)/2.;
+	    // Cross-check that hit is inside volume
+	    if (hitPos.Rho() >= innerRho && hitPos.Rho() <= outerRho && hitPos.Z() >= innerZ && hitPos.Z() <= outerZ) {
+	      // Cross-check that path length is > 0.
+	      if (hitPathLength >= 0.) {
+		// This normalizationFactor comes from the fact that MB is by default multiplied by length or width.
+		// TO DO: Is that actually true?
+		const double normalizationFactor = 1. / (isVertical() ? getZLength() : getRWidth());
+		// Compute MB
+		hitMaterial.radiation   = getRadiationLength() * normalizationFactor * hitPathLength;
+		hitMaterial.interaction = getInteractionLength() * normalizationFactor * hitPathLength;
+	      }
+	      else { logERROR("InactiveElement::checkTrackHits : Computed a hitPathLength < 0."); }
+	    }
+	    else { logERROR("InactiveElement::checkTrackHits : Created a hit which is not inside Inactive Volume."); }
 	  }
+
 	}
+	else { 
+	  logERROR("InactiveElement::checkTrackHits : trackOrig.Rho() = " 
+		   + any2str(trackOrig.Rho()) 
+		   + " trackDir.Rho() = " 
+		   + any2str(trackDir.Rho())
+		   + ". IP not on (Z) axis or track parallel to (Z) axis not supported."
+		   ); 
+	}   
       }
-      // Tube
-      else {
+      else { logERROR("InactiveElement::checkTrackHits : Try to compute inactive MB on eta < 0., which is not supported"); }
 
-	// Find number k as: vec_orig + k*vec_dir = intersection, i.e. radial position of (vec_orig + k*vec_dir) equals radial position
-	double innerRPos = getInnerRadius();
-	double outerRPos = getOuterRadius();
-	double kInner    = -1;
-	double kOuter    = -1;
-
-	// Assume origin to be inside the tube (reasonable assumption for tkLayout)
-	if (trackOrig.rho()>innerRPos) {
-	  logWARNING("InactiveElement::checkTrackHits - track origin outside of tube inner radius= "+any2str(innerRPos,1)+", check!");
-	  return false;
-	}
-
-	// Calculate kInner & kOuter: (vec_orig_X + k*vec_dir_X)^2 + (vec_orig_Y + k*vec_dir_Y)^2 = r^2
-	/*double a = trackDir.rho()*trackDir.rho();
-	double b = 2*(trackOrig.x()*trackDir.x() + trackOrig.y()*trackDir.y());
-	double c = trackOrig.rho()*trackOrig.rho() - innerRPos*innerRPos;
-	double D = b*b - 4*a*c;
-	if (D>0) kInner = (-b + sqrt(D))/2/a; // Take only positive solution, so in the given direction
-
-	c = trackOrig.rho()*trackOrig.rho() - outerRPos*outerRPos;
-	D = b*b - 4*a*c;
-	if (D>0) kOuter = (-b + sqrt(D))/2/a; // Take only positive solution, so in the given direction*/
-
-	// SIMPLE!!
-	double innerRadius = getInnerRadius();
-	double outerRadius = getOuterRadius();
-	kInner    = innerRadius/trackDir.rho();
-	kOuter    = outerRadius/trackDir.rho();
-
-
-	// Due to condition on trackOrig, both solutions exist
-	XYZVector vecInner   = trackOrig + kInner*trackDir;
-	XYZVector vecOuter   = trackOrig + kOuter*trackDir;
-
-	// Track passes through "central" part of the tube
-	if (vecInner.z()>=getZOffset() && vecInner.z()<=(getZOffset()+getZLength()) &&
-	    vecOuter.z()>=getZOffset() && vecOuter.z()<=(getZOffset()+getZLength())) {
-
-	  hitFound = true;
-
-	  std::cout << "Tub: track IN BETWEEN" << std::endl;
-	  std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	  std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
-
-	}
-	// Track passes the inner radius, but not the outer radius
-	else if (vecInner.z()>=getZOffset() && vecInner.z()<=(getZOffset()+getZLength())) {
-
-	  // kOuter fixed then by getZOffset() + getZLength() or getZOffset()
-	  /*if     (((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z()>0 ) kOuter = ((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z();
-	  else if((getZOffset() - trackOrig.z())/trackDir.z()>0 )               kOuter = (getZOffset() - trackOrig.z())/trackDir.z();
-	  else {
-	    logWARNING("InactiveElement::checkTrackHits - track passes tube inner radius, but not outer radius and can't find the radius -> seems as a bug!");
-	    return false;
-	    }*/
-
-	  // SIMPLE!!
-	  kOuter = kInner * (getZMax() - trackOrig.z()) / (vecInner.Z() - trackOrig.z()); 
-
-	  hitFound = true;
-	  vecOuter = trackOrig + kOuter*trackDir;
-
-	  std::cout << "Tub: track right corner" << std::endl;
-	  std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	  std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
-
-	}
-	// Track passes the Z leftmost corner
-	else if (vecOuter.z()>=getZOffset() && vecOuter.z()<=(getZOffset()+getZLength())) {
-
-	  // kInner fixed then by getZOffset() + getZLength() or getZOffset()
-	  /* if     (((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z()>0 ) kInner = ((getZOffset() + getZLength()) - trackOrig.z())/trackDir.z();
-	  else if((getZOffset() - trackOrig.z())/trackDir.z()>0 )               kInner = (getZOffset() - trackOrig.z())/trackDir.z();
-	  else {
-	    logWARNING("InactiveElement::checkTrackHits - track passes tube outer radius, but not inner radius and can't find the radius -> seems as a bug!");
-	    return false;
-	    }*/
-
-	  // SIMPLE!!
-	  kInner = kOuter * (getZOffset() - trackOrig.z()) / (vecOuter.Z() - trackOrig.z()); 
-
-	  hitFound = true;
-	  vecInner = trackOrig + kInner*trackDir;
-
-	  std::cout << "Tub: track left corner" << std::endl;
-	  std::cout << "kInner = " << kInner << "vecInner.rho() = " << vecInner.rho() << "vecInner.z() = " << vecInner.z() << std::endl;
-	  std::cout << "kOuter = " << kOuter << "vecOuter.rho() = " << vecOuter.rho() << "vecOuter.z() = " << vecOuter.z() << std::endl;
-	}
-
-	else {
-	    std::cout << "Tube: very steep angle, nottaken into account!!!!" << std::endl;
-	  }
-
-	if (hitFound) {
-
-	  hitFound                = true;
-	  hitRelPathLength        = fabs(kOuter-kInner)*trackDir.r()/getRWidth();
-	  hitMaterial.radiation   = getRadiationLength()*hitRelPathLength;
-	  hitMaterial.interaction = getInteractionLength()*hitRelPathLength;
-	  hitPos                  = (vecInner + vecOuter)/2.;
-	}
-
-      } // Tube
     }
-
-    factor = hitRelPathLength;
-    std::cout << "hitRelPathLength = " << hitRelPathLength << std::endl;
-
-    return hitFound;
   }
-
-  
 
 
     /**

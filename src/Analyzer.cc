@@ -1848,143 +1848,42 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * @param t A reference to the current track object
  * @return The scaled and summed up crossed material amount
  */
-Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
-  std::vector<InactiveElement>::iterator iter = elements.begin();
-  std::vector<InactiveElement>::iterator guard = elements.end();
-  Material res, corr;
-  std::pair<double, double> tmp;
-  double s_normal = 0;
-  double s_alternate = 0;
+  Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
+    //std::vector<InactiveElement>::iterator iter = elements.begin();
+    //std::vector<InactiveElement>::iterator guard = elements.end();
+    const XYZVector& trackOrig = t.getOrigin();
+    XYZVector trackDir;
+    trackDir = t.getDirection();
+    Material total;
+ 
+    for (auto& elem : elements) {
 
-
-  const XYZVector& trackOrig = t.getOrigin();
-  const double trackOrigZ = trackOrig.Z();
-  const double& trackEta = t.getEta();
-
-  XYZVector trackDir;
-  trackDir = t.getDirection();
-  //const Polar3DVector& trackDirPolar = t.getDirection();
-  Material hitMaterial;
-  XYZVector hitPos;
-
-  while (iter != guard) {
-
-    bool isHitOld = iter->checkTrackHits(trackOrig, trackEta);
-
-    if (isHitOld) {
-      std::cout << "eta = " << trackEta  << std::endl;
-      std::cout << "trackOrigZ = " << trackOrigZ << std::endl;
-
-      std::cout << "iter->isVertical() = " << iter->isVertical() << std::endl;
-      std::cout << "iter->getInnerRadius() = " << iter->getInnerRadius() << std::endl;
-      std::cout << "iter->getOuterRadius() = " << iter->getOuterRadius() << std::endl;
-      std::cout << "iter->getZOffset() = " << iter->getZOffset() << std::endl;
-      std::cout << "iter->getZMax() = " << iter->getZMax() << std::endl;
-
+      XYZVector hitPos;
+      Material hitMaterial;
+      bool isHit = elem.checkTrackHits(trackOrig, trackDir, hitPos, hitMaterial);
       // Volume is hit
-      double factorNew = 0.;
-      bool isHit = iter->checkTrackHits(trackOrig, trackDir, hitMaterial, hitPos, factorNew);
-      //bool isHit = iter->checkTrackHits(trackOrig, trackEta);
-      //if (isHit) {
+      if (isHit) {
+	const double hitRho = hitPos.Rho();
+	const double hitZ = hitPos.Z();
+	total += hitMaterial;
 
-      double factor = 0.;
-        double r, z;
-        // radiation and interaction lenth scaling for vertical volumes
-        if (iter->isVertical()) { // Element is vertical
-          z = iter->getZOffset() + iter->getZLength() / 2.;
-          r = (z - trackOrigZ) * tan(t.getTheta());
-
-          // In case we are crossing the material with a very shallow angle
-          // we have to take into account its finite radial size
-          s_normal = iter->getZLength() / cos(t.getTheta());
-          s_alternate = iter->getRWidth() / sin(t.getTheta());
-          if (s_normal > s_alternate) { 
-	    std::cout << "Old special case " << std::endl;
-            // Special case: it's easier to cross the material by going left-to-right than
-            // by going bottom-to-top, so I have to rescale the material amount computation
-            corr.radiation = iter->getRadiationLength() / iter->getZLength() * s_alternate;
-            corr.interaction = iter->getInteractionLength() / iter->getZLength() * s_alternate;
-            res += corr;
-	    factor = 1. / iter->getZLength() * s_alternate;
-          } else {
-            // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / cos(t.getTheta());
-            corr.interaction = iter->getInteractionLength() / cos(t.getTheta());
-            res += corr;
-	    factor = 1. / cos(t.getTheta());
-          }
-        }
-        // radiation and interaction length scaling for horizontal volumes
-        else { // Element is horizontal
-          r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
-	  z = r / tan(t.getTheta()) + trackOrigZ;
-
-          // In case we are crossing the material with a very shallow angle
-          // we have to take into account its finite z length
-          s_normal = iter->getRWidth() / sin(t.getTheta());
-          s_alternate = iter->getZLength() / cos(t.getTheta());
-          if (s_normal > s_alternate) {
-	    std::cout << "Old special case " << std::endl;
-            // Special case: it's easier to cross the material by going left-to-right than
-            // by going bottom-to-top, so I have to rescale the material amount computation
-            corr.radiation = iter->getRadiationLength() / iter->getRWidth() * s_alternate;
-            corr.interaction = iter->getInteractionLength() / iter->getRWidth() * s_alternate;
-            res += corr;
-	    factor = 1. / iter->getRWidth() * s_alternate;
-          } else {
-            // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / sin(t.getTheta());
-            corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
-            res += corr;
-	    factor = 1. / sin(t.getTheta());
-          }
-	}
-
-        // Create Hit object with appropriate parameters, add to Track t
-        //double rPos = r;
-        //double zPos = z;
-
-	auto hitRPos = hitPos.rho();
-	auto hitZPos = hitPos.z();
-
-	
-
-	std::cout << "factorOld = " << factor << std::endl;
-	if (fabs(factor - factorNew) > 0.001 && iter->getRadiationLength() != 0.)  {
-	  std::cout << " Hey !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-	  std::cout << "r = " << r << " hitRPos = " << hitRPos << std::endl;
-	  std::cout << "z = " << z << " hitZPos = " << hitZPos << std::endl;
-	  if (r < iter->getInnerRadius() || r > iter->getOuterRadius()) std::cout << "r of the hit is out of the volume." << std::endl;
-	  if (hitRPos < iter->getInnerRadius() || hitRPos > iter->getOuterRadius()) std::cout << "hitRPos of the hit is out of the volume." << std::endl;
-	  if (z < iter->getZOffset() || z > iter->getZMax()) std::cout << "z of the hit is out of the volume." << std::endl;
-	  if (hitZPos < iter->getZOffset() || hitZPos > iter->getZMax()) std::cout << "hitZPos of the hit is out of the volume." << std::endl;
-
-	}
-	
-
-
-        //HitNewPtr hit(new HitNew(rPos, zPos));
-	HitNewPtr hit(new HitNew(hitRPos, hitZPos));
-        hit->setAsPassive();
-        //hit->setCorrectedMaterial(corr);
+	// Create Hit object with appropriate parameters, add to Track t
+	HitNewPtr hit(new HitNew(hitRho, hitZ));
+	hit->setAsPassive();
 	hit->setCorrectedMaterial(hitMaterial);
-        t.addHit(std::move(hit));
+	t.addHit(std::move(hit));
 
-//        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
-//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
-//        else hit->setOrientation(Hit::Horizontal);
-//        hit->setObjectKind(Hit::Inactive);
-//        hit->setCorrectedMaterial(corr);
-//        hit->setPixel(isPixel);
-//        t.addHit(hit);
-	// std::cout << "OLD USED" << std::endl;
+	//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+	//        else hit->setOrientation(Hit::Horizontal);
+	//        hit->setObjectKind(Hit::Inactive);
+	//        hit->setPixel(isPixel);
+	//        t.addHit(hit);
       }
-
-    iter++;
+    }
+    return total;
   }
-  return res;
-}
   
+
 void Analyzer::clearGraphsPt(int graphAttributes, const std::string& graphTag) {
   std::map<int, TGraph>& thisRhoGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph_Pt     , graphTag);
   std::map<int, TGraph>& thisPhiGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph_Pt     , graphTag);

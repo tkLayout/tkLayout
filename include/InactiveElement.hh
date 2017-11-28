@@ -53,8 +53,7 @@ namespace insur {
     virtual double getLength() const;
     double getVolume() const;
     std::pair<double, double> getEtaMinMax() const;
-    const bool checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, Material& hitMaterial, XYZVector& hitPos, double& factor);
-    const bool checkTrackHits(const XYZVector& trackOrig, const double& trackEta) const;
+    const bool checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, XYZVector& hitPos, Material& hitMaterial);
     int getFeederIndex();
     void setFeederIndex(int layer);
     InType getFeederType();
