@@ -1843,35 +1843,39 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * The total crossed material is returned.
  * As all inactive volumes are symmetric with respect to rotation around the z-axis, the track angle phi is not necessary.
  * @param elements A reference to the collection of inactive surfaces that is to be checked for collisions with the track
- * @param eta The pseudorapidity of the current track
- * @param theta The track angle in the yz-plane
  * @param t A reference to the current track object
+ * @param isPixel Are we inside the Inner Tracker?
  * @return The scaled and summed up crossed material amount
  */
   Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
-    //std::vector<InactiveElement>::iterator iter = elements.begin();
-    //std::vector<InactiveElement>::iterator guard = elements.end();
     const XYZVector& trackOrig = t.getOrigin();
     XYZVector trackDir;
     trackDir = t.getDirection();
+
     Material total;
  
+    // Loop on inactive elements
     for (auto& elem : elements) {
-
       XYZVector hitPos;
       Material hitMaterial;
+
+      // Checks whether track hits the inactive element.
+      // If yes, return true with passed hit position vector & material. 
       bool isHit = elem.checkTrackHits(trackOrig, trackDir, hitPos, hitMaterial);
       // Volume is hit
       if (isHit) {
 	const double hitRho = hitPos.Rho();
 	const double hitZ = hitPos.Z();
-	total += hitMaterial;
 
-	// Create Hit object with appropriate parameters, add to Track t
+	// Create Hit object with appropriate parameters
 	HitNewPtr hit(new HitNew(hitRho, hitZ));
 	hit->setAsPassive();
 	hit->setCorrectedMaterial(hitMaterial);
+	// Add the inactive hit to the track
 	t.addHit(std::move(hit));
+
+	// Total inactive MB
+	total += hitMaterial;
 
 	//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
 	//        else hit->setOrientation(Hit::Horizontal);
