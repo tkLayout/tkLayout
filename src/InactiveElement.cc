@@ -164,6 +164,7 @@ namespace insur {
   const bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir, XYZVector& hitPos, Material& hitMaterial) {
 
     // Initialize
+    bool hitFound = false;
     hitPos.SetX(0.);
     hitPos.SetY(0.);
     hitPos.SetZ(0.);
@@ -213,7 +214,6 @@ namespace insur {
 	  // PART B
 	  // FIND OUT WHETHER THE TRACK CROSSES THE INSIDE OF THE VOLUME.
 	  // IF SO, COMPUTES HIT POSITION AND PATH LENGTH.
-	  bool hitFound = false;
 	  double hitPathLength = 0.;  // length of the track path crossing the volume.
 
 	  // Track enters and exits the volume between extrema radii cylinders.
@@ -283,6 +283,7 @@ namespace insur {
       else { logERROR("InactiveElement::checkTrackHits : Try to compute inactive MB on eta < 0., which is not supported"); }
 
     }
+    return hitFound;
   }
 
 
