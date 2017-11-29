@@ -72,7 +72,7 @@ bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector
   hitMaterial.radiation   = 0.;
   hitMaterial.interaction = 0.;
 
-  const double geom_zero = 1E-6;
+  const double geom_zero = 1E-6; // devLite: add in global constants
 
   // Calculate hit only if inactive element non-transparent, otherwise no effect in tracking or material budget etc.
   if (getRadiationLength() != 0. || getInteractionLength() != 0.) {
@@ -89,9 +89,9 @@ bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector
 
 	// Geometric extrema of the inactive volume in (RZ) plane
 	const double innerZ = getZOffset();
-	const double outerZ = m_zOffset + m_zLength;
+	const double outerZ = m_zOffset + m_zLength; // devLite: add method
 	const double innerRho = getInnerRadius();
-	const double outerRho = m_rInner + m_rWidth;
+	const double outerRho = m_rInner + m_rWidth; // devLite: add method
 
 	// PART A
 	// COMPUTE THE PROJECTION OF THE TRACK IN THE 4 EXTREMA SURFACES OF THE INACTIVE VOLUME.
@@ -162,7 +162,6 @@ bool InactiveElement::checkTrackHits(const XYZVector& trackOrig, const XYZVector
 	    // Cross-check that path length is > 0.
 	    if (hitPathLength >= 0.) {
 	      // This normalizationFactor comes from the fact that MB is by default multiplied by length or width.
-	      // TO DO: Is that actually true?
 	      const double normalizationFactor = 1. / (isVertical() ? getZLength() : getRWidth());
 	      // Compute MB
 	      hitMaterial.radiation   = getRadiationLength() * normalizationFactor * hitPathLength;
