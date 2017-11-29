@@ -488,7 +488,9 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
     double pT    = 100*Units::TeV; // Arbitrarily high number
 
     matTrack.setThetaPhiPt(theta, phi, pT);
-    matTrack.setOrigin(0, 0, 0); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+
+    // TO DO: Add proper parametrization for shape of luminous region
+    matTrack.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
 
     // Assign material to the track
     findAllHits(mb, pm, matTrack);
