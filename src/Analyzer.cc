@@ -135,11 +135,9 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       MaterialBudget* pm) {
 
   auto& simParms = SimParms::getInstance();
-<<<<<<< HEAD
-=======
+
   double efficiency = simParms.efficiency();
   double pixelEfficiency = simParms.pixelEfficiency();
->>>>>>> drasal/dev-gabie_nohitclass
 
   materialTracksUsed = etaSteps;
 
@@ -209,12 +207,9 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         //track.sort();
         //track.setTriggerResolution(true); // TODO: remove this (?)
 
-<<<<<<< HEAD
-        track.addEfficiency();
-=======
         if (efficiency!=1)      track.addNonPixelEfficiency(efficiency);
         if (pixelEfficiency!=1) track.addPixelEfficiency(pixelEfficiency);
->>>>>>> drasal/dev-gabie_nohitclass
+
         // For each momentum/transverse momentum compute the tracks error
         for (const auto& pIter : momenta ) {
           int    parameter = pIter/Units::MeV; // Store p or pT in MeV as int (key to the map)
@@ -371,16 +366,10 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         // Keep only triggering hits
         track.keepTriggerHitsOnly();
 
-<<<<<<< HEAD
-        track.addEfficiency();
-        if (track.nActiveHits(true)>0) { // At least 3 points are needed to measure the arrow
-          tv.push_back(track);
-=======
         if (efficiency!=1) track.addNonPixelEfficiency(efficiency);
         if (track.getNActiveHits("all")>0) { // At least 3 points are needed to measure the arrow
           TrackPtr iTrack(new Track(track));
           tracks.push_back(std::move(iTrack));
->>>>>>> drasal/dev-gabie_nohitclass
         }    
       }
     }
@@ -1081,21 +1070,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
     // Add the hit on the beam pipe
-<<<<<<< HEAD
-    Hit* hit = new Hit(23./sin(theta));
-    hit->setOrientation(Hit::Horizontal);
-    hit->setObjectKind(Hit::Inactive);
-    hit->setObjectCategory(Hit::BeamPipe);
-    Material beamPipeMat;
-    beamPipeMat.radiation = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
-    beamPipeMat.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
-    hit->setCorrectedMaterial(beamPipeMat);
-    track.addHit(hit);
-    if (!track.noHits()) {
-      track.sort();
-      track.addEfficiency();
-      track.addEfficiency();
-=======
     double rPos  = 23.*Units::mm;
     double zPos  = rPos/tan(theta);
 
@@ -1108,10 +1082,9 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     track.addHit(std::move(hit));
 
     if (!track.hasNoHits()) {
-
+      // track.sort(); // TO DOOOOO ???? ahh this?
       if (efficiency     !=1) track.addNonPixelEfficiency(efficiency);
       if (pixelEfficiency!=1) track.addPixelEfficiency(pixelEfficiency);
->>>>>>> drasal/dev-gabie_nohitclass
 
       // @@ Hadrons
       int nActiveHits = track.getNActiveHits("all");

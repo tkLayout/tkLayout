@@ -487,7 +487,7 @@ void Track::addIPConstraint(double dr, double dz) {
 // Simulate efficiency by changing some active hits to non-active hits (passive)
 //
 
-void TrackNew::addEfficiency() {
+void Track::addEfficiency() {
 
   for (auto& iHit : m_hits) {
     if (iHit->isActive()) {
