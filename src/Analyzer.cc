@@ -136,9 +136,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   auto& simParms = SimParms::getInstance();
 
-  double efficiency = simParms.efficiency();
-  double pixelEfficiency = simParms.pixelEfficiency();
-
   materialTracksUsed = etaSteps;
 
   int nTracks;
@@ -207,8 +204,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         //track.sort();
         //track.setTriggerResolution(true); // TODO: remove this (?)
 
-        if (efficiency!=1)      track.addNonPixelEfficiency(efficiency);
-        if (pixelEfficiency!=1) track.addPixelEfficiency(pixelEfficiency);
+	track.addEfficiency();
 
         // For each momentum/transverse momentum compute the tracks error
         for (const auto& pIter : momenta ) {
@@ -366,7 +362,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         // Keep only triggering hits
         track.keepTriggerHitsOnly();
 
-        if (efficiency!=1) track.addNonPixelEfficiency(efficiency);
+	track.addEfficiency();
         if (track.getNActiveHits("all")>0) { // At least 3 points are needed to measure the arrow
           TrackPtr iTrack(new Track(track));
           tracks.push_back(std::move(iTrack));
@@ -841,7 +837,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
               if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
               curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*SimParms::getInstance().numMinBiasEvents() * bgReductionFactor;
 
-              std::string layerName = hitModule->uniRef().cnt + "_" + any2str(hitModule->uniRef().layer);
+              std::string layerName = hitModule->uniRef().subdetectorName + "_" + any2str(hitModule->uniRef().layer);
               if (iHit->getActiveHitType() == HitType::STUB) {
 
                 std::string momentumString = any2str(iMomentum, 2);
@@ -1082,9 +1078,9 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     track.addHit(std::move(hit));
 
     if (!track.hasNoHits()) {
-      // track.sort(); // TO DOOOOO ???? ahh this?
-      if (efficiency     !=1) track.addNonPixelEfficiency(efficiency);
-      if (pixelEfficiency!=1) track.addPixelEfficiency(pixelEfficiency);
+      //track.sort(); // TO DOOOOO ! AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH! Should remove?
+      track.addEfficiency();
+      track.addEfficiency();  // TO DOOOOO ! AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH! Should for sure remove!
 
       // @@ Hadrons
       int nActiveHits = track.getNActiveHits("all");
@@ -1842,7 +1838,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
 	const double hitZ = hitPos.Z();
 
 	// Create Hit object with appropriate parameters
-	HitPtr hit(new Hit(hitRho, hitZ, &(*iter), HitPassiveType::Undefined));
+	HitPtr hit(new Hit(hitRho, hitZ, &elem, HitPassiveType::Undefined));
         if (isPixel) hit->setAsPixel();
 	hit->setCorrectedMaterial(hitMaterial);
 	// Add the inactive hit to the track
@@ -3584,8 +3580,9 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
     // BEAM PIPE MATERIAL BUDGET  
     // Material belonging to the Beam Pipe, and located before an active hit on the Tracker.
-    for (const auto& hit : track.getHitV()) {
-      if (hit->isTotalTrackingVolume() && hit->getObjectCategory() == Hit::BeamPipe) {
+    for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
+      auto& hit = *itHit;
+      if (hit->isTotalTrackingVolume() && hit->isBeamPipe()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
 			       beam_pipe, 
@@ -3596,7 +3593,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
       // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
       // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
-      if (hit->isPixelIntersticeVolume() && hit->getObjectCategory() != Hit::BeamPipe) {
+      if (hit->isPixelIntersticeVolume() && !hit->isBeamPipe()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
 			       services_under_pixel_tracking_volume, 
@@ -3619,9 +3616,10 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			     nTracks, etaMax);
     }
 
-    for (const auto& hit : track.getHitV()) {
+    for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
+      auto& hit = *itHit;
       // B: services
-      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+      if (hit->isPixelTrackingVolume() && hit->isService()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
 			       services_in_pixel_tracking_volume, 
@@ -3630,7 +3628,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       }
 
       // C: supports
-      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+      if (hit->isPixelTrackingVolume() && hit->isSupport()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
 			       supports_in_pixel_tracking_volume, 
@@ -3664,9 +3662,10 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 			     nTracks, etaMax);
     }
 
-    for (const auto& hit : track.getHitV()) {
+    for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
+      auto& hit = *itHit;
       // E: services
-      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+      if (hit->isOuterTrackingVolume() && hit->isService()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
 			       services_in_outer_tracking_volume,
@@ -3675,7 +3674,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       }
 
       // F: supports
-      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Support) {
+      if (hit->isOuterTrackingVolume() && hit->isSupport()) {
 	const Material& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
 			       supports_in_outer_tracking_volume,
@@ -3686,16 +3685,17 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
 
     // EXTRA PLOTS: SERVICES DETAILS (TRACKING VOLUMES)
-    for (const auto& hit : track.getHitV()) {
+    for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
+      auto& hit = *itHit;
       // DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
-      if (hit->isPixelTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+      if (hit->isPixelTrackingVolume() && hit->isService()) {
 
 	fillRIServicesDetailsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
 				    hit, eta, theta, nTracks, etaMax);
       }	  
 
       // DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
-      if (hit->isOuterTrackingVolume() && hit->getObjectCategory() == Hit::Service) {
+      if (hit->isOuterTrackingVolume() && hit->isService()) {
 
 	fillRIServicesDetailsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
 				    hit, eta, theta, nTracks, etaMax);
@@ -3712,22 +3712,25 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
    * Then Analyzer::fillRIComponentsHistos is directly used.
    */
-  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const {
+  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const {
 
-    const InactiveElement* inactive = hitOnService->getHitInactiveElement();
-    std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
+    const InactiveElement* inactive = hitOnService->getHitPassiveElement();
+    if (inactive != nullptr) {
+      std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
 
-    for (const auto& it : servicesComponentsRI) {
+      for (const auto& it : servicesComponentsRI) {
 
-      const std::string componentName = it.first;
-      const Material& uncorrectedMat = it.second;
-      const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
+	const std::string componentName = it.first;
+	const Material& uncorrectedMat = it.second;
+	const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
 
-      fillRIComponentsHistos(rServicesDetails, iServicesDetails,
-			     componentName,
-			     correctedMat, eta, 
-			     nTracks, etaMax);
+	fillRIComponentsHistos(rServicesDetails, iServicesDetails,
+			       componentName,
+			       correctedMat, eta, 
+			       nTracks, etaMax);
+      }
     }
+    else logERROR("Analyzer::fillRIServicesDetailsHistos : Tries to access MB from a nullptr! ");
   }
 
 

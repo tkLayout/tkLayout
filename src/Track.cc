@@ -499,6 +499,7 @@ void Track::addEfficiency() {
   }
 }
 
+/*
 //
 // Simulate efficiency by changing some active non-pixel hits to non-active hits (passive)
 //
@@ -523,7 +524,7 @@ void Track::addPixelEfficiency(double efficiency) {
       if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
     }
   }
-}
+  }*/
 
 //
 // Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
@@ -658,18 +659,17 @@ void Track::removeMaterial() {
 //
 // Fill local spatial resolution statistics to all modules hit along the track.
 //
-void TrackNew::fillModuleLocalResolutionStats() {
+void Track::fillModuleLocalResolutionStats() {
   for (auto& hit : m_hits) {
     if (hit->isActive()) {
       hit->fillModuleLocalResolutionStats();
     }
   }
+}
 
 // Assign tracking volumes to collection of hits
 //
 void Track::assignTrackingVolumesToHits() {
-
-
 
   // Code moved from hit.cc assignTrackingVolumesToHits method
   double firstActiveHitPixelDistance, firstActiveHitOuterDistance, lastActiveHitPixelDistance, lastActiveHitOuterDistance;
