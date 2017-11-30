@@ -50,7 +50,7 @@ public:
   Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType);
 
   //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
-  Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType);
+  Hit(double rPos, double zPos, DetectorModule* myModule, HitType activeHitType);
 
   //! Destructor
   ~Hit();
@@ -127,7 +127,7 @@ protected:
   Hit();
 
   //! Set pointer to hit module in the constructor
-  void setHitModule(const DetectorModule* myModule);
+  void setHitModule(DetectorModule* myModule);
 
   //! Set pointer to inactive element in the constructor
   void setHitPassiveElement(const insur::InactiveElement* myPassiveElem);
@@ -139,7 +139,7 @@ protected:
   HitType        m_activeHitType; //!< Hit coming from inner, outer, stub, ... module
   HitPassiveType m_passiveHitType;//!< Hit coming from which passive part: beam-pipe, service, support etc.
   
-  const DetectorModule*         m_hitModule;     //!< Const pointer to the hit module
+  DetectorModule*         m_hitModule;     //!< Const pointer to the hit module
   const insur::InactiveElement* m_hitPassiveElem;//!< Const pointer to the hit inactive element
   const Track*                  m_track;         //!< Const pointer to the track, into which the hit was assigned
   

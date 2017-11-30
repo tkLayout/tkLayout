@@ -133,7 +133,7 @@ Hit::Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, 
  * Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
  * @param myModule pointer to the module with the hit 
  */
-Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activeHitType) {
+Hit::Hit(double rPos, double zPos, DetectorModule* myModule, HitType activeHitType) {
     m_detName             = "Undefined";
     m_distance            = sqrt(rPos*rPos + zPos*zPos);
     m_rPos                = rPos;
@@ -162,7 +162,7 @@ Hit::Hit(double rPos, double zPos, const DetectorModule* myModule, HitType activ
  * Setter for the pointer to the active surface that caused the hit.
  * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
  */
-void Hit::setHitModule(const DetectorModule* myModule) {
+void Hit::setHitModule(DetectorModule* myModule) {
 
   if (myModule) m_hitModule = myModule;
   else logWARNING("Hit::setHitModule -> can't set module to given hit, pointer null!");

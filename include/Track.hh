@@ -209,8 +209,8 @@ public:
   int getNHits() const { return m_hits.size(); }
 
   //! Hits collection iterators
-  HitCollection::const_iterator getBeginHits() { return m_hits.cbegin(); }
-  HitCollection::const_iterator getEndHits()   { return m_hits.cend(); }
+  HitCollection::const_iterator getBeginHits() const { return m_hits.cbegin(); }
+  HitCollection::const_iterator getEndHits() const { return m_hits.cend(); }
 
   //! Get track material
   RILength getMaterial() const;
