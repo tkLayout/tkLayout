@@ -949,7 +949,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     if (iComponents["Services"]==NULL) { 
       iComponents["Services"] = new TH1D();
       iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
+    }
     if (rComponents["Supports"]==NULL) { 
       rComponents["Supports"] = new TH1D();
       rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
@@ -989,13 +989,13 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
     /*for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
       if (rComponents[it->first]==NULL) { 
-        rComponents[it->first] = new TH1D();
-        rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      rComponents[it->first] = new TH1D();
+      rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
       }
       rComponents[it->first]->Fill(eta, it->second.radiation);
       if (iComponents[it->first]==NULL) {
-        iComponents[it->first] = new TH1D();
-        iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      iComponents[it->first] = new TH1D();
+      iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
       }
       iComponents[it->first]->Fill(eta, it->second.interaction);
       }*/
@@ -1065,7 +1065,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), track, ignoredPixelSumServicesComponentsRI, MaterialProperties::no_cat, true);
       analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(),       track, ignoredPixelSumServicesComponentsRI, MaterialProperties::b_sup, true);
-      }
+    }
 
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
@@ -1172,7 +1172,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     }
 
 
-    } // loop on eta
+  } // loop on eta
 
 
 
