@@ -1078,18 +1078,17 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     track.addHit(std::move(hit));
 
     if (!track.hasNoHits()) {
-      //track.sort(); // TO DOOOOO ! AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH! Should remove?
       track.addEfficiency();
-      track.addEfficiency();  // TO DOOOOO ! AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH! Should for sure remove!
 
       // @@ Hadrons
-      int nActiveHits = track.getNActiveHits("all");
+      std::string trackingTag = (pm != nullptr ? "trigger" : "pixel");
+      int nActiveHits = track.getNActiveHits(trackingTag);
       if (nActiveHits>0) {
         hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(),
                                       eta,
                                       nActiveHits);
         double probability;
-        std::vector<double> probabilities = track.getHadronActiveHitsProbability("all");
+        std::vector<double> probabilities = track.getHadronActiveHitsProbability(trackingTag);
 
         double averageHits=0;
         //double averageSquaredHits=0;
