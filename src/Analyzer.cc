@@ -72,12 +72,18 @@ namespace insur {
 
   // private
 
-
+  /* Get shape of luminous region, used for all analysis (except Material Budget Analysis).
+   * IP is always assumed to be on the (Z) axis.
+   * Shape of luminous region in Z is defined by user in SimParms cfg files.
+   * Shape of luminous region in Z is always assumed to be centered around Z = 0.
+   * return: XYZVector defining the IP position (in CMS official frame of reference).
+   */
   const XYZVector Analyzer::getLuminousRegion() {
+    // IP is always assumed to be on the (Z) axis.
     const double dx = 0.;
     const double dy = 0.;
 
-    
+    // Compute dz according to specification in SimParms cfg files.
     const auto& simParms = SimParms::getInstance();
     const LumiRegShape& lumiShape = simParms.lumiRegShape();
     const double zError = simParms.lumiRegZError();
@@ -88,13 +94,21 @@ namespace insur {
     else if (lumiShape == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0, zError);
     else logERROR("Shape of luminous region specified in SimParms is not supported.");
 
+    // IP position
     return XYZVector(dx, dy, dz); 
   }
 
+
+  /* Get shape of luminous region, used for Material Budget analysis.
+   * IP = (0,0,0) is making sense for MB analysis.
+   * return: XYZVector defining the IP position (in CMS official frame of reference).
+   */
   const XYZVector Analyzer::getLuminousRegionInMatBudgetAnalysis() {
     const auto& simParms = SimParms::getInstance();
     const LumiRegShape& lumiShape = simParms.lumiRegShapeInMatBudgetAnalysis();
     if (lumiShape != LumiRegShape::PONCTUAL) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
+
+    // IP position
     return XYZVector(0., 0., 0.); 
   }
 
@@ -359,7 +373,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     int nTracks;
     double etaStep, z0, eta, theta, phi;
-    //double zError = simParms.lumiRegZError();
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -374,7 +387,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
       phi = myDice.Rndm() * M_PI * 2.0;
-      //z0 = myDice.Gaus(0, zError);
 
       Track track;
       eta = i_eta * etaStep;
