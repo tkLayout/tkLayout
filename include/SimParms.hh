@@ -26,10 +26,7 @@ public:
   ReadonlyProperty<int, NoDefault> numMinBiasEvents;
   ReadonlyProperty<int, NoDefault> bunchSpacingNs;
 
-  ReadonlyProperty<int, NoDefault> zErrorCollider;
-  ReadonlyProperty<int, NoDefault> rphiErrorCollider;
-  //ReadonlyProperty<double, NoDefault> lumiRegZError;
-  //ReadonlyProperty<double, NoDefault> lumiRegRError;
+  ReadonlyProperty<double, NoDefault> lumiRegZError;
   ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShape;
   ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShapeInMatBudgetAnalysis;
 
@@ -55,8 +52,6 @@ public:
   PropertyNode<std::string> taggedTracking;
 
   void build();
-
-  const XYZVector getLuminousRegion() const;
 
   void addIrradiationMapFile(std::string path);
 

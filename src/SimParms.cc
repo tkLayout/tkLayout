@@ -19,9 +19,11 @@ SimParms& SimParms::getInstance()
 SimParms::SimParms() :
     numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
     bunchSpacingNs("bunchSpacingNs", parsedAndChecked()),
-    zErrorCollider("zErrorCollider", parsedAndChecked()),
-    rphiErrorCollider("rphiErrorCollider", parsedAndChecked()),
+    lumiRegZError("lumiRegZError", parsedAndChecked()),
+    lumiRegShape("lumiRegShape", parsedAndChecked()),
+    lumiRegShapeInMatBudgetAnalysis("lumiRegShapeInMatBudgetAnalysis", parsedAndChecked()),
     useIPConstraint("useIPConstraint", parsedAndChecked()),
+    rphiErrorCollider("rphiErrorCollider", parsedAndChecked()),
     ptCost("ptCost", parsedAndChecked()),
     stripCost("stripCost", parsedAndChecked()),
     triggerEtaCut("triggerEtaCut", parsedAndChecked()),
@@ -57,7 +59,7 @@ void SimParms::build() {
   bool nonZero = true;
   if (useIPConstraint()) {
 
-    if (zErrorCollider()==0)    nonZero = false;
+    if (lumiRegZError()==0)    nonZero = false;
     if (rphiErrorCollider()==0) nonZero = false;
   }
   if (!nonZero) throw PathfulException("IP constraint required, but errors on beam spot set to zero in R-Phi/Z!" , "SimParms");
@@ -66,25 +68,8 @@ void SimParms::build() {
   // Set expected default units
   magField.scaleByUnit(Units::T);
 
-  zErrorCollider.scaleByUnit(Units::mm);
+  lumiRegZError.scaleByUnit(Units::mm);
   rphiErrorCollider.scaleByUnit(Units::mm);
-}
-
-const XYZVector SimParms::getLuminousRegion() const {
-  const double dx = lumiRegRError() / sqrt(2.);
-  const double dy = dx;
-
-  double dz = 0.;
-  if (lumiRegShape() == LumiRegShape::PONCTUAL) dz = 0.;
-  else if (lumiRegShape() == LumiRegShape::FLAT) dz = (myDice.Rndm() * 2. - 1.) * lumiRegZError();
-  else if (lumiRegShape() == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0, lumiRegZError());
-
-  return XYZVector(dx, dy, dz); 
-}
-
-const XYZVector SimParms::getLuminousRegionInMatBudgetAnalysis() const {
-  if (lumiRegShapeInMatBudgetAnalysis() != LumiRegShape::PONCTUAL) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
-  return XYZVector(0., 0., 0.); 
 }
 
 void SimParms::addIrradiationMapFile(std::string path) {

@@ -2,11 +2,10 @@ SimParms {
     numMinBiasEvents 140      // Number of pile-up events
     bunchSpacingNs 25
     
-    // Luminous region used in analysis
+    // Luminous region used in analysis (always on (Z) axis, and Z centered on 0)
     lumiRegZError                   70     // mm
-    lumiRegRError                   0      // mm
-    lumiRegShape                    Flat   // Choose among { Ponctual, Flat, Gaussian }
-    lumiRegShapeInMatBudgetAnalysis Ponctual
+    lumiRegShape                    flat   // Choose among { ponctual, flat, gaussian }
+    lumiRegShapeInMatBudgetAnalysis ponctual
 
     useIPConstraint 0
     rphiErrorCollider 5      // mm

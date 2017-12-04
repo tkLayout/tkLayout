@@ -77,7 +77,7 @@ public:
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
   //! Set track origin
-  const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
+  void setOrigin(const XYZVector& origin) { m_origin = origin; }
 
   //! Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
   void resetPt(double newPt);
