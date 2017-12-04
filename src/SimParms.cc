@@ -2,6 +2,8 @@
 #include "Units.hh"
 #include "MainConfigHandler.hh"
 
+define_enum_strings(LumiRegShape) = { "ponctual", "flat", "gaussian" };
+
 //
 // Method constructing static instance of this class
 //
@@ -66,6 +68,23 @@ void SimParms::build() {
 
   zErrorCollider.scaleByUnit(Units::mm);
   rphiErrorCollider.scaleByUnit(Units::mm);
+}
+
+const XYZVector SimParms::getLuminousRegion() const {
+  const double dx = lumiRegRError() / sqrt(2.);
+  const double dy = dx;
+
+  double dz = 0.;
+  if (lumiRegShape() == LumiRegShape::PONCTUAL) dz = 0.;
+  else if (lumiRegShape() == LumiRegShape::FLAT) dz = (myDice.Rndm() * 2. - 1.) * lumiRegZError();
+  else if (lumiRegShape() == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0, lumiRegZError());
+
+  return XYZVector(dx, dy, dz); 
+}
+
+const XYZVector SimParms::getLuminousRegionInMatBudgetAnalysis() const {
+  if (lumiRegShapeInMatBudgetAnalysis() != LumiRegShape::PONCTUAL) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
+  return XYZVector(0., 0., 0.); 
 }
 
 void SimParms::addIrradiationMapFile(std::string path) {

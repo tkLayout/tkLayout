@@ -167,6 +167,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     // TO DO: Add proper parametrization for shape of luminous region
     track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
+    std::cout << "Analysis resolution: myDice.Rndm() = " << myDice.Rndm() << std::endl;
 
     // Assign material to the track
     tmp = findAllHits(mb, pm, track);

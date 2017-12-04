@@ -73,13 +73,6 @@ public:
   //! Simulate efficiency by changing some active hits to non-active hits (passive)
   void addEfficiency();
 
-  /*
-  //! Simulate non-pixel efficiency by changing some active non-pixel hits to non-active hits (passive)
-  void addNonPixelEfficiency(double efficiency);
-
-  //! Simulate pixel efficiency by changing some active pixel hits to non-active hits (passive)
-  void addPixelEfficiency(double efficiency);*/
-
   //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt (signed: + -> particle in-out, - -> particle out-in)
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 

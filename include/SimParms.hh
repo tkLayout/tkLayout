@@ -14,7 +14,7 @@
 #include "IrradiationMapsManager.hh"
 #include "Visitable.hh"
 
-//typedef std::map<std::pair<int,int>, double> IrradiationMap;
+enum LumiRegShape { PONCTUAL, FLAT, GAUSSIAN };
 
 class SimParms : public PropertyObject, public Buildable, public Visitable {
 
@@ -28,7 +28,13 @@ public:
 
   ReadonlyProperty<int, NoDefault> zErrorCollider;
   ReadonlyProperty<int, NoDefault> rphiErrorCollider;
+  //ReadonlyProperty<double, NoDefault> lumiRegZError;
+  //ReadonlyProperty<double, NoDefault> lumiRegRError;
+  ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShape;
+  ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShapeInMatBudgetAnalysis;
+
   ReadonlyProperty<bool, NoDefault> useIPConstraint;
+  ReadonlyProperty<double, NoDefault> rphiErrorCollider;
 
   ReadonlyProperty<int, NoDefault> ptCost;
   ReadonlyProperty<int, NoDefault> stripCost;
@@ -49,6 +55,8 @@ public:
   PropertyNode<std::string> taggedTracking;
 
   void build();
+
+  const XYZVector getLuminousRegion() const;
 
   void addIrradiationMapFile(std::string path);
 

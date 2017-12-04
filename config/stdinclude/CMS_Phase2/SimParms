@@ -2,9 +2,14 @@ SimParms {
     numMinBiasEvents 140      // Number of pile-up events
     bunchSpacingNs 25
     
-    zErrorCollider 70         // mm
-    rphiErrorCollider 5       // mm
+    // Luminous region used in analysis
+    lumiRegZError                   70     // mm
+    lumiRegRError                   0      // mm
+    lumiRegShape                    Flat   // Choose among { Ponctual, Flat, Gaussian }
+    lumiRegShapeInMatBudgetAnalysis Ponctual
+
     useIPConstraint 0
+    rphiErrorCollider 5      // mm
     
     ptCost 0                  // CHF / cm^2
     stripCost 0               // CHF / cm^2
