@@ -2,7 +2,7 @@
 #include "Units.hh"
 #include "MainConfigHandler.hh"
 
-define_enum_strings(LumiRegShape) = { "ponctual", "flat", "gaussian" };
+define_enum_strings(LumiRegShape) = { "spot", "flat", "gaussian" };
 
 //
 // Method constructing static instance of this class

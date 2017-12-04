@@ -14,7 +14,7 @@
 #include "IrradiationMapsManager.hh"
 #include "Visitable.hh"
 
-enum LumiRegShape { PONCTUAL, FLAT, GAUSSIAN };
+enum LumiRegShape { SPOT, FLAT, GAUSSIAN };
 
 class SimParms : public PropertyObject, public Buildable, public Visitable {
 

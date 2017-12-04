@@ -89,9 +89,9 @@ namespace insur {
     const double zError = simParms.lumiRegZError();
 
     double dz = 0.;
-    if (lumiShape == LumiRegShape::PONCTUAL) dz = 0.;
+    if (lumiShape == LumiRegShape::SPOT) dz = 0.;
     else if (lumiShape == LumiRegShape::FLAT) dz = (myDice.Rndm() * 2. - 1.) * zError;
-    else if (lumiShape == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0, zError);
+    else if (lumiShape == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0., zError);
     else logERROR("Shape of luminous region specified in SimParms is not supported.");
 
     // IP position
@@ -106,7 +106,7 @@ namespace insur {
   const XYZVector Analyzer::getLuminousRegionInMatBudgetAnalysis() {
     const auto& simParms = SimParms::getInstance();
     const LumiRegShape& lumiShape = simParms.lumiRegShapeInMatBudgetAnalysis();
-    if (lumiShape != LumiRegShape::PONCTUAL) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
+    if (lumiShape != LumiRegShape::SPOT) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
 
     // IP position
     return XYZVector(0., 0., 0.); 
