@@ -1596,16 +1596,12 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
   direction = dir;
 
   for (auto aModule : tracker.modules()) {
-
-    // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    if (aModule->maxZ() > 0) {
-
       // same method as in Tracker, same function used
       //distance = aModule->trackCross(origin, direction);
       auto ht = aModule->checkTrackHits(origin, direction);
       //if (distance > 0) {
       if (ht.second != HitType::NONE) {
-        double distance = ht.first.R();
+        double distance = (ht.first - origin).R();
         // module was hit
         hits++;
 
@@ -1614,7 +1610,6 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
         hit->setCorrectedMaterial(emptyMaterial);
         t.addHit(hit);
       }
-    }
   }
   return hits;
 }
