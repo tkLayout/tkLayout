@@ -71,6 +71,48 @@ namespace insur {
   }
 
   // private
+
+  /* Get shape of luminous region, used for all analysis (except Material Budget Analysis).
+   * IP is always assumed to be on the (Z) axis.
+   * Shape of luminous region in Z is defined by user in SimParms cfg files.
+   * Shape of luminous region in Z is always assumed to be centered around Z = 0.
+   * return: XYZVector defining the IP position (in CMS official frame of reference).
+   */
+  const XYZVector Analyzer::getLuminousRegion() {
+    // IP is always assumed to be on the (Z) axis.
+    const double dx = 0.;
+    const double dy = 0.;
+
+    // Compute dz according to specification in SimParms cfg files.
+    const auto& simParms = SimParms::getInstance();
+    const LumiRegShape& lumiShape = simParms.lumiRegShape();
+    const double zError = simParms.lumiRegZError();
+
+    double dz = 0.;
+    if (lumiShape == LumiRegShape::SPOT) dz = 0.;
+    else if (lumiShape == LumiRegShape::FLAT) dz = (myDice.Rndm() * 2. - 1.) * zError;
+    else if (lumiShape == LumiRegShape::GAUSSIAN) dz = myDice.Gaus(0., zError);
+    else logERROR("Shape of luminous region specified in SimParms is not supported.");
+
+    // IP position
+    return XYZVector(dx, dy, dz); 
+  }
+
+
+  /* Get shape of luminous region, used for Material Budget analysis.
+   * IP = (0,0,0) is making sense for MB analysis.
+   * return: XYZVector defining the IP position (in CMS official frame of reference).
+   */
+  const XYZVector Analyzer::getLuminousRegionInMatBudgetAnalysis() {
+    const auto& simParms = SimParms::getInstance();
+    const LumiRegShape& lumiShape = simParms.lumiRegShapeInMatBudgetAnalysis();
+    if (lumiShape != LumiRegShape::SPOT) logERROR("Non-ponctual IP in Material Budget Analysis not supported.");
+
+    // IP position
+    return XYZVector(0., 0., 0.); 
+  }
+
+
   /* High-level function finding all hits for a given tracker (and pixel)
    * and adding them to the track. The total crossed material is returned.
    * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
@@ -165,8 +207,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     theta = 2 * atan(exp(-eta)); 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
 
-    // TO DO: Add proper parametrization for shape of luminous region
-    track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
+    track.setOrigin(getLuminousRegion());
 
     // Assign material to the track
     tmp = findAllHits(mb, pm, track);
@@ -198,7 +239,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         if (SimParms::getInstance().useIPConstraint()) {
 
           useIPConstraint = true;
-          track.addIPConstraint(SimParms::getInstance().rphiErrorCollider(), SimParms::getInstance().zErrorCollider());
+          track.addIPConstraint(SimParms::getInstance().rphiErrorCollider(), SimParms::getInstance().lumiRegZError());
         }
         track.keepTaggedHitsOnly(tag,useIPConstraint);
         //track.sort();
@@ -332,7 +373,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     int nTracks;
     double etaStep, z0, eta, theta, phi;
-    double zError = simParms.zErrorCollider();
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -347,13 +387,12 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
       phi = myDice.Rndm() * M_PI * 2.0;
-      z0 = myDice.Gaus(0, zError);
 
       Track track;
       eta = i_eta * etaStep;
       theta = 2 * atan(exp(-eta));
       track.setThetaPhiPt(theta,phi,1*Units::TeV);
-      track.setOrigin(0., 0., z0);
+      track.setOrigin(getLuminousRegion());
 
       int nHits = findHitsModules(tracker, track);
 
@@ -484,8 +523,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
     matTrack.setThetaPhiPt(theta, phi, pT);
 
-    // TO DO: Add proper parametrization for shape of luminous region
-    matTrack.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
+    matTrack.setOrigin(getLuminousRegion());
 
     // Assign material to the track
     findAllHits(mb, pm, matTrack);
@@ -900,7 +938,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta)); // TODO: switch to exp() here
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
-    track.setOrigin(0., 0., 0.); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
+    track.setOrigin(getLuminousRegionInMatBudgetAnalysis());
     //      active volumes, barrel
     std::map<std::string, Material> sumComponentsRI;
     tmp = analyzeModules(mb.getBarrelModuleCaps(), track, sumComponentsRI);
@@ -3143,9 +3181,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     aProfileStubs.SetTitle(mel.first.c_str());
   }
 
-  //  ModuleVector allModules;
-  double zError = SimParms::getInstance().zErrorCollider();
-
   // The real simulation
   std::pair <XYZVector, double> aLine;
 
@@ -3202,7 +3237,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       // Reset the hit counter
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
+      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( getLuminousRegion(), aLine.first, tracker.modules());
       std::set<std::string> hitModulesDTC;
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
@@ -3490,7 +3525,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-        if (m->couldHit(direction, SimParms::getInstance().zErrorCollider()*BoundaryEtaSafetyMargin)) {
+        if (m->couldHit(direction, SimParms::getInstance().lumiRegZError()*BoundaryEtaSafetyMargin)) {
           auto h = m->checkTrackHits(origin, direction); 
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));

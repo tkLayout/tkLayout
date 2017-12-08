@@ -446,8 +446,10 @@ namespace insur {
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track);
+    const XYZVector getLuminousRegion();
+    const XYZVector getLuminousRegionInMatBudgetAnalysis();
 
+    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track);
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
     virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, Track& track,

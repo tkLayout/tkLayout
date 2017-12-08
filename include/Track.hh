@@ -73,18 +73,11 @@ public:
   //! Simulate efficiency by changing some active hits to non-active hits (passive)
   void addEfficiency();
 
-  /*
-  //! Simulate non-pixel efficiency by changing some active non-pixel hits to non-active hits (passive)
-  void addNonPixelEfficiency(double efficiency);
-
-  //! Simulate pixel efficiency by changing some active pixel hits to non-active hits (passive)
-  void addPixelEfficiency(double efficiency);*/
-
   //! Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt (signed: + -> particle in-out, - -> particle out-in)
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
   //! Set track origin
-  const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
+  void setOrigin(const XYZVector& origin) { m_origin = origin; }
 
   //! Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
   void resetPt(double newPt);

@@ -499,33 +499,6 @@ void Track::addEfficiency() {
   }
 }
 
-/*
-//
-// Simulate efficiency by changing some active non-pixel hits to non-active hits (passive)
-//
-void Track::addNonPixelEfficiency(double efficiency) {
-
-  for (auto& iHit : m_hits) {
-
-    if (iHit->isActive() && !iHit->isPixel()) {
-      if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
-    }
-  }
-}
-
-//
-// Simulate efficiency by changing some active pixel hits to non-active hits (passive)
-//
-void Track::addPixelEfficiency(double efficiency) {
-
-  for (auto& iHit : m_hits) {
-
-    if (iHit->isActive() && iHit->isPixel()) {
-      if ((double(random())/RAND_MAX)>efficiency) iHit->setAsPassive(); // This hit is LOST
-    }
-  }
-  }*/
-
 //
 // Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
 // (magnetic field obtained automatically from SimParms singleton class)Setter for the track azimuthal angle.

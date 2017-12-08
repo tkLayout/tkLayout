@@ -2,6 +2,8 @@
 #include "Units.hh"
 #include "MainConfigHandler.hh"
 
+define_enum_strings(LumiRegShape) = { "spot", "flat", "gaussian" };
+
 //
 // Method constructing static instance of this class
 //
@@ -17,9 +19,11 @@ SimParms& SimParms::getInstance()
 SimParms::SimParms() :
     numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
     bunchSpacingNs("bunchSpacingNs", parsedAndChecked()),
-    zErrorCollider("zErrorCollider", parsedAndChecked()),
-    rphiErrorCollider("rphiErrorCollider", parsedAndChecked()),
+    lumiRegZError("lumiRegZError", parsedAndChecked()),
+    lumiRegShape("lumiRegShape", parsedAndChecked()),
+    lumiRegShapeInMatBudgetAnalysis("lumiRegShapeInMatBudgetAnalysis", parsedAndChecked()),
     useIPConstraint("useIPConstraint", parsedAndChecked()),
+    rphiErrorCollider("rphiErrorCollider", parsedAndChecked()),
     ptCost("ptCost", parsedAndChecked()),
     stripCost("stripCost", parsedAndChecked()),
     triggerEtaCut("triggerEtaCut", parsedAndChecked()),
@@ -55,7 +59,7 @@ void SimParms::build() {
   bool nonZero = true;
   if (useIPConstraint()) {
 
-    if (zErrorCollider()==0)    nonZero = false;
+    if (lumiRegZError()==0)    nonZero = false;
     if (rphiErrorCollider()==0) nonZero = false;
   }
   if (!nonZero) throw PathfulException("IP constraint required, but errors on beam spot set to zero in R-Phi/Z!" , "SimParms");
@@ -64,7 +68,7 @@ void SimParms::build() {
   // Set expected default units
   magField.scaleByUnit(Units::T);
 
-  zErrorCollider.scaleByUnit(Units::mm);
+  lumiRegZError.scaleByUnit(Units::mm);
   rphiErrorCollider.scaleByUnit(Units::mm);
 }
 
