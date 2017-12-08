@@ -1,44 +1,33 @@
 /**
- * @file hit.hh
+ * @file Hit.h
  * @brief This header file defines the hit and track classes used for internal analysis
  */
+#ifndef INCLUDE_HIT_H_
+#define INCLUDE_HIT_H_
 
-
-#ifndef _HIT_HH_
-#define _HIT_HH_
-
-#include "Module.hh"
-#include "PtErrorAdapter.hh"
-#include <MaterialProperties.hh>
-#include <InactiveElement.hh>
 #include <cmath>
 #include <vector>
-#include <TMatrixT.h>
-#include <TMatrixTSym.h>
-#include <MessageLogger.hh>
 
+#include "DetectorModule.hh"
+#include "MaterialProperties.hh"
 
-#include <TFile.h>
-#include <TProfile.h>
-#include <TF1.h>
-#include <TAxis.h>
-#include <TCanvas.h>
-
-//using namespace ROOT::Math;
-using namespace std;
-
-class Track;
+// Forward declaration
+class DetectorModule;
+class Hit;
 namespace insur {
   class InactiveElement;
 }
-using insur::InactiveElement;
-
-// TODO: why this?
-typedef double momentum;  // Track momentum in MeV
-
+class Track;
 
 #undef HIT_DEBUG
 #undef HIT_DEBUG_RZ
+
+// Typedefs
+typedef std::unique_ptr<Hit> HitPtr;
+typedef std::vector<HitPtr>  HitCollection;
+
+enum class HitActivity : short { Undefined, Active, Inactive };               //!< Hit defined as pure material (inactive) or measurement point (active)
+enum class HitPassiveType : short { Undefined, BeamPipe, IP, Service, Support }; //!< Hit defined as IP or pure material hit coming from: support, service, etc.
 
 /**
  * @class Hit
@@ -49,193 +38,133 @@ typedef double momentum;  // Track momentum in MeV
  * All the other information is available to both categories. For convenience, the scaled radiation and interaction lengths are stored in
  * here as well to avoid additional computation and callbacks to the material property objects.
  */
+// TODO: Remove pointer to track and find another method without any pointers involved!
 class Hit {
+
+public:
+
+  //! Copy constructor
+  Hit(const Hit& h);
+
+  //! Constructor for a hit on an inactive surface at [rPos, zPos] (cylindrical position) from the origin
+  Hit(double rPos, double zPos, const insur::InactiveElement* myPassiveElem, HitPassiveType passiveHitType);
+
+  //! Constructor for a hit on a given module at [rPos, zPos] (cylindrical position) from the origin
+  Hit(double rPos, double zPos, DetectorModule* myModule, HitType activeHitType);
+
+  //! Destructor
+  ~Hit();
+
+  //! Given two hits, compare the distance to the z-axis based on smaller R
+  static bool sortSmallerR(const HitPtr& h1, const HitPtr& h2);
+
+  //! Given two hits, compare the distance to the z-axis based on higher R
+  static bool sortHigherR(const HitPtr& h1, const HitPtr& h2);
+
+  // Setter methods
+  void setTrack(const Track* newTrack)         { m_track = newTrack;};
+
+  void setAsActive()                              { m_activity = HitActivity::Active;};
+  void setAsPassive()                             { m_activity = HitActivity::Inactive;};
+  void setAsPixel()                               { m_isPixel    = true;}
+  void setActiveHitType(HitType activeHitType)    { m_activeHitType = activeHitType; }
+  void setCorrectedMaterial(RILength newMaterial) { m_correctedMaterial = newMaterial;};
+
+  void setPixelIntersticeVolume(bool isVolume)    { m_isPixelIntersticeVol = isVolume; }
+  void setPixelTrackingVolume(bool isVolume)      { m_isPixelTrackingVol   = isVolume; }
+  void setIntersticeVolume(bool isVolume)         { m_isIntersticeVol      = isVolume; }
+  void setOuterTrackingVolume(bool isVolume)      { m_isOuterTrackingVol   = isVolume; }
+  void setTotalTrackingVolume(bool isVolume)      { m_isTotalTrackingVol   = isVolume; }
+
+  void setTrigger(bool isTrigger)                 { m_isTrigger = isTrigger;}
+  void fillModuleLocalResolutionStats();
+  void setResolutionRphi(double newRes)           { m_resolutionRPhi = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionZ(double newRes)              { m_resolutionZ = newRes; }    // Only used for virtual hits on non-modules
+  void setResolutionY(double newRes)              { setResolutionZ(newRes); }    // Used for compatibility only -> use setResolutionZ(double newRes) instead
+
+  // Getter methods
+  const DetectorModule* getHitModule() const                 { return m_hitModule; };
+  const insur::InactiveElement* getHitPassiveElement() const { return m_hitPassiveElem; }
+
+  double   getDistance() const         { return m_distance;};
+  double   getRPos() const             { return m_rPos;};
+  double   getZPos() const             { return m_zPos;};
+  double   getTilt() const             { if (this->isMeasurable()) return m_hitModule->tiltAngle(); else return 0; };
+  bool     isActive() const            { if (m_activity==HitActivity::Active)   return true; else return false;};
+  bool     isPassive() const           { if (m_activity==HitActivity::Inactive) return true; else return false;};
+  bool     isActivityUndefined() const { if (m_activity==HitActivity::Undefined) return true; else return false;};
+  HitType  getActiveHitType() const    { return m_activeHitType; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
+  RILength getCorrectedMaterial();
+  double   getResolutionRphi(double trackRadius);
+  double   getResolutionZ(double trackRadius);
+  double   getD();
+
+  std::string getDetName()       const { return m_detName; };
+  int         getLayerOrDiscID() const;
+
+  bool     isBeamPipe() const  { if (m_passiveHitType==HitPassiveType::BeamPipe) return true; else return false; };
+  bool     isService() const   { if (m_passiveHitType==HitPassiveType::Service) return true; else return false; };
+  bool     isSupport() const   { if (m_passiveHitType==HitPassiveType::Support) return true; else return false; };
+  bool     isIP() const        { if (m_passiveHitType==HitPassiveType::IP) return true; else return false; };
+  bool     isPixel() const     { return m_isPixel; };
+  bool     isBarrel() const    { if (m_hitModule && (m_hitModule->subdet()==BARREL)) return true; else return false;};
+  bool     isEndcap() const    { if (m_hitModule && (m_hitModule->subdet()==ENDCAP)) return true; else return false;};
+  bool     isMeasurable() const{ if (m_hitModule!=nullptr) return true; else return false;};
+  bool     isTrigger() const   { return m_isTrigger; };
+
+  bool     isPixelIntersticeVolume(){ return m_isPixelIntersticeVol; };
+  bool     isPixelTrackingVolume()  { return m_isPixelTrackingVol;   };
+  bool     isIntersticeVolume()     { return m_isIntersticeVol;      };
+  bool     isOuterTrackingVolume()  { return m_isOuterTrackingVol;   };
+  bool     isTotalTrackingVolume()  { return m_isTotalTrackingVol;   };
+
+  bool     isSquareEndcap();
+  bool     isStub() const;
+
 protected:
-  double distance_;   // distance of hit from origin in 3D
-  double radius_; // distance of hit from origin in the x/y plane
-  int orientation_;   // orientation of the surface
-  int objectKind_;    // kind of hit object
-  int objectCategory_;
-  Module* hitModule_; // Pointer to the hit module
-  InactiveElement* hitInactiveElement_; // Pointer to the hit inactive element
-  //double trackTheta_; // Theta angle of the track
-  //Material material_;
-  // "Thickness" in terms of radiation_length and interaction_length
-  RILength correctedMaterial_;
-  Track* myTrack_;
-  bool isPixel_;
-  bool isPixelIntersticeVolume_;
-  bool isPixelTrackingVolume_;
-  bool isIntersticeVolume_;
-  bool isOuterTrackingVolume_;
-  bool isTotalTrackingVolume_;
-  bool isTrigger_;
-  bool isIP_;
-  HitType activeHitType_;
+  
+  //! Default constructor
+  Hit();
+
+  //! Set pointer to hit module in the constructor
+  void setHitModule(DetectorModule* myModule);
+
+  //! Set pointer to inactive element in the constructor
+  void setHitPassiveElement(const insur::InactiveElement* myPassiveElem);
+
+  double         m_distance;      //!< Distance of hit from origin in 3D = sqrt(rPos*rPos + zPos*zPos)
+  double         m_rPos;          //!< Distance of hit from origin in the x/y plane (cylindrical coordinates -> r)
+  double         m_zPos;          //!< Distance of hit from origin in z (cylindrical coordinates -> z)
+  HitActivity    m_activity;      //!< Hit defined as pure material (inactive) or measurement point (active)
+  HitType        m_activeHitType; //!< Hit coming from inner, outer, stub, ... module
+  HitPassiveType m_passiveHitType;//!< Hit coming from which passive part: beam-pipe, service, support etc.
+  
+  DetectorModule*         m_hitModule;     //!< Const pointer to the hit module
+  const insur::InactiveElement* m_hitPassiveElem;//!< Const pointer to the hit inactive element
+  const Track*                  m_track;         //!< Const pointer to the track, into which the hit was assigned
+  
+  RILength m_correctedMaterial; //!< Material in the way of particle shot at m_track direction, i.e. theta, module tilt angles corrected
+  
+  bool m_isTrigger; //!< Hit coming from the trigger module?
+  bool m_isPixel;   //!< Hit coming from the pixel module?
+
+  // Tracking volumes variables
+  bool m_isPixelIntersticeVol;
+  bool m_isPixelTrackingVol;
+  bool m_isIntersticeVol;
+  bool m_isOuterTrackingVol;
+  bool m_isTotalTrackingVol;
+
+  std::string m_detName; //!< Detector name, in which the hit has been measured
 
 private:
-  double resolutionLocalX_; // Only used for hits on active
-  double resolutionLocalY_; // Only used for hits on active
-  double myResolutionRphi_; // Only used for virtual hits on non-modules
-  double myResolutionY_;    // Only used for virtual hits on non-modules
-
-public:
-  ~Hit();
-  Hit();
-  Hit(const Hit& h);
-  Hit(double myDistance);
-  Hit(double myDistance, Module* myModule, HitType activeHitType);
-  Module* getHitModule() { return hitModule_; };
-  InactiveElement* getHitInactiveElement() const { return hitInactiveElement_; };
-  void computeLocalResolution();
-  double getResolutionRphi(double trackR);
-  double getResolutionZ(double trackR);
-  void setHitModule(Module* myModule);
-  void setHitInactiveElement(InactiveElement* myInactiveElement);
-  /**
-   * @enum An enumeration of the category and orientation constants used within the object
-   */
-  enum { Undefined, Horizontal, Vertical,  // Hit object orientation 
-    Active, Inactive };               // Hit object type
-  enum {Unknown, Act, BeamPipe, Service, Support };
-
-  double getDistance() {return distance_;};
-  void setDistance(double newDistance) { if (newDistance>0) distance_ = newDistance; updateRadius(); };
-  double getRadius() {return radius_;};
-  void updateRadius() {radius_ = distance_ * sin(getTrackTheta());};
-  int getOrientation() { return orientation_;};
-  void setOrientation(int newOrientation) { orientation_ = newOrientation; };
-  int getObjectKind() { return objectKind_;};
-  int getObjectCategory() { return objectCategory_;};
-  void setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
-  void setObjectCategory(int newObjectCategory) { objectCategory_ = newObjectCategory;};
-  void setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
-  double getTrackTheta();
-  RILength getCorrectedMaterial();
-  void setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
-  bool isPixel() { return isPixel_; };
-  bool isPixelIntersticeVolume() { return isPixelIntersticeVolume_; };
-  bool isPixelTrackingVolume() { return isPixelTrackingVolume_; };
-  bool isIntersticeVolume() { return isIntersticeVolume_; };
-  bool isOuterTrackingVolume() { return isOuterTrackingVolume_; };
-  bool isTotalTrackingVolume() { return isTotalTrackingVolume_; };
-  bool isTrigger() { return isTrigger_; };
-  bool isIP() { return isIP_; };
-  void setPixel(bool isPixel) { isPixel_ = isPixel;}
-  void setPixelIntersticeVolume(bool isPixelIntersticeVolume) { isPixelIntersticeVolume_ = isPixelIntersticeVolume; }
-  void setPixelTrackingVolume(bool isPixelTrackingVolume) { isPixelTrackingVolume_ = isPixelTrackingVolume; }
-  void setIntersticeVolume(bool isIntersticeVolume) { isIntersticeVolume_ = isIntersticeVolume; }
-  void setOuterTrackingVolume(bool isOuterTrackingVolume) { isOuterTrackingVolume_ = isOuterTrackingVolume; }
-  void setTotalTrackingVolume(bool isTotalTrackingVolume) { isTotalTrackingVolume_ = isTotalTrackingVolume; }
-  void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
-  double getResolutionLocalX() { return resolutionLocalX_; }
-  double getResolutionLocalY() { return resolutionLocalY_; }
-  void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
-  void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
-  bool setIP(bool newIP) { return isIP_ = newIP; }
-
-  bool isSquareEndcap();
-  double getD();
-
-  void setActiveHitType(HitType activeHitType) { activeHitType_ = activeHitType; }
-  HitType getActiveHitType() const { return activeHitType_; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
-  bool isStub() const { return activeHitType_ == HitType::STUB; }
-};
-
-/**
- * Given two hits, compare the distance to the z-axis.
- */
-bool sortSmallerR(Hit* h1, Hit* h2);
-
-/**
- * @class Track
- * @brief The Track class is essentially a collection of consecutive hits.
- *
- * Once those hits have been stored, though, it also provides a series of error analysis functions that use the information about
- * radiation and interaction length from the hits as a basis for the calculations.
- */
-class Track {
-protected:
-  double theta_;
-  double phi_;
-  double cotgTheta_, eta_; // calculated from theta and then cached
-  std::vector<Hit*> hitV_;
-  // Track resolution as a function of momentum
-// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
-//  TMatrixTSym<double> correlations_;
-//  TMatrixT<double> covariances_;
-//  TMatrixTSym<double> correlationsRZ_;
-//  TMatrixT<double> covariancesRZ_;
-//  double deltarho_;
-//  double deltaphi_;
-//  double deltad_;
-//  double deltaCtgTheta_;
-//  double deltaZ0_;
-//  double deltaP_;
-  void computeLocalResolution();
-// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
-//  void computeCorrelationMatrixRZ();
-//  void computeCovarianceMatrixRZ();
-//  void computeCorrelationMatrix();
-//  void computeCovarianceMatrix();
   
-  std::set<std::string> tags_;
-  double transverseMomentum_;
-public:
-  Track();
-  Track(const Track& t);
-  ~Track();
-  Track& operator=(const Track &t);
-  std::vector<Hit*> getHitV() const { return hitV_; }
-  bool noHits() { return hitV_.empty(); }
-  int nHits() { return hitV_.size(); }
-  double setTheta(double& newTheta);
-  double getTheta() const {return theta_;}
-  double getEta() const { return eta_; } // calculated when theta is set, then cached
-  double getCotgTheta() const { return cotgTheta_; } // ditto here
-  double setPhi(double& newPhi);
-  double getPhi() const {return phi_;}
-// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
-//  TMatrixTSym<double>& getCorrelations() { return correlations_; }
-//  TMatrixT<double>& getCovariances() { return covariances_; }
-//  const double& getDeltaRho() const { return deltarho_; }
-//  const double& getDeltaPhi() const { return deltaphi_; }
-//  const double& getDeltaD() const { return deltad_; }
-//  const double& getDeltaCtgTheta() const { return deltaCtgTheta_; }
-//  const double& getDeltaZ0() const { return deltaZ0_; }
-//  const double& getDeltaP() const { return deltaP_; }
+  double getTrackPhi();
+  double getTrackTheta();
 
-  Hit* addHit(Hit* newHit);
-  const std::set<std::string>& tags() const { return tags_; }
-  void sort();
-  void assignTrackingVolumesToHits();
-// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
-//  void computeErrors();
-//  void printErrors();
-  void print();
-  void removeMaterial();
-  int nActiveHits(bool usePixels = false, bool useIP = true) const;
-  std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
-  double hadronActiveHitsProbability(int nHits, bool usePixels = false);
-  void addEfficiency();
-  void keepTriggerOnly();
-  void keepTaggedOnly(const string& tag);
-  void setTriggerResolution(bool isTrigger);
-  // static bool debugRemoval; // debug
-  double expectedTriggerPoints(const double& triggerMomentum) const;
-#ifdef HIT_DEBUG_RZ
-  static bool debugRZCovarianceMatrix;  // debug
-  static bool debugRZCorrelationMatrix;  // debug
-  static bool debugRZErrorPropagation;  // debug
-#endif
-  void addIPConstraint(double dr, double dz);
-  RILength getCorrectedMaterial();
-  std::vector<std::pair<Module*, HitType>> getHitModules() const;
+  double m_resolutionRPhi; // Only used for virtual hits on non-modules
+  double m_resolutionZ;    // Only used for virtual hits on non-modules
 
-// WARNING: Use new TrackNew class for tracking  (class currently kept for compatibility)
-//  void setTransverseMomentum(const double newPt);
-//  double getTransverseMomentum() const { return transverseMomentum_; }
+}; // Class
 
-//  void pruneHits();
-};
-#endif
+#endif /* INCLUDE_HIT_H_ */
