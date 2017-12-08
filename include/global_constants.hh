@@ -26,6 +26,7 @@ namespace insur {
   static const std::vector<std::string> geom_name_eta_regions  = {""   ,"C","I","F","VF","VVF"};  // Name tracker eta regions
   static const std::vector<double>      geom_range_eta_regions = {0.001,0.8,1.6,2.4 ,3.2 ,4.0  }; // Name tracker eta regions
 
+  static const double geom_zero                       = 1E-6;    // mm
   static const double geom_epsilon                    = 0.1;
   static const double geom_inactive_volume_width      = 2.0;     // mm
   static const double geom_conversion_station_width   = 2.0;     // mm

@@ -162,15 +162,11 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     Material tmp;
     TrackNew track;
     eta = i_eta * etaStep;
-    theta = 2 * atan(exp(-eta));
-    //std::cout << " track's phi = " << phi << std::endl; 
+    theta = 2 * atan(exp(-eta)); 
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
 
-    //track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.)); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
-    track.setOrigin(0., 0., 0.); // TODO: Not assuming z-error when analyzing resolution (missing implementation of non-zero track starting point in inactive hits)
-
-    //track.setTheta(theta);
-    //track.setPhi(phi);
+    // TO DO: Add proper parametrization for shape of luminous region
+    track.setOrigin(0., 0., 70.*(myDice.Rndm()*2.-1.));
 
     // Assign material to the track
     tmp = findAllHits(mb, pm, track);
@@ -1643,31 +1639,21 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
   XYZVector origin, direction;
   origin    = t.getOrigin();
   direction = t.getDirection();
-  double distance;
-  //double r;
   int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
   while (iter != guard) {
-    // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    if (iter->getModule().maxZ() > 0) {
-        // same method as in Tracker, same function used
-        // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-        //distance = iter->getModule().trackCross(origin, direction);
         auto h = iter->getModule().checkTrackHits(origin, direction); 
         if (h.second != HitType::NONE) {
-        //if (distance > 0) {
-          double distance = h.first.R();
           // module was hit
           hits++;
-          // r = distance * sin(theta);
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
-            tmp.radiation = tmp.radiation / sin(t.getTheta());
-            tmp.interaction = tmp.interaction / sin(t.getTheta());
+            tmp.radiation = tmp.radiation / sin(t.getTheta() + iter->getModule().tiltAngle());
+            tmp.interaction = tmp.interaction / sin(t.getTheta() + iter->getModule().tiltAngle());
           }
           // radiation and interaction length scaling for endcaps
           else {
@@ -1685,7 +1671,6 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& 
           if (isPixel) hit->setAsPixel();
           t.addHit(std::move(hit));
         }
-    }
     iter++;
   }
   return res;
@@ -1837,94 +1822,51 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * The total crossed material is returned.
  * As all inactive volumes are symmetric with respect to rotation around the z-axis, the track angle phi is not necessary.
  * @param elements A reference to the collection of inactive surfaces that is to be checked for collisions with the track
- * @param eta The pseudorapidity of the current track
- * @param theta The track angle in the yz-plane
  * @param t A reference to the current track object
+ * @param isPixel Are we inside the Inner Tracker?
  * @return The scaled and summed up crossed material amount
  */
-Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
-  std::vector<InactiveElement>::iterator iter = elements.begin();
-  std::vector<InactiveElement>::iterator guard = elements.end();
-  Material res, corr;
-  std::pair<double, double> tmp;
-  double s_normal = 0;
-  double s_alternate = 0;
-  while (iter != guard) {
-    // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
-    // only volumes of the requested category, or those without one (which should not exist) are examined
-    if ((iter->getZOffset() + iter->getZLength()) > 0) {
-      // collision detection: check eta range
-      tmp = iter->getEtaMinMax();
-      // Volume was hit if:
-      if ((tmp.first < t.getEta()) && (tmp.second > t.getEta())) {
-        double r, z;
-        // radiation and interaction lenth scaling for vertical volumes
-        if (iter->isVertical()) { // Element is vertical
-          z = iter->getZOffset() + iter->getZLength() / 2.0;
-          r = z * tan(t.getTheta());
+  Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel) {
+    const XYZVector& trackOrig = t.getOrigin();
+    XYZVector trackDir;
+    trackDir = t.getDirection();
 
-          // In case we are crossing the material with a very shallow angle
-          // we have to take into account its finite radial size
-          s_normal = iter->getZLength() / cos(t.getTheta());
-          s_alternate = iter->getRWidth() / sin(t.getTheta());
-          if (s_normal > s_alternate) { 
-            // Special case: it's easier to cross the material by going left-to-right than
-            // by going bottom-to-top, so I have to rescale the material amount computation
-            corr.radiation = iter->getRadiationLength() / iter->getZLength() * s_alternate;
-            corr.interaction = iter->getInteractionLength() / iter->getZLength() * s_alternate;
-            res += corr;
-          } else {
-            // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / cos(t.getTheta());
-            corr.interaction = iter->getInteractionLength() / cos(t.getTheta());
-            res += corr;
-          }
-        }
-        // radiation and interaction length scaling for horizontal volumes
-        else { // Element is horizontal
-          r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+    Material total;
+ 
+    // Loop on inactive elements
+    for (auto& elem : elements) {
+      XYZVector hitPos;
+      Material hitMaterial;
 
-          // In case we are crossing the material with a very shallow angle
-          // we have to take into account its finite z length
-          s_normal = iter->getRWidth() / sin(t.getTheta());
-          s_alternate = iter->getZLength() / cos(t.getTheta());
-          if (s_normal > s_alternate) { 
-            // Special case: it's easier to cross the material by going left-to-right than
-            // by going bottom-to-top, so I have to rescale the material amount computation
-            corr.radiation = iter->getRadiationLength() / iter->getRWidth() * s_alternate;
-            corr.interaction = iter->getInteractionLength() / iter->getRWidth() * s_alternate;
-            res += corr;
-          } else {
-            // Standard computing of the crossed material amount
-            corr.radiation = iter->getRadiationLength() / sin(t.getTheta());
-            corr.interaction = iter->getInteractionLength() / sin(t.getTheta());
-            res += corr;
-          }
-        }
-        // Create Hit object with appropriate parameters, add to Track t
-        double rPos = r;
-        double zPos = r/tan(t.getTheta());
+      // Checks whether track hits the inactive element.
+      // If yes, return true with passed hit position vector & material. 
+      bool isHit = elem.checkTrackHits(trackOrig, trackDir, hitPos, hitMaterial);
+      // Volume is hit
+      if (isHit) {
+	const double hitRho = hitPos.Rho();
+	const double hitZ = hitPos.Z();
 
-        HitNewPtr hit(new HitNew(rPos, zPos));
-        hit->setAsPassive();
-        hit->setCorrectedMaterial(corr);
-        t.addHit(std::move(hit));
+	// Create Hit object with appropriate parameters
+	HitNewPtr hit(new HitNew(hitRho, hitZ));
+	hit->setAsPassive();
+	hit->setCorrectedMaterial(hitMaterial);
+	// Add the inactive hit to the track
+	t.addHit(std::move(hit));
 
-//        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
-//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
-//        else hit->setOrientation(Hit::Horizontal);
-//        hit->setObjectKind(Hit::Inactive);
-//        hit->setCorrectedMaterial(corr);
-//        hit->setPixel(isPixel);
-//        t.addHit(hit);
-	// std::cout << "OLD USED" << std::endl;
+	// Total inactive MB
+	total += hitMaterial;
+
+	//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+	//        else hit->setOrientation(Hit::Horizontal);
+	//        hit->setObjectKind(Hit::Inactive);
+	//        hit->setPixel(isPixel);
+	//        t.addHit(hit);
       }
     }
-    iter++;
+    return total;
   }
-  return res;
-}
   
+
 void Analyzer::clearGraphsPt(int graphAttributes, const std::string& graphTag) {
   std::map<int, TGraph>& thisRhoGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph_Pt     , graphTag);
   std::map<int, TGraph>& thisPhiGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph_Pt     , graphTag);
@@ -2383,7 +2325,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 	      // Consider hit modules	
 	      if ((*iHit)->isActive() && (*iHit)->getHitModule()) {
 		
-		    const auto& hitModule = (*iHit)->getHitModule();
+		const auto& hitModule = (*iHit)->getHitModule();
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double trackPhi = myTrack->getPhi();
