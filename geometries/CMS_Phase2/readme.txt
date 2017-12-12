@@ -37,6 +37,9 @@ OT_Tilted_362_200_Pixel_4021.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.1
                                      VERY small adjustment in positioning of TBPS layer 1 ring 8 and 10 (affexts rings 8+)
 
+OT362_200_IT4121.cfg		     OT Version 3.6.2
+				     Pixel version as in 4.0.2.1, but with 50x50 pixels instead of 25x100
+
 OT_Tilted_362_200_Pixel_4022.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.2 <- like 4.0.2.1 but with lower radii for BPIX L3 and L4 (less modules)
 
@@ -78,10 +81,6 @@ OT_Tilted_462_200_Pixel_4021.cfg     OT Version 4.6.2 <- like 3.6.2 but Avi-styl
 OT463_200_IT4025.cfg                 OT Version 4.6.3 <- like 4.6.2 but with 5 endcap disks
                                      Pixel version 4.0.2.5
 
-OT365_200_IT500.cfg                  OT Version 3.6.5
-                                     Pixel version 5.0.0 : created series of tilted pixel layouts. Geometry is first jet and needs to be more optimized :)
-
-
 OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
                                      Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 FPIX_1 disks and 4 FPIX_2 disks
 
@@ -99,7 +98,8 @@ OT365_200_IT4025.cfg                 OT Version 3.6.5
                                                                 radii 29.000, 70.146, 117.753, 157.388
                                      and FPIX_2 shifted by 10 cm inwards
                                             disk z: 1750.0, 1985.43, 2250.83, 2550.0
-                                     * Added the pixel support tube and service cylinders
+                                     25x100 everywhere.
+                                     Added the pixel support tube and service cylinders.
 
 OT365_200_IT4026.cfg                 OT Version 3.6.5
                                      Inner tracker version 4.0.2.6 <- based one 4.0.2.5 but with 7 FPIX disks
@@ -122,7 +122,13 @@ OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adju
                                         2S 1.8mm rings (11-15) 14.90/2 =  7.45 mm
                                         PS 4.0mm all rings     14.84/2 =  7.42 mm
                                      IT version 4.0.2.5
-
+                                     
+                       Geometries with timing layer              
+OT400_200_IT4026.cfg   Lindsey Gray version
+                       OT Version 4.0.0 <- like 3.6.5 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.6 (standard)
 OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           with the last TEDD disk moved inwards by 10 cm and an additional timing layer
                           covering η 1.8 → 2.8
@@ -130,7 +136,12 @@ OT466_200_IT4025.cfg   OT Version 4.6.6 <- like 3.6.6 but
                           active pads are 2×2mm² (x×y)
                        IT Version 4.0.2.5 (standard)
 OT467_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 1×4mm² (x×y)
-OT468_200_IT4025.cfg   OT Version 4.6.7 <- like 4.6.6 but with 4×1mm² (x×y)
+OT468_200_IT4025.cfg   OT Version 4.6.8 <- like 4.6.6 but with 4×1mm² (x×y)
+OT469_200_IT4025.cfg   Lindsey Gray timing layer plugged on TDR layout
+                       OT Version 4.6.9 <- like 6.1.3 but
+                          with the last TEDD disk moved inwards by 10 cm and an additional timing layer
+                          active pads are 1×3mm² (x×y)
+                       IT Version 4.0.2.5 (standard)
 
 OT367_200_IT4025.cfg  OT Version 3.6.7 <- like version 3.6.6, but with small adjustments from Nick (WORK IN PROGRESS!!!)
                                             Outer Radius reduced from 1103 mm to 1100 mm
@@ -177,4 +188,77 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
 
 
                                           
+OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
+
+OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
+                         Zd=29.7mm or bigDelta=14.85
+                         New geometry 6.1.3 with slight adjustment in TEDD1 and TEDD2: bigDeelta moved from 14.15mm to 14.85mm
+                         this would cause a movement of 1.243mm and 1.351mm in innermost rings of TEDD1 and TEDD2 respectively
+                         and add 4 modules in one ring of TEDD2.
+                        Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
+                        xy plane is exactly the same
+                        
+OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
+                        'Identical dees' design (simplify cooling design, huge saving :) ):
+                          - Rotate in Phi all modules in all disks in TEDD by + half a module.
+                        PS module design has been updated, hence:
+                          - Increase bigDelta, from 14.85 mm to 15.075 mm (Zd goes from 29.7 mm to 30.15 mm), in all disks in TEDD.
+                          - Decrease smallDelta, from 7.42 mm to 7.375 mm (ZmPS4.0 goes from 14.84mm to 14.75mm), in PS4.0 rings.
+        
+                        
+OT613_200_IT4125.cfg	  Like OT613_200_IT4025, but with 50x50 pixels instead of 25x100.
+
+OT613_200_IT404.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.0.4:
+                                      - geometry similar to IT4.0.2.5, but with radii of barrel layers reduced (same as flat part of IT 5.0.1).
+                                      - module type 25x100 everywhere.
+                                      
+OT613_200_IT405.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.0.5:
+                                      - geometry same as IT4.0.4
+                                      - module type 50x50 everywhere.
+                                      
+OT613_200_IT406.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.0.6:
+                                      - geometry same as IT4.0.4
+                                      - 25x100 in 1x2 modules, 50x50 in 2x2 modules.                                  
+
+OT613_200_IT407.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.0.7:
+                                      - geometry same as IT4.0.4
+                                      - 50x50 in 1x2 modules, 25x100 in 2x2 modules.   
+                                      
+OT613_200_IT408.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2                                                                   
+                        
+OT613_200_IT500.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.0 : tilted Inner Tracker. Head of series.
+                                     First-jet optimization :)
+                                     1-chip modules everywhere in the tilted Barrel.
+                                     FPIX1 : 2 disks were removed with respect to TDR version.
+                                     FPIX2 : same as TDR version.
+                                     50x50 in BPIX, 25x100 in FPIX.
+                                     
+OT613_200_IT501.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.1 : tilted Inner Tracker. 
+                                     Barrel : Modules are bigger than in IT500, hence significant reduction of number of modules. Barrel modules: 3748 (IT500) -> 1844 (IT501).
+                                         (a) longer modules with two chips in the flat part of layers 1-2 (dimensions 16.4 x 44.2)
+                                         (b) still the same 1-chip modules in the tilted part of layers 1-2 (dimensions 16.4 x 22, rotated by 90 degrees)
+                                         (c) larger modules with 2x2 chips in the flat part of layers 3-4 (dimensions 33 x 44.2)
+                                         (d) 1x2 modules in the tilted part of layers 3-4 (dimensions 16.4 x 44.2, rotated by 90 degrees) 
+                                     FPIX1 : 2 disks were removed with respect to TDR version.
+                                     FPIX2 : same as TDR version.
+                                     50x50 in BPIX, 25x100 in FPIX.
+                                     
+OT613_200_IT502.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.2: 
+                                      - geometry same as IT5.0.1
+                                      - module type 50x50 everywhere.
+                                     
+OT613_200_IT503.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 5.0.3: 
+                                      - geometry same as IT5.0.1
+                                      - 50x50 in 1x1 and 1x2 modules, 25x100 in 2x2 modules.
+                                                                                                           
+
 

@@ -3,7 +3,7 @@
  * @brief This class bundles the material properties of an active module.
  */
 
-#include <ModuleCap.h>
+#include <ModuleCap.hh>
 
 namespace insur {
 
@@ -11,9 +11,11 @@ namespace insur {
     /**
      * The constructor links the cap to an existing module.
      */
-    ModuleCap::ModuleCap(Module& mod) { 
-        module = &mod;
+    ModuleCap::ModuleCap(Module& mod, int id) {
+        m_module = &mod;
         mod.setModuleCap(this);
+        m_layerOrDiscID = id;
+        m_detName = "Undefined";
     }
     
     /**
@@ -26,7 +28,7 @@ namespace insur {
      * @return A reference to the registered module
      */
     Module& ModuleCap::getModule() {
-        return *module;
+        return *m_module;
     }
     
     /**
@@ -34,7 +36,7 @@ namespace insur {
      * @return The module surface that is relevant for tracking
      */
     double ModuleCap::getSurface() const {
-        return module->area();
+        return m_module->area();
     }
 
     /**
@@ -42,7 +44,7 @@ namespace insur {
      * @return The module surface that is relevant for tracking
      */
     double ModuleCap::getLength() const {
-        return module->length();
+        return m_module->length();
     }
 
     
@@ -51,6 +53,6 @@ namespace insur {
      */
     void ModuleCap::print() {
         MaterialProperties::print();
-        std::cout << "Associated module is of type " << module->moduleType() << "." << std::endl;
+        std::cout << "Associated module is of type " << m_module->moduleType() << "." << std::endl;
     }
 }

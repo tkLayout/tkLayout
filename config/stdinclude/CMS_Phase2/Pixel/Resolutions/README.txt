@@ -17,24 +17,24 @@ nominalResolutionLocalY = RMS over sensors of (length / (maxSegments * sqrt(12))
 Please specify the set of parameters for resolutionLocalX or Y in cfg file.
 Please note that as soon as any parameter is specified for a given module type and local coordinate, then the parametric mode is chosen to calculate the corresponding resolution.
 
-Example : @includestd CMS_Phase2/Pixel/Resolutions/Barrel_100x100
+Example : @includestd CMS_Phase2/Pixel/Resolutions/100x100
 Sets of parameters are available for the following module types : 25 um x 100 um, 50 um x 50 um, 50 um x 200 um, 100 um x 100 um.
 
-Initial study was conducted in [1].
-Models being now presently used in tkLayout are from [2] and mentioned below.
+Initial study was conducted in [1] and [2].
+Model being now presently used is from Riccardo del Burgo, and mentioned below.
 
-- Barrel PXB :
-Model for resolution on local X coordinate (barrel modules):
-resolutionLocalXBarrel = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * cotg(alpha) + resolutionLocalXBarrelParam2 * cotg(alpha)^2
-Model for resolution on local Y coordinate (barrel modules):
-resolutionLocalYBarrel = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * exp(-resolutionLocalYBarrelParam2 * abs(cotg(beta))) * sin(resolutionLocalYBarrelParam3 * abs(cotg(beta)) + resolutionLocalYBarrelParam4)
+Resolution on local X axis:
+B = Magnetic field intensity projected on local (XY) plane
+x = fabs(-cotanAlpha - hallMobility*B);
 
-- Endcap PXE :
-Model for resolution on local X coordinate (endcap modules):
-resolutionLocalXEndcap = resolutionLocalXEndcapParam0 + resolutionLocalXEndcapParam1 * exp(-pow(cotg(alpha), 2.) / resolutionLocalXEndcapParam3) * cos(resolutionLocalXEndcapParam2 * cotg(alpha))
-Model for resolution on local Y coordinate (endcap modules):
-resolutionLocalYEndcap = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * abs(cotg(beta))
+Resolution on local Y axis:
+x = fabs(-cotanBeta);
 
+Model for resolution on local X or local Y coordinate:
+resolutionLocalAxis = param0 + param1 * x 
+                    + param2 * exp(-param9 * x) * cos(param3 * x + param4)
+                    + param5 * exp(-0.5 * pow(((x - param6) / param7), 2))
+                    + param8 * pow(x, 0.5);
 
 
 

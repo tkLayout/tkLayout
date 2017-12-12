@@ -9,8 +9,7 @@
     <!--<Constant name="Rout1" value="20.35*cm"/>-->
     <Constant name="Rout1" value="19.20*cm"/> <!-- 21.35*cm-->
     <Constant name="Rout2" value="21.00*cm"/>
-    <!--<Constant name="Zv1" value="28.70*cm"/>-->
-    <Constant name="Zv1" value="22.70*cm"/> <!-- For Pixel 1_1_1 : value="30.00*cm" -->
+    <Constant name="Zv1" value="22.70*cm"/> <!-- For Tilted Inner Tracker 501: value="41.50*cm"  -->
     <Constant name="Zv2" value="56.00*cm"/>
     <Constant name="Zv3" value="110.5*cm"/>
     <Constant name="Zv4" value="282.0*cm"/>
@@ -161,19 +160,19 @@
       <ZSection z="125.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
       <ZSection z="291.0*cm" rMin="118.0*cm" rMax="120.0*cm"/>
     </Polycone>
-    <Polycone name="Phase1PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
+    <Polycone name="Phase2PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
       <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
     </Polycone>
     <SubtractionSolid name="Phase2OTBarrel">
       <rSolid name="Barrel"/>
-      <rSolid name="Phase1PixelBarrel"/>
+      <rSolid name="Phase2PixelBarrel"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid> 
   </SolidSection>
   <LogicalPartSection label="pixbar.xml">
-    <LogicalPart name="Phase1PixelBarrel" category="unspecified">
-      <rSolid name="Phase1PixelBarrel"/>
+    <LogicalPart name="Phase2PixelBarrel" category="unspecified">
+      <rSolid name="Phase2PixelBarrel"/>
       <rMaterial name="materials:Air"/>
     </LogicalPart>
     <LogicalPart name="Phase2OTBarrel" category="unspecified">

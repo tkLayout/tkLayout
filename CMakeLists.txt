@@ -169,34 +169,34 @@ SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprec
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
                      ${BOOST_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
-FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cpp )
-FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.h )
+FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cc )
+FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.hh )
 
 # Exlude files with main function defined
 SET ( sources "" )
 FOREACH( file ${all_sources} )
- IF ( ${file} MATCHES "MaterialSection.cpp" OR ${file} MATCHES "HoughTrack.cpp" OR ${file} MATCHES "moduleType.cpp" OR
-      ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "tunePtParam.cpp" )
+ IF ( ${file} MATCHES "MaterialSection.cc" OR ${file} MATCHES "HoughTrack.cc" OR
+      ${file} MATCHES "TrackShooter.cc" OR ${file} MATCHES "tunePtParam.cc" OR ${file} MATCHES "diskPlace.cc")
    SET ( APPEND source_other ${file} )
    MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
- ELSEIF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
-   IF ( ${file} MATCHES "tklayout.cpp" ) 
+ ELSEIF( ${file} MATCHES "tklayout.cc" OR ${file} MATCHES "setup.cc" OR ${file} MATCHES "delphize.cc" )
+   IF ( ${file} MATCHES "tklayout.cc" ) 
      SET( source_tklayout ${file} )
    ENDIF()
-   IF ( ${file} MATCHES "setup.cpp" ) 
+   IF ( ${file} MATCHES "setup.cc" ) 
      SET( source_setup ${file} )
    ENDIF()
-   IF ( ${file} MATCHES "delphize.cpp" )
+   IF ( ${file} MATCHES "delphize.cc" )
      SET( source_delphize ${file} )
    ENDIF()
  ELSE()
-   IF( ${file} MATCHES "mainConfigHandler.cpp" )
+   IF( ${file} MATCHES "MainConfigHandler.cc" )
      SET( source_mainhandler ${file} )
    ENDIF()
-   IF( ${file} MATCHES "global_funcs.cpp" )
+   IF( ${file} MATCHES "global_funcs.cc" )
      SET( source_globalfunctions ${file} )
    ENDIF()
-   IF( ${file} MATCHES "GraphVizCreator.cpp" )
+   IF( ${file} MATCHES "GraphVizCreator.cc" )
      SET( source_graphvizcreator ${file} )
    ENDIF()
    LIST( APPEND sources ${file} )
@@ -208,7 +208,7 @@ ENDFOREACH()
 # a custom target that is always built
 ADD_CUSTOM_TARGET(revisiontag ALL)
 
-# creates svnversion.h using cmake script
+# creates svnversion.hh using cmake script
 ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
    -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} 
    -P ${CMAKE_CURRENT_SOURCE_DIR}/GetGitVersion.cmake)
@@ -239,9 +239,9 @@ INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
-    # Set the default version of SvnRevision.cpp file
-    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cpp to default\" )
-                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cpp ]; then rm -f ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; mv SvnRevision.orig.cpp ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; fi\")" )
+    # Set the default version of SvnRevision.cc file
+    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cc to default\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cc ]; then rm -f ${PROJECT_SOURCE_DIR}/src/SvnRevision.cc; mv SvnRevision.orig.cc ${PROJECT_SOURCE_DIR}/src/SvnRevision.cc; fi\")" )
     
     # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )

@@ -3,7 +3,7 @@
  * @brief This is the implementation of the derivative material assignment test class
  */
 
-#include <MatCalcDummy.h>
+#include <MatCalcDummy.hh>
 namespace insur {
     /**
      * The constructor simply calls the init function...

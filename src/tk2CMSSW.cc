@@ -3,8 +3,8 @@
  * @brief This class provides the interface to analyse a tracker and write the results to XML files for CMSSW
  */
 
-#include <SvnRevision.h>
-#include <tk2CMSSW.h>
+#include <SvnRevision.hh>
+#include <tk2CMSSW.hh>
 
 namespace insur {
 
@@ -279,7 +279,9 @@ namespace insur {
       char hn[256];
       hn[255] = 0;
       gethostname(hn, 255); // if hostname is too long it gets truncated and the string might or might not contain a terminating null byte, therefore we force the last char to be null by construction
-      return std::string(pwd->pw_gecos) + " (" + pwd->pw_name + " on " + hn + ")";
+      auto userInfo = split<std::string>(pwd->pw_gecos, ",");
+      std::string name = (userInfo.size() > 0 ? userInfo[0] : "");
+      return name + " (" + pwd->pw_name + " on " + hn + ")";
     }
     
 }

@@ -1,0 +1,106 @@
+// Timing disk material
+
+//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
+
+Materials disk {
+  type layer
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 5600
+      unit g
+    }
+    Element {
+      elementName CO2
+      quantity 2200
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  Component {
+    componentName "Cooling"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName TEDD_Steel
+      quantity 1.536
+      unit g/m
+    }
+    Element {
+      elementName TEDD_CO2
+      quantity 0.594
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod for pipe thermistor
+  // (This is a bus line: service does not accumulate)
+  // 28m of Twisted Pairs per disk
+  Component {
+    componentName "Twisted pairs"
+    service false
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 9.5
+      unit g
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 5.4
+      unit g
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 9.3
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName TEDD_Cu
+      quantity 0.095
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName TEDD_PE
+      quantity 0.054
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName TEDD_Al
+      quantity 0.093
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 1
+      unit mm
+    }
+  }
+}

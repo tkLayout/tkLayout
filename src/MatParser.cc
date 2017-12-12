@@ -3,7 +3,7 @@
  * @brief This parses the global material list and the tracker-specific materials from files, initialising an instance of <i>MatCalc</i> in the process
  */
 
-#include <MatParser.h>
+#include <MatParser.hh>
 namespace insur {
     /**
      * Nothing to do for the constructor...

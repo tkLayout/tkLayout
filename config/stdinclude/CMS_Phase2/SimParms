@@ -1,10 +1,15 @@
 SimParms {
-    numMinBiasEvents 140
+    numMinBiasEvents 140      // Number of pile-up events
     bunchSpacingNs 25
     
-    zErrorCollider 70
-    rError 5
+    // Luminous region used in analysis (IP always on (Z) axis, with Z centered around 0)
+    lumiRegZError                   70     // mm
+    lumiRegShape                    flat   // Choose among { spot, flat, gaussian }
+    lumiRegShapeInMatBudgetAnalysis spot
+
+    // Adds IP to the track with corresponding resolution
     useIPConstraint 0
+    rphiErrorCollider 5      // mm
     
     ptCost 0                  // CHF / cm^2
     stripCost 0               // CHF / cm^2
@@ -22,6 +27,7 @@ SimParms {
     numTriggerTowersEta 6
     numTriggerTowersPhi 8
 
+    irradiationMapFiles 1MeVneq_CMSphase2_pp_7TeV_v3.7.0.0_FLUKA.map,1MeVneq_CMSphase2_pp_7TeV_v3.7.0.0_FLUKA_pixel.map
 
     Gabie IsAHero           // inside joke. forget about it
 }

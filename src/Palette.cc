@@ -1,4 +1,4 @@
-#include <Palette.h>
+#include <Palette.hh>
 
 bool Palette::initialized = false;  
 std::map<std::string, int> Palette::colorPickMap;
@@ -36,12 +36,12 @@ Color_t Palette::color(const std::string& type) {
   return color_int(colorPickMap[type]);
 }
 
-Color_t Palette::color(const unsigned int& plotIndex) {
+Color_t Palette::color(const unsigned int& plotIndex, bool isTransparent) {
   if (!initialized) initializeMe();
-  return color_int(plotIndex);
+  return color_int(plotIndex, isTransparent);
 }
 
-Color_t Palette::color_int(const unsigned int& plotIndex) {
+Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
   std::string colorCode;
   
   if (plotIndex==0) colorCode = "#000000";
@@ -91,6 +91,159 @@ Color_t Palette::color_int(const unsigned int& plotIndex) {
     }
   }
   
-  return TColor::GetColor(colorCode.c_str());
+  short paletteIndex = TColor::GetColor(colorCode.c_str());
+  if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+
+  return paletteIndex;
 }
 
+
+/*
+  This allows to have one different color for each of the 12 DTC slots.
+  A shift in the color scheme is also done for each of the 9 possible phi sectors.
+ */
+Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
+  //TColor::CreateColorWheel();
+  //return gROOT->GetColor(paletteIndex);
+
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int phiSector = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
+  
+  short paletteIndex;
+  if (colorIndex == 0) paletteIndex = 1;
+
+  else {
+    switch (zone) {
+    case 0 :
+      paletteIndex= kYellow ;
+      break;
+    case 1 :
+      paletteIndex= kOrange;
+      break;
+    case 2 :
+      paletteIndex= kRed;
+      break;
+    case 3 :
+      paletteIndex=kPink;
+      break;
+    case 4 :
+      paletteIndex=kMagenta;
+      break;
+    case 5 :
+      paletteIndex=kViolet;
+      break;
+    case 6 :
+      paletteIndex=kBlue;
+      break;
+    case 7 :
+      paletteIndex=kAzure;
+      break;
+    case 8 :
+      paletteIndex=kCyan;
+      break;
+    case 9 :
+      paletteIndex=kTeal;
+      break;
+    case 10 :
+      paletteIndex=kGreen;
+      break;
+    case 11 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    paletteIndex -= (colorIndex % 10);  // should be -= phiSector, but decision was made to keep things like this, since color scheme cannot be perfectly unique anyway.
+    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+  }
+ 
+  return paletteIndex;
+}
+
+
+/* This allows to have one color for each of the 12 services channels.
+   If 12 is added, the color is set to transparent (if transparent colors allowed by isTransparentActivated).
+ */
+Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated) {
+
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int shift = (colorIndex - 1) / 12;      // dizain digit (in a numbering of base 12)
+  
+  short paletteIndex;
+
+  if (colorIndex == 0) paletteIndex = 1;
+
+  else {
+    switch (zone) {
+    case 1 :
+      paletteIndex= kYellow;
+      break;
+    case 2 :
+      paletteIndex= kOrange - 3;
+      break;
+    case 3 :
+      paletteIndex= kOrange + 3;
+      break;
+    case 4 :
+      paletteIndex=kRed;
+      break;
+    case 5 :
+      paletteIndex=kGray + 1;
+      break;
+    case 6 :
+      paletteIndex=kMagenta;
+      break;
+    case 7 :
+      paletteIndex=kViolet - 6;
+      break;
+    case 8 :
+      paletteIndex=kBlue + 1;
+      break;
+    case 9 :
+      paletteIndex=kAzure + 1;
+      break;
+    case 10 :
+      paletteIndex=kCyan;
+      break;
+    case 11 :
+      paletteIndex=kGreen + 2;
+      break;
+    case 0 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    if (isTransparentActivated) {
+      const bool isTransparent = (shift >= 1); // set transparent if 12 has been added
+      if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
+    }
+  }
+ 
+  return paletteIndex;
+}
+
+
+// TO DO : Why the hell is TColor::GetColorTransparent not recognized as a method of TColor ?? 
+// Temporary : use this instead.  
+Int_t Palette::GetColorTransparent(Int_t colorIndex, Float_t ratio) {
+  if (colorIndex < 0) return -1;
+
+  TColor* color = gROOT->GetColor(colorIndex);
+  if (color) {
+    TColor* transColor = new TColor(gROOT->GetListOfColors()->GetLast()+1,
+				    color->GetRed(), color->GetGreen(), color->GetBlue());
+    transColor->SetAlpha(ratio);
+    transColor->SetName(Form("%s_transparent", color->GetName()));
+    return transColor->GetNumber();
+  } else {
+    std::cerr << "TColor::GetColorTransparent : color with undefined index" << std::endl;
+    return -1;
+  }
+}

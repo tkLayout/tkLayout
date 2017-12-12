@@ -1,5 +1,0 @@
-// Power for the converter (10V)
-// 2 wires
-comp = Power lines
-M Cu_MV 2.36 g/m 0 0 0 E;
-M PE 1.92 g/m 0 0 0 E;
