@@ -139,7 +139,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   double compute_d(double x, double y, double l);
   double computeTentativePhiAperture(double moduleWaferDiameter, double minRadius);
   std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius);
-  std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius);
+  std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double highRadius);
 
   void buildModules(EndcapModule* templ, int numMods, double smallDelta);
   void buildBottomUp();

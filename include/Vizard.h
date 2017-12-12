@@ -187,7 +187,7 @@ namespace insur {
     bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiationPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool irradiationSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
@@ -231,7 +231,7 @@ namespace insur {
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
-    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
@@ -304,6 +304,8 @@ namespace insur {
     TCanvas* drawFullLayoutBarrelXY();
 
     void drawCircle(double radius, bool full, int color=kBlack);
+    void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
+
   };
 
 
