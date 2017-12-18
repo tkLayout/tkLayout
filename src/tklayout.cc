@@ -128,9 +128,15 @@ int main(int argc, char* argv[]) {
 
 
 
-    // The tracker (and possibly pixel) must be build in any case
+  // The tracker (and possibly pixel) must be build in any case
   if (!squid.buildTracker()) return EXIT_FAILURE;
-  if (vm.count("cablingMap") && !squid.buildCablingMap(vm.count("cablingMap"))) return EXIT_FAILURE;
+
+  // Build cabling map.
+  // With option 'all', cabling map is only computed on a specific layout, for which the map is designed.
+  // The user can also force the computation by using 'cablingMap' option.
+  const bool buildCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) // Layout on which cabling map was designed.
+				 || vm.count("cablingMap") ); // Forces cabling map computation.
+  if (buildCablingMap && !squid.buildCablingMap(vm.count("cablingMap")) ) return EXIT_FAILURE;
   
   if (!vm.count("tracksim")) {
     // The tracker should pick the types here but in case it does not,
@@ -158,10 +164,7 @@ int main(int argc, char* argv[]) {
       }
     }
     
-    // Cabling map: Only computed for a specific layout (for which the map is designed).
-    // It is also computed if ever the user forces computation by using 'cablingMap' option.
-    if (((vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) || vm.count("cablingMap")) 
-	&& !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
+    if (buildCablingMap && !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
 
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;

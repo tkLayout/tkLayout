@@ -147,7 +147,7 @@ PowerSection::PowerSection(const int semiPhiRegionRef, const bool isPositiveCabl
  * Also compute the channel slot on which the power cables are routed.
  * This is done in a way that leaves space free for the cooling pipes routing.
  * Positive cabling side: 1A, 3A, 5A, 7A, 9A, 11A used for cooling pipes.
- * Negative cabling side: 2C, 4C, 6C, 8C, 10C, 12C used for cooling pipes.
+ * Negative cabling side: -2C, -4C, -6C, -8C, -10C, -12C used for cooling pipes.
  */
 std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int semiPhiRegionRef, const bool isPositiveCablingSide) const {
 
