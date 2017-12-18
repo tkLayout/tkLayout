@@ -3,7 +3,7 @@
  * @brief This class implements the output functions that turn a set of previously collected tracker information into a series of CMSSW XML files
  */
 
-#include <XMLWriter.h>
+#include <XMLWriter.hh>
 #include <stdlib.h> // Because atoi() is used
 
 
@@ -614,7 +614,7 @@ namespace insur {
       // Special case where a composite with same name already exists
       if (mapCompoToPrintedCompo_.find(nspaceName) != mapCompoToPrintedCompo_.end()) {
 	//throw PathfulException("Found several composite materials with same name " + nspaceName);
-	std::cout << "VERY IMPORTANT : VOLUME " << nspaceName << " IS DUPLICATED !!!!!!!!!!" << std::endl;
+	std::cerr << "VERY IMPORTANT : VOLUME " << nspaceName << " IS DUPLICATED !!!!!!!!!!" << std::endl;
       }
       // Add the composite which has just been printed, to the list of printed composites.
       printedComposites_.push_back(comp);
@@ -656,6 +656,10 @@ namespace insur {
     void XMLWriter::box(std::string name, double dx, double dy, double dz, std::ostringstream& stream) {
         stream << xml_box_open << name << xml_box_first_inter << dx << xml_box_second_inter << dy;
         stream << xml_box_third_inter << dz << xml_box_close;
+	if (dx < 0. || dy < 0. || dz < 0.) {
+	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined box."
+		    << " dx = " << dx << " dy = " << dy << " dz = " << dz << std::endl;
+	}
     }
     
     /**
@@ -676,6 +680,10 @@ namespace insur {
         //stream << xml_trapezoid_second_inter << dyy << xml_trapezoid_third_inter << dx;
         //stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
         stream << xml_trapezoid_close;
+	if (dx < 0. || dxx < 0. || dy < 0. || dyy < 0. || dz < 0.) {
+	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined trapezoid."
+		    << " dx = " << dx << "dxx = " << dxx << " dy = " << dy << " dyy = " << dyy << " dz = " << dz << std::endl;
+	}
     }
     
     /**
@@ -690,6 +698,10 @@ namespace insur {
     void XMLWriter::tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream) {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
+	if (rmin > rmax || dz < 0.) {
+	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined tub."
+		    << " rmin = " << rmin << "rmax = " << rmax << " dz = " << dz << std::endl;
+	}
     }
 
     /**
@@ -707,6 +719,10 @@ namespace insur {
         stream << xml_cone_open << name << xml_cone_first_inter << rmax1 << xml_cone_second_inter << rmax2;
         stream << xml_cone_third_inter << rmin1 << xml_cone_fourth_inter << rmin2;
         stream << xml_cone_fifth_inter << dz << xml_cone_close;
+	if (rmin1 > rmax1 || rmin2 > rmax2 || dz < 0.) {
+	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined tub."
+		    << " rmin1 = " << rmin1 << "rmax1 = " << rmax1 << " rmin2 = " << rmin2 << "rmax2 = " << rmax2 << " dz = " << dz << std::endl;
+	}
     }
     
     /**
@@ -981,6 +997,9 @@ namespace insur {
 	      if (refstring.find(xml_barrel_module) != std::string::npos) {
 		mnumber = refstring.substr(xml_barrel_module.size());
 		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
+
+		bool isTiming = (refstring.find(xml_timing) != std::string::npos);
+		std::string postfixPos, postfixNeg;
 		
 		if ((!isTilted) // For untilted layer, takes all modules. e.g. BModule1 to BModule15 for Layer1.
 		    // For tilted layer, in case of rod, takes modules until first tilted ring. e.g. BModule1 to BModule4 for Layer1.
@@ -1000,10 +1019,19 @@ namespace insur {
 		    }
 
 		    else
-		      if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		      if (!isPixelTracker && !isTiming) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
+		      else if (isTiming) {
+			postfixPos = trackerXmlTags.nspace + ":" + postfix + xml_positive_z + "/" + postfix + xml_positive_z + xml_timing + xml_base_waf + "/" + refstring;
+			postfixNeg = trackerXmlTags.nspace + ":" + postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
+		      }
 		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
-
-		    paths.push_back(prefix + "/" + postfix);
+		    if (!isTiming) {
+		      paths.push_back(prefix + "/" + postfix);
+		    }
+		    else {
+		      paths.push_back(prefix + "/" + postfixPos);
+		      paths.push_back(prefix + "/" + postfixNeg);
+		    }
 		  }
 		}
 	      }
@@ -1087,7 +1115,7 @@ namespace insur {
 		  }
         
 		  else
-		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
 		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
         
 		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;

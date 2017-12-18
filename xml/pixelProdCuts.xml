@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
-  <!-- WARNING : ARE THE VALUES FOR ProdCutsForElectrons, ProdCutsForPositrons AND ProdCutsForGamma CORRECT IN THIS FILE ? -->
   <SpecParSection label="trackerProdCuts.xml" eval="true">
     <SpecPar name="tracker-dead-pixel">
-      <PartSelector path="//pixbar:Phase1PixelBarrel"/>
+      <PartSelector path="//pixbar:Phase2PixelBarrel"/>
       <PartSelector path="//pixfwd:Phase2PixelEndcap"/>
       <Parameter name="CMSCutsRegion" value="TrackerPixelDeadRegion" eval="false"/>
       <Parameter name="ProdCutsForElectrons" value="1*mm"/>

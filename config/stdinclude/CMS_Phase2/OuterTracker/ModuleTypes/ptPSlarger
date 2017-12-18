@@ -1,0 +1,94 @@
+// Generic PS module properties
+
+moduleType ptPS
+// Active silicon size
+width 96
+length 46.944 // was 46.26 until 2017-03-22
+
+sensorLayout pt
+zCorrelation samesegment
+
+numSensors 2
+
+powerPerModule 6300 
+
+sensorThickness 0.2
+
+serviceHybridWidth 12.0  // 10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 11.5 // 10.05 hybrid + 1.45 inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 1.0
+
+physicalLength 71        // to avoid collisions with previous module in barrels
+
+reduceCombinatorialBackground true 
+
+Sensor 1 {
+  sensorType largepix
+  numStripsAcross 960
+  numSegments 32
+  numROCX 4
+  numROCY 2
+}
+
+Sensor 2 {
+  sensorType strip
+  numStripsAcross 960
+  numSegments 2
+  numROCX 4
+  numROCY 2
+}
+
+plotColor 1
+
+ContourPoint 0 {
+  pointX 59.2
+  pointY -35.43
+}
+
+ContourPoint 1 {
+  pointX 65
+  pointY -29.63
+}
+
+ContourPoint 2 {
+  pointX 65
+  pointY 29.63
+}
+
+ContourPoint 3 {
+  pointX 59.2
+  pointY 35.43
+}
+
+ContourPoint 4 {
+  pointX 0
+  pointY 35.43
+}
+
+ContourPoint 5 {
+  pointX -59.2
+  pointY 35.43
+}
+
+ContourPoint 6 {
+  pointX -65
+  pointY 29.63
+}
+
+ContourPoint 7 {
+  pointX -65
+  pointY -29.63
+}
+
+ContourPoint 8 {
+  pointX -59.2
+  pointY -35.43
+}
+
+ContourPoint 9 {
+  pointX  0 
+  pointY -35.43
+}
+
+

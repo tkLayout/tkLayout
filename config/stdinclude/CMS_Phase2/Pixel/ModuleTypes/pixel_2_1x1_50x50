@@ -1,4 +1,4 @@
-// 1x1 chips pixel module rotated (50um x 50um)
+// 1x1 chips pixel module (50um x 50um)
 // Chip size 16.4x22
 moduleType pixel_2_1x1_50x50  // pixel modules should always have a type starting with keyword 'pixel_'
 
@@ -8,9 +8,7 @@ length 22.0
 
 numSensors 1
 
-powerStripChip 0
-powerModuleChip 0
-powerModuleOptical 0
+powerPerModule 0 // mW
 
 sensorThickness 0.150
 hybridThickness 0.5
@@ -22,6 +20,7 @@ Sensor 1 {
   stripLengthEstimate 0.050
   numROCX 1 
   numROCY 1
+  powerPerChannel 0.0 // mW
 }
 
-plotColor 0
+plotColor 5  // brown

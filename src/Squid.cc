@@ -4,9 +4,11 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
-#include "SvnRevision.h"
-#include "Squid.h"
-#include "StopWatch.h"
+#include "SvnRevision.hh"
+#include "Squid.hh"
+#include "StopWatch.hh"
+
+#include "ReportIrradiation.hh"
 
 namespace insur {
   // public
@@ -95,7 +97,7 @@ namespace insur {
       const char sep = '\t';
     public:
       ModuleDataVisitor(std::string ofname) : of(ofname + "_mods.txt") {
-         of << "cntName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
+         of << "subdetectorName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
             << "centerZ" << sep << "centerRho" << sep << "centerPhi" << sep
             << "dsDist" << sep << "thickn" << sep
             << "minW" << sep << "maxW" << sep << "len" << sep
@@ -105,7 +107,7 @@ namespace insur {
       }
       void visit(const DetectorModule& m) override {
         if (m.minZ() < 0.) return; // || m.posRef().phi != 1) return;
-        of << m.cntName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
+        of << m.subdetectorName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
            << m.center().Z() << sep << m.center().Rho() << sep << m.center().Phi() << sep
            << m.dsDistance() << sep << m.thickness() << sep
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
@@ -124,12 +126,8 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        //CoordExportVisitor v(t->myid());
-        //ModuleDataVisitor v1(t->myid());
-        //t->accept(v);
-        //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
-        else tr = t;
+        else { tr = t; }
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -154,17 +152,9 @@ namespace insur {
       });
 
       // Read simulation parameters
-      simParms_ = new SimParms();
-
-      //iter between the default irradiation files vector and add each to simParm
-      for (auto singleIrradiationFile : insur::default_irradiationfiles) {
-        simParms_->addIrradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + singleIrradiationFile);
-      }
-      //simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
-      simParms_->store(getChild(pt, "SimParms"));
-      simParms_->build();
-      a.simParms(simParms_);
-      pixelAnalyzer.simParms(simParms_);
+      auto& simParms = SimParms::getInstance();
+      simParms.store(getChild(pt, "SimParms"));
+      simParms.build();
 
       childRange = getChildRange(pt, "Support");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
@@ -185,27 +175,27 @@ namespace insur {
     return true;
   }
 
- /*
-  bool Squid::buildNewTracker() {
-    boost::ptree pt;
-    info_parser::read_info(getGeometryFile(), pt);
-  }
-*/
+
   /**
-   * Dress the previously created geometry with module options. The modified tracker object remains
-   * in the squid as the current tracker until it is overwritten by a call to another function that creates
-   * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
-   * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
-   * pixel detector remains in the squid until it is replaced by a call to another function creating a new
-   * one.
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @return True if there was an existing tracker to dress, false otherwise
+   * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
+   * Can actually be reused for power cables routing.
+   * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
+   * The underlying cabling was designed for OT614, and will not work for any other layout.
    */
-/*  bool Squid::dressTracker() {
+  bool Squid::buildCablingMap(const bool cablingOption) {
+    startTaskClock("Building optical Cabling map.");
     if (tr) {
-      startTaskClock("Assigning module types to tracker and pixel");
-      cp.dressTracker(tr, getSettingsFile());
-      if (px) cp.dressPixels(px, getSettingsFile());
+      try {
+	// BUILD CABLING MAP.	
+	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
+	tr->setCablingMap(std::move(map));
+      }
+      catch (PathfulException& e) {
+	std::cerr << e.path() << " : " << e.what() << std::endl;  // should improve this!
+	stopTaskClock();
+	return false;
+	}
       stopTaskClock();
       return true;
     }
@@ -215,7 +205,7 @@ namespace insur {
       return false;
     }
   }
-*/
+
 
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
@@ -497,6 +487,27 @@ namespace insur {
     }
   }
 
+
+  /**
+   * Add the optical cabling map to the website.
+   */
+  bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
+    startTaskClock("Creating optical Cabling map report.");
+    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT614 only.");
+    if (tr) {
+      // CREATE REPORT ON WEBSITE.
+      v.cablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
     if (detailed) {
@@ -518,7 +529,7 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool debugResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool triggerPatternReco, bool debugResolution) {
     if (mb) {
 //      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
       // TODO: insert the creation of sample tracks here, to compute intersections only once
@@ -544,19 +555,27 @@ namespace insur {
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
-				false,
-				debugResolution,
+				                        false,
+				                        debugResolution,
                                 tracks, pm);
-	if (pm) {
-	  pixelAnalyzer.analyzeTaggedTracking(*pm,
-					      mainConfiguration.getMomenta(),
-					      mainConfiguration.getTriggerMomenta(),
-					      mainConfiguration.getThresholdProbabilities(),
-					      true,
-					      debugResolution,
-					      tracks, NULL);
-	}
+        if (pm) {
+          pixelAnalyzer.analyzeTaggedTracking(*pm,
+                                              mainConfiguration.getMomenta(),
+					                                    mainConfiguration.getTriggerMomenta(),
+					                                    mainConfiguration.getThresholdProbabilities(),
+					                                    true,
+					                                    debugResolution,
+					                                    tracks, nullptr);
+        }
         stopTaskClock();
+      }
+      if (triggerPatternReco) {
+        startTaskClock("Estimating pattern recognition");
+        bool analysisOK =a.analyzePatterReco(*mb,
+                                             mainConfiguration,
+                                             tracks, pm);
+        stopTaskClock();
+        if (!analysisOK) return false;
       }
       return true;
     } else {
@@ -572,8 +591,8 @@ namespace insur {
   bool Squid::reportGeometrySite(bool debugResolution) {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, is, site, debugResolution);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, debugResolution, "pixel");
+      v.geometrySummary(a, *tr, is, site, debugResolution);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, pi, site, debugResolution, "pixel");     
       stopTaskClock();
       return true;
     } else {
@@ -589,7 +608,7 @@ namespace insur {
       a.computeTriggerFrequency(*tr);
       stopTaskClock();
       startTaskClock("Creating bandwidth and rates report");
-      v.bandwidthSummary(a, *tr, *simParms_, site);
+      v.bandwidthSummary(a, *tr, site);
       stopTaskClock();
       return true;
     } else {
@@ -613,17 +632,23 @@ namespace insur {
   }
 
   bool Squid::reportPowerSite() {
+    bool done=false;
+    startTaskClock("Computing dissipated power and creating report");
     if (tr) {
-      startTaskClock("Computing dissipated power");
-      a.analyzePower(*tr);
-      if (px) pixelAnalyzer.analyzePower(*px);
-      stopTaskClock();
-      startTaskClock("Creating power report");
-      v.irradiationSummary(a, *tr, site);
-      if (px) v.irradiationSummary(pixelAnalyzer, *px, site);
-      stopTaskClock();
-      return true;
-    } else {
+      ReportIrradiation repIrr(*tr);
+      repIrr.analyze();
+      repIrr.visualizeTo(site);
+      done=true;
+    }
+    if (px) {
+      ReportIrradiation repIrrPx(*px);
+      repIrrPx.analyze();
+      repIrrPx.visualizeTo(site);
+      done=true;
+    }
+    stopTaskClock();
+    if (done) return true;
+    else {
       logERROR(err_no_tracker);
       return false;
     }
@@ -637,7 +662,10 @@ namespace insur {
     if (mb) {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, *mb, debugServices, site, "outer");
-      if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+      if (pm) {
+	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.totalMaterialSummary(a, pixelAnalyzer, site);
+      }
       v.weigthSummart(a, weightDistributionTracker, site, "outer");
       if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
       stopTaskClock();
@@ -672,6 +700,22 @@ namespace insur {
     }
   }
 
+  /**
+   * Produces the output of the pattern recognition studies
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportPatternRecoSite() {
+    if (mb) {
+      startTaskClock("Creating report on pattern recognition studies");
+      v.patternRecoSummary(a, mainConfiguration, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_matbudget);
+      return false;
+    }
+  }
 
   /**
    * Produces the output of the analysis of the material budget analysis
@@ -703,7 +747,7 @@ namespace insur {
     } else {
       startTaskClock("Saving additional information");
       v.additionalInfoSite(getSettingsFile(),
-                           a, pixelAnalyzer, *tr, *simParms_, site);
+                           a, pixelAnalyzer, *tr, site);
       stopTaskClock();
       return true;
     }

@@ -1,5 +1,5 @@
 
-Materials BPIX_L3 {
+Materials BPIX_L3_1x3_10000 {
   type module
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Light

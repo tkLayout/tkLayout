@@ -1,0 +1,30 @@
+// Parametrization by Riccardo del Burgo.
+// Simulation parameters:
+// sensor thickness: 150 um
+// threshold= 1500 e-
+// gaussian noise: μ = 0 e-, σ = 120 e-
+// μRH= 0.1078
+
+// pitch in X = 25 um. 
+resolutionLocalXParam0 -1.65887e-03      // mm
+resolutionLocalXParam1 -2.22576e-03      // mm
+resolutionLocalXParam2 1.17684e-02       // mm
+resolutionLocalXParam3 2.10522e+00      
+resolutionLocalXParam4 1.61396e+00      
+resolutionLocalXParam5 1.40810e-02       // mm
+resolutionLocalXParam6 -1.18373e-01       
+resolutionLocalXParam7 1.08128e-01      
+resolutionLocalXParam8 2.04617e-02       // mm
+resolutionLocalXParam9 7.24302e-01      
+
+// pitch in Y = 100 um.
+resolutionLocalYParam0 1.36198e-02       // mm
+resolutionLocalYParam1 2.69508e-03       // mm
+resolutionLocalYParam2 2.07958e-03       // mm
+resolutionLocalYParam3 8.80011e+00      
+resolutionLocalYParam4 -3.82634e+00      
+resolutionLocalYParam5 1.66384e-02       // mm
+resolutionLocalYParam6 2.60254e-02      
+resolutionLocalYParam7 2.39881e-01      
+resolutionLocalYParam8 -7.20557e-03      // mm
+resolutionLocalYParam9 4.02918e-01

@@ -3,7 +3,7 @@
  * @brief This is the implementation of the internal data structure for material properties.
  */
 
-#include <MaterialTable.h>
+#include <MaterialTable.hh>
 namespace insur {
     
   void MaterialTable2::parseMaterial(std::string str) {

@@ -3,7 +3,7 @@
  * @brief
  */
 
-#include <MaterialBudget.h>
+#include <MaterialBudget.hh>
 namespace insur {
   /**
    * The constructor registers a tracker and a collection of inactive surfaces with the material budget before 
@@ -335,4 +335,20 @@ namespace insur {
         else throw std::out_of_range("Layer index is out of range: " + layer);
         return index;
     }
+
+  std::vector<InactiveElement> MaterialBudget::getAllServices() {
+    std::vector<InactiveElement> allServices;
+    auto& barrelServices = getInactiveSurfaces().getBarrelServices();
+    auto& endcapServices = getInactiveSurfaces().getEndcapServices();
+    auto& supports = getInactiveSurfaces().getSupports();
+
+    // We put all services inside the same container
+    allServices.reserve( barrelServices.size() + endcapServices.size() + supports.size() ); // preallocate memory
+    allServices.insert( allServices.end(), barrelServices.begin(), barrelServices.end() );
+    allServices.insert( allServices.end(), endcapServices.begin(), endcapServices.end() );
+    allServices.insert( allServices.end(), supports.begin(), supports.end() );
+
+    return allServices;
+  }
+
 }

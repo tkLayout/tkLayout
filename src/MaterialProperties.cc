@@ -3,8 +3,8 @@
  * @brief This is the implementation for a base class for elements that have an influence on the material budget of a tracker layout
  */
 
-#include <MaterialProperties.h>
-#include<MaterialTab.h>
+#include <MaterialProperties.hh>
+#include<MaterialTab.hh>
 
 RILength& RILength::operator+=(const RILength &a) {
   interaction += a.interaction;

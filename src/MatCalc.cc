@@ -3,7 +3,7 @@
  * @brief This class implements the algorithms that allocate materials to the various types of structures in the tracker
  */
 
-#include <MatCalc.h>
+#include <MatCalc.hh>
 namespace insur {
     // public
     /**

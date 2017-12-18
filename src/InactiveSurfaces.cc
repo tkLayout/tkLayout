@@ -3,7 +3,7 @@
  * @brief This is the implementation of the container class for inactive tracker elements
  */
 
-#include <InactiveSurfaces.h>
+#include <InactiveSurfaces.hh>
 namespace insur {
     /*===== services =====*/
     /**

@@ -1,0 +1,36 @@
+// Lindsey Gray version : Barrel Timing module
+
+moduleType timing_2x4_11530x11625 // timing modules should always have a type starting with keyword 'timing_'
+// Active silicon size
+width 184.48
+length 46.5
+
+sensorLayout mono
+
+numSensors 1
+
+powerStripChip 0
+powerModuleChip 0 
+powerModuleOptical 0
+
+sensorThickness 3.0
+
+serviceHybridWidth 1.0  // 10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 1.0 // 10.05 hybrid + 1.45 inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 1.0
+
+physicalLength 46.5     // to avoid collisions with previous module in barrels
+
+reduceCombinatorialBackground true 
+
+Sensor 1 {
+  sensorType largepix
+  numStripsAcross 16  // 184.48mm / 11.53mm
+  numSegments 4 // 46.5mm / 11.625mm
+  numROCX 2
+  numROCY 4
+}
+
+plotColor 6
+
