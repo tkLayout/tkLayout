@@ -112,7 +112,7 @@ bool AnalyzerHelpers::isModuleInEtaSector(const SimParms& simParms, const Tracke
   double etaCut = simParms.triggerEtaCut();
   double etaSlice = etaCut*2 / numProcEta;
   double maxR = tracker.maxR();
-  double zError = simParms.zErrorCollider();
+  double zError = simParms.lumiRegZError();
   double eta = etaSlice*etaSector-etaCut;    
 
   double modMinZ = module.minZ();

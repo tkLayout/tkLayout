@@ -14,7 +14,7 @@
 #include "IrradiationMapsManager.hh"
 #include "Visitable.hh"
 
-//typedef std::map<std::pair<int,int>, double> IrradiationMap;
+enum LumiRegShape { SPOT, FLAT, GAUSSIAN };
 
 class SimParms : public PropertyObject, public Buildable, public Visitable {
 
@@ -26,9 +26,12 @@ public:
   ReadonlyProperty<int, NoDefault> numMinBiasEvents;
   ReadonlyProperty<int, NoDefault> bunchSpacingNs;
 
-  ReadonlyProperty<int, NoDefault> zErrorCollider;
-  ReadonlyProperty<int, NoDefault> rphiErrorCollider;
+  ReadonlyProperty<double, NoDefault> lumiRegZError;
+  ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShape;
+  ReadonlyProperty<LumiRegShape, NoDefault> lumiRegShapeInMatBudgetAnalysis;
+
   ReadonlyProperty<bool, NoDefault> useIPConstraint;
+  ReadonlyProperty<double, NoDefault> rphiErrorCollider;
 
   ReadonlyProperty<int, NoDefault> ptCost;
   ReadonlyProperty<int, NoDefault> stripCost;

@@ -3,26 +3,26 @@
  * @brief This file implements the hit and track classes used for internal analysis
  */
 
-#include "TrackNew.hh"
+#include "Track.hh"
 
 #include <algorithm>
 #include <cstdlib>
 
 #include <global_constants.hh>
-#include "HitNew.hh"
+#include "Hit.hh"
 #include "MessageLogger.hh"
 #include "MaterialProperties.hh"
+#include "PtErrorAdapter.hh"
 #include "SimParms.hh"
 #include "Units.hh"
-
 
 using namespace ROOT::Math;
 using namespace std;
 
 //
-// TrackNew constructor -> need to use setter methods to set: 2 of these [theta, phi, eta, cot(theta)] & 2 of these [mag. field, transv. momentum, radius]
+// Track constructor -> need to use setter methods to set: 2 of these [theta, phi, eta, cot(theta)] & 2 of these [mag. field, transv. momentum, radius]
 //
-TrackNew::TrackNew() :
+Track::Track() :
   m_theta(0),
   m_phi(0),
   m_cotgTheta(0),
@@ -36,9 +36,9 @@ TrackNew::TrackNew() :
 {}
 
 //
-// TrackNew copy-constructor -> creates deep copy of hit vector
+// Track copy-constructor -> creates deep copy of hit vector
 //
-TrackNew::TrackNew(const TrackNew& track) {
+Track::Track(const Track& track) {
 
   m_theta        = track.m_theta;
   m_phi          = track.m_phi;
@@ -66,7 +66,7 @@ TrackNew::TrackNew(const TrackNew& track) {
   m_covMatrixRZ = track.m_covMatrixRZ;
 
   for (auto& iHit : track.m_hits) {
-    HitNewPtr hit(new HitNew(*iHit));
+    HitPtr hit(new Hit(*iHit));
     addHit(std::move(hit));
   }
   m_tags = track.m_tags;
@@ -75,7 +75,7 @@ TrackNew::TrackNew(const TrackNew& track) {
 //
 // Assign operator with deep copy of hit vector
 //
-TrackNew& TrackNew::operator= (const TrackNew& track) {
+Track& Track::operator= (const Track& track) {
 
   // check for self-assignment by comparing the address of the
   // implicit object and the parameter
@@ -108,7 +108,7 @@ TrackNew& TrackNew::operator= (const TrackNew& track) {
   m_covMatrixRZ = track.m_covMatrixRZ;
 
   for (auto& iHit : track.m_hits) {
-    HitNewPtr hit(new HitNew(*iHit));
+    HitPtr hit(new Hit(*iHit));
     addHit(std::move(hit));
   }
   m_tags = track.m_tags;
@@ -120,7 +120,7 @@ TrackNew& TrackNew::operator= (const TrackNew& track) {
 //
 // Destructor
 //
-TrackNew::~TrackNew() {
+Track::~Track() {
 
   // Clear memory
   m_hits.clear();
@@ -134,7 +134,7 @@ TrackNew::~TrackNew() {
 // lower R (false).
 // Return true if errors correctly calculated
 //
-bool TrackNew::computeErrorsRZ(double refPointRPos/*=0*/, bool propagOutIn/*=true*/) {
+bool Track::computeErrorsRZ(double refPointRPos/*=0*/, bool propagOutIn/*=true*/) {
 
   // Sort hits based on particle direction: in-out or out-in (if needed)
   if (m_reSortHits) {
@@ -161,7 +161,7 @@ bool TrackNew::computeErrorsRZ(double refPointRPos/*=0*/, bool propagOutIn/*=tru
 // (e.g. d0,z0) or whether detectors at lower R (false).
 // Return true if errors correctly calculated
 //
-bool TrackNew::computeErrorsRPhi(double refPointRPos/*=0*/, bool propagOutIn/*=true*/) {
+bool Track::computeErrorsRPhi(double refPointRPos/*=0*/, bool propagOutIn/*=true*/) {
 
   // Sort hits based on particle direction: in-out or out-in (if needed)
   if (m_reSortHits) {
@@ -183,7 +183,7 @@ bool TrackNew::computeErrorsRPhi(double refPointRPos/*=0*/, bool propagOutIn/*=t
 //
 // Calculate magnetic field at given z, assuming B = B(z).e_z + 0.e_x + 0 e_y
 //
-double TrackNew::getMagField(double z) const {
+double Track::getMagField(double z) const {
 
   double magField = 0;
 
@@ -216,7 +216,7 @@ double TrackNew::getMagField(double z) const {
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 // Using 3x3 covariance propagator in case [r,z]!=[0,0]
 //
-double TrackNew::getDeltaRho(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaRho(double refPointRPos, bool propagOutIn/*=true*/) {
 
   // (Re)compute cov. matrix in R-Phi if something changed
   if (!m_covRPhiDone || refPointRPos!=m_refPointRPosCache || propagOutIn!=m_propagOutInCache) computeErrorsRPhi(refPointRPos, propagOutIn);
@@ -228,7 +228,7 @@ double TrackNew::getDeltaRho(double refPointRPos, bool propagOutIn/*=true*/) {
   // TODO: Not working correctly for B = B(z) & [r,z]!=[0,0], so print warning ...
   if (refPointRPos!=0. && !SimParms::getInstance().isMagFieldConst()) {
 
-    logWARNING("TrackNew::getDeltaRho(): Mathematical method to get deltaRho at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
+    logWARNING("Track::getDeltaRho(): Mathematical method to get deltaRho at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
   }
 
   return deltaRho;
@@ -238,7 +238,7 @@ double TrackNew::getDeltaRho(double refPointRPos, bool propagOutIn/*=true*/) {
 // Get DeltaPtOvePt at refPoint [rPos, zPos] (utilize the calculated deltaRho quantity)
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 //
-double TrackNew::getDeltaPtOverPt(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaPtOverPt(double refPointRPos, bool propagOutIn/*=true*/) {
 
   double deltaPtOverPt = -1.;
 
@@ -254,7 +254,7 @@ double TrackNew::getDeltaPtOverPt(double refPointRPos, bool propagOutIn/*=true*/
 // Get DeltaPOverP at refPoint [rPos, zPos] (utilize deltaRho & deltaCotgTheta quantities)
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 //
-double TrackNew::getDeltaPOverP(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaPOverP(double refPointRPos, bool propagOutIn/*=true*/) {
 
   double deltaPOverP = -1.;
 
@@ -273,7 +273,7 @@ double TrackNew::getDeltaPOverP(double refPointRPos, bool propagOutIn/*=true*/) 
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 // Using 3x3 covariance propagator in case [r,z]!=[0,0]
 //
-double TrackNew::getDeltaPhi(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaPhi(double refPointRPos, bool propagOutIn/*=true*/) {
 
   // (Re)compute cov. matrix in R-Phi if something changed
   if (!m_covRPhiDone || refPointRPos!=m_refPointRPosCache || propagOutIn!=m_propagOutInCache) computeErrorsRPhi(refPointRPos, propagOutIn);
@@ -311,7 +311,7 @@ double TrackNew::getDeltaPhi(double refPointRPos, bool propagOutIn/*=true*/) {
   // TODO: Not working correctly for B = B(z) & [r,z]!=[0,0], so print warning ...
   if (refPointRPos!=0. && !SimParms::getInstance().isMagFieldConst()) {
 
-    logWARNING("TrackNew::getDeltaPhi(): Mathematical method to get deltaPhi at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
+    logWARNING("Track::getDeltaPhi(): Mathematical method to get deltaPhi at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
   }
 
   return deltaPhi0;
@@ -322,7 +322,7 @@ double TrackNew::getDeltaPhi(double refPointRPos, bool propagOutIn/*=true*/) {
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 // Using 3x3 covariance propagator in case [r,z]!=[0,0]
 //
-double TrackNew::getDeltaD(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaD(double refPointRPos, bool propagOutIn/*=true*/) {
 
   // (Re)compute cov. matrix in R-Phi if something changed
   if (!m_covRPhiDone || refPointRPos!=m_refPointRPosCache || propagOutIn!=m_propagOutInCache) computeErrorsRPhi(refPointRPos, propagOutIn);
@@ -359,7 +359,7 @@ double TrackNew::getDeltaD(double refPointRPos, bool propagOutIn/*=true*/) {
   // TODO: Not working correctly for B = B(z) & [r,z]!=[0,0], so print warning ...
   if (refPointRPos!=0. && !SimParms::getInstance().isMagFieldConst()) {
 
-    logWARNING("TrackNew::getDeltaD(): Mathematical method to get deltaD0 at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
+    logWARNING("Track::getDeltaD(): Mathematical method to get deltaD0 at [r,z]!=[0,0] in non const. B field not implemented, hence returned value at [r,z]=[0,0].");
   }
 
   return deltaD0;
@@ -369,7 +369,7 @@ double TrackNew::getDeltaD(double refPointRPos, bool propagOutIn/*=true*/) {
 // Get DeltaCtgTheta at refPoint [rPos, zPos]
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 //
-double TrackNew::getDeltaCtgTheta(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaCtgTheta(double refPointRPos, bool propagOutIn/*=true*/) {
 
   // (Re)compute cov. matrix in s-Z if something changed
   if (!m_covRZDone || refPointRPos!=m_refPointRPosCache || propagOutIn!=m_propagOutInCache) computeErrorsRZ(refPointRPos, propagOutIn);
@@ -385,7 +385,7 @@ double TrackNew::getDeltaCtgTheta(double refPointRPos, bool propagOutIn/*=true*/
 // Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
 // Using 2x2 covariance propagator in case [r,z]!=[0,0]
 //
-double TrackNew::getDeltaZ(double refPointRPos, bool propagOutIn/*=true*/) {
+double Track::getDeltaZ(double refPointRPos, bool propagOutIn/*=true*/) {
 
   // (Re)compute cov. matrix in s-Z if something changed
   if (!m_covRZDone || refPointRPos!=m_refPointRPosCache || propagOutIn!=m_propagOutInCache) computeErrorsRZ(refPointRPos, propagOutIn);
@@ -419,7 +419,7 @@ double TrackNew::getDeltaZ(double refPointRPos, bool propagOutIn/*=true*/) {
 // Get DeltaCTau for secondary particles coming from the primary vertex at ~ [0,0] -> an important quantity to estimate the
 // resolution of secondary vertices
 //
-double TrackNew::getDeltaCTau() {
+double Track::getDeltaCTau() {
 
   double deltaCTau = -1;
   double deltaD0   = getDeltaD0();
@@ -436,7 +436,7 @@ double TrackNew::getDeltaCTau() {
 //
 // Adds a new hit to the track (hit radius automatically updated)
 //
-void TrackNew::addHit(HitNewPtr newHit) {
+void Track::addHit(HitPtr newHit) {
 
   // Add tracking tags
   if (newHit->getHitModule() != nullptr) {
@@ -457,13 +457,12 @@ void TrackNew::addHit(HitNewPtr newHit) {
 //
 // Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
 //
-void TrackNew::addIPConstraint(double dr, double dz) {
+void Track::addIPConstraint(double dr, double dz) {
 
   // This modeling of the IP constraint was validated:
   // By placing dr = 0.5 mm and dz = 1 mm one obtains
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
-  HitNewPtr newHit(new HitNew(0,0)); //(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
-  newHit->setIP(true);
+  HitPtr newHit(new Hit(0,0, nullptr, HitPassiveType::IP)); //(dr,dz)); // TODO: Cross-check, should be Hit(0,0) ???
 
   RILength emptyMaterial;
   emptyMaterial.radiation   = 0;
@@ -487,7 +486,9 @@ void TrackNew::addIPConstraint(double dr, double dz) {
 //
 // Simulate efficiency by changing some active hits to non-active hits (passive)
 //
-void TrackNew::addEfficiency() {
+
+void Track::addEfficiency() {
+
   for (auto& iHit : m_hits) {
     if (iHit->isActive()) {
       double efficiency = iHit->getHitModule()->singleHitEfficiency();
@@ -502,7 +503,7 @@ void TrackNew::addEfficiency() {
 // Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
 // (magnetic field obtained automatically from SimParms singleton class)Setter for the track azimuthal angle.
 //
-const Polar3DVector& TrackNew::setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt) {
+const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt) {
 
   m_theta     = newTheta;
   m_cotgTheta = 1/tan(newTheta);
@@ -526,7 +527,7 @@ const Polar3DVector& TrackNew::setThetaPhiPt(const double& newTheta, const doubl
 
 //
 // Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
-void TrackNew::resetPt(double newPt) {
+void Track::resetPt(double newPt) {
 
   if (newPt*m_pt<0) m_reSortHits = true;
   m_covRPhiDone = false;
@@ -540,16 +541,16 @@ void TrackNew::resetPt(double newPt) {
 //
 // Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
 //
-void TrackNew::sortHits(bool bySmallerR) { bySmallerR ? std::stable_sort(m_hits.begin(), m_hits.end(), HitNew::sortSmallerR) : std::stable_sort(m_hits.begin(), m_hits.end(), HitNew::sortHigherR); }
+void Track::sortHits(bool bySmallerR) { bySmallerR ? std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortSmallerR) : std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortHigherR); }
 
 //
 // Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account here)
 //
-bool TrackNew::pruneHits() {
+bool Track::pruneHits() {
 
   bool isPruned = false;
 
-  HitNewCollection newHits;
+  HitCollection newHits;
   for (auto& iHit : m_hits) {
 
     if (followsParabolicApprox(iHit->getRPos(),iHit->getZPos())) newHits.push_back(std::move(iHit));
@@ -569,9 +570,28 @@ bool TrackNew::pruneHits() {
 }
 
 //
+// Set active only trigger hits, so all other hits are made as inactive
+//
+void Track::keepTriggerHitsOnly() {
+
+  for (auto& iHit : m_hits) {
+
+    // Hit needs to be measurable, i.e. is linked to module
+    if (iHit->isMeasurable()) {
+
+      if (iHit->isActive()) {
+        if      (iHit->isPixel()) iHit->setAsPassive();
+        else if (iHit->getHitModule()->sensorLayout()!=PT) iHit->setAsPassive();
+        else    iHit->setTrigger(true);
+      }
+    }
+  } // For
+}
+
+//
 // Set active only hits with the given tag
 //
-void TrackNew::keepTaggedHitsOnly(const string& tag, bool useIP /*=true*/) {
+void Track::keepTaggedHitsOnly(const string& tag, bool useIP /*=true*/) {
 
   for (auto& iHit : m_hits) {
 
@@ -596,7 +616,7 @@ void TrackNew::keepTaggedHitsOnly(const string& tag, bool useIP /*=true*/) {
 //
 // Remove material from all assigned hits -> modify all hits such as they are without any material
 //
-void TrackNew::removeMaterial() {
+void Track::removeMaterial() {
 
   // Material object with no material assigned
   RILength nullMaterial;
@@ -610,9 +630,77 @@ void TrackNew::removeMaterial() {
 }
 
 //
+// Fill local spatial resolution statistics to all modules hit along the track.
+//
+void Track::fillModuleLocalResolutionStats() {
+  for (auto& hit : m_hits) {
+    if (hit->isActive()) {
+      hit->fillModuleLocalResolutionStats();
+    }
+  }
+}
+
+// Assign tracking volumes to collection of hits
+//
+void Track::assignTrackingVolumesToHits() {
+
+  // Code moved from hit.cc assignTrackingVolumesToHits method
+  double firstActiveHitPixelDistance, firstActiveHitOuterDistance, lastActiveHitPixelDistance, lastActiveHitOuterDistance;
+
+  // Get distance of first active pixel & non-pixel hit
+  bool bySmallerRadius = true;
+  sortHits(bySmallerRadius);
+  for (auto& iHit : m_hits) {
+
+    if (iHit->isPixel() && iHit->isActive()) {
+      firstActiveHitPixelDistance = iHit->getDistance();
+      break;
+    }
+  }
+  for (auto& iHit : m_hits) {
+
+    if (!(iHit->isPixel()) && iHit->isActive()) {
+      firstActiveHitOuterDistance = iHit->getDistance();
+      break;
+    }
+  }
+  // Get distance of last active pixel & non-pixel hit
+  sortHits(!bySmallerRadius);
+  for (auto& iHit : m_hits) {
+
+    if (iHit->isPixel() && iHit->isActive()) {
+      lastActiveHitPixelDistance = iHit->getDistance();
+      break;
+    }
+  }
+  for (auto& iHit : m_hits) {
+
+    if (!(iHit->isPixel()) && iHit->isActive()) {
+      lastActiveHitOuterDistance = iHit->getDistance();
+      break;
+    }
+  }
+
+  // Set tracking volumes
+  for (auto& iHit : m_hits) {
+    double distance = iHit->getDistance();
+    if (distance < firstActiveHitPixelDistance)                                            iHit->setPixelIntersticeVolume(true);
+    if (distance >= firstActiveHitPixelDistance && distance <= lastActiveHitPixelDistance) iHit->setPixelTrackingVolume(true);
+    if (distance > lastActiveHitPixelDistance && distance < firstActiveHitOuterDistance)   iHit->setIntersticeVolume(true);
+    if (distance >= firstActiveHitOuterDistance && distance <= lastActiveHitOuterDistance) iHit->setOuterTrackingVolume(true);
+    if (distance <= lastActiveHitPixelDistance || distance <= lastActiveHitOuterDistance)  iHit->setTotalTrackingVolume(true);
+  }
+
+  // Resort hits back based on particle direction: in-out or out-in (if needed)
+  if (m_pt>=0) sortHits(bySmallerRadius);
+  else         sortHits(!bySmallerRadius);
+  m_reSortHits = false;
+}
+
+//
 // Helper method printing track covariance matrices in R-Phi
 //
-void TrackNew::printErrors() {
+void Track::printErrors() {
 
   std::cout << "Overview of track errors:" << std::endl;
   std::cout << "Hit variance matrix: "  << std::endl;
@@ -632,7 +720,7 @@ void TrackNew::printErrors() {
 //
 // Helper method printing symmetric matrix
 //
-void TrackNew::printSymMatrix(const TMatrixTSym<double>& matrix) const {
+void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -653,7 +741,7 @@ void TrackNew::printSymMatrix(const TMatrixTSym<double>& matrix) const {
 //
 // Helper method printing matrix
 //
-void TrackNew::printMatrix(const TMatrixT<double>& matrix) const {
+void Track::printMatrix(const TMatrixT<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -674,7 +762,7 @@ void TrackNew::printMatrix(const TMatrixT<double>& matrix) const {
 //
 // Helper method printing track hits
 //
-void TrackNew::printHits() const {
+void Track::printHits() const {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
@@ -706,7 +794,7 @@ void TrackNew::printHits() const {
 //
 // Helper method printing track hits
 //
-void TrackNew::printActiveHits() const {
+void Track::printActiveHits() const {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
@@ -734,9 +822,47 @@ void TrackNew::printActiveHits() const {
 }
 
 //
+// TODO: Document!!!
+//
+double Track::getExpectedTriggerPoints(const double& triggerMomentum) {
+
+  // Sort hits based on particle direction: in-out or out-in (if needed)
+  if (m_reSortHits) {
+
+    bool bySmallerRadius = true;
+    if (m_pt>=0) sortHits(bySmallerRadius);
+    else         sortHits(!bySmallerRadius);
+    m_reSortHits = false;
+  }
+
+  double result=0;
+
+  for (auto& iHit : m_hits) {
+
+    if (iHit->isTrigger() && !iHit->isIP() && iHit->isActive()) {
+
+      // We've got a possible trigger here
+      // Let's find the corresponding module
+      const auto myModule = iHit->getHitModule();
+      if (iHit->getHitModule()) {
+
+        const auto& myModule = *(iHit->getHitModule());
+        result += PtErrorAdapter(myModule).getTriggerProbability(triggerMomentum);
+      }
+      else {
+
+        // Whoops: problem here: an active hit is not linked to any module
+        logERROR("Track::getExpectedTriggerPoints: This SHOULD NOT happen -> an active hit does not correspond to any module!");
+      }
+    }
+  }
+  return result;
+}
+
+//
 // Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
 //
-int TrackNew::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
+int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
 
   // Result variable
   int nHits=0;
@@ -765,7 +891,7 @@ int TrackNew::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
 //
 // Get number of active hits coming from measurement planes or IP constraint assigned to track for given tag. If tag specified as "all", all module & IP hits assigned.
 //
-int TrackNew::getNMeasuredHits(std::string tag, bool useIP /*=true*/) const {
+int Track::getNMeasuredHits(std::string tag, bool useIP /*=true*/) const {
 
   // Result variable
   int nHits=0;
@@ -794,10 +920,10 @@ int TrackNew::getNMeasuredHits(std::string tag, bool useIP /*=true*/) const {
 //
 // Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
 //
-const HitNew* TrackNew::getMeasurableOrIPHit(int iHit) {
+const Hit* Track::getMeasurableOrIPHit(int iHit) {
 
   int   hitCounter = 0;
-  const HitNew* pHit  = nullptr;
+  const Hit* pHit  = nullptr;
 
   // Sort hits based on particle direction: in-out or out-in
   if (m_reSortHits) {
@@ -827,10 +953,10 @@ const HitNew* TrackNew::getMeasurableOrIPHit(int iHit) {
 //
 // Reverse search - Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
 //
-const HitNew* TrackNew::getRMeasurableOrIPHit(int iHit) {
+const Hit* Track::getRMeasurableOrIPHit(int iHit) {
 
   int   hitCounter = 0;
-  const HitNew* pHit  = nullptr;
+  const Hit* pHit  = nullptr;
 
   // Sort hits based on particle direction: in-out or out-in
   if (m_reSortHits) {
@@ -861,7 +987,7 @@ const HitNew* TrackNew::getRMeasurableOrIPHit(int iHit) {
 // Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
 // If tag specified as "all" no extra tag required
 //
-std::vector<double> TrackNew::getHadronActiveHitsProbability(std::string tag) {
+std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
 
   // Result variable
   std::vector<double> probabilities;
@@ -902,7 +1028,7 @@ std::vector<double> TrackNew::getHadronActiveHitsProbability(std::string tag) {
 // Get the probabilty of having a given number of "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
 // If tag specified as "all" no extra tag required
 //
-double TrackNew::getHadronActiveHitsProbability(std::string tag, int nHits) {
+double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
 
   // Probability
   double probability = 1;
@@ -951,7 +1077,7 @@ double TrackNew::getHadronActiveHitsProbability(std::string tag, int nHits) {
 //
 // Get track material
 //
-RILength TrackNew::getMaterial() const {
+RILength Track::getMaterial() const {
 
   RILength totalMaterial;
   totalMaterial.radiation   = 0;
@@ -965,7 +1091,7 @@ RILength TrackNew::getMaterial() const {
 //
 // Get a vector of pairs: Detector module & hit type for Trigger hits
 //
-std::vector<std::pair<const DetectorModule*, HitType>> TrackNew::getHitModules() const {
+std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() const {
 
   std::vector<std::pair<const DetectorModule*, HitType>> result;
 
@@ -992,7 +1118,7 @@ std::vector<std::pair<const DetectorModule*, HitType>> TrackNew::getHitModules()
 // defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation (e.g. d0,z0) or whether detectors at lower R (false).
 // Return true if V invertable
 //
-bool TrackNew::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
+bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
   // Matrix size
   int nHits = m_hits.size();
@@ -1221,7 +1347,7 @@ bool TrackNew::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn
 // defines whether detectors at higher R than the ref. point (true) should be used for error calculation/propagation (e.g. d0,z0) or whether detectors at lower R (false).
 // Return true if V invertable
 //
-bool TrackNew::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
+bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
 
   // Matrix size
   int nHits = m_hits.size();
@@ -1453,7 +1579,7 @@ bool TrackNew::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) 
 // a helix by set of parabolas. In general, N connected parabolas used, for const B
 // field only one parabola applied.
 //
-double TrackNew::computeDfOverDRho(double rPos, double zPos) {
+double Track::computeDfOverDRho(double rPos, double zPos) {
 
   double DfOverDRho = 0;
 

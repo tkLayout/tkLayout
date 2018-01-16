@@ -13,6 +13,7 @@
 #include <boost/accumulators/statistics/count.hpp>
 
 #include "global_constants.hh"
+#include "SimParms.hh"
 #include "MessageLogger.hh"
 #include "Sensor.hh"
 #include "ModuleBase.hh"
@@ -75,6 +76,11 @@ protected:
   
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
+  // Used to compute local parametrized spatial resolution.
+  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
+  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
+
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
@@ -106,6 +112,29 @@ public:
   Property<double, AutoDefault> sensorsIrradiationMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
+  // Local X resolution parameters
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam3;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam4;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam5;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam6;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam7;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam8;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXParam9;
+  // Local Y resolution parameters
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam3;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam4;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam5;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam6;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam7;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam8;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYParam9;
+
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
 
   ReadonlyProperty<double, Default> stereoRotation;
@@ -153,6 +182,28 @@ public:
       trackingTags             ("trackingTags"             , parsedOnly()),
       nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
       nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
+      // Local X resolution parameters
+      resolutionLocalXParam0            ("resolutionLocalXParam0"            , parsedOnly()),
+      resolutionLocalXParam1            ("resolutionLocalXParam1"            , parsedOnly()),
+      resolutionLocalXParam2            ("resolutionLocalXParam2"            , parsedOnly()),
+      resolutionLocalXParam3            ("resolutionLocalXParam3"            , parsedOnly()),
+      resolutionLocalXParam4            ("resolutionLocalXParam4"            , parsedOnly()),
+      resolutionLocalXParam5            ("resolutionLocalXParam5"            , parsedOnly()),
+      resolutionLocalXParam6            ("resolutionLocalXParam6"            , parsedOnly()),
+      resolutionLocalXParam7            ("resolutionLocalXParam7"            , parsedOnly()),
+      resolutionLocalXParam8            ("resolutionLocalXParam8"            , parsedOnly()),
+      resolutionLocalXParam9            ("resolutionLocalXParam9"            , parsedOnly()),
+      // Local Y resolution parameters
+      resolutionLocalYParam0            ("resolutionLocalYParam0"            , parsedOnly()),
+      resolutionLocalYParam1            ("resolutionLocalYParam1"            , parsedOnly()),
+      resolutionLocalYParam2            ("resolutionLocalYParam2"            , parsedOnly()),
+      resolutionLocalYParam3            ("resolutionLocalYParam3"            , parsedOnly()),
+      resolutionLocalYParam4            ("resolutionLocalYParam4"            , parsedOnly()),
+      resolutionLocalYParam5            ("resolutionLocalYParam5"            , parsedOnly()),
+      resolutionLocalYParam6            ("resolutionLocalYParam6"            , parsedOnly()),
+      resolutionLocalYParam7            ("resolutionLocalYParam7"            , parsedOnly()),
+      resolutionLocalYParam8            ("resolutionLocalYParam8"            , parsedOnly()),
+      resolutionLocalYParam9            ("resolutionLocalYParam9"            , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
@@ -162,12 +213,11 @@ public:
       removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
-    virtual bool hasAnyResolutionLocalXParam() const = 0;
-    virtual bool hasAnyResolutionLocalYParam() const = 0;
-    virtual void setup();
-    virtual void build();
-    // Geometric module interface
-    const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
+  virtual void setup();
+  void check() override;
+  virtual void build();
+  // Geometric module interface
+  const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
@@ -195,30 +245,27 @@ public:
   double skewAngle() const { return skewAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
-  double alpha (double trackPhi) const {
-    double deltaPhi = center().Phi() + skewAngle() - trackPhi;
-    if (fabs(deltaPhi) > M_PI/2.) {
-      if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
-      else deltaPhi = deltaPhi - 2.*M_PI;
-    }
-    double alpha = deltaPhi + M_PI / 2.;
-    return alpha;
-  }
-  double beta (double theta) const { return theta + tiltAngle(); }
-  virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
-  virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
-  double resolutionLocalX(double phi) const {
-    if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
-    else { return calculateParameterizedResolutionLocalX(phi); }
-  }
-  double resolutionLocalY(double theta) const {
-    if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
-    else { return calculateParameterizedResolutionLocalY(theta); }
-  }
+  // SPATIAL RESOLUTION
+
+  // RETURN GLOBAL SPATIAL RESOLUTION (IN CMS COORDINATES)
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
+
+  // RETURN LOCAL SPATIAL RESOLUTION
+  // This resolution is either nominal, either from parametrization.
+  const double resolutionLocalX(const double phi) const;
+  const double resolutionLocalY(const double theta) const;
+
+  // Used to compute local parametrized spatial resolution.
+  const bool hasAnyResolutionLocalXParam() const;
+  const bool hasAnyResolutionLocalYParam() const;
+  const double alpha(const double trackPhi) const;
+  const double beta(const double theta) const;
+ 
+  // STATISTICS ON LOCAL SPATIAL RESOLUTION
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
+  
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
@@ -326,13 +373,14 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryFullType() const;
 
   void setBundle(Bundle* bundle) { bundle_ = bundle ; }
-  const Bundle* getBundle() const { return bundle_; }  
+  const Bundle* getBundle() const { return bundle_; }
   const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
-  const int channelPlotColor() const; 
+  const int opticalChannelSectionPlotColor() const;
+  const int powerChannelSectionPlotColor() const; 
   const DTC* getDTC() const;
   const int dtcPlotColor() const;
-  const int dtcPhiSectorRef() const;  
+  const int dtcPhiSectorRef() const;
 };
 
 
@@ -343,38 +391,10 @@ public:
   int16_t ring() const { return (int16_t)myid(); }
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
-  ReadonlyProperty<double, NoDefault> cotalphaLimit;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Inf;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Sup;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Sup;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Sup;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam0;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam1;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam2;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam3;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam4;
 
- BarrelModule(Decorated* decorated) :
-  DetectorModule(decorated),
-    cotalphaLimit                           ("cotalphaLimit"                           , parsedOnly()),
-    resolutionLocalXBarrelParam0Inf         ("resolutionLocalXBarrelParam0Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam1Inf         ("resolutionLocalXBarrelParam1Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam2Inf         ("resolutionLocalXBarrelParam2Inf"         , parsedOnly()),
-    resolutionLocalXBarrelParam0Sup         ("resolutionLocalXBarrelParam0Sup"         , parsedOnly()),
-    resolutionLocalXBarrelParam1Sup         ("resolutionLocalXBarrelParam1Sup"         , parsedOnly()),
-    resolutionLocalXBarrelParam2Sup         ("resolutionLocalXBarrelParam2Sup"         , parsedOnly()),
-    resolutionLocalYBarrelParam0            ("resolutionLocalYBarrelParam0"            , parsedOnly()),
-    resolutionLocalYBarrelParam1            ("resolutionLocalYBarrelParam1"            , parsedOnly()),
-    resolutionLocalYBarrelParam2            ("resolutionLocalYBarrelParam2"            , parsedOnly()),
-    resolutionLocalYBarrelParam3            ("resolutionLocalYBarrelParam3"            , parsedOnly()),
-    resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly())
-      { setup(); }
-
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXBarrelParam0Inf.state() || resolutionLocalXBarrelParam1Inf.state() || resolutionLocalXBarrelParam2Inf.state() || resolutionLocalXBarrelParam0Sup.state() || resolutionLocalXBarrelParam1Sup.state() || resolutionLocalXBarrelParam2Sup.state()); }
-
-  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYBarrelParam0.state() || resolutionLocalYBarrelParam1.state() || resolutionLocalYBarrelParam2.state() || resolutionLocalYBarrelParam3.state() || resolutionLocalYBarrelParam4.state()); }
+  BarrelModule(Decorated* decorated) :
+    DetectorModule(decorated)
+  { setup(); }
 
   void accept(GeometryVisitor& v) {
     v.visit(*this);
@@ -477,8 +497,6 @@ public:
 	else return -1.0;
       });
   }
-  
-  void check() override;
 
   void build();
 
@@ -489,15 +507,6 @@ public:
   //double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
-
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { 
-    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
-    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
-    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
-    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2);
-}
-
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
 
   PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ subdetectorName(), layer(), ring() }; }
@@ -515,28 +524,11 @@ public:
   int16_t side() const { return (int16_t)signum(center().Z()); }
   Property<int, AutoDefault> endcapDiskSurface;
   const int diskSurface() const override { return endcapDiskSurface(); }
-  //bool hasAnyResolutionLocalXParam() override { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
-  //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
-  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam1;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam2;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam3;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
-  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
 
- EndcapModule(Decorated* decorated) :
-  DetectorModule(decorated),
-    resolutionLocalXEndcapParam0            ("resolutionLocalXEndcapParam0"            , parsedOnly()),
-    resolutionLocalXEndcapParam1            ("resolutionLocalXEndcapParam1"            , parsedOnly()),
-    resolutionLocalXEndcapParam2            ("resolutionLocalXEndcapParam2"            , parsedOnly()),
-    resolutionLocalXEndcapParam3            ("resolutionLocalXEndcapParam3"            , parsedOnly()),
-    resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
-    resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
-      { setup(); }
+  EndcapModule(Decorated* decorated) :
+    DetectorModule(decorated)
+  { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state() || resolutionLocalXEndcapParam2.state() || resolutionLocalXEndcapParam3.state()); }
-  
-  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
   void setup() override {
     DetectorModule::setup();
@@ -659,8 +651,6 @@ public:
       });
   }
 
-  void check() override;
-
   void build();
 
   void accept(GeometryVisitor& v) {
@@ -688,14 +678,6 @@ public:
 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
-
-  double calculateParameterizedResolutionLocalX(double trackPhi) const {
-    return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * exp(-pow(1./tan(alpha(trackPhi)), 2.) / resolutionLocalXEndcapParam3()) * cos(resolutionLocalXEndcapParam2() * 1./tan(alpha(trackPhi)));    
-  }
-
-  double calculateParameterizedResolutionLocalY(double theta) const {
-    return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta)));
-  }
 
   PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }

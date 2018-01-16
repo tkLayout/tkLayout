@@ -3,7 +3,7 @@
 
 /* Compute the offset in Phi with respect to Phi = 0.
  */
-const double computePhiSegmentStart(const double phi, const double phiSegmentWidth, const bool isPositiveCablingSide) {
+const double computePhiSegmentStart(const double phi, const double phiSegmentWidth) {
   double phiSegmentStart = femod(phi, phiSegmentWidth);
   return phiSegmentStart;
 }
@@ -11,7 +11,7 @@ const double computePhiSegmentStart(const double phi, const double phiSegmentWid
 
 /* Compute the int n for which we have: phi ~= (n * phiSegmentWidth + phiSegmentStart).
  */
-const int computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth, const bool isPositiveCablingSide) {
+const int computePhiSegmentRef(const double phi, const double phiSegmentStart, const double phiSegmentWidth) {
   int phiSegmentRef = round(femod(phi - phiSegmentStart, 2.*M_PI) / phiSegmentWidth);
   return phiSegmentRef;
 }
@@ -19,7 +19,7 @@ const int computePhiSegmentRef(const double phi, const double phiSegmentStart, c
 
 /* Compute the int n for which we have: (phiSliceStart + n*phiSliceWidth) <= phi < (phiSliceStart + (n+1)*phiSliceWidth).
  */
-const int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth, const bool isPositiveCablingSide) {
+const int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth) {
   double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
   int phiSliceRef = 0;
   // In case phiSliceRefExact is an integer, round it to an int!

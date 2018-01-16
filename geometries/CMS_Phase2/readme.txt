@@ -198,6 +198,14 @@ OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
                         
+OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
+                        'Identical dees' design (simplify cooling design, huge saving :) ):
+                          - Rotate in Phi all modules in all disks in TEDD by + half a module.
+                        PS module design has been updated, hence:
+                          - Increase bigDelta, from 14.85 mm to 15.075 mm (Zd goes from 29.7 mm to 30.15 mm), in all disks in TEDD.
+                          - Decrease smallDelta, from 7.42 mm to 7.375 mm (ZmPS4.0 goes from 14.84mm to 14.75mm), in PS4.0 rings.
+        
+                        
 OT613_200_IT4125.cfg	  Like OT613_200_IT4025, but with 50x50 pixels instead of 25x100.
 
 OT613_200_IT404.cfg                  OT Version 6.1.3

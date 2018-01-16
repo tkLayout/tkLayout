@@ -39,7 +39,7 @@
 #include "SummaryTable.hh"
 #include "TagMaker.hh"
 #include "Hit.hh"
-#include "TrackNew.hh"
+#include "Track.hh"
 
 #include <TFile.h>
 #include <TProfile.h>
@@ -98,9 +98,9 @@ namespace insur {
 
   // TODO:
   // Move this to track.hh?
-  typedef std::vector<Track> TrackCollection;
+  //typedef std::vector<Track> TrackCollection;
   //typedef double TrackCollectionKey;
-  typedef std::map<int, TrackNewCollection> TrackNewCollectionMap;
+  typedef std::map<int, TrackCollection> TrackCollectionMap;
 
 
   class Analyzer : private AnalyzerTools {
@@ -196,7 +196,7 @@ namespace insur {
                                int etaSteps = 50,
                                MaterialBudget* pm = nullptr);
     bool checkFile(const std::string& fileName, const std::string& filePath);
-    bool isTripletFromDifLayers(TrackNew& track, int iHit, bool propagOutIn);
+    bool isTripletFromDifLayers(Track& track, int iHit, bool propagOutIn);
     bool analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConfig, int etaSteps = 50, MaterialBudget* pm = nullptr);
     std::vector<TProfile*> hisPatternRecoInOutPt;//! InOut approach - tracker: Bkg contamination probability accumulated across eta for set of pT
     std::vector<TProfile*> hisPatternRecoInOutP; //! InOut approach - inner tracker: Bkg contamination probability accumulated across eta for set of pT
@@ -283,6 +283,14 @@ namespace insur {
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXBarrelDistribution() {return incidentAngleLocalXBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalXEndcapsDistribution() { return incidentAngleLocalXEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYBarrelDistribution() { return incidentAngleLocalYBarrelDistribution_; }
+    std::map<std::string, TH1D>& getIncidentAngleLocalYEndcapsDistribution() { return incidentAngleLocalYEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getTrackPhiBarrelDistribution() { return trackPhiBarrelDistribution_; }
+    std::map<std::string, TH1D>& getTrackPhiEndcapsDistribution() { return trackPhiEndcapsDistribution_; }
+    std::map<std::string, TH1D>& getTrackEtaBarrelDistribution() { return trackEtaBarrelDistribution_; }
+    std::map<std::string, TH1D>& getTrackEtaEndcapsDistribution() { return trackEtaEndcapsDistribution_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
@@ -376,6 +384,14 @@ namespace insur {
     std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
+    std::map<std::string, TH1D> incidentAngleLocalXBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalXEndcapsDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYBarrelDistribution_;
+    std::map<std::string, TH1D> incidentAngleLocalYEndcapsDistribution_;
+    std::map<std::string, TH1D> trackPhiBarrelDistribution_;
+    std::map<std::string, TH1D> trackPhiEndcapsDistribution_;
+    std::map<std::string, TH1D> trackEtaBarrelDistribution_;
+    std::map<std::string, TH1D> trackEtaEndcapsDistribution_;
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
@@ -430,38 +446,40 @@ namespace insur {
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, TrackNew& track);
+    const XYZVector getLuminousRegion();
+    const XYZVector getLuminousRegionInMatBudgetAnalysis();
 
+    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track);
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
-    virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi, Track& t, 
+    virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, Track& track,
                                     std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
 
-    int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
+    int findHitsModules(Tracker& tracker, Track& t);
 
-    virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr, TrackNew& t, bool isPixel = false);
-    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, TrackNew& t, bool isPixel = false);
+    virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr, Track& t, bool isPixel = false);
+    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, bool isPixel = false);
 
-    virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
+    virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, Track& track,
                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
-    virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
-                                             Track& t, std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
-    virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, TrackNew& t, bool isPixel = false);
+    virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
+                                             std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+    virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, Track& t, bool isPixel = false);
 
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
     void calculateGraphsConstPt(const int& aMomentum,
-                                const TrackNewCollection& aTrackCollection,
+                                const TrackCollection& aTrackCollection,
                                 int graphAttributes,
                                 const string& graphTag);
     void calculateGraphsConstP(const int& aMomentum,
-                               const TrackNewCollection& aTrackCollection,
+                               const TrackCollection& aTrackCollection,
                                int graphAttributes,
                                const string& graphTag);
-    void calculateParametrizedResolutionPlots(std::map<std::string, TrackNewCollectionMap>& taggedTrackPtCollectionMap);
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
-                                     const std::vector<Track>& trackVector);
+                                     const TrackCollection& tracks);
     void fillTriggerPerformanceMaps(Tracker& tracker);
     //void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();
@@ -499,7 +517,7 @@ namespace insur {
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
 
     void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
-    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const Hit* hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
+    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
     void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const;
     const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const;
 
