@@ -83,7 +83,8 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    bool buildCablingMap(const bool cablingOption);
+    bool buildOuterCablingMap(const bool outerCablingOption);
+    bool buildInnerCablingMap(const bool innerCablingOption);
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);

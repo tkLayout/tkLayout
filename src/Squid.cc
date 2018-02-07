@@ -179,14 +179,14 @@ namespace insur {
   /**
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
-   * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
+   * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
    * The underlying cabling was designed for OT614, and will not work for any other layout.
    */
-  bool Squid::buildCablingMap(const bool cablingOption) {
-    startTaskClock("Building optical Cabling map.");
+  bool Squid::buildOuterCablingMap(const bool outerCablingOption) {
+    startTaskClock("Building optical and power cabling map in the Outer Tracker.");
     if (tr) {
       try {
-	// BUILD CABLING MAP.	
+	// BUILD OUTER CABLING MAP.	
 	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
 	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
 	tr->setCablingMap(std::move(map));
@@ -196,6 +196,37 @@ namespace insur {
 	stopTaskClock();
 	return false;
 	}
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+  /**
+   * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
+   * Can actually be reused for power cables routing.
+   * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
+   * The underlying cabling was designed for OT614, and will not work for any other layout.
+   */
+  bool Squid::buildInnerCablingMap(const bool innerCablingOption) {
+    startTaskClock("Building optical and power cabling map in the Inner Tracker.");
+    if (tr) {
+      try {
+	// BUILD INNER CABLING MAP.	
+	std::unique_ptr<const InnerCablingMap> map(new InnerCablingMap(tr));
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
+	tr->setInnerCablingMap(std::move(map));
+      }
+      catch (PathfulException& e) {
+	std::cerr << e.path() << " : " << e.what() << std::endl;  // should improve this!
+	stopTaskClock();
+	return false;
+      }
       stopTaskClock();
       return true;
     }

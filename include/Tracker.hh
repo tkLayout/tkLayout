@@ -160,6 +160,12 @@ public:
     return myCablingMap_.get();
   }
 
+  void setInnerCablingMap(std::unique_ptr<const InnerCablingMap> map) { myInnerCablingMap_ = std::move(map); }
+  const InnerCablingMap* getInnerCablingMap() const {
+    if (!myInnerCablingMap_) throw PathfulException("Tracker has no cabling map, but one tries to access it.");
+    return myInnerCablingMap_.get();
+  }
+
   const Barrels& barrels() const { return barrels_; }
   const Endcaps& endcaps() const { return endcaps_; }
 
