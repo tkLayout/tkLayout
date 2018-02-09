@@ -264,7 +264,7 @@ OT613_200_IT503.cfg                  OT Version 6.1.3
 
 ============ Timing barrel layer studies ============
 OT613_200_IT4025.cfg  Reference "standard" 78 ladders
-OT614_200_IT4025.cfg  -15 mm outer radius  78 ladders
-OT615_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
-OT616_200_IT4025.cfg  -30 mm outer radius  78 ladders
-OT617_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
+OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
+OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
+OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
+OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
