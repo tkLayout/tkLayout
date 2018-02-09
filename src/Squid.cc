@@ -211,7 +211,7 @@ namespace insur {
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
    * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
-   * The underlying cabling was designed for OT614, and will not work for any other layout.
+   * The underlying cabling was designed for IT404, and will not work for any other layout.
    */
   bool Squid::buildInnerCablingMap(const bool innerCablingOption) {
     startTaskClock("Building optical and power cabling map in the Inner Tracker.");
