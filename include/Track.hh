@@ -1,12 +1,12 @@
 /**
- * TrackNew.h
+ * Track.h
  *
  * Created on: 20. 4. 2016
  *     Author: Drasal (CERN)
  */
 
-#ifndef INCLUDE_TRACKNEW_H_
-#define INCLUDE_TRACKNEW_H_
+#ifndef INCLUDE_TRACK_H_
+#define INCLUDE_TRACK_H_
 
 #include <cmath>
 #include <memory>
@@ -17,20 +17,20 @@
 #include <Math/Vector3D.h>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
-#include "HitNew.hh"
+#include "Hit.hh"
 
 // Forward declaration
-class TrackNew;
+class Track;
 class RILength;
 
 #undef TRACK_DEBUG_RZ
 
 //Typedef
-typedef std::unique_ptr<TrackNew> TrackNewPtr;
-typedef std::vector<TrackNewPtr>  TrackNewCollection;
+typedef std::unique_ptr<Track> TrackPtr;
+typedef std::vector<TrackPtr>  TrackCollection;
 
 /**
- * @class TrackNew
+ * @class Track
  * @details The Track class is essentially a collection of consecutive hits used to calculate track parameters
  * together with their correlation matrix. These hits can bet set as active (used in tracking) or inactive (unused in
  * tracking). The track model assumes mag. field to be variable only in z: B = B(z).e_z + 0.e_x + 0.e_y, further
@@ -45,27 +45,27 @@ typedef std::vector<TrackNewPtr>  TrackNewCollection;
  * point (not only at [0,0,0]), the standard technique of covariance propagator is applied (for details see getDelta***()
  * methods). The propagators are currently implemented for const Bz, not for case of B = B(z).
  */
-class TrackNew {
+class Track {
 
 public:
 
-  //! TrackNew constructor -> need to use setter methods to set: 2 of these [theta, phi, eta, cot(theta)] & 2 of these [mag. field, transv. momentum, radius]
-  TrackNew();
+  //! Track constructor -> need to use setter methods to set: 2 of these [theta, phi, eta, cot(theta)] & 2 of these [mag. field, transv. momentum, radius]
+  Track();
 
-  //! TrackNew copy-constructor -> creates deep copy of hit vector
-  TrackNew(const TrackNew& track);
+  //! Track copy-constructor -> creates deep copy of hit vector
+  Track(const Track& track);
 
   //! Assign operator with deep copy of hit vector
-  TrackNew& operator=(const TrackNew &track);
+  Track& operator=(const Track &track);
 
   //! Destructor
-  ~TrackNew();
+  ~Track();
 
   //
   // Define track properties
 
   //! Add new hit to track and return a pointer to that hit (+ prune hits + resort hits)
-  void addHit(HitNewPtr newHit);
+  void addHit(HitPtr newHit);
 
   //! Add IP constraint (+ prune hits + resort hits) to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
   void addIPConstraint(double dr, double dz);
@@ -77,16 +77,25 @@ public:
   const Polar3DVector& setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt);
 
   //! Set track origin
-  const XYZVector& setOrigin(const double& X, const double& Y, const double& Z) {m_origin.SetCoordinates(X,Y,Z); return m_origin;}
+  void setOrigin(const XYZVector& origin) { m_origin = origin; }
 
   //! Re-set transverse momentum + resort hits (if changing direction) + initiate recalc of cov matrices + prune hits (otherwise they may not lie on the new track, originally found at high pT limit)
   void resetPt(double newPt);
+
+  //! Set active only trigger hits, so all other hits are made as inactive
+  void keepTriggerHitsOnly();
 
   //! Set active only hits with the given tag. If tag="all" all hits coming from measurement planes or IP will be set as active
   void keepTaggedHitsOnly(const string& tag, bool useIP = true);
 
   //! Remove material from all assigned hits -> modify all hits such as they are without any material
   void removeMaterial();
+
+  // Fill local spatial resolution statistics to all modules hit along the track
+  void fillModuleLocalResolutionStats();
+
+  //! Assign tracking volumes to collection of hits
+  void assignTrackingVolumesToHits();
 
   //
   // Print methods
@@ -167,6 +176,9 @@ public:
   const Polar3DVector& getDirection() const { return m_direction; }
   const XYZVector&     getOrigin() const    { return m_origin; }
 
+  //! TODO: Document!!! Originally part of hit.cc class
+  double getExpectedTriggerPoints(const double& triggerMomentum);
+
   //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
   int getNActiveHits(std::string tag, bool useIP = true) const;
 
@@ -174,10 +186,10 @@ public:
   int getNMeasuredHits(std::string tag, bool useIP = true) const;
 
   //! Get reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
-  const HitNew* getMeasurableOrIPHit(int iHit);
+  const Hit* getMeasurableOrIPHit(int iHit);
 
   //! Reverse search -> Get reversely reference to a hit, which can be measured, i.e. coming from measurement plane (active or inactive) or IP constraint
-  const HitNew* getRMeasurableOrIPHit(int iHit);
+  const Hit* getRMeasurableOrIPHit(int iHit);
 
   //! Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
   //! If tag specified as "all" no extra tag required
@@ -190,8 +202,8 @@ public:
   int getNHits() const { return m_hits.size(); }
 
   //! Hits collection iterators
-  HitNewCollection::const_iterator getBeginHits() { return m_hits.cbegin(); }
-  HitNewCollection::const_iterator getEndHits()   { return m_hits.cend(); }
+  HitCollection::const_iterator getBeginHits() const { return m_hits.cbegin(); }
+  HitCollection::const_iterator getEndHits() const { return m_hits.cend(); }
 
   //! Get track material
   RILength getMaterial() const;
@@ -269,7 +281,7 @@ protected:
   bool   m_propagOutInCache;  //!< Caching the last used propagator direction (if changed -> recalculate track parameters).
 
 
-  HitNewCollection      m_hits;         //!< Hits assigned to track
+  HitCollection         m_hits;         //!< Hits assigned to track
   std::set<std::string> m_tags;         //!< Which subdetectors to be used in tracking (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
   // Track parameters covariance matrices
@@ -280,4 +292,4 @@ protected:
 
 }; // Class
 
-#endif /* INCLUDE_TRACKNEW_H_ */
+#endif /* INCLUDE_TRACK_H_ */

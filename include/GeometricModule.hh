@@ -45,11 +45,13 @@ protected:
   double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
 public:
   Property<double, Default> dsDistance; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
+  ReadonlyProperty<double, NoDefault> sensorThickness;
   Property<double, Default> physicalLength;
   PropertyNode<int> contourPointNode;
 
   GeometricModule() :
       dsDistance("dsDistance", parsedAndChecked(), 0.),
+      sensorThickness("sensorThickness", parsedAndChecked()),
       contourPointNode("ContourPoint", parsedOnly()),
       physicalLength("physicalLength", parsedOnly(), 0.)
   {}
@@ -66,7 +68,7 @@ public:
   virtual double maxWidth() const = 0;
   virtual double minWidth() const = 0;
   virtual double meanWidth() const = 0;
-  double thickness() const { return dsDistance() + 0.1; } // for Geometric modules it is assumed they have a 0.1 mm thick generic sensor
+  double thickness() const { return dsDistance() + sensorThickness(); }
  
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }

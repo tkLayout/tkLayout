@@ -98,22 +98,24 @@ Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
 }
 
 
+/*
+  This allows to have one different color for each of the 12 DTC slots.
+  A shift in the color scheme is also done for each of the 9 possible phi sectors.
+ */
 Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
   //TColor::CreateColorWheel();
- //return gROOT->GetColor(paletteIndex);
+  //return gROOT->GetColor(paletteIndex);
 
-  short phiSector = colorIndex % 10;
-  short zone = femod(colorIndex % 12, 12);
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int phiSector = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
   
   short paletteIndex;
   if (colorIndex == 0) paletteIndex = 1;
-  //else paletteIndex = 300 + colorIndex * 5;
-  //else paletteIndex = 300 + zone * 50 + 5 * phiSector;
 
   else {
     switch (zone) {
     case 0 :
-      paletteIndex= kYellow;
+      paletteIndex= kYellow ;
       break;
     case 1 :
       paletteIndex= kOrange;
@@ -154,8 +156,74 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
       break;
     }
 
-    paletteIndex -= phiSector;
+    paletteIndex -= (colorIndex % 10);  // should be -= phiSector, but decision was made to keep things like this, since color scheme cannot be perfectly unique anyway.
     if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+  }
+ 
+  return paletteIndex;
+}
+
+
+/* This allows to have one color for each of the 12 services channels.
+   If 12 is added, the color is set to transparent (if transparent colors allowed by isTransparentActivated).
+ */
+Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated) {
+
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int shift = (colorIndex - 1) / 12;      // dizain digit (in a numbering of base 12)
+  
+  short paletteIndex;
+
+  if (colorIndex == 0) paletteIndex = 1;
+
+  else {
+    switch (zone) {
+    case 1 :
+      paletteIndex= kYellow;
+      break;
+    case 2 :
+      paletteIndex= kOrange - 3;
+      break;
+    case 3 :
+      paletteIndex= kOrange + 3;
+      break;
+    case 4 :
+      paletteIndex=kRed;
+      break;
+    case 5 :
+      paletteIndex=kGray + 1;
+      break;
+    case 6 :
+      paletteIndex=kMagenta;
+      break;
+    case 7 :
+      paletteIndex=kViolet - 6;
+      break;
+    case 8 :
+      paletteIndex=kBlue + 1;
+      break;
+    case 9 :
+      paletteIndex=kAzure + 1;
+      break;
+    case 10 :
+      paletteIndex=kCyan;
+      break;
+    case 11 :
+      paletteIndex=kGreen + 2;
+      break;
+    case 0 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    if (isTransparentActivated) {
+      const bool isTransparent = (shift >= 1); // set transparent if 12 has been added
+      if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.1);
+    }
   }
  
   return paletteIndex;

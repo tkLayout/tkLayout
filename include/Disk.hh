@@ -41,24 +41,24 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default>   rOverlap;
   Property<int   , Default>   bigParity;
+  Property<double, NoDefault> rOverlap;
 
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
 
   const std::vector<double> scanSmallDeltas() const;
   const std::vector<double> scanDsDistances() const;
+  const double scanSensorThickness() const;
   inline const double getRingInfo(const vector<double>& ringsInfo, int ringNumber) const;
 
   std::pair<double, double> computeStringentZ(int i, int parity, const ScanEndcapInfo& extremaDisksInfo);
-  double computeNextRho(int parity, double lastZ, double newZ, double lastRho);
+  double computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho);
   void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
   double averageZ_ = 0;
 public:
   Property<int, NoDefault>    numRings;
-  Property<double, NoDefault> zError;
   Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;
   Property<double, NoDefault> placeZ;
@@ -75,9 +75,8 @@ public:
     innerRadius( "innerRadius", parsedAndChecked()),
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
-    zError(      "zError"     , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
-    rOverlap(    "rOverlap"   , parsedOnly(), 0.),
+    rOverlap(    "rOverlap"   , parsedOnly()),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     buildZ(      "buildZ"     , parsedOnly()),
     placeZ(      "placeZ"     , parsedOnly()),
@@ -99,7 +98,7 @@ public:
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
-  const std::pair<std::vector<double>, std::vector<double> > scanPropertyTree() const;
+  const ScanDiskInfo scanPropertyTree() const;
 
   void check() override;
   void build(const ScanEndcapInfo& extremaDisksInfo);

@@ -1,7 +1,7 @@
 #include "Cabling/PhiPosition.hh"
 
 
-PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool isPositiveCablingSide, const bool isBarrel, const int layerDiskNumber, const std::string subDetectorName, const Category& bundleType) {
+PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool isBarrel, const int layerDiskNumber, const std::string subDetectorName, const Category& bundleType) {
 
   // BARREL
   if (isBarrel) {
@@ -10,19 +10,24 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
 
     // PHI SEGMENT
     phiSegmentWidth_ = (2.*M_PI) / numRods;
-    phiSegmentStart_ = computePhiSegmentStart(rodPhi, phiSegmentWidth_, isPositiveCablingSide);
-    phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart_, phiSegmentWidth_, isPositiveCablingSide);
+    phiSegmentStart_ = computePhiSegmentStart(rodPhi, phiSegmentWidth_);
+    phiSegmentRef_ = computePhiSegmentRef(rodPhi, phiSegmentStart_, phiSegmentWidth_);
+
+    // STEREO PHI SEGMENT
+    double stereoRodPhi = femod(M_PI - rodPhi, 2.*M_PI);
+    stereoPhiSegmentStart_ = computePhiSegmentStart(stereoRodPhi, phiSegmentWidth_);
+    stereoPhiSegmentRef_ = computePhiSegmentRef(stereoRodPhi, stereoPhiSegmentStart_, phiSegmentWidth_);
 
     // PHI REGION
     // Depending on the layer number, different phiRegionWidth are assigned.
     // This is because for several layers, there can be too many modules per DTC, hence the phi width is defined smaller.	
     phiRegionWidth_ = ((layerDiskNumber == 1 || layerDiskNumber == 2 || layerDiskNumber == 4) ? cabling_nonantWidth : cabling_semiNonantWidth);
     phiRegionStart_ = 0.;
-    phiRegionRef_ = computePhiSliceRef(rodPhi, phiRegionStart_, phiRegionWidth_, isPositiveCablingSide);
+    phiRegionRef_ = computePhiSliceRef(rodPhi, phiRegionStart_, phiRegionWidth_);
 
     // PHI SECTOR
     phiSectorStart_ = 0.;
-    phiSectorRef_ = computePhiSliceRef(rodPhi, phiSectorStart_, phiSectorWidth_, isPositiveCablingSide);
+    phiSectorRef_ = computePhiSliceRef(rodPhi, phiSectorStart_, phiSectorWidth_);
   }
 
   // ENDCAPS
@@ -32,8 +37,13 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
 
     // PHI SEGMENT
     phiSegmentWidth_ = (2.*M_PI) / numModulesInRing;
-    phiSegmentStart_ = computePhiSegmentStart(modPhi, phiSegmentWidth_, isPositiveCablingSide);
-    phiSegmentRef_ = computePhiSegmentRef(modPhi, phiSegmentStart_, phiSegmentWidth_, isPositiveCablingSide);
+    phiSegmentStart_ = computePhiSegmentStart(modPhi, phiSegmentWidth_);
+    phiSegmentRef_ = computePhiSegmentRef(modPhi, phiSegmentStart_, phiSegmentWidth_);
+
+    // STEREO PHI SEGMENT
+    double stereoModPhi =  femod(M_PI - modPhi, 2.*M_PI);
+    stereoPhiSegmentStart_ = computePhiSegmentStart(stereoModPhi, phiSegmentWidth_);
+    stereoPhiSegmentRef_ = computePhiSegmentRef(stereoModPhi, stereoPhiSegmentStart_, phiSegmentWidth_);
 	
     // PHI REGION
     // Depending on the disk number and cabling type, different phiRegionWidth are assigned.
@@ -56,10 +66,10 @@ PhiPosition::PhiPosition(const double phi, const int numPhiSegments, const bool 
       if (subDetectorName == cabling_tedd1) phiRegionStart_ = cabling_tedd1StripStripPhiRegionStart;
       else phiRegionStart_ = cabling_tedd2StripStripPhiRegionStart;
     }
-    phiRegionRef_ = computePhiSliceRef(modPhi, phiRegionStart_, phiRegionWidth_, isPositiveCablingSide);
+    phiRegionRef_ = computePhiSliceRef(modPhi, phiRegionStart_, phiRegionWidth_);
     
     // PHI SECTOR
     phiSectorStart_ = 0.;
-    phiSectorRef_ = computePhiSliceRef(modPhi, phiSectorStart_, phiSectorWidth_, isPositiveCablingSide);
+    phiSectorRef_ = computePhiSliceRef(modPhi, phiSectorStart_, phiSectorWidth_);
   }
 }

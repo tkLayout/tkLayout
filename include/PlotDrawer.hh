@@ -100,13 +100,13 @@ struct Type { // Module-maintained color
   }
 };
 
-struct TypeBundleColor { // Module-maintained DTC color
+struct TypeBundleColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     return Palette::color(m.bundlePlotColor());
   }
 };
 
-struct TypeBundleTransparentColor { // Module-maintained DTC color
+struct TypeBundleTransparentColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     bool isTransparent = (m.isPositiveCablingSide() < 0);
     return Palette::color(m.bundlePlotColor(), isTransparent);
@@ -123,6 +123,19 @@ struct TypeDTCTransparentColor { // Module-maintained DTC color
   double operator()(const Module& m) {
     bool isTransparent = (m.isPositiveCablingSide() < 0);
     return Palette::colorDTC(m.dtcPlotColor(), isTransparent);
+  }
+};
+
+struct TypeOpticalChannelColor { // Module-maintained channel color
+  double operator()(const Module& m) {
+    return Palette::colorChannel(m.opticalChannelSectionPlotColor());
+  }
+};
+
+struct TypePowerChannelColor { // Module-maintained channel color
+  double operator()(const Module& m) {
+    bool isTransparentActivated = true;
+    return Palette::colorChannel(m.powerChannelSectionPlotColor(), isTransparentActivated);
   }
 };
 
@@ -228,6 +241,19 @@ struct XY : public std::pair<int, int>, private Rounder {
 };
 
 // Same as XY, but for (-Z) side.
+struct XYRotateY180 : public std::pair<int, int>, private Rounder {
+  const bool valid;
+  // XY coordinates of the centre of module m.
+ XYRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  // XY coordinates of vector v.
+ XYRotateY180(const XYZVector& v) : std::pair<int, int>(round(-v.X()), round(v.Y())), valid(v.Z() >= 0) {}
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
+ XYRotateY180(const XYZVector& v, const Module& m) : XYRotateY180(v) {}
+  int x() const { return this->first; }
+  int y() const { return this->second; }
+};
+
+// Same as XY, but for (-Z) side.
 struct XYNeg : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.
@@ -236,6 +262,19 @@ struct XYNeg : public std::pair<int, int>, private Rounder {
  XYNeg(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() <= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
  XYNeg(const XYZVector& v, const Module& m) : XYNeg(v) {}
+  int x() const { return this->first; }
+  int y() const { return this->second; }
+};
+
+// Same as XY, but for (-Z) side.
+struct XYNegRotateY180 : public std::pair<int, int>, private Rounder {
+  const bool valid;
+  // XY coordinates of the centre of module m.
+ XYNegRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
+  // XY coordinates of vector v.
+ XYNegRotateY180(const XYZVector& v) : std::pair<int, int>(round(-v.X()), round(v.Y())), valid(v.Z() <= 0) {}
+  // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
+ XYNegRotateY180(const XYZVector& v, const Module& m) : XYNegRotateY180(v) {}
   int x() const { return this->first; }
   int y() const { return this->second; }
 };
