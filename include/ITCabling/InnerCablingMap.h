@@ -5,7 +5,7 @@
 #include "global_funcs.hh"
 
 #include "Property.hh"
-#include "Cabling/ModulesToBundlesConnector.hh"
+#include "ITCabling/ModulesToPowerChainsConnector.hh"
 #include "Cabling/DTC.hh"
 
 

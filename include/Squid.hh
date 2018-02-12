@@ -35,14 +35,13 @@
 #include <Tracker.hh>
 #include <Support.hh>
 #include <Cabling/CablingMap.hh>
+#include <ITCabling/InnerCablingMap.hh>
 #include "Materialway.hh"
 #include "WeightDistributionGrid.hh"
 
 
 using material::Materialway;
 using material::WeightDistributionGrid;
-//namespace insur { class CablingMap; }
-//using insur::CablingMap;
 
 namespace po = boost::program_options;
 /**
