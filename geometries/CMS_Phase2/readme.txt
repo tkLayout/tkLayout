@@ -234,12 +234,12 @@ OT613_200_IT408.cfg                  OT Version 6.1.3
 OT613_200_IT420.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.0:
                                       - geometry same as IT4.0.4
-                                      - module type 25x100 everywhere in inner layers and rings, and 50x200 in outer layers and rings.  
+                                      - 25x100 in 1x2 modules, and 50x200 in 2x2 modules.
                                       
 OT613_200_IT421.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.1:
                                       - geometry same as IT4.0.4
-                                      - module type 25x100 everywhere in inner layers and rings, and 100x100 in outer layers and rings.                                                                                                                
+                                      - 25x100 in 1x2 modules, and 100x100 in 2x2 modules.                                                                                                         
                         
 OT613_200_IT500.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.0 : tilted Inner Tracker. Head of series.
