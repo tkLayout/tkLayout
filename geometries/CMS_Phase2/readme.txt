@@ -190,13 +190,16 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
                                           
 OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
 
+---------------------------------------------------------   TDR LAYOUT   -------------------------------------------------------------------------------------------------------
+
 OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                          Zd=29.7mm or bigDelta=14.85
-                         New geometry 6.1.3 with slight adjustment in TEDD1 and TEDD2: bigDeelta moved from 14.15mm to 14.85mm
+                         New geometry 6.1.3 with slight adjustment in TEDD1 and TEDD2: bigDelta moved from 14.15mm to 14.85mm
                          this would cause a movement of 1.243mm and 1.351mm in innermost rings of TEDD1 and TEDD2 respectively
                          and add 4 modules in one ring of TEDD2.
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
                         
 OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
                         'Identical dees' design (simplify cooling design, huge saving :) ):
@@ -231,6 +234,8 @@ OT613_200_IT407.cfg                  OT Version 6.1.3
 OT613_200_IT408.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2      
                                      
+---------------------------------------------------------   LARGE PIXEL ASPECT RATIO IN 2X2 MODULES STUDIES --------------------------------------------------------------------                               
+                                     
 OT613_200_IT420.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.0:
                                       - geometry same as IT4.0.4
@@ -239,8 +244,20 @@ OT613_200_IT420.cfg                  OT Version 6.1.3
 OT613_200_IT421.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.1:
                                       - geometry same as IT4.0.4
-                                      - 25x100 in 1x2 modules, and 100x100 in 2x2 modules.                                                                                                         
-                        
+                                      - 25x100 in 1x2 modules, and 100x100 in 2x2 modules. 
+                                      
+OT613_200_IT422.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.2.2:
+                                      - geometry same as IT4.0.4
+                                      - 50x50 in 1x2 modules, and 50x200 in 2x2 modules.
+                                      
+OT613_200_IT423.cfg                  OT Version 6.1.3
+                                     Inner Tracker version 4.2.3:
+                                      - geometry same as IT4.0.4
+                                      - 50x50 in 1x2 modules, and 100x100 in 2x2 modules.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                                                                          
+
+---------------------------------------------------------   TILTED INNER TRACKER STUDIES    ------------------------------------------------------------------------------------                        
 OT613_200_IT500.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.0 : tilted Inner Tracker. Head of series.
                                      First-jet optimization :)
@@ -269,6 +286,7 @@ OT613_200_IT503.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.3: 
                                       - geometry same as IT5.0.1
                                       - 50x50 in 1x1 and 1x2 modules, 25x100 in 2x2 modules.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                                                                            
 
 
