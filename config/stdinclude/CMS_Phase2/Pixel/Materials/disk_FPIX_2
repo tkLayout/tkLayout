@@ -1,6 +1,7 @@
 // Pixel endcap disks material
 // Large disks (220 modules)
 // 2.41 times bigger than small disk
+// 2500 um^2 pixels everywhere
 
 Materials FPIX_2_disk {
   type layer
@@ -40,9 +41,9 @@ Materials FPIX_2_disk {
     }
   }
 
-// Power for the module
-// Average on disk
-// Rescaled on surface *2.41
+  // Power for the module
+  // Average on disk
+  // Rescaled on surface *2.41
   Component {
     componentName "Power wires"
     service false

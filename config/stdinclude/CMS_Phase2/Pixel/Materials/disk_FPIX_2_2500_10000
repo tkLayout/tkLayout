@@ -1,8 +1,9 @@
 // Pixel endcap disks material
 // Large disks (220 modules)
 // 2.41 times bigger than small disk
+// 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
-Materials FPIX_2_disk {
+Materials FPIX_2_disk_2500_10000 {
   type layer
 
   // Cooling for the module
@@ -40,10 +41,10 @@ Materials FPIX_2_disk {
     }
   }
 
-// Power for the module
-// Average on disk
-// Rescaled on surface *2.41
-// 0.7 of the amount in disk_FPIX_2 
+  // Power for the module
+  // Average on disk
+  // Rescaled on surface *2.41
+  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
     componentName "Power wires"
     service false
@@ -66,6 +67,7 @@ Materials FPIX_2_disk {
   }
   // fake numbers for calculating conversion with a factor of 1000
   // 24 chains per disk
+  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
     componentName "Power wires"
     service true
