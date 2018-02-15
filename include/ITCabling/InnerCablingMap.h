@@ -1,5 +1,5 @@
-#ifndef CABLINGMAP_HH
-#define CABLINGMAP_HH
+#ifndef INNERCABLINGMAP_HH
+#define INNERCABLINGMAP_HH
 
 #include <global_constants.hh>
 #include "global_funcs.hh"
@@ -58,4 +58,4 @@ private:
 };
 
 
-#endif  // CABLINGMAP_HH
+#endif  // INNERCABLINGMAP_HH

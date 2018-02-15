@@ -3,7 +3,8 @@
 
 #include <global_constants.hh>
 #include "global_funcs.hh"
-//#include "ITCabling/PhiPosition.hh"
+#include "ITCabling/inner_cabling_functions.hh"
+//#include "ITCabling/InnerPhiPosition.hh"
 #include "ITCabling/DTC.hh"
 
 
@@ -15,8 +16,8 @@
 */
 class ModulesToPowerChainsConnector : public GeometryVisitor {
 public:
-  std::map<int, Bundle*> getPowerChains() { return bundles_; }        // positive cabling side
-  std::map<int, Bundle*> getNegPowerChains() { return negPowerChains_; }  // negative cabling side
+  std::map<int, Bundle*> getPowerChains() { return powerChains_; }
+  //std::map<int, Bundle*> getNegPowerChains() { return negPowerChains_; }  // negative cabling side
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -32,39 +33,43 @@ public:
 
 private:
   // BUILDING
-  const bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const;
+  const bool computeXSide(const double modCenterX) const;
+  const bool computeBarrelModuleZEnd(const int side, const int ring, const double rodPhi, const int numRods, const bool isPositiveXSide) const;
+  const bool computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const;
+  const int computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
 
-  const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
-  void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negPowerChains, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
-  const int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
-  const int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
-  const int computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
-  Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negPowerChains, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
-  void connectModuleToBundle(DetectorModule& m, Bundle* bundle) const;
+  //const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
+  void buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringNumber = 0, const bool isRingInnerEnd = false);
+  //const int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
+  const int computePowerChainId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int powerChainTypeIndex) const;
+  //const int computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
+  PowerChain* createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, std::map<int, PowerChain*>& negPowerChains, const int powerChainId, const int stereoPowerChainId, const Category& powerChainType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  void connectModuleToPowerChain(DetectorModule& m, PowerChain* powerChain) const;
 
   // STAGERRING
-  void staggerModules(std::map<int, Bundle*>& bundles);
+  //void staggerModules(std::map<int, Bundle*>& bundles);
 
   // CHECKING
-  void checkModulesToPowerChainsCabling(const std::map<int, Bundle*>& bundles) const;
+  void checkModulesToPowerChainsCabling(const std::map<int, PowerChain*>& powerChains) const;
 
-  std::map<int, Bundle*> bundles_;     // positive cabling side bundles.
-  std::map<int, Bundle*> negPowerChains_;  // negative cabling side bundles.
+  std::map<int, PowerChain*> powerChains_;
+  //std::map<int, Bundle*> negPowerChains_;  // negative cabling side bundles.
 
-  bool isBarrel_;
+  //bool isBarrel_;
   std::string barrelName_;
   int layerNumber_;
   int numRods_;
-  int totalNumFlatRings_;              // Total number of flat rings on both (+Z) side and (-Z) side
   double rodPhi_; 
 
   std::string endcapName_;
+  bool endcapEnd_;
   int diskNumber_;
   int ringNumber_;
   int numModulesInRing_;
 
-  Category bundleType_;
-  bool side_;
+  //Category bundleType_;
+  //bool isPositiveZEnd_;
+  //bool isPositiveXSide_;
 };
 
 

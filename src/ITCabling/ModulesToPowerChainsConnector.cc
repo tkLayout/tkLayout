@@ -3,7 +3,7 @@
 
 
 void ModulesToPowerChainsConnector::visit(Barrel& b) {
-  isBarrel_ = true;
+  //isBarrel_ = true;
   barrelName_ = b.myid();	
 }
 
@@ -11,76 +11,46 @@ void ModulesToPowerChainsConnector::visit(Barrel& b) {
 void ModulesToPowerChainsConnector::visit(Layer& l) {
   layerNumber_ = l.layerNumber();
   numRods_ = l.numRods();
-  //totalNumFlatRings_ = l.buildNumModulesFlat() * 2 - 1; 
+
+  if (numRods_ % 4 != 0) logINFO(any2str("Found ") + any2str(numRods_)
+				    + any2str(" as total number of rods in a barrel layer.")
+				    + any2str(" Total number of rods should be a multiple of 4.")
+				    );
 }
 
 
 void ModulesToPowerChainsConnector::visit(RodPair& r) { 
   //bundleType_ = computeBundleType(isBarrel_, barrelName_, layerNumber_); // Bundle cabling type
-
   rodPhi_ = r.Phi();
 }
       
      
 void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
-  side_ = (m.uniRef().side > 0.);      // geometrical Z-side
+  // TO DO: this could be placed at the rod level
+  const double modCenterX = m.center().X();
+  const bool isPositiveXSide = computeXSide(modCenterX);
 
-  bool isPositiveCablingSide = side_;  // By default.
-  bool isTilted = false;               // Is the layer tilted ?
-  bool isExtraFlatPart = false;        // Used for Layer 3 flat part only, to add an extra bundle.
+  const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, numRods_, isPositiveXSide);
 
-  // Here the idea is to compute the cabling side, the isTilted and isExtraFlatPart booleans.
-  // 2S BUNDLES
-  if (barrelName_ == cabling_tb2s) {
+  const int phiUnitRef = computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd);
+  // PHIPOSITION.
+  //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
 
-    isPositiveCablingSide = side_;
-    isTilted = false;
-    isExtraFlatPart = false;
-  }
 
-  // PS BUNDLES
-  else if (barrelName_ == cabling_tbps) {
-
-    // FLAT PART
-    if (!m.isTilted()) {
-      double phiSegmentWidth = (2.*M_PI) / numRods_;
-      // This is the case where the cabling side can be different from the geometrical side.
-      // The full flat rod (both -Z and +Z modules) is assigned to one cabling side only.
-      isPositiveCablingSide = computeBarrelFlatPartRodCablingSide(rodPhi_, phiSegmentWidth);
-      isTilted = false;
-      isExtraFlatPart = false;
-
-      // For layer 3, need to add a second bundle for flat part
-      if (isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && !side_) isExtraFlatPart = true;
-      if (!isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && side_) isExtraFlatPart = true;
-    }
-
-    // TILTED PART
-    else if (m.isTilted()) {
-
-      isPositiveCablingSide = side_;
-      isTilted = true;
-      isExtraFlatPart = false;
-    }       
-  }
-
-  // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(rodPhi_, numRods_, isBarrel_, layerNumber_);
-
-  // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negPowerChains_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
+  // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
+  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, barrelName_, layerNumber_, phiUnitRef);
 }
 
 
 void ModulesToPowerChainsConnector::visit(Endcap& e) {
-  isBarrel_ = false;
+  //isBarrel_ = false;
   endcapName_ = e.myid();
 }
 
 
 void ModulesToPowerChainsConnector::visit(Disk& d) {
   diskNumber_ = d.diskNumber();
-  side_ = d.side();   // geometrical Z-side
+  endcapEnd_ = d.side();   // geometrical Z-side
 }
 
 
@@ -88,52 +58,109 @@ void ModulesToPowerChainsConnector::visit(Ring& r)   {
   ringNumber_ = r.myid();
   numModulesInRing_ = r.numModules();
 
-  bundleType_ = computeBundleType(isBarrel_, endcapName_, diskNumber_, ringNumber_);
+  if (numModulesInRing_ % 4 != 0) logINFO(any2str("Found ") + any2str(numModulesInRing_)
+				    + any2str(" as total number of modules in a forward ring.")
+				    + any2str(" Total number of modules should be a multiple of 4.")
+				    );
+
+  //bundleType_ = computeBundleType(isBarrel_, endcapName_, diskNumber_, ringNumber_);
 }
 
 
 void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
-  double modPhi = m.center().Phi();
+  const bool isPositiveZEnd = endcapEnd_;    // Alyways true in the Endcaps : cabling side and geometrical side are the same.
 
-  bool isPositiveCablingSide = side_;    // Alyways true in the Endcaps : cabling side and geometrical side are the same.
-
+  const double modCenterX = m.center().X();
+  const bool isPositiveXSide = computeXSide(modCenterX);
+ 
   // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isBarrel_, diskNumber_, endcapName_, bundleType_);
+  //const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isBarrel_, diskNumber_, endcapName_, bundleType_);
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  buildBundle(m, bundles_, negPowerChains_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
+  //buildBundle(m, bundles_, negPowerChains_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide)
+
+  const bool isRingInnerEnd = ( (m.diskSurface() % 2 ) == 1);
+  
+  const double modPhi = m.center().Phi();
+  const int phiRef = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
+
+
+  // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
+  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, phiRef, ringNumber_, isRingInnerEnd);
 }
 
 
 void ModulesToPowerChainsConnector::postVisit() {
   // STAGGER MODULES
-  staggerModules(bundles_);
-  staggerModules(negPowerChains_);
+  //staggerModules(bundles_);
+  //staggerModules(negPowerChains_);
 
   // CHECK
-  checkModulesToPowerChainsCabling(bundles_);
-  checkModulesToPowerChainsCabling(negPowerChains_);
+  checkModulesToPowerChainsCabling(powerChains_);
+  //checkModulesToPowerChainsCabling(negPowerChains_);
 }
 
 
-/* Compute the cabling side, for flat parts of Barrel rods.
-   The full flat rod (both -Z and +Z modules) is assigned to one cabling side only.
-   Hence here, the cabling side can be different from the actual geometrical side.
-   Modules are alternatively connected to the positive cabling side or the negative cabling side, depending on the Phi of the rod.
+
+const bool ModulesToPowerChainsConnector::computeXSide(const double modCenterX) const {   
+  if (fabs(modCenterX) < inner_cabling_roundingTolerance) {
+    logINFO(any2str("Found a module at X ~ 0. This is not handled.")
+	    );
+  }
+  const bool isPositiveXSide = (modCenterX > 0.);    // Geometrical X-side (CMS frame of reference).
+
+  return isPositiveXSide;
+}
+
+
+const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side, const int ring, const double rodPhi, const int numRods, const bool isPositiveXSide) const {
+  bool isPositiveZEnd;
+
+  // Non-central rings
+  if (ring != 1) {
+    isPositiveZEnd = (side > 0.);      // geometrical Z-side
+  }
+  // Central ring
+  else {
+    isPositiveZEnd = computeBarrelCentralModuleZEnd(rodPhi, numRods, isPositiveXSide);
+  }
+
+  return isPositiveZEnd;
+}
+
+
+/* Compute the Z end to which the central modules in BPIX are cabled.
+   Modules are alternatively connected to the (+Z) end and the (-Z) end, depending on the Phi of the module.
 */
-const bool ModulesToPowerChainsConnector::computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const {
-  // Compute the phi position of the rod (in one cabling side frame of reference).
-  const double phiSegmentStartOneCablingSide = computePhiSegmentStart(rodPhi, phiSegmentWidth);
-  const int phiSegmentRefOneCablingSide = computePhiSegmentRef(rodPhi, phiSegmentStartOneCablingSide, phiSegmentWidth);
-  // Assign the full rod to the positive cabling side or the negative cabling side alternatively.
-  const bool isPositiveCablingSide = ((phiSegmentRefOneCablingSide % 2) == 1);
-  return isPositiveCablingSide;
+const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const {
+  // Compute the phi position of the module
+  const bool isPositiveZEndTemp = true;
+  const int phiUnitRefTemp = computePhiUnitRef(rodPhi, numRods, isPositiveZEndTemp);
+  const bool isPhiUnitRefEven = ((phiUnitRefTemp % 2) == 0);
+
+  const bool isPositiveZEnd = (isPositiveXSide ? isPhiUnitRefEven : !isPhiUnitRefEven);
+
+  return isPositiveZEnd;
+}
+
+
+const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
+  int phiRef = 1;
+
+  const int numModulesInRingQuarter = numModulesInRing / 4;
+  if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
+    const int phiUnitRef = computePhiUnitRef(modPhi, numModulesInRing, isPositiveZEnd);
+    const int numModulesInPowerChain = numModulesInRingQuarter / 2;
+    if (phiUnitRef <= numModulesInPowerChain) { phiRef = 1; }
+    else { phiRef = 2 };
+  }
+  return phiRef;
 }
 
 
 /* Compute the bundle cabling type.
  */
-const Category ModulesToPowerChainsConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
+/*const Category ModulesToPowerChainsConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
   Category bundleType = Category::UNDEFINED;
 
   //BARREL
@@ -168,7 +195,7 @@ const Category ModulesToPowerChainsConnector::computeBundleType(const bool isBar
   }
 
   return bundleType;
-}
+  }*/
 
 
 /* Build bundle.
@@ -178,39 +205,28 @@ const Category ModulesToPowerChainsConnector::computeBundleType(const bool isBar
  * Then, the bundle is created, and stored in the bundles_ or negPowerChains_ containers.
  * Lastly, each module is connected to its bundle, and vice-versa.
  */
-void ModulesToPowerChainsConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negPowerChains, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
-  
-  // COMPUTE BUNDLE ID
-  const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
-  const int phiSliceRef = (isBarrel ? modulePhiPosition.phiSegmentRef() : modulePhiPosition.phiRegionRef());
-  const int bundleId = computeBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, phiSliceRef, bundleTypeIndex);
+void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringNumber, const bool isRingInnerEnd) {
+  // COMPUTE POWER CHAIN ID
+  const int powerChainId = computePowerChainId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, ringNumber, isRingInnerEnd);
 
-  // COMPUTE STEREO BUNDLE ID (BARREL ONLY, NOT NEEDED FOR THE ENDCAPS SO FAR)
-  // The stereo bundle is the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
-  const int stereoPhiSliceRef = (isBarrel ? modulePhiPosition.stereoPhiSegmentRef() : 0); // modulePhiPosition.stereoPhiRegionRef());
-  const int stereoBundleId = computeStereoBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, stereoPhiSliceRef, bundleTypeIndex);
-
-  // All PowerChains from one cabling side
-  const std::map<int, Bundle*>& bundlesOneSide = (isPositiveCablingSide ? bundles : negPowerChains);
-
-  // CREATE BUNDLE IF NECESSARY
-  Bundle* bundle = nullptr;
-  auto found = bundlesOneSide.find(bundleId);
-  if (found == bundlesOneSide.end()) {
-    bundle = createAndStoreBundle(bundles, negPowerChains, bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  // CREATE POWER CHAIN IF NECESSARY
+  PowerChain* powerChain = nullptr;
+  auto found = powerChains.find(powerChainId);
+  if (found == powerChains.end()) {
+    powerChain = createAndStorePowerChain(powerChains, powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, ringNumber, isRingInnerEnd);
   }
   else {
-    bundle = found->second;
+    powerChain = found->second;
   }
 
-  // CONNECT MODULE TO BUNDLE
-  connectModuleToBundle(m, bundle);
+  // CONNECT MODULE TO POWERCHAIN
+  connectModuleToPowerChain(m, powerChain);
 }
 
 
 /* Compute the index associated to each bundle type.
  */
-const int ModulesToPowerChainsConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
+/*const int ModulesToPowerChainsConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
   int bundleTypeIndex;
   // BARREL
   if (isBarrel) {
@@ -234,29 +250,27 @@ const int ModulesToPowerChainsConnector::computeBundleTypeIndex(const bool isBar
     else if (bundleType == Category::SS) bundleTypeIndex = 3;
   }
   return bundleTypeIndex;
-}
+  }
+*/
 
 
 /* Compute the Id associated to each bundle.
  */
-const int ModulesToPowerChainsConnector::computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const {
-  int cablingSideIndex = 0;
-  if (isBarrel) {
-    cablingSideIndex = (isPositiveCablingSide ? 1 : 3);
-  }
-  else {
-    cablingSideIndex = (isPositiveCablingSide ? 2 : 4);
-  }
+const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringNumber, const bool isRingInnerEnd) {
 
-  const int bundleId = cablingSideIndex * 10000 + layerDiskNumber * 1000 + phiRef * 10 + bundleTypeIndex;
-  return bundleId;
+  const int innerTrackerQuarterIndex = computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
+  const int subdetectorIndex = computeSubDetectorIndex(subDetectorName);
+  const int ringQuarterIndex = computeRingQuarterIndex(ringNumber, isRingInnerEnd);
+
+  const int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + ringQuarterIndex * 10 + phiRef;
+  return powerChainId;
 }
 
 
 /* Compute the Id associated to each stereo bundle.
  * The stereo bundle is the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
  */
-const int ModulesToPowerChainsConnector::computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int stereoPhiRef, const int bundleTypeIndex) const {
+/*const int ModulesToPowerChainsConnector::computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int stereoPhiRef, const int bundleTypeIndex) const {
   int stereoBundleId = 0;
   if (isBarrel) {
     const bool stereoSide = !isPositiveCablingSide;
@@ -265,30 +279,27 @@ const int ModulesToPowerChainsConnector::computeStereoBundleId(const bool isBarr
 
   return stereoBundleId;
 }
+*/
 
 
-/* Create a bundle, if it does not exist yet.
- *  Store it in the bundles_ or negPowerChains_ containers.
+/*  Create a powerChain, if it does not exist yet.
+ *  Store it in the powerChains_ container.
  */
-Bundle* ModulesToPowerChainsConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negPowerChains, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
+PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringNumber, const bool isRingInnerEnd) {
 
-  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  PowerChain* powerChain = GeometryFactory::make<PowerChain>(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, ringNumber, isRingInnerEnd);
 
-  if (isPositiveCablingSide) {
-    bundles.insert(std::make_pair(bundleId, bundle));
-  }
-  else {
-    negPowerChains.insert(std::make_pair(bundleId, bundle));
-  }
-  return bundle;
+  powerChains.insert(std::make_pair(powerChainId, powerChain));
+ 
+  return powerChain;
 }
 
 
-/* Connect module to bundle and vice-versa.
+/* Connect module to powerChain and vice-versa.
  */
-void ModulesToPowerChainsConnector::connectModuleToBundle(DetectorModule& m, Bundle* bundle) const {
-  bundle->addModule(&m);
-  m.setBundle(bundle);
+void ModulesToPowerChainsConnector::connectModuleToPowerChain(DetectorModule& m, PowerChain* powerChain) const {
+  powerChain->addModule(&m);
+  m.setPowerChain(powerChain);
 }
  
 
@@ -299,6 +310,7 @@ void ModulesToPowerChainsConnector::connectModuleToBundle(DetectorModule& m, Bun
    If this is the case, one needs to stagger modules :
    the module closest to an adjacent phiRegion is removed and placed in the adjacent phiRegion.
 */
+/*
 void ModulesToPowerChainsConnector::staggerModules(std::map<int, Bundle*>& bundles) {
 
   for (auto& b : bundles) {
@@ -413,33 +425,20 @@ void ModulesToPowerChainsConnector::staggerModules(std::map<int, Bundle*>& bundl
   }
 
 }
+*/
 
 
-/* Check modules-bundles connections.
+/* Check modules-powerChains connections.
  */
-void ModulesToPowerChainsConnector::checkModulesToPowerChainsCabling(const std::map<int, Bundle*>& bundles) const {
-  for (auto& b : bundles) {
+void ModulesToPowerChainsConnector::checkModulesToPowerChainsCabling(const std::map<int, PowerChain*>& powerChains) const {
+  for (auto& b : powerChains) {
 
-    // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
-    const PhiPosition& bundlePhiPosition = b.second->phiPosition();
-    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef();
-    const int phiRegionRef = bundlePhiPosition.phiRegionRef();
-    const int phiSectorRef = bundlePhiPosition.phiSectorRef();
-    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1) {
-      logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
-	       + "Bundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
-	       + ", has phiSegmentRef = " + any2str(phiSegmentRef)
-	       + ", phiRegionRef = " + any2str(phiRegionRef)
-	       + ", phiSectorRef = " + any2str(phiSectorRef)
-	       );
-    }
-
-    // CHECK THE NUMBER OF MODULES PER BUNDLE.
-    const int bundleNumModules = b.second->numModules();
-    if (bundleNumModules > cabling_maxNumModulesPerBundle) {
-      logERROR(any2str("Building cabling map : Staggering modules. ")
-	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
-	       + "Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
+    // CHECK THE NUMBER OF MODULES PER POWER CHAIN.
+    const int powerChainNumModules = b.second->numModules();
+    if (powerChainNumModules > cabling_maxNumModulesPerPowerChain) {
+      logERROR(any2str("Building IT cabling map: ")
+	       + "PowerChain "  + any2str(b.first) + " is connected to " + any2str(powerChainNumModules) + " modules."
+	       + "Maximum number of modules per powerChain allowed is " + any2str(cabling_maxNumModulesPerPowerChain)
 	       );
     }
 

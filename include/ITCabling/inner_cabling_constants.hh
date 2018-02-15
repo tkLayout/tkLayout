@@ -23,6 +23,8 @@ static const int inner_cabling_numElinksPerModuleEndcap = 1;
 
 
 // DESIGN
+// Maximum number of modules per serial power chain
+static const int inner_cabling_maxNumModulesPerPowerChain = 10;
 // Maximum number of modules per bundle
 static const int inner_cabling_maxNumModulesPerBundle = 12;
 // Maximum number of bundles per cable
@@ -48,10 +50,9 @@ static const double inner_cabling_roundingTolerance = 1.E-4;
 // GEOMETRY NAMES
 // It is unavailable by design to use the geometry blocks names for the inner_cabling map.
 // At least, they are placed here to ease renaming if needed.
-static const std::string inner_cabling_tbps = "TBPS";
-static const std::string inner_cabling_tb2s = "TB2S";
-static const std::string inner_cabling_tedd1 = "TEDD_1";
-static const std::string inner_cabling_tedd2 = "TEDD_2";
+static const std::string inner_cabling_tbpx = "PXB";
+static const std::string inner_cabling_tfpx = "FPIX_1";
+static const std::string inner_cabling_tepx = "FPIX_2";
 
 
 // NEGATIVE INNER_CABLING SIDE

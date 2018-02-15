@@ -11,7 +11,7 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     connectModulesToElinks(tracker);
     
     // CONNECT LPGBTS TO BUNDLES
-    connectLpgbtsToBundles(tracker);
+    connectGBTsToBundles(tracker);
 
     // CONNECT BUNDLES TO CABLES
     connectBundlesToCables(bundles_, cables_, DTCs_);
