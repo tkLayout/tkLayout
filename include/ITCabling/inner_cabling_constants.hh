@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string>
 #include "global_funcs.hh"
+#include "Cabling/cabling_constants.hh"
 
 
 // READOUT 1.28 GB/s E-LINKS
@@ -44,7 +45,7 @@ static const double inner_cabling_tedd2StripStripPhiRegionStart = 0.;           
 
 
 // ROUNDING
-static const double inner_cabling_roundingTolerance = 1.E-4;
+static const double inner_cabling_roundingTolerance = cabling_roundingTolerance;
 
 
 // GEOMETRY NAMES
