@@ -1,6 +1,6 @@
 #include "ITCabling/inner_cabling_constants.hh"
 
 
-define_enum_strings(Category) = { "Undefined", "PS10G", "PS10GA", "PS10GB", "PS5G", "2S" };
+define_enum_strings(PowerChainType) = { "IUndefined", "I4A", "I8A" };
 
-define_enum_strings(ChannelSlot) = { "Unknown", "A", "B", "C" };
+//define_enum_strings(ChannelSlot) = { "Unknown", "A", "B", "C" };

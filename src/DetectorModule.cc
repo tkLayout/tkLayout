@@ -638,6 +638,7 @@ std::string DetectorModule::summaryFullType() const  {
 };
 
 
+// OT CABLING
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
   const Bundle* myBundle = getBundle();
@@ -714,6 +715,27 @@ const int DetectorModule::dtcPhiSectorRef() const {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }
   return dtcPhiSectorRef;
+}
+
+
+// IT CABLING
+const int DetectorModule::isPositiveZEnd() const {
+  int isPositiveZEnd = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveZEnd = (myPowerChain->isPositiveZEnd() ? 1 : -1);
+  }
+  return isPositiveZEnd;
+}
+
+
+const int DetectorModule::powerChainPlotColor() const {
+  int powerChainPlotColor = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    powerChainPlotColor = myPowerChain->plotColor();
+  }
+  return powerChainPlotColor;
 }
 
 

@@ -30,6 +30,11 @@ namespace insur { class Bundle; }
 using insur::Bundle;
 namespace insur { class DTC; }
 using insur::DTC;
+namespace insur { class PowerChain; }
+using insur::PowerChain;
+namespace insur { class HvLine; }
+using insur::HvLine;
+
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -61,7 +66,9 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 
-  Bundle* bundle_ = NULL;
+  Bundle* bundle_ = nullptr;
+  PowerChain* powerChain_ = nullptr;
+  HvLine* hvLine_ = nullptr;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -75,7 +82,7 @@ protected:
   int numHits_ = 0;
   
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
-  ModuleCap* myModuleCap_ = NULL;
+  ModuleCap* myModuleCap_ = nullptr;
   // Used to compute local parametrized spatial resolution.
   virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
   virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
@@ -372,6 +379,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryType() const;
   std::string summaryFullType() const;
 
+  // OT CABLING
   void setBundle(Bundle* bundle) { bundle_ = bundle ; }
   const Bundle* getBundle() const { return bundle_; }
   const int isPositiveCablingSide() const;
@@ -381,6 +389,14 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const DTC* getDTC() const;
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;
+
+  // IT CABLING
+  void setPowerChain(PowerChain* powerChain) { powerChain_ = powerChain ; }
+  const PowerChain* getPowerChain() const { return powerChain_; }
+  const int isPositiveZEnd() const;
+  const int powerChainPlotColor() const;
+  void setHvLine(HvLine* hvLine) { hvLine_ = hvLine ; }
+  const HvLine* getHvLine() const { return hvLine_; }
 };
 
 

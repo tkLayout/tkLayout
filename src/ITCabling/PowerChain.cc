@@ -2,17 +2,25 @@
 #include "Cabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringNumber, const bool isRingInnerEnd) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
-  ringNumber_(ringNumber),
-  isRingInnerEnd_(isRingInnerEnd)
+  ringQuarterIndex_(ringQuarterIndex)
 {
   myid(powerChainId);
-  plotColor_ = computePlotColor(id, isPositiveZEnd);
+  isBarrel_ = isBarrel(subDetectorName);
+  ringNumber_ = computeRingNumber(ringQuarterIndex);
+  isRingInnerEnd_ = isRingInnerEnd(ringQuarterIndex);
+
+  powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
+
+  plotColor_ = computePlotColor(isPositiveXSide, phiRef, ringQuarterIndex);
+
+  // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
+  buildHvLine(const int powerChainId);
 };
 
 
@@ -20,6 +28,14 @@ PowerChain::~PowerChain() {
   delete hvLine_;    // TO DO: switch to smart pointers and remove this!
   hvLine_ = nullptr;
 }
+
+
+void PowerChain::addModule(Module* m) { 
+  modules_.push_back(m);
+  hvLine_->addModule(m);
+  m.setHvLine(hvLine_);
+}
+
 
 
 /*
@@ -54,16 +70,53 @@ const double PowerChain::meanPhi() const {
 */
 
 
-const int PowerChain::computePlotColor(const int phiRef, const int quarterRingIndex) const {
+
+// TO DO: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
+const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
+  PowerChainType powerChainType = PowerChainType::IUNDEFINED;
+  if (isBarrel) {
+    if (layerDiskNumber <= 2) powerChainType = PowerChainType::I4A;
+    else powerChainType = PowerChainType::I8A;
+  }
+
+  else {
+    if (ringNumber <= 2) powerChainType = PowerChainType::I4A;
+    else powerChainType = PowerChainType::I8A;
+  }
+
+  return powerChainType;
+}
+
+
+
+const int PowerChain::computePlotColor(const bool isPositiveXSide, const int phiRef, const int ringQuarterIndex) const {
   int plotColor = 0;
 
+  const int plotXSide = (isPositiveXSide ? 0 : 1);
+  const int plotQuarterRing = ringQuarterIndex % 4;
   const int plotPhi = phiRef % 2;
 
-  int plotId = (isPositiveCablingSide ? id : (id - 20000));
-  int plotType = 2 + plotId % 2;  // Barrel : Identifies Flat vs Tilted. Endcap : Identifies PS10GA vs PG10GB vs PS5G vs 2S type.
-  int dizaine = plotId / 10;
-  int plotPhi = dizaine % 3;  // Barrel : Identifies phiSegmentRef. Endcap : Identifies phiRegionRef.
-  plotColor = plotType * 3 + plotPhi;
+  plotColor = plotQuarterRing * 2 + plotPhi + 4 * plotXSide;
   return plotColor;
 }
 
+
+
+/* Build HvLine asociated to the power chain.
+ */
+void PowerChain::buildHvLine(const int powerChainId) {
+  std::string hvLineName = computeHvLineName(powerChainId);
+  HvLine* hvLine = GeometryFactory::make<HvLine>(hvLineName);
+  hvLine->setPowerChain(this);
+  hvLine_ = hvLine;
+}
+
+
+/* Compute HvLine name.
+ */
+const std::string PowerChain::computeHvLineName(const int powerChainId) const {
+  std::ostringstream hvLineNameStream;
+  hvLineNameStream << powerChainId << "_HV";
+  const std::string hvLineName = hvLineNameStream.str();
+  return hvLineName;
+}

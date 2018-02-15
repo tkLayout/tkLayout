@@ -12,9 +12,14 @@ const double computePhiSubUnitStart(const double phi, const double phiSubUnitWid
 const double computePhiSubUnitWidth(const int numPhiSubUnits);
 const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
 
+const bool isBarrel(const std::string subDetectorName);
 const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
 const int computeSubDetectorIndex(const std::string subDetectorName);
 const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd);
+const int computeRingNumber(const int ringQuarterIndex);
+const bool isRingInnerEnd(const int ringQuarterIndex);
+
+
 
 
 //const int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth);

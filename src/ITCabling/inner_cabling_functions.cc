@@ -57,6 +57,18 @@ const double computeStereoPhi(const double phi, const bool isPositiveZEnd) {
 
 
 
+const bool isBarrel(const std::string subDetectorName) {
+  if (subDetectorName == inner_cabling_tbpx) return true;
+  else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) return false;
+  else { 
+    logERROR(any2str("Unknown subDetector name : ")
+	     + any2str(subDetectorName)
+	     );
+    return false;
+  }
+}
+
+
 const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide) {
   int innerTrackerQuarterIndex = 0;
   if (isPositiveZEnd) {
@@ -83,11 +95,27 @@ const int computeSubDetectorIndex(const std::string subDetectorName) {
   return subDetectorIndex;
 }
 
+
 const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd) {
   const int isRingInnerEndIndex = (!isRingInnerEnd);
   const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isRingInnerEndIndex);
   return ringQuarterIndex;
 }
+
+
+const int computeRingNumber(const int ringQuarterIndex) {
+  const int ringNumber = 1 + ringQuarterIndex / 2;
+  return ringNumber;
+}
+
+
+const bool isRingInnerEnd(const int ringQuarterIndex) {
+  const bool isRingInnerEnd = (ringQuarterIndex % 2 ? true : false);
+  return isRingInnerEnd;
+}
+
+
+
 
 
 

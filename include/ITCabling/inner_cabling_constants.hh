@@ -68,7 +68,7 @@ static const std::string inner_cabling_negativePrefix = "neg";
 // A or B is an extra distinction for PS10G modules, used in TEDD only. 
 // PS10GA is used for modules which should be connected to 10G links (because of their location in the Tracker).
 // PS10GB is used for modules which could actually in theory be connected to 5G links. These modules are connected to 10G links for data rates reduction purposes only.
-enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
+enum PowerChainType { IUNDEFINED, I4A, I8A };
 
 
 // SERVICES CHANNELS INFO
@@ -78,7 +78,8 @@ enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 // As a result, the full optical inner_cabling map can be used for power cables mapping.
 // The only difference is that power cables are assigned to section A or C in PP1.
 // This additional info is dealt with by ChannelSlot.
-enum ChannelSlot { UNKNOWN, A, B, C };
+
+//enum ChannelSlot { UNKNOWN, A, B, C };
 
 // Offsets used in TEDD to split power cables coming from the same Phi nonant.
 static const double inner_cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
