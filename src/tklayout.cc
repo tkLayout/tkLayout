@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("pattern-reco,P", "Report pattern recognition analysis.")
     ("outerCablingMap,c", "Outer Tracker : Build an optical cabling map, which connects each module to a bundle, cable, DTC + Build a power cabling map. Also provide info on routing of services through channels.")
-    ("innerCablingMap,ic", "Inner Tracker: Build an optical cabling map.")
+    ("innerCablingMap,i", "Inner Tracker: Build an optical cabling map.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")

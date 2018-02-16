@@ -218,9 +218,9 @@ namespace insur {
     if (px) {
       try {
 	// BUILD INNER CABLING MAP.	
-	std::unique_ptr<const InnerCablingMap> map(new InnerCablingMap(tr));
-	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
-	tr->setInnerCablingMap(std::move(map));
+	std::unique_ptr<const InnerCablingMap> map(new InnerCablingMap(px));
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(px);  // Switch to C++14 :)
+	px->setInnerCablingMap(std::move(map));
       }
       catch (PathfulException& e) {
 	std::cerr << e.path() << " : " << e.what() << std::endl;  // should improve this!
