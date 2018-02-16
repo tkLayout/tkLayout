@@ -4,20 +4,25 @@
 #include <global_constants.hh>
 #include "global_funcs.hh"
 #include "ITCabling/inner_cabling_constants.hh"
+#include "MessageLogger.hh"
 
 
-const int computePhiUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
-const int computePhiSubUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
-const double computePhiSubUnitStart(const double phi, const double phiSubUnitWidth);
-const double computePhiSubUnitWidth(const int numPhiSubUnits);
-const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
+namespace inner_cabling_functions {
 
-const bool isBarrel(const std::string subDetectorName);
-const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
-const int computeSubDetectorIndex(const std::string subDetectorName);
-const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd);
-const int computeRingNumber(const int ringQuarterIndex);
-const bool isRingInnerEnd(const int ringQuarterIndex);
+  const int computePhiUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
+  const int computePhiSubUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
+  const double computePhiSubUnitStart(const double phi, const double phiSubUnitWidth);
+  const double computePhiSubUnitWidth(const int numPhiSubUnits);
+  const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
+
+  const bool isBarrel(const std::string subDetectorName);
+  const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
+  const int computeSubDetectorIndex(const std::string subDetectorName);
+  const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd);
+  const int computeRingNumber(const int ringQuarterIndex);
+  const bool isRingInnerEnd(const int ringQuarterIndex);
+
+}
 
 
 

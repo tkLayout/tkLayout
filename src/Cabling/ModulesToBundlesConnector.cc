@@ -439,7 +439,7 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     if (bundleNumModules > cabling_maxNumModulesPerBundle) {
       logERROR(any2str("Building cabling map : Staggering modules. ")
 	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
-	       + "Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
+	       + " Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
 	       );
     }
 

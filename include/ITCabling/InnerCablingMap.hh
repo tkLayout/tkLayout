@@ -50,7 +50,7 @@ private:
   */
 
   // positive cabling side
-  std::map<int, powerChains*> powerChains_;
+  std::map<int, PowerChain*> powerChains_;
   //std::map<int, Cable*> cables_;
   //std::map<const std::string, const DTC*> DTCs_;
 

@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "PowerChain.hh"
+#include "ITCabling/PowerChain.hh"
 #include "Module.hh"
 
 

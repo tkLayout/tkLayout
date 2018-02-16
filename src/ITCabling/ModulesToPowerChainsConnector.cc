@@ -32,7 +32,7 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
 
   const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, numRods_, isPositiveXSide);
 
-  const int phiUnitRef = computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd);
+  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd);
   // PHIPOSITION.
   //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
 
@@ -84,7 +84,7 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const double modPhi = m.center().Phi();
   const int phiRef = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
 
-  const int ringQuarterIndex = computeRingQuarterIndex(ringNumber_, isRingInnerEnd);
+  const int ringQuarterIndex = inner_cabling_functions::computeRingQuarterIndex(ringNumber_, isRingInnerEnd);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
   buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, phiRef, ringQuarterIndex);
@@ -136,7 +136,7 @@ const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side
 const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const {
   // Compute the phi position of the module
   const bool isPositiveZEndTemp = true;
-  const int phiUnitRefTemp = computePhiUnitRef(rodPhi, numRods, isPositiveZEndTemp);
+  const int phiUnitRefTemp = inner_cabling_functions::computePhiUnitRef(rodPhi, numRods, isPositiveZEndTemp);
   const bool isPhiUnitRefEven = ((phiUnitRefTemp % 2) == 0);
 
   const bool isPositiveZEnd = (isPositiveXSide ? isPhiUnitRefEven : !isPhiUnitRefEven);
@@ -150,10 +150,10 @@ const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const
 
   const int numModulesInRingQuarter = numModulesInRing / 4;
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
-    const int phiUnitRef = computePhiUnitRef(modPhi, numModulesInRing, isPositiveZEnd);
+    const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRing, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
     if (phiUnitRef <= numModulesInPowerChain) { phiRef = 1; }
-    else { phiRef = 2 };
+    else { phiRef = 2; }
   }
   return phiRef;
 }
@@ -259,8 +259,8 @@ void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<
  */
 const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) const {
 
-  const int innerTrackerQuarterIndex = computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
-  const int subdetectorIndex = computeSubDetectorIndex(subDetectorName);
+  const int innerTrackerQuarterIndex = inner_cabling_functions::computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
+  const int subdetectorIndex = inner_cabling_functions::computeSubDetectorIndex(subDetectorName);
 
   const int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + ringQuarterIndex * 10 + phiRef;
   return powerChainId;
@@ -435,10 +435,10 @@ void ModulesToPowerChainsConnector::checkModulesToPowerChainsCabling(const std::
 
     // CHECK THE NUMBER OF MODULES PER POWER CHAIN.
     const int powerChainNumModules = b.second->numModules();
-    if (powerChainNumModules > cabling_maxNumModulesPerPowerChain) {
+    if (powerChainNumModules > inner_cabling_maxNumModulesPerPowerChain) {
       logERROR(any2str("Building IT cabling map: ")
 	       + "PowerChain "  + any2str(b.first) + " is connected to " + any2str(powerChainNumModules) + " modules."
-	       + "Maximum number of modules per powerChain allowed is " + any2str(cabling_maxNumModulesPerPowerChain)
+	       + "Maximum number of modules per powerChain allowed is " + any2str(inner_cabling_maxNumModulesPerPowerChain)
 	       );
     }
 

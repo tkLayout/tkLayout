@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
       }
     }
     
-    if (buildCablingMap && !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
+    if (buildOuterCablingMap && !squid.reportCablingMapSite(vm.count("outerCablingMap"), basename)) return EXIT_FAILURE;
 
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;

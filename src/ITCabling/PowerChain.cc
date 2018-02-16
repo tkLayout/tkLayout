@@ -1,5 +1,5 @@
 #include "ITCabling/PowerChain.hh"
-#include "Cabling/HvLine.hh"
+#include "ITCabling/HvLine.hh"
 
 
 PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) :
@@ -11,16 +11,16 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
   ringQuarterIndex_(ringQuarterIndex)
 {
   myid(powerChainId);
-  isBarrel_ = isBarrel(subDetectorName);
-  ringNumber_ = computeRingNumber(ringQuarterIndex);
-  isRingInnerEnd_ = isRingInnerEnd(ringQuarterIndex);
+  isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
+  ringNumber_ = inner_cabling_functions::computeRingNumber(ringQuarterIndex);
+  isRingInnerEnd_ = inner_cabling_functions::isRingInnerEnd(ringQuarterIndex);
 
   powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
 
   plotColor_ = computePlotColor(isPositiveXSide, phiRef, ringQuarterIndex);
 
   // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
-  buildHvLine(const int powerChainId);
+  buildHvLine(powerChainId);
 };
 
 
@@ -33,9 +33,11 @@ PowerChain::~PowerChain() {
 void PowerChain::addModule(Module* m) { 
   modules_.push_back(m);
   hvLine_->addModule(m);
-  m.setHvLine(hvLine_);
+  m->setHvLine(hvLine_);
 }
 
+
+const bool PowerChain::isBarrel() const { return inner_cabling_functions::isBarrel(subDetectorName_); }
 
 
 /*
@@ -72,7 +74,7 @@ const double PowerChain::meanPhi() const {
 
 
 // TO DO: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
-const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
+const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
   PowerChainType powerChainType = PowerChainType::IUNDEFINED;
   if (isBarrel) {
     if (layerDiskNumber <= 2) powerChainType = PowerChainType::I4A;

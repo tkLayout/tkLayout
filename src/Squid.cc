@@ -215,7 +215,7 @@ namespace insur {
    */
   bool Squid::buildInnerCablingMap(const bool innerCablingOption) {
     startTaskClock("Building optical and power cabling map in the Inner Tracker.");
-    if (tr) {
+    if (px) {
       try {
 	// BUILD INNER CABLING MAP.	
 	std::unique_ptr<const InnerCablingMap> map(new InnerCablingMap(tr));

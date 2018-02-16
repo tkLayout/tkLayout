@@ -42,7 +42,8 @@ public:
   const int phiRef() const { return phiRef_; }
   const int ringQuarterIndex() const { return ringQuarterIndex_; }
 
-  const bool isBarrel() { return }
+  const bool isBarrel() const;
+  //const bool isBarrel() const { return isBarrel(subDetectorName_); }
   const int ringNumber() const { return ringNumber_; }
   const bool isRingInnerEnd() const { return isRingInnerEnd_; }
 

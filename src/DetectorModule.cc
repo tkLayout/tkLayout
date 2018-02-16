@@ -1,10 +1,11 @@
-
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
 #include "Cabling/Bundle.hh"
-
 #include "Cabling/Cable.hh"
 #include "Cabling/DTC.hh"
+
+#include "ITCabling/PowerChain.hh"
+#include "ITCabling/HvLine.hh"
 
 
 void DetectorModule::setup() {
