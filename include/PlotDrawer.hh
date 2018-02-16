@@ -100,6 +100,7 @@ struct Type { // Module-maintained color
   }
 };
 
+// OT CABLING
 struct TypeBundleColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     return Palette::color(m.bundlePlotColor());
@@ -136,6 +137,20 @@ struct TypePowerChannelColor { // Module-maintained channel color
   double operator()(const Module& m) {
     bool isTransparentActivated = true;
     return Palette::colorChannel(m.powerChannelSectionPlotColor(), isTransparentActivated);
+  }
+};
+
+// IT CABLING
+struct TypePowerChainColor { // Module-maintained PowerChain color
+  double operator()(const Module& m) {
+    return Palette::color(m.powerChainPlotColor());
+  }
+};
+
+struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
+  double operator()(const Module& m) {
+    bool isTransparent = (m.isPositiveZEnd() < 0);
+    return Palette::color(m.powerChainPlotColor(), isTransparent);
   }
 };
 

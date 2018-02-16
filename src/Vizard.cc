@@ -1261,7 +1261,7 @@ namespace insur {
   }
 
 
-  bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  bool Vizard::outerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     bool isPixelTracker = tracker.isPixelTracker();
 
     if (!isPixelTracker) {
@@ -1630,6 +1630,270 @@ namespace insur {
     }
     return true;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  bool Vizard::innerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    bool isPixelTracker = tracker.isPixelTracker();
+
+    if (isPixelTracker) {
+      std::string name = "Inner";
+
+      std::string pageTitle = "Cabling";
+      pageTitle += " (" + name + ")";
+      RootWPage* myPage = new RootWPage(pageTitle);
+
+      std::string pageAddress ="cabling" + name + ".html";
+      myPage->setAddress(pageAddress);
+
+      site.addPage(myPage);
+      RootWContent* myContent;
+
+      //********************************//
+      //*                              *//
+      //*       Plots                  *//
+      //*                              *//
+      //********************************//
+      RootWImage* myImage;
+
+      // Modules to PowerChains
+      TCanvas *RZPowerChainCanvas = nullptr;
+      TCanvas *XYPowerChainNegCanvas = nullptr;
+      TCanvas *XYPowerChainCanvas = nullptr;   
+      std::vector<TCanvas*> XYPosPowerChainsDisks;
+      std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
+   
+      myContent = new RootWContent("Modules to Serial Power Chains");
+      myPage->addContent(myContent);
+
+      createSummaryCanvasCablingPowerChainNicer(tracker, RZPowerChainCanvas, XYPowerChainCanvas, XYPowerChainNegCanvas, 
+					    XYPosPowerChainsDisks, XYPosPowerChainsDiskSurfaces);
+
+      if (RZPowerChainCanvas) {
+	myImage = new RootWImage(RZPowerChainCanvas, RZPowerChainCanvas->GetWindowWidth(), RZPowerChainCanvas->GetWindowHeight() );
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Serial Power Chains.");
+	myContent->addItem(myImage);
+      }
+      if (XYPowerChainNegCanvas) {
+	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYPowerChainCanvas) {
+	myImage = new RootWImage(XYPowerChainCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      // POSITIVE CABLING SIDE
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      RootWTable* positiveSideName = new RootWTable();
+      positiveSideName->setContent(0, 0, "Positive cabling side:");
+      myContent->addItem(positiveSideName);
+      for (const auto& XYPosDisk : XYPosPowerChainsDisks) {
+	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYPosDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
+	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYPosSurface->GetTitle());
+	  myContent->addItem(myImage);
+      }
+
+
+      // Modules to DTCs
+      /*
+      TCanvas *summaryDTCCanvas = nullptr;
+      TCanvas *RZDTCCanvas = nullptr;
+      TCanvas *XYDTCNegCanvas = nullptr;
+      TCanvas *XYDTCNegFlatCanvas = nullptr;
+      TCanvas *XYDTCCanvas = nullptr; 
+      TCanvas *XYDTCFlatCanvas = nullptr; 
+      std::vector<TCanvas*> XYDTCCanvasesDisk;
+       
+      myContent = new RootWContent("Modules to DTCs");
+      myPage->addContent(myContent);
+
+      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
+
+      if (RZDTCCanvas) {
+	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
+	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCNegCanvas) {
+	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCNegFlatCanvas) {
+	myImage = new RootWImage(XYDTCNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCCanvas) {
+	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCFlatCanvas) {
+	myImage = new RootWImage(XYDTCFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
+	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      */
+      
+
+
+
+      
+      const InnerCablingMap* myInnerCablingMap = tracker.getInnerCablingMap();
+
+      // CSV files
+      //RootWContent* filesContent = new RootWContent("Cabling files", true);
+      //myPage->addContent(filesContent);   
+      /*RootWTextFile* myTextFile;
+      // POSITIVE CABLING SIDE
+      bool isPositiveCablingSide = true;
+      filesContent->addItem(positiveSideName);
+      // Modules to DTCs
+      myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // DTCs to modules
+      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // PowerChains to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "PowerChains to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createPowerChainsToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+
+      // NEGATIVE CABLING SIDE
+      isPositiveCablingSide = false;
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      filesContent->addItem(spacer);
+      filesContent->addItem(negativeSideName);
+      // Modules to DTCs
+      myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // DTCs to modules
+      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      */
+
+
+      // Cabling efficiency
+      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one Z end)", true);
+      myPage->addContent(efficiencyContent);
+      RootWInfo* myInfo = nullptr;
+      // Links
+      myInfo = new RootWInfo("Total number of sensors (one Z end)");
+      int numSensors = tracker.modules().size() / 2;
+      myInfo->setValue(numSensors);
+      efficiencyContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of serial power chains (one Z end)");
+      int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2;
+      myInfo->setValue(numPowerChains);
+      efficiencyContent->addItem(myInfo);
+      // PowerChains efficiency
+      myInfo = new RootWInfo("Serial power chains efficiency (%)");
+      double powerChainEfficiency = numSensors / (numPowerChains * 10.);
+      myInfo->setValue(powerChainEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Cables
+      /*
+      myInfo = new RootWInfo("Total number of fiber cables (one Z end)");
+      int numCables = myCablingMap->getCables().size();
+      myInfo->setValue(numCables);
+      efficiencyContent->addItem(myInfo);
+      // Cables efficiency
+      myInfo = new RootWInfo("Fiber cables efficiency (%)");
+      double cableEfficiency = numBundles / (numCables * 6.);
+      myInfo->setValue(cableEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Overall efficiency
+      myInfo = new RootWInfo("Overall cabling efficiency (%)");
+      double overallEfficiency = cableEfficiency * bundleEfficiency;
+      myInfo->setValue(overallEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      */
+
+
+      // Distinct DTCs 2D map
+      /*
+      RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
+      myPage->addContent(dtcMapContent);
+      
+      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      hitMapDTCCanvas->cd();
+      hitMapDTCCanvas->SetFillColor(color_plot_background);
+      hitMapDTCCanvas->SetBorderMode(0);
+      hitMapDTCCanvas->SetBorderSize(0);
+      analyzer.getMapPhiEtaDTC().Draw("colz");
+      analyzer.getMapPhiEtaDTC().SetStats(0);
+      hitMapDTCCanvas->Modified();
+      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Number of distinct DTCs per track");
+      dtcMapContent->addItem(myImage);
+      */
+
+    
+
+      
+    }
+    return true;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   /* Interface to gather information on services channels, and create a table storing it.
@@ -7271,6 +7535,133 @@ namespace insur {
       }
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
+						     TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+						     std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
+    
+    double scaleFactor = tracker.maxR()/600;
+
+    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZFull, TypePowerChainTransparentColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+
+    const bool isRotatedY180 = false;
+   
+    // NEGATIVE CABLING SIDE. BARREL.
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypePowerChainColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawFrameOfReference(isRotatedY180);
+
+    // POSITIVE CABLING SIDE. BARREL.
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypePowerChainColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    drawFrameOfReference(isRotatedY180);
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer;
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	drawFrameOfReference(isRotatedY180);
+	XYPosPowerChainsDisks.push_back(XYCanvasDisk);
+      }
+    }
+
+    // ENDCAPS DISK SURFACE.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();	
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {  
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    if ((surfaceIndex % 2) == 1) {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XYRotateY180, TypePowerChainColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      const bool isRotatedY180 = true;
+	      drawFrameOfReference(isRotatedY180);
+	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	    // (+Z) towards you
+	    else {
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer;
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      const bool isRotatedY180 = false;
+	      drawFrameOfReference(isRotatedY180);
+	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
+	}
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   /*

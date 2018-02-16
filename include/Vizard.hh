@@ -44,6 +44,7 @@
 // Custom objects
 #include <Tracker.hh>
 #include "Cabling/CablingMap.hh"
+#include "ITCabling/InnerCablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
 
@@ -120,7 +121,8 @@ namespace insur {
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
-    bool cablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool outerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool innerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -182,6 +184,9 @@ namespace insur {
     RootWTable* powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots);
     void analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+
+    void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
+					       std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,

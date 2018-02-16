@@ -520,14 +520,34 @@ namespace insur {
 
 
   /**
-   * Add the optical cabling map to the website.
+   * Add the Outer Tracker optical cabling map to the website.
    */
-  bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
-    startTaskClock("Creating optical Cabling map report.");
+  bool Squid::reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating OT Cabling map report.");
     if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT614 only.");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
-      v.cablingSummary(a, *tr, site);
+      v.outerCablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+  /**
+   * Add the Outer Tracker optical cabling map to the website.
+   */
+  bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating IT Cabling map report.");
+    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT404 only.");
+    if (px) {
+      // CREATE REPORT ON WEBSITE.
+      v.innerCablingSummary(pixelAnalyzer, *px, site);
       stopTaskClock();
       return true;
     }

@@ -97,7 +97,8 @@ namespace insur {
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool reportCablingMapSite(const bool cablingOption, const std::string layoutName);
+    bool reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName);
+    bool reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
     bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
