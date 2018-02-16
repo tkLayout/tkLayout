@@ -5,7 +5,7 @@
 #include "global_funcs.hh"
 #include "ITCabling/inner_cabling_functions.hh"
 //#include "ITCabling/InnerPhiPosition.hh"
-//#include "ITCabling/DTC.hh"
+#include "ITCabling/HvLine.hh"
 
 
 /* This class is used to CONNECT MODULES TO BUNDLES.
@@ -16,7 +16,7 @@
 */
 class ModulesToPowerChainsConnector : public GeometryVisitor {
 public:
-  std::map<int, Bundle*> getPowerChains() { return powerChains_; }
+  std::map<int, PowerChain*> getPowerChains() { return powerChains_; }
   //std::map<int, Bundle*> getNegPowerChains() { return negPowerChains_; }  // negative cabling side
 
   void visit(Barrel& b);

@@ -5,16 +5,16 @@
 InnerCablingMap::InnerCablingMap(Tracker* tracker) {
   try {
     // CONNECT MODULES TO SERIAL POWER CHAINS
-    connectModulesToSerialPowerChains(tracker);
+    connectModulesToPowerChains(tracker);
 
     // CONNECT MODULES TO E-LINKS AND LPGBTS
-    connectModulesToElinks(tracker);
+    //connectModulesToElinks(tracker);
     
     // CONNECT LPGBTS TO BUNDLES
-    connectGBTsToBundles(tracker);
+    //connectGBTsToBundles(tracker);
 
     // CONNECT BUNDLES TO CABLES
-    connectBundlesToCables(bundles_, cables_, DTCs_);
+    //connectBundlesToCables(bundles_, cables_, DTCs_);
     //connectBundlesToCables(negBundles_, negCables_, negDTCs_);
 
     // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
@@ -27,7 +27,7 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
 
 /* MODULES TO SERIAL POWER CHAINS CONNECTIONS.
  */
-void InnerCablingMap::connectModulesToSerialPowerChains(Tracker* tracker) {
+void InnerCablingMap::connectModulesToPowerChains(Tracker* tracker) {
   ModulesToPowerChainsConnector powerChainsBuilder;
   tracker->accept(powerChainsBuilder);
   powerChainsBuilder.postVisit();
@@ -36,8 +36,11 @@ void InnerCablingMap::connectModulesToSerialPowerChains(Tracker* tracker) {
 }
 
 
+
+
 /* BUNDLES TO CABLES CONNECTIONS.
  */
+/*
 void InnerCablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
   for (auto& b : bundles) {
@@ -63,22 +66,24 @@ void InnerCablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, st
   // CHECK CABLES
   checkBundlesToCablesCabling(cables);
 }
-
+*/
 
 /* Compute cabling type associated to cable.
  */
+/*
 const Category InnerCablingMap::computeCableType(const Category& bundleType) const {
  Category cableType = bundleType;
  if (bundleType == Category::PS10GA || bundleType == Category::PS10GB) cableType = Category::PS10G;
  return cableType;
 }
-
+*/
 
 /* Compute phiSectorRef and slot.
  * Per phiSector, there are several DTCS.
  * 1 slot = 1 DTC.
  * A staggering of bundles is done on the fly, when the number of bundles per cable is too high.
  */
+/*
 const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, Bundle*>& bundles) const {
   std::map<int, std::pair<int, int> > cablesPhiSectorRefAndSlot;
 
@@ -240,11 +245,13 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 
   return cablesPhiSectorRefAndSlot;
 }
+*/
 
 
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
+/*
 void InnerCablingMap::createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
@@ -260,10 +267,12 @@ void InnerCablingMap::createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int
     connectOneBundleToOneCable(myBundle, found->second);
   }
 }
+*/
 
 
 /* Compute cabling type associated to a cable.
  */
+/*
 const int InnerCablingMap::computeCableTypeIndex(const Category& cableType) const {
   int cableTypeIndex;
   if (cableType == Category::PS10G) cableTypeIndex = 0;
@@ -272,27 +281,33 @@ const int InnerCablingMap::computeCableTypeIndex(const Category& cableType) cons
   return cableTypeIndex;
 }
 
+*/
 
 /* Compute Id associated to a cable.
  */
+/*
 const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const {
   int cablingSideIndex = (isPositiveCablingSide ? 0 : 1);
 
   const int cableId = cablingSideIndex * 1000 + cablePhiSectorRef * 100 + cableTypeIndex * 10 + slot;
   return cableId;
 }
+*/
 
 
 /* Connect bundle to cable and vice-versa.
  */
+/*
 void InnerCablingMap::connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const {
   cable->addBundle(bundle);
   bundle->setCable(cable);
 }
+*/
 
 
 /* Check bundles-cables connections.
  */
+/*
 void InnerCablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
   for (auto& c : cables) {
 
@@ -317,6 +332,7 @@ void InnerCablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables)
 
   }
 }
+*/
 
 
 /* BUNDLES TO POWER SERVICE CHANNELS CONNECTIONS.
@@ -333,6 +349,7 @@ void InnerCablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables)
  * Indeed, the power channel mapping is done so that all modules connected to the same DTC, 
  * have their power cables routed through 2 consecutive channels sections at most.
  */
+/*
 void InnerCablingMap::computePowerServicesChannels() {
   for (bool isPositiveCablingSide : { true, false }) {
 
@@ -350,6 +367,7 @@ void InnerCablingMap::computePowerServicesChannels() {
     checkBundlesToPowerServicesChannels(bundles);
   }
 }
+*/
 
 
 /* Barrel only: in view of the power channel assignment, split each nonant into 2 semi-nonants.
@@ -362,6 +380,7 @@ void InnerCablingMap::computePowerServicesChannels() {
    This is what is done here: the semi-nonant Phi boundaries are defined
    so that ALL NONANTS AND SEMI-NONANTS PHI BOUNDARIES ARE INVARIANT BY ROTATION OF 180° AROUND CMS_Y.
  */
+/*
 void InnerCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveInnerCablingSide) {
   std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
   const std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
@@ -463,10 +482,12 @@ void InnerCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
   }
 
 }
+*/
 
 
 /* Check services channels sections containing power cables.
  */
+/*
 void InnerCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, Bundle*>& bundles) {
   std::map<std::pair<const int, const ChannelSlot>, int > channels;
 
@@ -509,4 +530,4 @@ void InnerCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, Bu
     }
   }
 }
-
+*/
