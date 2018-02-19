@@ -3,7 +3,6 @@
 
 
 void ModulesToPowerChainsConnector::visit(Barrel& b) {
-  //isBarrel_ = true;
   barrelName_ = b.myid();	
 }
 
@@ -46,7 +45,6 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
 
 
 void ModulesToPowerChainsConnector::visit(Endcap& e) {
-  //isBarrel_ = false;
   endcapName_ = e.myid();
 }
 
@@ -154,7 +152,6 @@ const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const
   const int numModulesInRingEnd = numModulesInRing / 2;
   const int numModulesInRingQuarter = numModulesInRingEnd / 2;
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
-    std::cout << "Endcap" << std::endl;
     const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRingEnd, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
     if (phiUnitRef <= (numModulesInPowerChain - 1) ) { phiRef = 0; } // phiUnitRef starts numbering from 0

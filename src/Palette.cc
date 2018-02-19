@@ -230,6 +230,71 @@ Color_t Palette::colorChannel(const int& colorIndex, bool isTransparentActivated
 }
 
 
+/* This allows to have one color for each serial power chain.
+ */
+Color_t Palette::colorScrabble(const int& colorIndex, bool isTransparent) {
+
+  const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
+  const int shift = (colorIndex - 1) / 12;      // dizain digit (in a numbering of base 12)
+  
+  short paletteIndex;
+
+  if (colorIndex == 0) paletteIndex = 1;
+
+  else {
+    switch (zone) {
+    case 1 :
+      paletteIndex=kAzure + 1;
+      break;
+    case 2 :
+      paletteIndex= kGray + 1;
+      break;
+    case 3 :
+      paletteIndex= kCyan;
+      break;
+    case 4 :
+      paletteIndex= kOrange;
+      break;
+    case 5 :
+      paletteIndex=kOrange - 3;
+      break;
+    case 6 :
+      paletteIndex=kGreen + 2;
+      break;
+    case 7 :
+      paletteIndex=kViolet - 6;
+      break;
+    case 8 :
+      paletteIndex=kOrange - 7;
+      break;
+    case 9 :
+      paletteIndex=kRed;
+      break;
+    case 10 :
+      paletteIndex=kBlue + 1;
+      break;
+    case 11 :
+      paletteIndex=kMagenta;
+      break;
+    case 0 :
+      paletteIndex=kSpring;
+      break;
+    default :
+      std::cerr << "ERROR: modulo 12" << std::endl;
+      paletteIndex=kWhite;
+      break;
+    }
+
+    paletteIndex -= shift;
+    if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+  }
+ 
+  return paletteIndex;
+}
+
+
+
+
 // TO DO : Why the hell is TColor::GetColorTransparent not recognized as a method of TColor ?? 
 // Temporary : use this instead.  
 Int_t Palette::GetColorTransparent(Int_t colorIndex, Float_t ratio) {

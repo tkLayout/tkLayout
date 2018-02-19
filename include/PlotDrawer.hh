@@ -143,14 +143,14 @@ struct TypePowerChannelColor { // Module-maintained channel color
 // IT CABLING
 struct TypePowerChainColor { // Module-maintained PowerChain color
   double operator()(const Module& m) {
-    return Palette::colorDTC(m.powerChainPlotColor());
+    return Palette::colorScrabble(m.powerChainPlotColor());
   }
 };
 
 struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
   double operator()(const Module& m) {
     bool isTransparent = (!m.isPositiveXSide());
-    return Palette::colorDTC(m.powerChainPlotColor(), isTransparent);
+    return Palette::colorScrabble(m.powerChainPlotColor(), isTransparent);
   }
 };
 
