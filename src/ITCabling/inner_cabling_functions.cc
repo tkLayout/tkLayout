@@ -3,48 +3,51 @@
 
 namespace inner_cabling_functions {
 
-  //const int computePhiUnitRef(const double phi, const double phiUnitStart, const double phiUnitWidth) {
-  const int computePhiUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd) {
-    const int phiSubUnitRef = computePhiSubUnitRef(phi, numPhiSubUnits, isPositiveZEnd);
-
-    // TO DO: should be simplified
-    const double phiUnitRefExact = phiSubUnitRef / 2.;
-    int phiUnitRef = 0;
-    if (fabs(phiUnitRefExact - round(phiUnitRefExact)) < inner_cabling_roundingTolerance) phiUnitRef = fabs(round(phiUnitRefExact));
-    else phiUnitRef = std::floor(phiUnitRefExact);
-    return phiUnitRef;
-  }
-
-
   /* Compute the int n for which we have: phi ~= (n * phiSubUnitWidth + phiSubUnitStart).
    * n = 0 for the module with the lowest Phi > -Pi/2.
    * n = 0 for the module with the lowest Phi > Pi/2.
    */
-  //const int computePhiSubUnitRef(const double phi, const double phiSubUnitStart, const double phiSubUnitWidth) {
-  const int computePhiSubUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd) {
+  //const int computePhiUnitRef(const double phi, const double phiUnitStart, const double phiUnitWidth) {
+  const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd) {
 
     const double stereoPhi = computeStereoPhi(phi, isPositiveZEnd);
+    const double projectedPhi = femod(stereoPhi + M_PI / 2., M_PI);
 
-    const double phiSubUnitWidth = computePhiSubUnitWidth(numPhiSubUnits);
-    const double phiSubUnitStart = computePhiSubUnitStart(stereoPhi, phiSubUnitWidth);
+    const double phiUnitWidth = computePhiUnitWidth(numPhiUnits);
+    const double phiUnitStart = computePhiUnitStart(projectedPhi, phiUnitWidth);
 
-    const double phiRelative = femod(stereoPhi - phiSubUnitStart + M_PI / 2., M_PI);
-    const int phiSubUnitRef = round( phiRelative / phiSubUnitWidth );
-    return phiSubUnitRef;
+    const double phiRelative = femod(projectedPhi - phiUnitStart, M_PI);
+    //const int phiUnitRef = round( phiRelative / phiUnitWidth );
+
+    int phiUnitRef = 0;
+    const double phiUnitRefExact = phiRelative / phiUnitWidth;
+
+    // In case phiUnitRefExact is an integer, round it to an int!
+    if (fabs((phiUnitRefExact - round(phiUnitRefExact))) < inner_cabling_roundingTolerance) phiUnitRef = fabs(round(phiUnitRefExact));
+    else phiUnitRef = std::floor(phiUnitRefExact);
+
+    /*std::cout << "phi = " << phi * 180. / M_PI << std::endl;
+    std::cout << "stereoPhi = " << stereoPhi * 180. / M_PI << std::endl;
+    std::cout << "phiUnitWidth = " << phiUnitWidth * 180. / M_PI << std::endl;
+    std::cout << "phiUnitStart = " << phiUnitStart * 180. / M_PI  << std::endl;
+    std::cout << "phiUnitRefExact = " << phiUnitRefExact << std::endl;
+    std::cout << "phiUnitRef = " << phiUnitRef << std::endl;*/
+
+    return phiUnitRef;
   }
 
 
-  /* Compute the offset in Phi with respect to PhiSubUnitWidth.
+  /* Compute the offset in Phi with respect to PhiUnitWidth.
    */
-  const double computePhiSubUnitStart(const double phi, const double phiSubUnitWidth) {
-    double phiSubUnitStart = femod(phi, phiSubUnitWidth);
-    return phiSubUnitStart;
+  const double computePhiUnitStart(const double phi, const double phiUnitWidth) {
+    double phiUnitStart = femod(phi, phiUnitWidth);
+    return phiUnitStart;
   }
 
 
-  const double computePhiSubUnitWidth(const int numPhiSubUnits) {
-    const double phiSubUnitWidth = (2.*M_PI) / numPhiSubUnits;
-    return phiSubUnitWidth;
+  const double computePhiUnitWidth(const int numPhiUnits) {
+    const double phiUnitWidth = (2.*M_PI) / numPhiUnits;
+    return phiUnitWidth;
   }
 
 

@@ -30,9 +30,12 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const double modCenterX = m.center().X();
   const bool isPositiveXSide = computeXSide(modCenterX);
 
-  const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, numRods_, isPositiveXSide);
+  const int halfNumRods = numRods_ / 2;
+  const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, halfNumRods, isPositiveXSide);
 
-  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd);
+  std::cout << "Barrel" << std::endl;
+  std::cout << "layerNumber_ = " << layerNumber_ << std::endl;
+  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
   // PHIPOSITION.
   //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
 
@@ -146,14 +149,16 @@ const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const d
 
 
 const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
-  int phiRef = 1;
+  int phiRef = 0;
 
-  const int numModulesInRingQuarter = numModulesInRing / 4;
+  const int numModulesInRingEnd = numModulesInRing / 2;
+  const int numModulesInRingQuarter = numModulesInRingEnd / 2;
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
-    const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRing, isPositiveZEnd);
+    std::cout << "Endcap" << std::endl;
+    const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRingEnd, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
-    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { phiRef = 1; } // phiUnitRef starts numbering from 0
-    else { phiRef = 2; }
+    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { phiRef = 0; } // phiUnitRef starts numbering from 0
+    else { phiRef = 1; }
   }
   return phiRef;
 }

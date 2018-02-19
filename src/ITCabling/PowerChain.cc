@@ -98,7 +98,8 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
 
   if (isBarrel) {
     const int plotZEnd = (isPositiveZEnd ? 0 : 1);
-    plotColor = plotZEnd * 2 + plotPhi + 8;
+    //plotColor = plotZEnd * 2 + plotPhi + 8;
+    plotColor = plotZEnd * 2 + plotPhi + 1;
   }
   else {
     //const int plotXSide = (isPositiveXSide ? 0 : 1);

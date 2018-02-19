@@ -9,10 +9,9 @@
 
 namespace inner_cabling_functions {
 
-  const int computePhiUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
-  const int computePhiSubUnitRef(const double phi, const int numPhiSubUnits, const bool isPositiveZEnd);
-  const double computePhiSubUnitStart(const double phi, const double phiSubUnitWidth);
-  const double computePhiSubUnitWidth(const int numPhiSubUnits);
+  const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd);
+  const double computePhiUnitStart(const double phi, const double phiUnitWidth);
+  const double computePhiUnitWidth(const int numPhiUnits);
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
 
   const bool isBarrel(const std::string subDetectorName);
