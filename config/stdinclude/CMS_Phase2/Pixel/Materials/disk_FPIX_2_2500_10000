@@ -1,131 +1,139 @@
 // Pixel endcap disks material
-// Small disks (108 modules)
-// 2500 um^2 pixels everywhere
+// Large disks (220 modules)
+// 2.41 times bigger than small disk
+// 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
-Materials FPIX_disk {
+Materials FPIX_2_disk_2500_10000 {
   type layer
 
   // Cooling for the module
-  // Average on disk
+  // Average on disk (scales on surface)
   Component {
     componentName Cooling
     service false
     scaleOnSensor 0
     Element {
       elementName Ti
-      quantity 10.21
+      quantity 24.94
       unit g
     }
     Element {
       elementName CO2
-      quantity 9.69
+      quantity 23.66
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 8 pipes per disk
+  // 16 pipes per disk
   Component {
     componentName "Cooling"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Ti
-      quantity 0.0266
+      quantity 0.0532
       unit g/m
     }
     Element {
       elementName FPIX_CO2
-      quantity 0.026
+      quantity 0.052
       unit g/m
     }
   }
 
   // Power for the module
   // Average on disk
+  // Rescaled on surface *2.41
+  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
     componentName "Power wires"
     service false
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 13.31
+      quantity 6.96
       unit g
     }
     Element {
       elementName Cu
-      quantity 2.05
+      quantity 2.48
       unit g
     }
     Element {
       elementName PE
-      quantity 4.49
+      quantity 4.45
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk
+  // 24 chains per disk
+  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
     componentName "Power wires"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.0954
+      quantity 0.037
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0143
+      quantity 0.013
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0317
+      quantity 0.023
       unit g/m
     }
   }
 
-  // HV power wires
-  // Power for the module
+// HV power wires
+// Power for the module
+// Rescaled on surface *2.41
+// Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
     componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 1.46
+      quantity 3.34
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.52
+      quantity 1.19
       unit g
     }
     Element {
       elementName PE
-      quantity 5.24
+      quantity 12.01
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk, 2 wires per chain
+  // 24 chains per disk
+  // Proportional to PP0-SEH-HV (700067231 Rev 01)
+
   Component {
     componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.0064
+      quantity 0.0110
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0023
+      quantity 0.0039
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0231
+      quantity 0.0396
       unit g/m
     }
   }

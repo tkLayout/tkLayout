@@ -1,0 +1,27 @@
+// 2x2 chips pixel module (100um x 100um)
+// Chip size 16.4x22
+moduleType pixel_2_2x2_100x100  // pixel modules should always have a type starting with keyword 'pixel_'
+
+// Active silicon size
+// (includes space between chips 0.2mm)
+width 33
+length 44.2
+
+numSensors 1
+
+powerPerModule 0 // mW
+
+sensorThickness 0.150
+hybridThickness 0.5
+chipThickness 0.5
+
+Sensor 1 {
+  sensorType pixel
+  pitchEstimate 0.100
+  stripLengthEstimate 0.100
+  numROCX 2 
+  numROCY 2
+  powerPerChannel 0.0 // mW
+}
+
+plotColor 7  // dark green
