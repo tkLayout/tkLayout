@@ -1684,15 +1684,19 @@ namespace insur {
       myContent = new RootWContent("Modules to Serial Power Chains");
       myPage->addContent(myContent);
 
+      RootWTable* barrelName = new RootWTable();
+      barrelName->setContent(0, 0, "BPIX");
+      myContent->addItem(barrelName);
+
       createSummaryCanvasCablingPowerChainNicer(tracker, RZPowerChainCanvas, 
 						XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
 						XYPosPowerChainsDisks, XYPosPowerChainsDiskSurfaces);
 
-      if (RZPowerChainCanvas) {
+      /*if (RZPowerChainCanvas) {
 	myImage = new RootWImage(RZPowerChainCanvas, RZPowerChainCanvas->GetWindowWidth(), RZPowerChainCanvas->GetWindowHeight() );
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Serial Power Chains.");
 	myContent->addItem(myImage);
-      }
+	}*/
       if (XYPowerChainNegCanvas) {
 	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards the depth of the screen)");
@@ -1711,14 +1715,14 @@ namespace insur {
       // POSITIVE CABLING SIDE
       myContent = new RootWContent("");
       myPage->addContent(myContent);
-      RootWTable* positiveSideName = new RootWTable();
-      positiveSideName->setContent(0, 0, "Positive cabling side:");
-      myContent->addItem(positiveSideName);
-      for (const auto& XYPosDisk : XYPosPowerChainsDisks) {
+      RootWTable* forwardName = new RootWTable();
+      forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
+      myContent->addItem(forwardName);
+      /*for (const auto& XYPosDisk : XYPosPowerChainsDisks) {
 	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYPosDisk->GetTitle());
 	  myContent->addItem(myImage);
-      }
+	  }*/
       for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
 	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYPosSurface->GetTitle());
@@ -7557,10 +7561,10 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
     const double forwardScalingFactor = scalingFactors.second;
        
     // NEGATIVE CABLING SIDE. BARREL.
-    bool isRotatedY180 = true;
+    bool isRotatedY180 = false;
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
-    PlotDrawer<XYNegRotateY180, TypePowerChainColor> xyNegBarrelDrawer;
+    PlotDrawer<XYNeg, TypePowerChainTransparentColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
@@ -7570,7 +7574,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
     isRotatedY180 = false;
     XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCentralCanvas->cd();
-    PlotDrawer<XY, TypePowerChainColor> xyCentralBarrelDrawer;
+    PlotDrawer<XY, TypePowerChainTransparentColor> xyCentralBarrelDrawer;
     xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
     xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas);
     xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
@@ -7580,7 +7584,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
     isRotatedY180 = false;
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
-    PlotDrawer<XY, TypePowerChainColor> xyBarrelDrawer;
+    PlotDrawer<XY, TypePowerChainTransparentColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
@@ -7596,7 +7600,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
@@ -7621,7 +7625,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      PlotDrawer<XYRotateY180, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
@@ -7636,7 +7640,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);

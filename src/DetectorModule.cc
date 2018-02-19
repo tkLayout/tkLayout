@@ -730,6 +730,16 @@ const int DetectorModule::isPositiveZEnd() const {
 }
 
 
+const bool DetectorModule::isPositiveXSide() const {
+  bool isPositiveXSide;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveXSide = myPowerChain->isPositiveXSide();
+  }
+  return isPositiveXSide;
+}
+
+
 const int DetectorModule::powerChainPlotColor() const {
   int powerChainPlotColor = 0;
   const PowerChain* myPowerChain = getPowerChain();

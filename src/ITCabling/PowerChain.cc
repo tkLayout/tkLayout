@@ -17,7 +17,7 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
 
   powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
 
-  plotColor_ = computePlotColor(isPositiveXSide, phiRef, ringQuarterIndex);
+  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, isPositiveXSide, phiRef, ringQuarterIndex);
 
   // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
   buildHvLine(powerChainId);
@@ -91,14 +91,21 @@ const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, cons
 
 
 
-const int PowerChain::computePlotColor(const bool isPositiveXSide, const int phiRef, const int ringQuarterIndex) const {
+const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const bool isPositiveXSide, const int phiRef, const int ringQuarterIndex) const {
   int plotColor = 0;
 
-  const int plotXSide = (isPositiveXSide ? 0 : 1);
-  const int plotQuarterRing = ringQuarterIndex % 4;
-  const int plotPhi = phiRef % 2;
+  const int plotPhi = femod(phiRef, 2);
 
-  plotColor = plotQuarterRing * 2 + plotPhi + 4 * plotXSide;
+  if (isBarrel) {
+    const int plotZEnd = (isPositiveZEnd ? 0 : 1);
+    plotColor = plotZEnd * 2 + plotPhi + 8;
+  }
+  else {
+    //const int plotXSide = (isPositiveXSide ? 0 : 1);
+    const int plotRingQuarter = femod(ringQuarterIndex, 6);
+    plotColor = plotRingQuarter * 2 + plotPhi + 1;
+  }
+
   return plotColor;
 }
 

@@ -394,6 +394,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   void setPowerChain(PowerChain* powerChain) { powerChain_ = powerChain ; }
   const PowerChain* getPowerChain() const { return powerChain_; }
   const int isPositiveZEnd() const;
+  const bool isPositiveXSide() const;
   const int powerChainPlotColor() const;
   void setHvLine(HvLine* hvLine) { hvLine_ = hvLine ; }
   const HvLine* getHvLine() const { return hvLine_; }

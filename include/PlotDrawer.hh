@@ -149,7 +149,7 @@ struct TypePowerChainColor { // Module-maintained PowerChain color
 
 struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
   double operator()(const Module& m) {
-    bool isTransparent = (m.isPositiveZEnd() < 0);
+    bool isTransparent = (!m.isPositiveXSide());
     return Palette::color(m.powerChainPlotColor(), isTransparent);
   }
 };
