@@ -1676,6 +1676,7 @@ namespace insur {
       // Modules to PowerChains
       TCanvas *RZPowerChainCanvas = nullptr;
       TCanvas *XYPowerChainNegCanvas = nullptr;
+      TCanvas *XYPowerChainCentralCanvas = nullptr;
       TCanvas *XYPowerChainCanvas = nullptr;   
       std::vector<TCanvas*> XYPosPowerChainsDisks;
       std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
@@ -1683,8 +1684,9 @@ namespace insur {
       myContent = new RootWContent("Modules to Serial Power Chains");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingPowerChainNicer(tracker, RZPowerChainCanvas, XYPowerChainCanvas, XYPowerChainNegCanvas, 
-					    XYPosPowerChainsDisks, XYPosPowerChainsDiskSurfaces);
+      createSummaryCanvasCablingPowerChainNicer(tracker, RZPowerChainCanvas, 
+						XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
+						XYPosPowerChainsDisks, XYPosPowerChainsDiskSurfaces);
 
       if (RZPowerChainCanvas) {
 	myImage = new RootWImage(RZPowerChainCanvas, RZPowerChainCanvas->GetWindowWidth(), RZPowerChainCanvas->GetWindowHeight() );
@@ -1693,12 +1695,17 @@ namespace insur {
       }
       if (XYPowerChainNegCanvas) {
 	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards the depth of the screen)");
+	myContent->addItem(myImage);
+      }
+      if (XYPowerChainCentralCanvas) {
+	myImage = new RootWImage(XYPowerChainCentralCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, sensors at Z = 0 only. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYPowerChainCanvas) {
 	myImage = new RootWImage(XYPowerChainCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       // POSITIVE CABLING SIDE
@@ -1817,17 +1824,17 @@ namespace insur {
       RootWInfo* myInfo = nullptr;
       // Links
       myInfo = new RootWInfo("Total number of sensors (one Z end)");
-      int numSensors = tracker.modules().size() / 2;
+      const int numSensors = tracker.modules().size() / 2;
       myInfo->setValue(numSensors);
       efficiencyContent->addItem(myInfo);
       // PowerChains
       myInfo = new RootWInfo("Total number of serial power chains (one Z end)");
-      int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2;
+      const int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2;
       myInfo->setValue(numPowerChains);
       efficiencyContent->addItem(myInfo);
       // PowerChains efficiency
       myInfo = new RootWInfo("Serial power chains efficiency (%)");
-      double powerChainEfficiency = numSensors / (numPowerChains * 10.);
+      const double powerChainEfficiency = numSensors / (numPowerChains * 10.);
       myInfo->setValue(powerChainEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Cables
@@ -7061,12 +7068,7 @@ namespace insur {
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         std::vector<TCanvas*> &XYCanvasesEC) {
 
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModules(tracker);
@@ -7135,19 +7137,12 @@ namespace insur {
 						     std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
 						     std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
     
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
    
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7300,13 +7295,9 @@ namespace insur {
 						  TCanvas *&RZCanvas, 
 						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 						  std::vector<TCanvas*> &XYCanvasesDisk) {
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
@@ -7314,8 +7305,6 @@ namespace insur {
       } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7549,57 +7538,69 @@ namespace insur {
 
 
 void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
-						     TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+						     TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
 						     std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
-    
-    double scaleFactor = tracker.maxR()/600;
 
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypePowerChainTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
 
-    const bool isRotatedY180 = false;
-   
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+       
     // NEGATIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = true;
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
-    PlotDrawer<XYNeg, TypePowerChainColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
+    PlotDrawer<XYNegRotateY180, TypePowerChainColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawFrameOfReference(isRotatedY180);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES.
+    isRotatedY180 = false;
+    XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCentralCanvas->cd();
+    PlotDrawer<XY, TypePowerChainColor> xyCentralBarrelDrawer;
+    xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
+    xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas);
+    xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE. BARREL.
+    isRotatedY180 = false;
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, TypePowerChainColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawFrameOfReference(isRotatedY180);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE.
     // ENDCAPS DISK.
+    isRotatedY180 = false;
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
 	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer;
+	PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	drawFrameOfReference(isRotatedY180);
+	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	XYPosPowerChainsDisks.push_back(XYCanvasDisk);
       }
     }
@@ -7614,32 +7615,32 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 	  if (found != allSurfaceModules.end()) {  
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    if ((surfaceIndex % 2) == 1) {
+	      isRotatedY180 = true;;
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypePowerChainColor> xyDiskDrawer;
+	      PlotDrawer<XYRotateY180, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	      const bool isRotatedY180 = true;
-	      drawFrameOfReference(isRotatedY180);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	    // (+Z) towards you
 	    else {
+	      isRotatedY180 = false;
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer;
+	      PlotDrawer<XY, TypePowerChainColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	      const bool isRotatedY180 = false;
-	      drawFrameOfReference(isRotatedY180);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	  }
@@ -8093,10 +8094,11 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
   /*
    *  Draw frame of reference reminder.
    */
-  void Vizard::drawFrameOfReference(const bool isRotatedY180) {
-    const double arrowMin = 900;
-    const double arrowMax = 1100;
-    const double circleZRadius = 50;
+  void Vizard::drawFrameOfReference(const bool isRotatedY180, const double scalingFactor) {
+
+    const double arrowMin = 900 * scalingFactor;
+    const double arrowMax = 1100 * scalingFactor;
+    const double circleZRadius = 50 * scalingFactor;
     const double arrowWidth = 0.02;
     const double textSize = 0.025;
     
@@ -8104,30 +8106,30 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
     if (!isRotatedY180) {
       TArrow* arrowX = new TArrow(arrowMin, arrowMin, arrowMax, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      const double textXAbs = 1000;
-      const double textXOrd = 820;
+      const double textXAbs = 1000 * scalingFactor;
+      const double textXOrd = 820 * scalingFactor;
       TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
       textX->SetTextSize(textSize);
       textX->Draw("same");
 
       TArrow* arrowY = new TArrow(arrowMin, arrowMin, arrowMin, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      const double textYAbs = 820;
-      const double textYOrd = 1000;
+      const double textYAbs = 820 * scalingFactor;
+      const double textYOrd = 1000 * scalingFactor;
       TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
       textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      const double circleZCentre = 1050;
-      const double pointZRadius = 10;
+      const double circleZCentre = 1050 * scalingFactor;
+      const double pointZRadius = 10 * scalingFactor;
       TEllipse* circleZ = new TEllipse(circleZCentre, circleZCentre, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
       TEllipse* pointZ = new TEllipse(circleZCentre, circleZCentre, pointZRadius, pointZRadius);
       pointZ->SetFillColor(kBlack);
       pointZ->Draw("same");
-      const double textZAbs = 1030;
-      const double textZOrd = 1110;
+      const double textZAbs = 1030 * scalingFactor;
+      const double textZOrd = 1110 * scalingFactor;
       TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
       textZ->SetTextSize(textSize);
       textZ->Draw("same");
@@ -8137,41 +8139,68 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
     else {
       TArrow* arrowX = new TArrow(arrowMax, arrowMin, arrowMin, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      const double textXAbs = 950;
-      const double textXOrd = 820;
+      const double textXAbs = 950 * scalingFactor;
+      const double textXOrd = 820 * scalingFactor;
       TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
       textX->SetTextSize(textSize);
       textX->Draw("same");
 
       TArrow* arrowY = new TArrow(arrowMax, arrowMin, arrowMax, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      const double textYAbs = 1020;
-      const double textYOrd = 1000;
+      const double textYAbs = 1020 * scalingFactor;
+      const double textYOrd = 1000 * scalingFactor;
       TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
       textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      const double circleZCentreAbs = 850;
-      const double circleZCentreOrd = 1050;
+      const double circleZCentreAbs = 850 * scalingFactor;
+      const double circleZCentreOrd = 1050 * scalingFactor;
       TEllipse* circleZ = new TEllipse(circleZCentreAbs, circleZCentreOrd, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
-      const double crossMinAbs = 815;
-      const double crossMaxAbs = 885;
-      const double crossMinOrd = 1015;
-      const double crossMaxOrd = 1085;
+      const double crossMinAbs = 815 * scalingFactor;
+      const double crossMaxAbs = 885 * scalingFactor;
+      const double crossMinOrd = 1015 * scalingFactor;
+      const double crossMaxOrd = 1085 * scalingFactor;
       TLine* lineU = new TLine(crossMinAbs, crossMinOrd, crossMaxAbs, crossMaxOrd);
       lineU->SetLineWidth(2);
       lineU->Draw("same");
       TLine* lineD = new TLine(crossMinAbs, crossMaxOrd, crossMaxAbs, crossMinOrd);
       lineD->SetLineWidth(2);
       lineD->Draw("same");
-      const double textZAbs = 830;
-      const double textZOrd = 1110;
+      const double textZAbs = 830 * scalingFactor;
+      const double textZOrd = 1110 * scalingFactor;
       TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
       textZ->SetTextSize(textSize);
       textZ->Draw("same");
     }
+  }
+
+
+  const std::pair<double, double> Vizard::computeInnerCablingPlotsScalingFactors(const Tracker& tracker) {
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const double barrelScalingFactor = barrelViewPort / 1200.;          // TO DO: Hardcoded 1200. !!!
+    const double forwardScalingFactor = forwardViewPort / 1200.;        // TO DO: Hardcoded 1200. !!!
+
+    return std::make_pair(barrelScalingFactor, forwardScalingFactor);
+  }
+
+
+  const std::pair<double, double> Vizard::computeInnerCablingPlotsMaxRadii(const Tracker& tracker) {
+    double barrelViewPort, forwardViewPort;
+    if (tracker.isPixelTracker()) {
+      if (tracker.barrels().size() > 0 && tracker.endcaps().size() >= 2) {
+	barrelViewPort = tracker.barrels().at(0).maxR() * 1.1;
+	forwardViewPort = tracker.endcaps().at(1).maxR() * 1.1;
+      }
+      else { logERROR("Vizard::computeInnerCablingPlotsMaxRadii : Unexpected number of subdetectors in Inner Tracker."); }
+    }
+    else { logERROR("Vizard::computeInnerCablingPlotsMaxRadii : Should be used on Inner Tracker only."); }
+
+    return std::make_pair(barrelViewPort, forwardViewPort);
   }
 
 

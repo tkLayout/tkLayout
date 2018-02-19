@@ -185,8 +185,9 @@ namespace insur {
     void analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
 
-    void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
-					       std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
+    void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
+						   TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						   std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
@@ -254,7 +255,9 @@ namespace insur {
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
-    void drawFrameOfReference(const bool isRotatedY180);
+    void drawFrameOfReference(const bool isRotatedY180, const double scalingFactor = 1.);
+    const std::pair<double, double> computeInnerCablingPlotsScalingFactors(const Tracker& tracker);
+    const std::pair<double, double> computeInnerCablingPlotsMaxRadii(const Tracker& tracker);
     void computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
   };
 

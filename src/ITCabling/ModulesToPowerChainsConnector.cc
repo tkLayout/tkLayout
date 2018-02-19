@@ -152,7 +152,7 @@ const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
     const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRing, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
-    if (phiUnitRef <= numModulesInPowerChain) { phiRef = 1; }
+    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { phiRef = 1; } // phiUnitRef starts numbering from 0
     else { phiRef = 2; }
   }
   return phiRef;
