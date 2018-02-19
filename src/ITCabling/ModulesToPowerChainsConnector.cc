@@ -32,8 +32,6 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const int halfNumRods = numRods_ / 2;
   const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, halfNumRods, isPositiveXSide);
 
-  std::cout << "Barrel" << std::endl;
-  std::cout << "layerNumber_ = " << layerNumber_ << std::endl;
   const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
   // PHIPOSITION.
   //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
@@ -161,46 +159,6 @@ const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const
 }
 
 
-/* Compute the bundle cabling type.
- */
-/*const Category ModulesToPowerChainsConnector::computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber) const {
-  Category bundleType = Category::UNDEFINED;
-
-  //BARREL
-  if (isBarrel) {
-    // TB2S
-    if (subDetectorName == cabling_tb2s) {
-      bundleType = Category::SS;
-    }
-    // TBPS
-    else if (subDetectorName == cabling_tbps) {
-      bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
-    }
-  }
-
-  // ENDCAPS
-  else {
-    // TEDD_1
-    if (subDetectorName == cabling_tedd1) {
-      if (ringNumber <= 4) bundleType = Category::PS10GA;
-      else if (ringNumber >= 5 && ringNumber <= 7) bundleType = Category::PS10GB;
-      else if (ringNumber >= 8 && ringNumber <= 10) bundleType = Category::PS5G;
-      else if (ringNumber >= 11) bundleType = Category::SS;
-    }
-
-    // TEDD_2
-    else if (subDetectorName == cabling_tedd2) {
-      if (ringNumber <= 3) bundleType = Category::UNDEFINED;
-      else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS10GB;
-      else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5G;
-      else if (ringNumber >= 11) bundleType = Category::SS;
-    }
-  }
-
-  return bundleType;
-  }*/
-
-
 /* Build bundle.
  * The index associated to the bundleType is computed.
  * phiSliceRef: phiSegmentRef in Barrel, phiRegionRef in Endcaps.
@@ -269,21 +227,6 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
 }
 
 
-/* Compute the Id associated to each stereo bundle.
- * The stereo bundle is the bundle located on the other cabling side, by rotation of 180° around CMS_Y.
- */
-/*const int ModulesToPowerChainsConnector::computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int stereoPhiRef, const int bundleTypeIndex) const {
-  int stereoBundleId = 0;
-  if (isBarrel) {
-    const bool stereoSide = !isPositiveCablingSide;
-    stereoBundleId = computeBundleId(isBarrel, stereoSide, layerDiskNumber, stereoPhiRef, bundleTypeIndex);
-  }
-
-  return stereoBundleId;
-}
-*/
-
-
 /*  Create a powerChain, if it does not exist yet.
  *  Store it in the powerChains_ container.
  */
@@ -303,131 +246,6 @@ void ModulesToPowerChainsConnector::connectModuleToPowerChain(DetectorModule& m,
   powerChain->addModule(&m);
   m.setPowerChain(powerChain);
 }
- 
-
-/* Stagger modules.
-   This is a very important step.
-   In theory, each module is connected to the bundle corresponding to its position in Phi.
-   Though, there can be more modules connected to a bundle than possible.
-   If this is the case, one needs to stagger modules :
-   the module closest to an adjacent phiRegion is removed and placed in the adjacent phiRegion.
-*/
-/*
-void ModulesToPowerChainsConnector::staggerModules(std::map<int, Bundle*>& bundles) {
-
-  for (auto& b : bundles) {
-    // All this happens in Endcaps only
-    if (b.second->subDetectorName() == cabling_tedd1 || b.second->subDetectorName() == cabling_tedd2) {
-      const bool isBarrel = false;
-
-      // Too many modules per bundle: staggering needed!
-      while (b.second->numModules() > cabling_maxNumModulesPerBundle) {
-	const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
-	const int diskNumber = b.second->layerDiskNumber();
-
-	const Category& bundleType = b.second->type();
-	const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType);
-
-	const PhiPosition& bundlePhiPosition = b.second->phiPosition();
-
-	const double phiRegionStart = bundlePhiPosition.phiRegionStart();
-
-	const double phiRegionWidth = bundlePhiPosition.phiRegionWidth();
-	const int numPhiRegions = round(2 * M_PI / phiRegionWidth);
-
-	// Compute the ref of the phiRegion, and of the adjacent phi regions.
-	// 'next' or 'previous' refers to:
-	// - positiveCablingSide: positive Phi order.
-	// - negativeCablingSide: negative Phi order.
-	const int phiRegionRef = bundlePhiPosition.phiRegionRef();
-	const int nextPhiRegionRef = computeNextPhiSliceRef(phiRegionRef, numPhiRegions);
-	const int previousPhiRegionRef = computePreviousPhiSliceRef(phiRegionRef, numPhiRegions);
-
-	// Compute the associated bundles ids (so that the associated bundles can be accessed).
-	const int bundleId = b.first;
-	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
-	const int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
-
-	// Distance in Phi from the smallest Phi module to the smallest Phi boundary of the phiRegion.
-	const double minPhiBorder = fabs( femod((b.second->minPhi() - phiRegionStart), phiRegionWidth) );
-	// Distance in Phi from the greatest Phi module to the greatest Phi boundary of the phiRegion.
-	const double maxPhiBorder = fabs( femod((b.second->maxPhi() - phiRegionStart), phiRegionWidth) - phiRegionWidth);
-	      
-
-	// Access bundles.
-	auto previousBundleSearch = bundles.find(previousBundleId);
-	auto nextBundleSearch = bundles.find(nextBundleId);
-	if (previousBundleSearch != bundles.end() && nextBundleSearch != bundles.end()) {
-	  Bundle* previousBundle = previousBundleSearch->second;
-	  Bundle* nextBundle = nextBundleSearch->second;
-
-	  const int previousBundleNumModules = previousBundle->numModules();
-	  const int nextBundleNumModules = nextBundle->numModules();
-	  // A MODULE FROM THE PHI REGION NEEDS TO BE MOVED. LOOK WHERE TO MOVE IT!
-
-	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (previousBundleNumModules >= cabling_maxNumModulesPerBundle && nextBundleNumModules >= cabling_maxNumModulesPerBundle) {
-	    logERROR(any2str("Building cabling map : Staggering modules.")
-		     + "I am a module in side " + any2str(isPositiveCablingSide)
-		     + ", disk " + any2str(diskNumber)
-		     + ", bundleType " + any2str(bundleType) 
-		     + ", phiRegionRef " + any2str(phiRegionRef)
-		     + ", phiRegionWidth " + any2str(phiRegionWidth)
-		     + ". My phiRegion has more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
-		     + " My 2 neighbouring phiRegions have also more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
-		     + " Hence, I cannot be staggered to any other phiRegion :/ "
-		     );
-	    break;
-	  }
-
-	  // Assign a module to the next phi region.
-	  else if (previousBundleNumModules >= cabling_maxNumModulesPerBundle || maxPhiBorder <= minPhiBorder) {
-	    logINFO(any2str("Building cabling map : Staggering modules.")
-		    + " I am a module in side " + any2str(isPositiveCablingSide)
-		    + ", disk " + any2str(diskNumber)
-		    + ", bundleType " + any2str(bundleType)
-		    + ", phiRegionRef " + any2str(phiRegionRef)
-		    + ". maxPhiBorder " + any2str((maxPhiBorder * 180. / M_PI))
-		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
-		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
-		    );
-		    
-	    Module* maxPhiMod = b.second->maxPhiModule();
-	    maxPhiMod->setBundle(nextBundle);  
-	    nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
-	  }
-
-	  // Assign a module to the previous phi region.
-	  else if (nextBundleNumModules >= cabling_maxNumModulesPerBundle || minPhiBorder < maxPhiBorder) {
-	    logINFO(any2str("Building cabling map : Staggering modules.")
-		    + " I am a module in side " + any2str(isPositiveCablingSide)
-		    + ", disk " + any2str(diskNumber)
-		    + ", bundleType " + any2str(bundleType)
-		    + ", phiRegionRef " + any2str(phiRegionRef)
-		    + ". minPhiBorder " + any2str((minPhiBorder * 180. / M_PI))
-		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
-		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
-		    );
-
-	    Module* minPhiMod = b.second->minPhiModule();
-	    minPhiMod->setBundle(previousBundle);	  
-	    previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
-	  }
-	}
-	else { // PowerChains not found when trying to access them.
-	  logERROR(any2str("Building cabling map : Staggering modules.")
-		   + "Error building previousBundleId or nextBundleId"); 
-	  break; 
-	}
-
-      }
-    }
-  }
-
-}
-*/
 
 
 /* Check modules-powerChains connections.

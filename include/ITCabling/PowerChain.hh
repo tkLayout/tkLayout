@@ -61,7 +61,7 @@ public:
 
 private:
   const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const;
-  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const bool isPositiveXSide, const int phiRef, const int ringQuarterIndex) const;
+  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const;
 
   void buildHvLine(const int powerChainId);
   const std::string computeHvLineName(const int powerChainId) const;
