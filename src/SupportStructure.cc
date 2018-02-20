@@ -370,6 +370,7 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
+      quantity *= 2.;
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }

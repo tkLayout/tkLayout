@@ -546,6 +546,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
+	quantity *= 2.;
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }
