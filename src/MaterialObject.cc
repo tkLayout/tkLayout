@@ -138,6 +138,7 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
+	quantity *= 2.;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "Sensor HV line") {
@@ -320,7 +321,11 @@ namespace material {
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
     materialTab_ (MaterialTab::instance()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType) {
+    /*double quantityFromCfg = quantity();
+    double scaledQuantity = 2. * quantityFromCfg;
+    quantity(scaledQuantity);*/
+  };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
     if(original.destination.state())
@@ -329,7 +334,8 @@ namespace material {
       componentName(original.componentName());
     elementName(original.elementName());
     service(original.service());
-    quantity(original.quantity() * 2. * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
+    //quantity(original.quantity() * 2. * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
+    quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     scaleOnSensor(0);
     unit(original.unit());
     debugInactivate(original.debugInactivate());
