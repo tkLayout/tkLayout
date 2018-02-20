@@ -7,15 +7,17 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     // CONNECT MODULES TO SERIAL POWER CHAINS
     connectModulesToPowerChains(tracker);
 
-    // CONNECT MODULES TO E-LINKS AND LPGBTS
-    //connectModulesToElinks(tracker);
+    // CONNECT MODULES TO E-LINKS
+    connectModulesToELinks(tracker);
+
+    // CONNECT ELINKS TO LPGBTS
+    //connectELinksToGBTs(powerChains_);
     
     // CONNECT LPGBTS TO BUNDLES
-    //connectGBTsToBundles(tracker);
+    //connectGBTsToBundles(GBTs_, bundles_);
 
     // CONNECT BUNDLES TO CABLES
     //connectBundlesToCables(bundles_, cables_, DTCs_);
-    //connectBundlesToCables(negBundles_, negCables_, negDTCs_);
 
     // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
     //computePowerServicesChannels();
@@ -32,7 +34,16 @@ void InnerCablingMap::connectModulesToPowerChains(Tracker* tracker) {
   tracker->accept(powerChainsBuilder);
   powerChainsBuilder.postVisit();
   powerChains_ = powerChainsBuilder.getPowerChains();
-  //negBundles_ = powerChainsBuilder.getNegBundles();
+}
+
+
+/* MODULES TO ELINKS CONNECTIONS.
+ */
+void InnerCablingMap::connectModulesToELinks(Tracker* tracker) {
+  ModulesToELinksConnector eLinksBuilder;
+  tracker->accept(eLinksBuilder);
+  //eLinksBuilder.postVisit();
+  eLinks_ = eLinksBuilder.getELinks();
 }
 
 

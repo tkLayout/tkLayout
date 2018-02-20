@@ -144,10 +144,12 @@ CABLING+=ModulesToBundlesConnector
 CABLING+=PhiPosition
 CABLING+=ServicesChannel
 
+ITCABLING+=ELink
 ITCABLING+=HvLine
 ITCABLING+=inner_cabling_constants
 ITCABLING+=inner_cabling_functions
 ITCABLING+=InnerCablingMap
+ITCABLING+=ModulesToELinksConnector
 ITCABLING+=ModulesToPowerChainsConnector
 ITCABLING+=PowerChain
 

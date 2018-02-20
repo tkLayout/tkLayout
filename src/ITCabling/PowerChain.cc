@@ -40,37 +40,6 @@ void PowerChain::addModule(Module* m) {
 const bool PowerChain::isBarrel() const { return inner_cabling_functions::isBarrel(subDetectorName_); }
 
 
-/*
-const double PowerChain::minPhi() const { 
-  double min = std::numeric_limits<double>::max();
-  for (const auto& m : modules_) { min = MIN(min, femodRounded(m.center().Phi(), 2. * M_PI) ); } return min;
-}
-
-
-const double PowerChain::maxPhi() const { 
-  double max = 0.;
-  for (const auto& m : modules_) { max = MAX(max, femodRounded(m.center().Phi(), 2. * M_PI) ); } return max;
-}
-
-const double PowerChain::meanPhi() const {
-  std::vector<double> modPhis;
-
-  for (const auto& m : modules_) { 
-    double phi = femodRounded(m.center().Phi(), 2. * M_PI);
-    if (modPhis.size() > 0 && (fabs(modPhis.back() - phi) > M_PI)) {
-      if (phi < modPhis.back()) phi += 2.*M_PI;
-      else phi -= 2.*M_PI;
-    }
-    modPhis.push_back(phi);
-  } 
-
-  double mean = 0.;
-  for (const auto& phi : modPhis) { mean += phi; }
-  mean /= numModules();
-  return mean;
-}
-*/
-
 
 
 // TO DO: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)

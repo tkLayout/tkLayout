@@ -6,6 +6,7 @@
 
 #include "Property.hh"
 #include "ITCabling/ModulesToPowerChainsConnector.hh"
+#include "ITCabling/ModulesToELinksConnector.hh"
 //#include "Cabling/DTC.hh"
 
 
@@ -19,6 +20,7 @@ public:
 
   // positive cabling side
   const std::map<int, PowerChain*> getPowerChains() const { return powerChains_; }
+  const std::map<std::string, ELink*> getELinks() const { return eLinks_; }
   //const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   //const std::map<int, Cable*>& getCables() const { return cables_; }
   //const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
@@ -31,6 +33,7 @@ public:
 private:
   // CONNECT MODULES TO POWER CHAINS
   void connectModulesToPowerChains(Tracker* tracker);
+  void connectModulesToELinks(Tracker* tracker);
 
   /*
   // CONNECT BUNDLES TO CABLES
@@ -51,6 +54,7 @@ private:
 
   // positive cabling side
   std::map<int, PowerChain*> powerChains_;
+  std::map<std::string, ELink*> eLinks_;
   //std::map<int, Cable*> cables_;
   //std::map<const std::string, const DTC*> DTCs_;
 

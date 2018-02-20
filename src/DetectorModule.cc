@@ -6,6 +6,7 @@
 
 #include "ITCabling/PowerChain.hh"
 #include "ITCabling/HvLine.hh"
+//#include "ITCabling/ELink.hh"
 
 
 void DetectorModule::setup() {
@@ -747,6 +748,11 @@ const int DetectorModule::powerChainPlotColor() const {
     powerChainPlotColor = myPowerChain->plotColor();
   }
   return powerChainPlotColor;
+}
+
+
+void DetectorModule::addELink(ELink* l) { 
+  eLinks_.push_back(l);
 }
 
 

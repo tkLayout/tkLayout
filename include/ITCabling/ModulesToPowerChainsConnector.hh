@@ -4,7 +4,6 @@
 #include <global_constants.hh>
 #include "global_funcs.hh"
 #include "ITCabling/inner_cabling_functions.hh"
-//#include "ITCabling/InnerPhiPosition.hh"
 #include "ITCabling/HvLine.hh"
 
 
@@ -46,16 +45,12 @@ private:
   PowerChain* createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex);
   void connectModuleToPowerChain(DetectorModule& m, PowerChain* powerChain) const;
 
-  // STAGERRING
-  //void staggerModules(std::map<int, Bundle*>& bundles);
-
   // CHECKING
   void checkModulesToPowerChainsCabling(const std::map<int, PowerChain*>& powerChains) const;
 
   std::map<int, PowerChain*> powerChains_;
   //std::map<int, Bundle*> negPowerChains_;  // negative cabling side bundles.
 
-  //bool isBarrel_;
   std::string barrelName_;
   int layerNumber_;
   int numRods_;
@@ -66,11 +61,7 @@ private:
   int diskNumber_;
   int ringNumber_;
   int numModulesInRing_;
-
-  //Category bundleType_;
-  //bool isPositiveZEnd_;
-  //bool isPositiveXSide_;
 };
 
 
-#endif  // MODULESTOBUNDLESCONNECTOR_HH
+#endif  // MODULESTOPOWERCHAINSCONNECTOR_HH

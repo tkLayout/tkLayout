@@ -7,41 +7,41 @@
 #include "Cabling/cabling_constants.hh"
 
 
-// READOUT 1.28 GB/s E-LINKS
-static const int inner_cabling_numElinksPerModuleBarrelLayer1 = 6;
-static const int inner_cabling_numElinksPerModuleBarrelLayer2 = 2;
-static const int inner_cabling_numElinksPerModuleBarrelLayer3 = 2;
-static const int inner_cabling_numElinksPerModuleBarrelLayer4 = 1;
-
-static const int inner_cabling_numElinksPerModuleForwardRing1 = 3;
-static const int inner_cabling_numElinksPerModuleForwardRing2 = 2;
-static const int inner_cabling_numElinksPerModuleForwardRing3 = 2;
-static const int inner_cabling_numElinksPerModuleForwardRing4 = 1;
-
-static const int inner_cabling_numElinksPerModuleEndcap = 1;
-
-
-
-
 // DESIGN
 // Maximum number of modules per serial power chain
 static const int inner_cabling_maxNumModulesPerPowerChain = 10;
-// Maximum number of modules per bundle
-static const int inner_cabling_maxNumModulesPerBundle = 12;
+// Maximum number of ELinks per GBT
+static const int inner_cabling_maxNumELinksPerGBT = 7;
+// Maximum number of GBTs per bundle
+static const int inner_cabling_maxNumGBTsPerBundle = 12;
 // Maximum number of bundles per cable
 static const int inner_cabling_maxNumBundlesPerCable = 6;
 
 
+// READOUT 1.28 GB/s E-LINKS
+static const int inner_cabling_numELinksPerModuleBarrelLayer1 = 6;
+static const int inner_cabling_numELinksPerModuleBarrelLayer2 = 2;
+static const int inner_cabling_numELinksPerModuleBarrelLayer3 = 2;
+static const int inner_cabling_numELinksPerModuleBarrelLayer4 = 1;
+
+static const int inner_cabling_numELinksPerModuleForwardRing1 = 3;
+static const int inner_cabling_numELinksPerModuleForwardRing2 = 2;
+static const int inner_cabling_numELinksPerModuleForwardRing3 = 2;
+static const int inner_cabling_numELinksPerModuleForwardRing4 = 1;
+
+static const int inner_cabling_numELinksPerModuleEndcap = 1;
+
+
 // PHI SLICES
 // Size of the phi slices used
-static const double inner_cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
-static const double inner_cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
-static const double inner_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
+//static const double inner_cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
+//static const double inner_cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
+//static const double inner_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
 
 // Offset are sometimes used to set the phi slices.
 // This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)
-static const double inner_cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
-static const double inner_cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
+//static const double inner_cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
+//static const double inner_cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
 
 
 // ROUNDING
@@ -82,8 +82,8 @@ enum PowerChainType { IUNDEFINED, I4A, I8A };
 //enum ChannelSlot { UNKNOWN, A, B, C };
 
 // Offsets used in TEDD to split power cables coming from the same Phi nonant.
-static const double inner_cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
-static const double inner_cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
+//static const double inner_cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
+//static const double inner_cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
 
 // Number of outer tracker services channels (per inner_cabling side)
 static const int inner_cabling_numServicesChannels = 12;

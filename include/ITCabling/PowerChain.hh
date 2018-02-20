@@ -6,7 +6,6 @@
 
 #include "Property.hh"
 #include "Module.hh"
-//#include "Cabling/PhiPosition.hh"
 #include "ITCabling/inner_cabling_functions.hh"
 
 
@@ -31,7 +30,6 @@ public:
     if (!hvLine_) throw PathfulException("hvLine_ is nullptr");
     return hvLine_;
   }
-  //void setHvLine(HvLine* hvLine) { hvLine_ = hvLine; }
 
   // GENERAL INFO ON THE POWERCHAIN
   
@@ -50,14 +48,6 @@ public:
   const PowerChainType powerChainType() { return powerChainType_; }
 
   const int plotColor() const { return plotColor_; }
-
-
-  /*
-  const double minPhi() const;
-  const double maxPhi() const;
-  const double meanPhi() const;
-  */
-
 
 private:
   const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const;

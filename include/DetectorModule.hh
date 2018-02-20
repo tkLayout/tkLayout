@@ -23,6 +23,8 @@
 #include "MaterialObject.hh"
 
 
+#include "ITCabling/ELink.hh"
+
 using namespace boost::accumulators;
 using material::MaterialObject;
 
@@ -34,6 +36,8 @@ namespace insur { class PowerChain; }
 using insur::PowerChain;
 namespace insur { class HvLine; }
 using insur::HvLine;
+//namespace insur { class ELink; }
+//using insur::ELink;
 
 
 //
@@ -60,6 +64,8 @@ using insur::ModuleCap;
 using material::ElementsVector;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
+  typedef PtrVector<ELink> Container; 
+
   PropertyNode<int> sensorNode;
 
   typedef PtrVector<Sensor> Sensors;
@@ -69,6 +75,7 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   Bundle* bundle_ = nullptr;
   PowerChain* powerChain_ = nullptr;
   HvLine* hvLine_ = nullptr;
+  Container eLinks_;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -398,6 +405,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const int powerChainPlotColor() const;
   void setHvLine(HvLine* hvLine) { hvLine_ = hvLine ; }
   const HvLine* getHvLine() const { return hvLine_; }
+  void addELink(ELink* l);
+  const Container& getELinks() const { return eLinks_; }
 };
 
 
