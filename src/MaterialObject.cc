@@ -329,7 +329,7 @@ namespace material {
       componentName(original.componentName());
     elementName(original.elementName());
     service(original.service());
-    quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
+    quantity(original.quantity() * 2. * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     scaleOnSensor(0);
     unit(original.unit());
     debugInactivate(original.debugInactivate());

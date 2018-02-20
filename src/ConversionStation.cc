@@ -88,6 +88,7 @@ namespace material {
         }
       }
       if (!converted) {
+	std::cout << "ConversionStation::routeConvertedElements. currElement->elementName() = " << currElement->elementName() << " is not converted!!!" << std::endl;
         serviceOutput.addElement(currElement);
         // We may want a warning or an info here
         bool doWarning = false;
