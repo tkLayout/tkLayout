@@ -6,7 +6,9 @@ Component {
   targetVolume 1
   Element {
     elementName SenSi
-    quantity 0.2
+    //quantity 0.2
+    quantity 0.1 
+    // dirty hack because the SenSi is also multiplied by scalingFactor
     unit mm
   }
 }
@@ -19,7 +21,9 @@ Component {
   targetVolume 2
   Element {
     elementName SenSi
-    quantity 0.2
+    //quantity 0.2
+    quantity 0.1 
+    // dirty hack because the SenSi is also multiplied by scalingFactor
     unit mm
   }
 }
