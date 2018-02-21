@@ -138,7 +138,7 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
-	quantity *= insur::scale_all_material_budget_factor;
+	//quantity *= insur::scale_all_material_budget_factor;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "Sensor HV line") {
@@ -456,7 +456,8 @@ namespace material {
       elementUnitVal = unitStringMap.at(unit());
       
       if (desiredUnitVal == elementUnitVal) {
-        return quantity();
+        //return quantity();
+	return (insur::scale_all_material_budget_factor * quantity());
       } else if (desiredUnitVal > elementUnitVal) {
         invert = true;
         tempUnit = desiredUnitVal;
@@ -478,7 +479,8 @@ namespace material {
     } catch (const std::out_of_range& ex) {
       logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
     }
-    return returnVal;
+    //return returnVal;
+    return (insur::scale_all_material_budget_factor * returnVal);
   }
 
   double MaterialObject::Element::totalGrams(const DetectorModule& module) const {
@@ -552,7 +554,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	quantity *= insur::scale_all_material_budget_factor;
+	//quantity *= insur::scale_all_material_budget_factor;
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }

@@ -362,7 +362,8 @@ namespace material {
       logERROR(msg_no_valid_unit + unit());
     }
 
-    return returnVal;
+    //return returnVal;
+    return (insur::scale_all_material_budget_factor * returnVal);
   }
 
   void SupportStructure::Element::populateMaterialProperties(MaterialProperties& materialProperties) const {
@@ -370,7 +371,7 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
-      quantity *= insur::scale_all_material_budget_factor;
+      //quantity *= insur::scale_all_material_budget_factor;
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }
