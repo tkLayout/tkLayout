@@ -11,7 +11,7 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     connectModulesToELinks(tracker);
 
     // CONNECT ELINKS TO LPGBTS
-    //connectELinksToGBTs(powerChains_);
+    connectELinksToGBTs(powerChains_, GBTs_);
     
     // CONNECT LPGBTS TO BUNDLES
     //connectGBTsToBundles(GBTs_, bundles_);
@@ -45,6 +45,37 @@ void InnerCablingMap::connectModulesToELinks(Tracker* tracker) {
   //eLinksBuilder.postVisit();
   eLinks_ = eLinksBuilder.getELinks();
 }
+
+
+/* ELINKS TO GBTS CONNECTIONS.
+ */
+void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<int, GBT*> GBTs) {
+
+  for (auto& myPowerChain : powerChains) {
+    // COLLECT ALL INFORMATION NEEDED TO BUILD GBTS
+    const double phiSectorWidth = b.second->phiPosition().phiSectorWidth();
+
+    const Category& bundleType = b.second->type();
+    const Category& GBTType = computeGBTType(bundleType);
+
+    const int bundleId = b.first;
+    std::map<int, std::pair<int, int> > GBTsPhiSectorRefAndSlot = computeGBTsPhiSectorRefAndSlot(bundles);
+    const int GBTPhiSectorRef = GBTsPhiSectorRefAndSlot.at(bundleId).first;
+    const int slot = GBTsPhiSectorRefAndSlot.at(bundleId).second;
+
+    const int GBTTypeIndex = computeGBTTypeIndex(GBTType);
+    bool isPositiveInnerCablingSide = b.second->isPositiveCablingSide();
+    const int GBTId = computeGBTId(GBTPhiSectorRef, GBTTypeIndex, slot, isPositiveCablingSide);
+
+    // BUILD GBTS and DTCS AND STORE THEM
+    createAndStoreGBTsAndDTCs(b.second, GBTs, DTCs, GBTId, phiSectorWidth, GBTPhiSectorRef, GBTType, slot, isPositiveCablingSide);
+  }
+
+  // CHECK GBTS
+  checkBundlesToGBTsCabling(GBTs);
+}
+
+
 
 
 
