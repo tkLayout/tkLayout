@@ -138,7 +138,7 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
-	quantity *= 2.;
+	quantity *= insur::scale_all_material_budget_factor;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "Sensor HV line") {
@@ -552,7 +552,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	quantity *= 2.;
+	quantity *= insur::scale_all_material_budget_factor;
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }

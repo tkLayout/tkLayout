@@ -370,7 +370,7 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
-      quantity *= 2.;
+      quantity *= insur::scale_all_material_budget_factor;
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }
