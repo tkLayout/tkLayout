@@ -10,8 +10,8 @@
 #include "ITCabling/inner_cabling_functions.hh"
 
 
-//namespace insur { class InnerDTC; }
-//using insur::InnerDTC;
+namespace insur { class InnerDTC; }
+using insur::InnerDTC;
 
 
 class InnerBundle : public PropertyObject, public Buildable, public Identifiable<int> {
@@ -21,17 +21,17 @@ public:
   InnerBundle(const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex);
   ~InnerBundle();
 
-  // GBTS CONNECTED TO THE InnerBundle
+  // GBTS CONNECTED TO THE BUNDLE
   const Container& GBTs() const { return GBTs_; }
   const int numGBTs() const { return GBTs_.size(); }
   void addGBT(GBT* myGBT);
 
-  // DTC TO WHICH THE InnerBundle IS CONECTED
-  /*void setBundle(InnerBundle* bundle) { myBundle_ = bundle; }
-    const InnerBundle* getBundle() const {
-    if (!myBundle_) throw PathfulException("myBundle_ is nullptr");
-    return myBundle_;
-    }*/
+  // DTC TO WHICH THE BUNDLE IS CONNECTED
+  void setDTC(InnerDTC* myDTC) { myDTC_ = myDTC; }
+  const InnerDTC* getDTC() const {
+    if (!myDTC_) throw PathfulException("myDTC_ is nullptr");
+    return myDTC_;
+  }
 
 
   // GENERAL INFO
@@ -52,7 +52,7 @@ private:
 
   Container GBTs_;
 
-  //DTC* myDTC_ = nullptr;
+  InnerDTC* myDTC_ = nullptr;
 
   bool isPositiveZEnd_;
   bool isPositiveXSide_;

@@ -7,8 +7,7 @@
 #include "Property.hh"
 #include "ITCabling/ModulesToPowerChainsConnector.hh"
 #include "ITCabling/ModulesToELinksConnector.hh"
-#include "ITCabling/InnerBundle.hh"
-//#include "Cabling/DTC.hh"
+#include "ITCabling/InnerDTC.hh"
 
 
 /* Build the cabling map.
@@ -25,7 +24,7 @@ public:
   const std::map<std::string, GBT*> getGBTs() const { return GBTs_; }
   const std::map<int, InnerBundle*>& getBundles() const { return bundles_; }
   //const std::map<int, Cable*>& getCables() const { return cables_; }
-  //const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
+  const std::map<int, InnerDTC*>& getDTCs() const { return DTCs_; }
 
   // negative cabling side
   //const std::map<int, Bundle*>& getNegBundles() const { return negBundles_; }
@@ -38,6 +37,7 @@ private:
   void connectModulesToELinks(Tracker* tracker);
   void connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs);
   void connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, std::map<int, InnerBundle*>& bundles);
+  void connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles, std::map<int, InnerDTC*>& DTCs);
 
 
 
@@ -58,6 +58,11 @@ private:
   void connectOneGBTToOneBundle(GBT* myGBT, InnerBundle* myBundle) const;
   void checkGBTsToBundlesCabling(const std::map<int, InnerBundle*>& bundles) const;
 
+  // BUNDLES TO DTCS
+  const int computeDTCId(const std::string subDetectorName, const int layerDiskNumber) const;
+  void createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId);
+  void connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const;
+  void checkBundlesToDTCsCabling(const std::map<int, InnerDTC*>& DTCs) const;
 
 
   /*
@@ -82,7 +87,7 @@ private:
   std::map<std::string, ELink*> eLinks_;
   std::map<std::string, GBT*> GBTs_;
   std::map<int, InnerBundle*> bundles_;
-  //std::map<const std::string, const DTC*> DTCs_;
+  std::map<int, InnerDTC*> DTCs_;
 
   // negative cabling side
   //std::map<int, Bundle*> negBundles_;

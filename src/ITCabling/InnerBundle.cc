@@ -1,5 +1,5 @@
 #include "ITCabling/InnerBundle.hh"
-//#include "ITCabling/InnerDTC.hh"
+#include "ITCabling/InnerDTC.hh"
 
 
 InnerBundle::InnerBundle(const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) :
@@ -19,8 +19,8 @@ InnerBundle::InnerBundle(const int bundleId, const bool isPositiveZEnd, const bo
 
 
 InnerBundle::~InnerBundle() {
-  //delete myDTC_;    // TO DO: switch to smart pointers and remove this!
-  //myDTC_ = nullptr;
+  delete myDTC_;    // TO DO: switch to smart pointers and remove this!
+  myDTC_ = nullptr;
 }
 
 

@@ -150,6 +150,7 @@ ITCABLING+=HvLine
 ITCABLING+=inner_cabling_constants
 ITCABLING+=inner_cabling_functions
 ITCABLING+=InnerBundle
+ITCABLING+=InnerDTC
 ITCABLING+=InnerCablingMap
 ITCABLING+=ModulesToELinksConnector
 ITCABLING+=ModulesToPowerChainsConnector

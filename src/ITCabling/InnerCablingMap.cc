@@ -16,8 +16,8 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     // CONNECT LPGBTS TO BUNDLES
     connectGBTsToBundles(GBTs_, bundles_);
 
-    // CONNECT BUNDLES TO CABLES
-    //connectBundlesToCables(bundles_, cables_, DTCs_);
+    // CONNECT BUNDLES TO DTCs
+    connectBundlesToDTCs(bundles_, DTCs_);
 
     // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
     //computePowerServicesChannels();
@@ -337,9 +337,99 @@ void InnerCablingMap::checkGBTsToBundlesCabling(const std::map<int, InnerBundle*
 
 
 
+// BUNDLES TO DTCS !!!!!!
+
+void InnerCablingMap::connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles, std::map<int, InnerDTC*>& DTCs) {
+
+ for (auto& it : bundles) {
+    // COLLECT ALL INFORMATION NEEDED TO BUILD DTCS   
+    InnerBundle* myBundle = it.second;
+
+    const std::string subDetectorName = myBundle->subDetectorName();   
+    const int layerDiskNumber = myBundle->layerDiskNumber();
+        
+    const int myDTCId = computeDTCId(subDetectorName, layerDiskNumber);
+
+    // BUILD DTCS AND STORE THEM
+    createAndStoreDTCs(myBundle, DTCs, myDTCId);    
+  }
+
+  // CHECK DTCS
+  checkBundlesToDTCsCabling(DTCs);
+}
 
 
+/* Compute the Id associated to each DTC.
+ */
+const int InnerCablingMap::computeDTCId(const std::string subDetectorName, const int layerDiskNumber) const {
+  int myDTCId = 0;
 
+  if (subDetectorName == inner_cabling_tbpx) myDTCId = layerDiskNumber;
+
+  else if (subDetectorName == inner_cabling_tfpx) {
+    if (layerDiskNumber == 1) myDTCId = 5;
+    else if (layerDiskNumber == 2) myDTCId = 4;
+    else if (layerDiskNumber == 3) myDTCId = 5;
+    else if (layerDiskNumber == 4) myDTCId = 3;
+    else if (layerDiskNumber == 5) myDTCId = 5;
+    else if (layerDiskNumber == 6) myDTCId = 3;
+    else if (layerDiskNumber == 7) myDTCId = 2;
+    else if (layerDiskNumber == 8) myDTCId = 1;
+    else logERROR(any2str("Unexpected diskNumber in FPX : ") + any2str(layerDiskNumber));
+  }
+
+  else if (subDetectorName == inner_cabling_tepx) {
+    if (layerDiskNumber == 1) myDTCId = 6;
+    else if (layerDiskNumber == 2) myDTCId = 7;
+    else if (layerDiskNumber == 3) myDTCId = 6;
+    else if (layerDiskNumber == 4) myDTCId = 7;
+    else logERROR(any2str("Unexpected diskNumber in EPX : ") + any2str(layerDiskNumber));
+  }
+
+  return myDTCId;
+}
+
+
+void InnerCablingMap::createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId) {
+
+  auto found = DTCs.find(DTCId);
+  if (found == DTCs.end()) {
+    InnerDTC* myDTC = GeometryFactory::make<InnerDTC>(DTCId);
+    connectOneBundleToOneDTC(myBundle, myDTC);
+    DTCs.insert(std::make_pair(DTCId, myDTC));  
+  }
+  else {
+    connectOneBundleToOneDTC(myBundle, found->second);
+  }
+}
+
+
+/* Connect Bundle to DTC and vice-versa.
+ */
+void InnerCablingMap::connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const {
+  myDTC->addBundle(myBundle);
+  myBundle->setDTC(myDTC);
+}
+
+
+/* Check Bundles-DTC connections.
+ */
+
+void InnerCablingMap::checkBundlesToDTCsCabling(const std::map<int, InnerDTC*>& DTCs) const {
+  for (const auto& it : DTCs) {
+    const int myDTCId = it.first;
+    const InnerDTC* myDTC = it.second;
+
+    // CHECK THE NUMBER OF Bundles per DTC
+    const int numBundles = myDTC->numBundles();
+
+    if (numBundles > inner_cabling_maxNumBundlesPerCable) {
+      logERROR(any2str("InnerDTC ")  + any2str(myDTCId) + any2str(" is connected to ") + any2str(numBundles) + any2str(" Bundles. ")
+	       + "Maximum number of Bundles per DTC allowed is " + any2str(inner_cabling_maxNumBundlesPerCable)
+	       );
+    }
+  }
+}
 
 
 
