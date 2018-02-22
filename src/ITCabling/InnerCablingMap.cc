@@ -235,9 +235,9 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, st
     const int powerChainPhiRef = myGBT->powerChainPhiRef();
     const bool isRingInnerEnd = myGBT->isRingInnerEnd();
 
-    std::cout << "subDetectorName = " << subDetectorName << std::endl;
-    std::cout << "layerDiskNumber = " << layerDiskNumber << std::endl;
-    std::cout << "powerChainPhiRef = " << powerChainPhiRef << std::endl;
+    //std::cout << "subDetectorName = " << subDetectorName << std::endl;
+    //std::cout << "layerDiskNumber = " << layerDiskNumber << std::endl;
+    //std::cout << "powerChainPhiRef = " << powerChainPhiRef << std::endl;
         
     const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, isRingInnerEnd);
 
@@ -274,15 +274,15 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
 
     if (maxNumPowerChainsPerBundleBarrelLayer == 0) logERROR(any2str("Found maxNumPowerChainsPerBundleBarrelLayer == 0."));
 
-    std::cout << "maxNumPowerChainsPerBundleBarrelLayer = " << maxNumPowerChainsPerBundleBarrelLayer << std::endl;
+    //std::cout << "maxNumPowerChainsPerBundleBarrelLayer = " << maxNumPowerChainsPerBundleBarrelLayer << std::endl;
 
     const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / maxNumPowerChainsPerBundleBarrelLayer;
     myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 
 			 round(myBundleIndexExact) 
 			 : std::floor(myBundleIndexExact)
 			 );
-    std::cout << "myBundleIndexExact = " << myBundleIndexExact << std::endl;
-    std::cout << "myBundleIndex = " << myBundleIndex << std::endl;
+    //std::cout << "myBundleIndexExact = " << myBundleIndexExact << std::endl;
+    //std::cout << "myBundleIndex = " << myBundleIndex << std::endl;
   }
   else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) {
     myBundleIndex = (isRingInnerEnd ? 0 : 1);
@@ -364,7 +364,9 @@ void InnerCablingMap::connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles,
     const std::string subDetectorName = myBundle->subDetectorName();   
     const int layerDiskNumber = myBundle->layerDiskNumber();
         
-    const int myDTCId = computeDTCId(subDetectorName, layerDiskNumber);
+    const bool isPositiveZEnd = myBundle->isPositiveZEnd();
+    const bool isPositiveXSide = myBundle->isPositiveXSide();
+    const int myDTCId = computeDTCId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber);
 
     // BUILD DTCS AND STORE THEM
     createAndStoreDTCs(myBundle, DTCs, myDTCId);    
@@ -377,7 +379,7 @@ void InnerCablingMap::connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles,
 
 /* Compute the Id associated to each DTC.
  */
-const int InnerCablingMap::computeDTCId(const std::string subDetectorName, const int layerDiskNumber) const {
+const int InnerCablingMap::computeDTCId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber) const {
   int myDTCId = 0;
 
   if (subDetectorName == inner_cabling_tbpx) myDTCId = layerDiskNumber;
@@ -401,6 +403,9 @@ const int InnerCablingMap::computeDTCId(const std::string subDetectorName, const
     else if (layerDiskNumber == 4) myDTCId = 7;
     else logERROR(any2str("Unexpected diskNumber in EPX : ") + any2str(layerDiskNumber));
   }
+
+  const int innerTrackerQuarterIndex = inner_cabling_functions::computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
+  myDTCId += innerTrackerQuarterIndex * 10;
 
   return myDTCId;
 }
