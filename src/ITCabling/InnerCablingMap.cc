@@ -92,6 +92,7 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
 // MODULES TO GBTS
 
 const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
+  //std::cout << "STARTTTTTTTTTTTTTTT numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
 
   int numModules = numModulesInPowerChain;
   if (isBarrel) {
@@ -99,24 +100,30 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
     else numModules /= 2;  // Divide by 2 because in BPIX, the GBTs assignment works by rod.
                            // This is becasue it makes the powering of the GBTs much easier.
   }
+  //std::cout << "numModules = " << numModules << std::endl;
 
   const int numELinks = numELinksPerModule * numModules;
+  //std::cout << "numELinks = " << numELinks << std::endl;
 
-  const double numGBTsExact = numELinks / inner_cabling_maxNumELinksPerGBT;
+  const double numGBTsExact = static_cast<double>(numELinks) / inner_cabling_maxNumELinksPerGBT;
+  //std::cout << "numGBTsExact = " << numGBTsExact << std::endl;
   const int numGBTs = (fabs(numGBTsExact - round(numGBTsExact)) < inner_cabling_roundingTolerance ? 
 		       round(numGBTsExact) 
 		       : std::ceil(numGBTsExact)
 		       );
 
   if (numGBTs == 0) logERROR(any2str("Power chain has ") + any2str(numModules) 
-			     + any2str(" but found numGBTs == ") +  any2str(numGBTs) + any2str(", that's not enough!!")
+			     + any2str(" modules, but found numGBTs == ") +  any2str(numGBTs) + any2str(", that's not enough!!")
 			     );
 
-  const double maxNumModulesPerGBTExact = numModules / numGBTs;
+  const double maxNumModulesPerGBTExact = static_cast<double>(numModules) / numGBTs;
   const int maxNumModulesPerGBTInPowerChain = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
 					       round(maxNumModulesPerGBTExact) 
 					       : std::ceil(maxNumModulesPerGBTExact)
 					       );
+
+  //std::cout << "numGBTs = " << numGBTs << std::endl;
+  //std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
 
   return std::make_pair(maxNumModulesPerGBTInPowerChain, numGBTs);
 }
@@ -131,7 +138,7 @@ const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int rin
 
   if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
 
-  const double myGBTIndexExact = moduleRef / maxNumModulesPerGBTInPowerChain;
+  const double myGBTIndexExact = static_cast<double>(moduleRef) / maxNumModulesPerGBTInPowerChain;
   int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndex)) < inner_cabling_roundingTolerance ? 
 			  round(myGBTIndex) 
 			  : std::floor(myGBTIndexExact)
