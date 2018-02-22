@@ -51,7 +51,7 @@ void ModulesToPowerChainsConnector::visit(Endcap& e) {
 
 
 void ModulesToPowerChainsConnector::visit(Disk& d) {
-  diskNumber_ = d.diskNumber();
+  diskNumber_ = d.myid();
   endcapEnd_ = d.side();   // geometrical Z-side
 }
 
