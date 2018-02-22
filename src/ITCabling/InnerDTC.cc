@@ -21,7 +21,7 @@ void InnerDTC::addBundle(InnerBundle* bundle) {
 
 
 const int InnerDTC::computePlotColor(const int DTCId) const {
-  const int plotColor = DTCId % 10;
+  const int plotColor = DTCId % 10 + 4;
 
   return plotColor;
 }

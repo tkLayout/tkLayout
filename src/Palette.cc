@@ -250,7 +250,7 @@ Color_t Palette::colorScrabble(const int& colorIndex, bool isTransparent) {
       paletteIndex= kGray + 1;
       break;
     case 3 :
-      paletteIndex= kCyan;
+      paletteIndex=kViolet - 6;
       break;
     case 4 :
       paletteIndex= kOrange;
@@ -262,7 +262,7 @@ Color_t Palette::colorScrabble(const int& colorIndex, bool isTransparent) {
       paletteIndex=kGreen + 2;
       break;
     case 7 :
-      paletteIndex=kViolet - 6;
+      paletteIndex= kCyan;
       break;
     case 8 :
       paletteIndex=kOrange - 7;
