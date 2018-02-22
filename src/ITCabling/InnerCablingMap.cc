@@ -108,6 +108,10 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 		       : std::ceil(numGBTsExact)
 		       );
 
+  if (numGBTs == 0) logERROR(any2str("Power chain has ") + any2str(numModules) 
+			     + any2str(" but found numGBTs == ") +  any2str(numGBTs) + any2str(", that's not enough!!")
+			     );
+
   const double maxNumModulesPerGBTExact = numModules / numGBTs;
   const int maxNumModulesPerGBTInPowerChain = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
 					       round(maxNumModulesPerGBTExact) 
@@ -124,6 +128,8 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const {
  
   const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
+
+  if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
 
   const double myGBTIndexExact = moduleRef / maxNumModulesPerGBTInPowerChain;
   int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndex)) < inner_cabling_roundingTolerance ? 
