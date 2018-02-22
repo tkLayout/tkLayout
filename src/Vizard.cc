@@ -1731,52 +1731,20 @@ namespace insur {
 
 
       // Modules to DTCs
-      /*
-      TCanvas *summaryDTCCanvas = nullptr;
       TCanvas *RZDTCCanvas = nullptr;
-      TCanvas *XYDTCNegCanvas = nullptr;
-      TCanvas *XYDTCNegFlatCanvas = nullptr;
-      TCanvas *XYDTCCanvas = nullptr; 
-      TCanvas *XYDTCFlatCanvas = nullptr; 
-      std::vector<TCanvas*> XYDTCCanvasesDisk;
        
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
+      createSummaryCanvasInnerCablingDTCNicer(tracker, RZDTCCanvas);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
+	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
 	myContent->addItem(myImage);
       }
-      if (XYDTCNegCanvas) {
-	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYDTCNegFlatCanvas) {
-	myImage = new RootWImage(XYDTCNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYDTCCanvas) {
-	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYDTCFlatCanvas) {
-	myImage = new RootWImage(XYDTCFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
-	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
-	  myContent->addItem(myImage);
-      }
-      */
-      
+ 
+
 
 
 
@@ -1826,14 +1794,14 @@ namespace insur {
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one Z end)", true);
       myPage->addContent(efficiencyContent);
       RootWInfo* myInfo = nullptr;
-      // Links
+      // Sensors
       myInfo = new RootWInfo("Total number of sensors (one Z end)");
-      const int numSensors = tracker.modules().size() / 2;
+      const int numSensors = tracker.modules().size() / 2.;
       myInfo->setValue(numSensors);
       efficiencyContent->addItem(myInfo);
       // PowerChains
       myInfo = new RootWInfo("Total number of serial power chains (one Z end)");
-      const int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2;
+      const int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2.;
       myInfo->setValue(numPowerChains);
       efficiencyContent->addItem(myInfo);
       // PowerChains efficiency
@@ -1841,10 +1809,34 @@ namespace insur {
       const double powerChainEfficiency = numSensors / (numPowerChains * 10.);
       myInfo->setValue(powerChainEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
-      // Cables
-      /*
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks (one Z end)");
+      int numELinks = myInnerCablingMap->getELinks().size() / 2.;
+      myInfo->setValue(numELinks);
+      efficiencyContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of LP GBTs (one Z end)");
+      const int numGBTs = myInnerCablingMap->getGBTs().size() / 2.;
+      myInfo->setValue(numGBTs);
+      efficiencyContent->addItem(myInfo);
+      // GBTs efficiency
+      myInfo = new RootWInfo("LP GBTs efficiency (%)");
+      const double GBTEfficiency = numELinks / (numGBTs * 7.);
+      myInfo->setValue(GBTEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of fiber bundles (one Z end)");
+      int numBundles = myInnerCablingMap->getBundles().size() / 2.;
+      myInfo->setValue(numBundles);
+      efficiencyContent->addItem(myInfo);
+      // Bundles efficiency
+      myInfo = new RootWInfo("Fiber bundle efficiency (%)");
+      double bundleEfficiency = numGBTs / (numBundles * 12.);
+      myInfo->setValue(bundleEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // DTCs
       myInfo = new RootWInfo("Total number of fiber cables (one Z end)");
-      int numCables = myCablingMap->getCables().size();
+      int numCables = myInnerCablingMap->getDTCs().size() / 2.;
       myInfo->setValue(numCables);
       efficiencyContent->addItem(myInfo);
       // Cables efficiency
@@ -1852,15 +1844,15 @@ namespace insur {
       double cableEfficiency = numBundles / (numCables * 6.);
       myInfo->setValue(cableEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
-      // Overall efficiency
-      myInfo = new RootWInfo("Overall cabling efficiency (%)");
-      double overallEfficiency = cableEfficiency * bundleEfficiency;
-      myInfo->setValue(overallEfficiency * 100, 0);
+      // Overall optical efficiency
+      myInfo = new RootWInfo("Overall optical cabling efficiency (%)");
+      double overallOpticalEfficiency = GBTEfficiency * bundleEfficiency * cableEfficiency;
+      myInfo->setValue(overallOpticalEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
-      */
+      
 
 
-      // Distinct DTCs 2D map
+      // Distinct DTCs 2.D map
       /*
       RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
       myPage->addContent(dtcMapContent);
@@ -7657,10 +7649,21 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 
 
 
+  void Vizard::createSummaryCanvasInnerCablingDTCNicer(Tracker& tracker,
+						       TCanvas *&RZCanvas) {
+
+    const std::set<Module*>& trackerModules = tracker.modules();
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
+    RZCanvas->cd();
+    PlotDrawer<YZFull, TypeInnerDTCTransparentColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+  }
 
 
 
-
+  
 
 
 

@@ -8,6 +8,8 @@
 #include "ITCabling/HvLine.hh"
 //#include "ITCabling/ELink.hh"
 #include "ITCabling/GBT.hh"
+#include "ITCabling/InnerBundle.hh"
+#include "ITCabling/InnerDTC.hh"
 
 
 void DetectorModule::setup() {
@@ -754,6 +756,36 @@ const int DetectorModule::powerChainPlotColor() const {
 
 void DetectorModule::addELink(ELink* l) { 
   eLinks_.push_back(l);
+}
+
+
+const InnerBundle* DetectorModule::getInnerBundle() const {
+  const InnerBundle* myBundle = nullptr;
+  const GBT* myGBT = getGBT();
+  if (myGBT) {
+    myBundle = myGBT->getBundle();
+  }
+  return myBundle;
+}
+
+
+const InnerDTC* DetectorModule::getInnerDTC() const {
+  const InnerDTC* myDTC = nullptr;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle) {
+    myDTC = myBundle->getDTC();
+  }
+  return myDTC;
+}
+
+
+const int DetectorModule::innerDTCPlotColor() const {
+  int dtcPlotColor = 0;
+  const InnerDTC* myDTC = getInnerDTC();
+  if (myDTC != nullptr) {
+    dtcPlotColor = myDTC->plotColor();
+  }
+  return dtcPlotColor;
 }
 
 

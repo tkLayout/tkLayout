@@ -154,6 +154,13 @@ struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
   }
 };
 
+struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
+  double operator()(const Module& m) {
+    bool isTransparent = (!m.isPositiveZEnd());
+    return Palette::colorScrabble(m.innerDTCPlotColor(), isTransparent);
+  }
+};
+
 
 struct CoordZ {
   double operator()(const Module& m) { return m.center().Z(); }

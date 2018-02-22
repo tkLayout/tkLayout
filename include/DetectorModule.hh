@@ -40,6 +40,10 @@ using insur::HvLine;
 //using insur::ELink;
 namespace insur { class GBT; }
 using insur::GBT;
+namespace insur { class InnerBundle; }
+using insur::InnerBundle;
+namespace insur { class InnerDTC; }
+using insur::InnerDTC;
 
 
 //
@@ -415,6 +419,9 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const Container& getELinks() const { return eLinks_; }
   void setGBT(GBT* myGBT) { GBT_ = myGBT; }
   const GBT* getGBT() const { return GBT_; }
+  const InnerBundle* getInnerBundle() const;
+  const InnerDTC* getInnerDTC() const;
+  const int innerDTCPlotColor() const;
 };
 
 
