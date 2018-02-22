@@ -8,13 +8,13 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     connectModulesToPowerChains(tracker);
 
     // CONNECT MODULES TO E-LINKS
-    connectModulesToELinks(tracker);
+    connectModulesToELinks(tracker); // TO DO: remove class ELINK !! Just put numElinksPerModule in Module class thanks to visitor which is already there.
 
     // CONNECT ELINKS TO LPGBTS
     connectELinksToGBTs(powerChains_, GBTs_);
     
     // CONNECT LPGBTS TO BUNDLES
-    //connectGBTsToBundles(GBTs_, bundles_);
+    connectGBTsToBundles(GBTs_, bundles_);
 
     // CONNECT BUNDLES TO CABLES
     //connectBundlesToCables(bundles_, cables_, DTCs_);
@@ -49,7 +49,7 @@ void InnerCablingMap::connectModulesToELinks(Tracker* tracker) {
 
 /* ELINKS TO GBTS CONNECTIONS.
  */
-void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*> GBTs) {
+void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs) {
 
   for (auto& it : powerChains) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD GBTS
@@ -89,7 +89,8 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
 }
 
 
-// MODULES TO GBTS
+
+// MODULES TO GBTS !!!!!
 
 const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
   //std::cout << "STARTTTTTTTTTTTTTTT numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
@@ -121,13 +122,16 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 					       round(maxNumModulesPerGBTExact) 
 					       : std::ceil(maxNumModulesPerGBTExact)
 					       );
+  // TO DO: MINOR ISSUE OF TAKING THE ceil IS THAT it doesnt handle optimally the (RARE) case where we have 3 + 2 + 2
+  // Since it will lead to following repartition: 3 + 3 + 1
+  // One could take the floor, and then look at the number of remaining modules in power chain.
+  // This case does not appear in practice, but can be worked on if needed.
 
   //std::cout << "numGBTs = " << numGBTs << std::endl;
   //std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
 
   return std::make_pair(maxNumModulesPerGBTInPowerChain, numGBTs);
 }
-
 
 
 /* Compute the phi index associated to each GBT.
@@ -139,15 +143,14 @@ const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int rin
   if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
 
   const double myGBTIndexExact = static_cast<double>(moduleRef) / maxNumModulesPerGBTInPowerChain;
-  int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndex)) < inner_cabling_roundingTolerance ? 
-			  round(myGBTIndex) 
-			  : std::floor(myGBTIndexExact)
-			  );
+  int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndexExact)) < inner_cabling_roundingTolerance ? 
+		    round(myGBTIndexExact) 
+		    : std::floor(myGBTIndexExact)
+		    );
   if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
 
   return myGBTIndex;
 }
-
 
 
 /* Compute the Id associated to each GBT.
@@ -160,11 +163,10 @@ const std::string InnerCablingMap::computeGBTId(const int powerChainId, const in
 }
 
 
-
 /* Create a GBT, if does not exist yet.
  * Store it in the GBTs container.
  */
-void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTPhiIndex, const int numELinksPerModule, std::map<std::string, GBT*> GBTs) {
+void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTPhiIndex, const int numELinksPerModule, std::map<std::string, GBT*>& GBTs) {
 
   auto found = GBTs.find(myGBTId);
   if (found == GBTs.end()) {
@@ -204,6 +206,142 @@ void InnerCablingMap::checkModulesToGBTsCabling(const std::map<std::string, GBT*
     }
   }
 }
+
+
+
+
+
+
+// GBTs to BUNDLES !!!!
+
+
+/* GBTS TO BUNDLES CONNECTIONS.
+ */
+void InnerCablingMap::connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, std::map<int, InnerBundle*>& bundles) {
+
+  for (auto& it : GBTs) {
+    // COLLECT ALL INFORMATION NEEDED TO BUILD BUNDLES   
+    GBT* myGBT = it.second;
+
+    const std::string subDetectorName = myGBT->subDetectorName();
+    
+    const int layerDiskNumber = myGBT->layerDiskNumber();
+    const int powerChainPhiRef = myGBT->powerChainPhiRef();
+    const bool isRingInnerEnd = myGBT->isRingInnerEnd();
+        
+    const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, isRingInnerEnd);
+
+    const bool isPositiveZEnd = myGBT->isPositiveZEnd();
+    const bool isPositiveXSide = myGBT->isPositiveXSide();
+    const int myBundleId = computeBundleId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);
+
+    // BUILD BUNDLES AND STORE THEM
+    createAndStoreBundles(myGBT, bundles, myBundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);    
+  }
+
+  // CHECK BUNDLES
+  checkGBTsToBundlesCabling(bundles);
+}
+
+
+const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isRingInnerEnd) const {
+  int myBundleIndex = 0;
+
+  if (subDetectorName == inner_cabling_tbpx) {
+
+    // TO DO: THIS SHOULD BE COMPUTED AS A FUNCTION OF LAYER NUMBER, NOT HARCODED!!!
+    const int numBundlesInHalfBarrelLayer1 = 3;
+    const int numBundlesInHalfBarrelLayer2 = 2;
+    const int numBundlesInHalfBarrelLayer3 = 1;
+    const int numBundlesInHalfBarrelLayer4 = 2;
+
+    int numBundlesInHalfBarrelLayer = 0;
+    if (layerNumber == 1) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer1;
+    else if (layerNumber == 2) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer2;
+    else if (layerNumber == 3) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer3;
+    else if (layerNumber == 4) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer4;
+    else logERROR("Did not find supported layer number.");
+
+    if (numBundlesInHalfBarrelLayer == 0) logERROR(any2str("Found numBundlesInHalfBarrelLayer == 0."));
+
+    const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / numBundlesInHalfBarrelLayer;
+    int myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 
+			 round(myBundleIndexExact) 
+			 : std::floor(myBundleIndexExact)
+			 );
+  }
+  else if (subDetectorName == inner_cabling_tfpx) myBundleIndex = 0;
+  else if (subDetectorName == inner_cabling_tepx) myBundleIndex = (isRingInnerEnd ? 0 : 1);
+
+  return myBundleIndex;
+}
+
+
+/* Compute the Id associated to each bundle.
+ */
+const int InnerCablingMap::computeBundleId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) const {
+
+  const int innerTrackerQuarterIndex = inner_cabling_functions::computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
+  const int subdetectorIndex = inner_cabling_functions::computeSubDetectorIndex(subDetectorName);
+
+  const int bundleId = innerTrackerQuarterIndex * 1000 + subdetectorIndex * 100 + layerDiskNumber * 10 + myBundleIndex;
+  return bundleId;
+}
+
+
+void InnerCablingMap::createAndStoreBundles(GBT* myGBT, std::map<int, InnerBundle*>& bundles, const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) {
+
+  auto found = bundles.find(bundleId);
+  if (found == bundles.end()) {
+    InnerBundle* myBundle = GeometryFactory::make<InnerBundle>(bundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);
+    connectOneGBTToOneBundle(myGBT, myBundle);
+    bundles.insert(std::make_pair(bundleId, myBundle));  
+  }
+  else {
+    connectOneGBTToOneBundle(myGBT, found->second);
+  }
+}
+
+
+/* Connect GBT to Bundle and vice-versa.
+ */
+void InnerCablingMap::connectOneGBTToOneBundle(GBT* myGBT, InnerBundle* myBundle) const {
+  myBundle->addGBT(myGBT);
+  myGBT->setBundle(myBundle);
+}
+
+
+/* Check GBTs-Bundle connections.
+ */
+
+void InnerCablingMap::checkGBTsToBundlesCabling(const std::map<int, InnerBundle*>& bundles) const {
+  for (const auto& it : bundles) {
+    const int myBundleId = it.first;
+    const InnerBundle* myBundle = it.second;
+
+    // CHECK THE NUMBER OF GBTs per Bundle
+    const int numGBTs = myBundle->numGBTs();
+
+    if (numGBTs > inner_cabling_maxNumGBTsPerBundle) {
+      logERROR(any2str("InnerBundle ")  + any2str(myBundleId) + any2str(" is connected to ") + any2str(numGBTs) + any2str(" GBTs. ")
+	       + "Maximum number of GBTs per Bundle allowed is " + any2str(inner_cabling_maxNumGBTsPerBundle)
+	       );
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

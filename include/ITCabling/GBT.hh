@@ -6,13 +6,12 @@
 
 #include "Property.hh"
 #include "Module.hh"
-#include "ITCabling/inner_cabling_functions.hh"
-//#include "ITCabling/ELink.hh"
 #include "ITCabling/PowerChain.hh"
+#include "ITCabling/inner_cabling_functions.hh"
 
 
-namespace insur { class HvLine; }
-using insur::HvLine;
+namespace insur { class InnerBundle; }
+using insur::InnerBundle;
 
 
 class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
@@ -28,11 +27,12 @@ public:
   void addModule(Module* m);
   const int numELinks() const { return numELinksPerModule_ * numModules(); } 
 
-  // HIGH VOLTAGE LINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
-  /*const HvLine* getHvLine() const {
-    if (!hvLine_) throw PathfulException("hvLine_ is nullptr");
-    return hvLine_;
-    }*/
+  // BUNDLE TO WHICH THE GBT IS CONECTED
+  void setBundle(InnerBundle* bundle) { myBundle_ = bundle; }
+  const InnerBundle* getBundle() const {
+    if (!myBundle_) throw PathfulException("myBundle_ is nullptr");
+    return myBundle_;
+  }
 
 
   // GENERAL INFO ON THE POWERCHAIN
@@ -49,7 +49,7 @@ public:
   const int ringNumber() const { return myPowerChain_->ringNumber(); }
   const bool isRingInnerEnd() const { return myPowerChain_->isRingInnerEnd(); }
   const int ringQuarterIndex() const { return myPowerChain_->ringQuarterIndex(); }
-  const int phiRef() const { return myPowerChain_->phiRef(); }
+  const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 
   //const int plotColor() const { return plotColor_; }
@@ -60,6 +60,7 @@ private:
   Container modules_;
 
   PowerChain* myPowerChain_ = nullptr;
+  InnerBundle* myBundle_ = nullptr;
 
   std::string myGBTId_;
   int myGBTPhiIndex_;

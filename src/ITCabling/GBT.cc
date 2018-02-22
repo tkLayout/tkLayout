@@ -1,5 +1,5 @@
 #include "ITCabling/GBT.hh"
-//#include "ITCabling/HvLine.hh"
+#include "ITCabling/InnerBundle.hh"
 
 
 GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTPhiIndex, const int numELinksPerModule) :
@@ -17,6 +17,9 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTPhiIn
 GBT::~GBT() {
   delete myPowerChain_;    // TO DO: switch to smart pointers and remove this!
   myPowerChain_ = nullptr;
+
+  delete myBundle_;
+  myBundle_ = nullptr;
 }
 
 
