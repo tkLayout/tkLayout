@@ -145,6 +145,7 @@ CABLING+=PhiPosition
 CABLING+=ServicesChannel
 
 ITCABLING+=ELink
+ITCABLING+=GBT
 ITCABLING+=HvLine
 ITCABLING+=inner_cabling_constants
 ITCABLING+=inner_cabling_functions

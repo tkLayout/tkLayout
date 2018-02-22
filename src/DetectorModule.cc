@@ -7,6 +7,7 @@
 #include "ITCabling/PowerChain.hh"
 #include "ITCabling/HvLine.hh"
 //#include "ITCabling/ELink.hh"
+#include "ITCabling/GBT.hh"
 
 
 void DetectorModule::setup() {

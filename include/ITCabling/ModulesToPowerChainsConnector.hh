@@ -35,7 +35,7 @@ private:
   const bool computeXSide(const double modCenterX) const;
   const bool computeBarrelModuleZEnd(const int side, const int ring, const double rodPhi, const int numRods, const bool isPositiveXSide) const;
   const bool computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const;
-  const int computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
+  const std::pair<int, int> computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
 
   //const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
   void buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex = 0);

@@ -33,6 +33,9 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, halfNumRods, isPositiveXSide);
 
   const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
+  const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
+  m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
+
   // PHIPOSITION.
   //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
 
@@ -81,12 +84,15 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const bool isRingInnerEnd = ( (m.diskSurface() % 2 ) == 1);
   
   const double modPhi = m.center().Phi();
-  const int phiRef = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
+  const std::pair<int, int> phiRefs = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
+  const int powerChainPhiRef = phiRefs.first;
+  const int modulePhiRefInPowerChain = phiRefs.second;
+  m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 
   const int ringQuarterIndex = inner_cabling_functions::computeRingQuarterIndex(ringNumber_, isRingInnerEnd);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
-  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, phiRef, ringQuarterIndex);
+  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, ringQuarterIndex);
 }
 
 
@@ -144,18 +150,25 @@ const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const d
 }
 
 
-const int ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
-  int phiRef = 0;
+const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
+  int powerChainPhiRef = 0;
+  int modulePhiRefInPowerChain = 0;
 
   const int numModulesInRingEnd = numModulesInRing / 2;
   const int numModulesInRingQuarter = numModulesInRingEnd / 2;
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
     const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRingEnd, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
-    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { phiRef = 0; } // phiUnitRef starts numbering from 0
-    else { phiRef = 1; }
+    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
+      powerChainPhiRef = 0; 
+      modulePhiRefInPowerChain = phiUnitRef; 
+    } 
+    else { 
+      powerChainPhiRef = 1; 
+      modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain; 
+    }
   }
-  return phiRef;
+  return std::make_pair(powerChainPhiRef, modulePhiRefInPowerChain);
 }
 
 

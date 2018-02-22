@@ -25,8 +25,6 @@ public:
 
 private:
   // BUILDING
-  const int computeNumELinksPerModule(const std::string subdetectorName, const int layerOrRingNumber) const;
-
   void buildELink(DetectorModule& m, std::map<std::string, ELink*>& eLinks, const int eLinkIndex);
   const std::string computeELinkId(DetectorModule& m, const int eLinkIndex) const;
   ELink* createAndStoreELink(std::map<std::string, ELink*>& eLinks, DetectorModule& m, const std::string eLinkId);

@@ -21,14 +21,8 @@ namespace inner_cabling_functions {
   const int computeRingNumber(const int ringQuarterIndex);
   const bool isRingInnerEnd(const int ringQuarterIndex);
 
+  const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber);
 }
-
-
-
-
-//const int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth);
-//const int computeNextPhiSliceRef(const int phiSliceRef, const int numPhiSlices);
-//const int computePreviousPhiSliceRef(const int phiSliceRef, const int numPhiSlices);
 
 
 #endif  // INNER_CABLING_FUNCTIONS_HH

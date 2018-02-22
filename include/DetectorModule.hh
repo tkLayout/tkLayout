@@ -38,6 +38,8 @@ namespace insur { class HvLine; }
 using insur::HvLine;
 //namespace insur { class ELink; }
 //using insur::ELink;
+namespace insur { class GBT; }
+using insur::GBT;
 
 
 //
@@ -74,8 +76,10 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
 
   Bundle* bundle_ = nullptr;
   PowerChain* powerChain_ = nullptr;
+  int phiRefInPowerChain_;
   HvLine* hvLine_ = nullptr;
   Container eLinks_;
+  GBT* GBT_ =  nullptr;
 protected:
   MaterialObject materialObject_;
   Sensors sensors_;
@@ -400,6 +404,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   // IT CABLING
   void setPowerChain(PowerChain* powerChain) { powerChain_ = powerChain ; }
   const PowerChain* getPowerChain() const { return powerChain_; }
+  void setPhiRefInPowerChain(int phiRefInPowerChain) { phiRefInPowerChain_ = phiRefInPowerChain; }
+  const int getPhiRefInPowerChain() const { return phiRefInPowerChain_; }
   const int isPositiveZEnd() const;
   const bool isPositiveXSide() const;
   const int powerChainPlotColor() const;
@@ -407,6 +413,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const HvLine* getHvLine() const { return hvLine_; }
   void addELink(ELink* l);
   const Container& getELinks() const { return eLinks_; }
+  void setGBT(GBT* myGBT) { GBT_ = myGBT; }
+  const GBT* getGBT() const { return GBT_; }
 };
 
 

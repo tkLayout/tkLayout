@@ -13,7 +13,7 @@ void ModulesToELinksConnector::visit(Layer& l) {
       
      
 void ModulesToELinksConnector::visit(BarrelModule& m) {
-  const int numELinksPerModule = computeNumELinksPerModule(barrelName_, layerNumber_);
+  const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(barrelName_, layerNumber_);
 
   for (int eLinkIndex = 0; eLinkIndex < numELinksPerModule; eLinkIndex++) {
     // BUILD ELINK IF NECESSARY, AND CONNECT MODULE TO ELINK
@@ -33,7 +33,7 @@ void ModulesToELinksConnector::visit(Ring& r)   {
 
 
 void ModulesToELinksConnector::visit(EndcapModule& m) {
-  const int numELinksPerModule = computeNumELinksPerModule(endcapName_, ringNumber_);
+  const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(endcapName_, ringNumber_);
 
   for (int eLinkIndex = 0; eLinkIndex < numELinksPerModule; eLinkIndex++) {
     // BUILD ELINK IF NECESSARY, AND CONNECT MODULE TO ELINK
@@ -47,44 +47,6 @@ void ModulesToELinksConnector::visit(EndcapModule& m) {
   checkModulesToELinksCabling(eLinks_);
   }*/
 
-
-const int ModulesToELinksConnector::computeNumELinksPerModule(const std::string subdetectorName, const int layerOrRingNumber) const {   
-  int numELinksPerModule = 0;
-
-  if (subdetectorName == inner_cabling_tbpx) {
-    if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer1;
-    else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer2;
-    else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer3;
-    else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer4;
-    else { 
-      logERROR(any2str("Found layer number ") + any2str(layerOrRingNumber)
-	       + any2str(" in ") + any2str(inner_cabling_tbpx)
-	       + any2str(". This is not supported.")
-	       );
-    }
-  }
-  else if (subdetectorName == inner_cabling_tfpx) {
-    if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing1;
-    else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing2;
-    else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing3;
-    else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing4;
-    else { 
-      logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
-	       + any2str(" in ") + any2str(inner_cabling_tfpx)
-	       + any2str(". This is not supported.")
-	       );
-    }
-  }
-  else if (subdetectorName == inner_cabling_tepx) {
-    numELinksPerModule = inner_cabling_numELinksPerModuleEndcap;
-  }
-  else { 
-    logERROR(any2str("Unknown subdetector ") + any2str(subdetectorName)
-	     );
-  }
-
-  return numELinksPerModule;
-}
 
 
 /* Build ELink.

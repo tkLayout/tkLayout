@@ -37,9 +37,6 @@ void PowerChain::addModule(Module* m) {
 }
 
 
-const bool PowerChain::isBarrel() const { return inner_cabling_functions::isBarrel(subDetectorName_); }
-
-
 
 
 // TO DO: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)

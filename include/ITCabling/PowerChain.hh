@@ -22,6 +22,7 @@ public:
 
   // MODULES CONNECTED TO THE POWERCHAIN.
   const Container& modules() const { return modules_; }
+  Container& modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
   void addModule(Module* m);
 
@@ -40,12 +41,16 @@ public:
   const int phiRef() const { return phiRef_; }
   const int ringQuarterIndex() const { return ringQuarterIndex_; }
 
-  const bool isBarrel() const;
-  //const bool isBarrel() const { return isBarrel(subDetectorName_); }
+  const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
   const bool isRingInnerEnd() const { return isRingInnerEnd_; }
 
-  const PowerChainType powerChainType() { return powerChainType_; }
+  const PowerChainType powerChainType() const { return powerChainType_; }
+
+  const bool isBarrelLong() const {
+    if (isBarrel()) return (numModules() == inner_cabling_maxNumModulesPerPowerChain);
+    else return false;
+  }
 
   const int plotColor() const { return plotColor_; }
 

@@ -7,6 +7,7 @@
 #include "Property.hh"
 #include "ITCabling/ModulesToPowerChainsConnector.hh"
 #include "ITCabling/ModulesToELinksConnector.hh"
+#include "ITCabling/GBT.hh"
 //#include "Cabling/DTC.hh"
 
 
@@ -21,6 +22,7 @@ public:
   // positive cabling side
   const std::map<int, PowerChain*> getPowerChains() const { return powerChains_; }
   const std::map<std::string, ELink*> getELinks() const { return eLinks_; }
+  const std::map<std::string, GBT*> getGBTs() const { return GBTs_; }
   //const std::map<int, Bundle*>& getBundles() const { return bundles_; }
   //const std::map<int, Cable*>& getCables() const { return cables_; }
   //const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
@@ -34,6 +36,23 @@ private:
   // CONNECT MODULES TO POWER CHAINS
   void connectModulesToPowerChains(Tracker* tracker);
   void connectModulesToELinks(Tracker* tracker);
+  void connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*> GBTs);
+
+
+
+
+  
+
+  // MODULES TO GBTS
+  const std::pair<int, int> computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel);
+  const int computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
+  const std::string computeGBTId(const int powerChainId, const int myGBTIndex) const;
+  void createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTPhiIndex, const int numELinksPerModule, std::map<std::string, GBT*> GBTs);
+  void connectOneModuleToOneGBT(Module& m, GBT* GBT) const;
+  void checkModulesToGBTsCabling(const std::map<std::string, GBT*>& GBTs) const;
+
+
+
 
   /*
   // CONNECT BUNDLES TO CABLES
@@ -55,7 +74,7 @@ private:
   // positive cabling side
   std::map<int, PowerChain*> powerChains_;
   std::map<std::string, ELink*> eLinks_;
-  std::map<int, GBT*> GBTs_;
+  std::map<std::string, GBT*> GBTs_;
   //std::map<int, Cable*> cables_;
   //std::map<const std::string, const DTC*> DTCs_;
 

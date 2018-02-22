@@ -125,39 +125,50 @@ namespace inner_cabling_functions {
 
 
 
-  /* Compute the int n for which we have: (phiSliceStart + n*phiSliceWidth) <= phi < (phiSliceStart + (n+1)*phiSliceWidth).
-   */
-  /*
-    const int computePhiSliceRef(const double phi, const double phiSliceStart, const double phiSliceWidth) {
-    double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
-    int phiSliceRef = 0;
-    // In case phiSliceRefExact is an integer, round it to an int!
-    if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < inner_cabling_roundingTolerance) phiSliceRef = fabs(round(phiSliceRefExact));
-    else phiSliceRef = std::floor(phiSliceRefExact);
 
-    return phiSliceRef;
+
+
+
+
+
+  const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber) {   
+    int numELinksPerModule = 0;
+
+    if (subDetectorName == inner_cabling_tbpx) {
+      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer1;
+      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer2;
+      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer3;
+      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer4;
+      else { 
+	logERROR(any2str("Found layer number ") + any2str(layerOrRingNumber)
+		 + any2str(" in ") + any2str(inner_cabling_tbpx)
+		 + any2str(". This is not supported.")
+		 );
+      }
     }
-  */
-
-
-  /* Compute phiSliceRef + 1 modulo numPhiSlices.
-   */
-  /*
-    const int computeNextPhiSliceRef(const int phiSliceRef, const int numPhiSlices) {
-    int nextPhiSliceRef = femod( (phiSliceRef + 1), numPhiSlices);
-    return nextPhiSliceRef;
+    else if (subDetectorName == inner_cabling_tfpx) {
+      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing1;
+      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing2;
+      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing3;
+      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing4;
+      else { 
+	logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
+		 + any2str(" in ") + any2str(inner_cabling_tfpx)
+		 + any2str(". This is not supported.")
+		 );
+      }
     }
-  */
-
-
-  /* Compute phiSliceRef - 1 modulo numPhiSlices.
-   */
-  /*
-    const int computePreviousPhiSliceRef(const int phiSliceRef, const int numPhiSlices) {
-    int previousPhiSliceRef = femod( (phiSliceRef - 1), numPhiSlices);
-    return previousPhiSliceRef;
+    else if (subDetectorName == inner_cabling_tepx) {
+      numELinksPerModule = inner_cabling_numELinksPerModuleEndcap;
     }
-  */
+    else { 
+      logERROR(any2str("Unknown subDetector ") + any2str(subDetectorName)
+	       );
+    }
+
+    return numELinksPerModule;
+  }
+
 
 
 }
