@@ -369,7 +369,7 @@ void InnerCablingMap::connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles,
     const int myDTCId = computeDTCId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber);
 
     // BUILD DTCS AND STORE THEM
-    createAndStoreDTCs(myBundle, DTCs, myDTCId);    
+    createAndStoreDTCs(myBundle, DTCs, myDTCId, isPositiveZEnd, isPositiveXSide);    
   }
 
   // CHECK DTCS
@@ -411,11 +411,11 @@ const int InnerCablingMap::computeDTCId(const bool isPositiveZEnd, const bool is
 }
 
 
-void InnerCablingMap::createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId) {
+void InnerCablingMap::createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide) {
 
   auto found = DTCs.find(DTCId);
   if (found == DTCs.end()) {
-    InnerDTC* myDTC = GeometryFactory::make<InnerDTC>(DTCId);
+    InnerDTC* myDTC = GeometryFactory::make<InnerDTC>(DTCId, isPositiveZEnd, isPositiveXSide);
     connectOneBundleToOneDTC(myBundle, myDTC);
     DTCs.insert(std::make_pair(DTCId, myDTC));  
   }

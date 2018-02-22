@@ -60,7 +60,7 @@ private:
 
   // BUNDLES TO DTCS
   const int computeDTCId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber) const;
-  void createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId);
+  void createAndStoreDTCs(InnerBundle* myBundle, std::map<int, InnerDTC*>& DTCs, const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
   void connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const;
   void checkBundlesToDTCsCabling(const std::map<int, InnerDTC*>& DTCs) const;
 

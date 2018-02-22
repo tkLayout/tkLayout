@@ -1,7 +1,10 @@
 #include "ITCabling/InnerDTC.hh"
 
 
-InnerDTC::InnerDTC(const int DTCId) {
+InnerDTC::InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide) :
+  isPositiveZEnd_(isPositiveZEnd),
+  isPositiveXSide_(isPositiveXSide)
+{
   myid(DTCId);
 
   //DTCType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);

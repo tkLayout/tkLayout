@@ -15,7 +15,7 @@ class InnerDTC : public PropertyObject, public Buildable, public Identifiable<in
   typedef PtrVector<InnerBundle> Container; 
 
 public:
-  InnerDTC(const int DTCId);
+  InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
   //~InnerDTC();
 
   // BUNDLES CONNECTED TO THE DTC
@@ -23,6 +23,9 @@ public:
   const int numBundles() const { return bundles_.size(); }
   void addBundle(InnerBundle* bundle);
 
+
+  const bool isPositiveZEnd() const { return isPositiveZEnd_; }
+  const bool isPositiveXSide() const { return isPositiveXSide_; }
 
   // GENERAL INFO
   //const InnerDTCType powerChainType() const { return powerChainType_; }
@@ -32,6 +35,9 @@ private:
   //const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const;
 
   Container bundles_;
+
+  bool isPositiveZEnd_;
+  bool isPositiveXSide_;
 
   //DTC* myDTC_ = nullptr;
 
