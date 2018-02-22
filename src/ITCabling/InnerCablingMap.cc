@@ -62,6 +62,10 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
     const int ringNumber = myPowerChain->ringNumber();
     const int numModulesInPowerChain = myPowerChain->numModules();
 
+    std::cout << "subDetectorName = " << subDetectorName << std::endl;
+    std::cout << "layerNumber = " << layerNumber << std::endl;
+    std::cout << "ringNumber  = " << ringNumber  << std::endl;
+
     const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
     const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
 
@@ -75,6 +79,7 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
       const bool isBarrelLong = myPowerChain->isBarrelLong();
       const int ringRef = (isBarrelLong ? m.uniRef().ring - 1 : m.uniRef().ring - 2);
       const int phiRefInPowerChain = m.getPhiRefInPowerChain();
+      std::cout << "phiRefInPowerChain = " << phiRefInPowerChain << std::endl;
       
       const int myGBTPhiIndex = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, maxNumModulesPerGBTInPowerChain, numGBTsInPowerChain);
       const std::string myGBTId = computeGBTId(powerChainId, myGBTPhiIndex);
@@ -93,7 +98,7 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
 // MODULES TO GBTS !!!!!
 
 const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
-  //std::cout << "STARTTTTTTTTTTTTTTT numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
+  std::cout << "STARTTTTTTTTTTTTTTT InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain  " << " numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
 
   int numModules = numModulesInPowerChain;
   if (isBarrel) {
@@ -101,13 +106,13 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
     else numModules /= 2;  // Divide by 2 because in BPIX, the GBTs assignment works by rod.
                            // This is becasue it makes the powering of the GBTs much easier.
   }
-  //std::cout << "numModules = " << numModules << std::endl;
+  std::cout << "numModules = " << numModules << std::endl;
 
   const int numELinks = numELinksPerModule * numModules;
-  //std::cout << "numELinks = " << numELinks << std::endl;
+  std::cout << "numELinks = " << numELinks << std::endl;
 
   const double numGBTsExact = static_cast<double>(numELinks) / inner_cabling_maxNumELinksPerGBT;
-  //std::cout << "numGBTsExact = " << numGBTsExact << std::endl;
+  std::cout << "numGBTsExact = " << numGBTsExact << std::endl;
   const int numGBTs = (fabs(numGBTsExact - round(numGBTsExact)) < inner_cabling_roundingTolerance ? 
 		       round(numGBTsExact) 
 		       : std::ceil(numGBTsExact)
@@ -127,8 +132,8 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
   // One could take the floor, and then look at the number of remaining modules in power chain.
   // This case does not appear in practice, but can be worked on if needed.
 
-  //std::cout << "numGBTs = " << numGBTs << std::endl;
-  //std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
+  std::cout << "numGBTs = " << numGBTs << std::endl;
+  std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
 
   return std::make_pair(maxNumModulesPerGBTInPowerChain, numGBTs);
 }
@@ -137,17 +142,22 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 /* Compute the phi index associated to each GBT.
  */
 const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const {
- 
+  std::cout << "InnerCablingMap::computeGBTPhiIndex " << std::endl;
+
   const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
+  std::cout << "moduleRef = " << moduleRef << std::endl;
 
   if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
 
   const double myGBTIndexExact = static_cast<double>(moduleRef) / maxNumModulesPerGBTInPowerChain;
+  std::cout << "myGBTIndexExact = " << myGBTIndexExact << std::endl;
   int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndexExact)) < inner_cabling_roundingTolerance ? 
 		    round(myGBTIndexExact) 
 		    : std::floor(myGBTIndexExact)
 		    );
   if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
+
+  std::cout << "myGBTIndex = " << myGBTIndex << std::endl;
 
   return myGBTIndex;
 }

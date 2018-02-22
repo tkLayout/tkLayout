@@ -152,15 +152,16 @@ const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const d
 
 const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
   int powerChainPhiRef = 0;
-  int modulePhiRefInPowerChain = 0;
 
   const int numModulesInRingEnd = numModulesInRing / 2;
   const int numModulesInRingQuarter = numModulesInRingEnd / 2;
+  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRingEnd, isPositiveZEnd);
+  int modulePhiRefInPowerChain = phiUnitRef;
+
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
-    const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(modPhi, numModulesInRingEnd, isPositiveZEnd);
     const int numModulesInPowerChain = numModulesInRingQuarter / 2;
     if (phiUnitRef <= (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
-      powerChainPhiRef = 0; 
+      powerChainPhiRef = 0;
       modulePhiRefInPowerChain = phiUnitRef; 
     } 
     else { 
