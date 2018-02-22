@@ -62,10 +62,6 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
     const int ringNumber = myPowerChain->ringNumber();
     const int numModulesInPowerChain = myPowerChain->numModules();
 
-    std::cout << "subDetectorName = " << subDetectorName << std::endl;
-    std::cout << "layerNumber = " << layerNumber << std::endl;
-    std::cout << "ringNumber  = " << ringNumber  << std::endl;
-
     const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
     const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
 
@@ -79,7 +75,7 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
       const bool isBarrelLong = myPowerChain->isBarrelLong();
       const int ringRef = (isBarrelLong ? m.uniRef().ring - 1 : m.uniRef().ring - 2);
       const int phiRefInPowerChain = m.getPhiRefInPowerChain();
-      std::cout << "phiRefInPowerChain = " << phiRefInPowerChain << std::endl;
+      //std::cout << "phiRefInPowerChain = " << phiRefInPowerChain << std::endl;
       
       const int myGBTPhiIndex = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, maxNumModulesPerGBTInPowerChain, numGBTsInPowerChain);
       const std::string myGBTId = computeGBTId(powerChainId, myGBTPhiIndex);
@@ -98,7 +94,7 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
 // MODULES TO GBTS !!!!!
 
 const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
-  std::cout << "STARTTTTTTTTTTTTTTT InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain  " << " numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
+  //std::cout << "STARTTTTTTTTTTTTTTT InnerCablingMap::computeMaxNumModulesPerGBTInPowerChain  " << " numELinksPerModule = " <<  numELinksPerModule << ", numModulesInPowerChain = " << numModulesInPowerChain << ", isBarrel = " << isBarrel << std::endl;
 
   int numModules = numModulesInPowerChain;
   if (isBarrel) {
@@ -106,13 +102,13 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
     else numModules /= 2;  // Divide by 2 because in BPIX, the GBTs assignment works by rod.
                            // This is becasue it makes the powering of the GBTs much easier.
   }
-  std::cout << "numModules = " << numModules << std::endl;
+  //std::cout << "numModules = " << numModules << std::endl;
 
   const int numELinks = numELinksPerModule * numModules;
-  std::cout << "numELinks = " << numELinks << std::endl;
+  //std::cout << "numELinks = " << numELinks << std::endl;
 
   const double numGBTsExact = static_cast<double>(numELinks) / inner_cabling_maxNumELinksPerGBT;
-  std::cout << "numGBTsExact = " << numGBTsExact << std::endl;
+  //std::cout << "numGBTsExact = " << numGBTsExact << std::endl;
   const int numGBTs = (fabs(numGBTsExact - round(numGBTsExact)) < inner_cabling_roundingTolerance ? 
 		       round(numGBTsExact) 
 		       : std::ceil(numGBTsExact)
@@ -132,8 +128,8 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
   // One could take the floor, and then look at the number of remaining modules in power chain.
   // This case does not appear in practice, but can be worked on if needed.
 
-  std::cout << "numGBTs = " << numGBTs << std::endl;
-  std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
+  //std::cout << "numGBTs = " << numGBTs << std::endl;
+  //std::cout << "maxNumModulesPerGBTInPowerChain = " << maxNumModulesPerGBTInPowerChain << std::endl;
 
   return std::make_pair(maxNumModulesPerGBTInPowerChain, numGBTs);
 }
@@ -142,22 +138,22 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 /* Compute the phi index associated to each GBT.
  */
 const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const {
-  std::cout << "InnerCablingMap::computeGBTPhiIndex " << std::endl;
+  //std::cout << "InnerCablingMap::computeGBTPhiIndex " << std::endl;
 
   const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
-  std::cout << "moduleRef = " << moduleRef << std::endl;
+  //std::cout << "moduleRef = " << moduleRef << std::endl;
 
   if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
 
   const double myGBTIndexExact = static_cast<double>(moduleRef) / maxNumModulesPerGBTInPowerChain;
-  std::cout << "myGBTIndexExact = " << myGBTIndexExact << std::endl;
+  //std::cout << "myGBTIndexExact = " << myGBTIndexExact << std::endl;
   int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndexExact)) < inner_cabling_roundingTolerance ? 
 		    round(myGBTIndexExact) 
 		    : std::floor(myGBTIndexExact)
 		    );
   if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
 
-  std::cout << "myGBTIndex = " << myGBTIndex << std::endl;
+  //std::cout << "myGBTIndex = " << myGBTIndex << std::endl;
 
   return myGBTIndex;
 }
@@ -238,6 +234,10 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, st
     const int layerDiskNumber = myGBT->layerDiskNumber();
     const int powerChainPhiRef = myGBT->powerChainPhiRef();
     const bool isRingInnerEnd = myGBT->isRingInnerEnd();
+
+    std::cout << "subDetectorName = " << subDetectorName << std::endl;
+    std::cout << "layerDiskNumber = " << layerDiskNumber << std::endl;
+    std::cout << "powerChainPhiRef = " << powerChainPhiRef << std::endl;
         
     const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, isRingInnerEnd);
 
@@ -260,28 +260,34 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
   if (subDetectorName == inner_cabling_tbpx) {
 
     // TO DO: THIS SHOULD BE COMPUTED AS A FUNCTION OF LAYER NUMBER, NOT HARCODED!!!
-    const int numBundlesInHalfBarrelLayer1 = 3;
-    const int numBundlesInHalfBarrelLayer2 = 2;
-    const int numBundlesInHalfBarrelLayer3 = 1;
-    const int numBundlesInHalfBarrelLayer4 = 2;
+    const int maxNumPowerChainsPerBundleBarrelLayer1 = 1;
+    const int maxNumPowerChainsPerBundleBarrelLayer2 = 3;
+    const int maxNumPowerChainsPerBundleBarrelLayer3 = 3;
+    const int maxNumPowerChainsPerBundleBarrelLayer4 = 4;
 
-    int numBundlesInHalfBarrelLayer = 0;
-    if (layerNumber == 1) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer1;
-    else if (layerNumber == 2) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer2;
-    else if (layerNumber == 3) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer3;
-    else if (layerNumber == 4) numBundlesInHalfBarrelLayer = numBundlesInHalfBarrelLayer4;
+    int maxNumPowerChainsPerBundleBarrelLayer = 0;
+    if (layerNumber == 1) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer1;
+    else if (layerNumber == 2) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer2;
+    else if (layerNumber == 3) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer3;
+    else if (layerNumber == 4) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer4;
     else logERROR("Did not find supported layer number.");
 
-    if (numBundlesInHalfBarrelLayer == 0) logERROR(any2str("Found numBundlesInHalfBarrelLayer == 0."));
+    if (maxNumPowerChainsPerBundleBarrelLayer == 0) logERROR(any2str("Found maxNumPowerChainsPerBundleBarrelLayer == 0."));
 
-    const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / numBundlesInHalfBarrelLayer;
+    std::cout << "maxNumPowerChainsPerBundleBarrelLayer = " << maxNumPowerChainsPerBundleBarrelLayer << std::endl;
+
+    const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / maxNumPowerChainsPerBundleBarrelLayer;
     int myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 
 			 round(myBundleIndexExact) 
 			 : std::floor(myBundleIndexExact)
 			 );
+    std::cout << "myBundleIndexExact = " << myBundleIndexExact << std::endl;
+    std::cout << "myBundleIndex = " << myBundleIndex << std::endl;
   }
-  else if (subDetectorName == inner_cabling_tfpx) myBundleIndex = 0;
-  else if (subDetectorName == inner_cabling_tepx) myBundleIndex = (isRingInnerEnd ? 0 : 1);
+  else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) {
+    myBundleIndex = (isRingInnerEnd ? 0 : 1);
+  }
+  else logERROR("Unsupported detector name.");
 
   return myBundleIndex;
 }
@@ -382,7 +388,7 @@ const int InnerCablingMap::computeDTCId(const std::string subDetectorName, const
     else if (layerDiskNumber == 3) myDTCId = 5;
     else if (layerDiskNumber == 4) myDTCId = 3;
     else if (layerDiskNumber == 5) myDTCId = 5;
-    else if (layerDiskNumber == 6) myDTCId = 3;
+    else if (layerDiskNumber == 6) myDTCId = 4;
     else if (layerDiskNumber == 7) myDTCId = 2;
     else if (layerDiskNumber == 8) myDTCId = 1;
     else logERROR(any2str("Unexpected diskNumber in FPX : ") + any2str(layerDiskNumber));
