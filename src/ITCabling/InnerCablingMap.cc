@@ -277,7 +277,7 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
     std::cout << "maxNumPowerChainsPerBundleBarrelLayer = " << maxNumPowerChainsPerBundleBarrelLayer << std::endl;
 
     const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / maxNumPowerChainsPerBundleBarrelLayer;
-    int myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 
+    myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 
 			 round(myBundleIndexExact) 
 			 : std::floor(myBundleIndexExact)
 			 );
