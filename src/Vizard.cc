@@ -7762,10 +7762,23 @@ namespace insur {
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Filled modules
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+			   );
+		} );
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Contour modules
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+			   );
+		} );
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
@@ -7777,10 +7790,23 @@ namespace insur {
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Filled modules
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+			   );
+		} );
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Contour modules
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+			   );
+		} );
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
