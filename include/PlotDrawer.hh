@@ -354,16 +354,22 @@ struct YZFull : public YZ {
  YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
 
-struct ZPhi : public std::pair<int, int>, private Rounder {
+struct ZPhi : public std::pair<double, double>, private Rounder {
   const bool valid;
   // ZPhi coordinates of the centre of module m. //m.center().Rho()
-  ZPhi(const Module& m) : std::pair<int, int>(round(m.center().Z()), round(180. * femod(m.center().Phi() + M_PI / 2., M_PI))), valid(true) {}
+  ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * 1000., femodGreat(m.center().Phi() + M_PI / 2., M_PI) * 1000.), valid(true) {}
   // ZPhi coordinates of vector v. //v.Rho()
-  ZPhi(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(180. * femod(v.Phi() + M_PI / 2., M_PI))), valid(true) {}
+  ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* 1000., femodGreat(v.Phi() + M_PI / 2., M_PI) * 1000.), valid(true) {}
   // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
-  ZPhi(const XYZVector& v, const Module& m) : ZPhi(v) {}
-  int x() const { return this->first; }
-  int y() const { return this->second; }
+  ZPhi(const XYZVector& v, const Module& m) : valid(true) {
+    this->first = v.Z() * 1000.;
+
+    const double centerPhi = femodGreat(m.center().Phi() + M_PI / 2., M_PI) * 1000.;
+    std::cout << "moduloDiff(v.Phi() - m.center().Phi()) = " << moduloDiff(v.Phi(), m.center().Phi(), M_PI) << std::endl;
+    this->second = centerPhi + moduloDiff(v.Phi(), m.center().Phi(), M_PI) * 1000.;
+  }
+  double x() const { return this->first; }
+  double y() const { return this->second; }
 };
 
 

@@ -7766,11 +7766,12 @@ namespace insur {
       zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
+		  //&& m.uniRef().phi == 1
 		  && m.isPositiveXSide()
 		  ); 
 	} );
       zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
-      zphiBarrelDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos);
+      zphiBarrelDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
       ZPhiLayerPlots.push_back(ZPhiCanvasPos);
       // NEGATIVE X SIDE
       TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
@@ -7780,11 +7781,12 @@ namespace insur {
       zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
+		  //&& m.uniRef().phi == 1
 		  && !m.isPositiveXSide()
 		  ); 
 	} );
       zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
-      zphiBarrelDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
+      zphiBarrelDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
       ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
     }
 
