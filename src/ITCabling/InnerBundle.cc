@@ -12,7 +12,7 @@ InnerBundle::InnerBundle(const int bundleId, const bool isPositiveZEnd, const bo
   myid(bundleId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
 
-  plotColor_ = computePlotColor(myBundleIndex);
+  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, layerDiskNumber, myBundleIndex);
 };
 
 
@@ -28,8 +28,20 @@ void InnerBundle::addGBT(GBT* myGBT) {
 
 
 
-const int InnerBundle::computePlotColor(const int bundleIndex) const {
-  const int plotColor = femod(bundleIndex, 3) + 1;
+const int InnerBundle::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int layerDiskNumber, const int bundleIndex) const {
+  int plotColor = 0;
+
+  if (isBarrel) {
+    const int plotZEnd = (isPositiveZEnd ? 0 : 1);
+    const int plotLayer = femod(layerDiskNumber, 4);
+    const int plotIndex = femod(bundleIndex, 3);
+    plotColor = plotZEnd * 6 + plotLayer * 3 + plotIndex + 1;  // ? plotZEnd * 7
+  }
+  else {
+    const int plotLayer = femod(layerDiskNumber, 5);   //  ?
+    const int plotIndex = femod(bundleIndex, 2);
+    plotColor = plotLayer * 2 + plotIndex + 1;
+  }
 
   return plotColor;
 }

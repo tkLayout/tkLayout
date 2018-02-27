@@ -48,7 +48,7 @@ public:
   const int plotColor() const { return plotColor_; }
 
 private:
-  const int computePlotColor(const int bundleIndex) const;
+  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int layerDiskNumber, const int bundleIndex) const;
 
   Container GBTs_;
 
