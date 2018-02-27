@@ -52,7 +52,7 @@ private:
   void checkModulesToGBTsCabling(const std::map<std::string, GBT*>& GBTs) const;
 
   // GBTs to BUNDLES
-  const int computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isRingInnerEnd) const;
+  const int computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const int ringNumber) const;
   const int computeBundleId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) const;
   void createAndStoreBundles(GBT* myGBT, std::map<int, InnerBundle*>& bundles, const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex);
   void connectOneGBTToOneBundle(GBT* myGBT, InnerBundle* myBundle) const;

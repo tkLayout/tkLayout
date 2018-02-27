@@ -420,6 +420,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   void setGBT(GBT* myGBT) { GBT_ = myGBT; }
   const GBT* getGBT() const { return GBT_; }
   const InnerBundle* getInnerBundle() const;
+  const int innerBundlePlotColor() const;
   const InnerDTC* getInnerDTC() const;
   const int innerDTCPlotColor() const;
 };

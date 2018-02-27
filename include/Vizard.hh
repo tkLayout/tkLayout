@@ -188,6 +188,9 @@ namespace insur {
     void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
 						   TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
 						   std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
+    void createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
+						    TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+						    std::vector<TCanvas*> &XYPosBundlesDisks);
     void createSummaryCanvasInnerCablingDTCNicer(Tracker& tracker, TCanvas *&RZCanvas);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};

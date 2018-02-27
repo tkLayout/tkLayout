@@ -769,6 +769,16 @@ const InnerBundle* DetectorModule::getInnerBundle() const {
 }
 
 
+const int DetectorModule::innerBundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle != nullptr) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
+
 const InnerDTC* DetectorModule::getInnerDTC() const {
   const InnerDTC* myDTC = nullptr;
   const InnerBundle* myBundle = getInnerBundle();

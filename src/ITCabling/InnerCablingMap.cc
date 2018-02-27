@@ -233,13 +233,13 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, st
     
     const int layerDiskNumber = myGBT->layerDiskNumber();
     const int powerChainPhiRef = myGBT->powerChainPhiRef();
-    const bool isRingInnerEnd = myGBT->isRingInnerEnd();
+    const int ringNumber = myGBT->ringNumber();
 
     //std::cout << "subDetectorName = " << subDetectorName << std::endl;
     //std::cout << "layerDiskNumber = " << layerDiskNumber << std::endl;
     //std::cout << "powerChainPhiRef = " << powerChainPhiRef << std::endl;
         
-    const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, isRingInnerEnd);
+    const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, ringNumber);
 
     const bool isPositiveZEnd = myGBT->isPositiveZEnd();
     const bool isPositiveXSide = myGBT->isPositiveXSide();
@@ -254,7 +254,7 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, st
 }
 
 
-const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isRingInnerEnd) const {
+const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const int ringNumber) const {
   int myBundleIndex = 0;
 
   if (subDetectorName == inner_cabling_tbpx) {
@@ -285,7 +285,7 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
     //std::cout << "myBundleIndex = " << myBundleIndex << std::endl;
   }
   else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) {
-    myBundleIndex = (isRingInnerEnd ? 0 : 1);
+    myBundleIndex = (femod(ringNumber, 2) == 1 ? 0 : 1);
   }
   else logERROR("Unsupported detector name.");
 

@@ -1673,6 +1673,12 @@ namespace insur {
       //********************************//
       RootWImage* myImage;
 
+      RootWTable* barrelName = new RootWTable();
+      barrelName->setContent(0, 0, "BPIX");
+      RootWTable* forwardName = new RootWTable();
+      forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
+
+
       // MODULES TO POWERCHAINS
       TCanvas *RZPowerChainCanvas = nullptr;
       TCanvas *XYPowerChainNegCanvas = nullptr;
@@ -1682,12 +1688,8 @@ namespace insur {
       std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
    
       myContent = new RootWContent("Modules to Serial Power Chains");
-      myPage->addContent(myContent);
-
-      RootWTable* barrelName = new RootWTable();
-      barrelName->setContent(0, 0, "BPIX");
-      myContent->addItem(barrelName);
-
+      myPage->addContent(myContent);  
+      
       createSummaryCanvasCablingPowerChainNicer(tracker, RZPowerChainCanvas, 
 						XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
 						XYPosPowerChainsDisks, XYPosPowerChainsDiskSurfaces);
@@ -1697,6 +1699,8 @@ namespace insur {
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Serial Power Chains.");
 	myContent->addItem(myImage);
 	}*/
+      // bpix
+      myContent->addItem(barrelName);
       if (XYPowerChainNegCanvas) {
 	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
@@ -1712,11 +1716,9 @@ namespace insur {
 	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
-      // POSITIVE CABLING SIDE
+      // fpix and epix, (+z) end
       myContent = new RootWContent("");
       myPage->addContent(myContent);
-      RootWTable* forwardName = new RootWTable();
-      forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
       myContent->addItem(forwardName);
       /*for (const auto& XYPosDisk : XYPosPowerChainsDisks) {
 	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1727,6 +1729,42 @@ namespace insur {
 	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYPosSurface->GetTitle());
 	  myContent->addItem(myImage);
+      }
+ 
+
+
+      // MODULES TO BUNDLES
+      TCanvas *XYBundleNegCanvas = nullptr;
+      TCanvas *XYBundlePosCanvas = nullptr;   
+      std::vector<TCanvas*> XYPosBundlesDisks;
+   
+      myContent = new RootWContent("Modules to Bundles");
+      myPage->addContent(myContent);  
+      
+      createSummaryCanvasInnerCablingBundleNicer(tracker,
+						 XYBundleNegCanvas, XYBundlePosCanvas, 
+						 XYPosBundlesDisks);
+
+      // bpix
+      myContent->addItem(barrelName);
+      if (XYBundleNegCanvas) {
+	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYBundlePosCanvas) {
+	myImage = new RootWImage(XYBundlePosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      // fpix and epix, (+z) end
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      myContent->addItem(forwardName);
+      for (const auto& XYPosDisk : XYPosBundlesDisks) {
+	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosDisk->GetTitle());
+	myContent->addItem(myImage);
       }
 
 
@@ -1743,10 +1781,6 @@ namespace insur {
 	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
 	myContent->addItem(myImage);
       }
- 
-
-
-
 
       
       const InnerCablingMap* myInnerCablingMap = tracker.getInnerCablingMap();
@@ -7508,18 +7542,9 @@ namespace insur {
 
 
 
-
-
-
-
-
-
-
-
-
-void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
-						     TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-						     std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
+  void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
+							 TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+							 std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
@@ -7631,6 +7656,59 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 
   }
 
+
+  void Vizard::createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
+							  TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+							  std::vector<TCanvas*> &XYPosBundlesDisks) {
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+       
+    // NEGATIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = false;
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypeInnerBundleTransparentColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL.
+    isRotatedY180 = false;
+    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas->cd();
+    PlotDrawer<XY, TypeInnerBundleTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    isRotatedY180 = false;
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypeInnerBundleTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	XYPosBundlesDisks.push_back(XYCanvasDisk);
+      }
+    }
+
+  }
 
 
   void Vizard::createSummaryCanvasInnerCablingDTCNicer(Tracker& tracker,

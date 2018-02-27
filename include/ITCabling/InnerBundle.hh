@@ -45,10 +45,10 @@ public:
   //const bool isRingInnerEnd() const { return isRingInnerEnd_; }
   //const InnerBundleType powerChainType() const { return powerChainType_; }  
 
-  //const int plotColor() const { return plotColor_; }
+  const int plotColor() const { return plotColor_; }
 
 private:
-  //const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const;
+  const int computePlotColor(const int bundleIndex) const;
 
   Container GBTs_;
 
@@ -62,7 +62,7 @@ private:
   
   bool isBarrel_;
 
-  //int plotColor_;
+  int plotColor_;
 };
 
 
