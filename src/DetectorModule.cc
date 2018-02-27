@@ -759,6 +759,16 @@ void DetectorModule::addELink(ELink* l) {
 }
 
 
+const int DetectorModule::gbtPlotColor() const {
+  int gbtPlotColor = 0;
+  const GBT* myGBT = getGBT();
+  if (myGBT != nullptr) {
+    gbtPlotColor = myGBT->plotColor();
+  }
+  return gbtPlotColor;
+}
+
+
 const InnerBundle* DetectorModule::getInnerBundle() const {
   const InnerBundle* myBundle = nullptr;
   const GBT* myGBT = getGBT();

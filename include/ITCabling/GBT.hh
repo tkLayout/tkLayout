@@ -58,10 +58,10 @@ public:
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 
-  //const int plotColor() const { return plotColor_; }
+  const int plotColor() const { return plotColor_; }
 
 private:
-  //const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const;
+  const int computePlotColor(const PowerChain* myPowerChain) const;
 
   Container modules_;
 
@@ -72,7 +72,7 @@ private:
   int myGBTPhiIndex_;
   int numELinksPerModule_;
 
-  //int plotColor_;
+  int plotColor_;
 };
 
 

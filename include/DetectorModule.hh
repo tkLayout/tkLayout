@@ -419,6 +419,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const Container& getELinks() const { return eLinks_; }
   void setGBT(GBT* myGBT) { GBT_ = myGBT; }
   const GBT* getGBT() const { return GBT_; }
+  const int gbtPlotColor() const;
   const InnerBundle* getInnerBundle() const;
   const int innerBundlePlotColor() const;
   const InnerDTC* getInnerDTC() const;

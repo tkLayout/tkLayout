@@ -1733,6 +1733,51 @@ namespace insur {
  
 
 
+
+      // MODULES TO GBTS
+      //TCanvas *XYGBTNegCanvas = nullptr;
+      // TCanvas *XYGBTCentralCanvas = nullptr;
+      //TCanvas *XYGBTCanvas = nullptr;   
+      //std::vector<TCanvas*> XYPosGBTsDisks;
+      std::vector<TCanvas*> XYPosGBTsDiskSurfaces;
+   
+      myContent = new RootWContent("Modules to LP GBTs");
+      myPage->addContent(myContent);
+      
+      createSummaryCanvasInnerCablingGBTNicer(tracker,
+					      //XYGBTNegCanvas, XYGBTCentralCanvas, XYGBTCanvas, 
+					      XYPosGBTsDiskSurfaces);
+
+      // bpix
+      /*myContent->addItem(barrelName);
+      if (XYGBTNegCanvas) {
+	myImage = new RootWImage(XYGBTNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYGBTCentralCanvas) {
+	myImage = new RootWImage(XYGBTCentralCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, sensors at Z = 0 only. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYGBTCanvas) {
+	myImage = new RootWImage(XYGBTCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+	}*/
+      // fpix and epix, (+z) end
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      myContent->addItem(forwardName);
+      for (const auto& XYPosSurface : XYPosGBTsDiskSurfaces) {
+	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(XYPosSurface->GetTitle());
+	  myContent->addItem(myImage);
+      }
+
+
+
+
       // MODULES TO BUNDLES
       TCanvas *XYBundleNegCanvas = nullptr;
       TCanvas *XYBundlePosCanvas = nullptr;   
@@ -7647,6 +7692,97 @@ namespace insur {
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
+	}
+      }
+    }
+
+  }
+
+
+  void Vizard::createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker,
+						       //TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						       std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+       
+    // NEGATIVE CABLING SIDE. BARREL.
+    /*bool isRotatedY180 = false;
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypeGBTTransparentColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES.
+    isRotatedY180 = false;
+    XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCentralCanvas->cd();
+    PlotDrawer<XY, TypeGBTTransparentColor> xyCentralBarrelDrawer;
+    xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
+    xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas);
+    xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL.
+    isRotatedY180 = false;
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypeGBTTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+    */
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK SURFACE.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();	
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {  
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    if ((surfaceIndex % 2) == 1) {
+	      bool isRotatedY180 = true;;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180GBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	    // (+Z) towards you
+	    else {
+	      bool isRotatedY180 = false;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
