@@ -1699,7 +1699,7 @@ namespace insur {
 	}*/
       if (XYPowerChainNegCanvas) {
 	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards the depth of the screen)");
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYPowerChainCentralCanvas) {
@@ -1755,9 +1755,6 @@ namespace insur {
       RootWContent* filesContent = new RootWContent("Cabling files", true);
       myPage->addContent(filesContent);   
       RootWTextFile* myTextFile;
-      // POSITIVE CABLING SIDE
-      //bool isPositiveCablingSide = true;
-      //filesContent->addItem(positiveSideName);
       // Modules to DTCs
       myTextFile = new RootWTextFile(Form("%sTrackerModulesToDTCs.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
@@ -1766,11 +1763,6 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
       filesContent->addItem(myTextFile);
-      // PowerChains to Modules: Aggregation Patterns in TEDD
-      //myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "PowerChains to Modules: Aggregation Patterns in TEDD");
-      //myTextFile->addText(createPowerChainsToEndcapModulesCsv(myInnerCablingMap, isPositiveCablingSide));
-      //filesContent->addItem(myTextFile);
-
       // NEGATIVE CABLING SIDE
       /*isPositiveCablingSide = false;
       RootWTable* spacer = new RootWTable();
@@ -1779,14 +1771,6 @@ namespace insur {
       spacer->setContent(2, 0, " ");
       filesContent->addItem(spacer);
       filesContent->addItem(negativeSideName);
-      // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("ModulesToDTCsNeg%s.csv", name.c_str()), "Modules to DTCs");
-      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
-      // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
       */
 
 
