@@ -365,7 +365,7 @@ struct ZPhi : public std::pair<double, double>, private Rounder {
     this->first = v.Z() * 1000.;
 
     const double centerPhi = femodGreat(m.center().Phi() + M_PI / 2., M_PI) * 1000.;
-    std::cout << "moduloDiff(v.Phi() - m.center().Phi()) = " << moduloDiff(v.Phi(), m.center().Phi(), M_PI) << std::endl;
+    //std::cout << "moduloDiff(v.Phi() - m.center().Phi()) = " << moduloDiff(v.Phi(), m.center().Phi(), M_PI) << std::endl;
     this->second = centerPhi + moduloDiff(v.Phi(), m.center().Phi(), M_PI) * 1000.;
   }
   double x() const { return this->first; }
