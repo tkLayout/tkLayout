@@ -10,8 +10,7 @@ namespace inner_cabling_functions {
   //const int computePhiUnitRef(const double phi, const double phiUnitStart, const double phiUnitWidth) {
   const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd) {
 
-    const double stereoPhi = computeStereoPhi(phi, isPositiveZEnd);
-    const double projectedPhi = femod(stereoPhi + M_PI / 2., M_PI);
+    const double projectedPhi = computePhiFromMinY(phi, isPositiveZEnd);
 
     const double phiUnitWidth = computePhiUnitWidth(numPhiUnits);
     const double phiUnitStart = computePhiUnitStart(projectedPhi, phiUnitWidth);
@@ -36,24 +35,28 @@ namespace inner_cabling_functions {
     return phiUnitRef;
   }
 
-
-  /* Compute the offset in Phi with respect to PhiUnitWidth.
-   */
-  const double computePhiUnitStart(const double phi, const double phiUnitWidth) {
-    double phiUnitStart = femod(phi, phiUnitWidth);
-    return phiUnitStart;
+  const double computePhiFromMinY(const double phi, const bool isPositiveZEnd) {
+    const double stereoPhi = computeStereoPhi(phi, isPositiveZEnd);
+    const double phiFromMinY = femod(stereoPhi + M_PI / 2., M_PI);
+    return phiFromMinY;
+  
   }
 
+  const double computeStereoPhi(const double phi, const bool isPositiveZEnd) {
+    const double stereoPhi = (isPositiveZEnd ? phi : femod(M_PI - phi, 2.*M_PI) );
+    return stereoPhi;
+  }
 
   const double computePhiUnitWidth(const int numPhiUnits) {
     const double phiUnitWidth = (2.*M_PI) / numPhiUnits;
     return phiUnitWidth;
   }
 
-
-  const double computeStereoPhi(const double phi, const bool isPositiveZEnd) {
-    const double stereoPhi = (isPositiveZEnd ? phi : femod(M_PI - phi, 2.*M_PI) );
-    return stereoPhi;
+  /* Compute the offset in Phi with respect to PhiUnitWidth.
+   */
+  const double computePhiUnitStart(const double phi, const double phiUnitWidth) {
+    double phiUnitStart = femod(phi, phiUnitWidth);
+    return phiUnitStart;
   }
 
 

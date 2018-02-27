@@ -1738,7 +1738,7 @@ namespace insur {
       //TCanvas *XYGBTNegCanvas = nullptr;
       // TCanvas *XYGBTCentralCanvas = nullptr;
       //TCanvas *XYGBTCanvas = nullptr;   
-      //std::vector<TCanvas*> XYPosGBTsDisks;
+      std::vector<TCanvas*> ZPhiGBTLayerPlots;
       std::vector<TCanvas*> XYPosGBTsDiskSurfaces;
    
       myContent = new RootWContent("Modules to LP GBTs");
@@ -1746,10 +1746,17 @@ namespace insur {
       
       createSummaryCanvasInnerCablingGBTNicer(tracker,
 					      //XYGBTNegCanvas, XYGBTCentralCanvas, XYGBTCanvas, 
+					      ZPhiGBTLayerPlots,
 					      XYPosGBTsDiskSurfaces);
 
       // bpix
-      /*myContent->addItem(barrelName);
+      myContent->addItem(barrelName);
+      for (const auto& ZPhiPlot : ZPhiGBTLayerPlots) {
+	  myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage->setComment(ZPhiPlot->GetTitle());
+	  myContent->addItem(myImage);
+      }
+      /*
       if (XYGBTNegCanvas) {
 	myImage = new RootWImage(XYGBTNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
@@ -7704,6 +7711,7 @@ namespace insur {
 
   void Vizard::createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker,
 						       //TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						       std::vector<TCanvas*> &ZPhiLayerPlots,
 						       std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
@@ -7744,6 +7752,48 @@ namespace insur {
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
     */
+
+
+    const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
+
+    // LAYERS.
+    for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
+      // POSITIVE X SIDE
+      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasPos->cd();
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDrawerPos;
+      zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
+      zphiBarrelDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos);
+      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      // NEGATIVE X SIDE
+      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasNeg->cd();
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDrawerNeg;
+      zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
+      zphiBarrelDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
+      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+    }
+
+
+
+
+
+
+
 
     // POSITIVE CABLING SIDE.
     // ENDCAPS DISK SURFACE.

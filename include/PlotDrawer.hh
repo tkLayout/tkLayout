@@ -154,6 +154,12 @@ struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
   }
 };
 
+struct TypeGBTColor { // Module-maintained GBT color
+  double operator()(const Module& m) {
+    return Palette::colorScrabble(m.gbtPlotColor());
+  }
+};
+
 struct TypeGBTTransparentColor { // Module-maintained GBT color
   double operator()(const Module& m) {
     bool isTransparent = (!m.isPositiveXSide());
@@ -347,6 +353,19 @@ struct YZFull : public YZ {
  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
  YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
+
+struct ZPhi : public std::pair<int, int>, private Rounder {
+  const bool valid;
+  // ZPhi coordinates of the centre of module m. //m.center().Rho()
+  ZPhi(const Module& m) : std::pair<int, int>(round(m.center().Z()), round(180. * femod(m.center().Phi() + M_PI / 2., M_PI))), valid(true) {}
+  // ZPhi coordinates of vector v. //v.Rho()
+  ZPhi(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(180. * femod(v.Phi() + M_PI / 2., M_PI))), valid(true) {}
+  // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
+  ZPhi(const XYZVector& v, const Module& m) : ZPhi(v) {}
+  int x() const { return this->first; }
+  int y() const { return this->second; }
+};
+
 
 TPolyLine* drawMod();
 

@@ -189,8 +189,9 @@ namespace insur {
 						   TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
 						   std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
     void createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker, 
-					    //TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-					    std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
+						 //TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						 std::vector<TCanvas*> &ZPhiLayerPlots,
+						 std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
     void createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
 						    TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
 						    std::vector<TCanvas*> &XYPosBundlesDisks);

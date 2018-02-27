@@ -10,9 +10,10 @@
 namespace inner_cabling_functions {
 
   const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd);
-  const double computePhiUnitStart(const double phi, const double phiUnitWidth);
-  const double computePhiUnitWidth(const int numPhiUnits);
+  const double computePhiFromMinY(const double phi, const bool isPositiveZEnd);
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
+  const double computePhiUnitWidth(const int numPhiUnits);
+  const double computePhiUnitStart(const double phi, const double phiUnitWidth);  
 
   const bool isBarrel(const std::string subDetectorName);
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
