@@ -1673,7 +1673,7 @@ namespace insur {
       //********************************//
       RootWImage* myImage;
 
-      // Modules to PowerChains
+      // MODULES TO POWERCHAINS
       TCanvas *RZPowerChainCanvas = nullptr;
       TCanvas *XYPowerChainNegCanvas = nullptr;
       TCanvas *XYPowerChainCentralCanvas = nullptr;
@@ -1730,7 +1730,7 @@ namespace insur {
       }
 
 
-      // Modules to DTCs
+      // MODULES TO DTCs
       TCanvas *RZDTCCanvas = nullptr;
        
       myContent = new RootWContent("Modules to DTCs");
@@ -1752,27 +1752,27 @@ namespace insur {
       const InnerCablingMap* myInnerCablingMap = tracker.getInnerCablingMap();
 
       // CSV files
-      //RootWContent* filesContent = new RootWContent("Cabling files", true);
-      //myPage->addContent(filesContent);   
-      /*RootWTextFile* myTextFile;
+      RootWContent* filesContent = new RootWContent("Cabling files", true);
+      myPage->addContent(filesContent);   
+      RootWTextFile* myTextFile;
       // POSITIVE CABLING SIDE
-      bool isPositiveCablingSide = true;
-      filesContent->addItem(positiveSideName);
+      //bool isPositiveCablingSide = true;
+      //filesContent->addItem(positiveSideName);
       // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("ModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
-      myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
+      myTextFile = new RootWTextFile(Form("InnerTrackerModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
-      myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
+      //myTextFile = new RootWTextFile(Form("InnerTrackerDTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
+      //myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
+      //filesContent->addItem(myTextFile);
       // PowerChains to Modules: Aggregation Patterns in TEDD
-      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "PowerChains to Modules: Aggregation Patterns in TEDD");
-      myTextFile->addText(createPowerChainsToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
-      filesContent->addItem(myTextFile);
+      //myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "PowerChains to Modules: Aggregation Patterns in TEDD");
+      //myTextFile->addText(createPowerChainsToEndcapModulesCsv(myInnerCablingMap, isPositiveCablingSide));
+      //filesContent->addItem(myTextFile);
 
       // NEGATIVE CABLING SIDE
-      isPositiveCablingSide = false;
+      /*isPositiveCablingSide = false;
       RootWTable* spacer = new RootWTable();
       spacer->setContent(0, 0, " ");
       spacer->setContent(1, 0, " ");
@@ -7828,7 +7828,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
   }
 
 
-  /* Create csv file, navigating from Module hierarchy level to DTC hierarchy level.
+  /* Create csv file (Outer Tracker), navigating from Module hierarchy level to DTC hierarchy level.
    */
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, const bool isPositiveCablingSide) {
     ModulesToDTCsVisitor v(isPositiveCablingSide);
@@ -7838,7 +7838,7 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
   }
 
 
-  /* Create csv file, navigating from DTC hierarchy level to Module hierarchy level.
+  /* Create csv file (Outer Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
   std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
@@ -7895,6 +7895,75 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 
     return modulesToDTCsCsv.str();
   }
+
+
+  /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.
+   */
+  std::string Vizard::createInnerTrackerModulesToDTCsCsv(const Tracker& tracker) {
+    InnerTrackerModulesToDTCsVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
+  /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
+   */
+  /*std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+
+    std::stringstream modulesToDTCsCsv;
+    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    for (const auto& dtc : myDTCs) {
+      if (dtc.second != nullptr) {
+	std::stringstream DTCInfo;
+	DTCInfo << dtc.second->name() << ","
+		<< dtc.second->phiSectorRef() << ","
+		<< any2str(dtc.second->type()) << ","
+		<< dtc.second->slot() << ","
+		<< std::fixed << std::setprecision(6)
+		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
+
+	const PtrVector<Cable>& myCables = dtc.second->cable();
+	for (const auto& cable : myCables) {
+	  std::stringstream cableInfo;
+	  cableInfo << cable.myid() << ","
+		    << any2str(cable.type()) << ",";
+	  const ChannelSection* myOpticalSection = cable.opticalChannelSection();
+	  const int opticalChannelNumber = myOpticalSection->channelNumber();
+	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
+
+	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  for (const auto& bundle : myBundles) {
+	    std::stringstream bundleInfo;
+	    bundleInfo << bundle.myid() << ","
+		       << opticalChannelNumber << " " 
+		       << any2str(opticalChannelSlot) << ","
+		       << bundle.powerChannelSection()->channelNumber() << " " 
+		       << any2str(bundle.powerChannelSection()->channelSlot()) << ",";
+
+	    const PtrVector<Module>& myModules = bundle.modules();
+	    for (const auto& module : myModules) {
+	      std::stringstream moduleInfo;
+	      moduleInfo << module.myDetId() << ", "
+			 << module.uniRef().subdetectorName << ", "
+			 << module.uniRef().layer << ", "
+			 << module.moduleRing() << ", "
+			 << module.center().Phi() * 180. / M_PI;
+	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << moduleInfo.str() << std::endl;
+	    }
+	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << std::endl;
+	  }
+	  if (myBundles.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << std::endl;
+	}
+	if (myCables.size() == 0) modulesToDTCsCsv << DTCInfo.str() << std::endl;
+      }
+    }
+    if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
+
+    return modulesToDTCsCsv.str();
+    }*/
 
 
   /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
