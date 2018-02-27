@@ -1759,13 +1759,13 @@ namespace insur {
       //bool isPositiveCablingSide = true;
       //filesContent->addItem(positiveSideName);
       // Modules to DTCs
-      myTextFile = new RootWTextFile(Form("InnerTrackerModulesToDTCsPos%s.csv", name.c_str()), "Modules to DTCs");
+      myTextFile = new RootWTextFile(Form("%sTrackerModulesToDTCs.csv", name.c_str()), "Modules to DTCs");
       myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      //myTextFile = new RootWTextFile(Form("InnerTrackerDTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
-      //myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
-      //filesContent->addItem(myTextFile);
+      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
+      filesContent->addItem(myTextFile);
       // PowerChains to Modules: Aggregation Patterns in TEDD
       //myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "PowerChains to Modules: Aggregation Patterns in TEDD");
       //myTextFile->addText(createPowerChainsToEndcapModulesCsv(myInnerCablingMap, isPositiveCablingSide));
@@ -7909,61 +7909,61 @@ void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
 
   /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
-  /*std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+  std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
-    std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    std::stringstream dtcsToModulesCsv;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
-    for (const auto& dtc : myDTCs) {
-      if (dtc.second != nullptr) {
+    const std::map<int, InnerDTC*>& myDTCs = myInnerCablingMap->getDTCs();
+    for (const auto& itDTC : myDTCs) {
+      InnerDTC* myDTC = itDTC.second;
+      if (myDTC != nullptr) {
 	std::stringstream DTCInfo;
-	DTCInfo << dtc.second->name() << ","
-		<< dtc.second->phiSectorRef() << ","
-		<< any2str(dtc.second->type()) << ","
-		<< dtc.second->slot() << ","
-		<< std::fixed << std::setprecision(6)
-		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
+	DTCInfo << myDTC->isPositiveZEnd() << ","
+		<< myDTC->isPositiveXSide() << ","
+		<< myDTC->myid() << ",";
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
-	for (const auto& cable : myCables) {
-	  std::stringstream cableInfo;
-	  cableInfo << cable.myid() << ","
-		    << any2str(cable.type()) << ",";
-	  const ChannelSection* myOpticalSection = cable.opticalChannelSection();
-	  const int opticalChannelNumber = myOpticalSection->channelNumber();
-	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
+	const PtrVector<InnerBundle>& myBundles = myDTC->bundles();
+	for (const auto& myBundle : myBundles) {
+	  std::stringstream bundleInfo;
+	  bundleInfo << myBundle.myid() << ",";
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
-	  for (const auto& bundle : myBundles) {
-	    std::stringstream bundleInfo;
-	    bundleInfo << bundle.myid() << ","
-		       << opticalChannelNumber << " " 
-		       << any2str(opticalChannelSlot) << ","
-		       << bundle.powerChannelSection()->channelNumber() << " " 
-		       << any2str(bundle.powerChannelSection()->channelSlot()) << ",";
+	  const PtrVector<GBT>& myGBTs = myBundle.GBTs();
+	  for (const auto& myGBT : myGBTs) {
+	    std::stringstream GBTInfo;
+	    GBTInfo << any2str(myGBT.GBTId()) << ","
+		    << myGBT.numELinksPerModule() << ",";
 
-	    const PtrVector<Module>& myModules = bundle.modules();
-	    for (const auto& module : myModules) {
-	      std::stringstream moduleInfo;
-	      moduleInfo << module.myDetId() << ", "
-			 << module.uniRef().subdetectorName << ", "
-			 << module.uniRef().layer << ", "
-			 << module.moduleRing() << ", "
-			 << module.center().Phi() * 180. / M_PI;
-	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << moduleInfo.str() << std::endl;
+	    const PowerChain* myPowerChain = myGBT.getPowerChain();
+	    if (myPowerChain != nullptr) {
+	      std::stringstream powerChainInfo;
+	      powerChainInfo << myPowerChain->myid() << ","
+			     << any2str(myPowerChain->powerChainType()) << ","
+			     << any2str(myPowerChain->isBarrelLong()) << ",";
+
+	      const PtrVector<Module>& myModules = myGBT.modules();
+	      for (const auto& module : myModules) {
+		std::stringstream moduleInfo;
+		moduleInfo << module.myDetId() << ", "
+			   << module.uniRef().subdetectorName << ", "
+			   << module.uniRef().layer << ", "
+			   << module.moduleRing() << ", "
+			   << module.center().Phi() * 180. / M_PI;
+		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
+	      }
+	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;
 	    }
-	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << std::endl;
+	    else dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << std::endl;
 	  }
-	  if (myBundles.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << std::endl;
+	  if (myGBTs.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << std::endl;
 	}
-	if (myCables.size() == 0) modulesToDTCsCsv << DTCInfo.str() << std::endl;
+	if (myBundles.size() == 0) dtcsToModulesCsv << DTCInfo.str() << std::endl;
       }
     }
-    if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
+    if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
 
-    return modulesToDTCsCsv.str();
-    }*/
+    return dtcsToModulesCsv.str();
+  }
 
 
   /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.

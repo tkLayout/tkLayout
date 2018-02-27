@@ -550,7 +550,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
   }*/
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Long Barrel ?/B, Power Chain #/I, Power Chain Type/C, # ELinks Per Module/I, LP GBT #/C, Bundle #/I, DTC #/I, (+Z) End ?/B, (+X) Side?/B" << std::endl;
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Long Barrel ?/Boolean, Power Chain #/I, Power Chain Type/C, # ELinks Per Module/I, LP GBT #/C, Bundle #/I, DTC #/I, (+Z) End ?/Boolean, (+X) Side?/Boolean" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {

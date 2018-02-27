@@ -242,6 +242,7 @@ namespace insur {
     std::string countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
 
     std::string createInnerTrackerModulesToDTCsCsv(const Tracker& tracker);
+    std::string createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) ;
 
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);

@@ -34,6 +34,12 @@ public:
     return myBundle_;
   }
 
+  // POWER CHAIN FOR ALL MODULES CONNECTED TO THE GBT
+  const PowerChain* getPowerChain() const {
+    if (!myPowerChain_) throw PathfulException("myPowerChain_ is nullptr");
+    return myPowerChain_;
+  }
+
 
   // GENERAL INFO ON THE POWERCHAIN
   const std::string GBTId() const { return myGBTId_; }
