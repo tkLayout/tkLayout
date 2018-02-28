@@ -7612,8 +7612,42 @@ namespace insur {
     const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
     const double barrelScalingFactor = scalingFactors.first;
     const double forwardScalingFactor = scalingFactors.second;
+
+
+    // LAYERS.
+    const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
+    for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
+      // POSITIVE X SIDE
+      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasPos->cd();
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDrawerPos;
+      zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
+      zphiBarrelDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
+      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      // NEGATIVE X SIDE
+      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasNeg->cd();
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDrawerNeg;
+      zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
+      zphiBarrelDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
+      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+    }
        
-    // NEGATIVE CABLING SIDE. BARREL.
+    // NEGATIVE CABLING SIDE. BARREL (XY).
     bool isRotatedY180 = false;
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYNegCanvas->cd();
@@ -7623,7 +7657,7 @@ namespace insur {
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
-    // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES.
+    // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES (XY).
     isRotatedY180 = false;
     XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCentralCanvas->cd();
@@ -7633,7 +7667,7 @@ namespace insur {
     xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
-    // POSITIVE CABLING SIDE. BARREL.
+    // POSITIVE CABLING SIDE. BARREL (XY).
     isRotatedY180 = false;
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
@@ -7766,7 +7800,6 @@ namespace insur {
       zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
-		  //&& m.uniRef().phi == 1
 		  && m.isPositiveXSide()
 		  ); 
 	} );
@@ -7781,7 +7814,6 @@ namespace insur {
       zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
-		  //&& m.uniRef().phi == 1
 		  && !m.isPositiveXSide()
 		  ); 
 	} );
