@@ -32,18 +32,6 @@ static const int inner_cabling_numELinksPerModuleForwardRing4 = 1;
 static const int inner_cabling_numELinksPerModuleEndcap = 1;
 
 
-// PHI SLICES
-// Size of the phi slices used
-//static const double inner_cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
-//static const double inner_cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
-//static const double inner_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
-
-// Offset are sometimes used to set the phi slices.
-// This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)
-//static const double inner_cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
-//static const double inner_cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
-
-
 // ROUNDING
 static const double inner_cabling_roundingTolerance = cabling_roundingTolerance;
 
@@ -86,11 +74,11 @@ enum PowerChainType { IUNDEFINED, I4A, I8A };
 //static const double inner_cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
 
 // Number of outer tracker services channels (per inner_cabling side)
-static const int inner_cabling_numServicesChannels = 12;
+//static const int inner_cabling_numServicesChannels = 12;
 // Maximum number of power cables per channel (used for cross-checking)
-static const int inner_cabling_maxNumPowerCablesPerChannel = 48;
+//static const int inner_cabling_maxNumPowerCablesPerChannel = 48;
 // Maximum number of optical fiber bundles per channel (used for cross-checking)
-static const int inner_cabling_maxNumOpticalBundlesPerChannel = 72;
+//static const int inner_cabling_maxNumOpticalBundlesPerChannel = 72;
 
 
 #endif  // INNER_CABLING_CONSTANTS_HH

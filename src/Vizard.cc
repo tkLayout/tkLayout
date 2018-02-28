@@ -1856,63 +1856,149 @@ namespace insur {
       */
 
 
+      // CABLING COUNT
+      int numSensorsOneZEnd = 0;
+      int numSensorsPlusZEndPlusXSide = 0;
+      int numSensorsPlusZEndMinusXSide = 0;
+      int numPowerChainsOneZEnd = 0;
+      int numPowerChainsPlusZEndPlusXSide = 0;
+      int numPowerChainsPlusZEndMinusXSide = 0;
+      int numELinksOneZEnd = 0;
+      int numELinksPlusZEndPlusXSide = 0;
+      int numELinksPlusZEndMinusXSide = 0;
+      int numGBTsOneZEnd = 0;
+      int numGBTsPlusZEndPlusXSide = 0;
+      int numGBTsPlusZEndMinusXSide = 0;
+      int numBundlesOneZEnd = 0;
+      int numBundlesPlusZEndPlusXSide = 0;
+      int numBundlesPlusZEndMinusXSide = 0;
+      int numDTCsOneZEnd = 0;
+      int numDTCsPlusZEndPlusXSide = 0;
+      int numDTCsPlusZEndMinusXSide = 0;
+      computeInnerCablingCount(myInnerCablingMap,
+			       numSensorsOneZEnd, numSensorsPlusZEndPlusXSide, numSensorsPlusZEndMinusXSide,
+			       numPowerChainsOneZEnd, numPowerChainsPlusZEndPlusXSide, numPowerChainsPlusZEndMinusXSide,
+			       numELinksOneZEnd, numELinksPlusZEndPlusXSide, numELinksPlusZEndMinusXSide,
+			       numBundlesOneZEnd, numBundlesPlusZEndPlusXSide, numBundlesPlusZEndMinusXSide,
+			       numGBTsOneZEnd, numGBTsPlusZEndPlusXSide, numGBTsPlusZEndMinusXSide,
+			       numDTCsOneZEnd, numDTCsPlusZEndPlusXSide, numDTCsPlusZEndMinusXSide);
+
+      // CABLING COUNT PER (X) SIDE
+      RootWContent* countContent = new RootWContent("Cabling count (one Z end, per X side)", false);
+      myPage->addContent(countContent);
+      RootWInfo* myInfo = nullptr;
+      // (+Z) end, (+X) side
+      RootWTable* plusZEndPlusXSideName = new RootWTable();
+      plusZEndPlusXSideName->setContent(0, 0, "(+Z) end, (+X) side.");
+      countContent->addItem(plusZEndPlusXSideName);
+      // Sensors
+      myInfo = new RootWInfo("Total number of Sensors");
+      myInfo->setValue(numSensorsPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of Serial Power Chains");
+      myInfo->setValue(numPowerChainsPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks");
+      myInfo->setValue(numELinksPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of GBTs");
+      myInfo->setValue(numGBTsPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of Fiber Bundles");
+      myInfo->setValue(numBundlesPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      //DTCs
+      myInfo = new RootWInfo("Total number of DTCs");
+      myInfo->setValue(numDTCsPlusZEndPlusXSide);
+      countContent->addItem(myInfo);
+      // (+Z) end, (-X) side
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      countContent->addItem(spacer);
+      RootWTable* plusZEndMinusXSideName = new RootWTable();
+      plusZEndMinusXSideName->setContent(0, 0, "(+Z) end, (-X) side.");
+      countContent->addItem(plusZEndMinusXSideName);
+      // Sensors
+      myInfo = new RootWInfo("Total number of Sensors");
+      myInfo->setValue(numSensorsPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of Serial Power Chains");
+      myInfo->setValue(numPowerChainsPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks");
+      myInfo->setValue(numELinksPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of GBTs");
+      myInfo->setValue(numGBTsPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of Fiber Bundles");
+      myInfo->setValue(numBundlesPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+      //DTCs
+      myInfo = new RootWInfo("Total number of DTCs");
+      myInfo->setValue(numDTCsPlusZEndMinusXSide);
+      countContent->addItem(myInfo);
+
       // CABLING EFFICIENCY
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one Z end)", true);
       myPage->addContent(efficiencyContent);
-      RootWInfo* myInfo = nullptr;
       // Sensors
-      myInfo = new RootWInfo("Total number of sensors (one Z end)");
-      const int numSensors = tracker.modules().size() / 2.;
-      myInfo->setValue(numSensors);
+      myInfo = new RootWInfo("Total number of Sensors (one Z end)");
+      myInfo->setValue(numSensorsOneZEnd);
       efficiencyContent->addItem(myInfo);
       // PowerChains
-      myInfo = new RootWInfo("Total number of serial power chains (one Z end)");
-      const int numPowerChains = myInnerCablingMap->getPowerChains().size() / 2.;
-      myInfo->setValue(numPowerChains);
+      myInfo = new RootWInfo("Total number of Serial Power Chains (one Z end)");
+      myInfo->setValue(numPowerChainsOneZEnd);
       efficiencyContent->addItem(myInfo);
       // PowerChains efficiency
-      myInfo = new RootWInfo("Serial power chains efficiency (%)");
-      const double powerChainEfficiency = numSensors / (numPowerChains * 10.);
+      myInfo = new RootWInfo("Sensors <-> Serial Power Chains efficiency (%)");
+      const double powerChainEfficiency = (double)numSensorsOneZEnd / (numPowerChainsOneZEnd * inner_cabling_maxNumModulesPerPowerChain);
       myInfo->setValue(powerChainEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // ELinks
       myInfo = new RootWInfo("Total number of ELinks (one Z end)");
-      int numELinks = myInnerCablingMap->getELinks().size() / 2.;
-      myInfo->setValue(numELinks);
+      myInfo->setValue(numELinksOneZEnd);
       efficiencyContent->addItem(myInfo);
       // GBTs
       myInfo = new RootWInfo("Total number of LP GBTs (one Z end)");
-      const int numGBTs = myInnerCablingMap->getGBTs().size() / 2.;
-      myInfo->setValue(numGBTs);
+      myInfo->setValue(numGBTsOneZEnd);
       efficiencyContent->addItem(myInfo);
       // GBTs efficiency
-      myInfo = new RootWInfo("LP GBTs efficiency (%)");
-      const double GBTEfficiency = numELinks / (numGBTs * 7.);
+      myInfo = new RootWInfo("ELinks <-> LP GBTs efficiency (%)");
+      const double GBTEfficiency = (double)numELinksOneZEnd / (numGBTsOneZEnd * inner_cabling_maxNumELinksPerGBT);
       myInfo->setValue(GBTEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Bundles
-      myInfo = new RootWInfo("Total number of fiber bundles (one Z end)");
-      int numBundles = myInnerCablingMap->getBundles().size() / 2.;
-      myInfo->setValue(numBundles);
+      myInfo = new RootWInfo("Total number of Fiber Bundles (one Z end)");
+      myInfo->setValue(numBundlesOneZEnd);
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
-      myInfo = new RootWInfo("Fiber bundle efficiency (%)");
-      double bundleEfficiency = numGBTs / (numBundles * 12.);
+      myInfo = new RootWInfo("LP GBTs <-> Fiber Bundles efficiency (%)");
+      const double bundleEfficiency = (double)numGBTsOneZEnd / (numBundlesOneZEnd * inner_cabling_maxNumGBTsPerBundle);
       myInfo->setValue(bundleEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // DTCs
-      myInfo = new RootWInfo("Total number of fiber cables (one Z end)");
-      int numCables = myInnerCablingMap->getDTCs().size() / 2.;
-      myInfo->setValue(numCables);
+      myInfo = new RootWInfo("Total number of DTCs (one Z end)");
+      myInfo->setValue(numDTCsOneZEnd);
       efficiencyContent->addItem(myInfo);
-      // Cables efficiency
-      myInfo = new RootWInfo("Fiber cables efficiency (%)");
-      double cableEfficiency = numBundles / (numCables * 6.);
-      myInfo->setValue(cableEfficiency * 100, 0);
+      // DTCs efficiency
+      myInfo = new RootWInfo("Fiber Bundles <-> DTCs efficiency (%)");
+      const double dtcEfficiency = (double)numBundlesOneZEnd / (numDTCsOneZEnd * inner_cabling_maxNumBundlesPerCable);
+      myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Overall optical efficiency
       myInfo = new RootWInfo("Overall optical cabling efficiency (%)");
-      double overallOpticalEfficiency = GBTEfficiency * bundleEfficiency * cableEfficiency;
+      const double overallOpticalEfficiency = GBTEfficiency * bundleEfficiency * dtcEfficiency;
       myInfo->setValue(overallOpticalEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       
@@ -1949,19 +2035,62 @@ namespace insur {
 
 
 
+  void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
+					int& numSensorsOneZEnd, int& numSensorsPlusZEndPlusXSide, int& numSensorsPlusZEndMinusXSide,
+					int& numPowerChainsOneZEnd, int& numPowerChainsPlusZEndPlusXSide, int& numPowerChainsPlusZEndMinusXSide,
+					int& numELinksOneZEnd, int& numELinksPlusZEndPlusXSide, int& numELinksPlusZEndMinusXSide,
+					int& numBundlesOneZEnd, int& numBundlesPlusZEndPlusXSide, int& numBundlesPlusZEndMinusXSide,
+					int& numGBTsOneZEnd, int& numGBTsPlusZEndPlusXSide, int& numGBTsPlusZEndMinusXSide,
+					int& numDTCsOneZEnd, int& numDTCsPlusZEndPlusXSide, int& numDTCsPlusZEndMinusXSide) const {
 
+    // PowerChains
+    const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
+    for (const auto& it : powerChains) {
+      const PowerChain* myPowerChain = it.second;
+      if (myPowerChain->isPositiveZEnd()) {
+	numPowerChainsOneZEnd++;
+	if (myPowerChain->isPositiveXSide()) numPowerChainsPlusZEndPlusXSide++; else numPowerChainsPlusZEndMinusXSide++;
 
+	const int numSensors = myPowerChain->numModules();
+	numSensorsOneZEnd += numSensors;
+	if (myPowerChain->isPositiveXSide()) numSensorsPlusZEndPlusXSide += numSensors; else numSensorsPlusZEndMinusXSide += numSensors;
+      }
+    }
 
+    // GBTs
+    const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
+    for (const auto& it : gbts) {
+      const GBT* myGBT = it.second;
+      if (myGBT->isPositiveZEnd()) {
+	numGBTsOneZEnd++;
+	if (myGBT->isPositiveXSide()) numGBTsPlusZEndPlusXSide++; else numGBTsPlusZEndMinusXSide++;
 
+	const int numELinks = myGBT->numELinks();
+	numELinksOneZEnd += numELinks;
+	if (myGBT->isPositiveXSide()) numELinksPlusZEndPlusXSide += numELinks; else numELinksPlusZEndMinusXSide += numELinks;
+      }
+    }
 
+    // Bundles
+    const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
+    for (const auto& it : bundles) {
+      const InnerBundle* myBundle = it.second;
+      if (myBundle->isPositiveZEnd()) {
+	numBundlesOneZEnd++;
+	if (myBundle->isPositiveXSide()) numBundlesPlusZEndPlusXSide++; else numBundlesPlusZEndMinusXSide++;
+      }
+    }
 
-
-
-
-
-
-
-
+    // DTCs
+    const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
+    for (const auto& it : dtcs) {
+      const InnerDTC* myDTC = it.second;
+      if (myDTC->isPositiveZEnd()) {
+	numDTCsOneZEnd++;
+	if (myDTC->isPositiveXSide()) numDTCsPlusZEndPlusXSide++; else numDTCsPlusZEndMinusXSide++;
+      }
+    }
+  }
 
 
 
@@ -7758,7 +7887,7 @@ namespace insur {
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
       TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gatherings of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gathering of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasPos->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
@@ -7784,7 +7913,7 @@ namespace insur {
       ZPhiLayerPlots.push_back(ZPhiCanvasPos);
       // NEGATIVE X SIDE
       TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gatherings of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gathering of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;

@@ -19,9 +19,9 @@ public:
   InnerCablingMap(Tracker* tracker);
 
   // positive cabling side
-  const std::map<int, PowerChain*> getPowerChains() const { return powerChains_; }
-  const std::map<std::string, ELink*> getELinks() const { return eLinks_; }
-  const std::map<std::string, GBT*> getGBTs() const { return GBTs_; }
+  const std::map<int, PowerChain*>& getPowerChains() const { return powerChains_; }
+  const std::map<std::string, ELink*>& getELinks() const { return eLinks_; }
+  const std::map<std::string, GBT*>& getGBTs() const { return GBTs_; }
   const std::map<int, InnerBundle*>& getBundles() const { return bundles_; }
   //const std::map<int, Cable*>& getCables() const { return cables_; }
   const std::map<int, InnerDTC*>& getDTCs() const { return DTCs_; }

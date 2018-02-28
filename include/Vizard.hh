@@ -169,6 +169,8 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
+
+    // OT CABLING
     void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
 					       std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
 					       std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces);
@@ -185,6 +187,14 @@ namespace insur {
     void analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
 
+    // IT CABLING
+    void computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
+				  int& numSensorsOneZEnd, int& numSensorsPlusZEndPlusXSide, int& numSensorsPlusZEndMinusXSide,
+				  int& numPowerChainsOneZEnd, int& numPowerChainsPlusZEndPlusXSide, int& numPowerChainsPlusZEndMinusXSide,
+				  int& numELinksOneZEnd, int& numELinksPlusZEndPlusXSide, int& numELinksPlusZEndMinusXSide,
+				  int& numBundlesOneZEnd, int& numBundlesPlusZEndPlusXSide, int& numBundlesPlusZEndMinusXSide,
+				  int& numGBTsOneZEnd, int& numGBTsPlusZEndPlusXSide, int& numGBTsPlusZEndMinusXSide,
+				  int& numDTCsOneZEnd, int& numDTCsPlusZEndPlusXSide, int& numDTCsPlusZEndMinusXSide) const;
     void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
 						   //TCanvas *&RZCanvas, 
 						   std::vector<TCanvas*> &ZPhiLayerPlots,
