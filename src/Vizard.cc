@@ -1884,7 +1884,7 @@ namespace insur {
 			       numDTCsOneZEnd, numDTCsPlusZEndPlusXSide, numDTCsPlusZEndMinusXSide);
 
       // CABLING COUNT PER (X) SIDE
-      RootWContent* countContent = new RootWContent("Cabling count (one Z end, per X side)", false);
+      RootWContent* countContent = new RootWContent("Cabling count (one Z end, per X side)", true);
       myPage->addContent(countContent);
       RootWInfo* myInfo = nullptr;
       // (+Z) end, (+X) side
@@ -1959,6 +1959,7 @@ namespace insur {
       // PowerChains
       myInfo = new RootWInfo("Total number of Serial Power Chains (one Z end)");
       myInfo->setValue(numPowerChainsOneZEnd);
+      efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // PowerChains efficiency
       myInfo = new RootWInfo("Sensors <-> Serial Power Chains efficiency (%)");
@@ -1968,10 +1969,12 @@ namespace insur {
       // ELinks
       myInfo = new RootWInfo("Total number of ELinks (one Z end)");
       myInfo->setValue(numELinksOneZEnd);
+      efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // GBTs
       myInfo = new RootWInfo("Total number of LP GBTs (one Z end)");
       myInfo->setValue(numGBTsOneZEnd);
+      efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // GBTs efficiency
       myInfo = new RootWInfo("ELinks <-> LP GBTs efficiency (%)");
@@ -1981,6 +1984,7 @@ namespace insur {
       // Bundles
       myInfo = new RootWInfo("Total number of Fiber Bundles (one Z end)");
       myInfo->setValue(numBundlesOneZEnd);
+      efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
       myInfo = new RootWInfo("LP GBTs <-> Fiber Bundles efficiency (%)");
@@ -1990,6 +1994,7 @@ namespace insur {
       // DTCs
       myInfo = new RootWInfo("Total number of DTCs (one Z end)");
       myInfo->setValue(numDTCsOneZEnd);
+      efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // DTCs efficiency
       myInfo = new RootWInfo("Fiber Bundles <-> DTCs efficiency (%)");
