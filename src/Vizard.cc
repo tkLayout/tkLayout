@@ -7778,7 +7778,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
       zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
@@ -7789,7 +7789,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
       zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos);
@@ -7804,7 +7804,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
       zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
@@ -7815,7 +7815,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
@@ -7845,7 +7845,7 @@ namespace insur {
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 			   );
 		} );
 	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
@@ -7854,7 +7854,7 @@ namespace insur {
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);

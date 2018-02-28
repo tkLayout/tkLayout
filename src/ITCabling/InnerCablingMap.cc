@@ -77,11 +77,13 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
       const int phiRefInPowerChain = m.getPhiRefInPowerChain();
       //std::cout << "phiRefInPowerChain = " << phiRefInPowerChain << std::endl;
       
-      const int myGBTPhiIndex = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, maxNumModulesPerGBTInPowerChain, numGBTsInPowerChain);
-      const std::string myGBTId = computeGBTId(powerChainId, myGBTPhiIndex);
+      const std::pair<int, int> myGBTIndexes = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, maxNumModulesPerGBTInPowerChain, numGBTsInPowerChain);
+      const int myGBTIndex = myGBTIndexes.first;
+      const int myGBTIndexColor = myGBTIndexes.second;
+      const std::string myGBTId = computeGBTId(powerChainId, myGBTIndex);
 
       // BUILD GBTS AND STORE THEM
-      createAndStoreGBTs(myPowerChain, m, myGBTId, myGBTPhiIndex, numELinksPerModule, GBTs);
+      createAndStoreGBTs(myPowerChain, m, myGBTId, myGBTIndex, myGBTIndexColor, numELinksPerModule, GBTs);
     }
   }
 
@@ -137,7 +139,7 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 
 /* Compute the phi index associated to each GBT.
  */
-const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const {
+const std::pair<int, int> InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const {
   //std::cout << "InnerCablingMap::computeGBTPhiIndex " << std::endl;
 
   const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
@@ -152,10 +154,13 @@ const int InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int rin
 		    : std::floor(myGBTIndexExact)
 		    );
   if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
-
   //std::cout << "myGBTIndex = " << myGBTIndex << std::endl;
 
-  return myGBTIndex;
+  int myGBTIndexColor = myGBTIndex;
+  if (isBarrel && phiRefInPowerChain == 1 && femod(numGBTsInPowerChain, 2) == 0) myGBTIndexColor += 1;
+  myGBTIndexColor = femod(myGBTIndexColor, 2);
+
+  return std::make_pair(myGBTIndex, myGBTIndexColor);
 }
 
 
@@ -172,11 +177,11 @@ const std::string InnerCablingMap::computeGBTId(const int powerChainId, const in
 /* Create a GBT, if does not exist yet.
  * Store it in the GBTs container.
  */
-void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTPhiIndex, const int numELinksPerModule, std::map<std::string, GBT*>& GBTs) {
+void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule, std::map<std::string, GBT*>& GBTs) {
 
   auto found = GBTs.find(myGBTId);
   if (found == GBTs.end()) {
-    GBT* myGBT = GeometryFactory::make<GBT>(myPowerChain, myGBTId, myGBTPhiIndex, numELinksPerModule);
+    GBT* myGBT = GeometryFactory::make<GBT>(myPowerChain, myGBTId, myGBTIndex, myGBTIndexColor, numELinksPerModule);
     connectOneModuleToOneGBT(m, myGBT);
     GBTs.insert(std::make_pair(myGBTId, myGBT));  
   }

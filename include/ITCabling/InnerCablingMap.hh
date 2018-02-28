@@ -45,9 +45,9 @@ private:
 
   // MODULES TO GBTS
   const std::pair<int, int> computeMaxNumModulesPerGBTInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel);
-  const int computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
+  const std::pair<int, int> computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const int maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
   const std::string computeGBTId(const int powerChainId, const int myGBTIndex) const;
-  void createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTPhiIndex, const int numELinksPerModule, std::map<std::string, GBT*>& GBTs);
+  void createAndStoreGBTs(PowerChain* myPowerChain, Module& m, const std::string myGBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule, std::map<std::string, GBT*>& GBTs);
   void connectOneModuleToOneGBT(Module& m, GBT* GBT) const;
   void checkModulesToGBTsCabling(const std::map<std::string, GBT*>& GBTs) const;
 

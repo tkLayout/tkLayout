@@ -18,7 +18,7 @@ class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Module> Container; 
 
 public:
-  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTPhiIndex, const int numELinksPerModule);
+  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule);
   ~GBT();
 
   // MODULES CONNECTED TO THE GBT
@@ -43,7 +43,8 @@ public:
 
   // GENERAL INFO ON THE POWERCHAIN
   const std::string GBTId() const { return myGBTId_; }
-  const int GBTPhiIndex() const { return myGBTPhiIndex_; }
+  const int GBTPhiIndex() const { return myGBTIndex_; }
+  const int indexColor() const { return myGBTIndexColor_; }
   const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
@@ -69,7 +70,8 @@ private:
   InnerBundle* myBundle_ = nullptr;
 
   std::string myGBTId_;
-  int myGBTPhiIndex_;
+  int myGBTIndex_;
+  int myGBTIndexColor_;
   int numELinksPerModule_;
 
   int plotColor_;

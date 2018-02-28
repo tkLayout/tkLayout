@@ -2,9 +2,10 @@
 #include "ITCabling/InnerBundle.hh"
 
 
-GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTPhiIndex, const int numELinksPerModule) :
+GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule) :
   myGBTId_(GBTId),
-  myGBTPhiIndex_(myGBTPhiIndex),
+  myGBTIndex_(myGBTIndex),
+  myGBTIndexColor_(myGBTIndexColor),
   numELinksPerModule_(numELinksPerModule)
 {
   myPowerChain_ = myPowerChain;
