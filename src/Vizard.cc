@@ -2002,10 +2002,10 @@ namespace insur {
       myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Overall optical efficiency
-      myInfo = new RootWInfo("Overall optical cabling efficiency (%)");
+      /*myInfo = new RootWInfo("Overall optical cabling efficiency (%)");
       const double overallOpticalEfficiency = GBTEfficiency * bundleEfficiency * dtcEfficiency;
       myInfo->setValue(overallOpticalEfficiency * 100, 0);
-      efficiencyContent->addItem(myInfo);
+      efficiencyContent->addItem(myInfo);*/
       
 
 
@@ -7892,7 +7892,7 @@ namespace insur {
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
       TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gathering of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasPos->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
@@ -7918,7 +7918,7 @@ namespace insur {
       ZPhiLayerPlots.push_back(ZPhiCanvasPos);
       // NEGATIVE X SIDE
       TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gathering of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
