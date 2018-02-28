@@ -186,10 +186,12 @@ namespace insur {
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
 
     void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
-						   TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-						   std::vector<TCanvas*> &XYPosPowerChainsDisks, std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
-    void createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker, 
-						 //TCanvas *&RZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						   //TCanvas *&RZCanvas, 
+						   std::vector<TCanvas*> &ZPhiLayerPlots,
+						   TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						   //std::vector<TCanvas*> &XYPosPowerChainsDisks, 
+						   std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
+    void createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker,
 						 std::vector<TCanvas*> &ZPhiLayerPlots,
 						 std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
     void createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
