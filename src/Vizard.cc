@@ -1830,15 +1830,27 @@ namespace insur {
 
       // MODULES TO DTCs
       TCanvas *RZDTCCanvas = nullptr;
+      TCanvas *XYDTCPosCanvas = nullptr;   
+      std::vector<TCanvas*> XYPosDTCsDisks;
        
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasInnerCablingDTCNicer(tracker, RZDTCCanvas);
+      createSummaryCanvasInnerCablingDTCNicer(tracker, RZDTCCanvas, XYDTCPosCanvas, XYPosDTCsDisks);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
+	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color <=> 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCPosCanvas) {
+	myImage = new RootWImage(XYDTCPosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you). 1 color <=> 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYPosDisk : XYPosDTCsDisks) {
+	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosDisk->GetTitle());
 	myContent->addItem(myImage);
       }
 
@@ -7770,7 +7782,7 @@ namespace insur {
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
       TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gatherings of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasPos->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
@@ -7796,7 +7808,7 @@ namespace insur {
       ZPhiLayerPlots.push_back(ZPhiCanvasPos);
       // NEGATIVE X SIDE
       TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of gatherings of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
@@ -7937,8 +7949,9 @@ namespace insur {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
 	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you). 1 color <=> 1 Fibre Bundle.", 
+						 anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	XYCanvasDisk->cd();
 	PlotDrawer<XY, TypeInnerBundleTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	xyDiskDrawer.addModules(lastDisk);
@@ -7952,8 +7965,10 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasInnerCablingDTCNicer(Tracker& tracker,
-						       TCanvas *&RZCanvas) {
+  void Vizard::createSummaryCanvasInnerCablingDTCNicer(const Tracker& tracker,
+						       TCanvas *&RZCanvas,
+						       TCanvas *&XYPosCanvas,
+						       std::vector<TCanvas*> &XYPosDTCsDisks) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
@@ -7962,11 +7977,46 @@ namespace insur {
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+
+    // POSITIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = false;
+    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas->cd();
+    PlotDrawer<XY, TypeInnerDTCTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    isRotatedY180 = false;
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosDTCEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : %s, one Disk. (CMS +Z points towards you). 1 color <=> 1 DTC.", 
+						 anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypeInnerDTCTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	XYPosDTCsDisks.push_back(XYCanvasDisk);
+      }
+    }
   }
 
-
-
-  
 
 
 
