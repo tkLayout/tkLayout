@@ -1741,11 +1741,7 @@ namespace insur {
  
 
 
-
       // MODULES TO GBTS
-      //TCanvas *XYGBTNegCanvas = nullptr;
-      // TCanvas *XYGBTCentralCanvas = nullptr;
-      //TCanvas *XYGBTCanvas = nullptr;   
       std::vector<TCanvas*> ZPhiGBTLayerPlots;
       std::vector<TCanvas*> XYPosGBTsDiskSurfaces;
    
@@ -1753,10 +1749,8 @@ namespace insur {
       myPage->addContent(myContent);
       
       createSummaryCanvasInnerCablingGBTNicer(tracker,
-					      //XYGBTNegCanvas, XYGBTCentralCanvas, XYGBTCanvas, 
 					      ZPhiGBTLayerPlots,
 					      XYPosGBTsDiskSurfaces);
-
       // bpix
       myContent->addItem(barrelName);
       for (const auto& ZPhiPlot : ZPhiGBTLayerPlots) {
@@ -1764,22 +1758,6 @@ namespace insur {
 	  myImage->setComment(ZPhiPlot->GetTitle());
 	  myContent->addItem(myImage);
       }
-      /*
-      if (XYGBTNegCanvas) {
-	myImage = new RootWImage(XYGBTNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYGBTCentralCanvas) {
-	myImage = new RootWImage(XYGBTCentralCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : BPIX, sensors at Z = 0 only. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-      }
-      if (XYGBTCanvas) {
-	myImage = new RootWImage(XYGBTCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
-	myContent->addItem(myImage);
-	}*/
       // fpix and epix, (+z) end
       myContent = new RootWContent("");
       myPage->addContent(myContent);
@@ -1792,19 +1770,17 @@ namespace insur {
 
 
 
-
       // MODULES TO BUNDLES
       TCanvas *XYBundleNegCanvas = nullptr;
       TCanvas *XYBundlePosCanvas = nullptr;   
       std::vector<TCanvas*> XYPosBundlesDisks;
    
-      myContent = new RootWContent("Modules to Bundles");
+      myContent = new RootWContent("Modules to Fiber Bundles");
       myPage->addContent(myContent);  
       
       createSummaryCanvasInnerCablingBundleNicer(tracker,
 						 XYBundleNegCanvas, XYBundlePosCanvas, 
 						 XYPosBundlesDisks);
-
       // bpix
       myContent->addItem(barrelName);
       if (XYBundleNegCanvas) {
@@ -1880,7 +1856,7 @@ namespace insur {
       */
 
 
-      // Cabling efficiency
+      // CABLING EFFICIENCY
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one Z end)", true);
       myPage->addContent(efficiencyContent);
       RootWInfo* myInfo = nullptr;
