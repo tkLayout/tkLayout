@@ -130,15 +130,6 @@ inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
   return result;
 }
 
-// Same as femodRounded, but handles the case where the result is closed to base.
-template<typename ArgType>
-inline ArgType femodGreat(const ArgType& phi, const ArgType& base) {
-  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
-  ArgType result = femodRounded(phi, base);
-  if (fabs(result - base) < 1.e-5) result = 0;
-  return result;
-}
-
 
 // Particulary useful for angles comparison.
 // Returns true is phi1 < phi2, false otherwise.

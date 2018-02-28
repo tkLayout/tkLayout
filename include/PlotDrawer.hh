@@ -357,15 +357,15 @@ struct YZFull : public YZ {
 struct ZPhi : public std::pair<double, double>, private Rounder {
   const bool valid;
   // ZPhi coordinates of the centre of module m. //m.center().Rho()
-  ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * 1000., (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * 1000.), valid(true) {}
+  ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
   // ZPhi coordinates of vector v. //v.Rho()
-  ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* 1000., (femod(v.Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * 1000.), valid(true) {}
+  ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* Rounder::mmFraction, (femod(v.Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
   // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
   ZPhi(const XYZVector& v, const Module& m) : valid(true) {
-    this->first = v.Z() * 1000.;
+    this->first = v.Z() * Rounder::mmFraction;
 
     const double centerPhi = femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.;
-    this->second = (centerPhi + moduloDiff(v.Phi(), m.center().Phi(), M_PI)) * 1000.;  
+    this->second = (centerPhi + moduloDiff(v.Phi(), m.center().Phi(), M_PI)) * Rounder::mmFraction;  
     // It is not possible to consider only v.Phi(), and ignore m.center().Phi(). 
     // Indeed, the module corners must not be drawned at +-Pi, despite the fact that we work modulo Pi.
     // As a result, the phi of the drawn corners needs to take into account where the module center is.
