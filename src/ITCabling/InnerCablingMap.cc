@@ -392,19 +392,19 @@ const int InnerCablingMap::computeDTCId(const bool isPositiveZEnd, const bool is
   else if (subDetectorName == inner_cabling_tfpx) {
     if (layerDiskNumber == 1) myDTCId = 5;
     else if (layerDiskNumber == 2) myDTCId = 4;
-    else if (layerDiskNumber == 3) myDTCId = 5;
-    else if (layerDiskNumber == 4) myDTCId = 3;
-    else if (layerDiskNumber == 5) myDTCId = 5;
-    else if (layerDiskNumber == 6) myDTCId = 4;
+    else if (layerDiskNumber == 3) myDTCId = 3;
+    else if (layerDiskNumber == 4) myDTCId = 5;
+    else if (layerDiskNumber == 5) myDTCId = 4;
+    else if (layerDiskNumber == 6) myDTCId = 3;
     else if (layerDiskNumber == 7) myDTCId = 2;
-    else if (layerDiskNumber == 8) myDTCId = 1;
+    else if (layerDiskNumber == 8) myDTCId = 5;
     else logERROR(any2str("Unexpected diskNumber in FPX : ") + any2str(layerDiskNumber));
   }
 
   else if (subDetectorName == inner_cabling_tepx) {
     if (layerDiskNumber == 1) myDTCId = 6;
-    else if (layerDiskNumber == 2) myDTCId = 7;
-    else if (layerDiskNumber == 3) myDTCId = 6;
+    else if (layerDiskNumber == 2) myDTCId = 6;
+    else if (layerDiskNumber == 3) myDTCId = 7;
     else if (layerDiskNumber == 4) myDTCId = 7;
     else logERROR(any2str("Unexpected diskNumber in EPX : ") + any2str(layerDiskNumber));
   }
