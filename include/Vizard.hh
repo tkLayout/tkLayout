@@ -189,12 +189,12 @@ namespace insur {
 
     // IT CABLING
     void computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
-				  int& numSensorsOneZEnd, int& numSensorsPlusZEndPlusXSide, int& numSensorsPlusZEndMinusXSide,
-				  int& numPowerChainsOneZEnd, int& numPowerChainsPlusZEndPlusXSide, int& numPowerChainsPlusZEndMinusXSide,
-				  int& numELinksOneZEnd, int& numELinksPlusZEndPlusXSide, int& numELinksPlusZEndMinusXSide,
-				  int& numBundlesOneZEnd, int& numBundlesPlusZEndPlusXSide, int& numBundlesPlusZEndMinusXSide,
-				  int& numGBTsOneZEnd, int& numGBTsPlusZEndPlusXSide, int& numGBTsPlusZEndMinusXSide,
-				  int& numDTCsOneZEnd, int& numDTCsPlusZEndPlusXSide, int& numDTCsPlusZEndMinusXSide) const;
+				  int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
+				  int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
+				  int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
+				  int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
+				  int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
+				  int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const;
     void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
 						   //TCanvas *&RZCanvas, 
 						   std::vector<TCanvas*> &ZPhiLayerPlots,

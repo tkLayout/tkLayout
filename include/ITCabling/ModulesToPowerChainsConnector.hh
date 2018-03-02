@@ -33,8 +33,8 @@ public:
 private:
   // BUILDING
   const bool computeXSide(const double modCenterX) const;
-  const bool computeBarrelModuleZEnd(const int side, const int ring, const double rodPhi, const int numRods, const bool isPositiveXSide) const;
-  const bool computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const;
+  const bool computeBarrelModuleZEnd(const int side, const int ring, const int layerNumber) const;
+  const bool computeBarrelCentralModuleZEnd(const int layerNumber) const;
   const std::pair<int, int> computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
 
   //const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;

@@ -30,7 +30,7 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const bool isPositiveXSide = computeXSide(modCenterX);
 
   const int halfNumRods = numRods_ / 2;
-  const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, rodPhi_, halfNumRods, isPositiveXSide);
+  const bool isPositiveZEnd = computeBarrelModuleZEnd(m.uniRef().side, m.uniRef().ring, layerNumber_);
 
   const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
   const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
@@ -119,7 +119,7 @@ const bool ModulesToPowerChainsConnector::computeXSide(const double modCenterX) 
 }
 
 
-const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side, const int ring, const double rodPhi, const int numRods, const bool isPositiveXSide) const {
+const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side, const int ring, const int layerNumber) const {
   bool isPositiveZEnd;
 
   // Non-central rings
@@ -128,7 +128,7 @@ const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side
   }
   // Central ring
   else {
-    isPositiveZEnd = computeBarrelCentralModuleZEnd(rodPhi, numRods, isPositiveXSide);
+    isPositiveZEnd = computeBarrelCentralModuleZEnd(layerNumber);
   }
 
   return isPositiveZEnd;
@@ -136,15 +136,12 @@ const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side
 
 
 /* Compute the Z end to which the central modules in BPIX are cabled.
-   Modules are alternatively connected to the (+Z) end and the (-Z) end, depending on the Phi of the module.
+   Modules are alternatively connected to the (+Z) end and the (-Z) end, depending on the layer of the module.
 */
-const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const double rodPhi, const int numRods, const bool isPositiveXSide) const {
-  // Compute the phi position of the module
-  const bool isPositiveZEndTemp = true;
-  const int phiUnitRefTemp = inner_cabling_functions::computePhiUnitRef(rodPhi, numRods, isPositiveZEndTemp);
-  const bool isPhiUnitRefEven = ((phiUnitRefTemp % 2) == 0);
+const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const int layerNumber) const {
+  const bool isOddLayer = ((layerNumber % 2) == 1);
 
-  const bool isPositiveZEnd = (isPositiveXSide ? isPhiUnitRefEven : !isPhiUnitRefEven);
+  const bool isPositiveZEnd = isOddLayer;
 
   return isPositiveZEnd;
 }

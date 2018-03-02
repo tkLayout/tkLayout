@@ -1857,63 +1857,63 @@ namespace insur {
 
 
       // CABLING COUNT
-      int numSensorsOneZEnd = 0;
-      int numSensorsPlusZEndPlusXSide = 0;
-      int numSensorsPlusZEndMinusXSide = 0;
-      int numPowerChainsOneZEnd = 0;
-      int numPowerChainsPlusZEndPlusXSide = 0;
-      int numPowerChainsPlusZEndMinusXSide = 0;
-      int numELinksOneZEnd = 0;
-      int numELinksPlusZEndPlusXSide = 0;
-      int numELinksPlusZEndMinusXSide = 0;
-      int numGBTsOneZEnd = 0;
-      int numGBTsPlusZEndPlusXSide = 0;
-      int numGBTsPlusZEndMinusXSide = 0;
-      int numBundlesOneZEnd = 0;
-      int numBundlesPlusZEndPlusXSide = 0;
-      int numBundlesPlusZEndMinusXSide = 0;
-      int numDTCsOneZEnd = 0;
-      int numDTCsPlusZEndPlusXSide = 0;
-      int numDTCsPlusZEndMinusXSide = 0;
+      int numSensorsOneXSide = 0;
+      int numSensorsPlusXSidePlusZEnd = 0;
+      int numSensorsPlusXSideMinusZEnd = 0;
+      int numPowerChainsOneXSide = 0;
+      int numPowerChainsPlusXSidePlusZEnd = 0;
+      int numPowerChainsPlusXSideMinusZEnd = 0;
+      int numELinksOneXSide = 0;
+      int numELinksPlusXSidePlusZEnd = 0;
+      int numELinksPlusXSideMinusZEnd = 0;
+      int numGBTsOneXSide = 0;
+      int numGBTsPlusXSidePlusZEnd = 0;
+      int numGBTsPlusXSideMinusZEnd = 0;
+      int numBundlesOneXSide = 0;
+      int numBundlesPlusXSidePlusZEnd = 0;
+      int numBundlesPlusXSideMinusZEnd = 0;
+      int numDTCsOneXSide = 0;
+      int numDTCsPlusXSidePlusZEnd = 0;
+      int numDTCsPlusXSideMinusZEnd = 0;
       computeInnerCablingCount(myInnerCablingMap,
-			       numSensorsOneZEnd, numSensorsPlusZEndPlusXSide, numSensorsPlusZEndMinusXSide,
-			       numPowerChainsOneZEnd, numPowerChainsPlusZEndPlusXSide, numPowerChainsPlusZEndMinusXSide,
-			       numELinksOneZEnd, numELinksPlusZEndPlusXSide, numELinksPlusZEndMinusXSide,
-			       numBundlesOneZEnd, numBundlesPlusZEndPlusXSide, numBundlesPlusZEndMinusXSide,
-			       numGBTsOneZEnd, numGBTsPlusZEndPlusXSide, numGBTsPlusZEndMinusXSide,
-			       numDTCsOneZEnd, numDTCsPlusZEndPlusXSide, numDTCsPlusZEndMinusXSide);
+			       numSensorsOneXSide, numSensorsPlusXSidePlusZEnd, numSensorsPlusXSideMinusZEnd,
+			       numPowerChainsOneXSide, numPowerChainsPlusXSidePlusZEnd, numPowerChainsPlusXSideMinusZEnd,
+			       numELinksOneXSide, numELinksPlusXSidePlusZEnd, numELinksPlusXSideMinusZEnd,
+			       numBundlesOneXSide, numBundlesPlusXSidePlusZEnd, numBundlesPlusXSideMinusZEnd,
+			       numGBTsOneXSide, numGBTsPlusXSidePlusZEnd, numGBTsPlusXSideMinusZEnd,
+			       numDTCsOneXSide, numDTCsPlusXSidePlusZEnd, numDTCsPlusXSideMinusZEnd);
 
       // CABLING COUNT PER (X) SIDE
-      RootWContent* countContent = new RootWContent("Cabling count (one Z end, per X side)", true);
+      RootWContent* countContent = new RootWContent("Cabling count (one X side, per Z end)", true);
       myPage->addContent(countContent);
       RootWInfo* myInfo = nullptr;
       // (+Z) end, (+X) side
-      RootWTable* plusZEndPlusXSideName = new RootWTable();
-      plusZEndPlusXSideName->setContent(0, 0, "(+Z) end, (+X) side.");
-      countContent->addItem(plusZEndPlusXSideName);
+      RootWTable* plusXSidePlusZEndName = new RootWTable();
+      plusXSidePlusZEndName->setContent(0, 0, "(+X) side, (+Z) end.");
+      countContent->addItem(plusXSidePlusZEndName);
       // Sensors
       myInfo = new RootWInfo("Total number of Sensors");
-      myInfo->setValue(numSensorsPlusZEndPlusXSide);
+      myInfo->setValue(numSensorsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       // PowerChains
       myInfo = new RootWInfo("Total number of Serial Power Chains");
-      myInfo->setValue(numPowerChainsPlusZEndPlusXSide);
+      myInfo->setValue(numPowerChainsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       // ELinks
       myInfo = new RootWInfo("Total number of ELinks");
-      myInfo->setValue(numELinksPlusZEndPlusXSide);
+      myInfo->setValue(numELinksPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       // GBTs
       myInfo = new RootWInfo("Total number of GBTs");
-      myInfo->setValue(numGBTsPlusZEndPlusXSide);
+      myInfo->setValue(numGBTsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       // Bundles
       myInfo = new RootWInfo("Total number of Fiber Bundles");
-      myInfo->setValue(numBundlesPlusZEndPlusXSide);
+      myInfo->setValue(numBundlesPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       //DTCs
       myInfo = new RootWInfo("Total number of DTCs");
-      myInfo->setValue(numDTCsPlusZEndPlusXSide);
+      myInfo->setValue(numDTCsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
       // (+Z) end, (-X) side
       RootWTable* spacer = new RootWTable();
@@ -1921,84 +1921,84 @@ namespace insur {
       spacer->setContent(1, 0, " ");
       spacer->setContent(2, 0, " ");
       countContent->addItem(spacer);
-      RootWTable* plusZEndMinusXSideName = new RootWTable();
-      plusZEndMinusXSideName->setContent(0, 0, "(+Z) end, (-X) side.");
-      countContent->addItem(plusZEndMinusXSideName);
+      RootWTable* plusXSideMinusZEndName = new RootWTable();
+      plusXSideMinusZEndName->setContent(0, 0, "(+X) side, (-Z) end.");
+      countContent->addItem(plusXSideMinusZEndName);
       // Sensors
       myInfo = new RootWInfo("Total number of Sensors");
-      myInfo->setValue(numSensorsPlusZEndMinusXSide);
+      myInfo->setValue(numSensorsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
       // PowerChains
       myInfo = new RootWInfo("Total number of Serial Power Chains");
-      myInfo->setValue(numPowerChainsPlusZEndMinusXSide);
+      myInfo->setValue(numPowerChainsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
       // ELinks
       myInfo = new RootWInfo("Total number of ELinks");
-      myInfo->setValue(numELinksPlusZEndMinusXSide);
+      myInfo->setValue(numELinksPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
       // GBTs
       myInfo = new RootWInfo("Total number of GBTs");
-      myInfo->setValue(numGBTsPlusZEndMinusXSide);
+      myInfo->setValue(numGBTsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
       // Bundles
       myInfo = new RootWInfo("Total number of Fiber Bundles");
-      myInfo->setValue(numBundlesPlusZEndMinusXSide);
+      myInfo->setValue(numBundlesPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
       //DTCs
       myInfo = new RootWInfo("Total number of DTCs");
-      myInfo->setValue(numDTCsPlusZEndMinusXSide);
+      myInfo->setValue(numDTCsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
 
       // CABLING EFFICIENCY
-      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one Z end)", true);
+      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one X side)", true);
       myPage->addContent(efficiencyContent);
       // Sensors
-      myInfo = new RootWInfo("Total number of Sensors (one Z end)");
-      myInfo->setValue(numSensorsOneZEnd);
+      myInfo = new RootWInfo("Total number of Sensors (one X side)");
+      myInfo->setValue(numSensorsOneXSide);
       efficiencyContent->addItem(myInfo);
       // PowerChains
-      myInfo = new RootWInfo("Total number of Serial Power Chains (one Z end)");
-      myInfo->setValue(numPowerChainsOneZEnd);
+      myInfo = new RootWInfo("Total number of Serial Power Chains (one X side)");
+      myInfo->setValue(numPowerChainsOneXSide);
       efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // PowerChains efficiency
       myInfo = new RootWInfo("Sensors <-> Serial Power Chains efficiency (%)");
-      const double powerChainEfficiency = (double)numSensorsOneZEnd / (numPowerChainsOneZEnd * inner_cabling_maxNumModulesPerPowerChain);
+      const double powerChainEfficiency = (double)numSensorsOneXSide / (numPowerChainsOneXSide * inner_cabling_maxNumModulesPerPowerChain);
       myInfo->setValue(powerChainEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // ELinks
-      myInfo = new RootWInfo("Total number of ELinks (one Z end)");
-      myInfo->setValue(numELinksOneZEnd);
+      myInfo = new RootWInfo("Total number of ELinks (one X side)");
+      myInfo->setValue(numELinksOneXSide);
       efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // GBTs
-      myInfo = new RootWInfo("Total number of LP GBTs (one Z end)");
-      myInfo->setValue(numGBTsOneZEnd);
+      myInfo = new RootWInfo("Total number of LP GBTs (one X side)");
+      myInfo->setValue(numGBTsOneXSide);
       efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // GBTs efficiency
       myInfo = new RootWInfo("ELinks <-> LP GBTs efficiency (%)");
-      const double GBTEfficiency = (double)numELinksOneZEnd / (numGBTsOneZEnd * inner_cabling_maxNumELinksPerGBT);
+      const double GBTEfficiency = (double)numELinksOneXSide / (numGBTsOneXSide * inner_cabling_maxNumELinksPerGBT);
       myInfo->setValue(GBTEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Bundles
-      myInfo = new RootWInfo("Total number of Fiber Bundles (one Z end)");
-      myInfo->setValue(numBundlesOneZEnd);
+      myInfo = new RootWInfo("Total number of Fiber Bundles (one X side)");
+      myInfo->setValue(numBundlesOneXSide);
       efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
       myInfo = new RootWInfo("LP GBTs <-> Fiber Bundles efficiency (%)");
-      const double bundleEfficiency = (double)numGBTsOneZEnd / (numBundlesOneZEnd * inner_cabling_maxNumGBTsPerBundle);
+      const double bundleEfficiency = (double)numGBTsOneXSide / (numBundlesOneXSide * inner_cabling_maxNumGBTsPerBundle);
       myInfo->setValue(bundleEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // DTCs
-      myInfo = new RootWInfo("Total number of DTCs (one Z end)");
-      myInfo->setValue(numDTCsOneZEnd);
+      myInfo = new RootWInfo("Total number of DTCs (one X side)");
+      myInfo->setValue(numDTCsOneXSide);
       efficiencyContent->addItem(spacer);
       efficiencyContent->addItem(myInfo);
       // DTCs efficiency
       myInfo = new RootWInfo("Fiber Bundles <-> DTCs efficiency (%)");
-      const double dtcEfficiency = (double)numBundlesOneZEnd / (numDTCsOneZEnd * inner_cabling_maxNumBundlesPerCable);
+      const double dtcEfficiency = (double)numBundlesOneXSide / (numDTCsOneXSide * inner_cabling_maxNumBundlesPerCable);
       myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Overall optical efficiency
@@ -2041,24 +2041,24 @@ namespace insur {
 
 
   void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
-					int& numSensorsOneZEnd, int& numSensorsPlusZEndPlusXSide, int& numSensorsPlusZEndMinusXSide,
-					int& numPowerChainsOneZEnd, int& numPowerChainsPlusZEndPlusXSide, int& numPowerChainsPlusZEndMinusXSide,
-					int& numELinksOneZEnd, int& numELinksPlusZEndPlusXSide, int& numELinksPlusZEndMinusXSide,
-					int& numBundlesOneZEnd, int& numBundlesPlusZEndPlusXSide, int& numBundlesPlusZEndMinusXSide,
-					int& numGBTsOneZEnd, int& numGBTsPlusZEndPlusXSide, int& numGBTsPlusZEndMinusXSide,
-					int& numDTCsOneZEnd, int& numDTCsPlusZEndPlusXSide, int& numDTCsPlusZEndMinusXSide) const {
+					int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
+					int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
+					int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
+					int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
+					int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
+					int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const {
 
     // PowerChains
     const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
     for (const auto& it : powerChains) {
       const PowerChain* myPowerChain = it.second;
-      if (myPowerChain->isPositiveZEnd()) {
-	numPowerChainsOneZEnd++;
-	if (myPowerChain->isPositiveXSide()) numPowerChainsPlusZEndPlusXSide++; else numPowerChainsPlusZEndMinusXSide++;
+      if (myPowerChain->isPositiveXSide()) {
+	numPowerChainsOneXSide++;
+	if (myPowerChain->isPositiveZEnd()) numPowerChainsPlusXSidePlusZEnd++; else numPowerChainsPlusXSideMinusZEnd++;
 
 	const int numSensors = myPowerChain->numModules();
-	numSensorsOneZEnd += numSensors;
-	if (myPowerChain->isPositiveXSide()) numSensorsPlusZEndPlusXSide += numSensors; else numSensorsPlusZEndMinusXSide += numSensors;
+	numSensorsOneXSide += numSensors;
+	if (myPowerChain->isPositiveZEnd()) numSensorsPlusXSidePlusZEnd += numSensors; else numSensorsPlusXSideMinusZEnd += numSensors;
       }
     }
 
@@ -2066,13 +2066,13 @@ namespace insur {
     const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
     for (const auto& it : gbts) {
       const GBT* myGBT = it.second;
-      if (myGBT->isPositiveZEnd()) {
-	numGBTsOneZEnd++;
-	if (myGBT->isPositiveXSide()) numGBTsPlusZEndPlusXSide++; else numGBTsPlusZEndMinusXSide++;
+      if (myGBT->isPositiveXSide()) {
+	numGBTsOneXSide++;
+	if (myGBT->isPositiveZEnd()) numGBTsPlusXSidePlusZEnd++; else numGBTsPlusXSideMinusZEnd++;
 
 	const int numELinks = myGBT->numELinks();
-	numELinksOneZEnd += numELinks;
-	if (myGBT->isPositiveXSide()) numELinksPlusZEndPlusXSide += numELinks; else numELinksPlusZEndMinusXSide += numELinks;
+	numELinksOneXSide += numELinks;
+	if (myGBT->isPositiveZEnd()) numELinksPlusXSidePlusZEnd += numELinks; else numELinksPlusXSideMinusZEnd += numELinks;
       }
     }
 
@@ -2080,9 +2080,9 @@ namespace insur {
     const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
     for (const auto& it : bundles) {
       const InnerBundle* myBundle = it.second;
-      if (myBundle->isPositiveZEnd()) {
-	numBundlesOneZEnd++;
-	if (myBundle->isPositiveXSide()) numBundlesPlusZEndPlusXSide++; else numBundlesPlusZEndMinusXSide++;
+      if (myBundle->isPositiveXSide()) {
+	numBundlesOneXSide++;
+	if (myBundle->isPositiveZEnd()) numBundlesPlusXSidePlusZEnd++; else numBundlesPlusXSideMinusZEnd++;
       }
     }
 
@@ -2090,9 +2090,9 @@ namespace insur {
     const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
     for (const auto& it : dtcs) {
       const InnerDTC* myDTC = it.second;
-      if (myDTC->isPositiveZEnd()) {
-	numDTCsOneZEnd++;
-	if (myDTC->isPositiveXSide()) numDTCsPlusZEndPlusXSide++; else numDTCsPlusZEndMinusXSide++;
+      if (myDTC->isPositiveXSide()) {
+	numDTCsOneXSide++;
+	if (myDTC->isPositiveZEnd()) numDTCsPlusXSidePlusZEnd++; else numDTCsPlusXSideMinusZEnd++;
       }
     }
   }
