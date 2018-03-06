@@ -18,8 +18,7 @@ void ModulesToPowerChainsConnector::visit(Layer& l) {
 }
 
 
-void ModulesToPowerChainsConnector::visit(RodPair& r) { 
-  //bundleType_ = computeBundleType(isBarrel_, barrelName_, layerNumber_); // Bundle cabling type
+void ModulesToPowerChainsConnector::visit(RodPair& r) {
   rodPhi_ = r.Phi();
 }
       
@@ -35,10 +34,6 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
   const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
-
-  // PHIPOSITION.
-  //const InnerPhiPosition& modulePhiPosition = InnerPhiPosition(rodPhi_, numRods_, isPositiveZEndTemp);
-
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
   buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, barrelName_, layerNumber_, phiUnitRef);
@@ -64,8 +59,6 @@ void ModulesToPowerChainsConnector::visit(Ring& r)   {
 				    + any2str(" as total number of modules in a forward ring.")
 				    + any2str(" Total number of modules should be a multiple of 4.")
 				    );
-
-  //bundleType_ = computeBundleType(isBarrel_, endcapName_, diskNumber_, ringNumber_);
 }
 
 
@@ -74,12 +67,6 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
 
   const double modCenterX = m.center().X();
   const bool isPositiveXSide = computeXSide(modCenterX);
- 
-  // NOW THAT ALL INFORMATION HAS BEEN GATHERED, COMPUTE PHIPOSITION.
-  //const PhiPosition& modulePhiPosition = PhiPosition(modPhi, numModulesInRing_, isBarrel_, diskNumber_, endcapName_, bundleType_);
-
-  // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
-  //buildBundle(m, bundles_, negPowerChains_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide)
 
   const bool isRingInnerEnd = ( (m.diskSurface() % 2 ) == 1);
   
@@ -97,13 +84,8 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
 
 
 void ModulesToPowerChainsConnector::postVisit() {
-  // STAGGER MODULES
-  //staggerModules(bundles_);
-  //staggerModules(negPowerChains_);
-
   // CHECK
   checkModulesToPowerChainsCabling(powerChains_);
-  //checkModulesToPowerChainsCabling(negPowerChains_);
 }
 
 
@@ -194,36 +176,6 @@ void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<
   // CONNECT MODULE TO POWERCHAIN
   connectModuleToPowerChain(m, powerChain);
 }
-
-
-/* Compute the index associated to each bundle type.
- */
-/*const int ModulesToPowerChainsConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
-  int bundleTypeIndex;
-  // BARREL
-  if (isBarrel) {
-    if (bundleType == Category::SS) bundleTypeIndex = 0;
-    else {
-      if (!isTilted) {
-	if (totalNumFlatRings <= cabling_maxNumModulesPerBundle) bundleTypeIndex = 1;
-	else {
-	  if (!isExtraFlatPart) bundleTypeIndex = 1;
-	  else bundleTypeIndex = 2;
-	}
-      } 
-      else bundleTypeIndex = 0;
-    }
-  }
-  // ENDCAPS
-  else {
-    if (bundleType == Category::PS10GA) bundleTypeIndex = 0;
-    else if (bundleType == Category::PS10GB) bundleTypeIndex = 1;
-    else if (bundleType == Category::PS5G) bundleTypeIndex = 2;
-    else if (bundleType == Category::SS) bundleTypeIndex = 3;
-  }
-  return bundleTypeIndex;
-  }
-*/
 
 
 /* Compute the Id associated to each bundle.

@@ -16,7 +16,6 @@
 class ModulesToPowerChainsConnector : public GeometryVisitor {
 public:
   std::map<int, PowerChain*> getPowerChains() { return powerChains_; }
-  //std::map<int, Bundle*> getNegPowerChains() { return negPowerChains_; }  // negative cabling side
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -37,11 +36,8 @@ private:
   const bool computeBarrelCentralModuleZEnd(const int layerNumber) const;
   const std::pair<int, int> computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
 
-  //const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
   void buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex = 0);
-  //const int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   const int computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) const;
-  //const int computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
   PowerChain* createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex);
   void connectModuleToPowerChain(DetectorModule& m, PowerChain* powerChain) const;
 
@@ -49,7 +45,6 @@ private:
   void checkModulesToPowerChainsCabling(const std::map<int, PowerChain*>& powerChains) const;
 
   std::map<int, PowerChain*> powerChains_;
-  //std::map<int, Bundle*> negPowerChains_;  // negative cabling side bundles.
 
   std::string barrelName_;
   int layerNumber_;

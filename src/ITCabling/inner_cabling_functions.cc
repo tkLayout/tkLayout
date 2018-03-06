@@ -38,8 +38,7 @@ namespace inner_cabling_functions {
   const double computePhiFromMinY(const double phi, const bool isPositiveZEnd) {
     const double stereoPhi = computeStereoPhi(phi, isPositiveZEnd);
     const double phiFromMinY = femod(stereoPhi + M_PI / 2., M_PI);
-    return phiFromMinY;
-  
+    return phiFromMinY;  
   }
 
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd) {
