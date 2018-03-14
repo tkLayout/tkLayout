@@ -1,8 +1,8 @@
 // Pixel endcap disks material
 // Small disks (108 modules)
-// 2500 um^2 pixels everywhere
+// 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
-Materials FPIX_disk {
+Materials FPIX_disk_2500_10000 {
   type layer
 
   // Cooling for the module
@@ -42,45 +42,47 @@ Materials FPIX_disk {
 
   // Power for the module
   // Average on disk
+  // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
     componentName "Power wires"
     service false
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 13.31
+      quantity 9.98
       unit g
     }
     Element {
       elementName Cu
-      quantity 2.05
+      quantity 1.54
       unit g
     }
     Element {
       elementName PE
-      quantity 4.49
+      quantity 3.37
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
   // 12 chains per disk
+  // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
     componentName "Power wires"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.0954
+      quantity 0.07
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0143
+      quantity 0.01
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0317
+      quantity 0.023
       unit g/m
     }
   }
