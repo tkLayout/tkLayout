@@ -190,7 +190,7 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
                                           
 OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
 
----------------------------------------------------------   TDR LAYOUT   -------------------------------------------------------------------------------------------------------
+======================   TDR LAYOUT   ====================
 
 OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
                          Zd=29.7mm or bigDelta=14.85
@@ -199,16 +199,23 @@ OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03
                          and add 4 modules in one ring of TEDD2.
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-                        
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+===========   POST-TDR OUTER TRACKER STUDIES   ===========                    
 OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
                         'Identical dees' design (simplify cooling design, huge saving :) ):
                           - Rotate in Phi all modules in all disks in TEDD by + half a module.
                         PS module design has been updated, hence:
                           - Increase bigDelta, from 14.85 mm to 15.075 mm (Zd goes from 29.7 mm to 30.15 mm), in all disks in TEDD.
                           - Decrease smallDelta, from 7.42 mm to 7.375 mm (ZmPS4.0 goes from 14.84mm to 14.75mm), in PS4.0 rings.
+                          
+OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
+                           TBPS L1 small delta: 3.5625 mm -> 3.5475 mm
+                           TBPS L2 small delta: 3.47 mm -> 3.0475 mm
+                           TBPS L3 small delta: 3.47 mm -> 3.5844 mm
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
-                        
+===========   POST-TDR INNER TRACKER STUDIES   ===========                           
 OT613_200_IT4125.cfg	  Like OT613_200_IT4025, but with 50x50 pixels instead of 25x100.
 
 OT613_200_IT404.cfg                  OT Version 6.1.3
@@ -232,10 +239,11 @@ OT613_200_IT407.cfg                  OT Version 6.1.3
                                       - 50x50 in 1x2 modules, 25x100 in 2x2 modules.   
                                       
 OT613_200_IT408.cfg                  OT Version 6.1.3
-                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2      
+                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                           
+     
                                      
----------------------------------------------------------   LARGE PIXEL ASPECT RATIO IN 2X2 MODULES STUDIES --------------------------------------------------------------------                               
-                                     
+=========   LARGE PIXELS IN 2X2 MODULES STUDIES   =========                                                                
 OT613_200_IT420.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.0:
                                       - geometry same as IT4.0.4
@@ -255,9 +263,10 @@ OT613_200_IT423.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.3:
                                       - geometry same as IT4.0.4
                                       - 50x50 in 1x2 modules, and 100x100 in 2x2 modules.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                                                                          
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                                                                                  
 
----------------------------------------------------------   TILTED INNER TRACKER STUDIES    ------------------------------------------------------------------------------------                        
+
+============   TILTED INNER TRACKER STUDIES   ============                 
 OT613_200_IT500.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.0 : tilted Inner Tracker. Head of series.
                                      First-jet optimization :)
@@ -286,13 +295,13 @@ OT613_200_IT503.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.3: 
                                       - geometry same as IT5.0.1
                                       - 50x50 in 1x1 and 1x2 modules, 25x100 in 2x2 modules.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                                                                                                           
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                                                                                               
 
 
-============ Timing barrel layer studies ============
+============   TIMING BARREL LAYER STUDIES   =============
 OT613_200_IT4025.cfg  Reference "standard" 78 ladders
 OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
 OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
 OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
 OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
