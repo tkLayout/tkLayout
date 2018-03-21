@@ -25,6 +25,7 @@ namespace material {
     enum Type {ERROR, FLANGE, SECOND};
     
     ConversionStation() :
+      matSubdetectorName ("matSubdetectorName", parsedOnly(), "Not assigned"),
       stationType_ (ERROR),
       stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
@@ -41,6 +42,7 @@ namespace material {
     Type stationType() const;
 
     ReadonlyProperty<std::string, NoDefault> stationName_;
+    Property<std::string, Default> matSubdetectorName;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;

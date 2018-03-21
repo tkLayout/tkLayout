@@ -25,6 +25,7 @@ namespace material {
   };
 
   MaterialObject::MaterialObject(Type materialType) :
+      matSubdetectorName ("matSubdetectorName", parsedOnly(), "Not assigned"),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),

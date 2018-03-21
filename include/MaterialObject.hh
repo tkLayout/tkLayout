@@ -72,6 +72,7 @@ namespace material {
     std::map<int, int> sensorChannels;
     class ReferenceSensor : public PropertyObject {
     public:
+      Property<std::string, Default> matSubdetectorName;
       ReadonlyProperty<int, NoDefault> numStripsAcross;
       ReadonlyProperty<double, NoDefault> pitchEstimate;
       ReadonlyProperty<int, NoDefault> numSegments;

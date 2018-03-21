@@ -36,6 +36,7 @@ namespace material {
 
   SupportStructure::SupportStructure() :
     componentsNode("Component"   , parsedOnly()),
+    matSubdetectorName ("matSubdetectorName", parsedOnly(), "Not assigned"),
     type(          "type"        , parsedAndChecked()),
     autoPosition(  "autoPosition", parsedOnly()),
     customZMin(    "customZMin"  , parsedOnly()),

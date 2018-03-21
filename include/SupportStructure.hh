@@ -43,6 +43,7 @@ namespace material {
     typedef std::vector<const Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
 
+    Property<std::string, Default> matSubdetectorName;
     Property<std::string, NoDefault> type;
     Property<double, NoDefault> autoPosition;
     Property<double, NoDefault> customZMin;
