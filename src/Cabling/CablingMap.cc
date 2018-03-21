@@ -112,16 +112,17 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
     if (cableType == Category::PS10G) {
       // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
       if ( (subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) 
-	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) 
-	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3)
-	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)
+	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1)
+	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
+	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3)	   
 	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)
 	   ) {
 	slot = 1;
       }
       // BARREL TILTED PART + ENDCAPS DISKS 2, 4
       if ( (subDetectorName == cabling_tbps && myBundle->isTiltedPart()) 
-	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2)
+	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GB)
+	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)
 	   ) {
 	slot = 2;
       }
