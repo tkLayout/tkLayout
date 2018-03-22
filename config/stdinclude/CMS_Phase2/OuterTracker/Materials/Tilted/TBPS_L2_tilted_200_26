@@ -3,6 +3,7 @@
 
 Materials module-TBPS_L2_tilted_200_26 {
   type module
+  matSubdetectorName TBPS
 
   @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/ptPS_200_26_components
   @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_moduleservices

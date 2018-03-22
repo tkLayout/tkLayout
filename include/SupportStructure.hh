@@ -43,7 +43,6 @@ namespace material {
     typedef std::vector<const Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
 
-    Property<std::string, Default> matSubdetectorName;
     Property<std::string, NoDefault> type;
     Property<double, NoDefault> autoPosition;
     Property<double, NoDefault> customZMin;
@@ -94,6 +93,7 @@ namespace material {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       static const std::map<std::string, Unit> unitStringMap;
+      Property<std::string, AutoDefault> matSubdetectorName;
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<double, NoDefault> quantity;

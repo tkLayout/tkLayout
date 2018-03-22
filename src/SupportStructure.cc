@@ -36,7 +36,6 @@ namespace material {
 
   SupportStructure::SupportStructure() :
     componentsNode("Component"   , parsedOnly()),
-    matSubdetectorName ("matSubdetectorName", parsedOnly(), "Not assigned"),
     type(          "type"        , parsedAndChecked()),
     autoPosition(  "autoPosition", parsedOnly()),
     customZMin(    "customZMin"  , parsedOnly()),
@@ -326,6 +325,7 @@ namespace material {
   
   //=============== begin class SupportStructure::Element
   SupportStructure::Element::Element() :
+    matSubdetectorName ("matSubdetectorName", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     quantity ("quantity", parsedAndChecked()),
@@ -371,6 +371,7 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
+      if (matSubdetectorName() == "") std::cout << "SupportStructure::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }

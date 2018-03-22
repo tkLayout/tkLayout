@@ -5,6 +5,7 @@
 
 Materials FPIX_2_disk {
   type layer
+  matSubdetectorName FPIX_2
 
   // Cooling for the module
   // Average on disk (scales on surface)

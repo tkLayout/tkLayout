@@ -235,6 +235,7 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
 
   for (auto& currentStationNode : stationsNode) {
     conversionStation = new ConversionStation();
+    conversionStation->store(propertyTree());
     conversionStation->store(currentStationNode.second);
     conversionStation->check();
     conversionStation->build();

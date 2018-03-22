@@ -25,7 +25,6 @@ namespace material {
   };
 
   MaterialObject::MaterialObject(Type materialType) :
-      matSubdetectorName ("matSubdetectorName", parsedOnly(), "Not assigned"),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),
@@ -139,6 +138,7 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
+	if (currElement->matSubdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->matSubdetectorName() = " << currElement->matSubdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "Sensor HV line") {
@@ -306,6 +306,7 @@ namespace material {
   */
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
+    matSubdetectorName ("matSubdetectorName", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
@@ -324,6 +325,7 @@ namespace material {
     materialType_(newMaterialType) {};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
+    matSubdetectorName(original.matSubdetectorName());
     if(original.destination.state())
       destination(original.destination());
     if(original.componentName.state())
@@ -547,6 +549,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
+	if (matSubdetectorName() == "") std::cout << "MaterialObject::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }

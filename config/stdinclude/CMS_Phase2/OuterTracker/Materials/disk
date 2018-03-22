@@ -4,6 +4,7 @@
 
 Materials disk {
   type layer
+  matSubdetectorName TEDD
 
   // Cooling for the module
   Component {

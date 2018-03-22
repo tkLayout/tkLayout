@@ -3,6 +3,7 @@
 
 Materials module-TBPS_L3_lastFlat_200_16 {
   type module
+  matSubdetectorName TBPS
 
   @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/ptPS_200_16_components
   @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_moduleservices

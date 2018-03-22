@@ -72,7 +72,6 @@ namespace material {
     std::map<int, int> sensorChannels;
     class ReferenceSensor : public PropertyObject {
     public:
-      Property<std::string, Default> matSubdetectorName;
       ReadonlyProperty<int, NoDefault> numStripsAcross;
       ReadonlyProperty<double, NoDefault> pitchEstimate;
       ReadonlyProperty<int, NoDefault> numSegments;
@@ -126,6 +125,7 @@ namespace material {
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
+      Property<std::string, AutoDefault> matSubdetectorName;
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
       Property<std::string, NoDefault> componentName; //only the inner component's name

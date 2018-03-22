@@ -6,6 +6,7 @@
 
 Materials rodPt2S {
   type rod
+  matSubdetectorName TB2S
 
   // Cooling for the module
   Component {

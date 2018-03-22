@@ -4,6 +4,7 @@
 
 Materials BPIX_rod_L4 {
   type rod
+  matSubdetectorName BPIX
 
   @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L4
   @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L4
