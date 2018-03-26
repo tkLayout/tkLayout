@@ -7938,7 +7938,7 @@ namespace insur {
       if (fabs(z2)>maxZ) maxZ=fabs(z2);
       if (fabs(r1)>maxR) maxR=fabs(r1);
       if (fabs(r2)>maxR) maxR=fabs(r2);
-
+  
       bool isEmpty = true;
 
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
@@ -8133,15 +8133,23 @@ namespace insur {
 
 
     // TOTAL
-    myStringStream << "SERVICES TOTAL" << std::endl;
+    myStringStream << "SERVICES (KG)" << std::endl;
     for (const auto& serviceIt : servicesTotal ) {
-      myStringStream << serviceIt.first << "," << serviceIt.second << std::endl;
+      myStringStream << serviceIt.first << "," << std::round(serviceIt.second/1000.) << std::endl;
     }
-    myStringStream << "MODULES TOTAL" << std::endl;
+    myStringStream << std::endl;
+    myStringStream << "MODULES (KG)" << std::endl;
     for (const auto& moduleIt : modulesTotal ) {
-      myStringStream << moduleIt.first << "," << moduleIt.second << std::endl;
+      myStringStream << moduleIt.first << "," << std::round(moduleIt.second/1000.) << std::endl;
     }
 
+    myStringStream << std::endl << std::endl << std::endl;
+    myStringStream << "TOTAL (KG)" << std::endl;
+    for (const auto& serviceIt : servicesTotal ) {
+      double totalMass = serviceIt.second;
+      if (modulesTotal.find(serviceIt.first) != modulesTotal.end()) totalMass += modulesTotal.at(serviceIt.first);
+      myStringStream << serviceIt.first << "," << std::round(totalMass/1000.) << std::endl;
+    }
 
 
 
