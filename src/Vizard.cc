@@ -7891,6 +7891,7 @@ namespace insur {
 
   void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
+    //const bool isIT = myTracker.isPixelTracker();
     std::string myTrackerName = myTracker.myid();
     RootWContent& myContent = myPage.addContent("Service details");
 
@@ -7978,7 +7979,7 @@ namespace insur {
       }
 
 
-      std::string displayedSubdetectorName  = commonSubdetectorName;
+      /*std::string displayedSubdetectorName  = commonSubdetectorName;
       bool hasSeveralSubdetectors = false;
       if (commonSubdetectorNameSecond != "") {
 	hasSeveralSubdetectors = true;
@@ -7987,9 +7988,9 @@ namespace insur {
       if (commonSubdetectorNameThird != "") {
 	hasSeveralSubdetectors = true;
 	displayedSubdetectorName +=  " + " + commonSubdetectorNameThird;
-      }    
+	}*/
 
-      const int color = computeSubdetectorColor(displayedSubdetectorName, isEmpty);
+      const int color = computeSubdetectorColor(commonSubdetectorName, isEmpty);
 
       myBox = new TBox(z1, r1, z2, r2);
       myBox->SetLineColor(color);
@@ -7998,11 +7999,50 @@ namespace insur {
       myBox->Draw("l");
 
 
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", displayedSubdetectorName.c_str()));
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       myText->SetTextColor(color);
       myText->Draw();
+
+      // BONUS
+      if (commonSubdetectorNameSecond != "") {
+	const int colorSecond = computeSubdetectorColor(commonSubdetectorNameSecond, isEmpty);
+	r1 += 2;
+	r2 += 2;
+
+	myBox = new TBox(z1, r1, z2, r2);
+	myBox->SetLineColor(colorSecond);
+	myBox->SetFillStyle(3003);
+	myBox->SetFillColor(colorSecond);
+	myBox->Draw("l");
+
+	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameSecond.c_str()));
+	myText->SetTextAlign(22);
+	myText->SetTextSize(2e-2);
+	myText->SetTextColor(colorSecond);
+	myText->Draw();
+      }
+      // BONUS
+      if (commonSubdetectorNameThird != "") {
+	const int colorThird = computeSubdetectorColor(commonSubdetectorNameThird, isEmpty);
+	r1 += 2;
+	r2 += 2;
+
+	myBox = new TBox(z1, r1, z2, r2);
+	myBox->SetLineColor(colorThird);
+	myBox->SetFillStyle(3003);
+	myBox->SetFillColor(colorThird);
+	myBox->Draw("l");
+
+	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameThird.c_str()));
+	myText->SetTextAlign(22);
+	myText->SetTextSize(2e-2);
+	myText->SetTextColor(colorThird);
+	myText->Draw();
+      }
+
+
 
       serviceId++;
     }
