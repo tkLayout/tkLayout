@@ -7943,10 +7943,16 @@ namespace insur {
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
       const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
       std::string commonSubdetectorName;
+      std::string commonSubdetectorNameSecond;
+      std::string commonSubdetectorNameThird;
 
       for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
 	const std::string subdetectorName =  subdetectorIt.first;
-	commonSubdetectorName = subdetectorName;
+	if ( commonSubdetectorNameThird != "" && subdetectorName != commonSubdetectorName && subdetectorName != commonSubdetectorNameSecond && subdetectorName != commonSubdetectorNameThird) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
+	else if ( commonSubdetectorNameSecond != "" && subdetectorName != commonSubdetectorName && subdetectorName != commonSubdetectorNameSecond) { commonSubdetectorNameThird = subdetectorName; }
+	else if ( commonSubdetectorName != "" && subdetectorName != commonSubdetectorName) { commonSubdetectorNameSecond = subdetectorName; }
+	else { commonSubdetectorName = subdetectorName; }
+
 	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
 
 	int elementId=0;
@@ -7978,10 +7984,22 @@ namespace insur {
       else myBox->SetFillColor(kGray);
       myBox->Draw("l");
 
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
+      std::string displayedSubdetectorName  = commonSubdetectorName;
+      bool hasSeveralSubdetectors = false;
+      if (commonSubdetectorNameSecond != "") {
+	hasSeveralSubdetectors = true;
+	displayedSubdetectorName +=  " + " + commonSubdetectorNameSecond;
+      }
+      if (commonSubdetectorNameThird != "") {
+	hasSeveralSubdetectors = true;
+	displayedSubdetectorName +=  " + " + commonSubdetectorNameThird;
+      }    
+
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", displayedSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       if (isEmpty) myText->SetTextColor(kRed);
+      else if (hasSeveralSubdetectors) myText->SetTextColor(kGreen);
       else myText->SetTextColor(kBlack);
       myText->Draw();
 
@@ -8047,12 +8065,12 @@ namespace insur {
 			 << il << std::endl;
 	}
       }
-      if (commonSubdetectorName != detectorModule.uniRef().subdetectorName) {
+      /*if (commonSubdetectorName != detectorModule.uniRef().subdetectorName) {
 	std::cout << "!!!!!!!! Module cap: material subdetectorName does not match the geometry DetectorModule hierarchy." << std::endl;
 	std::cout << "materials SubdetectorName = " << commonSubdetectorName << std::endl;
 	std::cout << "detectorModule.UniRef().subdetectorName = " << detectorModule.uniRef().subdetectorName << std::endl;
 	std::cout << "id = " << serviceId << ", z1 = " << z1 << ", z2 = " << z2 << ", r1 = " << r1 << ", r2 = " << r2 << std::endl;
-      }
+	}*/
 
       myBox = new TBox(z1, r1, z2, r2);
       myBox->SetLineColor(kBlue);
