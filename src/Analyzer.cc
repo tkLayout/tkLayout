@@ -1322,11 +1322,11 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
             Visitor(std::map<std::string, SummaryTable>& result_) : result(result_) {}
             void visit(const BarrelModule& m) {
-              string s = m.subdetectorName() + " (L" + any2str(m.layer()) + ")";
+              string s = "Ring " + any2str(m.ring());
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
             void visit(const EndcapModule& m) {
-              string s = m.subdetectorName() + " (D" + any2str(m.disk()) + ")";
+	      string s = "Ring " + any2str(m.ring());
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
           };
@@ -1459,10 +1459,172 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   endcapComponentWeights.clear();
   computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
 
+  weightBySubdetector_ = computeWeightBySubdetector(mb);
+  //weightBySubdetectorAndElement_ = computeWeightBySubdetectorAndElement(mb);
+  //weightBySubdetectorAndComponent_ = computeWeightBySubdetectorAndComponent(mb);
+
   MaterialBillAnalyzer v;
   v.inspectTracker(mb);
   billOfMaterials_ = v.outputTable;
 }
+
+
+
+  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetector(MaterialBudget& mb) {
+    std::map<string, SummaryTable> myTables;
+
+    const std::vector<std::vector<ModuleCap> >& barrelModules = mb.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = mb.getEndcapModuleCaps();
+    const std::vector<InactiveElement>& services = mb.getAllServices();
+    //InactiveSurfaces& getInactiveSurfaces(); // TO DO: as well?????
+
+    std::map<std::string, double> totalMassPerSubdetector;
+
+
+    for (const auto& myModuleVec : barrelModules) {
+      for (const auto& myModule : myModuleVec) {
+	std::map<std::string, double> massPerSubdetector = myModule.getMassPerSubdetector();
+
+	for (const auto& subdetectorIt : massPerSubdetector) {
+	  std::string subdetectorName = subdetectorIt.first;
+	  double mass = subdetectorIt.second;
+	  totalMassPerSubdetector[subdetectorName] += mass;
+	} // subdetector
+
+      } // modulesVec
+    } // barrelModules
+
+    for (const auto& myModuleVec : endcapModules) {
+      for (const auto& myModule : myModuleVec) {
+	std::map<std::string, double> massPerSubdetector = myModule.getMassPerSubdetector();
+
+	for (const auto& subdetectorIt : massPerSubdetector) {
+	  std::string subdetectorName = subdetectorIt.first;
+	  double mass = subdetectorIt.second;
+	  totalMassPerSubdetector[subdetectorName] += mass;
+	} // subdetector
+
+      } // modulesVec
+    } // endcapModules
+
+    for (const auto& myService : services) {
+      std::map<std::string, double> massPerSubdetector = myService.getMassPerSubdetector();
+
+      for (const auto& subdetectorIt : massPerSubdetector) {
+	std::string subdetectorName = subdetectorIt.first;
+	double mass = subdetectorIt.second;
+	totalMassPerSubdetector[subdetectorName] += mass;
+      } // subdetector
+
+    } // services
+
+
+
+    // fill table   
+    for (const auto& subdetectorIt : totalMassPerSubdetector) {
+      std::string subdetectorName = subdetectorIt.first;
+      double mass = subdetectorIt.second;
+      std::ostringstream massStream;
+      massStream << std::dec << std::fixed << std::setprecision(1) << mass;
+      myTables[subdetectorName].setCell(0, 0, massStream.str());
+    }
+
+    return myTables;
+  }
+ 
+
+
+
+
+
+
+
+  /*
+  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetectorAndElement(MaterialBudget& mb) {
+    std::map<string, SummaryTable> myTables;
+
+    const std::vector<std::vector<ModuleCap> >& barrelModules = mb.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = mb.getEndcapModuleCaps();
+    const std::vector<InactiveElement>& services = mb.getAllServices();
+    //InactiveSurfaces& getInactiveSurfaces(); // TO DO: as well?????
+
+    for (const auto& myModuleVec : barrelModules) {
+      for (const auto& myModule : myModuleVec) {
+	const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
+
+	for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
+	  std::string subdetectorName = subdetectorIt.first;
+	  std::map<std::string, double>& massPerElement = subdetectorIt.second;
+	  int rowCounter = 0;
+	  for (const auto& elementIt : massPerElement) {
+	    std::string elementName = elementIt.first;
+	    double mass = elementIt.second;
+	    std::ostringstream massStream;
+	    massStream << std::dec << std::fixed << std::setprecision(1) << mass;
+	    myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
+	    myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
+	    rowCounter++;
+	  } // element
+	} // subdetector
+
+      } // modulesVec
+    } // barrelModules
+
+
+    for (const auto& myModuleVec : endcapModules) {
+      for (const auto& myModule : myModuleVec) {
+	const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
+
+	for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
+	  std::string subdetectorName = subdetectorIt.first;
+	  std::map<std::string, double>& massPerElement = subdetectorIt.second;
+	  int rowCounter = 0;
+	  for (const auto& elementIt : massPerElement) {
+	    std::string elementName = elementIt.first;
+	    double mass = elementIt.second;
+	    std::ostringstream massStream;
+	    massStream << std::dec << std::fixed << std::setprecision(1) << mass;
+	    myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
+	    myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
+	    rowCounter++;
+	  } // element
+	} // subdetector
+
+      } // modulesVec
+    } // barrelModules
+
+
+    for (const auto& myService : services) {
+      const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
+
+      for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
+	std::string subdetectorName = subdetectorIt.first;
+	std::map<std::string, double>& massPerElement = subdetectorIt.second;
+	int rowCounter = 0;
+	for (const auto& elementIt : massPerElement) {
+	  std::string elementName = elementIt.first;
+	  double mass = elementIt.second;
+	  std::ostringstream massStream;
+	  massStream << std::dec << std::fixed << std::setprecision(1) << mass;
+	  myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
+	  myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
+	  rowCounter++;
+	} // element
+      } // subdetector
+
+    } // services
+
+  }
+  */
+
+
+
+  /*
+  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetectorAndComponent(MaterialBudget& mb) {
+
+  }
+  */
+
 
 // protected
 /**

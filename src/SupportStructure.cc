@@ -372,7 +372,7 @@ namespace material {
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
       if (matSubdetectorName() == "") std::cout << "SupportStructure::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
-      materialProperties.addLocalMass(elementName(), componentName(), quantity);
+      materialProperties.addLocalMass(matSubdetectorName(), elementName(), componentName(), quantity);
     }
   }
   

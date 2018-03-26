@@ -68,8 +68,15 @@ namespace insur {
         const std::map<std::string, double>& getLocalMassesComp() const;
         double getLocalMass(std::string tag); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
-        void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
-        void addLocalMass(std::string tag, double ms);
+
+      const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
+      const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
+      //const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndComponent() const { return massPerSubdetectorAndComponent_; }
+
+        void addLocalMass(std::string matSubdetectorName, std::string tag, std::string comp, double ms, int minZ = -777);
+        void addLocalMass(std::string matSubdetectorName, std::string tag, double ms);
+      //void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
+      //void addLocalMass(std::string tag, double ms);
         unsigned int localMassCount();
         unsigned int localMassCompCount();
         void clearMassVectors();
@@ -100,9 +107,13 @@ namespace insur {
         // geometry-dependent parameters
         Category cat;
         std::map<std::string, double> localmasses;
-        std::map<std::string, double> localmassesComp;
 
+      std::map<std::string, double> massPerSubdetector_;
+      std::map<std::string, std::map<std::string, double> > massPerSubdetectorAndElement_;
+
+        std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >
+      // std::map<std::string, std::map<std::string, double> > massPerSubdetectorAndComponent_;
 
         std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)

@@ -189,7 +189,6 @@ namespace material {
     class Materials : public PropertyObject {
     public:
       PropertyNodeUnique<std::string> componentsNode_;
-      //Property<double, Computable> radiationLength, interactionLenght;
       Materials(MaterialObject::Type newMaterialType);
       virtual ~Materials();
       double totalGrams(double length, double surface) const;

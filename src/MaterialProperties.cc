@@ -93,9 +93,11 @@ namespace insur {
      * @param tag The name of the material
      * @param ms The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, double ms) {
+  void MaterialProperties::addLocalMass(std::string matSubdetectorName, std::string tag, double ms) {
         msl_set = true;
         localmasses[tag] += ms;
+	massPerSubdetectorAndElement_[matSubdetectorName][tag] += ms;
+	massPerSubdetector_[matSubdetectorName] += ms;
     }
 
     /**
@@ -107,11 +109,15 @@ namespace insur {
      * @param comp The name of the component
      * @param ms The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms, int minZ) {
+  void MaterialProperties::addLocalMass(std::string matSubdetectorName, std::string tag, std::string comp, double ms, int minZ) {
         msl_set = true;
         localmasses[tag] += ms;
         localmassesComp[getSubName(comp)] += ms;
         localCompMats[comp][tag] += ms; 
+
+	massPerSubdetectorAndElement_[matSubdetectorName][tag] += ms;
+	//massPerSubdetectorAndComponent_[matSubdetectorName][comp] += ms;
+	massPerSubdetector_[matSubdetectorName] += ms;
     }
     
     /**
@@ -145,7 +151,7 @@ namespace insur {
         //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
         for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
             for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit)
-                mp.addLocalMass(matit->first, compit->first, matit->second);
+	      mp.addLocalMass("caca: copyMassVectors is used", matit->first, compit->first, matit->second);
     }
     
     /**

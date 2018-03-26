@@ -391,8 +391,8 @@ namespace insur {
     myPage.setAddress(pageAddress);
 
     // weight plot
-    myContent = new RootWContent("Overview plot", true);
-    myPage.addContent(myContent);
+    //myContent = new RootWContent("Overview plot", true);
+    //myPage.addContent(myContent);
 
     std::map<std::string, SummaryTable>* summaryTables;
 
@@ -404,7 +404,7 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first, false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (chemical elements)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
@@ -418,11 +418,21 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first + " - components", false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (components)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
     }
+
+
+    // TOTAL WEIGHT
+    std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
+      for (auto& subdetectorIt : weightBySubdetector) {
+        RootWContent& myContent = myPage.addContent(subdetectorIt.first + " : total weight", false);
+        RootWTable& myTable = myContent.addTable();
+        myTable.setContent(subdetectorIt.second.getContent());
+      }
+
   }
 
 
@@ -7882,8 +7892,6 @@ namespace insur {
   void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
-    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
-
     RootWContent& myContent = myPage.addContent("Service details");
 
     // Counting services with an ad-hoc index
@@ -7903,8 +7911,18 @@ namespace insur {
     TBox* myBox;
     TText* myText;
 
-    myStringStream << "serviceID/I,elementID/I,z1/D,z2/D,r1/D,r2/D,Element/C,mass/D,mass_per_length/D,rl/D,il/D,local/I" << std::endl;
+    myStringStream << "serviceID/I,z1/D,z2/D,r1/D,r2/D,subdetector/C,type/C,elementID/I,Element/C,mass/D,mass_per_length/D,rl/D,il/D" << std::endl;
 
+
+
+
+    //std::vector<MaterialProperties*> totalMaterials;
+    //Vector<unique_ptr<Base>>.  vec.emplace_back(new Derived())
+
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
+    std::map<std::string, double> servicesTotal;
+
+    // SERVICES
     for (auto& iter : allServices) {
       z1 = iter.getZOffset();
       z2 = iter.getZOffset()+iter.getZLength();
@@ -7922,24 +7940,33 @@ namespace insur {
 
       bool isEmpty = true;
 
-      const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
 
-      int elementId=0;
-      for (auto& massIt : localMasses) {
-	mass = massIt.second;
-	if (mass!=0) isEmpty=false;
-	myStringStream << serviceId << ","
-                       << elementId++ << ","
-		       << z1 << ","
-		       << z2 << ","
-		       << r1 << ","
-		       << r2 << ","
-		       << massIt.first << ","
-		       << mass << ","
-		       << mass/length << ","
-                       << rl << ","
-                       << il << ","
-                       << "1" << std::endl;
+      for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
+	const std::string subdetectorName =  subdetectorIt.first;
+	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
+
+	int elementId=0;
+	//for (auto& massIt : localMasses) {
+	for (const auto& massIt : massPerElement) {
+	  mass = massIt.second;
+	  if (mass!=0) isEmpty=false;
+	  servicesTotal[subdetectorName] += mass;
+	  myStringStream << serviceId << ","
+			 << z1 << ","
+			 << z2 << ","
+			 << r1 << ","
+			 << r2 << ","
+			 << subdetectorName << ","
+			 << "Service" << ","
+			 << elementId++ << ","
+			 << massIt.first << ","
+			 << mass << ","
+			 << mass/length << ","
+			 << rl << ","
+			 << il << std::endl;
+	}
       }
 
       myBox = new TBox(z1, r1, z2, r2);
@@ -7959,6 +7986,98 @@ namespace insur {
       serviceId++;
     }
 
+
+
+    // MODULE CAPS
+    const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
+    std::vector<ModuleCap> allModules;
+    for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
+    for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
+
+    std::map<std::string, double> modulesTotal;
+
+    for (auto& iter : allModules) {
+      const Module& detectorModule = iter.getModule();
+      z1 = detectorModule.minZwithHybrids();
+      z2 = detectorModule.maxZwithHybrids();
+      r1 = detectorModule.minRwithHybrids();
+      r2 = detectorModule.maxRwithHybrids();
+      //length = iter.getLength();
+      rl = iter.getRadiationLength();
+      il = iter.getInteractionLength();
+
+      // Update the maxZ and maxR with respect to the inactive surfaces
+      if (fabs(z1)>maxZ) maxZ=fabs(z1);
+      if (fabs(z2)>maxZ) maxZ=fabs(z2);
+      if (fabs(r1)>maxR) maxR=fabs(r1);
+      if (fabs(r2)>maxR) maxR=fabs(r2);
+
+      bool isEmpty = true;
+
+      //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
+
+      for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
+	const std::string subdetectorName =  subdetectorIt.first;
+	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
+
+	int elementId=0;
+	//for (auto& massIt : localMasses) {
+	for (const auto& massIt : massPerElement) {
+	  mass = massIt.second;
+	  if (mass!=0) isEmpty=false;
+	  modulesTotal[subdetectorName] += mass;
+	  myStringStream << serviceId << ","
+			 << z1 << ","
+			 << z2 << ","
+			 << r1 << ","
+			 << r2 << ","
+			 << subdetectorName << ","
+			 << "Module" << ","
+			 << elementId++ << ","
+			 << massIt.first << ","
+			 << mass << ","
+			 << mass << ","
+			 << rl << ","
+			 << il << std::endl;
+	}
+      }
+
+      myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(kBlue);
+      myBox->SetFillStyle(3003);
+      if (isEmpty) myBox->SetFillColor(kRed);
+      else myBox->SetFillColor(kBlue);
+      myBox->Draw("l");
+
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText->SetTextAlign(22);
+      myText->SetTextSize(2e-2);
+      if (isEmpty) myText->SetTextColor(kRed);
+      else myText->SetTextColor(kBlue);
+      myText->Draw();
+
+      serviceId++;
+    }
+
+
+    // TOTAL
+    myStringStream << "SERVICES TOTAL" << std::endl;
+    for (const auto& serviceIt : servicesTotal ) {
+      myStringStream << serviceIt.first << "," << serviceIt.second << std::endl;
+    }
+    myStringStream << "MODULES TOTAL" << std::endl;
+    for (const auto& moduleIt : modulesTotal ) {
+      myStringStream << moduleIt.first << "," << moduleIt.second << std::endl;
+    }
+
+
+
+
+
+
+    // Add plot and csv file to website
     aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
     aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
 

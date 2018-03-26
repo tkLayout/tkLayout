@@ -144,9 +144,9 @@ namespace material {
 	  /*if (currElement->componentName() == "Sensor HV line") {
 	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
 	    }*/
-          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
+          materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
-          materialProperties.addLocalMass(currElement->elementName(), quantity);
+          materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), quantity);
         }
       }
     }
@@ -550,7 +550,7 @@ namespace material {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
 	if (matSubdetectorName() == "") std::cout << "MaterialObject::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
-        materialProperties.addLocalMass(elementName(), componentName(), quantity);
+        materialProperties.addLocalMass(matSubdetectorName(), elementName(), componentName(), quantity);
       }
     }
   }
