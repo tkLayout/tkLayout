@@ -7977,12 +7977,6 @@ namespace insur {
 	}
       }
 
-      myBox = new TBox(z1, r1, z2, r2);
-      myBox->SetLineColor(kBlack);
-      myBox->SetFillStyle(3003);
-      if (isEmpty) myBox->SetFillColor(kRed);
-      else myBox->SetFillColor(kGray);
-      myBox->Draw("l");
 
       std::string displayedSubdetectorName  = commonSubdetectorName;
       bool hasSeveralSubdetectors = false;
@@ -7995,12 +7989,19 @@ namespace insur {
 	displayedSubdetectorName +=  " + " + commonSubdetectorNameThird;
       }    
 
+      const int color = computeSubdetectorColor(displayedSubdetectorName, isEmpty);
+
+      myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(color);
+      myBox->SetFillStyle(3003);
+      myBox->SetFillColor(color);
+      myBox->Draw("l");
+
+
       myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", displayedSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
-      if (isEmpty) myText->SetTextColor(kRed);
-      else if (hasSeveralSubdetectors) myText->SetTextColor(kGreen);
-      else myText->SetTextColor(kBlack);
+      myText->SetTextColor(color);
       myText->Draw();
 
       serviceId++;
@@ -8042,7 +8043,8 @@ namespace insur {
       for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
 	const std::string subdetectorName =  subdetectorIt.first;
 	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
-	commonSubdetectorName = subdetectorName;
+	if ( commonSubdetectorName != "" && subdetectorName != commonSubdetectorName) { std::cout << "!!! Materials module volume has more than 1 subdetector assigned." << std::endl; }
+	else { commonSubdetectorName = subdetectorName; }
 
 	int elementId=0;
 	//for (auto& massIt : localMasses) {
@@ -8072,18 +8074,18 @@ namespace insur {
 	std::cout << "id = " << serviceId << ", z1 = " << z1 << ", z2 = " << z2 << ", r1 = " << r1 << ", r2 = " << r2 << std::endl;
 	}*/
 
+      const int color = computeSubdetectorColor(commonSubdetectorName, isEmpty);
+
       myBox = new TBox(z1, r1, z2, r2);
-      myBox->SetLineColor(kBlue);
+      myBox->SetLineColor(color);
       myBox->SetFillStyle(3003);
-      if (isEmpty) myBox->SetFillColor(kRed);
-      else myBox->SetFillColor(kBlue);
+      myBox->SetFillColor(color);
       myBox->Draw("l");
 
       myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
-      if (isEmpty) myText->SetTextColor(kRed);
-      else myText->SetTextColor(kBlue);
+      myText->SetTextColor(color);
       myText->Draw();
 
       serviceId++;
@@ -8118,6 +8120,26 @@ namespace insur {
     myContent.addItem(myTextFile);
 
   }
+
+
+
+  const int Vizard::computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty) {
+    int color;
+
+    if (!isEmpty) {
+      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kBlue;
+      else if (subdetectorName == "TB2S" || subdetectorName == "FPIX_1") color = kRed;
+      else if (subdetectorName == "TEDD" || subdetectorName == "FPIX_2") color = kOrange;
+      else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kMagenta;
+      else color = kGreen;
+    }
+    else { color = kBlack; }
+
+    return color;
+  }
+
+
+
 
 
   // Create an extra tab for XML files linking

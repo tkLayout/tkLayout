@@ -132,8 +132,9 @@ namespace insur {
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
-    void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
-      bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
+    void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
+    const int computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty);
+    bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
   protected:
     TGeoManager* gm;
