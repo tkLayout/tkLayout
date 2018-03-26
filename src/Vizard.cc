@@ -7942,9 +7942,11 @@ namespace insur {
 
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
       const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
+      std::string commonSubdetectorName;
 
       for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
 	const std::string subdetectorName =  subdetectorIt.first;
+	commonSubdetectorName = subdetectorName;
 	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
 
 	int elementId=0;
@@ -7976,7 +7978,7 @@ namespace insur {
       else myBox->SetFillColor(kGray);
       myBox->Draw("l");
 
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       if (isEmpty) myText->SetTextColor(kRed);
@@ -8017,10 +8019,12 @@ namespace insur {
 
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
       const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
+      std::string commonSubdetectorName;
 
       for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
 	const std::string subdetectorName =  subdetectorIt.first;
 	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
+	commonSubdetectorName = subdetectorName;
 
 	int elementId=0;
 	//for (auto& massIt : localMasses) {
@@ -8043,6 +8047,12 @@ namespace insur {
 			 << il << std::endl;
 	}
       }
+      if (commonSubdetectorName != detectorModule.uniRef().subdetectorName) {
+	std::cout << "!!!!!!!! Module cap: material subdetectorName does not match the geometry DetectorModule hierarchy." << std::endl;
+	std::cout << "materials SubdetectorName = " << commonSubdetectorName << std::endl;
+	std::cout << "detectorModule.UniRef().subdetectorName = " << detectorModule.uniRef().subdetectorName << std::endl;
+	std::cout << "id = " << serviceId << ", z1 = " << z1 << ", z2 = " << z2 << ", r1 = " << r1 << ", r2 = " << r2 << std::endl;
+      }
 
       myBox = new TBox(z1, r1, z2, r2);
       myBox->SetLineColor(kBlue);
@@ -8051,7 +8061,7 @@ namespace insur {
       else myBox->SetFillColor(kBlue);
       myBox->Draw("l");
 
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       if (isEmpty) myText->SetTextColor(kRed);
