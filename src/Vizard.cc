@@ -7998,12 +7998,12 @@ namespace insur {
       myBox->SetFillColor(color);
       myBox->Draw("l");
 
-
+      /*
       myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       myText->SetTextColor(color);
-      myText->Draw();
+      myText->Draw();*/
 
       // BONUS
       if (commonSubdetectorNameSecond != "") {
@@ -8017,11 +8017,12 @@ namespace insur {
 	myBox->SetFillColor(colorSecond);
 	myBox->Draw("l");
 
+	/*
 	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameSecond.c_str()));
 	myText->SetTextAlign(22);
 	myText->SetTextSize(2e-2);
 	myText->SetTextColor(colorSecond);
-	myText->Draw();
+	myText->Draw();*/
       }
       // BONUS
       if (commonSubdetectorNameThird != "") {
@@ -8035,11 +8036,12 @@ namespace insur {
 	myBox->SetFillColor(colorThird);
 	myBox->Draw("l");
 
+	/*
 	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameThird.c_str()));
 	myText->SetTextAlign(22);
 	myText->SetTextSize(2e-2);
 	myText->SetTextColor(colorThird);
-	myText->Draw();
+	myText->Draw();*/
       }
 
 
@@ -8116,17 +8118,28 @@ namespace insur {
 
       const int color = computeSubdetectorColor(commonSubdetectorName, isEmpty);
 
-      myBox = new TBox(z1, r1, z2, r2);
-      myBox->SetLineColor(color);
-      myBox->SetFillStyle(3003);
-      myBox->SetFillColor(color);
-      myBox->Draw("l");
+      if (detectorModule.isTilted() && commonSubdetectorName != "TEDD") {
+	const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
+	const double rhoAtMaxZ = (z1 > 0. ? r1 : r2); 
+	TLine* myLine = new TLine(z1, rhoAtMinZ, z2, rhoAtMaxZ);
+	myLine->SetLineColor(color);
+	myLine->Draw("l");
+      }
+      else {
+	myBox = new TBox(z1, r1, z2, r2);
+	myBox->SetLineColor(color);
+	myBox->SetFillStyle(3003);
+	myBox->SetFillColor(color);
+	myBox->Draw("l");	
+      }
+      
+      
 
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
+      /* myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
       myText->SetTextColor(color);
-      myText->Draw();
+      myText->Draw();*/
 
       serviceId++;
     }
