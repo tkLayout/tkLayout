@@ -144,7 +144,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
     }
     // TBPS
     else if (subDetectorName == cabling_tbps) {
-      bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
+      bundleType = (layerDiskNumber == 3 ? Category::PS5G : Category::PS10G);
     }
   }
 

@@ -110,34 +110,35 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 
     // PS10G
     if (cableType == Category::PS10G) {
-      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
-      if ( (subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) 
+      // BARREL LAYER 1 FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 1 && !myBundle->isTiltedPart()) 
 	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1)
-	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
 	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3)	   
 	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)
 	   ) {
 	slot = 1;
       }
-      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
-      if ( (subDetectorName == cabling_tbps && myBundle->isTiltedPart()) 
+      // BARREL LAYER 1 TILTED PART + ENDCAPS DISKS 2B, 4
+      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 1 && myBundle->isTiltedPart()) 
 	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GB)
 	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)
 	   ) {
 	slot = 2;
       }
+      // BARREL FULL LAYER 2 + ENDCAPS DISK 2A
+      if ( (subDetectorName == cabling_tbps && layerDiskNumber == 2) 
+	   || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
+	   ) {
+	slot = 3;
+      }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if (subDetectorName == cabling_tbps && layerDiskNumber == 2) {
-	slot = 3;
-      }
-
-      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) 
-		|| (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) 
-		|| (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)
-		) {
+      if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) 
+	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) 
+	   || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 4;
       }
 
