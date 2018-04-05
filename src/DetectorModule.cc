@@ -725,9 +725,9 @@ void BarrelModule::build() {
 
     rAxis_ = normal();
 
-    /*
-    decorated().rotateZ(skewAngle() * M_PI / 180.);
-    if (skewAngle() > 1) {
+    // skew
+    decorated().rotateZ(skewAngle());
+    /* if (skewAngle() > 1) {
       std::cout << "decorated().basePoly().getVertex(0).X() = " << decorated().basePoly().getVertex(0).X() << std::endl;
       std::cout << "decorated().basePoly().getVertex(0).Y() = " << decorated().basePoly().getVertex(0).Y() << std::endl;
       std::cout << "decorated().basePoly().getVertex(0).Z() = " << decorated().basePoly().getVertex(0).Z() << std::endl;
@@ -746,6 +746,7 @@ void BarrelModule::build() {
     }
     */
     
+    // tilt
     tiltAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
@@ -760,6 +761,8 @@ void EndcapModule::build() {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
+
+    // tilt
     tiltAngle_ = M_PI/2.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }

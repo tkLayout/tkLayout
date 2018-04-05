@@ -345,7 +345,7 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
       mod->myid(i+1);
     }
     mod->side(side);
-    std::cout << "mod->skewAngle() = " << mod->skewAngle() << " mod->center().Rho() = " << mod->center().Rho() << " mod->center().Z() = " << mod->center().Z() << std::endl;
+    //std::cout << "mod->skewAngle() = " << mod->skewAngle() << " mod->center().Rho() = " << mod->center().Rho() << " mod->center().Z() = " << mod->center().Z() << std::endl;
     //mod->skew(mod->skewAngle());
 
 

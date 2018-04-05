@@ -284,12 +284,13 @@ public:
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
-  void rotateZWithoutNormal(double angle) { decorated().rotateZ(angle); clearSensorPolys(); }
+  //void rotateZWithoutNormal(double angle) { decorated().rotateZ(angle); clearSensorPolys(); }
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
 
   // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  // !!! Then don't put it there, but only before the module has had a chance to be translated/rotated.
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } 
-  void skew(double angle) { rotateZWithoutNormal(angle); skewAngle(angle); }  //TO DO: previous rotateY(-angle); is for endcap modules only !!
+  //void skew(double angle) { rotateZWithoutNormal(angle); skewAngle(angle); }  //TO DO: previous rotateY(-angle); is for endcap modules only !!
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
