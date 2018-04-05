@@ -727,7 +727,8 @@ void BarrelModule::build() {
 
     // skew
     decorated().rotateZ(skewAngle());
-    /* if (skewAngle() > 1) {
+    /*
+    if (skewAngle() > 0.2) {
       std::cout << "decorated().basePoly().getVertex(0).X() = " << decorated().basePoly().getVertex(0).X() << std::endl;
       std::cout << "decorated().basePoly().getVertex(0).Y() = " << decorated().basePoly().getVertex(0).Y() << std::endl;
       std::cout << "decorated().basePoly().getVertex(0).Z() = " << decorated().basePoly().getVertex(0).Z() << std::endl;
@@ -743,8 +744,8 @@ void BarrelModule::build() {
       std::cout << "decorated().basePoly().getVertex(3).X() = " << decorated().basePoly().getVertex(3).X() << std::endl;
       std::cout << "decorated().basePoly().getVertex(3).Y() = " << decorated().basePoly().getVertex(3).Y() << std::endl;
       std::cout << "decorated().basePoly().getVertex(3).Z() = " << decorated().basePoly().getVertex(3).Z() << std::endl;
-    }
-    */
+      }*/
+    
     
     // tilt
     tiltAngle_ = 0.;

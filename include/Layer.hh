@@ -77,7 +77,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
-  RodTemplate makeRodTemplate();
+  RodTemplate makeRodTemplate(const double skewAngle = 0.);
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
   //Property<double, NoDefault> smallDelta, bigDelta;
@@ -90,7 +90,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 
   double placeRadius_;
 
-  void buildStraight(bool isFlatPart);
+  void buildStraight();
   void buildTilted();
 public:
   Property<double, NoDefault> smallDelta, bigDelta;
@@ -119,6 +119,10 @@ public:
   Property<bool, NoDefault> isTiltedAuto;
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
+  Property<bool, Default> isSkewedForInstallation;
+  Property<double, NoDefault> skewedModuleEdgeShift;
+  Property<double, Default> installationOverlapRatio;
+
   Layer() :
             materialObject_(MaterialObject::LAYER),
             flangeConversionStation_(nullptr),
@@ -143,7 +147,10 @@ public:
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly()),
-            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
+            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly()),
+	    isSkewedForInstallation("isSkewedForInstallation", parsedOnly(), false),
+	    skewedModuleEdgeShift("skewedModuleEdgeShift", parsedOnly()),
+	    installationOverlapRatio("installationOverlapRatio", parsedOnly(), 2.) // remove default??
   { setup(); }
 
   void setup() {
