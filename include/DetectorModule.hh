@@ -70,7 +70,7 @@ protected:
   mutable double cachedZError_ = -1.;
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
-  double tiltAngle_ = 0., skewAngle_ = 0.;
+  double tiltAngle_ = 0.;
 
   int numHits_ = 0;
   
@@ -87,6 +87,7 @@ public:
   const ModuleCap* getConstModuleCap() const { return myModuleCap_; }
 
   Property<int16_t, AutoDefault> side;
+  Property<double, AutoDefault> skewAngle;
   
   Property<double, Computable> minPhi, maxPhi;
   
@@ -160,6 +161,7 @@ public:
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
       materialObject_(MaterialObject::MODULE),      sensorNode               ("Sensor"                   , parsedOnly()),
+      skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
@@ -242,7 +244,6 @@ public:
   double physicalLength() const { return decorated().physicalLength(); }
 
   double tiltAngle() const { return tiltAngle_; }
-  double skewAngle() const { return skewAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
   // SPATIAL RESOLUTION
@@ -283,9 +284,12 @@ public:
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
+  void rotateZWithoutNormal(double angle) { decorated().rotateZ(angle); clearSensorPolys(); }
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
-  void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
-  void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
+
+  // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } 
+  void skew(double angle) { rotateZWithoutNormal(angle); skewAngle(angle); }  //TO DO: previous rotateY(-angle); is for endcap modules only !!
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {

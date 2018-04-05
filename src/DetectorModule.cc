@@ -722,9 +722,31 @@ void BarrelModule::build() {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
+
     rAxis_ = normal();
+
+    /*
+    decorated().rotateZ(skewAngle() * M_PI / 180.);
+    if (skewAngle() > 1) {
+      std::cout << "decorated().basePoly().getVertex(0).X() = " << decorated().basePoly().getVertex(0).X() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(0).Y() = " << decorated().basePoly().getVertex(0).Y() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(0).Z() = " << decorated().basePoly().getVertex(0).Z() << std::endl;
+
+      std::cout << "decorated().basePoly().getVertex(1).X() = " << decorated().basePoly().getVertex(1).X() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(1).Y() = " << decorated().basePoly().getVertex(1).Y() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(1).Z() = " << decorated().basePoly().getVertex(1).Z() << std::endl;
+
+      std::cout << "decorated().basePoly().getVertex(2).X() = " << decorated().basePoly().getVertex(2).X() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(2).Y() = " << decorated().basePoly().getVertex(2).Y() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(2).Z() = " << decorated().basePoly().getVertex(2).Z() << std::endl;
+
+      std::cout << "decorated().basePoly().getVertex(3).X() = " << decorated().basePoly().getVertex(3).X() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(3).Y() = " << decorated().basePoly().getVertex(3).Y() << std::endl;
+      std::cout << "decorated().basePoly().getVertex(3).Z() = " << decorated().basePoly().getVertex(3).Z() << std::endl;
+    }
+    */
+    
     tiltAngle_ = 0.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
@@ -739,7 +761,6 @@ void EndcapModule::build() {
     //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
     tiltAngle_ = M_PI/2.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
