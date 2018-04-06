@@ -347,7 +347,7 @@ void Layer::buildStraight() {
 
 
     const double installationPhiOverlapAngle = atan( (l * sin(installationOverlapRatio() * unitPhiOverlapAngle)) / (L + l * cos(installationOverlapRatio() * unitPhiOverlapAngle)) );
-    const double installationPhiOverlapLength = L * sin(skewedPhiOverlapAngle);
+    const double installationPhiOverlapLength = L * sin(installationPhiOverlapAngle);
 
 
 
@@ -470,34 +470,30 @@ void Layer::buildStraight() {
 
 
   else {
-    // SKEWED ROD : assign other properties, build and store 
-    RodTemplate skewedRodTemplate = makeRodTemplate(skewAngle);
-    isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
-    skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
-    skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod); // ???? why isPlusBigDeltaRod needed here? TO DO: investigate!!!!!!!
-    skewedRod->translateR(skewedRodCenterRadius);
-    
-
+   
+    double lastRodPhi = 0.;
     for (int i = 1; i <= (numRods() / 2); i++) {
-      double lastRodPhi = 0.;
-
+    
       if (i != (numRods() / 2)) {
 	StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods 
 	rod->myid(i);
 
-	// Phi rotation
-	double rodPhiReinitialize = (i-1)%2 ? secondRodPhi : firstRodPhi;
-	//rod->rotateZ(-rodPhiReinitialize);
-	double rodPhi = -rodPhiReinitialize + secondRodPhi + (i - 2) * commonRodCenterPhiShift;
-	rod->rotateZ(rodPhi);
+	if (i >= 3) {
+	  // Phi rotation
+	  double rodPhiReinitialize = (i-1)%2 ? secondRodPhi : firstRodPhi;
+	  //rod->rotateZ(-rodPhiReinitialize);
+	  double rodPhiShift = -rodPhiReinitialize + secondRodPhi + (i - 2) * commonRodCenterPhiShift;
+	  rod->rotateZ(rodPhiShift);
+	  lastRodPhi = rodPhiShift + rodPhiReinitialize;  // Assumes there are at least 3 rods!!
+	  //std::cout << " i = " << i << " lastRodPhi = " << lastRodPhi << std::endl;
+	}
 
 	// Store
-	rods_.push_back(rod);
-	lastRodPhi = rodPhi;
+	rods_.push_back(rod);	
 
 
 	// Rod at + PI also added here
-	StraightRodPair* rodSymmetric = GeometryFactory::clone(rod);
+	StraightRodPair* rodSymmetric = GeometryFactory::clone(*rod);
 	rodSymmetric->myid(i + numRods() / 2);
 	rodSymmetric->rotateZ(M_PI);
 	// Store
@@ -505,19 +501,26 @@ void Layer::buildStraight() {
       }
 
       else {
-	StraightRodPair* rod = GeometryFactory::clone(*skewedRod);
-	rod->myid(numRods() / 2);
+	// SKEWED ROD : assign other properties, build and store 
+	const double orientedSkewAngle = -skewAngle;  // negative trigonometric sense in (X) plane
+	RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
+	isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
+	skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
+	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod); // ???? why isPlusBigDeltaRod needed here? TO DO: investigate!!!!!!!
+	skewedRod->translateR(skewedRodCenterRadius);
+	skewedRod->myid(numRods() / 2);
 
 	// Phi rotation
 	double skewedRodPhi = lastRodPhi + skewedRodCenterPhiShift;
-	rod->rotateZ(skewedRodPhi);
+	//std::cout << " i = " << i << " skewedRodPhi = " << skewedRodPhi << std::endl;
+	skewedRod->rotateZ(skewedRodPhi);
 
 	// Store
-	rods_.push_back(rod);
+	rods_.push_back(skewedRod);
 
 
 	// Rod at + PI also added here
-	StraightRodPair* rodSymmetric = GeometryFactory::clone(rod);
+	StraightRodPair* rodSymmetric = GeometryFactory::clone(*skewedRod);
 	rodSymmetric->myid(i + numRods() / 2);
 	rodSymmetric->rotateZ(M_PI);
 	// Store
