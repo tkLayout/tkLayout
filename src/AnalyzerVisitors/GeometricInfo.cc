@@ -164,6 +164,68 @@ void LayerDiskSummaryVisitor::postVisit() {
 }
 
 
+    //***************************************//
+    //*                Visitor              *//
+    //*             Skewed layers:          *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+/**
+   Visits skewed layers.
+*/
+void SkewedLayersVisitor::visit(const Layer& l) {
+  // Only for skewed layers.
+  if (l.isSkewedForInstallation()) {
+    numSkewedLayers++;
+
+    // Initializes layer name
+    //RootWTable* skewedLayerName = new RootWTable();
+    //skewedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
+    //skewedLayerNames.push_back(skewedLayerName);
+
+    // FILLS LAYER TABLE
+    RootWTable* layerTable = new RootWTable();
+
+    //int i = 0;
+    //for (const auto& m : minusBigDeltaModules) {
+    //int ringNumber = i + 1;
+    //layerTable->setContent(0, 0, "Ring");
+    //layerTable->setContent(0, i+1, ringNumber);
+    layerTable->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
+    layerTable->setContent(1, 0, "layerRho");
+    layerTable->setContent(1, 1, l.placeRadiusHint(), coordPrecision);
+    layerTable->setContent(2, 0, "bigDelta");
+    layerTable->setContent(2, 1, l.bigDelta(), coordPrecision);
+    layerTable->setContent(3, 0, "smallDelta");
+    layerTable->setContent(3, 1, l.smallDelta(), coordPrecision);
+    layerTable->setContent(4, 0, "innerModuleRho" + subStart + "center" + subEnd);
+    layerTable->setContent(4, 1, l.placeRadiusHint() - l.bigDelta(), coordPrecision);
+    layerTable->setContent(5, 0, "outerModuleRho" + subStart + "center" + subEnd);
+    layerTable->setContent(5, 1, l.placeRadiusHint() + l.bigDelta(), coordPrecision);
+    layerTable->setContent(6, 0, "skewedModuleRho" + subStart + "center" + subEnd);
+    layerTable->setContent(6, 1, l.skewedModuleCenterRho(), coordPrecision);
+    layerTable->setContent(7, 0, "skewedModuleRho" + subStart + "min" + subEnd);
+    layerTable->setContent(7, 1, l.skewedModuleMinRho(), coordPrecision);
+    layerTable->setContent(8, 0, "skewedModuleRho" + subStart + "max" + subEnd);
+    layerTable->setContent(8, 1, l.skewedModuleMaxRho(), coordPrecision);
+    layerTable->setContent(9, 0, "skewedModuleEdgeShift (mm)");
+    layerTable->setContent(9, 1, l.skewedModuleEdgeShift(), coordPrecision);
+    layerTable->setContent(10, 0, "skewAngle (°)");
+    layerTable->setContent(10, 1, l.skewAngle() * 180. / M_PI, coordPrecision);
+    layerTable->setContent(11, 0, "phiOverlap (mm)");
+    layerTable->setContent(11, 1, l.unitPhiOverlapLength(), coordPrecision);
+    layerTable->setContent(12, 0, "installationPhiOverlap (mm)");
+    layerTable->setContent(12, 1, l.installationPhiOverlapLength(), coordPrecision);
+    layerTable->setContent(13, 0, "overlapAnglesRatio");
+    layerTable->setContent(13, 1, l.installationOverlapRatio(), coordPrecision);
+   
+    tables.push_back(layerTable);
+  } // end of 'fills layer table'
+}
+
+
+
+
 
     //***************************************//
     //*                Visitor              *//

@@ -306,8 +306,6 @@ void Layer::buildStraight() {
 
   //double skewedRodCenterPhiShift, nextRodCenterPhiShift, commonRodCenterPhiShift;
   double installationMinusBigDeltaRodCenterPhiShift, commonRodCenterPhiShift, skewedRodCenterPhiShift;
-  double skewAngle;
-  double skewedRodCenterRadius;
 
   // COMPUTE PARAMETERS OF INTEREST FOR THE CASE : SKEWED FOR INSTALLATION
   if (isSkewedForInstallation()) {
@@ -319,13 +317,13 @@ void Layer::buildStraight() {
     mod->build();
     const double moduleWidth = mod->width();
 
-    skewAngle = 2. * asin( 0.5 * skewedModuleEdgeShift() / moduleWidth);
+    skewAngle(2. * asin( 0.5 * skewedModuleEdgeShift() / moduleWidth) );
 
     const double averageRadius = placeRadiusHint();
     const double minusBigDeltaRodRadius = averageRadius - bigDelta();
     const double plusBigDeltaRodRadius = averageRadius + bigDelta();
 
-    const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift() * sin(skewAngle/2.)) / (plusBigDeltaRodRadius + skewedModuleEdgeShift() * cos(skewAngle/2.)) );
+    const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift() * sin(skewAngle()/2.)) / (plusBigDeltaRodRadius + skewedModuleEdgeShift() * cos(skewAngle()/2.)) );
     // the skewed rod is at +bigDelta
 
     const double minusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / minusBigDeltaRodRadius);
@@ -340,14 +338,14 @@ void Layer::buildStraight() {
     const double totalPhiCov = numMinusBigDeltaRods * minusBigDeltaRodPhiCov + numPlusBigDeltaRods * plusBigDeltaRodPhiCov + numSkewedRods * skewedRodPhiCov;
     const double totalPhiOverlap = totalPhiCov - 2. * M_PI;
     const double unitPhiOverlapAngle = totalPhiOverlap / (numRods() - numSkewedRods + numSkewedRods * installationOverlapRatio());
-    const double unitPhiOverlapLength = unitPhiOverlapAngle * averageRadius;
+    unitPhiOverlapLength( unitPhiOverlapAngle * averageRadius );
 
     const double l = sqrt( pow(minusBigDeltaRodRadius, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-    const double L = (plusBigDeltaRodRadius + skewedModuleEdgeShift() * cos(skewAngle/2.)) / cos(beta); // the skewed rod is at +bigDelta
+    skewedModuleMaxRho( (plusBigDeltaRodRadius + skewedModuleEdgeShift() * cos(skewAngle()/2.)) / cos(beta) ); // the skewed rod is at +bigDelta
 
 
-    const double installationPhiOverlapAngle = atan( (l * sin(installationOverlapRatio() * unitPhiOverlapAngle)) / (L + l * cos(installationOverlapRatio() * unitPhiOverlapAngle)) );
-    const double installationPhiOverlapLength = L * sin(installationPhiOverlapAngle);
+    const double installationPhiOverlapAngle = atan( (l * sin(installationOverlapRatio() * unitPhiOverlapAngle)) / (skewedModuleMaxRho() + l * cos(installationOverlapRatio() * unitPhiOverlapAngle)) );
+    installationPhiOverlapLength ( skewedModuleMaxRho() * sin(installationPhiOverlapAngle) );
 
 
 
@@ -357,8 +355,8 @@ void Layer::buildStraight() {
     commonRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. + plusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
     skewedRodCenterPhiShift = skewedRodPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle; // the skewed rod is at +bigDelta
 
-    const double skewedRodMinRadius = sqrt( pow(plusBigDeltaRodRadius, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-    skewedRodCenterRadius = sqrt( pow(skewedRodMinRadius, 2) + pow(0.5 * moduleWidth, 2.) + skewedRodMinRadius * moduleWidth * sin(skewAngle - 0.5 * plusBigDeltaRodPhiCov) );
+    skewedModuleMinRho ( sqrt( pow(plusBigDeltaRodRadius, 2.) + pow(moduleWidth/2. , 2.)) ); // the skewed rod is at +bigDelta
+    skewedModuleCenterRho ( sqrt( pow(skewedModuleMinRho(), 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho() * moduleWidth * sin(skewAngle() - 0.5 * plusBigDeltaRodPhiCov) ) );
   }
 
 
@@ -502,12 +500,12 @@ void Layer::buildStraight() {
 
       else {
 	// SKEWED ROD : assign other properties, build and store 
-	const double orientedSkewAngle = -skewAngle;  // negative trigonometric sense in (X) plane
+	const double orientedSkewAngle = -skewAngle();  // negative trigonometric sense in (X) plane
 	RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
 	isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
 	skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
 	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod); // ???? why isPlusBigDeltaRod needed here? TO DO: investigate!!!!!!!
-	skewedRod->translateR(skewedRodCenterRadius);
+	skewedRod->translateR(skewedModuleCenterRho());
 	skewedRod->myid(numRods() / 2);
 
 	// Phi rotation

@@ -123,6 +123,13 @@ public:
   Property<double, NoDefault> skewedModuleEdgeShift;
   Property<double, Default> installationOverlapRatio;
 
+  Property<double, AutoDefault> skewAngle;
+  Property<double, AutoDefault> skewedModuleCenterRho;
+  Property<double, AutoDefault> skewedModuleMaxRho; 
+  Property<double, AutoDefault> skewedModuleMinRho; 
+  Property<double, AutoDefault> installationPhiOverlapLength;
+  Property<double, AutoDefault> unitPhiOverlapLength;
+
   Layer() :
             materialObject_(MaterialObject::LAYER),
             flangeConversionStation_(nullptr),
