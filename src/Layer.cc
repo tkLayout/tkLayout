@@ -349,10 +349,8 @@ void Layer::buildStraight() {
     const double unskewedPhiOverlapAngle = installationOverlapRatio() * unitPhiOverlapAngle - skewedPhiOverlapAngle;
 
 
-
     //installationSkewedRodCenterPhiShift = skewedRodPhiCov / 2. - skewedPhiOverlapAngle;
     //nextRodCenterPhiShift = skewedRodPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
-    
     installationMinusBigDeltaRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. - unskewedPhiOverlapAngle;
     commonRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. + plusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
     skewedRodCenterPhiShift = skewedRodPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle; // the skewed rod is at +bigDelta
