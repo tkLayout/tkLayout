@@ -127,7 +127,7 @@ public:
   Property<double, AutoDefault> skewedModuleCenterRho;
   Property<double, AutoDefault> skewedModuleMaxRho; 
   Property<double, AutoDefault> skewedModuleMinRho; 
-  Property<double, AutoDefault> installationPhiOverlapLength;
+  Property<double, AutoDefault> installationHorizontalOverlapLength;
   Property<double, AutoDefault> unitPhiOverlapLength;
 
   Layer() :

@@ -215,7 +215,7 @@ void SkewedLayersVisitor::visit(const Layer& l) {
     layerTable->setContent(11, 0, "phiOverlap [mm]");
     layerTable->setContent(11, 1, l.unitPhiOverlapLength(), coordPrecision);
     layerTable->setContent(12, 0, "horizontal overlap with (X=0) plane (each IT half) [mm]");
-    layerTable->setContent(12, 1, l.installationPhiOverlapLength(), coordPrecision);
+    layerTable->setContent(12, 1, l.installationHorizontalOverlapLength(), coordPrecision);
     layerTable->setContent(13, 0, "phiOverlap angular Ratio");
     layerTable->setContent(13, 1, l.installationOverlapRatio(), coordPrecision);
    
