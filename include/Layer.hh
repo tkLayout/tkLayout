@@ -122,7 +122,8 @@ public:
   Property<bool, Default> isSkewedForInstallation;
   Property<double, NoDefault> skewedModuleEdgeShift;
   Property<double, Default> installationOverlapRatio;
-
+  
+  Property<double, AutoDefault> skewAperture;
   Property<double, AutoDefault> skewAngle;
   Property<double, AutoDefault> skewedModuleCenterRho;
   Property<double, AutoDefault> skewedModuleMaxRho; 

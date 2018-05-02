@@ -300,7 +300,6 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
 }
 
 
-//void Layer::computeSkewd
 
 
 void Layer::buildStraight() {
@@ -319,7 +318,7 @@ void Layer::buildStraight() {
     mod->build();
     const double moduleWidth = mod->width();
 
-    skewAngle(2. * asin( 0.5 * skewedModuleEdgeShift() / moduleWidth) );
+    skewAperture(2. * asin( 0.5 * skewedModuleEdgeShift() / moduleWidth) );
 
     const double layerCenterRho = placeRadiusHint();
     const double minusBigDeltaRodCenterRho = layerCenterRho - bigDelta();
@@ -328,14 +327,16 @@ void Layer::buildStraight() {
     const double plusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / plusBigDeltaRodCenterRho);
 
     skewedModuleMinRho ( sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)) ); // the skewed rod is at +bigDelta
-    skewedModuleCenterRho ( sqrt( pow(skewedModuleMinRho(), 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho() * moduleWidth * sin(skewAngle() - 0.5 * plusBigDeltaRodPhiCov) ) );
+    skewedModuleCenterRho ( sqrt( pow(skewedModuleMinRho(), 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho() * moduleWidth * sin(skewAperture() - 0.5 * plusBigDeltaRodPhiCov) ) );
     const double skewedRodLowerHalfPhiCov = acos( 
 						 (pow(skewedModuleMinRho(), 2.) + pow(skewedModuleCenterRho(), 2.) - pow((0.5 * moduleWidth), 2.)) 
 						 / ( 2. * skewedModuleMinRho() * skewedModuleCenterRho())
 						  );
 
-    const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift() * sin(skewAngle()/2.)) / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift() * cos(skewAngle()/2.)) );   // the skewed rod is at +bigDelta  
+
+    const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift() * sin(skewAperture()/2.)) / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift() * cos(skewAperture()/2.)) );   // the skewed rod is at +bigDelta  
     const double skewedRodTotalPhiCov = plusBigDeltaRodPhiCov / 2. + beta;
+    skewAngle(skewAperture() - (plusBigDeltaRodPhiCov / 2. - skewedRodLowerHalfPhiCov));
 
     const int numSkewedRods = 2; // Harcoded number of skewed rods!!
     const int numMinusBigDeltaRods = numRods() / 2;
@@ -348,7 +349,21 @@ void Layer::buildStraight() {
     unitPhiOverlapLength( unitPhiOverlapAngle * layerCenterRho );
 
     const double minusBigDeltaRodMaxRho = sqrt( pow(minusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-    skewedModuleMaxRho( (plusBigDeltaRodCenterRho + skewedModuleEdgeShift() * cos(skewAngle()/2.)) / cos(beta) ); // the skewed rod is at +bigDelta
+    skewedModuleMaxRho( (plusBigDeltaRodCenterRho + skewedModuleEdgeShift() * cos(skewAperture()/2.)) / cos(beta) ); // the skewed rod is at +bigDelta
+
+
+
+
+    /// !!!! Added for debug only
+    const double skewedRodUpperHalfPhiCov = acos( 
+						 (pow(skewedModuleMaxRho(), 2.) + pow(skewedModuleCenterRho(), 2.) - pow((0.5 * moduleWidth), 2.)) 
+						 / ( 2. * skewedModuleMaxRho() * skewedModuleCenterRho())
+						  );
+
+
+
+
+
 
 
     const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationOverlapRatio() * unitPhiOverlapAngle)) / (skewedModuleMaxRho() + minusBigDeltaRodMaxRho * cos(installationOverlapRatio() * unitPhiOverlapAngle)) );
@@ -531,6 +546,8 @@ void Layer::buildStraight() {
       }
 
     }
+
+
 
 
 
