@@ -27,6 +27,26 @@ using material::ConversionStation;
 
 typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
+struct SkewedLayerPhiShifts {
+  const double installationMinusBigDeltaRodCenterPhiShift;
+  const double commonRodCenterPhiShift;
+  const double skewedRodCenterPhiShift;
+};
+
+struct SkewedLayerInfo {  
+  const double skewedModuleMinRho;
+  const double skewedModuleCenterRho;
+  const double skewedModuleMaxRho;
+  const double skewAperture;
+  const double skewAngle;
+
+  const double unitPhiOverlapLength;
+  const double installationHorizontalOverlapLength;
+
+  const SkewedLayerPhiShifts phiShifts;
+};
+
+
 class FlatRingsGeometryInfo {
  private:
   //std::map<int, double> deltaZInner_;
@@ -92,6 +112,10 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 
   void buildStraight();
   void buildTilted();
+
+  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
+  const SkewedLayerPhiShifts buildSkewed();
+
 public:
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
