@@ -37,7 +37,6 @@ struct SkewedLayerInfo {
   const double skewedModuleMinRho;
   const double skewedModuleCenterRho;
   const double skewedModuleMaxRho;
-  const double skewAperture;
   const double skewAngle;
 
   const double unitPhiOverlapLength;
@@ -146,13 +145,13 @@ public:
   Property<double, NoDefault> skewedModuleEdgeShift;
   Property<double, Default> installationOverlapRatio;
   
-  Property<double, AutoDefault> skewAperture;
   Property<double, AutoDefault> skewAngle;
+  Property<double, AutoDefault> skewedModuleMinRho; 
   Property<double, AutoDefault> skewedModuleCenterRho;
   Property<double, AutoDefault> skewedModuleMaxRho; 
-  Property<double, AutoDefault> skewedModuleMinRho; 
-  Property<double, AutoDefault> installationHorizontalOverlapLength;
+ 
   Property<double, AutoDefault> unitPhiOverlapLength;
+  Property<double, AutoDefault> installationHorizontalOverlapLength; 
 
   Layer() :
             materialObject_(MaterialObject::LAYER),

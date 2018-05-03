@@ -415,12 +415,14 @@ void Layer::buildStraight() {
   }
 
 
+  // SKEWED INSTALLATION MODE
   else {
-   
     double lastRodPhi = 0.;
-    for (int i = 1; i <= (numRods() / 2); i++) {
+    const int numRodsPerXSide = numRods() / 2;
+    for (int i = 1; i <= (numRodsPerXSide); i++) {
     
-      if (i != (numRods() / 2)) {
+      // UNSKEWED ROD
+      if (i != (numRodsPerXSide)) {
 	StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods 
 	rod->myid(i);
 
@@ -435,8 +437,7 @@ void Layer::buildStraight() {
 	}
 
 	// Store
-	rods_.push_back(rod);	
-
+	rods_.push_back(rod);
 
 	// Rod at + PI also added here
 	StraightRodPair* rodSymmetric = GeometryFactory::clone(*rod);
@@ -446,13 +447,13 @@ void Layer::buildStraight() {
 	rods_.push_back(rodSymmetric);
       }
 
+      // SKEWED ROD : assign other properties, build and store 
       else {
-	// SKEWED ROD : assign other properties, build and store 
 	const double orientedSkewAngle = -skewAngle();  // negative trigonometric sense in (X) plane
 	RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
 	isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
 	skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
-	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod); // ???? why isPlusBigDeltaRod needed here? TO DO: investigate!!!!!!!
+	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
 	skewedRod->translateR(skewedModuleCenterRho());
 	skewedRod->myid(numRods() / 2);
 
@@ -749,7 +750,6 @@ const SkewedLayerPhiShifts Layer::buildSkewed() {
   skewedModuleMinRho(info.skewedModuleMinRho);
   skewedModuleCenterRho(info.skewedModuleCenterRho);
   skewedModuleMaxRho(info.skewedModuleMaxRho);
-  skewAperture(info.skewAperture);
   skewAngle(info.skewAngle);
   unitPhiOverlapLength(info.unitPhiOverlapLength);
   installationHorizontalOverlapLength(info.installationHorizontalOverlapLength);
@@ -817,7 +817,7 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
 
   // GATHER ALL RESULTS OF INTEREST
   const SkewedLayerPhiShifts& phiShifts = SkewedLayerPhiShifts{ installationMinusBigDeltaRodCenterPhiShift, commonRodCenterPhiShift, skewedRodCenterPhiShift };
-  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAperture, skewAngle, unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
+  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAngle, unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
 
   return info;
 }
