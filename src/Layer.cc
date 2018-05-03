@@ -800,8 +800,9 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
   const double unitPhiOverlapLength = unitPhiOverlapAngle * layerCenterRho;
 
   
-  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationOverlapRatio * unitPhiOverlapAngle)) / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationOverlapRatio * unitPhiOverlapAngle)) );
-  const double unskewedInstallationPhiOverlapAngle = installationOverlapRatio * unitPhiOverlapAngle - skewedInstallationPhiOverlapAngle;  
+  const double installationPhiOverlapAngle = installationOverlapRatio * unitPhiOverlapAngle;
+  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationPhiOverlapAngle)) / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationPhiOverlapAngle)) );
+  const double unskewedInstallationPhiOverlapAngle = installationPhiOverlapAngle - skewedInstallationPhiOverlapAngle;
   const double installationHorizontalOverlapLength = skewedModuleMaxRho * sin(skewedInstallationPhiOverlapAngle);
     
 

@@ -726,26 +726,7 @@ void BarrelModule::build() {
     rAxis_ = normal();
 
     // skew
-    decorated().rotateZ(skewAngle());
-    /*
-    if (skewAngle() > 0.001) {
-      std::cout << "decorated().basePoly().getVertex(0).X() = " << decorated().basePoly().getVertex(0).X() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(0).Y() = " << decorated().basePoly().getVertex(0).Y() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(0).Z() = " << decorated().basePoly().getVertex(0).Z() << std::endl;
-
-      std::cout << "decorated().basePoly().getVertex(1).X() = " << decorated().basePoly().getVertex(1).X() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(1).Y() = " << decorated().basePoly().getVertex(1).Y() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(1).Z() = " << decorated().basePoly().getVertex(1).Z() << std::endl;
-
-      std::cout << "decorated().basePoly().getVertex(2).X() = " << decorated().basePoly().getVertex(2).X() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(2).Y() = " << decorated().basePoly().getVertex(2).Y() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(2).Z() = " << decorated().basePoly().getVertex(2).Z() << std::endl;
-
-      std::cout << "decorated().basePoly().getVertex(3).X() = " << decorated().basePoly().getVertex(3).X() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(3).Y() = " << decorated().basePoly().getVertex(3).Y() << std::endl;
-      std::cout << "decorated().basePoly().getVertex(3).Z() = " << decorated().basePoly().getVertex(3).Z() << std::endl;
-      }*/
-    
+    decorated().rotateZ(skewAngle());    
     
     // tilt
     tiltAngle_ = 0.;
