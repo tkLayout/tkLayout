@@ -82,6 +82,18 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
     std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
   };
  private:
+  void buildStraight();
+  void buildTilted();
+
+  RodTemplate makeRodTemplate(const double skewAngle = 0.);
+  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
+
+  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
+  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
+  
+  const SkewedLayerPhiShifts buildSkewed();
+  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
+
   Container rods_;
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
@@ -94,14 +106,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
   int layerNumber_;
- 
-  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
-  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
-  RodTemplate makeRodTemplate(const double skewAngle = 0.);
-  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
-  //Property<double, NoDefault> smallDelta, bigDelta;
-  //Property<int, Default> bigParity;
   Property<double, NoDefault> phiOverlap;
   Property<int, NoDefault> phiSegments;
 
@@ -109,12 +114,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   PropertyNodeUnique<std::string> stationsNode;
 
   double placeRadius_;
-
-  void buildStraight();
-  void buildTilted();
-
-  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
-  const SkewedLayerPhiShifts buildSkewed();
 
 public:
   Property<double, NoDefault> smallDelta, bigDelta;
@@ -220,17 +219,6 @@ public:
   int layerNumber() const { return layerNumber_; }
 
   bool isTiming() const { return rods_.front().isTiming(); }
-  /*int calculateTotalNumRings(int numModulesSide) const { 
-    int num = 0;
-    if (rods_.size() !=0) {
-      if (rods_.front().startZMode() != StartZMode::MODULECENTER) num = 2 * numModulesSide;
-      else num = 2 * numModulesSide - 1;
-    }
-  }
-  int numRings() const { return calculateTotalNumRings(buildNumModules()); }
-  int numFlatRings() const { return calculateTotalNumRings(buildNumModulesFlat()); }
-  int numTiltedRings() const { return calculateTotalNumRings(buildNumModulesTilted()); }*/
-
 
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
