@@ -2418,7 +2418,9 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
 #endif
 
-      if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
+
+      if ((iter->getZOffset() + iter->getZLength()) > 0 && shapename.str() != "supportR1191Z1325") {
+	// Hack to avoid the export of the OTST (supportR1191Z1325). TO DO: automatic export of the OTST.
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
