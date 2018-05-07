@@ -6,9 +6,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName SenSi
-    //quantity 0.15
-    quantity 0.075 
-    // dirty hack because the SenSi is also multiplied by scalingFactor
+    quantity 0.15
     unit mm
     targetVolume 2
   }
