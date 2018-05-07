@@ -11,9 +11,6 @@
 #include <vector>
 
 namespace insur {
-  static const double scale_all_material_budget_factor = 2.;
-
-
   static const double boltzmann_constant = 8.6173303E-05;  // eV/K
   static const double celsius_to_kelvin = 273.15;          // T(K) = T(°C) + celsius_to_kelvin
   static const double siliconEffectiveBandGap = 1.21;      // eV. Used in the Hamburg model (effect of temperature on sensor leakage current).
@@ -79,6 +76,10 @@ namespace insur {
   static const double mat_d_carbon           = 1.9;
 
   static const int    vis_temperature_levels = 512;
+
+  static const double mat_budget_overall_scaling_factor = 1.;  // WARNING: DO NOT CHANGE THIS UNLESS YOU ARE OBSOLUTELY SURE OF WHAT YOU ARE DOING!!
+                                                               // This will scale absolutely all weights by the mentioned factor (modules + cabling + supports).
+                                                               // Was added for CMSSW Material Budget debug purposes.
 
   /**
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range

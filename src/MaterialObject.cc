@@ -138,7 +138,6 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
-	//quantity *= insur::scale_all_material_budget_factor;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "Sensor HV line") {
@@ -322,9 +321,6 @@ namespace material {
     targetVolume ("targetVolume", parsedOnly(), 0),
     materialTab_ (MaterialTab::instance()),
     materialType_(newMaterialType) {
-    /*double quantityFromCfg = quantity();
-    double scaledQuantity = 2. * quantityFromCfg;
-    quantity(scaledQuantity);*/
   };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
@@ -334,7 +330,6 @@ namespace material {
       componentName(original.componentName());
     elementName(original.elementName());
     service(original.service());
-    //quantity(original.quantity() * 2. * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     scaleOnSensor(0);
     unit(original.unit());
@@ -456,8 +451,8 @@ namespace material {
       elementUnitVal = unitStringMap.at(unit());
       
       if (desiredUnitVal == elementUnitVal) {
-        //return quantity();
-	return (insur::scale_all_material_budget_factor * quantity());
+	double quant = insur::mat_budget_overall_scaling_factor * quantity();
+	return quant;
       } else if (desiredUnitVal > elementUnitVal) {
         invert = true;
         tempUnit = desiredUnitVal;
@@ -479,8 +474,8 @@ namespace material {
     } catch (const std::out_of_range& ex) {
       logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
     }
-    //return returnVal;
-    return (insur::scale_all_material_budget_factor * returnVal);
+    returnVal *= insur::mat_budget_overall_scaling_factor;
+    return returnVal;
   }
 
   double MaterialObject::Element::totalGrams(const DetectorModule& module) const {
@@ -554,7 +549,6 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	//quantity *= insur::scale_all_material_budget_factor;
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }
