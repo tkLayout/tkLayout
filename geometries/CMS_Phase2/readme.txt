@@ -263,8 +263,16 @@ OT613_200_IT423.cfg                  OT Version 6.1.3
                                      Inner Tracker version 4.2.3:
                                       - geometry same as IT4.0.4
                                       - 50x50 in 1x2 modules, and 100x100 in 2x2 modules.
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                                                                                  
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     
 
+
+OT614_200_IT430.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.3.0: smaller chip: 16.4 mm x 20 mm chip, instead of 16.4 mm x 22 mm chip (same length as Atlas).
+                                     Based from Inner Tracker version 4.0.4.
+                                      - TBPX: shorter of 18 mm.
+                                      - TFPX: First disk moved inwards of 18 mm in Z. Other disks Z positions adjusted accordingly to have the same TFPX max Z. Radii: R1 min and R4 max identical, the radii in between are adjusted (coverage). R2 center: +1 mm, R3 center: -2 mm. 
+                                      - TEPX: 4 modules added in R4. Radii: R1 min and R5 max identical, the radii in between are adjusted (coverage). R2 center: -3 mm, R3 center: -2.5 mm, R4 center: -6 mm.  
+                                                                                             
 
 ============   TILTED INNER TRACKER STUDIES   ============                 
 OT613_200_IT500.cfg                  OT Version 6.1.3
