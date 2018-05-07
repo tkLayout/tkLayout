@@ -77,6 +77,10 @@ namespace insur {
 
   static const int    vis_temperature_levels = 512;
 
+  static const double mat_budget_overall_scaling_factor = 1.;  // WARNING: DO NOT CHANGE THIS UNLESS YOU ARE OBSOLUTELY SURE OF WHAT YOU ARE DOING!!
+                                                               // This will scale absolutely all weights by the mentioned factor (modules + cabling + supports).
+                                                               // Was added for CMSSW Material Budget debug purposes.
+
   /**
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
    * short_eta_coverage - long_eta_coverage
