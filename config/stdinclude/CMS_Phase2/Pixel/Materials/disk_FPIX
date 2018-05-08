@@ -42,90 +42,91 @@ Materials FPIX_disk {
 
   // Power for the module
   // Average on disk
+  // 16 power chains per disk
   Component {
     componentName "Power wires"
     service false
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 13.31
+      quantity 13.52
       unit g
     }
     Element {
       elementName Cu
-      quantity 2.05
+      quantity 1.84
       unit g
     }
     Element {
       elementName PE
-      quantity 4.49
+      quantity 4.91
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk
+  // 16 power chains per disk
   Component {
     componentName "Power wires"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.0954
+      quantity 0.0978
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0143
+      quantity 0.0133
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0317
+      quantity 0.0352
       unit g/m
     }
   }
 
-  // HV power wires
-  // Power for the module
+  // HV power lines
+  // 16 power chains per disk, 2 HV lines per power chain
   Component {
     componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 1.46
+      quantity 1.56
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.52
+      quantity 0.55
       unit g
     }
     Element {
       elementName PE
-      quantity 5.24
+      quantity 5.6
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk, 2 wires per chain
+  // 16 power chains per disk, 2 HV lines per power chain
   Component {
     componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.0064
+      quantity 0.0073
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0023
+      quantity 0.0026
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0231
+      quantity 0.0264
       unit g/m
     }
   }
