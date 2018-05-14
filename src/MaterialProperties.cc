@@ -115,7 +115,7 @@ namespace insur {
         localmassesComp[getSubName(comp)] += ms;
         localCompMats[comp][tag] += ms; 
 
-	massPerSubdetectorAndElement_[matSubdetectorName][tag] += ms;
+	massPerSubdetectorAndElement_[matSubdetectorName][comp] += ms;
 	//massPerSubdetectorAndComponent_[matSubdetectorName][comp] += ms;
 	massPerSubdetector_[matSubdetectorName] += ms;
     }

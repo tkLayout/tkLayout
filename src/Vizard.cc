@@ -7922,6 +7922,7 @@ namespace insur {
 
     std::vector<InactiveElement> allServices = materialBudget.getAllServices();
     std::map<std::string, double> servicesTotal;
+    std::map<std::string, std::map<std::string, double> > servicesComponentsTotal;
 
     // SERVICES
     for (auto& iter : allServices) {
@@ -7960,8 +7961,12 @@ namespace insur {
 	//for (auto& massIt : localMasses) {
 	for (const auto& massIt : massPerElement) {
 	  mass = massIt.second;
+	  std::string elementName = massIt.first;
 	  if (mass!=0) isEmpty=false;
+	  // calculate totals
 	  servicesTotal[subdetectorName] += mass;
+	  servicesComponentsTotal[subdetectorName][elementName] += mass;
+	  // detailed csv output
 	  myStringStream << serviceId << ","
 			 << z1 << ","
 			 << z2 << ","
@@ -7970,7 +7975,7 @@ namespace insur {
 			 << subdetectorName << ","
 			 << "Service" << ","
 			 << elementId++ << ","
-			 << massIt.first << ","
+			 << elementName << ","
 			 << mass << ","
 			 << mass/length << ","
 			 << rl << ","
@@ -8059,6 +8064,7 @@ namespace insur {
     for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
 
     std::map<std::string, double> modulesTotal;
+    std::map<std::string, std::map<std::string, double> > modulesComponentsTotal;
 
     for (auto& iter : allModules) {
       const Module& detectorModule = iter.getModule();
@@ -8092,8 +8098,12 @@ namespace insur {
 	//for (auto& massIt : localMasses) {
 	for (const auto& massIt : massPerElement) {
 	  mass = massIt.second;
+	  std::string elementName = massIt.first;
 	  if (mass!=0) isEmpty=false;
+	  // calculate totals
 	  modulesTotal[subdetectorName] += mass;
+	  modulesComponentsTotal[subdetectorName][elementName] += mass;
+	  // detailed csv output
 	  myStringStream << serviceId << ","
 			 << z1 << ","
 			 << z2 << ","
@@ -8102,7 +8112,7 @@ namespace insur {
 			 << subdetectorName << ","
 			 << "Module" << ","
 			 << elementId++ << ","
-			 << massIt.first << ","
+			 << elementName << ","
 			 << mass << ","
 			 << mass << ","
 			 << rl << ","
@@ -8145,7 +8155,32 @@ namespace insur {
     }
 
 
+
+    // TOTAL COMPONENT DETAILS
+    myStringStream << "SERVICES COMPONENTS (KG)" << std::endl;
+    for (const auto& serviceIt : servicesComponentsTotal ) {
+      myStringStream << std::endl;
+      myStringStream << serviceIt.first << std::endl;
+      for (const auto& componentIt : serviceIt.second) {
+	myStringStream << componentIt.first << "," << std::round(componentIt.second/1000.) << std::endl;
+      }
+    }
+    myStringStream << std::endl;
+    myStringStream << "MODULES COMPONENTS (KG)" << std::endl;
+    for (const auto& moduleIt : modulesComponentsTotal ) {
+      myStringStream << std::endl;
+      myStringStream << moduleIt.first << std::endl;
+      for (const auto& componentIt : moduleIt.second) {
+	myStringStream << componentIt.first << "," << std::round(componentIt.second/1000.) << std::endl;
+      }
+    }
+
+
+
+
+
     // TOTAL
+    myStringStream << std::endl << std::endl << std::endl;
     myStringStream << "SERVICES (KG)" << std::endl;
     for (const auto& serviceIt : servicesTotal ) {
       myStringStream << serviceIt.first << "," << std::round(serviceIt.second/1000.) << std::endl;

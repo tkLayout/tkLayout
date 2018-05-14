@@ -146,7 +146,8 @@ namespace material {
 	    }*/
           materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
-          materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), quantity);
+	  std::cout << "MaterialObject::populateMaterialProperties: No component name, element name = " << currElement->elementName() << std::endl;
+          materialProperties.addLocalMass(currElement->matSubdetectorName(), "", currElement->elementName(), quantity);
         }
       }
     }
@@ -549,7 +550,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	if (matSubdetectorName() == "") std::cout << "MaterialObject::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
+	if (matSubdetectorName() == "") std::cout << "caca: MaterialObject::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
         materialProperties.addLocalMass(matSubdetectorName(), elementName(), componentName(), quantity);
       }
     }
