@@ -44,7 +44,7 @@ Materials disk {
   // (This is a bus line: service does not accumulate)
   // 28m of Twisted Pairs per disk
   Component {
-    componentName "Twisted pairs"
+    componentName "Pipe thermistor twisted pairs"
     service false
     scaleOnSensor 0
     // Two conductors and a drain
@@ -69,7 +69,7 @@ Materials disk {
 
   // fake numbers for calculating conversion with a factor of 1000
   Component {
-    componentName "Twisted pairs"
+    componentName "Pipe thermistor twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain

@@ -20,7 +20,7 @@
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Twisted pairs"
+    componentName "Pipe thermistor twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain
