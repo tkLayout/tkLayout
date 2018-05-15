@@ -135,7 +135,7 @@ Materials FPIX_2_disk {
     }
   }
 
-  // Support Mechanics
+  // Supporting structures
   //Mechanics
   Component {
     componentName "Disk support mechanics"

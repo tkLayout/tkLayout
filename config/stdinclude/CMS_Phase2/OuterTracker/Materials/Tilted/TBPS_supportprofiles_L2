@@ -1,7 +1,7 @@
   // Support Profiles
   // Mechanics
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supporting structures"
     service false
     scaleOnSensor 0
     targetVolume 0

@@ -8162,7 +8162,7 @@ namespace insur {
       myStringStream << std::endl;
       myStringStream << serviceIt.first << std::endl;
       for (const auto& componentIt : serviceIt.second) {
-	myStringStream << componentIt.first << "," << std::round(componentIt.second/1000.) << std::endl;
+	myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
       }
     }
     myStringStream << std::endl;
@@ -8171,7 +8171,7 @@ namespace insur {
       myStringStream << std::endl;
       myStringStream << moduleIt.first << std::endl;
       for (const auto& componentIt : moduleIt.second) {
-	myStringStream << componentIt.first << "," << std::round(componentIt.second/1000.) << std::endl;
+	myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
       }
     }
 
@@ -8183,12 +8183,12 @@ namespace insur {
     myStringStream << std::endl << std::endl << std::endl;
     myStringStream << "SERVICES (KG)" << std::endl;
     for (const auto& serviceIt : servicesTotal ) {
-      myStringStream << serviceIt.first << "," << std::round(serviceIt.second/1000.) << std::endl;
+      myStringStream << serviceIt.first << "," << serviceIt.second/1000. << std::endl;
     }
     myStringStream << std::endl;
     myStringStream << "MODULES (KG)" << std::endl;
     for (const auto& moduleIt : modulesTotal ) {
-      myStringStream << moduleIt.first << "," << std::round(moduleIt.second/1000.) << std::endl;
+      myStringStream << moduleIt.first << "," << moduleIt.second/1000. << std::endl;
     }
 
     myStringStream << std::endl << std::endl << std::endl;
@@ -8196,7 +8196,7 @@ namespace insur {
     for (const auto& serviceIt : servicesTotal ) {
       double totalMass = serviceIt.second;
       if (modulesTotal.find(serviceIt.first) != modulesTotal.end()) totalMass += modulesTotal.at(serviceIt.first);
-      myStringStream << serviceIt.first << "," << std::round(totalMass/1000.) << std::endl;
+      myStringStream << serviceIt.first << "," << totalMass/1000. << std::endl;
     }
 
 

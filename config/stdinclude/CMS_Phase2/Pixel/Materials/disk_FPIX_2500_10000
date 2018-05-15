@@ -133,7 +133,7 @@ Materials FPIX_disk_2500_10000 {
     }
   }
 
-  // Support Mechanics
+  // Supporting structures
   //Mechanics
   Component {
     componentName "Disk support mechanics"
