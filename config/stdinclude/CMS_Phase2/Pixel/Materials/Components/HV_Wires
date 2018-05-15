@@ -1,7 +1,7 @@
 // HV: 2 wires (live and return: conservative assumption because of serial power)
 // PP0-SEH-HV (700067231 Rev 01)
 Component {
-  componentName "Sensor HV line"
+  componentName "High voltage lines"
   service true
   scaleOnSensor 0
   Element {
@@ -21,7 +21,7 @@ Component {
   }
 }
 Component {
-  componentName "Sensor HV line"
+  componentName "High voltage lines"
   service true
   scaleOnSensor 0
   Element {

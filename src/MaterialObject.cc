@@ -141,7 +141,7 @@ namespace material {
 	if (currElement->matSubdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->matSubdetectorName() = " << currElement->matSubdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
-	  /*if (currElement->componentName() == "Sensor HV line") {
+	  /*if (currElement->componentName() == "High voltage lines") {
 	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
 	    }*/
           materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), currElement->componentName(), quantity);

@@ -91,7 +91,7 @@ Materials FPIX_disk_2500_10000 {
   // HV power lines
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "Sensor HV line"
+    componentName "High voltage lines"
     service false
     scaleOnSensor 0
     Element {
@@ -113,7 +113,7 @@ Materials FPIX_disk_2500_10000 {
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "Sensor HV line"
+    componentName "High voltage lines"
     service true
     scaleOnSensor 0
     Element {
