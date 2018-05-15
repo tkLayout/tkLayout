@@ -43,7 +43,7 @@ Component {
 }
 
 Component {
-  componentName "PS Readout hybrid circuit"
+  componentName "PS Readout hybrid circuits"
   service false
   scaleOnSensor 0
   targetVolume 3
