@@ -363,6 +363,7 @@ namespace material {
       logERROR(msg_no_valid_unit + unit());
     }
 
+    returnVal *= insur::mat_budget_overall_scaling_factor;
     return returnVal;
   }
 
