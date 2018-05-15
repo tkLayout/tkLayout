@@ -57,7 +57,7 @@ Materials rodPtPS {
  // Support Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics"
     service false
     scaleOnSensor 0
     Element {

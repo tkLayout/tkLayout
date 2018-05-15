@@ -1,7 +1,7 @@
 // Support plate for PS module
 
 Component {
-  componentName "PS Support plate (below hybrids)"
+  componentName "PS Module Support plate (below hybrids)"
   service false
   scaleOnSensor 0
   targetVolume 0
@@ -18,7 +18,7 @@ Component {
 }
 
 Component {
-  componentName "PS Support plate (below sensor)"
+  componentName "PS Module Support plate (below sensor)"
   service false
   scaleOnSensor 0
   targetVolume 8

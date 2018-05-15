@@ -46,7 +46,7 @@
   // Support Mechanics
   // Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics"
     service false
     scaleOnSensor 0
     targetVolume 8
