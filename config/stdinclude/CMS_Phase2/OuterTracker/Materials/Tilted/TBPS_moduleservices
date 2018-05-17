@@ -55,7 +55,7 @@
 
   // Support Plate
   Component {
-    componentName "Supporting structures"
+    componentName "Supports Mechanics"
     service false
     scaleOnSensor 0
     targetVolume 8

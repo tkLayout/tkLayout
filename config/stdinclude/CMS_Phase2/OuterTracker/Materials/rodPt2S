@@ -52,10 +52,10 @@ Materials rodPt2S {
     }
   }
 
-  // Supporting structures
+  // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Supporting structures"
+    componentName "Supports Mechanics"
     service false
     scaleOnSensor 0
     Element {
