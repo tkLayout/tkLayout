@@ -1,7 +1,7 @@
 // 2S inactive silicon for 320 um sensors
 
 Component {
-  componentName "2S Inactive silicon"
+  componentName "2S Module: Inactive silicon"
   service false
   scaleOnSensor 0
   //Silicon deep diffused

@@ -1,7 +1,7 @@
 // FE-hybrid spacers for 4.0 mm (2S module)
 
 Component {
-  componentName "2S FE hybrid spacers (4.0 mm)"
+  componentName "2S Module: FE hybrid spacers (4.0 mm)"
   targetVolume 56
 
   //FEH spacer 4.0 mm

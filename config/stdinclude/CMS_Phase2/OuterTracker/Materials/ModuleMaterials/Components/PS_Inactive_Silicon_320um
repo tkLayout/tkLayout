@@ -1,7 +1,7 @@
 // PS inactive silicon for 320 um sensors
 
 Component {
-  componentName "PS Inactive silicon"
+  componentName "PS Module: Inactive silicon"
   service false
   scaleOnSensor 0
   //Sensor inactive edges

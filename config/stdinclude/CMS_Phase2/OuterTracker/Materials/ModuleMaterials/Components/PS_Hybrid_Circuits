@@ -1,6 +1,6 @@
 // Two Front-end hybrids, power hybrid and readout hybrid
 Component {
-  componentName "PS FE hybrid circuits"
+  componentName "PS Module: FE hybrid circuits"
   service false
   scaleOnSensor 0
   targetVolume 56
@@ -43,7 +43,7 @@ Component {
 }
 
 Component {
-  componentName "PS Readout hybrid circuits"
+  componentName "PS Module: Readout hybrid circuits"
   service false
   scaleOnSensor 0
   targetVolume 3
@@ -69,7 +69,7 @@ Component {
 
 
 Component {
-  componentName "PS Power hybrid"
+  componentName "PS Module: Power hybrid"
   service false
   scaleOnSensor 0
   targetVolume 4
