@@ -1,6 +1,6 @@
 
 Component {
-   componentName "MPA and Bump bonds"
+   componentName "PS Module: MPA and Bump bonds"
    service false
    scaleOnSensor 0
    //MPA on sensors

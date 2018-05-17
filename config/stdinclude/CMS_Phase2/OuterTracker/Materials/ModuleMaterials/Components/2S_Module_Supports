@@ -1,6 +1,6 @@
 // 2S Module Supports (for 10 cm-long modules)
 Component {
-  componentName "2S Module Supports"
+  componentName "2S Module: Supports"
   service false
   scaleOnSensor 0
   // Cooling blocks

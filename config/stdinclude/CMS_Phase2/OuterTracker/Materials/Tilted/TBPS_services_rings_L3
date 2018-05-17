@@ -46,7 +46,7 @@
   // Supports Mechanics
   // Mechanics
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supports Mechanics: TBPS (Tilted Ring common)"
     service false
     scaleOnSensor 0
     targetVolume 8

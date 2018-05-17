@@ -95,7 +95,7 @@ Materials disk {
   // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supports Mechanics: TEDD disk"
     service false
     scaleOnSensor 0
     Element {

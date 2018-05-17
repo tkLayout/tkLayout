@@ -57,7 +57,7 @@ Materials rodPtPS {
  // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supports Mechanics: flat TBPS ladder"
     service false
     scaleOnSensor 0
     Element {

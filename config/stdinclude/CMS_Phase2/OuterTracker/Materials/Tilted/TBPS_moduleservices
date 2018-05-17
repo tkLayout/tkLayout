@@ -5,7 +5,7 @@
 
    // Cooling for the module
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service false
     scaleOnSensor 0
     targetVolume 8
@@ -55,7 +55,7 @@
 
   // Support Plate
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supports Mechanics: TBPS (Module common)"
     service false
     scaleOnSensor 0
     targetVolume 8

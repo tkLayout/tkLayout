@@ -55,7 +55,7 @@ Materials rodPt2S {
   // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Supports Mechanics"
+    componentName "Supports Mechanics: TB2S Ladder"
     service false
     scaleOnSensor 0
     Element {
