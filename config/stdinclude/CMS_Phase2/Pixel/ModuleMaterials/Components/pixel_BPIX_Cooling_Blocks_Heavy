@@ -2,7 +2,7 @@
 // Model (quantity [g/m] = chip power [Watt] * 3)
 
 Component {
-  componentName "IT module: Cooling blocks"
+  componentName "IT Module: Cooling blocks"
   service false
   Element {
     scaleOnSensor 0

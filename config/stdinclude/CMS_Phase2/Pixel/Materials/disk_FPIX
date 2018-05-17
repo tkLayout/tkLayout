@@ -9,7 +9,7 @@ Materials FPIX_disk {
   // Cooling for the module
   // Average on disk
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service false
     scaleOnSensor 0
     Element {
@@ -45,7 +45,7 @@ Materials FPIX_disk {
   // Average on disk
   // 16 power chains per disk
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains"
     service false
     scaleOnSensor 0
     Element {
@@ -67,7 +67,7 @@ Materials FPIX_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains"
     service true
     scaleOnSensor 0
     Element {
@@ -90,7 +90,7 @@ Materials FPIX_disk {
   // HV power lines
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "High voltage lines"
+    componentName "Cabling: High voltage lines"
     service false
     scaleOnSensor 0
     Element {
@@ -112,7 +112,7 @@ Materials FPIX_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "High voltage lines"
+    componentName "Cabling: High voltage lines"
     service true
     scaleOnSensor 0
     Element {
@@ -135,7 +135,7 @@ Materials FPIX_disk {
   // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Disk support mechanics"
+    componentName "Supports Mechanics: disk"
     service false
     scaleOnSensor 0
     Element {

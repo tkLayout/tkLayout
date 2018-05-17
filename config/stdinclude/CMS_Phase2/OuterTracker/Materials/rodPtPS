@@ -29,7 +29,7 @@ Materials rodPtPS {
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Pipe thermistor twisted pairs"
+    componentName "Cabling: Pipe thermistor twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain

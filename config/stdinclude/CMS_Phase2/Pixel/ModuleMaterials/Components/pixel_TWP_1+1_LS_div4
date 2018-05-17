@@ -2,7 +2,7 @@
 // quantities / 4 (modules 1x1)
 
 Component {
-  componentName "E-links"
+  componentName "Cabling: E-links"
   service true
   scaleOnSensor 0
   // Two conductors

@@ -9,7 +9,7 @@ Materials FPIX_2_disk_2500_10000 {
   // Cooling for the module
   // Average on disk (scales on surface)
   Component {
-    componentName Cooling
+    componentName "Cooling"
     service false
     scaleOnSensor 0
     Element {
@@ -46,7 +46,7 @@ Materials FPIX_2_disk_2500_10000 {
   // 28 power chains per disk
   // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains"
     service false
     scaleOnSensor 0
     Element {
@@ -69,7 +69,7 @@ Materials FPIX_2_disk_2500_10000 {
   // 28 power chains per disk
   // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains"
     service true
     scaleOnSensor 0
     Element {
@@ -93,7 +93,7 @@ Materials FPIX_2_disk_2500_10000 {
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
-    componentName "High voltage lines"
+    componentName "Cabling: High voltage lines"
     service false
     scaleOnSensor 0
     Element {
@@ -116,7 +116,7 @@ Materials FPIX_2_disk_2500_10000 {
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
-    componentName "High voltage lines"
+    componentName "Cabling: High voltage lines"
     service true
     scaleOnSensor 0
     Element {
@@ -139,7 +139,7 @@ Materials FPIX_2_disk_2500_10000 {
   // Supports Mechanics
   //Mechanics
   Component {
-    componentName "Disk support mechanics"
+    componentName "Supports Mechanics: disk"
     service false
     scaleOnSensor 0
     Element {
