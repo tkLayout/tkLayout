@@ -1,7 +1,7 @@
 // Pixel module common components (no bumps, no cooling blocks, no connectivity)
 
 Component {
-  componentName "Pixel sensor" 
+  componentName "IT Module: Sensor" 
   service false
   scaleOnSensor 0
   Element {
@@ -13,7 +13,7 @@ Component {
 }
 
 Component {
-  componentName "Pixel hybrid"
+  componentName "IT Module: Hybrid"
   service false
   scaleOnSensor 0
   Element {
@@ -23,7 +23,7 @@ Component {
     targetVolume 1
   }
   Element {
-    elementName PS-FEH-mix
+    elementName PS-FEH-mix  /// ???????
     quantity 0.15
     unit mm
     targetVolume 1
@@ -37,7 +37,7 @@ Component {
 }
 
 Component {
-  componentName "Pixel Support plate"
+  componentName "IT Module: Support plate"
   service false
   scaleOnSensor 0
   // Support

@@ -2,7 +2,7 @@
 // Bump size like Phase-1
 
 Component {
-  componentName "Bumps"
+  componentName "IT Module: Bump bonds"
   service false 
   scaleOnSensor 0
   Element {
