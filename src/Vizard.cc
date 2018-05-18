@@ -428,7 +428,8 @@ namespace insur {
     // TOTAL WEIGHT
     std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
       for (auto& subdetectorIt : weightBySubdetector) {
-        RootWContent& myContent = myPage.addContent(subdetectorIt.first + " : total weight", false);
+	const std::string subdetectorName = subdetectorIt.first;
+        RootWContent& myContent = myPage.addContent(subdetectorName + " : total weight", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(subdetectorIt.second.getContent());
       }
@@ -7943,6 +7944,7 @@ namespace insur {
       bool isEmpty = true;
 
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      //const std::vector<const LocalMass*>& allMasses = serviceIt.getLocalMassesDetails();
       const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
       std::string commonSubdetectorName;
       std::string commonSubdetectorNameSecond;
@@ -7984,17 +7986,6 @@ namespace insur {
       }
 
 
-      /*std::string displayedSubdetectorName  = commonSubdetectorName;
-      bool hasSeveralSubdetectors = false;
-      if (commonSubdetectorNameSecond != "") {
-	hasSeveralSubdetectors = true;
-	displayedSubdetectorName +=  " + " + commonSubdetectorNameSecond;
-      }
-      if (commonSubdetectorNameThird != "") {
-	hasSeveralSubdetectors = true;
-	displayedSubdetectorName +=  " + " + commonSubdetectorNameThird;
-	}*/
-
       const int color = computeSubdetectorColor(commonSubdetectorName, isEmpty);
 
       myBox = new TBox(z1, r1, z2, r2);
@@ -8002,13 +7993,6 @@ namespace insur {
       myBox->SetFillStyle(3003);
       myBox->SetFillColor(color);
       myBox->Draw("l");
-
-      /*
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
-      myText->SetTextAlign(22);
-      myText->SetTextSize(2e-2);
-      myText->SetTextColor(color);
-      myText->Draw();*/
 
       // BONUS
       if (commonSubdetectorNameSecond != "") {
@@ -8021,13 +8005,6 @@ namespace insur {
 	myBox->SetFillStyle(3003);
 	myBox->SetFillColor(colorSecond);
 	myBox->Draw("l");
-
-	/*
-	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameSecond.c_str()));
-	myText->SetTextAlign(22);
-	myText->SetTextSize(2e-2);
-	myText->SetTextColor(colorSecond);
-	myText->Draw();*/
       }
       // BONUS
       if (commonSubdetectorNameThird != "") {
@@ -8040,13 +8017,6 @@ namespace insur {
 	myBox->SetFillStyle(3003);
 	myBox->SetFillColor(colorThird);
 	myBox->Draw("l");
-
-	/*
-	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorNameThird.c_str()));
-	myText->SetTextAlign(22);
-	myText->SetTextSize(2e-2);
-	myText->SetTextColor(colorThird);
-	myText->Draw();*/
       }
 
 
@@ -8142,14 +8112,6 @@ namespace insur {
 	myBox->SetFillColor(color);
 	myBox->Draw("l");	
       }
-      
-      
-
-      /* myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%s", commonSubdetectorName.c_str()));
-      myText->SetTextAlign(22);
-      myText->SetTextSize(2e-2);
-      myText->SetTextColor(color);
-      myText->Draw();*/
 
       serviceId++;
     }
@@ -8223,7 +8185,7 @@ namespace insur {
     int color;
 
     if (!isEmpty) {
-      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kBlue;
+      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kAzure;
       else if (subdetectorName == "TB2S" || subdetectorName == "FPIX_1") color = kRed;
       else if (subdetectorName == "TEDD" || subdetectorName == "FPIX_2") color = kOrange;
       else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kMagenta;

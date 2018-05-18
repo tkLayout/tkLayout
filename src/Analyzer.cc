@@ -1278,6 +1278,8 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
  */
 void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
                                       bool byMaterial) {
+
+  /*
   map<std::string, map<std::pair<int, int>, bool> > typeTaken;
   map<std::string, map<std::pair<int, int>, bool> > typeWritten;
 
@@ -1354,13 +1356,13 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       }
     }
   }
-
+  
   // Alphabetically sort materials
   std::sort(materialTagV.begin(), materialTagV.end());
 
   // Prepare the columns of the tables
   for (map<string, SummaryTable>::iterator it=result.begin();
-       it!=result.end(); ++it) {
+       it!rult.end(); ++it) {
     for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
       it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
     }
@@ -1383,7 +1385,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       }
       if (myModule->posRef().phi == 1) {
         // If we did not write this module type yet
-        pair<int, int> myIndex = make_pair(myModule->tableRef().row/*+myModule->getDisk()*/, myModule->tableRef().col);
+        pair<int, int> myIndex = make_pair(myModule->tableRef().row/, myModule->tableRef().col);
         tempString = myModule->subdetectorName();
         if (!typeWritten[tempString][myIndex]) {
           typeWritten[tempString][myIndex]=true;
@@ -1439,6 +1441,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       }
     }
   }
+*/
 }
 
 // public
@@ -1470,71 +1473,140 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 
 
 
-  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetector(MaterialBudget& mb) {
-    std::map<string, SummaryTable> myTables;
-
-    const std::vector<std::vector<ModuleCap> >& barrelModules = mb.getBarrelModuleCaps();
-    const std::vector<std::vector<ModuleCap> >& endcapModules = mb.getEndcapModuleCaps();
-    const std::vector<InactiveElement>& services = mb.getAllServices();
-    //InactiveSurfaces& getInactiveSurfaces(); // TO DO: as well?????
-
-    std::map<std::string, double> totalMassPerSubdetector;
-
-
-    for (const auto& myModuleVec : barrelModules) {
-      for (const auto& myModule : myModuleVec) {
-	std::map<std::string, double> massPerSubdetector = myModule.getMassPerSubdetector();
-
-	for (const auto& subdetectorIt : massPerSubdetector) {
-	  std::string subdetectorName = subdetectorIt.first;
-	  double mass = subdetectorIt.second;
-	  totalMassPerSubdetector[subdetectorName] += mass;
-	} // subdetector
-
-      } // modulesVec
-    } // barrelModules
-
-    for (const auto& myModuleVec : endcapModules) {
-      for (const auto& myModule : myModuleVec) {
-	std::map<std::string, double> massPerSubdetector = myModule.getMassPerSubdetector();
-
-	for (const auto& subdetectorIt : massPerSubdetector) {
-	  std::string subdetectorName = subdetectorIt.first;
-	  double mass = subdetectorIt.second;
-	  totalMassPerSubdetector[subdetectorName] += mass;
-	} // subdetector
-
-      } // modulesVec
-    } // endcapModules
-
-    for (const auto& myService : services) {
-      std::map<std::string, double> massPerSubdetector = myService.getMassPerSubdetector();
-
-      for (const auto& subdetectorIt : massPerSubdetector) {
-	std::string subdetectorName = subdetectorIt.first;
-	double mass = subdetectorIt.second;
-	totalMassPerSubdetector[subdetectorName] += mass;
-      } // subdetector
-
-    } // services
+  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetector(MaterialBudget& materialBudget) {
+    
+    std::map<std::string, std::map<std::string, double> > weightsPerSubdetectorAndComponents;
+    std::map<std::string, double> weightsPerSubdetector;
+    // to avoid having these maps of maps: try using LocalMass as a map key
+    //struct Class1Compare
+    //{
+    // bool operator() (const Class1& lhs, const Class1& rhs) const
+    // {
+    //   return lhs.id < rhs.id;
+    //}
+    //};
+    //std::map<Class1, int, Class1Compare> c2int;
 
 
 
-    // fill table   
-    for (const auto& subdetectorIt : totalMassPerSubdetector) {
-      std::string subdetectorName = subdetectorIt.first;
-      double mass = subdetectorIt.second;
-      std::ostringstream massStream;
-      massStream << std::dec << std::fixed << std::setprecision(1) << mass;
-      myTables[subdetectorName].setCell(0, 0, massStream.str());
+    // SERVICES
+    const std::vector<InactiveElement>& allServices = materialBudget.getAllServices();
+
+    for (auto& serviceIt : allServices) {
+
+      const std::vector<LocalMass>& allMasses = serviceIt.getLocalMassesDetails();
+  
+      for (const auto& massIt : allMasses) {
+	//if (massIt != nullptr) {
+	  const std::string subdetectorName = massIt.matSubdetectorName();
+	  const std::string componentName = massIt.componentName();
+	  const std::string elementName = massIt.elementName();
+	  const double mass = massIt.mass();
+
+	  // calculate totals
+	  weightsPerSubdetectorAndComponents[subdetectorName][componentName] += mass;
+	  weightsPerSubdetector[subdetectorName] += mass;
+	  //}
+      }
     }
 
+
+
+    // MODULE CAPS
+    const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
+    std::vector<ModuleCap> allModules;
+    for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
+    for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
+
+    for (auto& moduleIt : allModules) {
+
+      const std::vector<LocalMass>& allMasses = moduleIt.getLocalMassesDetails();
+  
+      for (const auto& massIt : allMasses) {
+	//if (massIt != nullptr) {
+	  const std::string subdetectorName = massIt.matSubdetectorName();
+	  const std::string componentName = massIt.componentName();
+	  const std::string elementName = massIt.elementName();
+	  const double mass = massIt.mass();
+
+	  // calculate totals
+	  weightsPerSubdetectorAndComponents[subdetectorName][componentName] += mass;
+	  weightsPerSubdetector[subdetectorName] += mass;
+	  //}
+      }
+    }
+
+
+
+    /*
+    // TOTAL COMPONENT DETAILS
+    myStringStream << "SERVICES COMPONENTS (KG)" << std::endl;
+    for (const auto& serviceIt : servicesComponentsTotal ) {
+    myStringStream << std::endl;
+    myStringStream << serviceIt.first << std::endl;
+    for (const auto& componentIt : serviceIt.second) {
+    myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
+    }
+    }
+    myStringStream << std::endl;
+    myStringStream << "MODULES COMPONENTS (KG)" << std::endl;
+    for (const auto& moduleIt : modulesComponentsTotal ) {
+    myStringStream << std::endl;
+    myStringStream << moduleIt.first << std::endl;
+    for (const auto& componentIt : moduleIt.second) {
+    myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
+    }
+    }
+
+
+
+
+
+    // TOTAL
+    myStringStream << std::endl << std::endl << std::endl;
+    myStringStream << "SERVICES (KG)" << std::endl;
+    for (const auto& serviceIt : servicesTotal ) {
+    myStringStream << serviceIt.first << "," << serviceIt.second/1000. << std::endl;
+    }
+    myStringStream << std::endl;
+    myStringStream << "MODULES (KG)" << std::endl;
+    for (const auto& moduleIt : modulesTotal ) {
+    myStringStream << moduleIt.first << "," << moduleIt.second/1000. << std::endl;
+    }
+
+    myStringStream << std::endl << std::endl << std::endl;
+    myStringStream << "TOTAL (KG)" << std::endl;
+    for (const auto& serviceIt : servicesTotal ) {
+    double totalMass = serviceIt.second;
+    if (modulesTotal.find(serviceIt.first) != modulesTotal.end()) totalMass += modulesTotal.at(serviceIt.first);
+    myStringStream << serviceIt.first << "," << totalMass/1000. << std::endl;
+    }
+    */ 
+
+    // Fill Summary tables
+    std::map<std::string, SummaryTable> myTables;
+
+
+    for (const auto& testIt : weightsPerSubdetectorAndComponents) {
+      const std::string subdetectorName = testIt.first;
+      const std::map<std::string, double>& weightsPerComponent = testIt.second;
+
+      int rowCounter = 0;
+      for (const auto& componentIt : weightsPerComponent) {
+	const std::string componentName = componentIt.first;
+	const double mass = componentIt.second;
+	std::ostringstream massStream;
+	massStream << std::dec << std::fixed << std::setprecision(1) << (mass / 1000.) ;
+	myTables[subdetectorName].setCell(rowCounter, 0, componentName);
+	myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
+	rowCounter++;
+      } // component 
+    }
     return myTables;
+
   }
  
-
-
-
 
 
 

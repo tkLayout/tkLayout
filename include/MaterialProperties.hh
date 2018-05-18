@@ -32,6 +32,36 @@ typedef RILength Material;
 
 
 namespace insur {
+
+  class LocalMass {
+  public:
+    LocalMass(const std::string matSubdetectorName, const std::string componentName,  const std::string elementName, const double mass) :
+      matSubdetectorName_(matSubdetectorName),
+      componentName_(componentName),
+      elementName_(elementName),
+      mass_(mass)
+    { }
+    const std::string matSubdetectorName() const { return  matSubdetectorName_; }
+    const std::string componentName() const { return componentName_; }
+    const std::string elementName() const { return elementName_; }
+    const double mass() const { return mass_; }
+
+  protected:
+    std::string matSubdetectorName_;
+    std::string componentName_;
+    std::string elementName_;
+    double mass_;
+  };
+
+
+
+
+
+
+
+
+
+
     /**
      * Errors and messages that may be reported during operations on member variables
      */
@@ -69,12 +99,13 @@ namespace insur {
         double getLocalMass(std::string tag); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
 
-      const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
+      const std::vector<LocalMass> getLocalMassesDetails() const { return localMassesDetails_; }
+      //const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
       const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
       //const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndComponent() const { return massPerSubdetectorAndComponent_; }
 
-        void addLocalMass(std::string matSubdetectorName, std::string tag, std::string comp, double ms, int minZ = -777);
-        void addLocalMass(std::string matSubdetectorName, std::string tag, double ms);
+        void addLocalMass(const std::string matSubdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
+        void addLocalMass(const std::string matSubdetectorName, const std::string tag, double ms);
       //void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
       //void addLocalMass(std::string tag, double ms);
         unsigned int localMassCount();
@@ -108,7 +139,10 @@ namespace insur {
         Category cat;
         std::map<std::string, double> localmasses;
 
-      std::map<std::string, double> massPerSubdetector_;
+        // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalMassDetails:
+        std::vector<LocalMass> localMassesDetails_; 
+
+      //std::map<std::string, double> massPerSubdetector_;
       std::map<std::string, std::map<std::string, double> > massPerSubdetectorAndElement_;
 
         std::map<std::string, double> localmassesComp;

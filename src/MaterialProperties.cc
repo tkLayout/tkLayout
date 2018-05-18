@@ -87,37 +87,44 @@ namespace insur {
     const std::map<std::string, double>& MaterialProperties::getLocalMassesComp() const { return localmassesComp; }
 
     /**
-     * Add the local mass for a material, as specified by its tag, to the internal list.
+     * Add the local mass for a material, as specified by its elementName, to the internal list.
      * If the given material is already listed with a mass value, the new value is added
      * to the existing one.
-     * @param tag The name of the material
-     * @param ms The mass value
+     * @param elementName The name of the material
+     * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(std::string matSubdetectorName, std::string tag, double ms) {
+  void MaterialProperties::addLocalMass(const std::string matSubdetectorName, const std::string elementName, double mass) {
         msl_set = true;
-        localmasses[tag] += ms;
-	massPerSubdetectorAndElement_[matSubdetectorName][tag] += ms;
-	massPerSubdetector_[matSubdetectorName] += ms;
+        localmasses[elementName] += mass;
+
+	const std::string noComponentName = "no componentName";
+	LocalMass localMass = LocalMass(matSubdetectorName, noComponentName, elementName, mass);
+	localMassesDetails_.push_back(localMass);
+
+	massPerSubdetectorAndElement_[matSubdetectorName][elementName] += mass;
+	//massPerSubdetector_[matSubdetectorName] += mass;
     }
 
     /**
-     * Add the local mass for a material, as specified by its tag, to the internal list.
+     * Add the local mass for a material, as specified by its elementName, to the internal list.
      * Also keeps track of the originating component
      * If the given material is already listed with a mass value, the new value is added
      * to the existing one.
-     * @param tag The name of the material
+     * @param elementName The name of the material
      * @param comp The name of the component
-     * @param ms The mass value
+     * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(std::string matSubdetectorName, std::string tag, std::string comp, double ms, int minZ) {
+  void MaterialProperties::addLocalMass(const std::string matSubdetectorName, const std::string elementName, const std::string componentName, double mass, int minZ) {
         msl_set = true;
-        localmasses[tag] += ms;
-        localmassesComp[getSubName(comp)] += ms;
-        localCompMats[comp][tag] += ms; 
+        localmasses[elementName] += mass;
+        localmassesComp[getSubName(componentName)] += mass;
+        localCompMats[componentName][elementName] += mass; 
 
-	massPerSubdetectorAndElement_[matSubdetectorName][comp] += ms;
-	//massPerSubdetectorAndComponent_[matSubdetectorName][comp] += ms;
-	massPerSubdetector_[matSubdetectorName] += ms;
+	LocalMass localMass = LocalMass(matSubdetectorName, componentName, elementName, mass);
+	localMassesDetails_.push_back(localMass);
+
+	massPerSubdetectorAndElement_[matSubdetectorName][componentName] += mass;
+	//massPerSubdetector_[matSubdetectorName] += mass;
     }
     
     /**
@@ -145,14 +152,16 @@ namespace insur {
      * Copy the entire mass vector to another instance of <i>MaterialProperties</i>
      * @param mp The destination object
      */
-    void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
-      mp.clearMassVectors(); //TODO: why?!?!?!?!?!
-        //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
-        //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
-        for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
-            for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit)
-	      mp.addLocalMass("caca: copyMassVectors is used", matit->first, compit->first, matit->second);
-    }
+  void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
+    mp.clearMassVectors(); //TODO: why?!?!?!?!?!
+    //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
+    //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
+    for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
+      for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit) {
+	std::string caca = "caca: copyMassVectors is used";
+	mp.addLocalMass(caca, matit->first, compit->first, matit->second);
+      }
+  }
     
     /**
      * Get the cumulative mass of the inactive element.
