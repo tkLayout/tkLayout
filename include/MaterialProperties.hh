@@ -33,6 +33,13 @@ typedef RILength Material;
 
 namespace insur {
 
+  static const std::string mechanical_module = "Module:";
+  static const std::string mechanical_cabling = "Cabling:";
+  static const std::string mechanical_cooling = "Cooling";
+  static const std::string mechanical_support = "Supports Mechanics:";
+
+  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT, COOLING };
+
   class LocalMass {
   public:
     LocalMass(const std::string matSubdetectorName, const std::string componentName,  const std::string elementName, const double mass) :
@@ -41,10 +48,18 @@ namespace insur {
       elementName_(elementName),
       mass_(mass)
     { }
-    const std::string matSubdetectorName() const { return  matSubdetectorName_; }
+    const std::string matSubdetectorName() const { return matSubdetectorName_; }
     const std::string componentName() const { return componentName_; }
     const std::string elementName() const { return elementName_; }
     const double mass() const { return mass_; }
+
+    const MechanicalCategory mechanicalCategory() const {
+      if (componentName_.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
+      else if (componentName_.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
+      else if (componentName_.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT;
+      else if (componentName_.find(mechanical_support) != std::string::npos) return MechanicalCategory::COOLING;
+      else return MechanicalCategory::UNKNOWN;
+    }
 
   protected:
     std::string matSubdetectorName_;
@@ -55,10 +70,7 @@ namespace insur {
 
 
 
-
-
-
-
+  
 
 
 

@@ -1,6 +1,6 @@
 // Sensor
 Component {
-  componentName "Sensors"
+  componentName "Module: Sensors"
   service false
   scaleOnSensor 0
   targetVolume 1
@@ -13,7 +13,7 @@ Component {
 
 // Sensor
 Component {
-  componentName "Sensors"
+  componentName "Module: Sensors"
   service false
   scaleOnSensor 0
   targetVolume 2

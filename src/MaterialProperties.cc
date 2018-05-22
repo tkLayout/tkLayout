@@ -6,6 +6,7 @@
 #include <MaterialProperties.hh>
 #include<MaterialTab.hh>
 
+
 RILength& RILength::operator+=(const RILength &a) {
   interaction += a.interaction;
   radiation += a.radiation;
@@ -21,6 +22,9 @@ const RILength RILength::operator+(const RILength &other) const {
 
 
 namespace insur {
+
+  define_enum_strings(MechanicalCategory) = { "UNKNOWN", "MODULE", "CABLING", "SUPPORT", "COOLING" };
+
     /*-----public functions-----*/
     /**
      * The constructor sets a few defaults. The flags for the initialisation status of the material vectors are

@@ -426,20 +426,24 @@ namespace insur {
 
 
     // TOTAL WEIGHT
-    std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
-      for (auto& subdetectorIt : weightBySubdetector) {
-	const std::string subdetectorName = subdetectorIt.first;
-        RootWContent& myContent = myPage.addContent(subdetectorName + " : total weight", false);
-        RootWTable& myTable = myContent.addTable();
-        myTable.setContent(subdetectorIt.second.getContent());
-      }
+    std::map<std::string, std::map<std::string, SummaryTable> > weightBySubdetector = a.getWeightBySubdetector();
+    for (auto& subdetectorIt : weightBySubdetector) {
+      const std::string subdetectorName = subdetectorIt.first;
+      RootWContent& myContent = myPage.addContent(subdetectorName, true);
+
+      std::map<std::string, SummaryTable> weightPerMechanicalCategory = subdetectorIt.second;      
+      for (auto& mechanicalCategoryIt : weightPerMechanicalCategory) {
+	RootWTable& myTable = myContent.addTable();
+	myTable.setContent(mechanicalCategoryIt.second.getContent());
+      } // mechanical category
+    } // subdetector
 
   }
 
 
 
-  /**
-   * This function draws some of the histograms that were filled during material budget analysis
+/**
+ * This function draws some of the histograms that were filled during material budget analysis
    * with the rootweb library
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
