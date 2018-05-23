@@ -426,12 +426,12 @@ namespace insur {
 
 
     // TOTAL WEIGHT
-    std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
-    for (auto& subdetectorIt : weightBySubdetector) {
+    const std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
+    for (const auto& subdetectorIt : weightBySubdetector) {
       const std::string subdetectorName = subdetectorIt.first;
       RootWContent& myContent = myPage.addContent(subdetectorName, true);
 
-      SummaryTable& weightPerComponent = subdetectorIt.second;      
+      const SummaryTable& weightPerComponent = subdetectorIt.second;      
       RootWTable& myTable = myContent.addTable();
       myTable.setContent(weightPerComponent.getContent());
     } // subdetector
