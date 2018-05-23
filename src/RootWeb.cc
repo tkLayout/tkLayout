@@ -139,22 +139,25 @@ ostream& RootWTable::dump(ostream& output) {
   return output;
 }
 
-void RootWTable::setColor(int row, int column, int newColor) {
-  tableContentColor_[make_pair(row, column)] = newColor;
+void RootWTable::setColor(const int row, const int column, const int color) {
+  if (color != kBlack) {
+    tableContentColor_[make_pair(row, column)] = color;
+  }
 }
 
 void RootWTable::setBold(const int row, const int column, const bool isBold) {
   tableContentBold_[make_pair(row, column)] = isBold;
 }
 
-void RootWTable::setContent(int row, int column, string content, const bool isBold) {
+void RootWTable::setContent(int row, int column, string content, const bool isBold, const int color) {
   tableContent_[make_pair(row, column)] = content;
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, int number, const bool isBold) {
+void RootWTable::setContent(int row, int column, int number, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
@@ -162,9 +165,10 @@ void RootWTable::setContent(int row, int column, int number, const bool isBold) 
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, double number, int precision, const bool isBold) {
+void RootWTable::setContent(int row, int column, double number, int precision, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
@@ -172,6 +176,7 @@ void RootWTable::setContent(int row, int column, double number, int precision, c
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
 pair<int, int> RootWTable::addContent(string myContent) {

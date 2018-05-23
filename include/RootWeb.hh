@@ -82,12 +82,12 @@ class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
   RootWTable();
-  void setContent(int row, int column, string content, const bool isBold = false);
-  void setContent(int row, int column, int number, const bool isBold = false);
-  void setContent(int row, int column, double number, int precision, const bool isBold = false);
+  void setContent(int row, int column, string content, const bool isBold = false, const int color = kBlack);
+  void setContent(int row, int column, int number, const bool isBold = false, const int color = kBlack);
+  void setContent(int row, int column, double number, int precision, const bool isBold = false, const int color = kBlack);
   void setContent(const rootWTableContent& newContent) { tableContent_ = newContent; };
-  void setColor(int row, int column, int newColor);
-  void setBold(int row, int column, const bool isBold);
+  void setColor(const int row,const  int column, const int newColor);
+  void setBold(const int row, const int column, const bool isBold);
   ostream& dump(ostream& output);
   pair<int, int> addContent(string content);
   pair<int, int> addContent(int number);

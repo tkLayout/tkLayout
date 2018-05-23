@@ -459,16 +459,15 @@ namespace insur {
 	  const double massInKg = mass / 1000.;  // kg
 	  totalWeightInMechanicalCategory += massInKg;
 
-	  massStream << massInKg;
 	  myTable.setContent(rowCounter, 0, componentName);
 	  myTable.setContent(rowCounter, 1, massInKg, weightPrecision);
 	  rowCounter++;
 	} // component
 
-	myTable.setContent(rowCounter, 0, "TOTAL " + mechanicalCategory);
-	myTable.setContent(rowCounter, 1, totalWeightInMechanicalCategory, weightPrecision);
-	myTable.setColor(rowCounter, 0, kBlue);
-	myTable.setColor(rowCounter, 1, kBlue);
+	const int mechanicalCategoryTotalColor = kBlue;
+
+	myTable.setContent(rowCounter, 0, "TOTAL " + mechanicalCategory, !boldCell, mechanicalCategoryTotalColor);
+	myTable.setContent(rowCounter, 1, totalWeightInMechanicalCategory, weightPrecision, !boldCell, mechanicalCategoryTotalColor);
 	rowCounter++;
 	myTable.setContent(rowCounter, 0, " ");
 	myTable.setContent(rowCounter, 1, " ");
