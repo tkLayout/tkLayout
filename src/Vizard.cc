@@ -426,14 +426,61 @@ namespace insur {
 
 
     // TOTAL WEIGHT
-    const std::map<std::string, SummaryTable> weightBySubdetector = a.getWeightBySubdetector();
-    for (const auto& subdetectorIt : weightBySubdetector) {
+    const std::map<std::string, std::map<std::string, std::map<std::string, double> > > weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+
+    for (const auto& subdetectorIt : weightsPerSubdetectorAndComponent) {
       const std::string subdetectorName = subdetectorIt.first;
       RootWContent& myContent = myPage.addContent(subdetectorName, true);
-
-      const SummaryTable& weightPerComponent = subdetectorIt.second;      
       RootWTable& myTable = myContent.addTable();
-      myTable.setContent(weightPerComponent.getContent());
+
+      const std::map<std::string, std::map<std::string, double> >& weightsPerMechanicalCategoryAndComponent = subdetectorIt.second;
+
+      double totalWeightInSubdetector = 0.;
+      int rowCounter = 0;
+      const bool boldCell = true;
+      const int weightPrecision = 1;
+
+      for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategoryAndComponent) {
+
+	const std::string mechanicalCategory = mechanicalCategoryIt.first;
+
+	const std::map<std::string, double>& weightsPerComponent = mechanicalCategoryIt.second;
+
+	double totalWeightInMechanicalCategory = 0.;
+
+	myTable.setContent(rowCounter, 0, mechanicalCategory, boldCell);
+	myTable.setContent(rowCounter, 1, "mass (kg)", boldCell);
+	rowCounter++;
+ 
+	for (const auto& componentIt : weightsPerComponent) {
+	  const std::string componentName = componentIt.first;
+	  const double mass = componentIt.second;
+	  std::ostringstream massStream;
+	  const double massInKg = mass / 1000.;  // kg
+	  totalWeightInMechanicalCategory += massInKg;
+
+	  massStream << massInKg;
+	  myTable.setContent(rowCounter, 0, componentName);
+	  myTable.setContent(rowCounter, 1, massInKg, weightPrecision);
+	  rowCounter++;
+	} // component
+
+	myTable.setContent(rowCounter, 0, "TOTAL " + mechanicalCategory);
+	myTable.setContent(rowCounter, 1, totalWeightInMechanicalCategory, weightPrecision);
+	myTable.setColor(rowCounter, 0, kBlue);
+	myTable.setColor(rowCounter, 1, kBlue);
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	totalWeightInSubdetector += totalWeightInMechanicalCategory;	
+      } // mechanical category
+      
+      myTable.setContent(rowCounter, 0, "TOTAL " + subdetectorName, boldCell);
+      myTable.setContent(rowCounter, 1, totalWeightInSubdetector, weightPrecision, boldCell);
     } // subdetector
 
   }

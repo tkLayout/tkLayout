@@ -77,15 +77,17 @@ protected:
 
 typedef std::map<pair<int,int>, string> rootWTableContent;
 typedef std::map<pair<int,int>, int> rootWTableContentColor;
+typedef std::map<pair<int,int>, bool> rootWTableContentBold;
 class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
   RootWTable();
-  void setContent(int row, int column, string content);
-  void setContent(int row, int column, int number);
-  void setContent(int row, int column, double number, int precision);
+  void setContent(int row, int column, string content, const bool isBold = false);
+  void setContent(int row, int column, int number, const bool isBold = false);
+  void setContent(int row, int column, double number, int precision, const bool isBold = false);
   void setContent(const rootWTableContent& newContent) { tableContent_ = newContent; };
   void setColor(int row, int column, int newColor);
+  void setBold(int row, int column, const bool isBold);
   ostream& dump(ostream& output);
   pair<int, int> addContent(string content);
   pair<int, int> addContent(int number);
@@ -97,6 +99,7 @@ public:
 private:
   rootWTableContent tableContent_;
   rootWTableContentColor tableContentColor_;
+  rootWTableContentBold tableContentBold_;
   int serialRow_, serialCol_;
   int maxRow_, maxCol_;
 };
