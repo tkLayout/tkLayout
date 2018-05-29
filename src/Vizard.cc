@@ -485,7 +485,7 @@ namespace insur {
       totalWeight += totalWeightInSubdetector;
     } // subdetector
 
-    const std::string grandTotal = "GRAND TOTAL (kg)" + any2str(totalWeight);
+    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
     RootWContent& totalContent = myPage.addContent(grandTotal, false);
     //RootWTable& totalTable = totalContent.addTable();
     //totalTable.setContent(0, 0, totalWeight);
@@ -7968,7 +7968,7 @@ namespace insur {
     TBox* myBox;
     TText* myText;
 
-    myStringStream << "volume_ID/I,sim_category/C,z1/D,z2/D,r1/D,r2/D,elementID/I,subdetector/C,Component/C,Element/C,mass/D,mass_per_length/D,volume_RL/D,volume_IL/D" << std::endl;
+    myStringStream << "volume_ID/I,sim_category/C,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,Component/C,Element/C,mass/D,mass_per_length/D" << std::endl;
 
 
 
@@ -8000,8 +8000,9 @@ namespace insur {
       bool isEmpty = true;
       const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& weightPerVolume = serviceIt.getMassPerSubdetectorAndElement();
       //const std::vector<LocalMass>& allMasses = serviceIt.getLocalMassesDetails();
-      
+
       int elementId = 0;
+      std::string subdetectorName;
       std::set<std::string> volumeSubdetectorNames;
       //WeightsPerSubdetectorAndElements volumeMasses;
 
@@ -8019,21 +8020,10 @@ namespace insur {
 	volumeMasses[subdetectorName][mechanicalCategory][componentName][elementName] += mass;
 	}*/
 
-      
-	//std::string commonSubdetectorName;
-	//std::string commonSubdetectorNameSecond;
-	//std::string commonSubdetectorNameThird;
-
       for (const auto& subdetectorIt : weightPerVolume) {
-	const std::string subdetectorName = subdetectorIt.first;
+	subdetectorName = subdetectorIt.first;
 	volumeSubdetectorNames.insert(subdetectorName);
-	//if ( commonSubdetectorNameThird != "" && subdetectorName != commonSubdetectorName && subdetectorName != commonSubdetectorNameSecond && subdetectorName != commonSubdetectorNameThird) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
-	//else if ( commonSubdetectorNameSecond != "" && subdetectorName != commonSubdetectorName && subdetectorName != commonSubdetectorNameSecond) { commonSubdetectorNameThird = subdetectorName; }
-	//else if ( commonSubdetectorName != "" && subdetectorName != commonSubdetectorName) { commonSubdetectorNameSecond = subdetectorName; }
-	//else { commonSubdetectorName = subdetectorName; }
 
-
-	//int elementId=0;
 	const std::map<std::string, std::map<std::string, double> >& weightPerSubdetector = subdetectorIt.second;
 
 	for (const auto& componentIt : weightPerSubdetector) {
@@ -8046,7 +8036,7 @@ namespace insur {
 	    std::string elementName = elementIt.first;
 	    mass = elementIt.second;
 	    
-	    if (mass != 0) isEmpty = false;
+	    if (mass > 0.) isEmpty = false;
 	    // calculate totals
 	    //servicesTotal[subdetectorName] += mass;
 	    //servicesComponentsTotal[subdetectorName][elementName] += mass;
@@ -8057,22 +8047,33 @@ namespace insur {
 			   << z2 << ","
 			   << r1 << ","
 			   << r2 << ","
+			   << rl << ","
+			   << il << ","
 			   << elementId++ << ","
 			   << subdetectorName << ","
 	      //<< mechanicalCategory << ","
 			   << componentName << ","	       
 			   << elementName << ","
 			   << mass << ","
-			   << mass/length << ","
-			   << rl << ","
-			   << il << std::endl;
+			   << mass/length
+			   << std::endl;
 	  }
 	}
       }
 
       if (volumeSubdetectorNames.size() > 3) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
-      else {
+      
+      else if (volumeSubdetectorNames.size() == 0) {
+	const int color = computeSubdetectorColor(subdetectorName, isEmpty);
 
+	myBox = new TBox(z1, r1, z2, r2);
+	myBox->SetLineColor(color);
+	myBox->SetFillStyle(3003);
+	myBox->SetFillColor(color);
+	myBox->Draw("l");
+      }
+
+      else {
 	for (const auto& subdetectorName : volumeSubdetectorNames) {
 	  const int color = computeSubdetectorColor(subdetectorName, isEmpty);
 
@@ -8086,32 +8087,36 @@ namespace insur {
 	  r2 += 2;
 	}
       }
+      
 
       serviceId++;
     }
 
 
+    myStringStream << std::endl;
+    myStringStream << "volume_ID/I,sim_category/C,Module_DetId/I,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,Component/C,Element/C,mass/D" << std::endl;
+
 
     // MODULE CAPS
-    /*
     const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
     const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
     std::vector<ModuleCap> allModules;
     for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
     for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
 
-    std::map<std::string, double> modulesTotal;
-    std::map<std::string, std::map<std::string, double> > modulesComponentsTotal;
+    //std::map<std::string, double> modulesTotal;
+    //std::map<std::string, std::map<std::string, double> > modulesComponentsTotal;
 
-    for (auto& iter : allModules) {
-      const Module& detectorModule = iter.getModule();
+    for (auto& moduleIt : allModules) {
+      const Module& detectorModule = moduleIt.getModule();
       z1 = detectorModule.minZwithHybrids();
       z2 = detectorModule.maxZwithHybrids();
       r1 = detectorModule.minRwithHybrids();
       r2 = detectorModule.maxRwithHybrids();
       //length = iter.getLength();
-      rl = iter.getRadiationLength();
-      il = iter.getInteractionLength();
+      rl = moduleIt.getRadiationLength();
+      il = moduleIt.getInteractionLength();
+      const uint32_t detId = detectorModule.myDetId();
 
       // Update the maxZ and maxR with respect to the inactive surfaces
       if (fabs(z1)>maxZ) maxZ=fabs(z1);
@@ -8122,44 +8127,57 @@ namespace insur {
       bool isEmpty = true;
 
       //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
-      const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = iter.getMassPerSubdetectorAndElement();
-      std::string commonSubdetectorName;
+      const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& weightPerVolume = moduleIt.getMassPerSubdetectorAndElement();
+      // std::string commonSubdetectorName;
 
-      for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
-	const std::string subdetectorName =  subdetectorIt.first;
-	const std::map<std::string, double>&  massPerElement = subdetectorIt.second;
-	if ( commonSubdetectorName != "" && subdetectorName != commonSubdetectorName) { std::cout << "!!! Materials module volume has more than 1 subdetector assigned." << std::endl; }
-	else { commonSubdetectorName = subdetectorName; }
+      int elementId = 0;
+      //std::set<std::string> volumeSubdetectorNames;
+      std::string subdetectorName;
 
-	int elementId=0;
-	//for (auto& massIt : localMasses) {
-	for (const auto& massIt : massPerElement) {
-	  mass = massIt.second;
-	  std::string elementName = massIt.first;
-	  if (mass!=0) isEmpty=false;
-	  // calculate totals
-	  modulesTotal[subdetectorName] += mass;
-	  modulesComponentsTotal[subdetectorName][elementName] += mass;
-	  // detailed csv output
-	  myStringStream << serviceId << ","
-			 << z1 << ","
-			 << z2 << ","
-			 << r1 << ","
-			 << r2 << ","
-			 << subdetectorName << ","
-			 << "Module" << ","
-			 << elementId++ << ","
-			 << elementName << ","
-			 << mass << ","
-			 << mass << ","
-			 << rl << ","
-			 << il << std::endl;
+      for (const auto& subdetectorIt : weightPerVolume) {
+	subdetectorName = subdetectorIt.first;
+	//volumeSubdetectorNames.insert(subdetectorName);
+
+	const std::map<std::string, std::map<std::string, double> >& weightPerSubdetector = subdetectorIt.second;
+
+	for (const auto& componentIt : weightPerSubdetector) {
+
+	  const std::string componentName = componentIt.first;
+	  const std::map<std::string, double>& weightPerComponent = componentIt.second;
+
+	  for (const auto& elementIt : weightPerComponent) {
+	    
+	    std::string elementName = elementIt.first;
+	    mass = elementIt.second;
+
+	    if (mass > 0.) isEmpty = false;
+	    // calculate totals
+	    //modulesTotal[subdetectorName] += mass;
+	    //modulesComponentsTotal[subdetectorName][elementName] += mass;
+	    // detailed csv output
+	    myStringStream << serviceId << ","
+			   << "Module" << ","
+			   << detId << ","
+			   << z1 << ","
+			   << z2 << ","
+			   << r1 << ","
+			   << r2 << ","
+			   << rl << ","
+			   << il << ","
+			   << elementId++ << ","
+			   << subdetectorName << ","
+	      //<< mechanicalCategory << ","
+			   << componentName << ","	       
+			   << elementName << ","
+			   << mass
+			   << std::endl;
+	  }
 	}
       }
 
-      const int color = computeSubdetectorColor(commonSubdetectorName, isEmpty);
+      const int color = computeSubdetectorColor(subdetectorName, isEmpty);
 
-      if (detectorModule.isTilted() && commonSubdetectorName != "TEDD") {
+      if (detectorModule.isTilted() && subdetectorName != "TEDD") {
 	const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
 	const double rhoAtMaxZ = (z1 > 0. ? r1 : r2); 
 	TLine* myLine = new TLine(z1, rhoAtMinZ, z2, rhoAtMaxZ);
@@ -8176,7 +8194,6 @@ namespace insur {
 
       serviceId++;
     }
-      */
 
 
 
@@ -8249,11 +8266,11 @@ namespace insur {
     int color;
 
     if (!isEmpty) {
-      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kAzure;
+      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kCyan;
       else if (subdetectorName == "TB2S" || subdetectorName == "FPIX_1") color = kRed;
       else if (subdetectorName == "TEDD" || subdetectorName == "FPIX_2") color = kOrange;
-      else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kMagenta;
-      else color = kGreen;
+      else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
+      else color = kBlack;
     }
     else { color = kBlack; }
 
