@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
     ("cablingMap,c", "Build an optical cabling map, which connects each module to a bundle, cable, DTC + Build a power cabling map. Also provide info on routing of services through channels.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
-    ("debug-services,d", "Service additional debug info")
     ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
     ("graph,g", "Build and report neighbour graph.")
     ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
           bool triggerRes         = vm.count("all") || vm.count("resolution") ||  vm.count("debug-resolution");
           bool triggerPatternReco = vm.count("all") || vm.count("pattern-reco");
           if (!squid.pureAnalyzeMaterialBudget(mattracks, triggerRes, triggerPatternReco, vm.count("debug-resolution"))) return EXIT_FAILURE;
-          if (triggerMB  && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
+          if (triggerMB  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
           if (triggerRes && !squid.reportResolutionSite()) return EXIT_FAILURE;
           if (triggerPatternReco && !squid.reportPatternRecoSite()) return EXIT_FAILURE;
         }

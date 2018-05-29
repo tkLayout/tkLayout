@@ -121,8 +121,8 @@ namespace insur {
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site, std::string alternativeName);
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");

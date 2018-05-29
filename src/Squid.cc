@@ -658,12 +658,12 @@ namespace insur {
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportMaterialBudgetSite(bool debugServices) {
+  bool Squid::reportMaterialBudgetSite() {
     if (mb) {
       startTaskClock("Creating material budget report");
-      v.histogramSummary(a, *mb, debugServices, site, "outer");
+      v.histogramSummary(a, *mb, site, "outer");
       if (pm) {
-	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.histogramSummary(pixelAnalyzer, *pm, site, "pixel");
 	v.totalMaterialSummary(a, pixelAnalyzer, site);
       }
       v.weigthSummary(a, *mb, weightDistributionTracker, site, "outer");

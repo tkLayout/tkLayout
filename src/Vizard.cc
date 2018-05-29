@@ -367,8 +367,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    histogramSummary(a, materialBudget, debugServices, site, "outer");
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site) {
+    histogramSummary(a, materialBudget, site, "outer");
   }
 
   /**
@@ -506,7 +506,7 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site, std::string name) {
     materialBudgets_.push_back(&materialBudget);
     
     // Initialize the page with the material budget

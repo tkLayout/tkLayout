@@ -103,7 +103,7 @@ namespace insur {
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
     bool reportPowerSite();
-    bool reportMaterialBudgetSite(bool debugServices);
+    bool reportMaterialBudgetSite();
     bool reportResolutionSite();
     bool reportPatternRecoSite();
     bool reportTriggerPerformanceSite(bool extended);

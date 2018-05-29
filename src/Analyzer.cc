@@ -1462,86 +1462,10 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   endcapComponentWeights.clear();
   computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
 
-  //weightBySubdetector_ = computeWeightBySubdetector(mb);
-
   MaterialBillAnalyzer v;
   v.inspectTracker(mb);
   billOfMaterials_ = v.outputTable;
 }
-
-
-  /*
-  const WeightsPerSubdetector Analyzer::computeWeightBySubdetector(MaterialBudget& materialBudget) {
-    
-    WeightsPerSubdetector weightsPerSubdetectorAndComponents;
-
-    // to avoid having these maps of maps: try using LocalMass as a map key
-    //struct Class1Compare
-    //{
-    // bool operator() (const Class1& lhs, const Class1& rhs) const
-    // {
-    //   return lhs.id < rhs.id;
-    //}
-    //};
-    //std::map<Class1, int, Class1Compare> c2int;
-
-
-
-    // SERVICES
-    
-    const std::vector<InactiveElement>& allServices = materialBudget.getAllServices();
-
-    for (auto& serviceIt : allServices) {
-
-      const std::vector<LocalMass>& allMasses = serviceIt.getLocalMassesDetails();
-  
-      for (const auto& massIt : allMasses) {
-	const std::string subdetectorName = massIt.matSubdetectorName();
-	const MechanicalCategory& category = massIt.mechanicalCategory();
-	std::string mechanicalCategory = any2str(category);
-	if (category == MechanicalCategory::COOLING || category == MechanicalCategory::SUPPORT) mechanicalCategory = "SUPPORTS & COOLING";
-	const std::string componentName = massIt.componentName();
-	const std::string elementName = massIt.elementName();
-	const double mass = massIt.mass();
-
-	// calculate totals
-	weightsPerSubdetectorAndComponents[subdetectorName][mechanicalCategory][componentName] += mass;
-      }
-    }
-
-
-
-    // MODULE CAPS
-    const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
-    const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
-    std::vector<ModuleCap> allModules;
-    for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
-    for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
-
-    for (auto& moduleIt : allModules) {
-
-      const std::vector<LocalMass>& allMasses = moduleIt.getLocalMassesDetails();
-  
-      for (const auto& massIt : allMasses) {
-	const std::string subdetectorName = massIt.matSubdetectorName();
-	const MechanicalCategory& category = massIt.mechanicalCategory();
-	std::string mechanicalCategory = any2str(category);
-	if (category == MechanicalCategory::COOLING || category == MechanicalCategory::SUPPORT) mechanicalCategory = "SUPPORTS & COOLING";
-	const std::string componentName = massIt.componentName();
-	const std::string elementName = massIt.elementName();
-	const double mass = massIt.mass();
-
-	// calculate totals
-	weightsPerSubdetectorAndComponents[subdetectorName][mechanicalCategory][componentName] += mass;
-      }
-    }
-    
-
-    return weightsPerSubdetectorAndComponents;
-  
-  }
-  */
-
 
 
 // protected
