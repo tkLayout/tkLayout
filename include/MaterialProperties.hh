@@ -56,8 +56,8 @@ namespace insur {
     const MechanicalCategory mechanicalCategory() const {
       if (componentName_.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
       else if (componentName_.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
-      else if (componentName_.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT;
-      else if (componentName_.find(mechanical_support) != std::string::npos) return MechanicalCategory::COOLING;
+      else if (componentName_.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::COOLING;
+      else if (componentName_.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT;
       else return MechanicalCategory::UNKNOWN;
     }
 
@@ -113,7 +113,7 @@ namespace insur {
 
       const std::vector<LocalMass> getLocalMassesDetails() const { return localMassesDetails_; }
       //const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
-      const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
+      const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
       //const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndComponent() const { return massPerSubdetectorAndComponent_; }
 
         void addLocalMass(const std::string matSubdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
@@ -155,7 +155,7 @@ namespace insur {
         std::vector<LocalMass> localMassesDetails_; 
 
       //std::map<std::string, double> massPerSubdetector_;
-      std::map<std::string, std::map<std::string, double> > massPerSubdetectorAndElement_;
+      std::map<std::string, std::map<std::string, std::map<std::string, double> > > massPerSubdetectorAndElement_;
 
         std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >

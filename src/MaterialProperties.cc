@@ -105,7 +105,7 @@ namespace insur {
 	LocalMass localMass = LocalMass(matSubdetectorName, noComponentName, elementName, mass);
 	localMassesDetails_.push_back(localMass);
 
-	massPerSubdetectorAndElement_[matSubdetectorName][elementName] += mass;
+	massPerSubdetectorAndElement_[matSubdetectorName][noComponentName][elementName] += mass;
 	//massPerSubdetector_[matSubdetectorName] += mass;
     }
 
@@ -127,7 +127,7 @@ namespace insur {
 	LocalMass localMass = LocalMass(matSubdetectorName, componentName, elementName, mass);
 	localMassesDetails_.push_back(localMass);
 
-	massPerSubdetectorAndElement_[matSubdetectorName][componentName] += mass;
+	massPerSubdetectorAndElement_[matSubdetectorName][componentName][elementName] += mass;
 	//massPerSubdetector_[matSubdetectorName] += mass;
     }
     

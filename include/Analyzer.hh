@@ -105,6 +105,7 @@ namespace insur {
   typedef std::map<std::string, double> WeightsPerComponent;
   typedef std::map<std::string, WeightsPerComponent> WeightsPerMechanicalCategory;
   typedef std::map<std::string, WeightsPerMechanicalCategory> WeightsPerSubdetector;
+  typedef std::map<std::string, WeightsPerSubdetector> WeightsPerSubdetectorAndElements;
 
 
   class Analyzer : private AnalyzerTools {
