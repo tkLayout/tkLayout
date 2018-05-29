@@ -1473,9 +1473,9 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 
 
 
-  std::map<std::string, std::map<std::string, std::map<std::string, double> > > Analyzer::computeWeightBySubdetector(MaterialBudget& materialBudget) {
+  const WeightsPerSubdetector Analyzer::computeWeightBySubdetector(MaterialBudget& materialBudget) {
     
-    std::map<std::string, std::map<std::string, std::map<std::string, double> > > weightsPerSubdetectorAndComponents;
+    WeightsPerSubdetector weightsPerSubdetectorAndComponents;
 
     // to avoid having these maps of maps: try using LocalMass as a map key
     //struct Class1Compare
@@ -1538,145 +1538,9 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
     }
 
     return weightsPerSubdetectorAndComponents;
-
-
-
-    /*
-    // TOTAL COMPONENT DETAILS
-    myStringStream << "SERVICES COMPONENTS (KG)" << std::endl;
-    for (const auto& serviceIt : servicesComponentsTotal ) {
-    myStringStream << std::endl;
-    myStringStream << serviceIt.first << std::endl;
-    for (const auto& componentIt : serviceIt.second) {
-    myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
-    }
-    }
-    myStringStream << std::endl;
-    myStringStream << "MODULES COMPONENTS (KG)" << std::endl;
-    for (const auto& moduleIt : modulesComponentsTotal ) {
-    myStringStream << std::endl;
-    myStringStream << moduleIt.first << std::endl;
-    for (const auto& componentIt : moduleIt.second) {
-    myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
-    }
-    }
-
-
-
-
-
-    // TOTAL
-    myStringStream << std::endl << std::endl << std::endl;
-    myStringStream << "SERVICES (KG)" << std::endl;
-    for (const auto& serviceIt : servicesTotal ) {
-    myStringStream << serviceIt.first << "," << serviceIt.second/1000. << std::endl;
-    }
-    myStringStream << std::endl;
-    myStringStream << "MODULES (KG)" << std::endl;
-    for (const auto& moduleIt : modulesTotal ) {
-    myStringStream << moduleIt.first << "," << moduleIt.second/1000. << std::endl;
-    }
-
-    myStringStream << std::endl << std::endl << std::endl;
-    myStringStream << "TOTAL (KG)" << std::endl;
-    for (const auto& serviceIt : servicesTotal ) {
-    double totalMass = serviceIt.second;
-    if (modulesTotal.find(serviceIt.first) != modulesTotal.end()) totalMass += modulesTotal.at(serviceIt.first);
-    myStringStream << serviceIt.first << "," << totalMass/1000. << std::endl;
-    }
-    */ 
-
   }
  
 
-
-
-
-  /*
-  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetectorAndElement(MaterialBudget& mb) {
-    std::map<string, SummaryTable> myTables;
-
-    const std::vector<std::vector<ModuleCap> >& barrelModules = mb.getBarrelModuleCaps();
-    const std::vector<std::vector<ModuleCap> >& endcapModules = mb.getEndcapModuleCaps();
-    const std::vector<InactiveElement>& services = mb.getAllServices();
-    //InactiveSurfaces& getInactiveSurfaces(); // TO DO: as well?????
-
-    for (const auto& myModuleVec : barrelModules) {
-      for (const auto& myModule : myModuleVec) {
-	const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
-
-	for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
-	  std::string subdetectorName = subdetectorIt.first;
-	  std::map<std::string, double>& massPerElement = subdetectorIt.second;
-	  int rowCounter = 0;
-	  for (const auto& elementIt : massPerElement) {
-	    std::string elementName = elementIt.first;
-	    double mass = elementIt.second;
-	    std::ostringstream massStream;
-	    massStream << std::dec << std::fixed << std::setprecision(1) << mass;
-	    myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
-	    myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
-	    rowCounter++;
-	  } // element
-	} // subdetector
-
-      } // modulesVec
-    } // barrelModules
-
-
-    for (const auto& myModuleVec : endcapModules) {
-      for (const auto& myModule : myModuleVec) {
-	const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
-
-	for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
-	  std::string subdetectorName = subdetectorIt.first;
-	  std::map<std::string, double>& massPerElement = subdetectorIt.second;
-	  int rowCounter = 0;
-	  for (const auto& elementIt : massPerElement) {
-	    std::string elementName = elementIt.first;
-	    double mass = elementIt.second;
-	    std::ostringstream massStream;
-	    massStream << std::dec << std::fixed << std::setprecision(1) << mass;
-	    myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
-	    myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
-	    rowCounter++;
-	  } // element
-	} // subdetector
-
-      } // modulesVec
-    } // barrelModules
-
-
-    for (const auto& myService : services) {
-      const std::map<std::string, std::map<std::string, double> >& massPerSubdetectorAndElement = myModule.getMassPerSubdetectorAndElement();
-
-      for (const auto& subdetectorIt : massPerSubdetectorAndElement) {
-	std::string subdetectorName = subdetectorIt.first;
-	std::map<std::string, double>& massPerElement = subdetectorIt.second;
-	int rowCounter = 0;
-	for (const auto& elementIt : massPerElement) {
-	  std::string elementName = elementIt.first;
-	  double mass = elementIt.second;
-	  std::ostringstream massStream;
-	  massStream << std::dec << std::fixed << std::setprecision(1) << mass;
-	  myTables[subdetectorName].setCell(rowCounter, 0, elementName.str());
-	  myTables[subdetectorName].setCell(rowCounter, 1, massStream.str());
-	  rowCounter++;
-	} // element
-      } // subdetector
-
-    } // services
-
-  }
-  */
-
-
-
-  /*
-  std::map<std::string, SummaryTable> Analyzer::computeWeightBySubdetectorAndComponent(MaterialBudget& mb) {
-
-  }
-  */
 
 
 // protected

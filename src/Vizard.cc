@@ -426,14 +426,16 @@ namespace insur {
 
 
     // TOTAL WEIGHT
-    const std::map<std::string, std::map<std::string, std::map<std::string, double> > > weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+    const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+
+    double totalWeight = 0.;
 
     for (const auto& subdetectorIt : weightsPerSubdetectorAndComponent) {
       const std::string subdetectorName = subdetectorIt.first;
       RootWContent& myContent = myPage.addContent(subdetectorName, true);
       RootWTable& myTable = myContent.addTable();
 
-      const std::map<std::string, std::map<std::string, double> >& weightsPerMechanicalCategoryAndComponent = subdetectorIt.second;
+      const WeightsPerMechanicalCategory& weightsPerMechanicalCategoryAndComponent = subdetectorIt.second;
 
       double totalWeightInSubdetector = 0.;
       int rowCounter = 0;
@@ -444,7 +446,7 @@ namespace insur {
 
 	const std::string mechanicalCategory = mechanicalCategoryIt.first;
 
-	const std::map<std::string, double>& weightsPerComponent = mechanicalCategoryIt.second;
+	const WeightsPerComponent& weightsPerComponent = mechanicalCategoryIt.second;
 
 	double totalWeightInMechanicalCategory = 0.;
 
@@ -480,8 +482,13 @@ namespace insur {
       
       myTable.setContent(rowCounter, 0, "TOTAL " + subdetectorName, boldCell);
       myTable.setContent(rowCounter, 1, totalWeightInSubdetector, weightPrecision, boldCell);
+      totalWeight += totalWeightInSubdetector;
     } // subdetector
 
+    const std::string grandTotal = "GRAND TOTAL (kg)" + any2str(totalWeight);
+    RootWContent& totalContent = myPage.addContent(grandTotal, false);
+    //RootWTable& totalTable = totalContent.addTable();
+    //totalTable.setContent(0, 0, totalWeight);
   }
 
 
