@@ -40,35 +40,52 @@ namespace insur {
 
   enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT, COOLING };
 
-  class LocalMass {
+  class LocalElement {
   public:
-    LocalMass(const std::string matSubdetectorName, const std::string componentName,  const std::string elementName, const double mass) :
+    LocalElement(const std::string matSubdetectorName, const std::string componentName, const std::string elementName) :
       matSubdetectorName_(matSubdetectorName),
       componentName_(componentName),
-      elementName_(elementName),
-      mass_(mass)
-    { }
+      elementName_(elementName) 
+    { 
+      category_ = computeMechanicalCategory(componentName);
+    }
+
     const std::string matSubdetectorName() const { return matSubdetectorName_; }
+    const MechanicalCategory mechanicalCategory() const { return category_; }
     const std::string componentName() const { return componentName_; }
     const std::string elementName() const { return elementName_; }
-    const double mass() const { return mass_; }
 
-    const MechanicalCategory mechanicalCategory() const {
-      if (componentName_.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
-      else if (componentName_.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
-      else if (componentName_.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::COOLING;
-      else if (componentName_.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT;
+ 
+  protected:
+    MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
+      if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
+      else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
+      else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::COOLING;
+      else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT;
       else return MechanicalCategory::UNKNOWN;
     }
 
-  protected:
     std::string matSubdetectorName_;
+    MechanicalCategory category_;
     std::string componentName_;
     std::string elementName_;
-    double mass_;
   };
 
 
+  struct ElementNameCompare {
+    bool operator() (const LocalElement& localA, const LocalElement& localB) const {
+      if (localA.matSubdetectorName() != localB.matSubdetectorName()) return (localA.matSubdetectorName() < localB.matSubdetectorName());
+      else {
+	if (localA.mechanicalCategory() != localB.mechanicalCategory()) return (localA.mechanicalCategory() < localB.mechanicalCategory());
+	else {
+	  if (localA.componentName() != localB.componentName()) return (localA.componentName() < localB.componentName());
+	  else return (localA.elementName() < localB.elementName());
+	}
+      }
+    }
+    // NB: No need of operator==
+    // (a == b)  <=>  ( !(a<b) && !(b<a) )
+  };
 
   
 
@@ -111,7 +128,7 @@ namespace insur {
         double getLocalMass(std::string tag); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
 
-      const std::vector<LocalMass> getLocalMassesDetails() const { return localMassesDetails_; }
+      const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
       //const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
       const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
       //const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndComponent() const { return massPerSubdetectorAndComponent_; }
@@ -151,8 +168,8 @@ namespace insur {
         Category cat;
         std::map<std::string, double> localmasses;
 
-        // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalMassDetails:
-        std::vector<LocalMass> localMassesDetails_; 
+        // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalElementDetails:
+      std::map<LocalElement, double, ElementNameCompare> localMassesDetails_; 
 
       //std::map<std::string, double> massPerSubdetector_;
       std::map<std::string, std::map<std::string, std::map<std::string, double> > > massPerSubdetectorAndElement_;

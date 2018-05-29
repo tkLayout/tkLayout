@@ -1462,9 +1462,7 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   endcapComponentWeights.clear();
   computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
 
-  weightBySubdetector_ = computeWeightBySubdetector(mb);
-  //weightBySubdetectorAndElement_ = computeWeightBySubdetectorAndElement(mb);
-  //weightBySubdetectorAndComponent_ = computeWeightBySubdetectorAndComponent(mb);
+  //weightBySubdetector_ = computeWeightBySubdetector(mb);
 
   MaterialBillAnalyzer v;
   v.inspectTracker(mb);
@@ -1472,7 +1470,7 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 }
 
 
-
+  /*
   const WeightsPerSubdetector Analyzer::computeWeightBySubdetector(MaterialBudget& materialBudget) {
     
     WeightsPerSubdetector weightsPerSubdetectorAndComponents;
@@ -1490,6 +1488,7 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 
 
     // SERVICES
+    
     const std::vector<InactiveElement>& allServices = materialBudget.getAllServices();
 
     for (auto& serviceIt : allServices) {
@@ -1536,10 +1535,12 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 	weightsPerSubdetectorAndComponents[subdetectorName][mechanicalCategory][componentName] += mass;
       }
     }
+    
 
     return weightsPerSubdetectorAndComponents;
+  
   }
- 
+  */
 
 
 

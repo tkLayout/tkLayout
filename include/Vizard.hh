@@ -88,6 +88,12 @@ namespace insur {
     }
   };
 
+
+  typedef std::map<std::string, double> WeightsPerComponent;
+  typedef std::map<std::string, WeightsPerComponent> WeightsPerMechanicalCategory;
+  typedef std::map<std::string, WeightsPerMechanicalCategory> WeightsPerSubdetector;
+
+
   /**
    * @class Vizard
    * @brief This class bundles a number of output functions for different parts and stages of the material budget buildup.
@@ -118,7 +124,7 @@ namespace insur {
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
-    void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
+    void weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool cablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
@@ -128,7 +134,7 @@ namespace insur {
     bool patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
-    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);
+    WeightsPerSubdetector computeDetailedWeights(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);

@@ -666,8 +666,8 @@ namespace insur {
 	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
 	v.totalMaterialSummary(a, pixelAnalyzer, site);
       }
-      v.weigthSummart(a, weightDistributionTracker, site, "outer");
-      if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
+      v.weigthSummary(a, *mb, weightDistributionTracker, site, "outer");
+      if (pm) v.weigthSummary(pixelAnalyzer, *pm, weightDistributionPixel, site, "pixel");
       stopTaskClock();
       return true;
     }

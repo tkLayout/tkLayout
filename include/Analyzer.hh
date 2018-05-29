@@ -102,11 +102,6 @@ namespace insur {
   //typedef double TrackCollectionKey;
   typedef std::map<int, TrackCollection> TrackCollectionMap;
 
-  typedef std::map<std::string, double> WeightsPerComponent;
-  typedef std::map<std::string, WeightsPerComponent> WeightsPerMechanicalCategory;
-  typedef std::map<std::string, WeightsPerMechanicalCategory> WeightsPerSubdetector;
-  typedef std::map<std::string, WeightsPerSubdetector> WeightsPerSubdetectorAndElements;
-
 
   class Analyzer : private AnalyzerTools {
   public:
@@ -280,9 +275,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, double>& getTagWeigth() { return tagWeight; };
-    const WeightsPerSubdetector getWeightBySubdetector() const { return weightBySubdetector_; }
-    //std::map<std::string, SummaryTable>& getWeightBySubdetectorAndElement() const { return weightBySubdetectorAndElement_; }
-    //std::map<std::string, SummaryTable>& getWeightBySubdetectorAndComponent() const { return weightBySubdetectorAndComponent_; }
+    //const WeightsPerSubdetector getWeightBySubdetector() const { return weightBySubdetector_; }
 
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXBarrelMap() {return parametrizedResolutionLocalXBarrelMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
@@ -384,10 +377,8 @@ namespace insur {
     std::map<std::string, SummaryTable> endcapComponentWeights;
     std::map<std::string, double> typeWeight;
     std::map<std::string, double> tagWeight;
-    WeightsPerSubdetector weightBySubdetector_;
-    //std::map<std::string, SummaryTable> weightBySubdetectorAndElement_;
-    //std::map<std::string, SummaryTable> weightBySubdetectorAndComponent_;
-
+    //WeightsPerSubdetector weightBySubdetector_;
+   
     
 
 
@@ -469,7 +460,7 @@ namespace insur {
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
     //std::map<std::string, SummaryTable> computeWeightBySubdetectorAndElement(MaterialBudget& mb);
     //std::map<std::string, SummaryTable> computeWeightBySubdetectorAndComponent(MaterialBudget& mb);
-    const WeightsPerSubdetector computeWeightBySubdetector(MaterialBudget& mb);
+    //const WeightsPerSubdetector computeWeightBySubdetector(MaterialBudget& mb);
 
     virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, Track& track,
                                     std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);

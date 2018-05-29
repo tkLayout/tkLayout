@@ -380,7 +380,8 @@ namespace insur {
    */
 
   // TODO: if weightGrid is actually unused, then remove it
-  void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+  void Vizard::weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+
     RootWContent* myContent;
 
     // Initialize the page with the material budget
@@ -390,10 +391,14 @@ namespace insur {
     RootWPage& myPage = site.addPage(pageTitle);
     myPage.setAddress(pageAddress);
 
+
+    const WeightsPerSubdetector& weightsPerSubdetector = computeDetailedWeights(materialBudget, myPage);
+
     // weight plot
     //myContent = new RootWContent("Overview plot", true);
     //myPage.addContent(myContent);
 
+    /*
     std::map<std::string, SummaryTable>* summaryTables;
 
     // Write the summary for barrel first and endcap second
@@ -423,26 +428,27 @@ namespace insur {
         myTable.setContent(it->second.getContent());
       }
     }
+    */
 
 
     // TOTAL WEIGHT
-    const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+    //const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
 
     double totalWeight = 0.;
 
-    for (const auto& subdetectorIt : weightsPerSubdetectorAndComponent) {
+    for (const auto& subdetectorIt : weightsPerSubdetector) {
       const std::string subdetectorName = subdetectorIt.first;
       RootWContent& myContent = myPage.addContent(subdetectorName, true);
       RootWTable& myTable = myContent.addTable();
 
-      const WeightsPerMechanicalCategory& weightsPerMechanicalCategoryAndComponent = subdetectorIt.second;
+      const WeightsPerMechanicalCategory& weightsPerMechanicalCategory = subdetectorIt.second;
 
       double totalWeightInSubdetector = 0.;
       int rowCounter = 0;
       const bool boldCell = true;
       const int weightPrecision = 1;
 
-      for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategoryAndComponent) {
+      for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategory) {
 
 	const std::string mechanicalCategory = mechanicalCategoryIt.first;
 
@@ -1225,10 +1231,6 @@ namespace insur {
     //} else {
     //  delete materialSummaryTable;
     //}
-
-    if (debugServices) {
-        drawInactiveSurfacesSummary(materialBudget, *myPage);
-    }
 
   }
 
@@ -7945,11 +7947,11 @@ namespace insur {
   }
 
 
-  void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
+  WeightsPerSubdetector Vizard::computeDetailedWeights(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
     //const bool isIT = myTracker.isPixelTracker();
     std::string myTrackerName = myTracker.myid();
-    RootWContent& myContent = myPage.addContent("Service details");
+    RootWContent& myContent = myPage.addContent("All volumes details");
 
     // Counting services with an ad-hoc index
     int serviceId = 0;
@@ -7968,19 +7970,18 @@ namespace insur {
     TBox* myBox;
     TText* myText;
 
-    myStringStream << "volume_ID/I,sim_category/C,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,Component/C,Element/C,mass/D,mass_per_length/D" << std::endl;
+    myStringStream << "volume_ID/I,sim_category/C,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,mechanical_category/C,Component/C,Element/C,mass/D,mass_per_length/D" << std::endl;
 
 
+    WeightsPerSubdetector totalWeights;
 
 
     //std::vector<MaterialProperties*> totalMaterials;
     //Vector<unique_ptr<Base>>.  vec.emplace_back(new Derived())
 
-    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
-    std::map<std::string, double> servicesTotal;
-    std::map<std::string, std::map<std::string, double> > servicesComponentsTotal;
-
     // SERVICES
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices(); 
+   
     for (auto& serviceIt : allServices) {
       z1 = serviceIt.getZOffset();
       z2 = serviceIt.getZOffset()+serviceIt.getZLength();
@@ -7998,67 +7999,50 @@ namespace insur {
   
      
       bool isEmpty = true;
-      const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& weightPerVolume = serviceIt.getMassPerSubdetectorAndElement();
-      //const std::vector<LocalMass>& allMasses = serviceIt.getLocalMassesDetails();
+      //const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& weightPerVolume = serviceIt.getMassPerSubdetectorAndElement();
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = serviceIt.getLocalElementsDetails();
 
       int elementId = 0;
       std::string subdetectorName;
       std::set<std::string> volumeSubdetectorNames;
-      //WeightsPerSubdetectorAndElements volumeMasses;
 
-      /*for (const auto& massIt : allMasses) {
+      for (const auto& massIt : allMasses) {
 
-	const std::string subdetectorName = massIt.matSubdetectorName();
-	volumeSubdetectorNames.insert(subdetectorName);
-	const MechanicalCategory& category = massIt.mechanicalCategory();
-	std::string mechanicalCategory = any2str(category);
-	//if (category == MechanicalCategory::COOLING || category == MechanicalCategory::SUPPORT) mechanicalCategory = "SUPPORTS & COOLING";
-	const std::string componentName = massIt.componentName();
-	const std::string elementName = massIt.elementName();
-	const double mass = massIt.mass();
+	const LocalElement& myElement = massIt.first;
 
-	volumeMasses[subdetectorName][mechanicalCategory][componentName][elementName] += mass;
-	}*/
-
-      for (const auto& subdetectorIt : weightPerVolume) {
-	subdetectorName = subdetectorIt.first;
+	const std::string subdetectorName = myElement.matSubdetectorName();
 	volumeSubdetectorNames.insert(subdetectorName);
 
-	const std::map<std::string, std::map<std::string, double> >& weightPerSubdetector = subdetectorIt.second;
+	const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
+	std::string tableMechanicalCategory = any2str(mechanicalCategory);
+	if (mechanicalCategory == MechanicalCategory::COOLING || mechanicalCategory == MechanicalCategory::SUPPORT) tableMechanicalCategory = "SUPPORTS & COOLING";
 
-	for (const auto& componentIt : weightPerSubdetector) {
+	const std::string componentName = myElement.componentName();
+	const std::string elementName = myElement.elementName();
 
-	  const std::string componentName = componentIt.first;
-	  const std::map<std::string, double>& weightPerComponent = componentIt.second;
-
-	  for (const auto& elementIt : weightPerComponent) {
+	const double mass = massIt.second;
 	    
-	    std::string elementName = elementIt.first;
-	    mass = elementIt.second;
-	    
-	    if (mass > 0.) isEmpty = false;
-	    // calculate totals
-	    //servicesTotal[subdetectorName] += mass;
-	    //servicesComponentsTotal[subdetectorName][elementName] += mass;
-	    // detailed csv output
-	    myStringStream << serviceId << ","
-			   << "Service" << ","
-			   << z1 << ","
-			   << z2 << ","
-			   << r1 << ","
-			   << r2 << ","
-			   << rl << ","
-			   << il << ","
-			   << elementId++ << ","
-			   << subdetectorName << ","
-	      //<< mechanicalCategory << ","
-			   << componentName << ","	       
-			   << elementName << ","
-			   << mass << ","
-			   << mass/length
-			   << std::endl;
-	  }
-	}
+	if (mass > 0.) isEmpty = false;
+	// CALCULATE TOTALS
+	totalWeights[subdetectorName][tableMechanicalCategory][componentName] += mass;
+	
+	// DETAILED CSV OUTPUT
+	myStringStream << serviceId << ","
+		       << "Service" << ","
+		       << z1 << ","
+		       << z2 << ","
+		       << r1 << ","
+		       << r2 << ","
+		       << rl << ","
+		       << il << ","
+		       << elementId++ << ","
+		       << subdetectorName << ","
+		       << mechanicalCategory << ","
+		       << componentName << ","	       
+		       << elementName << ","
+		       << mass << ","
+		       << mass/length
+		       << std::endl;
       }
 
       if (volumeSubdetectorNames.size() > 3) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
@@ -8094,7 +8078,7 @@ namespace insur {
 
 
     myStringStream << std::endl;
-    myStringStream << "volume_ID/I,sim_category/C,Module_DetId/I,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,Component/C,Element/C,mass/D" << std::endl;
+    myStringStream << "volume_ID/I,sim_category/C,Module_DetId/I,z1/D,z2/D,r1/D,r2/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,mechanical_category/C,Component/C,Element/C,mass/D" << std::endl;
 
 
     // MODULE CAPS
@@ -8104,8 +8088,6 @@ namespace insur {
     for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
     for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
 
-    //std::map<std::string, double> modulesTotal;
-    //std::map<std::string, std::map<std::string, double> > modulesComponentsTotal;
 
     for (auto& moduleIt : allModules) {
       const Module& detectorModule = moduleIt.getModule();
@@ -8125,54 +8107,47 @@ namespace insur {
       if (fabs(r2)>maxR) maxR=fabs(r2);
 
       bool isEmpty = true;
-
-      //const std::map<std::string, double>& localMasses = iter.getLocalMasses();
-      const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& weightPerVolume = moduleIt.getMassPerSubdetectorAndElement();
-      // std::string commonSubdetectorName;
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = moduleIt.getLocalElementsDetails();
 
       int elementId = 0;
-      //std::set<std::string> volumeSubdetectorNames;
       std::string subdetectorName;
 
-      for (const auto& subdetectorIt : weightPerVolume) {
-	subdetectorName = subdetectorIt.first;
-	//volumeSubdetectorNames.insert(subdetectorName);
+      for (const auto& massIt : allMasses) {
 
-	const std::map<std::string, std::map<std::string, double> >& weightPerSubdetector = subdetectorIt.second;
+	const LocalElement& myElement = massIt.first;
 
-	for (const auto& componentIt : weightPerSubdetector) {
+	subdetectorName = myElement.matSubdetectorName();
 
-	  const std::string componentName = componentIt.first;
-	  const std::map<std::string, double>& weightPerComponent = componentIt.second;
+	const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
+	std::string tableMechanicalCategory = any2str(mechanicalCategory);
+	if (mechanicalCategory == MechanicalCategory::COOLING || mechanicalCategory == MechanicalCategory::SUPPORT) tableMechanicalCategory = "SUPPORTS & COOLING";
 
-	  for (const auto& elementIt : weightPerComponent) {
+	const std::string componentName = myElement.componentName();
+	const std::string elementName = myElement.elementName();
+
+	const double mass = massIt.second;
 	    
-	    std::string elementName = elementIt.first;
-	    mass = elementIt.second;
-
-	    if (mass > 0.) isEmpty = false;
-	    // calculate totals
-	    //modulesTotal[subdetectorName] += mass;
-	    //modulesComponentsTotal[subdetectorName][elementName] += mass;
-	    // detailed csv output
-	    myStringStream << serviceId << ","
-			   << "Module" << ","
-			   << detId << ","
-			   << z1 << ","
-			   << z2 << ","
-			   << r1 << ","
-			   << r2 << ","
-			   << rl << ","
-			   << il << ","
-			   << elementId++ << ","
-			   << subdetectorName << ","
-	      //<< mechanicalCategory << ","
-			   << componentName << ","	       
-			   << elementName << ","
-			   << mass
-			   << std::endl;
-	  }
-	}
+	if (mass > 0.) isEmpty = false;
+	// CALCULATE TOTALS
+	totalWeights[subdetectorName][tableMechanicalCategory][componentName] += mass;
+	
+	// DETAILED CSV OUTPUT
+	myStringStream << serviceId << ","
+		       << "Module" << ","
+		       << detId << ","
+		       << z1 << ","
+		       << z2 << ","
+		       << r1 << ","
+		       << r2 << ","
+		       << rl << ","
+		       << il << ","
+		       << elementId++ << ","
+		       << subdetectorName << ","
+		       << mechanicalCategory << ","
+		       << componentName << ","	       
+		       << elementName << ","
+		       << mass
+		       << std::endl;
       }
 
       const int color = computeSubdetectorColor(subdetectorName, isEmpty);
@@ -8196,56 +8171,6 @@ namespace insur {
     }
 
 
-
-
-    /*
-    // TOTAL COMPONENT DETAILS
-    myStringStream << "SERVICES COMPONENTS (KG)" << std::endl;
-    for (const auto& serviceIt : servicesComponentsTotal ) {
-      myStringStream << std::endl;
-      myStringStream << serviceIt.first << std::endl;
-      for (const auto& componentIt : serviceIt.second) {
-	myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
-      }
-    }
-    myStringStream << std::endl;
-    myStringStream << "MODULES COMPONENTS (KG)" << std::endl;
-    for (const auto& moduleIt : modulesComponentsTotal ) {
-      myStringStream << std::endl;
-      myStringStream << moduleIt.first << std::endl;
-      for (const auto& componentIt : moduleIt.second) {
-	myStringStream << componentIt.first << "," << componentIt.second/1000. << std::endl;
-      }
-    }
-
-
-
-
-
-    // TOTAL
-    myStringStream << std::endl << std::endl << std::endl;
-    myStringStream << "SERVICES (KG)" << std::endl;
-    for (const auto& serviceIt : servicesTotal ) {
-      myStringStream << serviceIt.first << "," << serviceIt.second/1000. << std::endl;
-    }
-    myStringStream << std::endl;
-    myStringStream << "MODULES (KG)" << std::endl;
-    for (const auto& moduleIt : modulesTotal ) {
-      myStringStream << moduleIt.first << "," << moduleIt.second/1000. << std::endl;
-    }
-
-    myStringStream << std::endl << std::endl << std::endl;
-    myStringStream << "TOTAL (KG)" << std::endl;
-    for (const auto& serviceIt : servicesTotal ) {
-      double totalMass = serviceIt.second;
-      if (modulesTotal.find(serviceIt.first) != modulesTotal.end()) totalMass += modulesTotal.at(serviceIt.first);
-      myStringStream << serviceIt.first << "," << totalMass/1000. << std::endl;
-    }
-    */
-
-
-
-
     // Add plot and csv file to website
     aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
     aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
@@ -8254,10 +8179,12 @@ namespace insur {
     servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
     servicesImage.setName("InactiveSurfacesPosition");
 
-    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
+    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "All volumes weights: ");
     myTextFile->addText(myStringStream.str());
     myContent.addItem(myTextFile);
 
+
+    return totalWeights;
   }
 
 

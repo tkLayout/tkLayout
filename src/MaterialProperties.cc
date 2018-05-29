@@ -102,8 +102,8 @@ namespace insur {
         localmasses[elementName] += mass;
 
 	const std::string noComponentName = "no componentName";
-	LocalMass localMass = LocalMass(matSubdetectorName, noComponentName, elementName, mass);
-	localMassesDetails_.push_back(localMass);
+	LocalElement localMass = LocalElement(matSubdetectorName, noComponentName, elementName);
+	localMassesDetails_[localMass] += mass;
 
 	massPerSubdetectorAndElement_[matSubdetectorName][noComponentName][elementName] += mass;
 	//massPerSubdetector_[matSubdetectorName] += mass;
@@ -124,8 +124,8 @@ namespace insur {
         localmassesComp[getSubName(componentName)] += mass;
         localCompMats[componentName][elementName] += mass; 
 
-	LocalMass localMass = LocalMass(matSubdetectorName, componentName, elementName, mass);
-	localMassesDetails_.push_back(localMass);
+	LocalElement localMass = LocalElement(matSubdetectorName, componentName, elementName);
+	localMassesDetails_[localMass] += mass;
 
 	massPerSubdetectorAndElement_[matSubdetectorName][componentName][elementName] += mass;
 	//massPerSubdetector_[matSubdetectorName] += mass;
