@@ -129,9 +129,6 @@ namespace insur {
         double getLocalMassComp(std::string tag); // throws exception
 
       const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
-      //const std::map<std::string, double> getMassPerSubdetector() const { return massPerSubdetector_; }
-      const std::map<std::string, std::map<std::string, std::map<std::string, double> > >& getMassPerSubdetectorAndElement() const { return massPerSubdetectorAndElement_; }
-      //const std::map<std::string, std::map<std::string, double> >& getMassPerSubdetectorAndComponent() const { return massPerSubdetectorAndComponent_; }
 
         void addLocalMass(const std::string matSubdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
         void addLocalMass(const std::string matSubdetectorName, const std::string tag, double ms);
@@ -169,14 +166,10 @@ namespace insur {
         std::map<std::string, double> localmasses;
 
         // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalElementDetails:
-      std::map<LocalElement, double, ElementNameCompare> localMassesDetails_; 
-
-      //std::map<std::string, double> massPerSubdetector_;
-      std::map<std::string, std::map<std::string, std::map<std::string, double> > > massPerSubdetectorAndElement_;
+      std::map<LocalElement, double, ElementNameCompare> localMassesDetails_;
 
         std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >
-      // std::map<std::string, std::map<std::string, double> > massPerSubdetectorAndComponent_;
 
         std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)
