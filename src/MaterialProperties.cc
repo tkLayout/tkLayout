@@ -220,6 +220,21 @@ namespace insur {
         }
     }
     
+  /**
+   * Returns total mass belonging to Mechanical Module category.
+   * Service: Should be 0. if materials arew correctly defined in cfg files.
+   * Module: Will not take into account the cabling, cooling and extra support weights which do not belong to the mechanical module.
+   */
+  const double MaterialProperties::getMechanicalModuleWeight() const {
+    double mechanicalModuleWeight = 0.;
+    for (const auto& massIt: localMassesDetails_) {
+      const LocalElement& myElement = massIt.first;
+      const double myMass = massIt.second;
+      if (myElement.mechanicalCategory() == MechanicalCategory::MODULE) mechanicalModuleWeight += myMass;
+    }
+    return mechanicalModuleWeight;
+  }
+
     /**
      * Calculate the overall radiation length of the inactive element from the material table and the material vectors,
      * if they have at least one element in them, and an offset value.

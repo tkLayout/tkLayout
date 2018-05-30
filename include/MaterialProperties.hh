@@ -141,15 +141,7 @@ namespace insur {
         // calculated output values
         double getTotalMass() const;
         double getLocalMass();
-      const double getMechanicalModuleWeight() const {
-	double mechanicalModuleWeight = 0.;
-	for (const auto& massIt: localMassesDetails_) {
-	  const LocalElement& myElement = massIt.first;
-	  const double myMass = massIt.second;
-	  if (myElement.mechanicalCategory() == MechanicalCategory::MODULE) mechanicalModuleWeight += myMass;
-	}
-	return mechanicalModuleWeight;
-      }
+      const double getMechanicalModuleWeight() const;
         double getRadiationLength();
         double getInteractionLength();
         RILength getMaterialLengths();
