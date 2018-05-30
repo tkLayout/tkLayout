@@ -139,7 +139,6 @@ namespace insur {
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
-    const int computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty);
     bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
   protected:
@@ -258,6 +257,14 @@ namespace insur {
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
     void drawFrameOfReference(const bool isRotatedY180);
     void computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
+
+    void plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
+				     const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
+				     const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+				     const bool isModule, const int serviceId = 0, const double serviceLength = 0., 
+				     const Module* detectorModule = nullptr, const bool printModulesCsv = false);
+    void plotVolumeBox(const std::string subdetectorName, const bool isEmpty, const double z1, const double z2, const double r1, const double r2, const bool isFilled = true);
+    const int computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty);
   };
 
 
