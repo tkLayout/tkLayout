@@ -8088,7 +8088,7 @@ namespace insur {
     const uint32_t detId = ( (isModule && detectorModule != nullptr) ? detectorModule->myDetId() : 0);
     const int layerOrDiskIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().layer : 0);
     const int ringIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().ring : 0);
-
+    double moduleMass = 0.;
 
     // LOOP ON ALL LOCAL ELEMENTS
     for (const auto& massIt : allMasses) {
@@ -8146,10 +8146,14 @@ namespace insur {
 		      << elementName << ","
 		      << mass
 		      << std::endl;
+	moduleMass += mass;
       }
     }
     allVolumesStream << std::endl;
-    if (printModulesCsv) modulesStream << std::endl;
+    if (printModulesCsv) {
+      modulesStream <<  "," << "," << "," << "," << "," << "," << "," << "," << "Total " << "," << moduleMass << std::endl;
+      modulesStream << std::endl;
+    }
 
 
     // ALL VOLUMES: PLOT

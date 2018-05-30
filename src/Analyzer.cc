@@ -1285,6 +1285,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   string tempString;
   ostringstream tempSS;
+  */
 
   std::vector<std::vector<ModuleCap> >::iterator layerIt;
   //std::vector<std::vector<ModuleCap> >::iterator layerGuard;
@@ -1295,6 +1296,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
   Module* myModule;
   //  unsigned int nLocalMasses;
 
+  /*
   std::map<std::string, double>::const_iterator localmassesBegin;
   std::map<std::string, double>::const_iterator localmassesEnd;
 
@@ -1304,6 +1306,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   double localMaterial;
   string materialTag;
+  
 
   // loop over layers
   for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) {
@@ -1361,13 +1364,14 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
   std::sort(materialTagV.begin(), materialTagV.end());
 
   // Prepare the columns of the tables
-  for (map<string, SummaryTable>::iterator it=result.begin();
-       it!rult.end(); ++it) {
+  for (map<string, SummaryTable>::iterator it=result.begin(); it!=result.end(); ++it) {
     for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
       it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
     }
     it->second.setCell(materialTagV.size()+1, 0, "Total");
   }
+
+  */
 
   // Now fill the table
   // loop over layers
@@ -1383,6 +1387,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
         typeWeight[tmak.posTag]+=myModuleCap->getLocalMass();
         tagWeight[tmak.sensorGeoTag]+=myModuleCap->getLocalMass();
       }
+      /*
       if (myModule->posRef().phi == 1) {
         // If we did not write this module type yet
         pair<int, int> myIndex = make_pair(myModule->tableRef().row/, myModule->tableRef().col);
@@ -1438,10 +1443,9 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
                 << "I found a module with no reference to the container name." << endl;
           }
         }
-      }
+	}*/
     }
   }
-*/
 }
 
 // public
