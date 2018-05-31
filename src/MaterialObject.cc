@@ -323,6 +323,7 @@ namespace material {
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
     materialTab_ (MaterialTab::instance()),
+    myTable_ (MaterialsTable::instance()),
     materialType_(newMaterialType) {
   };
 

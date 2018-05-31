@@ -89,6 +89,13 @@ namespace material {
     ratios_ = computeMassicComposition(formula, allChemicalElements);
 
     //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
+
+
+    /*for (const auto& elemIt : allChemicalElements) {
+      std::cout << "Elementary mat : " << elemIt->first;
+      const ChemicalElement* elem = elemIt->second;
+      if (elem != nullptr) std::cout << elem->getRadiationLength() << std::endl;
+      }*/
     ChemicalBaseMap alreadyDefinedMaterials;
     alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
 
@@ -330,6 +337,10 @@ namespace material {
     second = allChemicalMixtures;
   }
 
+  const MaterialsTable& MaterialsTable::instance() {
+    static MaterialsTable instance_;
+    return instance_;
+  }
 
   double MaterialsTable::density(const std::string materialName) const {
     ChemicalElementMap allChemicalElements = first;

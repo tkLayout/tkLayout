@@ -11,6 +11,10 @@
 #include "Property.hh"
 //#include "Materialway.hh"
 
+
+#include "MaterialTab.hh"
+
+
 class DetectorModule;
 
 namespace insur {
@@ -162,6 +166,7 @@ namespace material {
 
     private:
       const MaterialTab& materialTab_;
+      const MaterialsTable& myTable_;
       static const std::string msg_no_valid_unit;
       MaterialObject::Type& materialType_;
       //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
