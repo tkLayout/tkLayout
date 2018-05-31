@@ -30,7 +30,7 @@ namespace material {
 
   class ChemicalElement : public ChemicalBase {
   public:
-    ChemicalElement(const double density, const int atomicNumber, const int atomicMass);
+    ChemicalElement(const double density, const int atomicNumber, const double atomicMass);
     const int getAtomicNumber() const { return atomicNumber_; } 
     const double getAtomicMass() const { return atomicMass_; } 
     const bool isChemicalElement() const override { return true; }

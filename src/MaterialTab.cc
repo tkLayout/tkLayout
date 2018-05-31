@@ -16,7 +16,7 @@ namespace material {
 
 
 
-  ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const int atomicMass) : 
+  ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const double atomicMass) : 
     ChemicalBase(density),
     atomicNumber_(atomicNumber), 
     atomicMass_(atomicMass) 
@@ -91,11 +91,20 @@ namespace material {
     //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
 
 
-    /*for (const auto& elemIt : allChemicalElements) {
-      std::cout << "Elementary mat : " << elemIt->first;
-      const ChemicalElement* elem = elemIt->second;
-      if (elem != nullptr) std::cout << elem->getRadiationLength() << std::endl;
-      }*/
+    for (const auto& elemIt : allChemicalElements) {
+      std::cout << "ChemicalMixture::ChemicalMixture load Elementary mat = " << elemIt.first;
+      const ChemicalElement* elem = elemIt.second;
+      if (elem != nullptr) {
+	std::cout << " elem->getDensity() = " << elem->getDensity()
+		  << " elem->getRadiationLength() = " << elem->getRadiationLength()
+		  << " elem->getInteractionLength() = " << elem->getInteractionLength() 
+		  << " elem->getAtomicNumber() = " << elem->getAtomicNumber()
+		  << " elem->getAtomicMass() = " << elem->getAtomicMass()
+		  << " elem->isChemicalElement() = " << elem->isChemicalElement()
+		  << std::endl;
+      }
+    }
+
     ChemicalBaseMap alreadyDefinedMaterials;
     alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
 
@@ -203,9 +212,9 @@ namespace material {
     ChemicalElementMap allChemicalElements; 
 
     if (chemicalElementsFile.good()) {
-      while (!chemicalElementsFile.eof()) {
-	std::string lineString;
-        std::getline(chemicalElementsFile, lineString);
+      std::string lineString;
+
+      while (std::getline(chemicalElementsFile, lineString)) {
 	std::istringstream myLine;
         myLine.str(lineString);
 	
@@ -220,8 +229,24 @@ namespace material {
 	  double atomicMass;
           myLine >> elementDensity >> atomicNumber >> atomicMass;
           elementDensity /= 1000.;   // convert g/cm3 in g/mm3
+
+	  std::cout << "MaterialsTable::MaterialsTable() create eleemtray table " 
+		    << " elementName = " <<  elementName
+		    << " elementDensity = " << elementDensity 
+		    << " atomicNumber = " << atomicNumber
+		    << " atomicMass  =" << atomicMass 
+		    << std::endl;
+
+
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
           allChemicalElements.insert(std::make_pair(elementName, &element));
+	  std::cout << " element.getDensity() = " << element.getDensity()
+		    << " element.getRadiationLength() = " << element.getRadiationLength()
+		    << " element.getInteractionLength() = " << element.getInteractionLength() 
+		    << " element.getAtomicNumber() = " << element.getAtomicNumber()
+		    << " element.getAtomicMass() = " << element.getAtomicMass()
+		    << " element.isChemicalElement() = " << element.isChemicalElement()
+		    << std::endl;
         }
         myLine.clear();
       }
@@ -230,16 +255,30 @@ namespace material {
     }
 
 
+    for (const auto& elemIt : allChemicalElements) {
+      std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
+      const ChemicalElement* elem = elemIt.second;
+      if (elem != nullptr) {
+	std::cout << " elem->getDensity() = " << elem->getDensity()
+		  << " elem->getRadiationLength() = " << elem->getRadiationLength()
+		  << " elem->getInteractionLength() = " << elem->getInteractionLength() 
+		  << " elem->getAtomicNumber() = " << elem->getAtomicNumber()
+		  << " elem->getAtomicMass() = " << elem->getAtomicMass()
+		  << " elem->isChemicalElement() = " << elem->isChemicalElement()
+		  << std::endl;
+      }
+    }
+
+
+
     // CHEMICAL COMPOUNDS
     std::ifstream chemicalCompoundsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalCompoundsFile); 
    
     ChemicalMixtureMap allChemicalMixtures;
 
     if (chemicalCompoundsFile.good()) {
-      while (!chemicalCompoundsFile.eof()) {
-	std::string lineString;
-        std::getline(chemicalCompoundsFile, lineString);
-	//while (std::getline(chemicalCompoundsFile, chemicalCompoundLine)) {  TO DO: this is better?
+      std::string lineString;
+      while (std::getline(chemicalCompoundsFile, lineString)) {
 	std::istringstream myLine;
         myLine.str(lineString);
 
@@ -254,6 +293,12 @@ namespace material {
 
 	  ChemicalFormula compoundFormula;
 	  std::string element;
+
+	  std::cout << "MaterialsTable::MaterialsTable() create compound table " 
+		    << " compoundName = " <<  compoundName
+		    << " compoundDensity = " << compoundDensity;
+
+
 	  while (myLine >> element) {
 	    // TO DO: does this modify myLine ?????? is the space(s!!!) delimiter by defualt??
 
@@ -262,12 +307,15 @@ namespace material {
 	      const std::string elementName = element.substr(0, delimiterPosition);
 	      const std::string elementNumberString = element.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const int elementNumber = atoi(elementNumberString.c_str());
+	      std::cout << "elementName = " << elementName << " elementNumber = " << elementNumber;
 	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
 	    }
 	    else { std::cout << "Chemical compound: could not find the : delimiter." << std::endl; }
 
 	    element.clear();
 	  }
+
+	  std::cout << "." << std::endl;
 
 	  ChemicalMixture coumpound = ChemicalMixture(compoundDensity, compoundFormula, allChemicalElements);
 	  allChemicalMixtures.insert(std::make_pair(compoundName, &coumpound));	  
@@ -289,10 +337,8 @@ namespace material {
     alreadyDefinedMaterials.insert(allChemicalMixtures.begin(), allChemicalMixtures.end());
 
     if (chemicalMixturesFile.good()) {
-      while (!chemicalMixturesFile.eof()) {
-	std::string lineString;
-        std::getline(chemicalMixturesFile, lineString);
-	//while (std::getline(mixtureFile, myLine)) {  TO DO: this is better?
+      std::string lineString;
+      while (std::getline(chemicalMixturesFile, lineString)) {
 	std::istringstream myLine;
         myLine.str(lineString);
 
@@ -305,6 +351,12 @@ namespace material {
           myLine >> mixtureDensity;
           mixtureDensity /= 1000.;   // convert g/cm3 in g/mm3
 
+
+	  std::cout << "MaterialsTable::MaterialsTable() create mixture table " 
+		    << " mixtureName = " <<  mixtureName
+		    << " mixtureDensity = " << mixtureDensity;
+
+
 	  MassicComposition mixtureComposition;
 	  std::string constituant;
 	  while (myLine >> constituant) { // TO DO: cross-check this
@@ -314,12 +366,15 @@ namespace material {
 	      const std::string constituantName = constituant.substr(0, delimiterPosition);
 	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const double constituantMassicWeight = std::stod(constituantMassicWeightString);
+	      std::cout << "constituantName = " << constituantName << " constituantMassicWeight = " << constituantMassicWeight;
 	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassicWeight));
 	    }
 	    else { std::cout << "Chemical mixture: could not find the : delimiter." << std::endl; }
 
 	    constituant.clear();
 	  }
+
+	  std::cout << "." << std::endl;
 
 	  ChemicalMixture mixture = ChemicalMixture(mixtureDensity, mixtureComposition, alreadyDefinedMaterials);
 	  allChemicalMixtures.insert(std::make_pair(mixtureName, &mixture));
