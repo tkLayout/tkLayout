@@ -1,8 +1,11 @@
 #ifndef MATERIALTAB_H
 #define MATERIALTAB_H
 
-#include <map>
-//#include <tuple>
+//#include <map>
+#include <tuple>
+
+#include <global_constants.hh>
+#include <global_funcs.hh>
 
 namespace material {
 
@@ -30,7 +33,7 @@ namespace material {
     ChemicalElement(const double density, const int atomicNumber, const int atomicMass);
     const int getAtomicNumber() const { return atomicNumber_; } 
     const double getAtomicMass() const { return atomicMass_; } 
-    const bool isChemicalElementl() const override { const return true; }
+    const bool isChemicalElement() const override { return true; }
 
   private:
     // TO DO: should probably set more accurate RL and IL values directly in the cfg file?
@@ -44,7 +47,6 @@ namespace material {
 
   typedef std::map<std::string, ChemicalBase*> ChemicalBaseMap; // to do: define ChemicalBase directly inside MaterialsTable to avoid this?
   typedef std::map<std::string, ChemicalElement*> ChemicalElementMap;
-  typedef std::map<std::string, ChemicalMixture*> ChemicalMixtureMap;
 
   typedef std::vector< std::pair<std::string, int> > ChemicalFormula;
   typedef std::vector< std::pair<std::string, double> > MassicComposition;
@@ -54,7 +56,7 @@ namespace material {
     ChemicalMixture(const double density, const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements);
     ChemicalMixture(const double density, const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials);
 
-    const bool isChemicalElement() const override { const return false; }
+    const bool isChemicalElement() const override { return false; }
     const bool hasChemicalFormula() const { return (formula_.size() != 0); }
     const ChemicalFormula getChemicalFormula() const { return formula_; }
     const MassicComposition getMassicComposition() const { return ratios_; }
@@ -67,6 +69,8 @@ namespace material {
     ChemicalFormula formula_;
     MassicComposition ratios_;
   };
+
+  typedef std::map<std::string, ChemicalMixture*> ChemicalMixtureMap;
 
 
 

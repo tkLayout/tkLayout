@@ -94,7 +94,7 @@ namespace material {
 
     const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
-    intercationLength_ = radiationAndInteractionLengths.second;
+    interactionLength_ = radiationAndInteractionLengths.second;
   }
 
 
@@ -104,7 +104,7 @@ namespace material {
   {
     const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
-    intercationLength_ = radiationAndInteractionLengths.second;
+    interactionLength_ = radiationAndInteractionLengths.second;
   }
 
 
@@ -113,16 +113,16 @@ namespace material {
     MassicComposition ratios;
     double totalMoleculeMass = 0.;
 
-    for (const auto& chemicalElementIt : formula) {
+    for (const auto& elementIt : formula) {
       const std::string chemicalElementName = elementIt.first;
       const int chemicalElementNumber = elementIt.second;
 
-      const auto found = alreadyDefinedMaterials.find(chemicalElementName);
-      if (found == alreadyDefinedMaterials.end()) {
+      const auto found = allChemicalElements.find(chemicalElementName);
+      if (found == allChemicalElements.end()) {
 	std::cout << "Tried to create molecule made of unknow atom(s) name." << std::endl;
       }
       else {
-	const ChemicalElement* element = found.second;
+	const ChemicalElement* element = found->second;
 	if (element != nullptr) {
 	  const double elementAtomicMass = element->getAtomicMass();
 	  const double mass = chemicalElementNumber * elementAtomicMass;
@@ -134,7 +134,7 @@ namespace material {
       }
     }
 
-    for (auto& ratioIt : ratios_) {
+    for (auto& ratioIt : ratios) {
       ratioIt.second /= totalMoleculeMass;
     }
 
@@ -156,7 +156,7 @@ namespace material {
 	std::cout << "Tried to create mixture made of unknow chemical element / chemical compound / mixture:" << chemicalBaseName << std::endl;
       }
       else {
-	const ChemicalBase* base = found.second;
+	const ChemicalBase* base = found->second;
 	const double radiationLength = (base != nullptr ? base->getRadiationLength() : 0.);
 
 	if (fabs(radiationLength) < insur::mat_negligible) std::cout << "Found a null radiation length for " << chemicalBaseName << std::endl;
@@ -212,7 +212,7 @@ namespace material {
 	  int atomicNumber;
 	  double atomicMass;
           myLine >> elementDensity >> atomicNumber >> atomicMass;
-          density /= 1000.;   // convert g/cm3 in g/mm3
+          elementDensity /= 1000.;   // convert g/cm3 in g/mm3
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
           allChemicalElements.insert(std::make_pair(elementName, &element));
         }
@@ -224,15 +224,15 @@ namespace material {
 
 
     // CHEMICAL COMPOUNDS
-    std::ifstream chemicalCompoundsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalCoumpoundsFile); 
+    std::ifstream chemicalCompoundsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalCompoundsFile); 
    
     ChemicalMixtureMap allChemicalMixtures;
 
-    if (chemicalCoumpoundFile.good()) {
+    if (chemicalCompoundsFile.good()) {
       while (!chemicalCompoundsFile.eof()) {
 	std::string lineString;
         std::getline(chemicalCompoundsFile, lineString);
-	//while (std::getline(chemicalCoumpoundFile, chemicalCoumpoundLine)) {  TO DO: this is better?
+	//while (std::getline(chemicalCompoundsFile, chemicalCompoundLine)) {  TO DO: this is better?
 	std::istringstream myLine;
         myLine.str(lineString);
 
@@ -250,10 +250,10 @@ namespace material {
 	  while (myLine >> element) {
 	    // TO DO: does this modify myLine ?????? is the space(s!!!) delimiter by defualt??
 
-	    const auto delimiterPosition = element.find(default_composition_delimiter);
+	    const auto delimiterPosition = element.find(insur::default_composition_delimiter);
 	    if (delimiterPosition != std::string::npos) {
 	      const std::string elementName = element.substr(0, delimiterPosition);
-	      const std::string elementNumberString = element.substr(delimiterPosition + delimiter.length());
+	      const std::string elementNumberString = element.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const int elementNumber = atoi(elementNumberString.c_str());
 	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
 	    }
@@ -302,11 +302,11 @@ namespace material {
 	  std::string constituant;
 	  while (myLine >> constituant) { // TO DO: cross-check this
 
-	    const auto delimiterPosition = constituant.find(default_composition_delimiter);
+	    const auto delimiterPosition = constituant.find(insur::default_composition_delimiter);
 	    if (delimiterPosition != std::string::npos) {
 	      const std::string constituantName = constituant.substr(0, delimiterPosition);
-	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + delimiter.length());
-	      const double constituantMassicWeight = atod(constituantNumberString.c_str());
+	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
+	      const double constituantMassicWeight = std::stod(constituantMassicWeightString);
 	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassicWeight));
 	    }
 	    else { std::cout << "Chemical mixture: could not find the : delimiter." << std::endl; }
@@ -326,7 +326,8 @@ namespace material {
     }
 
 
-    insert(std::make_pair(allChemicalElements, allChemicalMixtures));
+    first = allChemicalElements;
+    second = allChemicalMixtures;
   }
 
 
@@ -337,8 +338,8 @@ namespace material {
     double density = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { density = found.second->getDensity(); }
-    else { std::cout << "MaterialsTable::density: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    if (found != allChemicalElements.end()) { density = found->second->getDensity(); }
+    else { std::cout << "MaterialsTable::density: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return density;
   }
 
@@ -349,8 +350,8 @@ namespace material {
     double radiationLength = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { radiationLength = found.second->getRadiationLength(); }
-    else { std::cout << "MaterialsTable::radiationLength: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    if (found != allChemicalElements.end()) { radiationLength = found->second->getRadiationLength(); }
+    else { std::cout << "MaterialsTable::radiationLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return radiationLength;
   }
 
@@ -361,8 +362,8 @@ namespace material {
     double interactionLength = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { interactionLength = found.second->getInteractionLength(); }
-    else { std::cout << "MaterialsTable::interactionLength: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    if (found != allChemicalElements.end()) { interactionLength = found->second->getInteractionLength(); }
+    else { std::cout << "MaterialsTable::interactionLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return interactionLength;
   }
 
