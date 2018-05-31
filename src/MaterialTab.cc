@@ -89,20 +89,6 @@ namespace material {
     ratios_ = computeMassicComposition(formula, allChemicalElements);
 
     //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
-
-
-    for (const auto& elemIt : allChemicalElements) {
-      std::cout << "ChemicalMixture::ChemicalMixture load Elementary mat = " << elemIt.first;
-      const ChemicalElement& elem = elemIt.second;
-      std::cout << " elem.getDensity() = " << elem.getDensity()
-		<< " elem.getRadiationLength() = " << elem.getRadiationLength()
-		<< " elem.getInteractionLength() = " << elem.getInteractionLength() 
-		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
-		<< " elem.getAtomicMass() = " << elem.getAtomicMass()
-		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
-		<< std::endl;
-    }
-
     ChemicalBaseMap alreadyDefinedMaterials;
     alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
 
@@ -234,13 +220,6 @@ namespace material {
 
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
           allChemicalElements.insert(std::make_pair(elementName, element));
-	  std::cout << " element.getDensity() = " << element.getDensity()
-		    << " element.getRadiationLength() = " << element.getRadiationLength()
-		    << " element.getInteractionLength() = " << element.getInteractionLength() 
-		    << " element.getAtomicNumber() = " << element.getAtomicNumber()
-		    << " element.getAtomicMass() = " << element.getAtomicMass()
-		    << " element.isChemicalElement() = " << element.isChemicalElement()
-		    << std::endl;
         }
         myLine.clear();
       }
@@ -320,6 +299,28 @@ namespace material {
     }
 
 
+    for (const auto& mixIt : allChemicalMixtures) {
+      std::cout << "MaterialsTable::MaterialsTable finsihed computing all chemical composites. load Composite = " << mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+      std::cout << " mix.getDensity() = " << mix.getDensity()
+		<< " mix.getRadiationLength() = " << mix.getRadiationLength()
+		<< " mix.getInteractionLength() = " << mix.getInteractionLength() 
+		<< " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
+		<< " mix.isChemicalElement() = " << mix.isChemicalElement();
+      const ChemicalFormula& formula = mix.getChemicalFormula();
+      for (const auto& formulaIt : formula) {
+	std::cout << " formulaIt.first = " << formulaIt.first
+		  << " formulaIt.second = " << formulaIt.second;
+      }
+      const MassicComposition& ratio = mix.getMassicComposition();
+      for (const auto& ratioIt : ratio) {
+	std::cout << " ratioIt.first = " << ratioIt.first
+		  << " ratioIt.second = " << ratioIt.second;
+      }
+      std::cout << "." << std::endl;
+    }
+
+
 
     // CHEMICAL MIXTURES
     std::ifstream chemicalMixturesFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalMixturesFile); 
@@ -378,6 +379,30 @@ namespace material {
     else {
       logERROR("Could not open chemical mixtures file.");
     }
+
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+      std::cout << " mix.getDensity() = " << mix.getDensity()
+		<< " mix.getRadiationLength() = " << mix.getRadiationLength()
+		<< " mix.getInteractionLength() = " << mix.getInteractionLength() 
+		<< " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
+		<< " mix.isChemicalElement() = " << mix.isChemicalElement();
+      const ChemicalFormula& formula = mix.getChemicalFormula();
+      for (const auto& formulaIt : formula) {
+	std::cout << " formulaIt.first = " << formulaIt.first
+		  << " formulaIt.second = " << formulaIt.second;
+      }
+      const MassicComposition& ratio = mix.getMassicComposition();
+      for (const auto& ratioIt : ratio) {
+	std::cout << " ratioIt.first = " << ratioIt.first
+		  << " ratioIt.second = " << ratioIt.second;
+      }
+      std::cout << "." << std::endl;
+    }
+
+
 
 
     this->first = allChemicalElements;
