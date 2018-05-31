@@ -19,7 +19,7 @@ namespace material {
     const double getRadiationLength() const { return radiationLength_; }
     const double getInteractionLength() const { return interactionLength_; }
 
-    virtual const bool isChemicalElement() const = 0;
+    //virtual const bool isChemicalElement() const = 0;
 
   protected:
     double density_;
@@ -33,7 +33,8 @@ namespace material {
     ChemicalElement(const double density, const int atomicNumber, const double atomicMass);
     const int getAtomicNumber() const { return atomicNumber_; } 
     const double getAtomicMass() const { return atomicMass_; } 
-    const bool isChemicalElement() const override { return true; }
+    //const bool isChemicalElement() const override { return true; }
+    const bool isChemicalElement() const { return true; }
 
   private:
     // TO DO: should probably set more accurate RL and IL values directly in the cfg file?
@@ -45,8 +46,8 @@ namespace material {
   };
 
 
-  typedef std::map<std::string, ChemicalBase*> ChemicalBaseMap; // to do: define ChemicalBase directly inside MaterialsTable to avoid this?
-  typedef std::map<std::string, ChemicalElement*> ChemicalElementMap;
+  typedef std::map<std::string, ChemicalBase> ChemicalBaseMap; // to do: define ChemicalBase directly inside MaterialsTable to avoid this?
+  typedef std::map<std::string, ChemicalElement> ChemicalElementMap;
 
   typedef std::vector< std::pair<std::string, int> > ChemicalFormula;
   typedef std::vector< std::pair<std::string, double> > MassicComposition;
@@ -56,7 +57,8 @@ namespace material {
     ChemicalMixture(const double density, const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements);
     ChemicalMixture(const double density, const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials);
 
-    const bool isChemicalElement() const override { return false; }
+    //const bool isChemicalElement() const override { return false; }
+    const bool isChemicalElement() const { return false; }
     const bool hasChemicalFormula() const { return (formula_.size() != 0); }
     const ChemicalFormula getChemicalFormula() const { return formula_; }
     const MassicComposition getMassicComposition() const { return ratios_; }
@@ -70,7 +72,7 @@ namespace material {
     MassicComposition ratios_;
   };
 
-  typedef std::map<std::string, ChemicalMixture*> ChemicalMixtureMap;
+  typedef std::map<std::string, ChemicalMixture> ChemicalMixtureMap;
 
 
 
@@ -86,8 +88,8 @@ namespace material {
     double radiationLength(const std::string materialName) const;
     double interactionLength(const std::string materialName) const;
 
-    const ChemicalElementMap getAllChemicalElements() const { return first; }
-    const ChemicalMixtureMap getAllChemicalMixtures() const { return second; }
+    const ChemicalElementMap getAllChemicalElements() const { return this->first; }
+    const ChemicalMixtureMap getAllChemicalMixtures() const { return this->second; }
   };
 
 

@@ -93,16 +93,14 @@ namespace material {
 
     for (const auto& elemIt : allChemicalElements) {
       std::cout << "ChemicalMixture::ChemicalMixture load Elementary mat = " << elemIt.first;
-      const ChemicalElement* elem = elemIt.second;
-      if (elem != nullptr) {
-	std::cout << " elem->getDensity() = " << elem->getDensity()
-		  << " elem->getRadiationLength() = " << elem->getRadiationLength()
-		  << " elem->getInteractionLength() = " << elem->getInteractionLength() 
-		  << " elem->getAtomicNumber() = " << elem->getAtomicNumber()
-		  << " elem->getAtomicMass() = " << elem->getAtomicMass()
-		  << " elem->isChemicalElement() = " << elem->isChemicalElement()
-		  << std::endl;
-      }
+      const ChemicalElement& elem = elemIt.second;
+      std::cout << " elem.getDensity() = " << elem.getDensity()
+		<< " elem.getRadiationLength() = " << elem.getRadiationLength()
+		<< " elem.getInteractionLength() = " << elem.getInteractionLength() 
+		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
+		<< " elem.getAtomicMass() = " << elem.getAtomicMass()
+		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
+		<< std::endl;
     }
 
     ChemicalBaseMap alreadyDefinedMaterials;
@@ -138,15 +136,11 @@ namespace material {
 	std::cout << "Tried to create molecule made of unknow atom(s) name." << std::endl;
       }
       else {
-	const ChemicalElement* element = found->second;
-	if (element != nullptr) {
-	  const double elementAtomicMass = element->getAtomicMass();
-	  const double mass = chemicalElementNumber * elementAtomicMass;
-	  ratios.push_back(std::make_pair(chemicalElementName, mass));
-	  totalMoleculeMass += mass;
-	} else {
-	  std::cout << "Tried to create molecule made of unknow atom(s)." << std::endl;
-	}
+	const ChemicalElement& element = found->second;
+	const double elementAtomicMass = element.getAtomicMass();
+	const double mass = chemicalElementNumber * elementAtomicMass;
+	ratios.push_back(std::make_pair(chemicalElementName, mass));
+	totalMoleculeMass += mass;
       }
     }
 
@@ -172,15 +166,15 @@ namespace material {
 	std::cout << "Tried to create mixture made of unknow chemical element / chemical compound / mixture:" << chemicalBaseName << std::endl;
       }
       else {
-	const ChemicalBase* base = found->second;
-	const double radiationLength = (base != nullptr ? base->getRadiationLength() : 0.);
+	const ChemicalBase& base = found->second;
+	const double radiationLength = base.getRadiationLength();
 
 	if (fabs(radiationLength) < insur::mat_negligible) std::cout << "Found a null radiation length for " << chemicalBaseName << std::endl;
 	else {
 	  invertedRadiationLength += chemicalBaseMassicWeight / radiationLength;
 	}
 
-	const double interactionLength = (base != nullptr ? base->getInteractionLength() : 0.);
+	const double interactionLength = base.getInteractionLength();
 	if (fabs(interactionLength) <  insur::mat_negligible) std::cout << "Found a null interaction length for " << chemicalBaseName << std::endl;
 	else {
 	  invertedInteractionLength += chemicalBaseMassicWeight / interactionLength;
@@ -239,7 +233,7 @@ namespace material {
 
 
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
-          allChemicalElements.insert(std::make_pair(elementName, &element));
+          allChemicalElements.insert(std::make_pair(elementName, element));
 	  std::cout << " element.getDensity() = " << element.getDensity()
 		    << " element.getRadiationLength() = " << element.getRadiationLength()
 		    << " element.getInteractionLength() = " << element.getInteractionLength() 
@@ -257,16 +251,14 @@ namespace material {
 
     for (const auto& elemIt : allChemicalElements) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
-      const ChemicalElement* elem = elemIt.second;
-      if (elem != nullptr) {
-	std::cout << " elem->getDensity() = " << elem->getDensity()
-		  << " elem->getRadiationLength() = " << elem->getRadiationLength()
-		  << " elem->getInteractionLength() = " << elem->getInteractionLength() 
-		  << " elem->getAtomicNumber() = " << elem->getAtomicNumber()
-		  << " elem->getAtomicMass() = " << elem->getAtomicMass()
-		  << " elem->isChemicalElement() = " << elem->isChemicalElement()
-		  << std::endl;
-      }
+      const ChemicalElement& elem = elemIt.second;
+      std::cout << " elem.getDensity() = " << elem.getDensity()
+		<< " elem.getRadiationLength() = " << elem.getRadiationLength()
+		<< " elem.getInteractionLength() = " << elem.getInteractionLength() 
+		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
+		<< " elem.getAtomicMass() = " << elem.getAtomicMass()
+		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
+		<< std::endl;
     }
 
 
@@ -318,7 +310,7 @@ namespace material {
 	  std::cout << "." << std::endl;
 
 	  ChemicalMixture coumpound = ChemicalMixture(compoundDensity, compoundFormula, allChemicalElements);
-	  allChemicalMixtures.insert(std::make_pair(compoundName, &coumpound));	  
+	  allChemicalMixtures.insert(std::make_pair(compoundName, coumpound));	  
         }
         myLine.clear();
       }
@@ -377,8 +369,8 @@ namespace material {
 	  std::cout << "." << std::endl;
 
 	  ChemicalMixture mixture = ChemicalMixture(mixtureDensity, mixtureComposition, alreadyDefinedMaterials);
-	  allChemicalMixtures.insert(std::make_pair(mixtureName, &mixture));
-	  alreadyDefinedMaterials.insert(std::make_pair(mixtureName, &mixture));	  
+	  allChemicalMixtures.insert(std::make_pair(mixtureName, mixture));
+	  alreadyDefinedMaterials.insert(std::make_pair(mixtureName, mixture));	  
         }
         myLine.clear();
       }
@@ -388,8 +380,8 @@ namespace material {
     }
 
 
-    first = allChemicalElements;
-    second = allChemicalMixtures;
+    this->first = allChemicalElements;
+    this->second = allChemicalMixtures;
   }
 
   const MaterialsTable& MaterialsTable::instance() {
@@ -398,37 +390,37 @@ namespace material {
   }
 
   double MaterialsTable::density(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = first;
-    ChemicalMixtureMap allChemicalMixtures = second;
+    ChemicalElementMap allChemicalElements = this->first;
+    ChemicalMixtureMap allChemicalMixtures = this->second;
 
     double density = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { density = found->second->getDensity(); }
+    if (found != allChemicalElements.end()) { density = found->second.getDensity(); }
     else { std::cout << "MaterialsTable::density: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return density;
   }
 
   double MaterialsTable::radiationLength(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = first;
-    ChemicalMixtureMap allChemicalMixtures = second;
+    ChemicalElementMap allChemicalElements = this->first;
+    ChemicalMixtureMap allChemicalMixtures = this->second;
 
     double radiationLength = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { radiationLength = found->second->getRadiationLength(); }
+    if (found != allChemicalElements.end()) { radiationLength = found->second.getRadiationLength(); }
     else { std::cout << "MaterialsTable::radiationLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return radiationLength;
   }
 
   double MaterialsTable::interactionLength(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = first;
-    ChemicalMixtureMap allChemicalMixtures = second;
+    ChemicalElementMap allChemicalElements = this->first;
+    ChemicalMixtureMap allChemicalMixtures = this->second;
 
     double interactionLength = 0.;
 
     const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { interactionLength = found->second->getInteractionLength(); }
+    if (found != allChemicalElements.end()) { interactionLength = found->second.getInteractionLength(); }
     else { std::cout << "MaterialsTable::interactionLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
     return interactionLength;
   }
