@@ -124,7 +124,7 @@ namespace insur {
       ilength_ = 1/ilength_;
     }
     return ilength_;
-  }
+  } 
 
 
 

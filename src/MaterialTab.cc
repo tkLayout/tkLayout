@@ -1,11 +1,3 @@
-/*
- * MaterialTab.cpp
- *
- *  Created on: Jul 29, 2014
- *      Author: smartina
- */
-
-
 #include <fstream>
 #include <sstream>
 #include "MaterialTab.hh"
@@ -16,9 +8,377 @@
 
 namespace material {
 
+
+  ChemicalBase::ChemicalBase(const double density) : 
+    density_(density) 
+  { }
+
+
+
+
+  ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const int atomicMass) : 
+    ChemicalBase(density),
+    atomicNumber_(atomicNumber), 
+    atomicMass_(atomicMass) 
+  {
+    radiationLength_ = computeRadiationLength(atomicNumber, atomicMass);
+    interactionLength_ = computeInteractionLength(atomicMass);
+  }
+
+
+  /**
+   * Calculate the estimated radiation length associated to an estimated atomic number Z and estimated atomic weight A.
+   */
+  const double ChemicalElement::computeRadiationLength(const int atomicNumber, const int atomicMass) {
+    const double alpha = 1/137.035999139;
+    const double a = alpha * atomicNumber;
+    const double a_2 = pow(a, 2.);
+    const double a_3 = pow(a, 3.);
+    const double a_4 = pow(a, 4.);
+    const double a_6 = pow(a, 6.);
+    const double f_Z = a_2 * ( 1/(1 + a_2) + 0.20206 - 0.0369 * a_3 + 0.0083 * a_4 - 0.002 * a_6);
+    double L_Z, L_prime_Z;
+    switch (atomicNumber) {
+    case 1:
+      // H
+      L_Z       = 5.31;
+      L_prime_Z = 6.144;
+      break;
+    case 2:
+      // He
+      L_Z       = 4.79;
+      L_prime_Z = 5.621;
+      break;
+    case 3:
+      // Li
+      L_Z       = 4.74;
+      L_prime_Z = 5.805;
+      break;
+    case 4:
+      // Be:
+      L_Z       = 4.71;
+      L_prime_Z = 5.924;
+      break;
+    default:
+      // Z >4
+      L_Z = log(184.15) - 1/3. * log(atomicNumber);
+      L_prime_Z = log(1194) - 2/3. * log(atomicNumber);
+    }
+    
+    // radiationLength
+    const double radiationLength = 716.408 * atomicMass / (pow(atomicNumber, 2.) * (L_Z - f_Z) + atomicNumber * L_prime_Z);
+    return radiationLength;
+  }
+
+
+
+  const double ChemicalElement::computeInteractionLength(const int atomicMass) {
+    const double A_a = 31.645;
+    const double A_b = 11.57238;
+
+    const double interactionLength = pow(atomicMass, 1./3.) * A_a + A_b;
+    return interactionLength;
+  }
+
+
+
+  ChemicalMixture::ChemicalMixture(const double density, const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) :
+    ChemicalBase(density),
+    formula_(formula)
+  {
+    ratios_ = computeMassicComposition(formula, allChemicalElements);
+
+    //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
+    ChemicalBaseMap alreadyDefinedMaterials;
+    alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
+
+    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
+    radiationLength_ = radiationAndInteractionLengths.first;
+    intercationLength_ = radiationAndInteractionLengths.second;
+  }
+
+
+  ChemicalMixture::ChemicalMixture(const double density, const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) :
+    ChemicalBase(density),
+    ratios_(ratios)
+  {
+    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
+    radiationLength_ = radiationAndInteractionLengths.first;
+    intercationLength_ = radiationAndInteractionLengths.second;
+  }
+
+
+
+  const MassicComposition ChemicalMixture::computeMassicComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const {
+    MassicComposition ratios;
+    double totalMoleculeMass = 0.;
+
+    for (const auto& chemicalElementIt : formula) {
+      const std::string chemicalElementName = elementIt.first;
+      const int chemicalElementNumber = elementIt.second;
+
+      const auto found = alreadyDefinedMaterials.find(chemicalElementName);
+      if (found == alreadyDefinedMaterials.end()) {
+	std::cout << "Tried to create molecule made of unknow atom(s) name." << std::endl;
+      }
+      else {
+	const ChemicalElement* element = found.second;
+	if (element != nullptr) {
+	  const double elementAtomicMass = element->getAtomicMass();
+	  const double mass = chemicalElementNumber * elementAtomicMass;
+	  ratios.push_back(std::make_pair(chemicalElementName, mass));
+	  totalMoleculeMass += mass;
+	} else {
+	  std::cout << "Tried to create molecule made of unknow atom(s)." << std::endl;
+	}
+      }
+    }
+
+    for (auto& ratioIt : ratios_) {
+      ratioIt.second /= totalMoleculeMass;
+    }
+
+    return ratios;
+  }
+
+
+
+  const std::pair<double, double> ChemicalMixture::computeRadiationAndInteractionLengths(const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) const {
+    double invertedRadiationLength = 0.;
+    double invertedInteractionLength = 0.;
+
+    for (const auto& ratioIt : ratios) {
+      const std::string chemicalBaseName = ratioIt.first;
+      const double chemicalBaseMassicWeight = ratioIt.second;
+
+      const auto found = alreadyDefinedMaterials.find(chemicalBaseName);
+      if (found == alreadyDefinedMaterials.end()) {
+	std::cout << "Tried to create mixture made of unknow chemical element / chemical compound / mixture:" << chemicalBaseName << std::endl;
+      }
+      else {
+	const ChemicalBase* base = found.second;
+	const double radiationLength = (base != nullptr ? base->getRadiationLength() : 0.);
+
+	if (fabs(radiationLength) < insur::mat_negligible) std::cout << "Found a null radiation length for " << chemicalBaseName << std::endl;
+	else {
+	  invertedRadiationLength += chemicalBaseMassicWeight / radiationLength;
+	}
+
+	const double interactionLength = (base != nullptr ? base->getInteractionLength() : 0.);
+	if (fabs(interactionLength) <  insur::mat_negligible) std::cout << "Found a null interaction length for " << chemicalBaseName << std::endl;
+	else {
+	  invertedInteractionLength += chemicalBaseMassicWeight / interactionLength;
+	}
+
+      }
+    }
+
+    double radiationLength = 0.;
+    if (fabs(invertedRadiationLength) < insur::mat_negligible) std::cout << "Mixture with infinite radiation length!!" << std::endl;
+    else { radiationLength = 1. / invertedRadiationLength; }
+
+    double interactionLength = 0.;
+    if (fabs(invertedInteractionLength) < insur::mat_negligible) std::cout << "Mixture with infinite interaction length!!" << std::endl;
+    else { interactionLength = 1. / invertedInteractionLength; }
+
+
+    return std::make_pair(radiationLength, interactionLength);
+  }
+
+
+
+  MaterialsTable::MaterialsTable() {
+    //std::string mattabFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_mattabfile);
+
+    // CHEMICAL ELEMENTS
+    std::ifstream chemicalElementsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalElementsFile);
+ 
+    ChemicalElementMap allChemicalElements; 
+
+    if (chemicalElementsFile.good()) {
+      while (!chemicalElementsFile.eof()) {
+	std::string lineString;
+        std::getline(chemicalElementsFile, lineString);
+	std::istringstream myLine;
+        myLine.str(lineString);
+	
+	std::string elementName;
+        myLine >> elementName;
+
+        //check if is a comment
+        if (elementName[0] != '#') {
+	  // TO DO: check whether input is of expected type and 3 values
+	  double elementDensity;
+	  int atomicNumber;
+	  double atomicMass;
+          myLine >> elementDensity >> atomicNumber >> atomicMass;
+          density /= 1000.;   // convert g/cm3 in g/mm3
+	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
+          allChemicalElements.insert(std::make_pair(elementName, &element));
+        }
+        myLine.clear();
+      }
+    } else {
+      logERROR("Could not open chemical elements file.");
+    }
+
+
+    // CHEMICAL COMPOUNDS
+    std::ifstream chemicalCompoundsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalCoumpoundsFile); 
+   
+    ChemicalMixtureMap allChemicalMixtures;
+
+    if (chemicalCoumpoundFile.good()) {
+      while (!chemicalCompoundsFile.eof()) {
+	std::string lineString;
+        std::getline(chemicalCompoundsFile, lineString);
+	//while (std::getline(chemicalCoumpoundFile, chemicalCoumpoundLine)) {  TO DO: this is better?
+	std::istringstream myLine;
+        myLine.str(lineString);
+
+	std::string compoundName;
+        myLine >> compoundName;
+
+        //check if is a comment
+        if (compoundName[0] != '#') {
+	  double compoundDensity;
+          myLine >> compoundDensity;
+          compoundDensity /= 1000.;   // convert g/cm3 in g/mm3
+
+	  ChemicalFormula compoundFormula;
+	  std::string element;
+	  while (myLine >> element) {
+	    // TO DO: does this modify myLine ?????? is the space(s!!!) delimiter by defualt??
+
+	    const auto delimiterPosition = element.find(default_composition_delimiter);
+	    if (delimiterPosition != std::string::npos) {
+	      const std::string elementName = element.substr(0, delimiterPosition);
+	      const std::string elementNumberString = element.substr(delimiterPosition + delimiter.length());
+	      const int elementNumber = atoi(elementNumberString.c_str());
+	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
+	    }
+	    else { std::cout << "Chemical compound: could not find the : delimiter." << std::endl; }
+
+	    element.clear();
+	  }
+
+	  ChemicalMixture coumpound = ChemicalMixture(compoundDensity, compoundFormula, allChemicalElements);
+	  allChemicalMixtures.insert(std::make_pair(compoundName, &coumpound));	  
+        }
+        myLine.clear();
+      }
+    } 
+    else {
+      logERROR("Could not open chemical compounds file.");
+    }
+
+
+
+    // CHEMICAL MIXTURES
+    std::ifstream chemicalMixturesFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalMixturesFile); 
+
+    ChemicalBaseMap alreadyDefinedMaterials;
+    alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
+    alreadyDefinedMaterials.insert(allChemicalMixtures.begin(), allChemicalMixtures.end());
+
+    if (chemicalMixturesFile.good()) {
+      while (!chemicalMixturesFile.eof()) {
+	std::string lineString;
+        std::getline(chemicalMixturesFile, lineString);
+	//while (std::getline(mixtureFile, myLine)) {  TO DO: this is better?
+	std::istringstream myLine;
+        myLine.str(lineString);
+
+	std::string mixtureName;
+        myLine >> mixtureName;
+
+        //check if is a comment
+        if (mixtureName[0] != '#') {
+	  double mixtureDensity;
+          myLine >> mixtureDensity;
+          mixtureDensity /= 1000.;   // convert g/cm3 in g/mm3
+
+	  MassicComposition mixtureComposition;
+	  std::string constituant;
+	  while (myLine >> constituant) { // TO DO: cross-check this
+
+	    const auto delimiterPosition = constituant.find(default_composition_delimiter);
+	    if (delimiterPosition != std::string::npos) {
+	      const std::string constituantName = constituant.substr(0, delimiterPosition);
+	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + delimiter.length());
+	      const double constituantMassicWeight = atod(constituantNumberString.c_str());
+	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassicWeight));
+	    }
+	    else { std::cout << "Chemical mixture: could not find the : delimiter." << std::endl; }
+
+	    constituant.clear();
+	  }
+
+	  ChemicalMixture mixture = ChemicalMixture(mixtureDensity, mixtureComposition, alreadyDefinedMaterials);
+	  allChemicalMixtures.insert(std::make_pair(mixtureName, &mixture));
+	  alreadyDefinedMaterials.insert(std::make_pair(mixtureName, &mixture));	  
+        }
+        myLine.clear();
+      }
+    } 
+    else {
+      logERROR("Could not open chemical mixtures file.");
+    }
+
+
+    insert(std::make_pair(allChemicalElements, allChemicalMixtures));
+  }
+
+
+  double MaterialsTable::density(const std::string materialName) const {
+    ChemicalElementMap allChemicalElements = first;
+    ChemicalMixtureMap allChemicalMixtures = second;
+
+    double density = 0.;
+
+    const auto& found = allChemicalElements.find(materialName);
+    if (found != allChemicalElements.end()) { density = found.second->getDensity(); }
+    else { std::cout << "MaterialsTable::density: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    return density;
+  }
+
+  double MaterialsTable::radiationLength(const std::string materialName) const {
+    ChemicalElementMap allChemicalElements = first;
+    ChemicalMixtureMap allChemicalMixtures = second;
+
+    double radiationLength = 0.;
+
+    const auto& found = allChemicalElements.find(materialName);
+    if (found != allChemicalElements.end()) { radiationLength = found.second->getRadiationLength(); }
+    else { std::cout << "MaterialsTable::radiationLength: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    return radiationLength;
+  }
+
+  double MaterialsTable::interactionLength(const std::string materialName) const {
+    ChemicalElementMap allChemicalElements = first;
+    ChemicalMixtureMap allChemicalMixtures = second;
+
+    double interactionLength = 0.;
+
+    const auto& found = allChemicalElements.find(materialName);
+    if (found != allChemicalElements.end()) { interactionLength = found.second->getInteractionLength(); }
+    else { std::cout << "MaterialsTable::interactionLength: material " << found.first << " could not be found in MaterialsTable." << std::endl; }
+    return interactionLength;
+  }
+
+
+
+
+
+
+
+
+
+
   const std::string MaterialTab::msg_no_mat_file = "Material tab file does not exist.";
   const std::string MaterialTab::msg_no_mat_file_entry1 = "Material '";
   const std::string MaterialTab::msg_no_mat_file_entry2 = "' not found in Material tab file.";
+
 
   MaterialTab::MaterialTab() {
     std::string mattabFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_mattabfile);
