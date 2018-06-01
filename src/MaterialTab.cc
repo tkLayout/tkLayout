@@ -458,38 +458,50 @@ namespace material {
   }
 
   double MaterialsTable::density(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = this->first;
-    ChemicalMixtureMap allChemicalMixtures = this->second;
+    const ChemicalElementMap& allChemicalElements = this->first;
+    const ChemicalMixtureMap& allChemicalMixtures = this->second;
 
     double density = 0.;
 
-    const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { density = found->second.getDensity(); }
-    else { std::cout << "MaterialsTable::density: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
+    const auto foundElem = allChemicalElements.find(materialName);
+    if (foundElem != allChemicalElements.end()) { density = foundElem->second.getDensity(); }
+    else { 
+      const auto foundMix = allChemicalMixtures.find(materialName);
+      if (foundMix != allChemicalMixtures.end()) { density = foundMix->second.getDensity(); }
+      else { std::cout << "MaterialsTable::density: material " << materialName << " could not be found in MaterialsTable." << std::endl; }
+    }
     return density;
   }
 
   double MaterialsTable::radiationLength(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = this->first;
-    ChemicalMixtureMap allChemicalMixtures = this->second;
+    const ChemicalElementMap& allChemicalElements = this->first;
+    const ChemicalMixtureMap& allChemicalMixtures = this->second;
 
     double radiationLength = 0.;
 
-    const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { radiationLength = found->second.getRadiationLength(); }
-    else { std::cout << "MaterialsTable::radiationLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
+    const auto foundElem = allChemicalElements.find(materialName);
+    if (foundElem != allChemicalElements.end()) { radiationLength = foundElem->second.getRadiationLength(); }
+    else { 
+      const auto foundMix = allChemicalMixtures.find(materialName);
+      if (foundMix != allChemicalMixtures.end()) { radiationLength = foundMix->second.getRadiationLength(); }
+      else { std::cout << "MaterialsTable::radiationLength: material " << materialName << " could not be found in MaterialsTable." << std::endl; }
+    }
     return radiationLength;
   }
 
   double MaterialsTable::interactionLength(const std::string materialName) const {
-    ChemicalElementMap allChemicalElements = this->first;
-    ChemicalMixtureMap allChemicalMixtures = this->second;
+    const ChemicalElementMap& allChemicalElements = this->first;
+    const ChemicalMixtureMap& allChemicalMixtures = this->second;
 
     double interactionLength = 0.;
 
-    const auto& found = allChemicalElements.find(materialName);
-    if (found != allChemicalElements.end()) { interactionLength = found->second.getInteractionLength(); }
-    else { std::cout << "MaterialsTable::interactionLength: material " << found->first << " could not be found in MaterialsTable." << std::endl; }
+    const auto foundElem = allChemicalElements.find(materialName);
+    if (foundElem != allChemicalElements.end()) { interactionLength = foundElem->second.getInteractionLength(); }
+    else { 
+      const auto foundMix = allChemicalMixtures.find(materialName);
+      if (foundMix != allChemicalMixtures.end()) { interactionLength = foundMix->second.getInteractionLength(); }
+      else { std::cout << "MaterialsTable::interactionLength: material " << materialName << " could not be found in MaterialsTable." << std::endl; }
+    }
     return interactionLength;
   }
 

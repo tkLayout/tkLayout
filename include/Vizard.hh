@@ -42,10 +42,16 @@
 // Program constants
 #include <global_constants.hh>
 // Custom objects
+
+#include "MaterialTab.hh"
+
 #include <Tracker.hh>
 #include "Cabling/CablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
+
+
+
 
 #include <InactiveSurfaces.hh>
 #include "Module.hh"
@@ -57,6 +63,10 @@
 #include <PlotDrawer.hh>
 #include <AnalyzerVisitors/GeometricInfo.hh>
 #include "VizardTools.hh"
+
+
+using namespace material;
+
 
 namespace material {
   class WeightDistributionGrid;
@@ -234,6 +244,9 @@ namespace insur {
     std::string createEndcapModulesCsv(const Tracker& t);
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
+
+    std::string createChemicalElementsCsv();
+    std::string createChemicalMixturesCsv(const bool hasChemicalFormula);
 
     std::string createModulesToDTCsCsv(const Tracker& t, const bool isPositiveCablingSide);
     std::string createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide);

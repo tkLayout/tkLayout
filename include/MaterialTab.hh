@@ -1,5 +1,5 @@
-#ifndef MATERIALTAB_H
-#define MATERIALTAB_H
+#ifndef MATERIALTAB_HH
+#define MATERIALTAB_HH
 
 //#include <map>
 #include <tuple>
@@ -122,4 +122,4 @@ namespace material {
   };
 } /* namespace material */
 
-#endif /* MATERIALTAB_H */
+#endif /* MATERIALTAB_HH */

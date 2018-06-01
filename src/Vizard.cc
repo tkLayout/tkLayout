@@ -14,6 +14,9 @@
 
 #include "MainConfigHandler.hh"
 
+
+//#include "MaterialTab.hh"
+
 namespace insur {
   // public
   /**
@@ -3266,6 +3269,8 @@ namespace insur {
 
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
+    RootWContent* materialsTablesContent = new RootWContent("Materials tables");
+    myPage->addContent(materialsTablesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
     configFilesContent = new RootWContent("Configuration files", false);
@@ -3372,6 +3377,30 @@ namespace insur {
     RootWGraphViz* myGv = new RootWGraphViz("include_graph.gv", "Include structure");
     myGv->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myGv);
+
+
+    //********************************//
+    //*                              *//
+    //*  Materials tables            *//
+    //*                              *//
+    //********************************//
+ 
+    // Chemical elements
+    RootWTextFile* chemicalElementsFile = new RootWTextFile("chemical_elements.csv", "Chemical elements");
+    chemicalElementsFile->addText(createChemicalElementsCsv());
+    materialsTablesContent->addItem(chemicalElementsFile);
+
+    // Chemical compounds
+    bool hasChemicalFormula = true;
+    RootWTextFile* chemicalCompoundsFile = new RootWTextFile("chemical_compounds.csv", "Chemical compounds");
+    chemicalCompoundsFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalCompoundsFile);
+
+    // Chemical mixtures
+    hasChemicalFormula = false;
+    RootWTextFile* chemicalMixturesFile = new RootWTextFile("chemical_mixtures.csv", "Chemical mixtures");
+    chemicalMixturesFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalMixturesFile);
 
     return true;
   }
@@ -7495,6 +7524,81 @@ namespace insur {
     }
     return detIdsListCsv;
   }
+
+
+
+
+  std::string Vizard::createChemicalElementsCsv() {
+
+    std::stringstream myCsv;
+    myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Atomic Number /I, Atomic Mass /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    /*
+    double density = myTable.density("CO2");
+    double rl = myTable.radiationLength("CO2");
+    double il = myTable.interactionLength("CO2");
+    std::cout << "CO2" << " density = " << density << " rl = " << rl << " il = " << il << std::endl;
+    */
+    const ChemicalElementMap& allChemicalElements = myTable.getAllChemicalElements();
+
+    for (const auto& elemIt : allChemicalElements) {
+      const std::string elementName = elemIt.first;
+      const ChemicalElement& elem = elemIt.second;
+      myCsv << elementName << ","
+	    << (elem.getDensity() * 1000.) << ","
+	    << elem.getAtomicNumber() << ","
+	    << elem.getAtomicMass() << ","
+	    << elem.getRadiationLength() << ","
+	    << elem.getInteractionLength() 
+	    << std::endl;
+      //myCsv << std::endl;
+    }
+
+    return myCsv.str();
+  }
+
+
+
+  std::string Vizard::createChemicalMixturesCsv(const bool hasChemicalFormula) {
+
+    std::stringstream myCsv;
+    if (hasChemicalFormula) myCsv << "Compound Name /C, Density (g/cm^3) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+    else { myCsv << "Mixture Name /C,  Constituant name /C, Constituant massic ratio /D, Mixture Density (g/cm^3) /D, Mixture Radiation length (g/cm^2) /D, Mixture Interaction length (g/cm^2) /D" << std::endl; }
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      const std::string mixtureName = mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+
+      if (mix.hasChemicalFormula() == hasChemicalFormula) {
+	myCsv << mixtureName << ",";
+	if (!hasChemicalFormula) myCsv << "," << ",";	      
+	myCsv << (mix.getDensity() * 1000.) << ","
+	      << mix.getRadiationLength() << ","
+	      << mix.getInteractionLength() 
+	      << std::endl;
+
+	if (!hasChemicalFormula) {
+	  const MassicComposition& ratios = mix.getMassicComposition();
+	  for (const auto& ratioIt : ratios) {
+	    myCsv << ","
+		  << ratioIt.first << ","
+		  << ratioIt.second
+		  << std::endl;
+	  }
+	  myCsv << std::endl;
+	  myCsv << std::endl;
+	}
+	
+      }
+    }
+
+    return myCsv.str();
+  }
+
 
 
   /* Create csv file, navigating from Module hierarchy level to DTC hierarchy level.
