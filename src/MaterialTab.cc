@@ -151,13 +151,13 @@ namespace material {
 	ratios.push_back(std::make_pair(chemicalElementName, mass));
 	totalMoleculeMass += mass;
 
-	std::cout << "ChemicalMixture::computeMassicComposition " 
+	/*std::cout << "ChemicalMixture::computeMassicComposition " 
 		  << "chemicalElementName = " << chemicalElementName 
 		  << "chemicalElementNumber = " << chemicalElementNumber
 		  << "chemicalElementName = " << chemicalElementName
 		  << "elementAtomicMass = " << elementAtomicMass
 		  << "mass = " << mass
-		  << std::endl;
+		  << std::endl;*/
 
 
       }
@@ -199,12 +199,12 @@ namespace material {
 	  invertedInteractionLength += chemicalBaseMassicWeight / interactionLength;
 	}
 
-	std::cout << "ChemicalMixture::computeRadiationAndInteractionLengths " 
+	/*std::cout << "ChemicalMixture::computeRadiationAndInteractionLengths " 
 		  << "chemicalBaseName = " << chemicalBaseName 
 		  << "base density = " << base.getDensity()
 		  << "base radiationLength = " << radiationLength
 		  << "base interactionLength = " << interactionLength
-		  << std::endl;
+		  << std::endl;*/
 
       }
     }
@@ -250,12 +250,12 @@ namespace material {
           myLine >> elementDensity >> atomicNumber >> atomicMass;
           elementDensity /= 1000.;   // convert g/cm3 in g/mm3
 
-	  std::cout << "MaterialsTable::MaterialsTable() create eleemtray table " 
+	  /*std::cout << "MaterialsTable::MaterialsTable() create eleemtray table " 
 		    << " elementName = " <<  elementName
 		    << " elementDensity = " << elementDensity 
 		    << " atomicNumber = " << atomicNumber
 		    << " atomicMass  =" << atomicMass 
-		    << std::endl;
+		    << std::endl;*/
 
 
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
@@ -267,7 +267,7 @@ namespace material {
       logERROR("Could not open chemical elements file.");
     }
 
-
+    /*
     for (const auto& elemIt : allChemicalElements) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
       const ChemicalElement& elem = elemIt.second;
@@ -279,6 +279,7 @@ namespace material {
 		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
 		<< std::endl;
     }
+    */
 
 
 
@@ -305,9 +306,9 @@ namespace material {
 	  ChemicalFormula compoundFormula;
 	  std::string element;
 
-	  std::cout << "MaterialsTable::MaterialsTable() create compound table " 
+	  /*std::cout << "MaterialsTable::MaterialsTable() create compound table " 
 		    << " compoundName = " <<  compoundName
-		    << " compoundDensity = " << compoundDensity;
+		    << " compoundDensity = " << compoundDensity;*/
 
 
 	  while (myLine >> element) {
@@ -317,7 +318,7 @@ namespace material {
 	      const std::string elementName = element.substr(0, delimiterPosition);
 	      const std::string elementNumberString = element.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const int elementNumber = atoi(elementNumberString.c_str());
-	      std::cout << "elementName = " << elementName << " elementNumber = " << elementNumber;
+	      //std::cout << "elementName = " << elementName << " elementNumber = " << elementNumber;
 	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
 	    }
 	    else { std::cout << "Chemical compound: could not find the : delimiter." << std::endl; }
@@ -325,7 +326,7 @@ namespace material {
 	    element.clear();
 	  }
 
-	  std::cout << "." << std::endl;
+	  //std::cout << "." << std::endl;
 
 	  ChemicalMixture coumpound = ChemicalMixture(compoundDensity, compoundFormula, allChemicalElements);
 	  allChemicalMixtures.insert(std::make_pair(compoundName, coumpound));	  
@@ -338,6 +339,7 @@ namespace material {
     }
 
 
+    /*
     for (const auto& mixIt : allChemicalMixtures) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all chemical composites. load Composite = " << mixIt.first;
       const ChemicalMixture& mix = mixIt.second;
@@ -358,7 +360,7 @@ namespace material {
       }
       std::cout << "." << std::endl;
     }
-
+    */
 
 
     // CHEMICAL MIXTURES
@@ -384,9 +386,9 @@ namespace material {
           mixtureDensity /= 1000.;   // convert g/cm3 in g/mm3
 
 
-	  std::cout << "MaterialsTable::MaterialsTable() create mixture table " 
+	  /*std::cout << "MaterialsTable::MaterialsTable() create mixture table " 
 		    << " mixtureName = " <<  mixtureName
-		    << " mixtureDensity = " << mixtureDensity;
+		    << " mixtureDensity = " << mixtureDensity;*/
 
 
 	  MassicComposition mixtureComposition;
@@ -398,15 +400,17 @@ namespace material {
 	      const std::string constituantName = constituant.substr(0, delimiterPosition);
 	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const double constituantMassicWeight = std::stod(constituantMassicWeightString);
-	      std::cout << "constituantName = " << constituantName << " constituantMassicWeight = " << constituantMassicWeight;
+	      //std::cout << "constituantName = " << constituantName << " constituantMassicWeight = " << constituantMassicWeight;
 	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassicWeight));
 	    }
-	    else { std::cout << "Chemical mixture: could not find the : delimiter." << std::endl; }
+	    else { 
+	      std::cout << "Chemical mixture: could not find the : delimiter. Please set name:value, with no space between name and value." << std::endl; 
+	    }
 
 	    constituant.clear();
 	  }
 
-	  std::cout << "." << std::endl;
+	  //std::cout << "." << std::endl;
 
 	  ChemicalMixture mixture = ChemicalMixture(mixtureDensity, mixtureComposition, alreadyDefinedMaterials);
 	  allChemicalMixtures.insert(std::make_pair(mixtureName, mixture));
@@ -419,7 +423,7 @@ namespace material {
       logERROR("Could not open chemical mixtures file.");
     }
 
-
+    /*
     for (const auto& mixIt : allChemicalMixtures) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
       const ChemicalMixture& mix = mixIt.second;
@@ -440,7 +444,7 @@ namespace material {
       }
       std::cout << "." << std::endl;
     }
-
+    */
 
 
 
