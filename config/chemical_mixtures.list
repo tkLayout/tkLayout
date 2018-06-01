@@ -1,5 +1,5 @@
 #	Chemical Mixtures
-# name | density(g/cm^3) | composant:massic weight
+# name | density(g/cm^3) | composant:massicRatio
 #
 CFRP     1.84              CO2:0.4                  Al2O3:0.6
 GrandMa  2.1               CFRP:0.8                 O:0.2

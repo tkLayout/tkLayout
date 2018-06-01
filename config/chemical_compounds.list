@@ -1,5 +1,5 @@
 #	Chemical Compounds
-# name	| density(g/cm^3) | atomName:atomWeight
+# name	| density(g/cm^3) | atomName:numberOfAtoms
 #
 CO2	      1.0	               C:1                O:2
 Al2O3	    3.965	             Al:2               O:3

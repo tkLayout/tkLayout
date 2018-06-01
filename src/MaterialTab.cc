@@ -102,9 +102,32 @@ namespace material {
     ChemicalBase(density),
     ratios_(ratios)
   {
+    checkSumRatios(ratios);
+
     const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
     interactionLength_ = radiationAndInteractionLengths.second;
+  }
+
+
+  void ChemicalMixture::checkSumRatios(const MassicComposition& ratios) const {
+    double ratioSum = 0.;
+    for (const auto& ratioIt : ratios) {
+      const double chemicalBaseMassicWeight = ratioIt.second;
+      ratioSum += chemicalBaseMassicWeight;
+    }
+
+    if (fabs(ratioSum - 1.) > insur::mat_negligible) { 
+      std::cout << "Error defining Chemical mixture: sum of massic weights is not equal to 1." << std::endl;
+      std::cout << "Inadequate mixture composition is:";
+      for (const auto& ratioIt : ratios) {
+	const std::string chemicalBaseName = ratioIt.first;
+	const double chemicalBaseMassicWeight = ratioIt.second;
+	std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassicWeight;
+      }
+      std::cout << "." << std::endl;
+    }
+
   }
 
 

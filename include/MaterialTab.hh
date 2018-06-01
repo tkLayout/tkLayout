@@ -68,6 +68,8 @@ namespace material {
     const MassicComposition computeMassicComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const;
     const std::pair<double, double> computeRadiationAndInteractionLengths(const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) const;
 
+    void checkSumRatios(const MassicComposition& ratios) const;
+
     ChemicalFormula formula_;
     MassicComposition ratios_;
   };
