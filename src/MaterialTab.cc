@@ -127,6 +127,16 @@ namespace material {
 	const double mass = chemicalElementNumber * elementAtomicMass;
 	ratios.push_back(std::make_pair(chemicalElementName, mass));
 	totalMoleculeMass += mass;
+
+	std::cout << "ChemicalMixture::computeMassicComposition " 
+		  << "chemicalElementName = " << chemicalElementName 
+		  << "chemicalElementNumber = " << chemicalElementNumber
+		  << "chemicalElementName = " << chemicalElementName
+		  << "elementAtomicMass = " << elementAtomicMass
+		  << "mass = " << mass
+		  << std::endl;
+
+
       }
     }
 
@@ -166,6 +176,13 @@ namespace material {
 	  invertedInteractionLength += chemicalBaseMassicWeight / interactionLength;
 	}
 
+	std::cout << "ChemicalMixture::computeRadiationAndInteractionLengths " 
+		  << "chemicalBaseName = " << chemicalBaseName 
+		  << "base density = " << base.getDensity()
+		  << "base radiationLength = " << radiationLength
+		  << "base interactionLength = " << interactionLength
+		  << std::endl;
+
       }
     }
 
@@ -202,7 +219,7 @@ namespace material {
         myLine >> elementName;
 
         //check if is a comment
-        if (elementName[0] != '#') {
+        if (elementName != "" && elementName[0] != '#') {
 	  // TO DO: check whether input is of expected type and 3 values
 	  double elementDensity;
 	  int atomicNumber;
@@ -257,7 +274,7 @@ namespace material {
         myLine >> compoundName;
 
         //check if is a comment
-        if (compoundName[0] != '#') {
+        if (compoundName != "" && compoundName[0] != '#') {
 	  double compoundDensity;
           myLine >> compoundDensity;
           compoundDensity /= 1000.;   // convert g/cm3 in g/mm3
@@ -271,7 +288,6 @@ namespace material {
 
 
 	  while (myLine >> element) {
-	    // TO DO: does this modify myLine ?????? is the space(s!!!) delimiter by defualt??
 
 	    const auto delimiterPosition = element.find(insur::default_composition_delimiter);
 	    if (delimiterPosition != std::string::npos) {
@@ -339,7 +355,7 @@ namespace material {
         myLine >> mixtureName;
 
         //check if is a comment
-        if (mixtureName[0] != '#') {
+        if (mixtureName != "" && mixtureName[0] != '#') {
 	  double mixtureDensity;
           myLine >> mixtureDensity;
           mixtureDensity /= 1000.;   // convert g/cm3 in g/mm3
