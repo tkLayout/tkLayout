@@ -391,7 +391,7 @@ namespace material {
 
 	  MassicComposition mixtureComposition;
 	  std::string constituant;
-	  while (myLine >> constituant) { // TO DO: cross-check this
+	  while (myLine >> constituant) { // TO DO: !!!!! should check for (myLine >> constituant) error
 
 	    const auto delimiterPosition = constituant.find(insur::default_composition_delimiter);
 	    if (delimiterPosition != std::string::npos) {
