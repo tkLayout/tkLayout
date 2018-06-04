@@ -30,19 +30,19 @@ namespace material {
 
   class ChemicalElement : public ChemicalBase {
   public:
-    ChemicalElement(const double density, const int atomicNumber, const double atomicMass);
+    ChemicalElement(const double density, const int atomicNumber, const double atomicWeight);
     const int getAtomicNumber() const { return atomicNumber_; } 
-    const double getAtomicWeight() const { return atomicMass_; }   // standard atomic weight (u)
+    const double getAtomicWeight() const { return atomicWeight_; }   // standard atomic weight (u)
     //const bool isChemicalElement() const override { return true; }
     const bool isChemicalElement() const { return true; }
 
   private:
     // TO DO: should probably set more accurate RL and IL values directly in the cfg file?
-    const double computeRadiationLength(const int atomicNumber, const int atomicMass); 
-    const double computeInteractionLength(const int atomicMass);
+    const double computeRadiationLength(const int atomicNumber, const double atomicWeight); 
+    const double computeInteractionLength(const double atomicWeight);
 
-    int atomicNumber_;  // atome's Z
-    double atomicMass_;    // atome's A    
+    int atomicNumber_;       // atome's Z
+    double atomicWeight_;    // atome's A    
   };
 
 

@@ -16,20 +16,20 @@ namespace material {
 
 
 
-  ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const double atomicMass) : 
+  ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const double atomicWeight) : 
     ChemicalBase(density),
     atomicNumber_(atomicNumber), 
-    atomicMass_(atomicMass) 
+    atomicWeight_(atomicWeight) 
   {
-    radiationLength_ = computeRadiationLength(atomicNumber, atomicMass);
-    interactionLength_ = computeInteractionLength(atomicMass);
+    radiationLength_ = computeRadiationLength(atomicNumber, atomicWeight);
+    interactionLength_ = computeInteractionLength(atomicWeight);
   }
 
 
   /**
    * Calculate the estimated radiation length associated to an estimated atomic number Z and estimated atomic weight A.
    */
-  const double ChemicalElement::computeRadiationLength(const int atomicNumber, const int atomicMass) {
+  const double ChemicalElement::computeRadiationLength(const int atomicNumber, const double atomicWeight) {
     const double alpha = 1/137.035999139;
     const double a = alpha * atomicNumber;
     const double a_2 = pow(a, 2.);
@@ -66,17 +66,17 @@ namespace material {
     }
     
     // radiationLength
-    const double radiationLength = 716.408 * atomicMass / (pow(atomicNumber, 2.) * (L_Z - f_Z) + atomicNumber * L_prime_Z);
+    const double radiationLength = 716.408 * atomicWeight / (pow(atomicNumber, 2.) * (L_Z - f_Z) + atomicNumber * L_prime_Z);
     return radiationLength;
   }
 
 
 
-  const double ChemicalElement::computeInteractionLength(const int atomicMass) {
+  const double ChemicalElement::computeInteractionLength(const double atomicWeight) {
     const double A_a = 31.645;
     const double A_b = 11.57238;
 
-    const double interactionLength = pow(atomicMass, 1./3.) * A_a + A_b;
+    const double interactionLength = pow(atomicWeight, 1./3.) * A_a + A_b;
     return interactionLength;
   }
 
@@ -246,19 +246,19 @@ namespace material {
 	  // TO DO: check whether input is of expected type and 3 values
 	  double elementDensity;
 	  int atomicNumber;
-	  double atomicMass;
-          myLine >> elementDensity >> atomicNumber >> atomicMass;
+	  double atomicWeight;
+          myLine >> elementDensity >> atomicNumber >> atomicWeight;
           elementDensity /= 1000.;   // convert g/cm3 in g/mm3
 
 	  /*std::cout << "MaterialsTable::MaterialsTable() create eleemtray table " 
 		    << " elementName = " <<  elementName
 		    << " elementDensity = " << elementDensity 
 		    << " atomicNumber = " << atomicNumber
-		    << " atomicMass  =" << atomicMass 
+		    << " atomicWeight  =" << atomicWeight 
 		    << std::endl;*/
 
 
-	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicMass);
+	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicWeight);
           allChemicalElements.insert(std::make_pair(elementName, element));
         }
         myLine.clear();
@@ -280,6 +280,7 @@ namespace material {
 		<< std::endl;
     }
     */
+    
 
 
 
@@ -361,6 +362,7 @@ namespace material {
       std::cout << "." << std::endl;
     }
     */
+    
 
 
     // CHEMICAL MIXTURES
@@ -423,6 +425,7 @@ namespace material {
       logERROR("Could not open chemical mixtures file.");
     }
 
+    
     /*
     for (const auto& mixIt : allChemicalMixtures) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
@@ -445,6 +448,7 @@ namespace material {
       std::cout << "." << std::endl;
     }
     */
+    
 
 
 
