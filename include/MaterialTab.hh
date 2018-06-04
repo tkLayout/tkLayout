@@ -32,7 +32,7 @@ namespace material {
   public:
     ChemicalElement(const double density, const int atomicNumber, const double atomicMass);
     const int getAtomicNumber() const { return atomicNumber_; } 
-    const double getAtomicMass() const { return atomicMass_; } 
+    const double getAtomicWeight() const { return atomicMass_; }   // standard atomic weight (u)
     //const bool isChemicalElement() const override { return true; }
     const bool isChemicalElement() const { return true; }
 
@@ -50,28 +50,28 @@ namespace material {
   typedef std::map<std::string, ChemicalElement> ChemicalElementMap;
 
   typedef std::vector< std::pair<std::string, int> > ChemicalFormula;
-  typedef std::vector< std::pair<std::string, double> > MassicComposition;
+  typedef std::vector< std::pair<std::string, double> > MassComposition;
 
   class ChemicalMixture : public ChemicalBase {
   public:
     ChemicalMixture(const double density, const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements);
-    ChemicalMixture(const double density, const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials);
+    ChemicalMixture(const double density, const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials);
 
     //const bool isChemicalElement() const override { return false; }
     const bool isChemicalElement() const { return false; }
     const bool hasChemicalFormula() const { return (formula_.size() != 0); }
     const ChemicalFormula getChemicalFormula() const { return formula_; }
-    const MassicComposition getMassicComposition() const { return ratios_; }
+    const MassComposition getMassComposition() const { return fractions_; }
 
   private:
     // TO DO: should probably place more accurate RL and IL values directly in the file?
-    const MassicComposition computeMassicComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const;
-    const std::pair<double, double> computeRadiationAndInteractionLengths(const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) const;
+    const MassComposition computeMassComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const;
+    const std::pair<double, double> computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const;
 
-    void checkSumRatios(const MassicComposition& ratios) const;
+    void checkMassFractionsSum(const MassComposition& fractions) const;
 
     ChemicalFormula formula_;
-    MassicComposition ratios_;
+    MassComposition fractions_;
   };
 
   typedef std::map<std::string, ChemicalMixture> ChemicalMixtureMap;

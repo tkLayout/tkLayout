@@ -7531,7 +7531,7 @@ namespace insur {
   std::string Vizard::createChemicalElementsCsv() {
 
     std::stringstream myCsv;
-    myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Z /I, A /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+    myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Atomic Number /I, Standard Atomic Weight (u) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
 
     const MaterialsTable& myTable = MaterialsTable::instance();
     /*
@@ -7548,7 +7548,7 @@ namespace insur {
       myCsv << elementName << ","
 	    << (elem.getDensity() * 1000.) << ","
 	    << elem.getAtomicNumber() << ","
-	    << elem.getAtomicMass() << ","
+	    << elem.getAtomicWeight() << ","
 	    << elem.getRadiationLength() << ","
 	    << elem.getInteractionLength() 
 	    << std::endl;
@@ -7564,7 +7564,7 @@ namespace insur {
 
     std::stringstream myCsv;
     if (hasChemicalFormula) myCsv << "Compound Name /C, Density (g/cm^3) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
-    else { myCsv << "Mixture Name /C,  Substance name /C, Substance massic ratio /D, Mixture Density (g/cm^3) /D, Mixture Radiation length (g/cm^2) /D, Mixture Interaction length (g/cm^2) /D" << std::endl; }
+    else { myCsv << "Mixture Name /C,  Substance name /C, Substance mass fraction /D, Mixture Density (g/cm^3) /D, Mixture Radiation length (g/cm^2) /D, Mixture Interaction length (g/cm^2) /D" << std::endl; }
 
     const MaterialsTable& myTable = MaterialsTable::instance();
     const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
@@ -7582,11 +7582,11 @@ namespace insur {
 	      << std::endl;
 
 	if (!hasChemicalFormula) {
-	  const MassicComposition& ratios = mix.getMassicComposition();
-	  for (const auto& ratioIt : ratios) {
+	  const MassComposition& fractions = mix.getMassComposition();
+	  for (const auto& fractionIt : fractions) {
 	    myCsv << ","
-		  << ratioIt.first << ","
-		  << ratioIt.second
+		  << fractionIt.first << ","
+		  << fractionIt.second
 		  << std::endl;
 	  }
 	  myCsv << std::endl;

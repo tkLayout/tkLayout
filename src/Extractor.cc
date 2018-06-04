@@ -247,7 +247,7 @@ namespace insur {
       e.tag = elementName;
       e.density = elem.getDensity() * 1000.;  // g/cm3
       e.atomic_number = elem.getAtomicNumber();
-      e.atomic_weight = elem.getAtomicMass();
+      e.atomic_weight = elem.getAtomicWeight();
       elems.push_back(e);
     }
 
@@ -264,9 +264,9 @@ namespace insur {
       comp.density = mix.getDensity() * 1000.;  // g/cm3
       comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
 
-      const MassicComposition& ratios = mix.getMassicComposition();
-      for (const auto& ratioIt : ratios) {
-	comp.elements.insert(std::make_pair(ratioIt.first, ratioIt.second));
+      const MassComposition& fractions = mix.getMassComposition();
+      for (const auto& fractionIt : fractions) {
+	comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
       }
       allComposites.push_back(comp);
     }

@@ -86,44 +86,44 @@ namespace material {
     ChemicalBase(density),
     formula_(formula)
   {
-    ratios_ = computeMassicComposition(formula, allChemicalElements);
+    fractions_ = computeMassComposition(formula, allChemicalElements);
 
     //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
     ChemicalBaseMap alreadyDefinedMaterials;
     alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
 
-    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
+    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(fractions_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
     interactionLength_ = radiationAndInteractionLengths.second;
   }
 
 
-  ChemicalMixture::ChemicalMixture(const double density, const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) :
+  ChemicalMixture::ChemicalMixture(const double density, const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) :
     ChemicalBase(density),
-    ratios_(ratios)
+    fractions_(fractions)
   {
-    checkSumRatios(ratios);
+    checkMassFractionsSum(fractions);
 
-    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(ratios_, alreadyDefinedMaterials);
+    const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(fractions_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
     interactionLength_ = radiationAndInteractionLengths.second;
   }
 
 
-  void ChemicalMixture::checkSumRatios(const MassicComposition& ratios) const {
-    double ratioSum = 0.;
-    for (const auto& ratioIt : ratios) {
-      const double chemicalBaseMassicWeight = ratioIt.second;
-      ratioSum += chemicalBaseMassicWeight;
+  void ChemicalMixture::checkMassFractionsSum(const MassComposition& fractions) const {
+    double fractionSum = 0.;
+    for (const auto& fractionIt : fractions) {
+      const double chemicalBaseMassFraction = fractionIt.second;
+      fractionSum += chemicalBaseMassFraction;
     }
 
-    if (fabs(ratioSum - 1.) > insur::mat_negligible) { 
+    if (fabs(fractionSum - 1.) > insur::mat_negligible) { 
       std::cout << "Error defining Chemical mixture: sum of massic weights is not equal to 1." << std::endl;
       std::cout << "Inadequate mixture composition is:";
-      for (const auto& ratioIt : ratios) {
-	const std::string chemicalBaseName = ratioIt.first;
-	const double chemicalBaseMassicWeight = ratioIt.second;
-	std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassicWeight;
+      for (const auto& fractionIt : fractions) {
+	const std::string chemicalBaseName = fractionIt.first;
+	const double chemicalBaseMassFraction = fractionIt.second;
+	std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassFraction;
       }
       std::cout << "." << std::endl;
     }
@@ -132,8 +132,8 @@ namespace material {
 
 
 
-  const MassicComposition ChemicalMixture::computeMassicComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const {
-    MassicComposition ratios;
+  const MassComposition ChemicalMixture::computeMassComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const {
+    MassComposition fractions;
     double totalMoleculeMass = 0.;
 
     for (const auto& elementIt : formula) {
@@ -146,16 +146,16 @@ namespace material {
       }
       else {
 	const ChemicalElement& element = found->second;
-	const double elementAtomicMass = element.getAtomicMass();
-	const double mass = chemicalElementNumber * elementAtomicMass;
-	ratios.push_back(std::make_pair(chemicalElementName, mass));
+	const double elementAtomicWeight = element.getAtomicWeight();
+	const double mass = chemicalElementNumber * elementAtomicWeight;
+	fractions.push_back(std::make_pair(chemicalElementName, mass));
 	totalMoleculeMass += mass;
 
-	/*std::cout << "ChemicalMixture::computeMassicComposition " 
+	/*std::cout << "ChemicalMixture::computeMassComposition " 
 		  << "chemicalElementName = " << chemicalElementName 
 		  << "chemicalElementNumber = " << chemicalElementNumber
 		  << "chemicalElementName = " << chemicalElementName
-		  << "elementAtomicMass = " << elementAtomicMass
+		  << "elementAtomicWeight = " << elementAtomicWeight
 		  << "mass = " << mass
 		  << std::endl;*/
 
@@ -163,22 +163,22 @@ namespace material {
       }
     }
 
-    for (auto& ratioIt : ratios) {
-      ratioIt.second /= totalMoleculeMass;
+    for (auto& fractionIt : fractions) {
+      fractionIt.second /= totalMoleculeMass;
     }
 
-    return ratios;
+    return fractions;
   }
 
 
 
-  const std::pair<double, double> ChemicalMixture::computeRadiationAndInteractionLengths(const MassicComposition& ratios, const ChemicalBaseMap& alreadyDefinedMaterials) const {
+  const std::pair<double, double> ChemicalMixture::computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const {
     double invertedRadiationLength = 0.;
     double invertedInteractionLength = 0.;
 
-    for (const auto& ratioIt : ratios) {
-      const std::string chemicalBaseName = ratioIt.first;
-      const double chemicalBaseMassicWeight = ratioIt.second;
+    for (const auto& fractionIt : fractions) {
+      const std::string chemicalBaseName = fractionIt.first;
+      const double chemicalBaseMassFraction = fractionIt.second;
 
       const auto found = alreadyDefinedMaterials.find(chemicalBaseName);
       if (found == alreadyDefinedMaterials.end()) {
@@ -190,13 +190,13 @@ namespace material {
 
 	if (fabs(radiationLength) < insur::mat_negligible) std::cout << "Found a null radiation length for " << chemicalBaseName << std::endl;
 	else {
-	  invertedRadiationLength += chemicalBaseMassicWeight / radiationLength;
+	  invertedRadiationLength += chemicalBaseMassFraction / radiationLength;
 	}
 
 	const double interactionLength = base.getInteractionLength();
 	if (fabs(interactionLength) <  insur::mat_negligible) std::cout << "Found a null interaction length for " << chemicalBaseName << std::endl;
 	else {
-	  invertedInteractionLength += chemicalBaseMassicWeight / interactionLength;
+	  invertedInteractionLength += chemicalBaseMassFraction / interactionLength;
 	}
 
 	/*std::cout << "ChemicalMixture::computeRadiationAndInteractionLengths " 
@@ -275,7 +275,7 @@ namespace material {
 		<< " elem.getRadiationLength() = " << elem.getRadiationLength()
 		<< " elem.getInteractionLength() = " << elem.getInteractionLength() 
 		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
-		<< " elem.getAtomicMass() = " << elem.getAtomicMass()
+		<< " elem.getAtomicWeight() = " << elem.getAtomicWeight()
 		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
 		<< std::endl;
     }
@@ -353,10 +353,10 @@ namespace material {
 	std::cout << " formulaIt.first = " << formulaIt.first
 		  << " formulaIt.second = " << formulaIt.second;
       }
-      const MassicComposition& ratio = mix.getMassicComposition();
-      for (const auto& ratioIt : ratio) {
-	std::cout << " ratioIt.first = " << ratioIt.first
-		  << " ratioIt.second = " << ratioIt.second;
+      const MassComposition& fraction = mix.getMassComposition();
+      for (const auto& fractionIt : fraction) {
+	std::cout << " fractionIt.first = " << fractionIt.first
+		  << " fractionIt.second = " << fractionIt.second;
       }
       std::cout << "." << std::endl;
     }
@@ -391,17 +391,17 @@ namespace material {
 		    << " mixtureDensity = " << mixtureDensity;*/
 
 
-	  MassicComposition mixtureComposition;
+	  MassComposition mixtureComposition;
 	  std::string constituant;
 	  while (myLine >> constituant) { // TO DO: !!!!! should check for (myLine >> constituant) error
 
 	    const auto delimiterPosition = constituant.find(insur::default_composition_delimiter);
 	    if (delimiterPosition != std::string::npos) {
 	      const std::string constituantName = constituant.substr(0, delimiterPosition);
-	      const std::string constituantMassicWeightString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
-	      const double constituantMassicWeight = std::stod(constituantMassicWeightString);
-	      //std::cout << "constituantName = " << constituantName << " constituantMassicWeight = " << constituantMassicWeight;
-	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassicWeight));
+	      const std::string constituantMassFractionString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
+	      const double constituantMassFraction = std::stod(constituantMassFractionString);
+	      //std::cout << "constituantName = " << constituantName << " constituantMassFraction = " << constituantMassFraction;
+	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassFraction));
 	    }
 	    else { 
 	      std::cout << "Chemical mixture: could not find the : delimiter. Please set name:value, with no space between name and value." << std::endl; 
@@ -437,10 +437,10 @@ namespace material {
 	std::cout << " formulaIt.first = " << formulaIt.first
 		  << " formulaIt.second = " << formulaIt.second;
       }
-      const MassicComposition& ratio = mix.getMassicComposition();
-      for (const auto& ratioIt : ratio) {
-	std::cout << " ratioIt.first = " << ratioIt.first
-		  << " ratioIt.second = " << ratioIt.second;
+      const MassComposition& fraction = mix.getMassComposition();
+      for (const auto& fractionIt : fraction) {
+	std::cout << " fractionIt.first = " << fractionIt.first
+		  << " fractionIt.second = " << fractionIt.second;
       }
       std::cout << "." << std::endl;
     }
