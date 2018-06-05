@@ -86,9 +86,9 @@ namespace material {
   public:
     static const MaterialsTable& instance();
 
-    double density(const std::string materialName) const;  // TO DO: should return const double!!!
-    double radiationLength(const std::string materialName) const;
-    double interactionLength(const std::string materialName) const;
+    double getDensity(const std::string materialName) const;  // TO DO: should return const double!!!
+    double getRadiationLength(const std::string materialName) const;
+    double getInteractionLength(const std::string materialName) const;
 
     const ChemicalElementMap getAllChemicalElements() const { return this->first; }
     const ChemicalMixtureMap getAllChemicalMixtures() const { return this->second; }

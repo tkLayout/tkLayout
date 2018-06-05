@@ -464,7 +464,7 @@ namespace material {
     return instance_;
   }
 
-  double MaterialsTable::density(const std::string materialName) const {
+  double MaterialsTable::getDensity(const std::string materialName) const {
     const ChemicalElementMap& allChemicalElements = this->first;
     const ChemicalMixtureMap& allChemicalMixtures = this->second;
 
@@ -480,7 +480,7 @@ namespace material {
     return density;
   }
 
-  double MaterialsTable::radiationLength(const std::string materialName) const {
+  double MaterialsTable::getRadiationLength(const std::string materialName) const {
     const ChemicalElementMap& allChemicalElements = this->first;
     const ChemicalMixtureMap& allChemicalMixtures = this->second;
 
@@ -496,7 +496,7 @@ namespace material {
     return radiationLength;
   }
 
-  double MaterialsTable::interactionLength(const std::string materialName) const {
+  double MaterialsTable::getInteractionLength(const std::string materialName) const {
     const ChemicalElementMap& allChemicalElements = this->first;
     const ChemicalMixtureMap& allChemicalMixtures = this->second;
 

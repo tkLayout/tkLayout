@@ -322,8 +322,8 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
-    materialTab_ (MaterialTab::instance()),
-    myTable_ (MaterialsTable::instance()),
+    //materialTab_ (MaterialTab::instance()),
+    materialsTable_ (MaterialsTable::instance()),
     materialType_(newMaterialType) {
   };
 
@@ -420,7 +420,7 @@ namespace material {
      
   double MaterialObject::Element::quantityInUnit(const std::string desiredUnit, const double length, const double surface) const {
     double returnVal = 0;
-    double density = materialTab_.density(elementName());
+    double density = materialsTable_.getDensity(elementName());
     bool invert;
     Unit desiredUnitVal, elementUnitVal, tempUnit;
 

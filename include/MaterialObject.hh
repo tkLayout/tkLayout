@@ -165,8 +165,8 @@ namespace material {
       std::map<int, int> sensorChannels_;
 
     private:
-      const MaterialTab& materialTab_;
-      const MaterialsTable& myTable_;
+      //const MaterialTab& materialTab_;
+      const MaterialsTable& materialsTable_;
       static const std::string msg_no_valid_unit;
       MaterialObject::Type& materialType_;
       //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;

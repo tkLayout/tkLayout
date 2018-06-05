@@ -331,7 +331,9 @@ namespace material {
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
-    materialTab_ (MaterialTab::instance()) {}
+    //materialsTable_(MaterialTab::instance()),
+    materialsTable_ (MaterialsTable::instance())
+  {}
     
   const std::string SupportStructure::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -355,7 +357,7 @@ namespace material {
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
-        double elementDensity = materialTab_.density(elementNameString);
+        double elementDensity = materialsTable_.getDensity(elementNameString);
         returnVal = elementDensity * surface * quantity();
         break;
       }

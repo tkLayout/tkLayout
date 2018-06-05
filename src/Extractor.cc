@@ -260,7 +260,7 @@ namespace insur {
       const ChemicalMixture& mix = mixIt.second;
 
       Composite comp;
-      comp.name = "tkLayout_" + mixtureName;
+      comp.name = xml_tkLayout_material + mixtureName;
       comp.density = mix.getDensity() * 1000.;  // g/cm3
       comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
 

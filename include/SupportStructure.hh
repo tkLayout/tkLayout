@@ -13,6 +13,8 @@
 #include "Property.hh"
 #include "global_constants.hh"
 
+#include "MaterialTab.hh"
+
 namespace insur {
   class MaterialProperties;
   class InactiveElement;
@@ -106,7 +108,8 @@ namespace material {
       double quantityInGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
     private:
-      const MaterialTab& materialTab_;
+      //const MaterialTab& materialTab_;
+      const MaterialsTable& materialsTable_;
       static const std::string msg_no_valid_unit;
     };
   };
