@@ -77,6 +77,9 @@ namespace material {
     const double A_b = 11.57238;
 
     const double interactionLength = pow(atomicWeight, 1./3.) * A_a + A_b;
+    //const double invertedInteractionLength = 1. / 35. * pow(atomicWeight, -1./3.);
+    //const double interactionLength = 1. / invertedInteractionLength;
+
     return interactionLength;
   }
 
@@ -267,7 +270,7 @@ namespace material {
       logERROR("Could not open chemical elements file.");
     }
 
-    /*
+    
     for (const auto& elemIt : allChemicalElements) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
       const ChemicalElement& elem = elemIt.second;
@@ -279,7 +282,7 @@ namespace material {
 		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
 		<< std::endl;
     }
-    */
+    
     
 
 
@@ -340,7 +343,7 @@ namespace material {
     }
 
 
-    /*
+    
     for (const auto& mixIt : allChemicalMixtures) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all chemical composites. load Composite = " << mixIt.first;
       const ChemicalMixture& mix = mixIt.second;
@@ -361,7 +364,7 @@ namespace material {
       }
       std::cout << "." << std::endl;
     }
-    */
+    
     
 
 
@@ -426,7 +429,7 @@ namespace material {
     }
 
     
-    /*
+    
     for (const auto& mixIt : allChemicalMixtures) {
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
       const ChemicalMixture& mix = mixIt.second;
@@ -447,7 +450,7 @@ namespace material {
       }
       std::cout << "." << std::endl;
     }
-    */
+    
     
 
 
