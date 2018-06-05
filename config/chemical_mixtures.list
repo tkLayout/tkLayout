@@ -39,7 +39,7 @@ Kevlar	                   1.42	                     C:1
 
 
 
-# This is only for renaming purposes: they should be deleted.
+# This are only for renaming purposes: they should be deleted.
 SenSi	                   2.3296	                  Si:1
 Al_MV	                   2.698	                  Al:1
 Al_HV	                   2.698	                  Al:1
@@ -60,12 +60,31 @@ Cu_twp	                 8.96	                    Cu:1
 TEDD_Cu	                 8.96                   	Cu:1
 FPIX_Cu	                 8.96	                    Cu:1
 FPIX_Ti	                 4.54                     Ti:1
+Ti_L1                    4.54	                    Ti:1
+Ti_L2	                   4.54	                    Ti:1
+Ti_L3	                   4.54	                    Ti:1
+Ti_L4	                   4.54	                    Ti:1
 
 CO2_L1	                 1.0	                   CO2:1
 CO2_L2	                 1.0	                   CO2:1
 CO2_L3	                 1.0	                   CO2:1
 CO2_L4	                 1.0	                   CO2:1
+TEDD_CO2	               1.0	                   CO2:1
+FPIX_CO2	               1.0	                   CO2:1
 PE_twp	                 0.95	                    PE:1
+TEDD_PE	                 0.95	                    PE:1
+FPIX_PE	                 0.95	                    PE:1
 G10	                     1.9	                  Gten:1
+TEDD_Steel	             7.8	                 Steel:1
+
+
+
+
+
+
+
+
+
+
 
 
