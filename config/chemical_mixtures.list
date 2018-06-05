@@ -1,6 +1,71 @@
-#	Chemical Mixtures
-# name       | density (g/cm^3) |    substance:massFraction
+#	CHEMICAL MIXTURES
+# name              | density (g/cm^3) |     substance:massFraction
 #
-CFRP                1.84                   CO2:0.4                  Al2O3:0.6
-GrandMa             2.1                   CFRP:0.8                      O:0.2
-myUncle             3.1                   CFRP:0.1                GrandMa:0.2           Al2O3:0.6           Be:0.1 
+# Can be made of any chemical element, chemical compound, or previously defined mixture.
+# exampleMix                1.84                     CO2:0.3                    Al2O3:0.6                      Al:0.1
+CF	                       1.69	                     B:1
+CFRP	                     1.84	                     C:1
+Pyroid	                   2.22	                     B:1
+PGS                        0.85	                     B:1
+Gten                       1.9	                     O:1
+PE	                       0.95	                    Be:1
+Steel	                     7.8	                    Ni:1
+Silicone	                74.15	                     O:1
+Siliconeglue	             1.50	                     N:1
+BGA	                       8.82	                    Eu:1
+ConCon	                   5.89	                    Ar:1
+Kapton	                   1.42	                     C:1
+WB-enc	                   1.50	                     N:1
+Epoxy	                     1.16	                     N:1
+Parylene	                 1.30	                     C:1
+2S-FEH-mix	               1.83	                    Mg:1
+2S-SEH-mix	               1.22	                     N:1
+Al-CF	                     2.40	                     F:1
+PS-FEH-mix	               1.61	                     F:1
+PS-ROH-mix	               1.54                      O:1
+PS-POH-mix	               0.99	                     C:1
+SenLYSO	                   7.40	                    Ru:1
+Brass                      8.7                      Cu:1
+Acrylate                   1.16                      C:1
+Glass                      2.33	                    Si:1
+Airex                      0.06                      C:1
+Pix_Bumps                  8.92                     Gd:1
+Pix_Caps                   6.02                     Al:1
+Kevlar	                   1.42	                     C:1
+
+
+
+
+
+
+
+# This is only for renaming purposes: they should be deleted.
+SenSi	                   2.3296	                  Si:1
+Al_MV	                   2.698	                  Al:1
+Al_HV	                   2.698	                  Al:1
+Al_twp	                 2.698	                  Al:1
+TEDD_Al	                 2.698	                  Al:1
+FPIX_Al	                 2.698	                  Al:1
+FPIX_Al_HV	             2.698	                  Al:1
+Cu_TWP_1+1_LS	           8.96	                    Cu:1
+Cu_TWP_1+1_LS_div4	     8.96	                    Cu:1
+Cu_TWP_1+1_HS	           8.96	                    Cu:1
+Cu_TWP_1+1_HS_div4	     8.96	                    Cu:1
+Cu_TWP_2+1_HS	           8.96                     Cu:1
+Cu_TWP_3+1_HS	           8.96	                    Cu:1
+Cu_TWP_6+1_HS	           8.96	                    Cu:1
+Cu_HV	                   8.96	                    Cu:1
+Cu_MV                    8.96                    	Cu:1
+Cu_twp	                 8.96	                    Cu:1
+TEDD_Cu	                 8.96                   	Cu:1
+FPIX_Cu	                 8.96	                    Cu:1
+FPIX_Ti	                 4.54                     Ti:1
+
+CO2_L1	                 1.0	                   CO2:1
+CO2_L2	                 1.0	                   CO2:1
+CO2_L3	                 1.0	                   CO2:1
+CO2_L4	                 1.0	                   CO2:1
+PE_twp	                 0.95	                    PE:1
+G10	                     1.9	                  Gten:1
+
+

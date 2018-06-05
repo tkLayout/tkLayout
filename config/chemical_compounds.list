@@ -1,9 +1,21 @@
-#	Chemical Compounds
-# name       | density (g/cm^3) |    atomSymbol:numberOfAtoms
+#	CHEMICAL COMPOUNDS
+# name              | density (g/cm^3) |    atomSymbol:numberOfAtomsInMolecule
 #
-CO2	                1.0	                      C:1                  O:2
-Al2O3	              3.965	                   Al:2                  O:3
-BaF2                4.89                     Ba:1                  F:2
-NaI                 3.67                     Na:1                  I:1
+CO2	                       1.0	                     C:1                  O:2
+C6F14	                     1.88                      C:6                  F:14
+Al2O3	                     3.965	                  Al:2                  O:3
+Sn95Ag5	                   7.50                     Sn:95                 Ag:5
+
+
+
+# Unused:
+#BaF2                       4.89                     Ba:1                  F:2
+#NaI                        3.67                     Na:1                  I:1
+
+
+
+
+
+
 
 
