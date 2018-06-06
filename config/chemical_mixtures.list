@@ -3,33 +3,33 @@
 #
 # Can be made of any chemical element, chemical compound, or previously defined mixture.
 # exampleMix                1.84                     CO2:0.3                    Al2O3:0.6                      Al:0.1
-CF	                       1.69	                     B:1
+CF	                       1.69	                     C:1
 CFRP	                     1.84	                     C:1
-Pyroid	                   2.22	                     B:1
-PGS                        0.85	                     B:1
-Gten                       1.9	                     O:1
-PE	                       0.95	                    Be:1
+Pyroid	                   2.22	                     C:1
+PGS                        0.85	                     C:1
+Gten                       1.9	                     N:1
+PE	                       0.95	                     C:1
 Steel	                     7.8	                    Ni:1
 Silicone	                74.15	                     O:1
 Siliconeglue	             1.50	                     N:1
-BGA	                       8.82	                    Eu:1
-ConCon	                   5.89	                    Ar:1
+BGA	                       8.82	                    Nd:1
+ConCon	                   5.89	                     K:1
 Kapton	                   1.42	                     C:1
 WB-enc	                   1.50	                     N:1
 Epoxy	                     1.16	                     N:1
 Parylene	                 1.30	                     C:1
-2S-FEH-mix	               1.83	                    Mg:1
-2S-SEH-mix	               1.22	                     N:1
+2S-FEH-mix	               1.83	                    Si:1
+2S-SEH-mix	               1.22	                     O:1
 Al-CF	                     2.40	                     F:1
-PS-FEH-mix	               1.61	                     F:1
+PS-FEH-mix	               1.61	                    Na:1
 PS-ROH-mix	               1.54                      O:1
-PS-POH-mix	               0.99	                     C:1
-SenLYSO	                   7.40	                    Ru:1
+PS-POH-mix	               0.99	                     N:1
+SenLYSO	                   7.40	                     I:1
 Brass                      8.7                      Cu:1
 Acrylate                   1.16                      C:1
 Glass                      2.33	                    Si:1
 Airex                      0.06                      C:1
-Pix_Bumps                  8.92                     Gd:1
+Pix_Bumps                  8.92                     Tb:1
 Pix_Caps                   6.02                     Al:1
 Kevlar	                   1.42	                     C:1
 
