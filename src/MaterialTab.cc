@@ -77,8 +77,7 @@ namespace material {
     const double A_b = 11.57238;
 
     const double interactionLength = pow(atomicWeight, 1./3.) * A_a + A_b;
-    //const double invertedInteractionLength = 1. / 35. * pow(atomicWeight, -1./3.);
-    //const double interactionLength = 1. / invertedInteractionLength;
+    //const double interactionLength = 35. * pow(atomicWeight, 1./3.);
 
     return interactionLength;
   }
@@ -272,7 +271,7 @@ namespace material {
     }
 
    
-    /* 
+    
     for (const auto& elemIt : allChemicalElements) {
       const MaterialTab& oldTable = MaterialTab::instance();
       const double oldRad = oldTable.radiationLength(elemIt.first);
@@ -282,6 +281,7 @@ namespace material {
       const double intRatio = (elem.getInteractionLength() - oldInt) / oldInt * 100.;
       std::cout << elemIt.first << " radRatio = " << radRatio << "intRatio = " << intRatio << std::endl;
 
+      /*
       std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
       const ChemicalElement& elem = elemIt.second;
       std::cout << " elem.getDensity() = " << elem.getDensity()
@@ -290,8 +290,8 @@ namespace material {
 		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
 		<< " elem.getAtomicWeight() = " << elem.getAtomicWeight()
 		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
-		<< std::endl;
-    }*/
+		<< std::endl;*/
+    }
     
     
 
@@ -447,7 +447,7 @@ namespace material {
     }
 
     
-    
+    /*
     for (const auto& mixIt : allChemicalMixtures) {
       if (!mixIt.second.hasChemicalFormula()) {
 	const MaterialTab& oldTable = MaterialTab::instance();
@@ -498,9 +498,9 @@ namespace material {
 	  std::cout << " fractionIt.first = " << fractionIt.first
 	  << " fractionIt.second = " << fractionIt.second;
 	  }
-	  std::cout << "." << std::endl;*/
+	  std::cout << "." << std::endl;
       }
-    }
+    }*/
     
     
 

@@ -2,7 +2,7 @@
 # name              | density (g/cm^3) |     substance:massFraction
 #
 # Can be made of any chemical element, chemical compound, or previously defined mixture.
-# exampleMix                1.84                     CO2:0.3                    Al2O3:0.6                      Al:0.1
+# exampleMix               1.84                     CO2:0.3                    Al2O3:0.6                      Al:0.1
 CF	                       1.69	                     C:1
 CFRP	                     1.84	                     C:1
 Pyroid	                   2.22	                     C:1
