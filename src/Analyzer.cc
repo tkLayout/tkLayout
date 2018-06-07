@@ -3142,8 +3142,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   LayerNameVisitor layerNames(tracker);
 
-  // Creating the layer hit coverage profiles
-  const int plotMaxNumberOfHitsPerLayer = (tracker.isPixelTracker() ? 4 : 5);
+  // CREATING THE LAYER HIT COVERAGE PROFILES
+  const int plotMaxNumberOfHitsPerLayer = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
   layerEtaCoverageProfile.clear();
   layerEtaCoverageProfileStubs.clear();
   for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) { // CUIDADO this is horrible code (not mine). refactor!
@@ -3155,27 +3155,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     delete aProfileStubs;
 
     for (int numberOfHits = 1; numberOfHits <= plotMaxNumberOfHitsPerLayer; numberOfHits++) {
-      TProfile* hitProfile = new TProfile(Form("layerEtaCoverageProfileHits%s%d", it->c_str(), numberOfHits), it->c_str(), 200, maxEta, maxEta);
-      (layerEtaCoverageProfile[*it].second)[numberOfHits] = (*hitProfile);
-      delete hitProfile;
+      TProfile hitProfile = TProfile(Form("layerEtaCoverageProfileHits%s%d", it->c_str(), numberOfHits), it->c_str(), 100, maxEta, maxEta);
+      (layerEtaCoverageProfile[*it].second)[numberOfHits] = hitProfile;
     }
   }
-
-  if (tracker.isPixelTracker()) {
-    for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubsInPixel; numberOfStubs++) {
-      TProfile* stubProfile = new TProfile();
-      stubProfile->SetName(Form("layerEtaCoverageProfileStubs%d", numberOfStubs));
-      stubProfile->SetMarkerStyle(8);
-      stubProfile->SetMarkerColor(1);
-      stubProfile->SetMarkerSize(1.);
-      stubProfile->SetTitle("Number of stubs;#eta;Fraction of tracks");
-      stubProfile->SetBins(100, 0, maxEta);
-      stubProfile->SetStats(0);
-      totalEtaProfilePixelStubsDetails[numberOfStubs] = (*stubProfile);
-      delete stubProfile;
-    }
-  }
-
 
   etaProfileByType.clear();
   etaProfileByTypeSensors.clear();
@@ -3241,6 +3224,19 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
   totalEtaProfileStubs.SetStats(0);
 
+  // total tracks ratio per number of stubs
+  const int plotMaxNumberOfStubs = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
+  for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
+    TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileStubs%d", numberOfStubs), 
+				     "Number of stubs;#eta;Fraction of tracks", 
+				     100, 0, maxEta);
+    stubProfile.SetMarkerStyle(8);
+    stubProfile.SetMarkerColor(1);
+    stubProfile.SetMarkerSize(1.);  
+    stubProfile.SetStats(0);
+    totalEtaProfileNumberOfStubsRatios_[numberOfStubs] = stubProfile;
+  }
+
   totalEtaProfileLayers.Reset();
   totalEtaProfileLayers.SetName("totalEtaProfileLayers");
   totalEtaProfileLayers.SetMarkerStyle(8);
@@ -3266,7 +3262,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       resetTypeCounter(moduleTypeCount);
       resetTypeCounter(sensorTypeCount);
       resetTypeCounter(moduleTypeCountStubs);
-      int numStubs = 0;
+      int numOuterTrackerStubs = 0;
       int numHits = 0;
       for (auto& mh : hitModules) {
         moduleTypeCount[mh.first->moduleType()]++;
@@ -3287,7 +3283,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
           numHits+=2;
 
           moduleTypeCountStubs[mh.first->moduleType()]++;
-          numStubs++;
+          numOuterTrackerStubs++;
         }
         modulePlotColors[mh.first->moduleType()] = mh.first->plotColor();
       }
@@ -3314,10 +3310,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
       totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
       totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
-      totalEtaProfileStubs.Fill(fabs(aLine.second), numStubs); 
+      //totalEtaProfileStubs.Fill(fabs(aLine.second), numOuterTrackerStubs); 
+
 
       int nHitLayers = 0;
-      int numPixelStubs = 0;
+      int numInnerTrackerStubs = 0;
+      // COVERAGE PER LAYER
       for (auto layerName : layerNames.data) {
         int layerHit = 0;
         int layerStub = 0;
@@ -3332,15 +3330,17 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
           }
         }
 	if (tracker.isPixelTracker()) {
-	  const int numPixelStubsInLayer = (totalNumberHits <= 1 ? 0 : 1);
-	  numPixelStubs += numPixelStubsInLayer;
+	  const int numInnerTrackerStubsPerLayer = (totalNumberHits <= 1 ? 0 : 1);
+	  numInnerTrackerStubs += numInnerTrackerStubsPerLayer;
 	}
 
+	// HIT COVERAGE
+	// hit >= 1
         layerEtaCoverageProfile[layerName].first.Fill(aLine.second, layerHit);
-        layerEtaCoverageProfileStubs[layerName].Fill(aLine.second, layerStub);
+	
+	// all other hit counts
 	//if (totalNumberHits >= 5) std::cout << layerName << " totalNumberHits >= 5: totalNumberHits = " << totalNumberHits << std::endl;
 	//if (totalNumberHits == 3 || totalNumberHits == 4) std::cout << layerName << " totalNumberHits == " << totalNumberHits << std::endl;
-
 	//if (totalNumberHits > plotMaxNumberOfHitsPerLayer) std::cout << "ERROR " << layerName << " totalNumberHits = " << totalNumberHits << std::endl;
 	for (int numberOfHitsIndex = 1; numberOfHitsIndex <= plotMaxNumberOfHitsPerLayer; numberOfHitsIndex++) {
 	  int result = 0;
@@ -3351,23 +3351,32 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 	  (layerEtaCoverageProfile[layerName].second)[numberOfHitsIndex].Fill(aLine.second, result);
 	}
 
+	// layer with at least one hit
 	if (layerHit) nHitLayers++;
+
+	// STUB COVERAGE
+	// stub >= 1
+	layerEtaCoverageProfileStubs[layerName].Fill(aLine.second, layerStub);
       }
 
+
+      // COVERAGE FOR ALL LAYERS (GIVEN SUBDETECTOR)
+
+      // Number of hit layers
       totalEtaProfileLayers.Fill(fabs(aLine.second), nHitLayers);
 
-
-      if (tracker.isPixelTracker()) {
-	totalEtaProfileStubs.Fill(fabs(aLine.second), numPixelStubs);       
-
-	for (int numberOfStubsIndex = 0; numberOfStubsIndex <= plotMaxNumberOfStubsInPixel; numberOfStubsIndex++) {
-	  int result = 0;
-	  if (numberOfStubsIndex == numPixelStubs
-	      || (numberOfStubsIndex == plotMaxNumberOfStubsInPixel && numPixelStubs > plotMaxNumberOfStubsInPixel)
-	      ) { result = 1; }
-	  else { result = 0; }
-	  totalEtaProfilePixelStubsDetails[numberOfStubsIndex].Fill(fabs(aLine.second), result); 
-	}
+      // Number of stubs
+      const int numStubsPerTrack = (!tracker.isPixelTracker() ? numOuterTrackerStubs : numInnerTrackerStubs);
+      totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
+    
+      // Ratio of tracks with a given number of stubs
+      for (int numberOfStubsIndex = 0; numberOfStubsIndex <= plotMaxNumberOfStubs; numberOfStubsIndex++) {
+	int result = 0;
+	if (numberOfStubsIndex == numStubsPerTrack
+	    || (numberOfStubsIndex == plotMaxNumberOfStubs && numStubsPerTrack > plotMaxNumberOfStubs)
+	    ) { result = 1; }
+	else { result = 0; }
+	totalEtaProfileNumberOfStubsRatios_[numberOfStubsIndex].Fill(fabs(aLine.second), result); 
       }
 
       

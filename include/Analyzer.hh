@@ -104,7 +104,10 @@ namespace insur {
 
   typedef std::map<int, TProfile> LayerCoverageInfoPerNumberOfHits;
   typedef std::pair<TProfile, LayerCoverageInfoPerNumberOfHits> LayerCoverageInfo;
-  static const int plotMaxNumberOfStubsInPixel = 3;
+  static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
+  static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
+  static const int plotMaxNumberOfOuterTrackerStubs = 11;
+  static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
 
   class Analyzer : private AnalyzerTools {
@@ -236,7 +239,7 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
-    std::map<int, TProfile>& getTotalEtaProfilePixelStubsDetails() {return totalEtaProfilePixelStubsDetails; }
+    std::map<int, TProfile>& getTotalEtaProfileNumberOfStubsRatios() { return totalEtaProfileNumberOfStubsRatios_; }
     TProfile& getTotalEtaProfileLayers() {return totalEtaProfileLayers; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
@@ -443,7 +446,7 @@ namespace insur {
 
     TGraph powerDensity;
     TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs, totalEtaProfileLayers;
-    std::map<int, TProfile> totalEtaProfilePixelStubsDetails;
+    std::map<int, TProfile> totalEtaProfileNumberOfStubsRatios_;
     std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
     std::map<std::string, LayerCoverageInfo> layerEtaCoverageProfile;
     std::map<std::string, TProfile> layerEtaCoverageProfileStubs;

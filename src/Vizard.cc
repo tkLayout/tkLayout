@@ -2684,13 +2684,11 @@ namespace insur {
     myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
 
-    if (tracker.isPixelTracker()) {
-      myCanvas = new TCanvas("EtaProfilePixelStubsDetails", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      drawEtaProfilesStubsDetails(*myCanvas, analyzer);
-      myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Stub coverage across eta");
-      myContent->addItem(myImage);
-    }
+    myCanvas = new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfilesNumberOfStubsRatios(*myCanvas, analyzer, (name=="pixel"));
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Stub coverage across eta");
+    myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesLayers(*myCanvas, analyzer);
@@ -2771,19 +2769,19 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
-  bool Vizard::drawEtaProfilesStubsDetails(TVirtualPad& myPad, Analyzer& analyzer) {
+  bool Vizard::drawEtaProfilesNumberOfStubsRatios(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
-    std::map<int, TProfile>& totalEtaProfileStubsDetails = analyzer.getTotalEtaProfilePixelStubsDetails();
+    std::map<int, TProfile>& totalEtaProfileNumberOfStubsRatios = analyzer.getTotalEtaProfileNumberOfStubsRatios();
     
+    const int plotMaxNumberOfStubs = (!isPixelTracker ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
 
-    TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);
-      
+    TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);   
     int colorIndex = 1;
-    for (auto& detailIt : totalEtaProfileStubsDetails) {
+    for (auto& detailIt : totalEtaProfileNumberOfStubsRatios) {
       const int numberOfStubs = detailIt.first;
       ostringstream titleStream;
-      if (numberOfStubs < plotMaxNumberOfStubsInPixel) {
+      if (numberOfStubs < plotMaxNumberOfStubs) {
 	titleStream << "= " << numberOfStubs << " stub";
 	if (numberOfStubs >= 2) titleStream << "s";
       }
@@ -2849,10 +2847,10 @@ namespace insur {
     return drawEtaProfilesStubs(*myVirtualPad, analyzer);
   }
 
-  bool Vizard::drawEtaProfilesStubsDetails(TCanvas& myCanvas, Analyzer& analyzer) {
+  bool Vizard::drawEtaProfilesNumberOfStubsRatios(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker) {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
-    return drawEtaProfilesStubsDetails(*myVirtualPad, analyzer);
+    return drawEtaProfilesNumberOfStubsRatios(*myVirtualPad, analyzer, isPixelTracker);
   }
 
   bool Vizard::drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer) {
@@ -2999,8 +2997,9 @@ namespace insur {
 	  detailProfile.SetMaximum(1.05);
 	  detailProfile.SetMarkerColor(Palette::color(colorIndex));
 	  detailProfile.SetLineColor(Palette::color(colorIndex));
-	  detailProfile.SetMarkerStyle(1);
-	  detailProfile.SetTitle("");  // TO DO!!!!
+	  detailProfile.SetMarkerStyle(8);
+	  detailProfile.SetMarkerSize(0.3);  
+	  //detailProfile.SetMarkerStyle(1);
 	  detailProfile.Draw("same");
 	  layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
 	}

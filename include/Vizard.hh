@@ -195,8 +195,8 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaProfilesStubsDetails(TCanvas& myCanvas, Analyzer& analyzer);
-    bool drawEtaProfilesStubsDetails(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaProfilesNumberOfStubsRatios(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawEtaProfilesNumberOfStubsRatios(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker);
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
