@@ -195,9 +195,12 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaProfilesStubsDetails(TCanvas& myCanvas, Analyzer& analyzer);
+    bool drawEtaProfilesStubsDetails(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
+    bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, LayerCoverageInfo>& layerEtaCoverage, const std::string& type);
     bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
     bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
     int momentumColor(int iMomentum);

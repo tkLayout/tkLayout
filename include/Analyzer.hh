@@ -102,6 +102,10 @@ namespace insur {
   //typedef double TrackCollectionKey;
   typedef std::map<int, TrackCollection> TrackCollectionMap;
 
+  typedef std::map<int, TProfile> LayerCoverageInfoPerNumberOfHits;
+  typedef std::pair<TProfile, LayerCoverageInfoPerNumberOfHits> LayerCoverageInfo;
+  static const int plotMaxNumberOfStubsInPixel = 3;
+
 
   class Analyzer : private AnalyzerTools {
   public:
@@ -232,12 +236,13 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
+    std::map<int, TProfile>& getTotalEtaProfilePixelStubsDetails() {return totalEtaProfilePixelStubsDetails; }
     TProfile& getTotalEtaProfileLayers() {return totalEtaProfileLayers; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
     std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
     std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
-    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
+    std::map<std::string, LayerCoverageInfo>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
     std::map<std::string, TProfile>& getLayerEtaCoverageProfilesStubs() {return layerEtaCoverageProfileStubs; }
     std::map<std::string, std::map<std::string, TH1I*>>& getStubEfficiencyCoverageProfiles() { return stubEfficiencyCoverageProfiles_; } // map of maps: inner map has momenta as keys
     std::vector<TObject> getSavingVector();
@@ -438,8 +443,10 @@ namespace insur {
 
     TGraph powerDensity;
     TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs, totalEtaProfileLayers;
+    std::map<int, TProfile> totalEtaProfilePixelStubsDetails;
     std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
-    std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
+    std::map<std::string, LayerCoverageInfo> layerEtaCoverageProfile;
+    std::map<std::string, TProfile> layerEtaCoverageProfileStubs;
 
     std::map<std::string, std::map<std::string, TH1I*>> stubEfficiencyCoverageProfiles_;
 

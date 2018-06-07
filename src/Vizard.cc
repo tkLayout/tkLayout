@@ -2684,6 +2684,14 @@ namespace insur {
     myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
 
+    if (tracker.isPixelTracker()) {
+      myCanvas = new TCanvas("EtaProfilePixelStubsDetails", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      drawEtaProfilesStubsDetails(*myCanvas, analyzer);
+      myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Stub coverage across eta");
+      myContent->addItem(myImage);
+    }
+
     myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesLayers(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -2763,6 +2771,41 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
+  bool Vizard::drawEtaProfilesStubsDetails(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    std::map<int, TProfile>& totalEtaProfileStubsDetails = analyzer.getTotalEtaProfilePixelStubsDetails();
+    
+
+    TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);
+      
+    int colorIndex = 1;
+    for (auto& detailIt : totalEtaProfileStubsDetails) {
+      const int numberOfStubs = detailIt.first;
+      ostringstream titleStream;
+      if (numberOfStubs < plotMaxNumberOfStubsInPixel) {
+	titleStream << "= " << numberOfStubs << " stub";
+	if (numberOfStubs >= 2) titleStream << "s";
+      }
+      else { titleStream << ">= " << numberOfStubs << " stubs"; }
+
+      TProfile& detailProfile = detailIt.second;
+      detailProfile.SetMinimum(0);
+      detailProfile.SetMaximum(1.05);
+      detailProfile.SetMarkerColor(Palette::color(colorIndex));
+      detailProfile.SetLineColor(Palette::color(colorIndex));
+      //detailProfile.SetMarkerStyle(1);
+      //detailProfile.SetTitle("");  // TO DO!!!!
+      detailProfile.Draw("same");
+      layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
+      colorIndex++;
+    }
+    layerLegend->Draw("same");
+
+
+    return true;
+  }
+
   bool Vizard::drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
@@ -2806,6 +2849,12 @@ namespace insur {
     return drawEtaProfilesStubs(*myVirtualPad, analyzer);
   }
 
+  bool Vizard::drawEtaProfilesStubsDetails(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesStubsDetails(*myVirtualPad, analyzer);
+  }
+
   bool Vizard::drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer) {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
@@ -2813,7 +2862,7 @@ namespace insur {
   }
 
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
-    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
+    return drawEtaCoverageHits(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
   }
 
   bool Vizard::drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer) {
@@ -2877,6 +2926,103 @@ namespace insur {
     }
     return true;
   }
+
+
+
+  bool Vizard::drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, LayerCoverageInfo>& layerEtaCoverage, const std::string& type) {
+    if (layerEtaCoverage.size()==0) return false;
+
+    TCanvas* myCanvas;
+    RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
+    myPage.addContent(myContent);
+
+    int layerCount = 0;
+    for (auto& layerIt : layerEtaCoverage) {
+
+      LayerCoverageInfo& allLayerInfo = layerIt.second;
+      TProfile& aProfile = allLayerInfo.first;
+      LayerCoverageInfoPerNumberOfHits& detailedInfo = allLayerInfo.second;
+      layerCount++;
+      myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerIt.first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myCanvas->cd();
+
+
+      TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
+      TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
+      TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
+      myCanvas->cd();
+      upperLeftPad->Draw();
+      upperRightPad->Draw();
+      lowerPad->Draw();
+      aProfile.SetMinimum(0);
+      aProfile.SetMaximum(1.05);
+      aProfile.SetMarkerColor(Palette::color(1));
+      aProfile.SetLineColor(Palette::color(1));
+      aProfile.SetMarkerStyle(1);
+
+      TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
+      efficiencyHistogram->SetXTitle("Inefficiency");
+      efficiencyHistogram->SetYTitle("Eta bins");
+      efficiencyHistogram->SetFillColor(Palette::color(1));
+      for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
+      TPaveText* tpt;
+      tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
+      tpt->SetBorderSize(1);
+      tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
+      tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
+      
+      TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
+      zoomedProfile->SetMinimum(0.9);
+      zoomedProfile->SetMaximum(1.01);
+      zoomedProfile->SetTitle("");
+
+      upperLeftPad->cd();
+      TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);
+      aProfile.Draw();
+      std::string aProfileTitle = ">= 1 hit(s)";
+      layerLegend->AddEntry(&aProfile, aProfileTitle.c_str());
+      
+      int colorIndex = 2;
+      for (auto& detailIt : detailedInfo) {
+	const int numberOfHits = detailIt.first;
+	ostringstream titleStream;
+	if (numberOfHits <= 4) {
+	  titleStream << "= " << numberOfHits << " hit";
+	  if (numberOfHits >= 2) titleStream << "s";
+	}
+	else { titleStream << ">= " << numberOfHits << " hits"; }
+
+	TProfile& detailProfile = detailIt.second;
+	//std::cout << layerIt.first << " " << detailProfile.GetEntries() << std::endl;
+	if (detailProfile.GetMaximum() > 1.*1.0E-10) {	  
+	  detailProfile.SetMinimum(0);
+	  detailProfile.SetMaximum(1.05);
+	  detailProfile.SetMarkerColor(Palette::color(colorIndex));
+	  detailProfile.SetLineColor(Palette::color(colorIndex));
+	  detailProfile.SetMarkerStyle(1);
+	  detailProfile.SetTitle("");  // TO DO!!!!
+	  detailProfile.Draw("same");
+	  layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
+	}
+	colorIndex++;
+      }
+      layerLegend->Draw("same");
+
+      upperRightPad->cd();
+      efficiencyHistogram->Draw();
+      tpt->Draw();
+
+      lowerPad->cd();
+      zoomedProfile->Draw();
+
+      RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
+      myContent->addItem(myImage);
+    }
+    return true;
+  }
+
+
 
   static int nLayoutCanvases = 0;
   
