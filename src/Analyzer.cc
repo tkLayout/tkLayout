@@ -3142,7 +3142,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   LayerNameVisitor layerNames(tracker);
 
-  // CREATING THE LAYER HIT COVERAGE PROFILES
+  // CREATING THE LAYER HIT/STUB COVERAGE PROFILES
   const int plotMaxNumberOfHitsPerLayer = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
   layerEtaCoverageProfile.clear();
   layerEtaCoverageProfileStubs.clear();
@@ -3227,13 +3227,9 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   // total tracks ratio per number of stubs
   const int plotMaxNumberOfStubs = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
-    TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileStubs%d", numberOfStubs), 
+    TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Number of stubs;#eta;Fraction of tracks", 
 				     100, 0, maxEta);
-    stubProfile.SetMarkerStyle(8);
-    stubProfile.SetMarkerColor(1);
-    stubProfile.SetMarkerSize(1.);  
-    stubProfile.SetStats(0);
     totalEtaProfileNumberOfStubsRatios_[numberOfStubs] = stubProfile;
   }
 
@@ -3324,14 +3320,20 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
           UniRef ur = mh.first->uniRef();
           if (layerName == (ur.subdetectorName + " " + any2str(ur.layer))) {
             layerHit=1;
-	    //totalNumberHits += 1;
-	    if (mh.second == HitType::INNER || mh.second == HitType::OUTER) totalNumberHits += 1;
-	    if (mh.second == HitType::BOTH || mh.second == HitType::STUB) totalNumberHits += 2;
+	    if (tracker.isPixelTracker()) {
+	      totalNumberHits += 1;
+	    } else {
+	      if (mh.second == HitType::INNER || mh.second == HitType::OUTER) totalNumberHits += 1;
+	      if (mh.second == HitType::BOTH || mh.second == HitType::STUB) totalNumberHits += 2;
+	      if (mh.second == HitType::STUB) layerStub = 1;
+	    }
           }
         }
 	if (tracker.isPixelTracker()) {
 	  const int numInnerTrackerStubsPerLayer = (totalNumberHits <= 1 ? 0 : 1);
 	  numInnerTrackerStubs += numInnerTrackerStubsPerLayer;
+	  //std::cout << "numInnerTrackerStubsPerLayer = " << numInnerTrackerStubsPerLayer << std::endl;
+	  if (numInnerTrackerStubsPerLayer >= 1) layerStub = 1;
 	}
 
 	// HIT COVERAGE
@@ -3367,6 +3369,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
       // Number of stubs
       const int numStubsPerTrack = (!tracker.isPixelTracker() ? numOuterTrackerStubs : numInnerTrackerStubs);
+      //if (tracker.isPixelTracker()) { std::cout << "numStubsPerTrack = " << numStubsPerTrack << std::endl; }
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
     
       // Ratio of tracks with a given number of stubs
