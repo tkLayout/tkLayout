@@ -3147,15 +3147,27 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   layerEtaCoverageProfile.clear();
   layerEtaCoverageProfileStubs.clear();
   for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) { // CUIDADO this is horrible code (not mine). refactor!
-    TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfileHits%s", it->c_str()), it->c_str(), 200, maxEta, maxEta);
-    TProfile* aProfileStubs = new TProfile(Form("layerEtaCoverageProfileStubs%s", it->c_str()), it->c_str(), 200, maxEta, maxEta);
+    TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfileHits%s", it->c_str()), 
+				      it->c_str(),
+				      200, maxEta, maxEta);
+    aProfile->GetXaxis()->SetTitle("#eta");
+    aProfile->GetYaxis()->SetTitle("Fraction of tracks");
+    TProfile* aProfileStubs = new TProfile(Form("layerEtaCoverageProfileStubs%s", it->c_str()),
+					   it->c_str(),
+					   200, maxEta, maxEta);
+    aProfileStubs->GetXaxis()->SetTitle("#eta");
+    aProfileStubs->GetYaxis()->SetTitle("Fraction of tracks");
     layerEtaCoverageProfile[*it].first = (*aProfile);
     layerEtaCoverageProfileStubs[*it] = (*aProfileStubs);
     delete aProfile;
     delete aProfileStubs;
 
     for (int numberOfHits = 1; numberOfHits <= plotMaxNumberOfHitsPerLayer; numberOfHits++) {
-      TProfile hitProfile = TProfile(Form("layerEtaCoverageProfileHits%s%d", it->c_str(), numberOfHits), it->c_str(), 100, maxEta, maxEta);
+      TProfile hitProfile = TProfile(Form("layerEtaCoverageProfileHits%s%d", it->c_str(), numberOfHits), 
+				     it->c_str(),
+				     100, maxEta, maxEta);
+      hitProfile.GetXaxis()->SetTitle("#eta");
+      hitProfile.GetYaxis()->SetTitle("Fraction of tracks");
       (layerEtaCoverageProfile[*it].second)[numberOfHits] = hitProfile;
     }
   }
@@ -3228,7 +3240,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   const int plotMaxNumberOfStubs = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
-				     "Number of stubs;#eta;Fraction of tracks", 
+				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
 				     100, 0, maxEta);
     totalEtaProfileNumberOfStubsRatios_[numberOfStubs] = stubProfile;
   }

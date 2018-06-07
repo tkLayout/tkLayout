@@ -2640,23 +2640,23 @@ namespace insur {
 
     if (summaryCanvas) {
       myImage = new RootWImage(summaryCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
+      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta.");
       myContent->addItem(myImage);
     }
 
     if (RZCanvas) {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ positions of the modules");
+      myImage->setComment("RZ positions of the modules.");
       myContent->addItem(myImage);
     }
     if ((RZCanvasBarrel) && (name == "pixel")) {
       myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("RZ positions of the barrel modules");
+      myImage->setComment("RZ positions of the barrel modules.");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
       myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("XY Section of the tracker barrel");
+      myImage->setComment("XY Section of the tracker barrel.");
       myContent->addItem(myImage);
     }
     for (auto XYCanvasEC : XYCanvasesEC ) {
@@ -2669,31 +2669,31 @@ namespace insur {
     myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit modules across eta");
+    myImage->setComment("Hit modules across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesSensors(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit coverage across eta");
+    myImage->setComment("Hit coverage across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesStubs(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Stub coverage across eta");
+    myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesNumberOfStubsRatios(*myCanvas, analyzer, (name=="pixel"));
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Stub coverage across eta");
+    myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesLayers(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Layer coverage across eta");
+    myImage->setComment("Layer coverage across eta.");
     myContent->addItem(myImage);
 
     if (name != "pixel") {
@@ -2776,27 +2776,30 @@ namespace insur {
     
     const int plotMaxNumberOfStubs = (!isPixelTracker ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
 
-    TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);   
+    TLegend* layerLegend = new TLegend(0.905, 0.5, 1., 0.9);
+    //layerLegend->SetHeader("Number of stubs");
     int colorIndex = 1;
     for (auto& detailIt : totalEtaProfileNumberOfStubsRatios) {
       const int numberOfStubs = detailIt.first;
       ostringstream titleStream;
       if (numberOfStubs < plotMaxNumberOfStubs) {
-	titleStream << "= " << numberOfStubs << " stub";
+	titleStream << numberOfStubs << " stub";
 	if (numberOfStubs >= 2) titleStream << "s";
       }
-      else { titleStream << ">= " << numberOfStubs << " stubs"; }
+      else { titleStream << ">=" << numberOfStubs << " stubs"; }
 
       TProfile& detailProfile = detailIt.second;
       detailProfile.SetMinimum(0);
       detailProfile.SetMaximum(1.05);
       detailProfile.SetMarkerColor(Palette::color(colorIndex));
       detailProfile.SetLineColor(Palette::color(colorIndex));
+      detailProfile.SetFillColor(Palette::color(colorIndex));
       detailProfile.SetMarkerStyle(8);
-      detailProfile.SetMarkerSize(1.);  
+      detailProfile.SetMarkerSize(1.);
+      detailProfile.GetYaxis()->SetTitleOffset(1.3);
       detailProfile.SetStats(0);
       detailProfile.Draw("same");
-      layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
+      layerLegend->AddEntry(&detailProfile, titleStream.str().c_str(), "f");
       colorIndex++;
     }
     layerLegend->Draw("same");
@@ -2891,9 +2894,6 @@ namespace insur {
       myCanvas->cd();
 
       if (isPixelTracker && type == "Stubs") {
-	//TPad* centralPad = new TPad(Form("%s_central", myCanvas->GetName()), "central", 0, 0, 1, 1);
-	//centralPad->Draw();
-	//centralPad->cd();
 	aProfile.Draw();
       }
       else {
@@ -2932,7 +2932,8 @@ namespace insur {
       }
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
+      if (isPixelTracker && type == "Stubs") { myImage->setComment("Layer coverage in eta for " + type + "."); }
+      else { myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)."); }
       myContent->addItem(myImage);
     }
     return true;
@@ -2988,9 +2989,9 @@ namespace insur {
       zoomedProfile->SetTitle("");
 
       upperLeftPad->cd();
-      TLegend* layerLegend = new TLegend(0.1,0.6,0.35,0.9);
+      TLegend* layerLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
       aProfile.Draw();
-      std::string aProfileTitle = ">= 1 hit(s)";
+      std::string aProfileTitle = ">=1 hit(s)";
       layerLegend->AddEntry(&aProfile, aProfileTitle.c_str());
       
       int colorIndex = 2;
@@ -3001,7 +3002,7 @@ namespace insur {
 	  titleStream << "= " << numberOfHits << " hit";
 	  if (numberOfHits >= 2) titleStream << "s";
 	}
-	else { titleStream << ">= " << numberOfHits << " hits"; }
+	else { titleStream << ">=" << numberOfHits << " hits"; }
 
 	TProfile& detailProfile = detailIt.second;
 	//std::cout << layerIt.first << " " << detailProfile.GetEntries() << std::endl;
@@ -3012,7 +3013,6 @@ namespace insur {
 	  detailProfile.SetLineColor(Palette::color(colorIndex));
 	  detailProfile.SetMarkerStyle(8);
 	  detailProfile.SetMarkerSize(0.3);  
-	  //detailProfile.SetMarkerStyle(1);
 	  detailProfile.Draw("same");
 	  layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
 	}
@@ -3028,7 +3028,7 @@ namespace insur {
       zoomedProfile->Draw();
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
+      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here).");
       myContent->addItem(myImage);
     }
     return true;
