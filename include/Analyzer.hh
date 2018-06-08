@@ -107,7 +107,7 @@ namespace insur {
   static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
   static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
   static const int plotMaxNumberOfOuterTrackerStubs = 11;
-  static const int plotMaxNumberOfInnerTrackerStubs = 7;
+  static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
 
   class Analyzer : private AnalyzerTools {

@@ -2864,11 +2864,11 @@ namespace insur {
   }
 
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
-    return drawEtaCoverageHits(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
+    return drawEtaCoverageHits(myPage, analyzer.getLayerEtaCoverageProfiles(), "hit");
   }
 
   bool Vizard::drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfilesStubs(), "Stubs", isPixelTracker);
+    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfilesStubs(), "stub", isPixelTracker);
   }
 
   bool Vizard::drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker) {
@@ -2893,8 +2893,13 @@ namespace insur {
       myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
 
-      if (isPixelTracker && type == "Stubs") {
+      if (isPixelTracker && type == "stub") {
 	aProfile.Draw();
+	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
+	std::ostringstream entry;
+	entry << "= 1 stub";
+	centralLegend->AddEntry(&aProfile, entry.str().c_str());
+	centralLegend->Draw();
       }
       else {
 	myCanvas->cd();
@@ -2929,11 +2934,15 @@ namespace insur {
 	zoomedProfile->SetTitle("");
 	lowerPad->cd();
 	zoomedProfile->Draw();
+	std::ostringstream entry;
+	entry << ">=1 " << type << "(s)";
+	TLegend* zoomedLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
+	zoomedLegend->AddEntry(zoomedProfile, entry.str().c_str());
+	zoomedLegend->Draw();
       }
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      if (isPixelTracker && type == "Stubs") { myImage->setComment("Layer coverage in eta for " + type + "."); }
-      else { myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)."); }
+      myImage->setComment("Layer coverage in eta for " + type + ".");
       myContent->addItem(myImage);
     }
     return true;
@@ -3026,9 +3035,14 @@ namespace insur {
 
       lowerPad->cd();
       zoomedProfile->Draw();
+      TLegend* zoomedLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
+      std::ostringstream entry;
+      entry << ">=1 " << type << "(s)";
+      zoomedLegend->AddEntry(zoomedProfile, entry.str().c_str());
+      zoomedLegend->Draw();
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here).");
+      myImage->setComment("Layer coverage in eta for " + type + ".");
       myContent->addItem(myImage);
     }
     return true;
