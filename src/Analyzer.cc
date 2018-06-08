@@ -3142,33 +3142,35 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   LayerNameVisitor layerNames(tracker);
 
-  // CREATING THE LAYER HIT/STUB COVERAGE PROFILES
-  const int plotMaxNumberOfHitsPerLayer = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
+  // CREATING THE LAYER HIT/STUB COVERAGE PROFILES  
   layerEtaCoverageProfile.clear();
   layerEtaCoverageProfileStubs.clear();
-  for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) { // CUIDADO this is horrible code (not mine). refactor!
-    TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfileHits%s", it->c_str()), 
-				      it->c_str(),
+  const int plotMaxNumberOfHitsPerLayer = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
+  for (const auto& layerName : layerNames.data) {
+    // HITS (>=1) PER LAYER
+    TProfile hitsPerLayer = TProfile(Form("layerEtaCoverageProfileHits%s", layerName.c_str()), 
+				      layerName.c_str(),
 				      200, maxEta, maxEta);
-    aProfile->GetXaxis()->SetTitle("#eta");
-    aProfile->GetYaxis()->SetTitle("Fraction of tracks");
-    TProfile* aProfileStubs = new TProfile(Form("layerEtaCoverageProfileStubs%s", it->c_str()),
-					   it->c_str(),
-					   200, maxEta, maxEta);
-    aProfileStubs->GetXaxis()->SetTitle("#eta");
-    aProfileStubs->GetYaxis()->SetTitle("Fraction of tracks");
-    layerEtaCoverageProfile[*it].first = (*aProfile);
-    layerEtaCoverageProfileStubs[*it] = (*aProfileStubs);
-    delete aProfile;
-    delete aProfileStubs;
+    hitsPerLayer.GetXaxis()->SetTitle("#eta");
+    hitsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
+    layerEtaCoverageProfile[layerName].first = hitsPerLayer;
 
+    // STUBS PER LAYER
+    TProfile stubsPerLayer = TProfile(Form("layerEtaCoverageProfileStubs%s", layerName.c_str()),
+					   layerName.c_str(),
+					   200, maxEta, maxEta);
+    stubsPerLayer.GetXaxis()->SetTitle("#eta");
+    stubsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
+    layerEtaCoverageProfileStubs[layerName] = stubsPerLayer;
+
+    // DETAILED HITS COUNTS PER LAYER
     for (int numberOfHits = 1; numberOfHits <= plotMaxNumberOfHitsPerLayer; numberOfHits++) {
-      TProfile hitProfile = TProfile(Form("layerEtaCoverageProfileHits%s%d", it->c_str(), numberOfHits), 
-				     it->c_str(),
+      TProfile hitsCountPerLayer = TProfile(Form("layerEtaCoverageProfileHits%s%d", layerName.c_str(), numberOfHits), 
+				     layerName.c_str(),
 				     100, maxEta, maxEta);
-      hitProfile.GetXaxis()->SetTitle("#eta");
-      hitProfile.GetYaxis()->SetTitle("Fraction of tracks");
-      (layerEtaCoverageProfile[*it].second)[numberOfHits] = hitProfile;
+      hitsCountPerLayer.GetXaxis()->SetTitle("#eta");
+      hitsCountPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
+      (layerEtaCoverageProfile[layerName].second)[numberOfHits] = hitsCountPerLayer;
     }
   }
 
