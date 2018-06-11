@@ -119,16 +119,19 @@ namespace material {
       fractionSum += chemicalBaseMassFraction;
     }
 
+    std::cout << "fractionSum = " << fractionSum << std::endl;
+    
     if (fabs(fractionSum - 1.) > 1.E-02) { 
       std::cout << "Error defining Chemical mixture: sum of massic weights is not equal to 1." << std::endl;
       std::cout << "Inadequate mixture composition is:";
-      for (const auto& fractionIt : fractions) {
-	const std::string chemicalBaseName = fractionIt.first;
-	const double chemicalBaseMassFraction = fractionIt.second;
-	std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassFraction;
-      }
+      /* for (const auto& fractionIt : fractions) {
+	 const std::string chemicalBaseName = fractionIt.first;
+	 const double chemicalBaseMassFraction = fractionIt.second;
+	 std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassFraction;
+	 }*/
       std::cout << "." << std::endl;
     }
+
 
   }
 

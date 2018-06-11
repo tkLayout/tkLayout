@@ -3,35 +3,66 @@
 #
 # Can be made of any chemical element, chemical compound, or previously defined mixture.
 # exampleMix               1.84                     CO2:0.3                    Al2O3:0.6                      Al:0.1
-CF	                       1.69	                     C:1
-CFRP	                     1.84	                     C:1
-Pyroid	                   2.22	                     C:1
-PGS                        0.85	                     C:1
-Gten                       1.9	                     N:1
-PE	                       0.95	                     C:1
-Steel	                     7.8	                    Ni:1
-Silicone	                74.15	                     O:1
-Siliconeglue	             1.50	                     N:1
-BGA	                       8.82	                    Nd:1
-ConCon	                   5.89	                     K:1
-Kapton	                   1.42	                     C:1
-WB-enc	                   1.50	                     N:1
-Epoxy	                     1.16	                     N:1
-Parylene	                 1.30	                     C:1
-2S-FEH-mix	               1.83	                    Si:1
-2S-SEH-mix	               1.22	                     O:1
-Al-CF	                     2.40	                     F:1
-PS-FEH-mix	               1.61	                    Na:1
-PS-ROH-mix	               1.54                      O:1
-PS-POH-mix	               0.99	                     N:1
-SenLYSO	                   7.40	                     I:1
-Brass                      8.7                      Cu:1
-Acrylate                   1.16                      C:1
-Glass                      2.33	                    Si:1
-Airex                      0.06                      C:1
-Pix_Bumps                  8.92                     Tb:1
-Pix_Caps                   6.02                     Al:1
-Kevlar	                   1.42	                     C:1
+CF	                       1.69	  
+                   
+CFRP	                     1.84	 
+                    
+Pyroid	                   2.22	 
+                   
+PGS                        0.85	     
+               
+Gten                       1.9	                    C:0.13232243    H:0.032572448  O:0.48316123  Si:0.35194389    
+# from trackermaterial.xml
+
+PE	                       0.95	 
+                   
+Steel	                     7.8	                    C:0.00089992039   Si:0.0015987127    Mn:0.0042943177       S:0.00017903506  P:0.00012830888  Ni:0.000095139401  Cu:0.00029757275   Al:0.00069973892  Fe:0.99180725          
+# from trackermaterial.xml      
+
+Silicone	                74.15	  
+                 
+Siliconeglue	             1.50	                    C:0.3866   H:0.0973   Si:0.3616   O:0.1545   
+# from trackermaterial.xml (density 0.965 g/cm3 ?)   
+ 
+BGA	                       8.82	                    Sn:0.62    Pb:0.36      Ag:0.02                
+# from materials.xml   
+ 
+ConCon	                   5.89	                 
+  
+Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
+# from trackermaterial.xml (density 1.40 g/cm3 ?)
+
+WB-enc	                   1.50	   
+               
+Epoxy	                     1.16	                    C:0.53539691     H:0.13179314   O:0.33280996     
+# from trackermaterial.xml  (density 1.3 g/cm3 ?)
+
+Parylene	                 1.30	                  
+2S-FEH-mix	               1.83	              
+2S-SEH-mix	               1.22	            
+Al-CF	                     2.40	                 
+PS-FEH-mix	               1.61	              
+PS-ROH-mix	               1.54                 
+PS-POH-mix	               0.99	                
+SenLYSO	                   7.40	      
+             
+Brass                      8.7                       Cu:0.63    Zn:0.37       
+# from materials.xml  (density 8.5 g/cm3 ?)      
+   
+Acrylate                   1.16                      C:0.5581   H:0.06977    O:0.3720           
+# from materials.xml  (density 1.17 g/cm3 ?)  
+
+Glass                      2.33	                     Si:0.36611059    O:0.53173295   B:0.042228491  Na:0.059927964       
+# from materials.xml  (density 2.23 g/cm3 ?)
+
+Airex                      0.06                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
+# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)
+
+Pix_Bumps                  8.92                    
+Pix_Caps                   6.02      
+              
+Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
+# from materials.xml  (density 1.44 g/cm3 ?)
 
 
 
