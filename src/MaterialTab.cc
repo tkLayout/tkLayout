@@ -101,10 +101,9 @@ namespace material {
 
 
   ChemicalMixture::ChemicalMixture(const double density, const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) :
-    ChemicalBase(density),
-    fractions_(fractions)
+    ChemicalBase(density)   
   {
-    checkMassFractionsSum(fractions);
+    fractions_ = computeMassComposition(fractions);
 
     const std::pair<double, double>& radiationAndInteractionLengths = computeRadiationAndInteractionLengths(fractions_, alreadyDefinedMaterials);
     radiationLength_ = radiationAndInteractionLengths.first;
@@ -112,34 +111,9 @@ namespace material {
   }
 
 
-  void ChemicalMixture::checkMassFractionsSum(const MassComposition& fractions) const {
-    double fractionSum = 0.;
-    for (const auto& fractionIt : fractions) {
-      const double chemicalBaseMassFraction = fractionIt.second;
-      fractionSum += chemicalBaseMassFraction;
-    }
-
-    std::cout << "fractionSum = " << fractionSum << std::endl;
-    
-    if (fabs(fractionSum - 1.) > 1.E-02) { 
-      std::cout << "Error defining Chemical mixture: sum of massic weights is not equal to 1." << std::endl;
-      std::cout << "Inadequate mixture composition is:";
-      /* for (const auto& fractionIt : fractions) {
-	 const std::string chemicalBaseName = fractionIt.first;
-	 const double chemicalBaseMassFraction = fractionIt.second;
-	 std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassFraction;
-	 }*/
-      std::cout << "." << std::endl;
-    }
-
-
-  }
-
-
-
   const MassComposition ChemicalMixture::computeMassComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const {
     MassComposition fractions;
-    double totalMoleculeMass = 0.;
+    //double totalMoleculeMass = 0.;
 
     for (const auto& elementIt : formula) {
       const std::string chemicalElementName = elementIt.first;
@@ -154,7 +128,7 @@ namespace material {
 	const double elementAtomicWeight = element.getAtomicWeight();
 	const double mass = chemicalElementNumber * elementAtomicWeight;
 	fractions.push_back(std::make_pair(chemicalElementName, mass));
-	totalMoleculeMass += mass;
+	//totalMoleculeMass += mass;
 
 	/*std::cout << "ChemicalMixture::computeMassComposition " 
 		  << "chemicalElementName = " << chemicalElementName 
@@ -168,13 +142,58 @@ namespace material {
       }
     }
 
-    for (auto& fractionIt : fractions) {
-      fractionIt.second /= totalMoleculeMass;
-    }
-    checkMassFractionsSum(fractions);
+    normalizeMassComposition(fractions);
 
     return fractions;
   }
+
+
+ const MassComposition ChemicalMixture::computeMassComposition(const MassComposition& fractionsFromCfg) const {
+    MassComposition fractions = fractionsFromCfg;
+
+    normalizeMassComposition(fractions);
+
+    return fractions;
+  }
+
+
+
+  void ChemicalMixture::normalizeMassComposition(MassComposition& fractions) const {
+    double fractionSum = 0.;
+    for (const auto& fractionIt : fractions) {
+      const double chemicalBaseMassFraction = fractionIt.second;
+      fractionSum += chemicalBaseMassFraction;
+    }
+
+    for (auto& fractionIt : fractions) {
+      fractionIt.second /= fractionSum;
+    }
+
+    checkMassCompositionSum(fractions);
+  }
+
+
+
+  void ChemicalMixture::checkMassCompositionSum(const MassComposition& fractions) const {
+    double fractionSum = 0.;
+    for (const auto& fractionIt : fractions) {
+      const double chemicalBaseMassFraction = fractionIt.second;
+      fractionSum += chemicalBaseMassFraction;
+    }
+
+    if (fabs(fractionSum - 1.) > insur::mat_negligible) { 
+      std::cout << "Error defining Chemical mixture: sum of mass fractions is not equal to 1." << std::endl;
+      std::cout << "Sum of mass fractions = " << fractionSum << std::endl;
+      std::cout << "Inadequate mixture composition is:";
+      for (const auto& fractionIt : fractions) {
+	const std::string chemicalBaseName = fractionIt.first;
+	const double chemicalBaseMassFraction = fractionIt.second;
+	std::cout << " " << chemicalBaseName << ":" << chemicalBaseMassFraction;
+      }
+      std::cout << "." << std::endl;
+    }
+  }   
+
 
 
 
@@ -339,7 +358,7 @@ namespace material {
 	      //std::cout << "elementName = " << elementName << " elementNumber = " << elementNumber;
 	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
 	    }
-	    else { std::cout << "Chemical compound: could not find the : delimiter." << std::endl; }
+	    else { std::cout << "Chemical compound " << compoundName << ": could not find the : delimiter." << std::endl; }
 
 	    element.clear();
 	  }
@@ -432,7 +451,7 @@ namespace material {
 	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassFraction));
 	    }
 	    else { 
-	      std::cout << "Chemical mixture: could not find the : delimiter. Please set name:value, with no space between name and value." << std::endl; 
+	      std::cout << "Chemical mixture " << mixtureName << ": could not find the : delimiter. Please set name:value, with no space between name and value." << std::endl; 
 	    }
 
 	    constituant.clear();
@@ -455,10 +474,12 @@ namespace material {
     
     for (const auto& mixIt : allChemicalMixtures) {
 
-      if (!mixIt.second.hasChemicalFormula()) {
-	const MaterialTab& oldTable = MaterialTab::instance();
+      //if (!mixIt.second.hasChemicalFormula()) {
+      const MaterialTab& oldTable = MaterialTab::instance();
+      if (oldTable.find(mixIt.first) != oldTable.end()) {
 	const double oldRad = oldTable.radiationLength(mixIt.first);
 	const double oldInt = oldTable.interactionLength(mixIt.first);
+	const double oldDensity = oldTable.density(mixIt.first);
 
 	/*
 	  std::string closestElementName = "none";
@@ -487,29 +508,33 @@ namespace material {
 	const ChemicalMixture& mix = mixIt.second;
 	const double radRatio = (mix.getRadiationLength() - oldRad) / oldRad * 100.;
 	const double intRatio = (mix.getInteractionLength() - oldInt) / oldInt * 100.;
-	std::cout << mixIt.first << " radRatio = " << radRatio << "intRatio = " << intRatio << std::endl;	
+	const double densityRatio = (mix.getDensity() - oldDensity) / oldDensity * 100.;
+	std::cout << mixIt.first << " radRatio = " << radRatio << " intRatio = " << intRatio << " densityRatio = " << densityRatio << std::endl;
+      }	
 
       
-	/*
-	  std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
-	  const ChemicalMixture& mix = mixIt.second;
-	  std::cout << " mix.getDensity() = " << mix.getDensity()
-	  << " mix.getRadiationLength() = " << mix.getRadiationLength()
-	  << " mix.getInteractionLength() = " << mix.getInteractionLength() 
-	  << " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
-	  << " mix.isChemicalElement() = " << mix.isChemicalElement();
-	  const ChemicalFormula& formula = mix.getChemicalFormula();
-	  for (const auto& formulaIt : formula) {
-	  std::cout << " formulaIt.first = " << formulaIt.first
-	  << " formulaIt.second = " << formulaIt.second;
-	  }
-	  const MassComposition& fraction = mix.getMassComposition();
-	  for (const auto& fractionIt : fraction) {
-	  std::cout << " fractionIt.first = " << fractionIt.first
-	  << " fractionIt.second = " << fractionIt.second;
-	  }
-	  std::cout << "." << std::endl;*/
-      }
+      /*
+	std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
+	const ChemicalMixture& mix = mixIt.second;
+	std::cout << " mix.getDensity() = " << mix.getDensity()
+	<< " mix.getRadiationLength() = " << mix.getRadiationLength()
+	<< " mix.getInteractionLength() = " << mix.getInteractionLength() 
+	<< " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
+	<< " mix.isChemicalElement() = " << mix.isChemicalElement();
+	const ChemicalFormula& formula = mix.getChemicalFormula();
+	for (const auto& formulaIt : formula) {
+	std::cout << " formulaIt.first = " << formulaIt.first
+	<< " formulaIt.second = " << formulaIt.second;
+	}
+	const MassComposition& fraction = mix.getMassComposition();
+	for (const auto& fractionIt : fraction) {
+	std::cout << " fractionIt.first = " << fractionIt.first
+	<< " fractionIt.second = " << fractionIt.second;
+	}
+	std::cout << "." << std::endl;*/
+
+
+      //}
     }
     
     

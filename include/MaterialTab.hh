@@ -66,9 +66,11 @@ namespace material {
   private:
     // TO DO: should probably place more accurate RL and IL values directly in the file?
     const MassComposition computeMassComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const;
-    const std::pair<double, double> computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const;
+    const MassComposition computeMassComposition(const MassComposition& fractionsFromCfg) const;
+    void normalizeMassComposition(MassComposition& fractions) const;
+    void checkMassCompositionSum(const MassComposition& fractions) const;
 
-    void checkMassFractionsSum(const MassComposition& fractions) const;
+    const std::pair<double, double> computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const;
 
     ChemicalFormula formula_;
     MassComposition fractions_;
