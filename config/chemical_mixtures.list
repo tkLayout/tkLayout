@@ -22,13 +22,13 @@ Glass                      2.33	                     Si:0.36611059    O:0.531732
 # from materials.xml  (density 2.23 g/cm3 ?)
 
 Airex                      0.06                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
-# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)
+# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)       
             
 Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
 # from materials.xml  (density 1.44 g/cm3 ?)
 
-FR4                         1.7               Si:0.18077359           O:0.4056325        C:0.27804208      H:0.068442752       Br:0.067109079     
-# Fiber glass reinforced, from trackermaterial.xml
+FR4                         1.85               Si:0.18077359           O:0.4056325        C:0.27804208      H:0.068442752       Br:0.067109079     
+# Fiber glass reinforced, from trackermaterial.xml (density 1.7 g/cm3 ?)
 
 
 
@@ -167,14 +167,13 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
 # from Duccio, Pixel Phase 2 materials.
                  
-Pix_Caps                   6.02              Ni:0.25         Cu:0.25          Sn:0.25       BaTiO3:0.25
-# from Duccio, Pixel Phase 2 materials.
-# WARNING!!!!! CHANGE THE MASS FRACTIONS!!! THIS IS NOT FINE FOR THE MOMENT.
-
+Pix_Caps                   6.33              SMDCapacitors:1
+# The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
+# So took the one from OT.
 
 Scint                      7.40              Lu:0.71         Si:0.07         O:0.18          Y:0.04        
 SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019
-# TO DO!! BTL people should adapt this to some more realistic composition
+# TO DO!! BTL people should adapt this to some more realistic composition!!
 
 
 
