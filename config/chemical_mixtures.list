@@ -2,15 +2,10 @@
 # name              | density (g/cm^3) |     substance:massFraction
 #
 # Can be made of any chemical element, chemical compound, or previously defined mixture.
-               
-Gten                       1.9	                    C:0.13232243    H:0.032572448  O:0.48316123  Si:0.35194389    
-# from trackermaterial.xml
+
                    
 Steel	                     7.8	                    C:0.00089992039   Si:0.0015987127    Mn:0.0042943177       S:0.00017903506  P:0.00012830888  Ni:0.000095139401  Cu:0.00029757275   Al:0.00069973892  Fe:0.99180725          
-# from trackermaterial.xml                         
- 
-BGA	                       8.82	                    Sn:0.62    Pb:0.36      Ag:0.02                
-# from materials.xml   
+# from trackermaterial.xml
  
 Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
 # Polyimide. from trackermaterial.xml (density 1.40 g/cm3 ?)                        
@@ -188,7 +183,6 @@ SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019
 SenSi	                   2.3296	                  Si:1
 Al_MV	                   2.698	                  Al:1
 Al_HV	                   2.698	                  Al:1
-Al_twp	                 2.698	                  Al:1
 TEDD_Al	                 2.698	                  Al:1
 FPIX_Al	                 2.698	                  Al:1
 FPIX_Al_HV	             2.698	                  Al:1
@@ -217,10 +211,8 @@ CO2_L4	                 1.0	                   CO2:1
 TEDD_CO2	               1.0	                   CO2:1
 FPIX_CO2	               1.0	                   CO2:1
 PE                       0.89           Polyethylene:1
-PE_twp	                 0.95	                    PE:1
 TEDD_PE	                 0.95	                    PE:1
 FPIX_PE	                 0.95	                    PE:1
-G10	                     1.9	                  Gten:1
 TEDD_Steel	             7.8	                 Steel:1
 CF	                     1.84	                  CFRP:1
 
