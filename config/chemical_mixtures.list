@@ -35,7 +35,7 @@ Brass                      8.7                       Cu:0.6       Zn:0.4
 Siliconeglue	             1.50	           (C6H5)2SiO:1 
 # from Duccio, Composite materials, 14/01/2015
 
-WB-enc	                   1.50	         Siliconeglue:1
+WB-enc                    1.50          Siliconeglue:1
 # Wirebond encapsulant. From Duccio, Composite materials, 14/01/2015
 
 Acrylicglue                1.16                C5O2H8:1
@@ -46,6 +46,12 @@ Epoxy	                     1.16                CH2OCN:1
 
 CFRP	                     1.84	                   C:0.96            Epoxy:0.27
 # from Duccio, Composite materials, 14/01/2015
+
+CFRP_OTST                  1.55	                   CFRP:1
+# density from Szymon, composition from 'CFRP'
+
+HexWebHRH10_OTST           0.0496	                 Airex:1
+# density from Sczymon, composition from 'Airex'
 
 Polyethylene                0.89              C2H4:1
 # from Duccio, Composite materials, 14/01/2015
@@ -158,7 +164,6 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 
 
 
-
 Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
 # from Duccio, Pixel Phase 2 materials.
                  
@@ -213,6 +218,7 @@ FPIX_CO2	               1.0	                   CO2:1
 PE                       0.89           Polyethylene:1
 TEDD_PE	                 0.95	                    PE:1
 FPIX_PE	                 0.95	                    PE:1
+# different density from PE!!
 TEDD_Steel	             7.8	                 Steel:1
 CF	                     1.84	                  CFRP:1
 
