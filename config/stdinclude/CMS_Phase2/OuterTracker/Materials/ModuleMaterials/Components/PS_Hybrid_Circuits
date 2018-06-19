@@ -93,7 +93,7 @@ Component {
   }
   // POH board + components
   Element {
-    elementName PS-ROH-mix
+    elementName PS-POH-mix
     quantity 3.108
     unit g
   }
