@@ -200,9 +200,9 @@ namespace insur {
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker); // generic business logic called by hit or stub version
-    bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, LayerCoverageInfo>& layerEtaCoverage, const std::string& type);
+    bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type);
     bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
-    bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 

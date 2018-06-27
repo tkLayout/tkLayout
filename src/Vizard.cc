@@ -2719,7 +2719,7 @@ namespace insur {
     myContent->addItem(myImage);
 
     drawEtaCoverage(*myPage, analyzer);
-    drawEtaCoverageStubs(*myPage, analyzer, (name == "pixel"));
+    drawStubCoveragePerLayer(*myPage, analyzer, (name == "pixel"));
 
     // Add detailed geometry info here
     RootWContent* filesContent = new RootWContent("Geometry files", false);
@@ -2772,14 +2772,14 @@ namespace insur {
   bool Vizard::drawEtaProfilesNumberOfStubsRatios(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
-    std::map<int, TProfile>& totalEtaProfileNumberOfStubsRatios = analyzer.getTotalEtaProfileNumberOfStubsRatios();
+    std::map<int, TProfile>& tracksDistributionPerNumberOfStubs = analyzer.getTracksDistributionPerNumberOfStubs();
     
     const int plotMaxNumberOfStubs = (!isPixelTracker ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
 
     TLegend* layerLegend = new TLegend(0.905, 0.5, 1., 0.9);
     //layerLegend->SetHeader("Number of stubs");
     int colorIndex = 1;
-    for (auto& detailIt : totalEtaProfileNumberOfStubsRatios) {
+    for (auto& detailIt : tracksDistributionPerNumberOfStubs) {
       const int numberOfStubs = detailIt.first;
       ostringstream titleStream;
       if (numberOfStubs < plotMaxNumberOfStubs) {
@@ -2864,11 +2864,11 @@ namespace insur {
   }
 
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
-    return drawEtaCoverageHits(myPage, analyzer.getLayerEtaCoverageProfiles(), "hit");
+    return drawEtaCoverageHits(myPage, analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails(), "hit");
   }
 
-  bool Vizard::drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfilesStubs(), "stub", isPixelTracker);
+  bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
+    return drawEtaCoverageAny(myPage, analyzer.getStubCoveragePerLayer(), "stub", isPixelTracker);
   }
 
   bool Vizard::drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker) {
@@ -2878,8 +2878,6 @@ namespace insur {
     RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
 
-    int layerCount = 0;
-
     for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
       TProfile& aProfile = it->second;
       aProfile.SetMinimum(0);
@@ -2887,8 +2885,6 @@ namespace insur {
       aProfile.SetMarkerColor(Palette::color(1));
       aProfile.SetLineColor(Palette::color(1));
       aProfile.SetMarkerStyle(1);
-
-      layerCount++;
 
       myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
@@ -2950,20 +2946,24 @@ namespace insur {
 
 
 
-  bool Vizard::drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, LayerCoverageInfo>& layerEtaCoverage, const std::string& type) {
-    if (layerEtaCoverage.size()==0) return false;
+  bool Vizard::drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type) {
+
+    if (hitCoveragePerLayer.size()==0) return false;
 
     TCanvas* myCanvas;
     RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
 
-    int layerCount = 0;
-    for (auto& layerIt : layerEtaCoverage) {
-
-      LayerCoverageInfo& allLayerInfo = layerIt.second;
-      TProfile& aProfile = allLayerInfo.first;
-      LayerCoverageInfoPerNumberOfHits& detailedInfo = allLayerInfo.second;
-      layerCount++;
+    for (auto& layerIt : hitCoveragePerLayer) {
+      const std::string layerName = layerIt.first;
+      TProfile& aProfile = layerIt.second;
+     
+      CoveragePerNumberOfHits detailedInfo;
+      const auto& found = hitCoveragePerLayerDetails.find(layerName);
+      if (found != hitCoveragePerLayerDetails.end()) {
+	detailedInfo = found->second;
+      }
+      
       myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerIt.first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
 

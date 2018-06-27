@@ -3169,36 +3169,37 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
 
-  // CREATING THE LAYER HIT/STUB COVERAGE PROFILES  
-  layerEtaCoverageProfile.clear();
-  layerEtaCoverageProfileStubs.clear();
+  // CREATING THE LAYER HIT/STUB COVERAGE PROFILES
+  hitCoveragePerLayer_.clear();
+  hitCoveragePerLayerDetails_.clear();
+  stubCoveragePerLayer_.clear();
   const int plotMaxNumberOfHitsPerLayer = (!tracker.isPixelTracker() ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
   for (const auto& layerName : layerNames.data) {
     // HITS (>=1) PER LAYER
-    TProfile hitsPerLayer = TProfile(Form("layerEtaCoverageProfileHits%s", layerName.c_str()), 
+    TProfile hitsPerLayer = TProfile(Form("hitCoveragePerLayer%s", layerName.c_str()), 
 				      layerName.c_str(),
 				      200, maxEta, maxEta);
     hitsPerLayer.GetXaxis()->SetTitle("#eta");
     hitsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
-    layerEtaCoverageProfile[layerName].first = hitsPerLayer;
+    hitCoveragePerLayer_[layerName] = hitsPerLayer;
 
     // DETAILED HITS COUNTS PER LAYER
     for (int numberOfHits = 1; numberOfHits <= plotMaxNumberOfHitsPerLayer; numberOfHits++) {
-      TProfile hitsCountPerLayer = TProfile(Form("layerEtaCoverageProfileHits%s%d", layerName.c_str(), numberOfHits), 
+      TProfile hitsCountPerLayer = TProfile(Form("hitCoveragePerLayerDetails%s%d", layerName.c_str(), numberOfHits), 
 					    layerName.c_str(),
 					    100, maxEta, maxEta);
       hitsCountPerLayer.GetXaxis()->SetTitle("#eta");
       hitsCountPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
-      (layerEtaCoverageProfile[layerName].second)[numberOfHits] = hitsCountPerLayer;
+      (hitCoveragePerLayerDetails_[layerName])[numberOfHits] = hitsCountPerLayer;
     }
 
     // STUBS PER LAYER
-    TProfile stubsPerLayer = TProfile(Form("layerEtaCoverageProfileStubs%s", layerName.c_str()),
+    TProfile stubsPerLayer = TProfile(Form("stubCoveragePerLayer%s", layerName.c_str()),
 					   layerName.c_str(),
 					   200, maxEta, maxEta);
     stubsPerLayer.GetXaxis()->SetTitle("#eta");
     stubsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
-    layerEtaCoverageProfileStubs[layerName] = stubsPerLayer;
+    stubCoveragePerLayer_[layerName] = stubsPerLayer;
   }
 
  
@@ -3247,7 +3248,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
 				     100, 0, maxEta);
-    totalEtaProfileNumberOfStubsRatios_[numberOfStubs] = stubProfile;
+    tracksDistributionPerNumberOfStubs_[numberOfStubs] = stubProfile;
   }
 
   totalEtaProfileLayers.Reset();
@@ -3346,13 +3347,13 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
 	// HIT COVERAGE
 	// hit >= 1
-        layerEtaCoverageProfile[layerName].first.Fill(aLine.second, hasLayerAtLeastOneHit);
+        hitCoveragePerLayer_[layerName].Fill(aLine.second, hasLayerAtLeastOneHit);
 	
 	// all other hit counts
 	//if (numHitsPerLayer >= 5) std::cout << layerName << " numHitsPerLayer >= 5: numHitsPerLayer = " << numHitsPerLayer << std::endl;
 	//if (numHitsPerLayer == 3 || numHitsPerLayer == 4) std::cout << layerName << " numHitsPerLayer == " << numHitsPerLayer << std::endl;
 	//if (numHitsPerLayer > plotMaxNumberOfHitsPerLayer) std::cout << "ERROR " << layerName << " numHitsPerLayer = " << numHitsPerLayer << std::endl;
-	for (const auto& numHitsIndexIt : layerEtaCoverageProfile[layerName].second) {
+	for (const auto& numHitsIndexIt : hitCoveragePerLayerDetails_[layerName]) {
 	  const int numHitsIndex = numHitsIndexIt.first;
 	  int result = 0;
 	  if ( numHitsIndex == numHitsPerLayer
@@ -3360,7 +3361,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 	       ) { 
 	    result = 1;
 	  }
-	  (layerEtaCoverageProfile[layerName].second)[numHitsIndex].Fill(aLine.second, result);
+	  (hitCoveragePerLayerDetails_[layerName])[numHitsIndex].Fill(aLine.second, result);
 	}
 
 	// layer with at least one hit
@@ -3368,7 +3369,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
 	// STUB COVERAGE
 	// stub >= 1
-	layerEtaCoverageProfileStubs[layerName].Fill(aLine.second, hasLayerAtLeastOneStub);
+	stubCoveragePerLayer_[layerName].Fill(aLine.second, hasLayerAtLeastOneStub);
       }
 
 
@@ -3383,7 +3384,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
     
       // Ratio of tracks with a given number of stubs
-      for (const auto& numStubsIndexIt : totalEtaProfileNumberOfStubsRatios_) {
+      for (const auto& numStubsIndexIt : tracksDistributionPerNumberOfStubs_) {
 	const int numStubsIndex = numStubsIndexIt.first;
 	int result = 0;
 	if ( numStubsIndex == numStubsPerTrack
@@ -3391,7 +3392,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 	     ) { 
 	  result = 1; 
 	}
-	totalEtaProfileNumberOfStubsRatios_[numStubsIndex].Fill(fabs(aLine.second), result); 
+	tracksDistributionPerNumberOfStubs_[numStubsIndex].Fill(fabs(aLine.second), result); 
       }
 
       
