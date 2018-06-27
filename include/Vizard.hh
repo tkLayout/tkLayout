@@ -195,14 +195,18 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaProfilesNumberOfStubsRatios(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker);
-    bool drawEtaProfilesNumberOfStubsRatios(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker);
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker); // generic business logic called by hit or stub version
-    bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type);
-    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
+
+    // COVERAGE PER LAYER: HITS AND STUBS
+    bool drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
     bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawLayerCoverage(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits> coveragePerLayerDetails = std::map<std::string, CoveragePerNumberOfHits>());
+    //bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker); // generic business logic called by hit or stub version
+    //bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type);
+
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 

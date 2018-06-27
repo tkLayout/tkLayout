@@ -3190,7 +3190,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 					    100, maxEta, maxEta);
       hitsCountPerLayer.GetXaxis()->SetTitle("#eta");
       hitsCountPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
-      (hitCoveragePerLayerDetails_[layerName])[numberOfHits] = hitsCountPerLayer;
+      hitCoveragePerLayerDetails_[layerName][numberOfHits] = hitsCountPerLayer;
     }
 
     // STUBS PER LAYER
@@ -3282,7 +3282,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         moduleTypeCount[mh.first->moduleType()]++;
 
         if (mh.second == HitType::INNER || mh.second == HitType::OUTER) {
-	  // Important NB: If Tracker is InnerTracker, all hits are of type INNER
+	  // Important NB: For Inner Tracker modules, all hits are of type INNER
           sensorTypeCount[mh.first->moduleType()]++;
           numHits++;
         }
@@ -3350,9 +3350,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         hitCoveragePerLayer_[layerName].Fill(aLine.second, hasLayerAtLeastOneHit);
 	
 	// all other hit counts
-	//if (numHitsPerLayer >= 5) std::cout << layerName << " numHitsPerLayer >= 5: numHitsPerLayer = " << numHitsPerLayer << std::endl;
-	//if (numHitsPerLayer == 3 || numHitsPerLayer == 4) std::cout << layerName << " numHitsPerLayer == " << numHitsPerLayer << std::endl;
-	//if (numHitsPerLayer > plotMaxNumberOfHitsPerLayer) std::cout << "ERROR " << layerName << " numHitsPerLayer = " << numHitsPerLayer << std::endl;
 	for (const auto& numHitsIndexIt : hitCoveragePerLayerDetails_[layerName]) {
 	  const int numHitsIndex = numHitsIndexIt.first;
 	  int result = 0;
@@ -3361,7 +3358,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 	       ) { 
 	    result = 1;
 	  }
-	  (hitCoveragePerLayerDetails_[layerName])[numHitsIndex].Fill(aLine.second, result);
+	  hitCoveragePerLayerDetails_[layerName][numHitsIndex].Fill(aLine.second, result);
 	}
 
 	// layer with at least one hit
@@ -3374,19 +3371,18 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
 
       // COVERAGE FOR ALL LAYERS (GIVEN SUBDETECTOR)
-
       // Number of hit layers
       totalEtaProfileLayers.Fill(fabs(aLine.second), numLayersWithAtLeastOneHit);
 
       // Number of stubs
       const int numStubsPerTrack = (!tracker.isPixelTracker() ? numOuterTrackerStubs : numInnerTrackerStubs);
-      //if (tracker.isPixelTracker()) { std::cout << "numStubsPerTrack = " << numStubsPerTrack << std::endl; }
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
     
-      // Ratio of tracks with a given number of stubs
+      // Distribution of tracks per number of stubs
       for (const auto& numStubsIndexIt : tracksDistributionPerNumberOfStubs_) {
 	const int numStubsIndex = numStubsIndexIt.first;
 	int result = 0;
+	// Select the TProfile with the matching number of stubs
 	if ( numStubsIndex == numStubsPerTrack
 	     || (numStubsIndex == plotMaxNumberOfStubs && numStubsPerTrack > plotMaxNumberOfStubs)
 	     ) { 

@@ -244,9 +244,9 @@ namespace insur {
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
     std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
     std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
-    std::map<std::string, TProfile>& getHitCoveragePerLayer() { return hitCoveragePerLayer_;}
-    std::map<std::string, CoveragePerNumberOfHits>& getHitCoveragePerLayerDetails() { return hitCoveragePerLayerDetails_;}
-    std::map<std::string, TProfile>& getStubCoveragePerLayer() { return stubCoveragePerLayer_; }
+    std::map<std::string, TProfile>& getHitCoveragePerLayer() { return hitCoveragePerLayer_; } // Layer coverage: hits
+    std::map<std::string, CoveragePerNumberOfHits>& getHitCoveragePerLayerDetails() { return hitCoveragePerLayerDetails_; } // Layer coverage: hits details
+    std::map<std::string, TProfile>& getStubCoveragePerLayer() { return stubCoveragePerLayer_; } // Layer coverage: stubs
     std::map<std::string, std::map<std::string, TH1I*>>& getStubEfficiencyCoverageProfiles() { return stubEfficiencyCoverageProfiles_; } // map of maps: inner map has momenta as keys
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
