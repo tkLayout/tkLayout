@@ -2869,13 +2869,14 @@ namespace insur {
   }
 
   bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawCoveragePerlayer(myPage, isPixelTracker, "stub", analyzer.getStubCoveragePerLayer());
+    std::map<std::string, CoveragePerNumberOfHits> detailedPlots;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "stub", analyzer.getStubCoveragePerLayer(), detailedPlots);
   }
 
   /*
    * For each layer, draw dedicated hits or stubs coverage plots.
    */
-  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits> coveragePerLayerDetails) {
+  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails) {
 
     if (coveragePerLayer.size() == 0) return false;
 
@@ -2907,7 +2908,6 @@ namespace insur {
 	centralLegend->Draw();
       }
       else {
-	//myCanvas->cd();
 	// Prepare 3 pads
 	TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
 	upperLeftPad->Draw();
@@ -2980,7 +2980,7 @@ namespace insur {
       const int numberOfHits = detailIt.first;
       TProfile& detailProfile = detailIt.second;
 
-      if (detailProfile.GetMaximum() > insur::hits_zero) {	  
+      if (detailProfile.GetMaximum() > insur::hits_negligible) {	  
 	detailProfile.SetMinimum(0);
 	detailProfile.SetMaximum(1.05);
 	detailProfile.SetMarkerColor(Palette::color(colorIndex));
@@ -3001,186 +3001,6 @@ namespace insur {
     }
 
   }
-
-
-  /*
-  bool Vizard::drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker) {
-    if (layerEtaCoverage.size()==0) return false;
-
-    TCanvas* myCanvas;
-    RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
-    myPage.addContent(myContent);
-
-    for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
-      TProfile& aProfile = it->second;
-      aProfile.SetMinimum(0);
-      aProfile.SetMaximum(1.05);
-      aProfile.SetMarkerColor(Palette::color(1));
-      aProfile.SetLineColor(Palette::color(1));
-      aProfile.SetMarkerStyle(1);
-
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myCanvas->cd();
-
-      if (isPixelTracker && type == "stub") {
-	aProfile.Draw();
-	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
-	std::ostringstream entry;
-	entry << "= 1 stub";
-	centralLegend->AddEntry(&aProfile, entry.str().c_str());
-	centralLegend->Draw();
-      }
-      else {
-	myCanvas->cd();
-	TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
-	upperLeftPad->Draw();
-	TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
-	upperRightPad->Draw();
-	TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
-	lowerPad->Draw();
-
-	upperLeftPad->cd();
-	aProfile.Draw();
-	
-	TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
-	efficiencyHistogram->SetXTitle("Inefficiency");
-	efficiencyHistogram->SetYTitle("Eta bins");
-	efficiencyHistogram->SetFillColor(Palette::color(1));
-	for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
-	TPaveText* tpt;
-	tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
-	tpt->SetBorderSize(1);
-	tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
-	tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
-	upperRightPad->cd();
-	efficiencyHistogram->Draw();
-	tpt->Draw();
-
-	
-	TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
-	zoomedProfile->SetMinimum(0.9);
-	zoomedProfile->SetMaximum(1.01);
-	zoomedProfile->SetTitle("");
-	lowerPad->cd();
-	zoomedProfile->Draw();
-	std::ostringstream entry;
-	entry << ">=1 " << type << "(s)";
-	TLegend* zoomedLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
-	zoomedLegend->AddEntry(zoomedProfile, entry.str().c_str());
-	zoomedLegend->Draw();
-      }
-
-      RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + ".");
-      myContent->addItem(myImage);
-    }
-    return true;
-  }
-
-
-
-  bool Vizard::drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type) {
-
-    if (hitCoveragePerLayer.size()==0) return false;
-
-    TCanvas* myCanvas;
-    RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
-    myPage.addContent(myContent);
-
-    for (auto& layerIt : hitCoveragePerLayer) {
-      const std::string layerName = layerIt.first;
-      TProfile& aProfile = layerIt.second;
-     
-      CoveragePerNumberOfHits detailedInfo;
-      const auto& found = hitCoveragePerLayerDetails.find(layerName);
-      if (found != hitCoveragePerLayerDetails.end()) {
-	detailedInfo = found->second;
-      }
-      
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerIt.first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myCanvas->cd();
-
-
-      TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
-      TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
-      TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
-      myCanvas->cd();
-      upperLeftPad->Draw();
-      upperRightPad->Draw();
-      lowerPad->Draw();
-      aProfile.SetMinimum(0);
-      aProfile.SetMaximum(1.05);
-      aProfile.SetMarkerColor(Palette::color(1));
-      aProfile.SetLineColor(Palette::color(1));
-      aProfile.SetMarkerStyle(1);
-
-      TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
-      efficiencyHistogram->SetXTitle("Inefficiency");
-      efficiencyHistogram->SetYTitle("Eta bins");
-      efficiencyHistogram->SetFillColor(Palette::color(1));
-      for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
-      TPaveText* tpt;
-      tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
-      tpt->SetBorderSize(1);
-      tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
-      tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
-      
-      TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
-      zoomedProfile->SetMinimum(0.9);
-      zoomedProfile->SetMaximum(1.01);
-      zoomedProfile->SetTitle("");
-
-      upperLeftPad->cd();
-      TLegend* layerLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
-      aProfile.Draw();
-      std::string aProfileTitle = ">=1 hit(s)";
-      layerLegend->AddEntry(&aProfile, aProfileTitle.c_str());
-      
-      int colorIndex = 2;
-      for (auto& detailIt : detailedInfo) {
-	const int numberOfHits = detailIt.first;
-	ostringstream titleStream;
-	if (numberOfHits <= 4) {
-	  titleStream << "= " << numberOfHits << " hit";
-	  if (numberOfHits >= 2) titleStream << "s";
-	}
-	else { titleStream << ">=" << numberOfHits << " hits"; }
-
-	TProfile& detailProfile = detailIt.second;
-	//std::cout << layerIt.first << " " << detailProfile.GetEntries() << std::endl;
-	if (detailProfile.GetMaximum() > 1.*1.0E-10) {	  
-	  detailProfile.SetMinimum(0);
-	  detailProfile.SetMaximum(1.05);
-	  detailProfile.SetMarkerColor(Palette::color(colorIndex));
-	  detailProfile.SetLineColor(Palette::color(colorIndex));
-	  detailProfile.SetMarkerStyle(8);
-	  detailProfile.SetMarkerSize(0.3);  
-	  detailProfile.Draw("same");
-	  layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
-	}
-	colorIndex++;
-      }
-      layerLegend->Draw("same");
-
-      upperRightPad->cd();
-      efficiencyHistogram->Draw();
-      tpt->Draw();
-
-      lowerPad->cd();
-      zoomedProfile->Draw();
-      TLegend* zoomedLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
-      std::ostringstream entry;
-      entry << ">=1 " << type << "(s)";
-      zoomedLegend->AddEntry(zoomedProfile, entry.str().c_str());
-      zoomedLegend->Draw();
-
-      RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + ".");
-      myContent->addItem(myImage);
-    }
-    return true;
-  }
-  */
 
 
   static int nLayoutCanvases = 0;

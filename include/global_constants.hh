@@ -50,7 +50,7 @@ namespace insur {
 
   static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
 
-  static const double hits_zero = 1.E-10;
+  static const double hits_negligible = 1.E-10;
 
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.

@@ -203,10 +203,8 @@ namespace insur {
     // COVERAGE PER LAYER: HITS AND STUBS
     bool drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
     bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
-    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits> coveragePerLayerDetails = std::map<std::string, CoveragePerNumberOfHits>());
+    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails);
     bool drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
-    //bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type, const bool isPixelTracker); // generic business logic called by hit or stub version
-    //bool drawEtaCoverageHits(RootWPage& myPage, std::map<std::string, TProfile>& hitCoveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& hitCoveragePerLayerDetails, const std::string& type);
 
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);

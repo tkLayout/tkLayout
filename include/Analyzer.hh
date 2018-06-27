@@ -523,6 +523,7 @@ namespace insur {
     int materialTracksUsed;
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     static constexpr double maximum_n_planes = 13.;
+    static constexpr double plotNumberOfStubsMaxY = 10.;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
