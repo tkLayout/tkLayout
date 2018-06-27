@@ -2686,7 +2686,7 @@ namespace insur {
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawTracksDistributionPerNumberOfStubs(*myCanvas, analyzer, isPixelTracker);
+    if (myCanvas) drawTracksDistributionPerNumberOfStubs(*myCanvas, analyzer, isPixelTracker);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
@@ -2770,6 +2770,10 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
+  /*
+   * Draw the distribution of tracks which have exactly a given number of stubs.
+   * If the stubs number is higher than plotMaxNumberOfStubs, all the tracks are gathered into the same category.
+   */
   bool Vizard::drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
@@ -2778,16 +2782,15 @@ namespace insur {
     const int plotMaxNumberOfStubs = (!isPixelTracker ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
 
     TLegend* layerLegend = new TLegend(0.905, 0.5, 1., 0.9);
-    //layerLegend->SetHeader("Number of stubs");
     int colorIndex = 1;
     for (auto& detailIt : tracksDistributionPerNumberOfStubs) {
       const int numberOfStubs = detailIt.first;
       ostringstream titleStream;
       if (numberOfStubs < plotMaxNumberOfStubs) {
 	titleStream << numberOfStubs << " stub";
-	if (numberOfStubs >= 2) titleStream << "s";
       }
-      else { titleStream << ">=" << numberOfStubs << " stubs"; }
+      else { titleStream << ">=" << numberOfStubs << " stub"; }
+      if (numberOfStubs >= 2) titleStream << "s";
 
       TProfile& detailProfile = detailIt.second;
       detailProfile.SetMinimum(0);

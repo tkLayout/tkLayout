@@ -195,8 +195,8 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker);
-    bool drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
+    bool drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
 
