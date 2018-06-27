@@ -108,7 +108,6 @@ namespace insur {
   static const int plotMaxNumberOfOuterTrackerStubs = 11;
   static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
-  //class LayerNameVisitor;
   class LayerNameVisitor : public ConstGeometryVisitor {
     string id_;
   public:
@@ -542,11 +541,11 @@ namespace insur {
 
     
     const std::pair<int, int> computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
-						      std::vector<std::pair<Module*, HitType>>& hitModules, 
-						      LayerNameVisitor& layerNames, 
+						      const std::vector<std::pair<Module*, HitType>>& hitModules, 
+						      const LayerNameVisitor& layerNames, 
 						      const bool isPixelTracker, 
 						      const double maxEta);
-    void createCoveragePerLayerPlots(LayerNameVisitor& layerNames, 
+    void createCoveragePerLayerPlots(const LayerNameVisitor& layerNames, 
 				     const bool isPixelTracker, 
 				     const double maxEta);
     void computeCoveragePlotsAllLayers(const std::pair<XYZVector, double>& aLine, 

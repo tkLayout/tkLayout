@@ -3157,7 +3157,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     aProfileStubs.SetTitle(mel.first.c_str());
   }
  
-
   // The real simulation
   std::pair <XYZVector, double> aLine;
 
@@ -3412,7 +3411,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   return;
 }
 
-
 // public
 // TODO!!!
 // Creates the geometry objects geomLite
@@ -3601,8 +3599,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * - number of Inner Tracker 'stubs' (in the Inner Tracker, a 'stub' on a layer is defined by at least 2 hits on that layer).
    */
   const std::pair<int, int> Analyzer::computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
-							      std::vector<std::pair<Module*, HitType>>& hitModules, 
-							      LayerNameVisitor& layerNames, 
+							      const std::vector<std::pair<Module*, HitType>>& hitModules, 
+							      const LayerNameVisitor& layerNames, 
 							      const bool isPixelTracker, 
 							      const double maxEta) {
     // COMPUTE COVERAGE PER LAYER
@@ -3670,7 +3668,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * - detailed hits counts coverage.
    * - stub coverage.
    */
-  void Analyzer::createCoveragePerLayerPlots(LayerNameVisitor& layerNames, 
+  void Analyzer::createCoveragePerLayerPlots(const LayerNameVisitor& layerNames, 
 					     const bool isPixelTracker, 
 					     const double maxEta) {
     hitCoveragePerLayer_.clear();
