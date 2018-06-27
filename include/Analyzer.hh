@@ -108,6 +108,17 @@ namespace insur {
   static const int plotMaxNumberOfOuterTrackerStubs = 11;
   static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
+  //class LayerNameVisitor;
+  class LayerNameVisitor : public ConstGeometryVisitor {
+    string id_;
+  public:
+    std::set<string> data;
+    LayerNameVisitor(const Tracker& t) { t.accept(*this); }
+    void visit(const Barrel& b) { id_ = b.myid(); }
+    void visit(const Endcap& e) { id_ = e.myid(); }
+    void visit(const Layer& l) { data.insert(id_ + " " + any2str(l.myid())); }
+    void visit(const Disk& d) { data.insert(id_ + " " + any2str(d.myid())); }
+  };
 
   class Analyzer : private AnalyzerTools {
   public:
@@ -506,6 +517,7 @@ namespace insur {
     void transformEtaToZ();
     double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     std::pair<double, double> computeMinMaxTracksEta(const Tracker& t) const;
+
   private:
     // A random number generator
     TRandom3 myDice; 
@@ -527,6 +539,20 @@ namespace insur {
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+
+    
+    const std::pair<int, int> computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
+						      std::vector<std::pair<Module*, HitType>>& hitModules, 
+						      LayerNameVisitor& layerNames, 
+						      const bool isPixelTracker, 
+						      const double maxEta);
+    void createCoveragePerLayerPlots(LayerNameVisitor& layerNames, 
+				     const bool isPixelTracker, 
+				     const double maxEta);
+    void computeCoveragePlotsAllLayers(const std::pair<XYZVector, double>& aLine, 
+				       const int numLayersWithAtLeastOneHit, 
+				       const int numStubsPerTrack,
+				       const int plotMaxNumberOfStubs);
 
     void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
     void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
