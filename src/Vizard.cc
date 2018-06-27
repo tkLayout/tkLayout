@@ -2865,50 +2865,50 @@ namespace insur {
   }
 
   bool Vizard::drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawLayerCoverage(myPage, isPixelTracker, "hit", analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails());
+    return drawCoveragePerlayer(myPage, isPixelTracker, "hit", analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails());
   }
 
   bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawLayerCoverage(myPage, isPixelTracker, "stub", analyzer.getStubCoveragePerLayer());
+    return drawCoveragePerlayer(myPage, isPixelTracker, "stub", analyzer.getStubCoveragePerLayer());
   }
 
+  /*
+   * For each layer, draw dedicated hits or stubs coverage plots.
+   */
+  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits> coveragePerLayerDetails) {
 
-  bool Vizard::drawLayerCoverage(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits> coveragePerLayerDetails) {
+    if (coveragePerLayer.size() == 0) return false;
 
-    if (coveragePerLayer.size()==0) return false;
-
-    TCanvas* myCanvas;
     RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
 
+    // Loop on all layer(s) / disk(s)
     for (auto& layerIt : coveragePerLayer) {
       const std::string layerName = layerIt.first;
-      TProfile& aProfile = layerIt.second;
-      aProfile.SetMinimum(0);
-      aProfile.SetMaximum(1.05);
-      aProfile.SetMarkerColor(Palette::color(1));
-      aProfile.SetLineColor(Palette::color(1));
-      aProfile.SetMarkerStyle(1);
-     
-      CoveragePerNumberOfHits detailedInfo;
-      const auto& found = coveragePerLayerDetails.find(layerName);
-      if (found != coveragePerLayerDetails.end()) {
-	detailedInfo = found->second;
-      }
-      
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerIt.first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+
+      TCanvas* myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerName.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
 
+      // Distribution of tracks with at least 1 hit / stub.
+      TProfile& overallCoverage = layerIt.second;
+      overallCoverage.SetMinimum(0);
+      overallCoverage.SetMaximum(1.05);
+      overallCoverage.SetMarkerColor(Palette::color(1));
+      overallCoverage.SetLineColor(Palette::color(1));
+      overallCoverage.SetMarkerStyle(1);    
+      
+      // Regarding Inner tracker 'stubs', it doesn't make sense to zoom in to [0.9 1.0].
+      // The 'stub' coverage does not intend to be hermetic here.
       if (isPixelTracker && type == "stub") {
-	aProfile.Draw();
+	overallCoverage.Draw();
 	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
-	std::ostringstream entry;
-	entry << "= 1 stub";
-	centralLegend->AddEntry(&aProfile, entry.str().c_str());
+	std::string entry = "= 1 " + type; // There cannot be more than 1 stub per layer, by definition of Iner Tracker stub.
+	centralLegend->AddEntry(&overallCoverage, entry.c_str());
 	centralLegend->Draw();
       }
       else {
-	myCanvas->cd();
+	//myCanvas->cd();
+	// Prepare 3 pads
 	TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
 	upperLeftPad->Draw();
 	TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
@@ -2916,47 +2916,32 @@ namespace insur {
 	TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
 	lowerPad->Draw();
 
+	// Top left pad: overall hit coverage.
+	// Also draw detailed counts, if exist.
 	upperLeftPad->cd();
-	aProfile.Draw();
+	overallCoverage.Draw();
 	TLegend* layerLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
-	std::string aProfileTitle = ">=1 " + type + "(s)";
-	layerLegend->AddEntry(&aProfile, aProfileTitle.c_str());
+	std::string overallCoverageTitle = ">=1 " + type + "(s)";
+	layerLegend->AddEntry(&overallCoverage, overallCoverageTitle.c_str());
 	// Draw detailed hit counts per layer
 	if (type == "hit") {
-	  const int plotMaxNumberOfHits = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer :  plotMaxNumberOfInnerTrackerHitsPerLayer);
-	  int colorIndex = 2;
-	  for (auto& detailIt : detailedInfo) {
-	    const int numberOfHits = detailIt.first;
-	    TProfile& detailProfile = detailIt.second;
-	    if (detailProfile.GetMaximum() > 1.*1.0E-10) {	  
-	      detailProfile.SetMinimum(0);
-	      detailProfile.SetMaximum(1.05);
-	      detailProfile.SetMarkerColor(Palette::color(colorIndex));
-	      detailProfile.SetLineColor(Palette::color(colorIndex));
-	      detailProfile.SetMarkerStyle(8);
-	      detailProfile.SetMarkerSize(0.3);  
-	      detailProfile.Draw("same");
-
-	      std::ostringstream titleStream;
-	      if (numberOfHits < plotMaxNumberOfHits) {
-		titleStream << "= " << numberOfHits << " " << type;
-	      }
-	      else { titleStream << ">=" << numberOfHits << " " << type; }
-	      if (numberOfHits >= 2) titleStream << "s";
-	      layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
-	    }
-	    colorIndex++;
-	  }
+	  const int plotMaxNumberOfHits = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
+	  const auto& found = coveragePerLayerDetails.find(layerName);
+	  if (found != coveragePerLayerDetails.end()) {
+	    CoveragePerNumberOfHits& detailedInfo = found->second;
+	    drawCoveragePerlayerDetails(detailedInfo, type, layerLegend, plotMaxNumberOfHits);
+	  }	  
 	}
 	layerLegend->Draw("same");
 	
+	// Top right pad: statistics.
 	upperRightPad->cd();
-	TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
+	TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", overallCoverage.GetName()), overallCoverage.GetTitle(), 50, 0, .1);
 	efficiencyHistogram->SetXTitle("Inefficiency");
 	efficiencyHistogram->SetYTitle("Eta bins");
 	efficiencyHistogram->SetFillColor(Palette::color(1));
 	efficiencyHistogram->Draw();
-	for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
+	for (int i=1; i<=overallCoverage.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-overallCoverage.GetBinContent(i));
 	TPaveText* tpt;
 	tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
 	tpt->SetBorderSize(1);
@@ -2964,8 +2949,9 @@ namespace insur {
 	tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));	
 	tpt->Draw();
 
+	// Bottom pad: overall coverage is showed zoomed in to [0.9 1.01] window.
 	lowerPad->cd();
-	TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
+	TProfile* zoomedProfile = (TProfile*) overallCoverage.Clone();
 	zoomedProfile->SetMinimum(0.9);
 	zoomedProfile->SetMaximum(1.01);
 	zoomedProfile->SetTitle("");	
@@ -2982,7 +2968,39 @@ namespace insur {
       myContent->addItem(myImage);
     }
     return true;
-}
+  }
+
+  /*
+   * Draw detailed hits or stubs counts per layer.
+   */
+  bool Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
+    int colorIndex = 2;
+
+    for (auto& detailIt : detailedInfo) {
+      const int numberOfHits = detailIt.first;
+      TProfile& detailProfile = detailIt.second;
+
+      if (detailProfile.GetMaximum() > insur::hits_zero) {	  
+	detailProfile.SetMinimum(0);
+	detailProfile.SetMaximum(1.05);
+	detailProfile.SetMarkerColor(Palette::color(colorIndex));
+	detailProfile.SetLineColor(Palette::color(colorIndex));
+	detailProfile.SetMarkerStyle(8);
+	detailProfile.SetMarkerSize(0.3);  
+	detailProfile.Draw("same");
+
+	std::ostringstream titleStream;
+	if (numberOfHits < plotMaxNumberOfHits) {
+	  titleStream << "= " << numberOfHits << " " << type;
+	}
+	else { titleStream << ">=" << numberOfHits << " " << type; }
+	if (numberOfHits >= 2) titleStream << "s";
+	layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
+      }
+      colorIndex++;
+    }
+
+  }
 
 
   /*
