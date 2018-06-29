@@ -142,11 +142,8 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
 void Layer::check() {
   PropertyObject::check();
 
-  //if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  //else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
-
-
-  if (!isTilted()) {
+  // UNTILTED LAYER
+  if (!isTilted() && !isSkewedForInstallation()) {
     if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
     if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
     if (numRods.state() && (phiOverlap.state() || phiSegments.state())) throw PathfulException("Flat layer : Only one between numRods  and (phiOverlap + phiSegments) can be specified.");
@@ -160,11 +157,13 @@ void Layer::check() {
     if (buildNumModulesTilted.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify numModulesTilted. Not used.");
   }
 
+  // TILTED LAYER
   if (isTilted()) {
     if (maxZ.state()) logERROR("Tilted layer : maxZ was specified. Routing of services will be forced to be at Z = maxZ.");
     if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
     if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Tilted layer : phiSegments should not be specified.");
+    // TILTED AUTO PLACEMENT MODE
     if (isTiltedAuto()) {    
       if (!buildNumModulesFlat.state()) throw PathfulException("Tilted layer with automatic placement : numModulesFlat must be specified.");
       if (!buildNumModulesTilted.state()) throw PathfulException("Tilted layer with automatic placement : numModulesTilted must be specified.");
@@ -175,6 +174,17 @@ void Layer::check() {
       }
       if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
     }
+  }
+
+  // SKEWED LAYER
+  if (isSkewedForInstallation()) {
+    if (!skewedModuleEdgeShift.state()) throw PathfulException("Skewed layer mode: skewedModuleEdgeShift must be specified.");
+    if (!numRods.state()) throw PathfulException("Skewed layer mode: numRods must be specified.");
+    if (radiusMode() != RadiusMode::FIXED) throw PathfulException("Skewed layer mode: the (average) radii of layers must be specified.");
+    if (isTilted()) throw PathfulException("A layer was set to both skewed and tilted: this is not presently supported.");
+    if (phiForbiddenRanges.state()) throw PathfulException("Skewed layer mode: phiForbiddenRange is not supported.");
+    if (phiOverlap.state()) throw PathfulException("Skewed layer mode: phiOverlap should not be specified.");
+    if (phiSegments.state()) throw PathfulException("Skewed layer mode: phiSegments should not be specified.");
   }
 }
 
@@ -700,13 +710,13 @@ void Layer::build() {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
-    // Untilted layer
+    // UNTILTED LAYER
     if (!isTilted()) {
       buildStraight();
       if (buildNumModules() > 0 ) buildNumModulesFlat(buildNumModules());
       buildNumModulesTilted(0);
     }
-    // Tilted layer
+    // TILTED LAYER
     else buildTilted();
 
     for (auto& currentStationNode : stationsNode) {

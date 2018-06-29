@@ -30,7 +30,7 @@ void Barrel::build() {
       }
 
       layer->store(propertyTree());
-      if (layerNode.count(i) > 0) layer->store(layerNode.at(i));
+      if (layerNode.count(i) > 0) layer->store(layerNode.at(i)); // TO DO: WARNING!! layer->placeRadiusHint is reassigned here!!
       layer->build();
       layer->rotateZ(barrelRotation());
       layer->rotateZ(layer->layerRotation());
