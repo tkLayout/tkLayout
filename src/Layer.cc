@@ -3,7 +3,9 @@
 #include "MessageLogger.hh"
 #include "ConversionStation.hh"
 
-FlatRingsGeometryInfo::FlatRingsGeometryInfo() {}
+
+define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
+
 
 void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightRodPair*> flatPartRods, double bigParity) {
  
@@ -109,7 +111,8 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
   }  
 }
 
-Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
+
+TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
   for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
 
     if (i == (numModulesFlat + 1)) {
@@ -138,6 +141,9 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
     }
   }
 }
+
+
+/* PUBLIC */
 
 void Layer::check() {
   PropertyObject::check();
@@ -188,126 +194,59 @@ void Layer::check() {
   }
 }
 
+
+void Layer::build() {
+  ConversionStation* conversionStation;
+
+  try { 
+    materialObject_.store(propertyTree());
+    materialObject_.build();
+
+    logINFO(Form("Building %s", fullid(*this).c_str()));
+    check();
+
+    // UNTILTED LAYER
+    if (!isTilted()) {
+      buildStraight();
+      if (buildNumModules() > 0 ) buildNumModulesFlat(buildNumModules());
+      buildNumModulesTilted(0);
+    }
+    // TILTED LAYER
+    else buildTilted();
+
+    for (auto& currentStationNode : stationsNode) {
+      conversionStation = new ConversionStation();
+      conversionStation->store(currentStationNode.second);
+      conversionStation->check();
+      conversionStation->build();
+      
+      if (conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+        if (flangeConversionStation_ == nullptr) { //take only first defined flange station
+          flangeConversionStation_ = conversionStation;
+        }
+      } else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+        secondConversionStations_.push_back(conversionStation);
+      }
+    }
+
+        
+    cleanup();
+    builtok(true);
+
+  } catch (PathfulException& pe) { 
+    pe.pushPath(fullid(*this)); 
+    throw; 
+  }
+}
+
+
 void Layer::cutAtEta(double eta) {
   for (auto& r : rods_) r.cutAtEta(eta); 
   rods_.erase_if([](const RodPair& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
 }
 
-double Layer::calculatePlaceRadius(int numRods,
-                                   double bigDelta,
-                                   double smallDelta,
-                                   double dsDistance,
-                                   double moduleWidth,
-                                   double overlap) {
 
-  double d = dsDistance/2;
-
-  double f = (moduleWidth/2) - (overlap/2);
-
-  double R = bigDelta + smallDelta + d;
-  double S = -bigDelta + smallDelta + d;
-
-  double T = tan(2*M_PI/numRods);
-
-  double a = T;
-  double b = R*T + S*T - 2*f;
-  double c = R*S*T - R*f - S*f - T*f*f;
-
-  double r = (-b + sqrt(b*b - 4*a*c))/(2*a);
-
-  return r;
-}
-
-std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
-                                                              
-  // CUIDADO fix placeRadiusHint!!!!!
-  double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
-                                            rodTemplate.end(), 
-                                            [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
-  float moduleWidth = (*rodTemplate.rbegin())->minWidth();
-  float f = moduleWidth/2 - phiOverlap()/2;
-  float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
-
-  float tentativeModsPerSegment = 2. * M_PI / (gamma * phiSegments());
-
-  float optimalRadius;
-  int optimalModsPerSegment;
-
-  switch (radiusMode()) {
-  case SHRINK:
-    optimalModsPerSegment = floor(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    break;
-  case ENLARGE:
-    optimalModsPerSegment = ceil(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    break;
-  case FIXED:
-    optimalModsPerSegment = ceil(tentativeModsPerSegment);
-    optimalRadius = placeRadiusHint();
-    break;
-  case AUTO: {
-    int modsPerSegLo = floor(tentativeModsPerSegment);
-    int modsPerSegHi = ceil(tentativeModsPerSegment);
-    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-
-    if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
-      optimalRadius = radiusHi;
-      optimalModsPerSegment = modsPerSegHi;
-    } else {
-      optimalRadius = radiusLo;
-      optimalModsPerSegment = modsPerSegLo;
-    }
-    break;
-             }
-  default:
-    throw PathfulException("Invalid value for enum radiusMode");
-  }
-
-  return std::make_pair(optimalRadius, optimalModsPerSegment*phiSegments());
-}
-
-
-
-RodTemplate Layer::makeRodTemplate(const double skewAngle) {
-  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
-  //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
-  for (int i = 0; i < rodTemplate.size(); i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
-    rodTemplate[i]->store(propertyTree());
-    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
-    if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
-    rodTemplate[i]->build();
-  }
-  return rodTemplate;
-}
-
-
-
-TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
-  TiltedRingsTemplate tiltedRingsGeometry;
-
-  for (int i = (buildNumModulesFlat() + 1); i < (buildNumModulesFlat() + buildNumModulesTilted() + 1); i++) {
-
-    TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
-    tiltedRing->myid(i);
-    tiltedRing->store(propertyTree());
-    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
-    tiltedRing->numPhi(numRods());
-
-    double lastThetaEnd;
-    if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
-    else {
-      lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
-    }
- 
-    tiltedRing->build(lastThetaEnd); 
-    tiltedRingsGeometry[i] = tiltedRing;
-  }
-
-  return tiltedRingsGeometry;
-}
+/* PRIVATE */
 
 
 void Layer::buildStraight() {
@@ -486,13 +425,10 @@ void Layer::buildStraight() {
 
     }
 
-
-
-
-
   }
 
 }
+
 
 void Layer::buildTilted() {
 
@@ -700,51 +636,138 @@ void Layer::buildTilted() {
 
 }
 
-void Layer::build() {
-  ConversionStation* conversionStation;
 
-  try { 
-    materialObject_.store(propertyTree());
-    materialObject_.build();
-
-    logINFO(Form("Building %s", fullid(*this).c_str()));
-    check();
-
-    // UNTILTED LAYER
-    if (!isTilted()) {
-      buildStraight();
-      if (buildNumModules() > 0 ) buildNumModulesFlat(buildNumModules());
-      buildNumModulesTilted(0);
-    }
-    // TILTED LAYER
-    else buildTilted();
-
-    for (auto& currentStationNode : stationsNode) {
-      conversionStation = new ConversionStation();
-      conversionStation->store(currentStationNode.second);
-      conversionStation->check();
-      conversionStation->build();
-      
-      if (conversionStation->stationType() == ConversionStation::Type::FLANGE) {
-        if (flangeConversionStation_ == nullptr) { //take only first defined flange station
-          flangeConversionStation_ = conversionStation;
-        }
-      } else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
-        secondConversionStations_.push_back(conversionStation);
-      }
-    }
-
-        
-    cleanup();
-    builtok(true);
-
-  } catch (PathfulException& pe) { 
-    pe.pushPath(fullid(*this)); 
-    throw; 
+/*
+ * Create a template untilted rod (can be skewed).
+ */
+RodTemplate Layer::makeRodTemplate(const double skewAngle) {
+  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
+  for (int i = 0; i < rodTemplate.size(); i++) {
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
+    rodTemplate[i]->store(propertyTree());
+    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
+    if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
+    rodTemplate[i]->build();
   }
+  return rodTemplate;
 }
 
 
+/*
+ * Create a template tilted rod.
+ */
+TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
+  TiltedRingsTemplate tiltedRingsGeometry;
+
+  for (int i = (buildNumModulesFlat() + 1); i < (buildNumModulesFlat() + buildNumModulesTilted() + 1); i++) {
+
+    TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
+    tiltedRing->myid(i);
+    tiltedRing->store(propertyTree());
+    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
+    tiltedRing->numPhi(numRods());
+
+    double lastThetaEnd;
+    if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
+    else {
+      lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEndOuter_REAL();
+    }
+ 
+    tiltedRing->build(lastThetaEnd); 
+    tiltedRingsGeometry[i] = tiltedRing;
+  }
+
+  return tiltedRingsGeometry;
+}
+
+
+/*
+ * Straight layer: compute parameters of interest.
+ */
+std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
+                                                              
+  // CUIDADO fix placeRadiusHint!!!!!
+  double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
+                                            rodTemplate.end(), 
+                                            [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
+  float moduleWidth = (*rodTemplate.rbegin())->minWidth();
+  float f = moduleWidth/2 - phiOverlap()/2;
+  float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
+
+  float tentativeModsPerSegment = 2. * M_PI / (gamma * phiSegments());
+
+  float optimalRadius;
+  int optimalModsPerSegment;
+
+  switch (radiusMode()) {
+  case SHRINK:
+    optimalModsPerSegment = floor(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    break;
+  case ENLARGE:
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    break;
+  case FIXED:
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
+    optimalRadius = placeRadiusHint();
+    break;
+  case AUTO: {
+    int modsPerSegLo = floor(tentativeModsPerSegment);
+    int modsPerSegHi = ceil(tentativeModsPerSegment);
+    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+
+    if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
+      optimalRadius = radiusHi;
+      optimalModsPerSegment = modsPerSegHi;
+    } else {
+      optimalRadius = radiusLo;
+      optimalModsPerSegment = modsPerSegLo;
+    }
+    break;
+             }
+  default:
+    throw PathfulException("Invalid value for enum radiusMode");
+  }
+
+  return std::make_pair(optimalRadius, optimalModsPerSegment*phiSegments());
+}
+
+
+/*
+ * Straight layer: compute mean radius from other available parameters.
+ */
+double Layer::calculatePlaceRadius(int numRods,
+                                   double bigDelta,
+                                   double smallDelta,
+                                   double dsDistance,
+                                   double moduleWidth,
+                                   double overlap) {
+
+  double d = dsDistance/2;
+
+  double f = (moduleWidth/2) - (overlap/2);
+
+  double R = bigDelta + smallDelta + d;
+  double S = -bigDelta + smallDelta + d;
+
+  double T = tan(2*M_PI/numRods);
+
+  double a = T;
+  double b = R*T + S*T - 2*f;
+  double c = R*S*T - R*f - S*f - T*f*f;
+
+  double r = (-b + sqrt(b*b - 4*a*c))/(2*a);
+
+  return r;
+}
+
+
+/*
+ * Skewed layer: Compute all parameters of interest.
+ */
 const SkewedLayerPhiShifts Layer::buildSkewed() {
 
   // any module
@@ -769,6 +792,9 @@ const SkewedLayerPhiShifts Layer::buildSkewed() {
 }
 
 
+/*
+ * Skewed layer: geometry helper.
+ */
 const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio) {
 
   const double skewAperture = 2. * asin( 0.5 * skewedModuleEdgeShift / moduleWidth);
@@ -831,19 +857,3 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
 
   return info;
 }
-
-
-const MaterialObject& Layer::materialObject() const{
-  return materialObject_;
-}
-
-ConversionStation* Layer::flangeConversionStation() const {
-  return flangeConversionStation_;
-}
-
-const std::vector<ConversionStation*>& Layer::secondConversionStations() const {
-  return secondConversionStations_;
-}
-
-
-define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
