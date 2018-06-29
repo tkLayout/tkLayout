@@ -205,6 +205,8 @@ private:
   void buildStraight();
   void buildTilted();
 
+  StraightRodPair* buildPhiRotatedByPiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
+
   RodTemplate makeRodTemplate(const double skewAngle = 0.);
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 

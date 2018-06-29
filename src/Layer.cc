@@ -391,7 +391,6 @@ void Layer::buildStraight() {
 	if (i >= 3) {
 	  // Phi rotation
 	  double rodPhiReinitialize = (i-1)%2 ? secondRodPhi : firstRodPhi;
-	  //rod->rotateZ(-rodPhiReinitialize);
 	  double rodPhiShift = -rodPhiReinitialize + secondRodPhi + (i - 2) * commonRodCenterPhiShift;
 	  rod->rotateZ(rodPhiShift);
 	  lastRodPhi = rodPhiShift + rodPhiReinitialize;  // Assumes there are at least 3 rods!!
@@ -402,11 +401,9 @@ void Layer::buildStraight() {
 	rods_.push_back(rod);
 
 	// Rod at + PI also added here
-	StraightRodPair* rodSymmetric = GeometryFactory::clone(*rod);
-	rodSymmetric->myid(i + numRods() / 2);
-	rodSymmetric->rotateZ(M_PI);
+	StraightRodPair* phiRotatedByPiRod = buildPhiRotatedByPiRod(rod, numRodsPerXSide);
 	// Store
-	rods_.push_back(rodSymmetric);
+	rods_.push_back(phiRotatedByPiRod);
       }
 
       // SKEWED ROD : assign other properties, build and store 
@@ -417,7 +414,7 @@ void Layer::buildStraight() {
 	skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
 	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
 	skewedRod->translateR(skewedModuleCenterRho());
-	skewedRod->myid(numRods() / 2);
+	skewedRod->myid(numRodsPerXSide);
 
 	// Phi rotation
 	double skewedRodPhi = lastRodPhi + skewedRodCenterPhiShift;
@@ -427,13 +424,10 @@ void Layer::buildStraight() {
 	// Store
 	rods_.push_back(skewedRod);
 
-
 	// Rod at + PI also added here
-	StraightRodPair* rodSymmetric = GeometryFactory::clone(*skewedRod);
-	rodSymmetric->myid(i + numRods() / 2);
-	rodSymmetric->rotateZ(M_PI);
+	StraightRodPair* phiRotatedByPiRod = buildPhiRotatedByPiRod(skewedRod, numRodsPerXSide);
 	// Store
-	rods_.push_back(rodSymmetric);
+	rods_.push_back(phiRotatedByPiRod);
       }
 
     }
@@ -441,6 +435,22 @@ void Layer::buildStraight() {
   }
 
 }
+
+
+StraightRodPair* Layer::buildPhiRotatedByPiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const {
+  if (!initialRod) {
+    throw PathfulException("Tried to clone a rod which does not exist.");
+  }
+  else {
+    StraightRodPair* phiRotatedByPiRod = GeometryFactory::clone(*initialRod);
+    const int initialRodId = initialRod->myid();
+    phiRotatedByPiRod->myid(initialRodId + numRodsPerXSide);
+    phiRotatedByPiRod->rotateZ(M_PI);
+
+    return phiRotatedByPiRod;
+  }
+}
+
 
 
 /*
