@@ -145,6 +145,9 @@ TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flat
 
 /* PUBLIC */
 
+/*
+ * Check that properties assignment (from cfg files) make some sense.
+ */
 void Layer::check() {
   PropertyObject::check();
 
@@ -195,6 +198,9 @@ void Layer::check() {
 }
 
 
+/*
+ * Build a layer.
+ */
 void Layer::build() {
   ConversionStation* conversionStation;
 
@@ -248,22 +254,19 @@ void Layer::cutAtEta(double eta) {
 
 /* PRIVATE */
 
-
+/*
+ * Build a straight layer (with opposition to tilted layer).
+ * The layer can be skewed around the (X=0) plane if requested.
+ */
 void Layer::buildStraight() {
 
-  // COMPUTE PARAMETERS OF INTEREST FOR THE CASE : SKEWED FOR INSTALLATION
-  const SkewedLayerPhiShifts& phiShifts = (isSkewedForInstallation() ? buildSkewed() : SkewedLayerPhiShifts());
-
-  const double installationMinusBigDeltaRodCenterPhiShift = phiShifts.installationMinusBigDeltaRodCenterPhiShift;
-  const double commonRodCenterPhiShift = phiShifts.commonRodCenterPhiShift;
-  const double skewedRodCenterPhiShift = phiShifts.skewedRodCenterPhiShift;
-
-
+  // Compute a rod
   RodTemplate rodTemplate = makeRodTemplate();
 
-  bool isFlatPart = isTilted();  // Layer::buildStraight() is also used to build the flat part of a tilted layer.
+  const bool isFlatPart = isTilted();  // Layer::buildStraight() is also used to build the flat part of a tilted layer.
   // FLAT LAYER
   if (!isFlatPart) {
+    // if numRods is not specified, compute it from coverage info.
     if (!numRods.state()) {
       std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
       placeRadius_ = optimalLayerParms.first; 
@@ -283,6 +286,13 @@ void Layer::buildStraight() {
     maxBuildRadius(placeRadius_);
   }
 
+  // SKEWED LAYER: compute parameters of interest
+  const SkewedLayerPhiShifts& phiShifts = (isSkewedForInstallation() ? buildSkewed() : SkewedLayerPhiShifts());
+  const double installationMinusBigDeltaRodCenterPhiShift = phiShifts.installationMinusBigDeltaRodCenterPhiShift;
+  const double commonRodCenterPhiShift = phiShifts.commonRodCenterPhiShift;
+  const double skewedRodCenterPhiShift = phiShifts.skewedRodCenterPhiShift;
+
+  // PHI FORBIDDEN RANGE: forbid rod placement in phi, in a given phi range.
   double rodPhiWidth = 0;
   double forbiddenPhiLowerA, forbiddenPhiUpperA, forbiddenPhiLowerB, forbiddenPhiUpperB;
   if (!phiForbiddenRanges.state()) rodPhiWidth = 2. * M_PI / numRods();
@@ -306,10 +316,13 @@ void Layer::buildStraight() {
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
   if (isFlatPart) { first->isFlatPart(true); first->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
   first->store(propertyTree());
-  // SECOND ROD : copy first rod
+
+  // CLONES FROM FIRST ROD
   logINFO(Form("Copying rod %s", fullid(*this).c_str()));
+  // second rod case
   StraightRodPair* second = GeometryFactory::clone(*first);
   second->myid(2);
+  // skewed rod case
   StraightRodPair* skewedRod = GeometryFactory::clone(*first);
 
   // FIRST ROD : build and store
@@ -430,6 +443,9 @@ void Layer::buildStraight() {
 }
 
 
+/*
+ * Build a tilted layer.
+ */
 void Layer::buildTilted() {
 
   vector<TiltedModuleSpecs> tmspecsi, tmspecso;
