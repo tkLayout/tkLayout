@@ -279,6 +279,8 @@ OT614_200_IT430.cfg                  OT Version 6.1.4
 =================   1X1 MODULES STUDIES   ================      
 OT614_200_IT440.cfg                  OT Version 6.1.4
                                      Inner Tracker version 4.4.0: 1x1 modules in TEPX Ring 1 (Swiss layout).
+                                     2x2 modules in TEPX Ring 2.
+                                     Based from Inner Tracker version 4.0.4.
                                      TEPX: 
                                      - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 36.
                                      - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 52.
@@ -287,6 +289,8 @@ OT614_200_IT440.cfg                  OT Version 6.1.4
                                      
 OT614_200_IT441.cfg                  OT Version 6.1.4
                                      Inner Tracker version 4.4.1: Also 1x1 modules in TFPX Ring 1 (Correction by Duccio on Swiss layout).
+                                     2x2 modules in TEPX Ring 2.
+                                     Based from Inner Tracker version 4.0.4.
                                      TFPX: 
                                      - Ring 1: Rhigh: 73.2 mm -> 51 mm.
                                      TEPX: 
@@ -294,6 +298,23 @@ OT614_200_IT441.cfg                  OT Version 6.1.4
                                      - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 48.
                                      - Ring 3: Rhigh: 188.5 mm -> 169 mm.
                                      - Ring 4: Rhigh: 232 mm -> 213 mm.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+
+
+=================   LUMINOSITY STUDIES   =================     
+OT614_200_IT450.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.0: Tune radii in TEPX to have radially distributed luminosity measurements.
+                                     Based from Inner Tracker version 4.0.4.
+                                     TEPX:
+                                     - Ring 2: Rhigh: 149 mm -> 145 mm.
+                                     - Ring 3: Rhigh: 188.5 mm -> 182 mm.
+                                     - Ring 4: Rhigh: 232 mm -> 219 mm.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     - i=1: 7.2 mm
+                                     - i=2: 7.2 mm
+                                     - i=3: 7.2 mm
+                                     - i=4: 9.2 mm
+                                     
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
                                                                                              
 
