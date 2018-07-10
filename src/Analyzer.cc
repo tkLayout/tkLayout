@@ -898,7 +898,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 //      j.second->Print("all");
 //    }
 //  }
-  if (totalProfile.GetMaximum() < maximum_n_planes) totalProfile.SetMaximum(maximum_n_planes);
+  if (totalProfile.GetMaximum() < plotNumberOfTriggeredPointsMaxY) totalProfile.SetMaximum(plotNumberOfTriggeredPointsMaxY);
 }
 
 /**
@@ -3328,9 +3328,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
   // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
-  if (totalEtaProfile.GetMaximum()<maximum_n_planes) totalEtaProfile.SetMaximum(maximum_n_planes);
-  if (totalEtaProfileSensors.GetMaximum()<maximum_n_planes) totalEtaProfileSensors.SetMaximum(maximum_n_planes);
-  if (totalEtaProfileStubs.GetMaximum()<maximum_n_planes) totalEtaProfileStubs.SetMaximum(plotNumberOfStubsMaxY);
+  const double plotNumberOfHitModulesMaxY = (!tracker.isPixelTracker() ? plotNumberOfOuterTrackerHitModulesMaxY : plotNumberOfInnerTrackerHitModulesMaxY);
+  if (totalEtaProfile.GetMaximum() < plotNumberOfHitModulesMaxY) totalEtaProfile.SetMaximum(plotNumberOfHitModulesMaxY);
+  if (totalEtaProfileSensors.GetMaximum() < plotNumberOfHitsMaxY) totalEtaProfileSensors.SetMaximum(plotNumberOfHitsMaxY);
+  if (totalEtaProfileStubs.GetMaximum() < plotNumberOfStubsMaxY) totalEtaProfileStubs.SetMaximum(plotNumberOfStubsMaxY);
+  const double plotNumberOfHitLayersMaxY = (!tracker.isPixelTracker() ? plotNumberOfOuterTrackerHitLayersMaxY : plotNumberOfInnerTrackerHitLayersMaxY);
+  if (totalEtaProfileLayers.GetMaximum() < plotNumberOfHitLayersMaxY) totalEtaProfileLayers.SetMaximum(plotNumberOfHitLayersMaxY);
   totalEtaProfile.Draw();
   totalEtaProfileSensors.Draw();
   totalEtaProfileStubs.Draw();
