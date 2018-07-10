@@ -54,27 +54,6 @@ namespace insur {
 
 
   /**
-   * Geometry coverage plots constants.
-   **/
-
-  // If there are more hits (or stubs) than the specified max, hits (or stubs) are counted in the max category.
-  // Example: if plotNumberOfInnerTrackerStubs == 3, and a track has 4 stubs, it will be counted in the (>=3 stubs) category.
-  static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
-  static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
-  static const int plotMaxNumberOfOuterTrackerStubs = 11;
-  static const int plotMaxNumberOfInnerTrackerStubs = 3;
-
-  // Simply set the plots MaxY.
-  static const double plotNumberOfOuterTrackerHitModulesMaxY = 10.;
-  static const double plotNumberOfInnerTrackerHitModulesMaxY = 20.;
-  static const double plotNumberOfHitsMaxY = 20.;
-  static const double plotNumberOfStubsMaxY = 10.;
-  static const double plotNumberOfOuterTrackerHitLayersMaxY = 8.;
-  static const double plotNumberOfInnerTrackerHitLayersMaxY = 13.;
-  static const double plotNumberOfTriggeredPointsMaxY = 10.;
-
-
-  /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.
    * @param a_silicon Silicon atomic number

@@ -54,42 +54,6 @@ class TProfile;
 
 namespace insur {
 
-  /**
-   * A warning that may occur during processing
-   */
-  static const std::string msg_module_warning = "Warning: tracker module with undefined subdetector type found.";
-
-
-  /**
-   * Constants specific to the Analyzer
-   */
-  static const std::string outer_tracker_id = "Outer";
-  static const std::string beam_pipe = "Beam Pipe";
-  static const std::string services_under_pixel_tracking_volume = "Services under Pixel Tracking Volume";
-  static const std::string services_in_pixel_tracking_volume = "Services in Pixel Tracking Volume";
-  static const std::string supports_in_pixel_tracking_volume = "Supports in Pixel Tracking Volume";
-  static const std::string services_and_supports_in_interstice = "Services and supports in interstice";
-  static const std::string services_in_outer_tracking_volume = "Services in Outer Tracking Volume";
-  static const std::string supports_in_outer_tracking_volume = "Supports in Outer Tracking Volume";
-
-
-
-  /**
-   * Two comparison functions for <i>std::pair<int, int></i> entries.
-   */
-  bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
-  bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
-  /**
-   * @class Analyzer
-   * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
-   *
-   * It simulates a series of tracks that start at the origin (z = 0), maintain a fixed value of PI / 2 for phi and cover
-   * an eta range from 0 to the maximal eta found in the provided geometry. Each volume hit by a track contributes
-   * its radiation and interaction lengths to a grand total for that track. Those grand totals, recorded by eta, are
-   * stored in a series of histograms that give a complete profile of the expected interaction of the tracker itself with
-   * the particles that pass through it.
-   */
-
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
   typedef std::vector<Module*> ModuleVector;
   typedef std::vector<Layer*> LayerVector;
@@ -115,6 +79,23 @@ namespace insur {
     void visit(const Disk& d) { data.insert(id_ + " " + any2str(d.myid())); }
   };
 
+  /**
+   * Two comparison functions for <i>std::pair<int, int></i> entries.
+   */
+  bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
+  bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
+
+
+  /**
+   * @class Analyzer
+   * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
+   *
+   * It simulates a series of tracks that start at the origin (z = 0), maintain a fixed value of PI / 2 for phi and cover
+   * an eta range from 0 to the maximal eta found in the provided geometry. Each volume hit by a track contributes
+   * its radiation and interaction lengths to a grand total for that track. Those grand totals, recorded by eta, are
+   * stored in a series of histograms that give a complete profile of the expected interaction of the tracker itself with
+   * the particles that pass through it.
+   */
   class Analyzer : private AnalyzerTools {
   public:
     Analyzer();
