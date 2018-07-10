@@ -103,10 +103,6 @@ namespace insur {
   typedef std::map<int, TrackCollection> TrackCollectionMap;
 
   typedef std::map<int, TProfile> CoveragePerNumberOfHits;
-  static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
-  static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
-  static const int plotMaxNumberOfOuterTrackerStubs = 11;
-  static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
   class LayerNameVisitor : public ConstGeometryVisitor {
     string id_;
@@ -533,8 +529,6 @@ namespace insur {
     int geometryTracksUsed;
     int materialTracksUsed;
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
-    static constexpr double maximum_n_planes = 13.;
-    static constexpr double plotNumberOfStubsMaxY = 10.;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
