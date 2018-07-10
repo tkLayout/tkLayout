@@ -3,7 +3,6 @@
 moduleType pixel_2_1x1_25x100  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
-
 width 16.4
 length 22
 
@@ -24,4 +23,4 @@ Sensor 1 {
   powerPerChannel 0.0 // mW
 }
 
-plotColor 4  // green
+plotColor 9  // violet
