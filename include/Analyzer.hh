@@ -102,6 +102,22 @@ namespace insur {
   //typedef double TrackCollectionKey;
   typedef std::map<int, TrackCollection> TrackCollectionMap;
 
+  typedef std::map<int, TProfile> CoveragePerNumberOfHits;
+  static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
+  static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
+  static const int plotMaxNumberOfOuterTrackerStubs = 11;
+  static const int plotMaxNumberOfInnerTrackerStubs = 3;
+
+  class LayerNameVisitor : public ConstGeometryVisitor {
+    string id_;
+  public:
+    std::set<string> data;
+    LayerNameVisitor(const Tracker& t) { t.accept(*this); }
+    void visit(const Barrel& b) { id_ = b.myid(); }
+    void visit(const Endcap& e) { id_ = e.myid(); }
+    void visit(const Layer& l) { data.insert(id_ + " " + any2str(l.myid())); }
+    void visit(const Disk& d) { data.insert(id_ + " " + any2str(d.myid())); }
+  };
 
   class Analyzer : private AnalyzerTools {
   public:
@@ -232,13 +248,15 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
+    std::map<int, TProfile>& getTracksDistributionPerNumberOfStubs() { return tracksDistributionPerNumberOfStubs_; }
     TProfile& getTotalEtaProfileLayers() {return totalEtaProfileLayers; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
     std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
     std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
-    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
-    std::map<std::string, TProfile>& getLayerEtaCoverageProfilesStubs() {return layerEtaCoverageProfileStubs; }
+    std::map<std::string, TProfile>& getHitCoveragePerLayer() { return hitCoveragePerLayer_; } // Layer coverage: hits
+    std::map<std::string, CoveragePerNumberOfHits>& getHitCoveragePerLayerDetails() { return hitCoveragePerLayerDetails_; } // Layer coverage: hits details
+    std::map<std::string, TProfile>& getStubCoveragePerLayer() { return stubCoveragePerLayer_; } // Layer coverage: stubs
     std::map<std::string, std::map<std::string, TH1I*>>& getStubEfficiencyCoverageProfiles() { return stubEfficiencyCoverageProfiles_; } // map of maps: inner map has momenta as keys
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
@@ -438,8 +456,11 @@ namespace insur {
 
     TGraph powerDensity;
     TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs, totalEtaProfileLayers;
+    std::map<int, TProfile> tracksDistributionPerNumberOfStubs_;
     std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
-    std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
+    std::map<std::string, TProfile> hitCoveragePerLayer_;
+    std::map<std::string, CoveragePerNumberOfHits> hitCoveragePerLayerDetails_;
+    std::map<std::string, TProfile> stubCoveragePerLayer_;
 
     std::map<std::string, std::map<std::string, TH1I*>> stubEfficiencyCoverageProfiles_;
 
@@ -495,6 +516,7 @@ namespace insur {
     void transformEtaToZ();
     double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     std::pair<double, double> computeMinMaxTracksEta(const Tracker& t) const;
+
   private:
     // A random number generator
     TRandom3 myDice; 
@@ -512,9 +534,24 @@ namespace insur {
     int materialTracksUsed;
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     static constexpr double maximum_n_planes = 13.;
+    static constexpr double plotNumberOfStubsMaxY = 10.;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+
+    
+    const std::pair<int, int> computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
+						      const std::vector<std::pair<Module*, HitType>>& hitModules, 
+						      const LayerNameVisitor& layerNames, 
+						      const bool isPixelTracker, 
+						      const double maxEta);
+    void createCoveragePerLayerPlots(const LayerNameVisitor& layerNames, 
+				     const bool isPixelTracker, 
+				     const double maxEta);
+    void computeCoveragePlotsAllLayers(const std::pair<XYZVector, double>& aLine, 
+				       const int numLayersWithAtLeastOneHit, 
+				       const int numStubsPerTrack,
+				       const int plotMaxNumberOfStubs);
 
     void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
     void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
