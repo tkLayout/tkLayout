@@ -283,7 +283,7 @@ OT614_200_IT440.cfg                  OT Version 6.1.4
                                      Based from Inner Tracker version 4.0.4.
                                      TEPX: 
                                      - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 36.
-                                     - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 52.
+                                     - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 28.
                                      - Ring 3: Rhigh: 188.5 mm -> 171 mm.
                                      - Ring 4: Rhigh: 232 mm -> 215 mm.
                                      
@@ -295,7 +295,7 @@ OT614_200_IT441.cfg                  OT Version 6.1.4
                                      - Ring 1: Rhigh: 73.2 mm -> 51 mm.
                                      TEPX: 
                                      - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 32.
-                                     - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 48.
+                                     - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 28.
                                      - Ring 3: Rhigh: 188.5 mm -> 169 mm.
                                      - Ring 4: Rhigh: 232 mm -> 213 mm.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
