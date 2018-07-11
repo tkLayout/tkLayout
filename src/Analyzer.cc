@@ -3136,7 +3136,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   etaProfileByTypeStubs.clear();
 
   const int coveragePlotsBinsNumber = 30;  //  HEREEEEEEEEEEEEEEEEEEE
-  const int coveragePlotsStubsDetailsBinsNumber = 20;  //  HEREEEEEEEEEEEEEEEEEEE
+  const int coveragePlotsStubsDetailsBinsNumber = 30;  //  HEREEEEEEEEEEEEEEEEEEE
 
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
        it!=moduleTypeCount.end(); it++) {
@@ -3153,11 +3153,13 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     aProfileStubs.SetTitle(mel.first.c_str());
   }
 
-  for (auto mel : moduleTypeCountStubs) {
-    TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
-    aProfileStubs.SetBins(coveragePlotsBinsNumber, 0, maxEta);
-    aProfileStubs.SetName(mel.first.c_str());
-    aProfileStubs.SetTitle(mel.first.c_str());
+  if (!tracker.isPixelTracker()) {
+    for (auto mel : moduleTypeCountStubs) {
+      TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
+      aProfileStubs.SetBins(coveragePlotsBinsNumber, 0, maxEta);
+      aProfileStubs.SetName(mel.first.c_str());
+      aProfileStubs.SetTitle(mel.first.c_str());
+    }
   }
  
   // The real simulation
@@ -3174,6 +3176,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetName("totalEtaProfile");
   totalEtaProfile.SetMarkerStyle(8);
   totalEtaProfile.SetMarkerColor(1);
+  totalEtaProfile.SetLineColor(1);
   totalEtaProfile.SetMarkerSize(1.5);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
   totalEtaProfile.SetBins(coveragePlotsBinsNumber, 0, maxEta);
@@ -3183,6 +3186,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileSensors.SetName("totalEtaProfileSensors");
   totalEtaProfileSensors.SetMarkerStyle(8);
   totalEtaProfileSensors.SetMarkerColor(1);
+  totalEtaProfileSensors.SetLineColor(1);
   totalEtaProfileSensors.SetMarkerSize(1.5);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
   totalEtaProfileSensors.SetBins(coveragePlotsBinsNumber, 0, maxEta);
@@ -3192,6 +3196,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
   totalEtaProfileStubs.SetMarkerStyle(8);
   totalEtaProfileStubs.SetMarkerColor(1);
+  totalEtaProfileStubs.SetLineColor(1);
   totalEtaProfileStubs.SetMarkerSize(1.5);
   if (!tracker.isPixelTracker()) { totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs"); }
   else { totalEtaProfileStubs.SetTitle("Number of stubs;#eta;Number of stubs"); }
@@ -3211,6 +3216,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileLayers.SetName("totalEtaProfileLayers");
   totalEtaProfileLayers.SetMarkerStyle(8);
   totalEtaProfileLayers.SetMarkerColor(1);
+  totalEtaProfileLayers.SetLineColor(1);
   totalEtaProfileLayers.SetMarkerSize(1.5);
   totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
   totalEtaProfileLayers.SetBins(100, 0, maxEta);
@@ -3269,8 +3275,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         etaProfileByTypeSensors[mel.first].Fill(fabs(aLine.second), mel.second);
       }
 
-      for (auto& mel : moduleTypeCountStubs) {
-        etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
+      if (!tracker.isPixelTracker()) {
+	for (auto& mel : moduleTypeCountStubs) {
+	  etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
+	}
       }
       // Fill other plots
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
@@ -3346,6 +3354,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
     myProfile->SetMarkerStyle(8);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+    myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfile"+(*it).first;
     myProfile->SetName(profileName.c_str());
@@ -3361,6 +3370,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     TProfile* myProfile=(TProfile*)it->second.Clone();
     myProfile->SetMarkerStyle(8);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+    myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfileSensors"+(*it).first;
     myProfile->SetName(profileName.c_str());
@@ -3371,19 +3381,22 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     typeEtaProfileSensors.push_back(*myProfile);
   }
 
-  for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
-       it!=etaProfileByTypeStubs.end(); it++) {
-    TProfile* myProfile=(TProfile*)it->second.Clone();
-    myProfile->SetMarkerStyle(8);
-    myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
-    myProfile->SetMarkerSize(1);
-    std::string profileName = "etaProfileStubs"+(*it).first;
-    myProfile->SetName(profileName.c_str());
-    myProfile->SetTitle((*it).first.c_str());
-    myProfile->GetXaxis()->SetTitle("eta");
-    myProfile->GetYaxis()->SetTitle("Number of stubs");
-    myProfile->Draw("same");
-    typeEtaProfileStubs.push_back(*myProfile);
+  if (!tracker.isPixelTracker()) {
+    for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
+	 it!=etaProfileByTypeStubs.end(); it++) {
+      TProfile* myProfile=(TProfile*)it->second.Clone();
+      myProfile->SetMarkerStyle(8);
+      myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+      myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
+      myProfile->SetMarkerSize(1);
+      std::string profileName = "etaProfileStubs"+(*it).first;
+      myProfile->SetName(profileName.c_str());
+      myProfile->SetTitle((*it).first.c_str());
+      myProfile->GetXaxis()->SetTitle("eta");
+      myProfile->GetYaxis()->SetTitle("Number of stubs");
+      myProfile->Draw("same");
+      typeEtaProfileStubs.push_back(*myProfile);
+    }
   }
 
 
