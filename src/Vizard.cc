@@ -2721,6 +2721,7 @@ namespace insur {
 
     drawHitCoveragePerLayer(*myPage, analyzer, isPixelTracker);
     drawStubCoveragePerLayer(*myPage, analyzer, isPixelTracker);
+    if (isPixelTracker) { drawStubWith3HitsCoveragePerLayer(*myPage, analyzer); }
 
     // Add detailed geometry info here
     RootWContent* filesContent = new RootWContent("Geometry files", false);
@@ -2873,7 +2874,14 @@ namespace insur {
 
   bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
     std::map<std::string, CoveragePerNumberOfHits> detailedPlots;
-    return drawCoveragePerlayer(myPage, isPixelTracker, "stub", analyzer.getStubCoveragePerLayer(), detailedPlots);
+    const std::string type = (!isPixelTracker ? "stub" : "1 stub <-> (>= 2 hits)");
+    return drawCoveragePerlayer(myPage, isPixelTracker, type, analyzer.getStubCoveragePerLayer(), detailedPlots);
+  }
+
+  bool Vizard::drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer) {
+    const bool isPixelTracker = true;
+    std::map<std::string, CoveragePerNumberOfHits> detailedPlots;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "1 stub <-> (>= 3 hits)", analyzer.getStubWith3HitsCoveragePerLayer(), detailedPlots);
   }
 
   /*
@@ -2903,10 +2911,11 @@ namespace insur {
       
       // Regarding Inner tracker 'stubs', it doesn't make sense to zoom in to [0.9 1.0].
       // The 'stub' coverage does not intend to be hermetic here.
-      if (isPixelTracker && type == "stub") {
+      if (isPixelTracker && type.find("stub") != std::string::npos) {
 	overallCoverage.Draw();
 	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
-	std::string entry = "= 1 " + type; // There cannot be more than 1 stub per layer, by definition of Iner Tracker stub.
+	// In IT, a stub is defined by (>=2 hits / layer) or (>=3 hits/layer).
+	std::string entry = (type.find("2") != std::string::npos ? ">= 2 hits" : ">= 3 hits"); 
 	centralLegend->AddEntry(&overallCoverage, entry.c_str());
 	centralLegend->Draw();
       }
@@ -2967,7 +2976,8 @@ namespace insur {
       }
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + ".");
+      const std::string title = (type.find("stub") != std::string::npos ? "stub" : type);
+      myImage->setComment("Layer coverage in eta for " + title + "s.");
       myContent->addItem(myImage);
     }
     return true;

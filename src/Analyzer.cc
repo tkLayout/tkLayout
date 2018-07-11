@@ -3629,6 +3629,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     for (const auto& layerName : layerNames.data) {
       int hasLayerAtLeastOneHit = 0;
       int hasLayerAtLeastOneStub = 0;
+      int hasLayerAtLeastOneStubWith3Hits = 0; // Inner Tracker only
       int numHitsPerLayer = 0;
       for (auto mh : hitModules) {
 	UniRef ur = mh.first->uniRef();
@@ -3642,11 +3643,14 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	  if (mh.second == HitType::STUB) hasLayerAtLeastOneStub = 1;
 	}
       }
-      // Inner Tracker stub: is defined by >= 2 hits / layer.
+      // Inner Tracker stubs
       if (isPixelTracker) {
-	const int numInnerTrackerStubsPerLayer = (numHitsPerLayer <= 1 ? 0 : 1);
-	numInnerTrackerStubs += numInnerTrackerStubsPerLayer;
+	const int numInnerTrackerStubsPerLayer = (numHitsPerLayer >= 2 ? 1 : 0); // 1 stub <-> (>= 2 hits / layer).
+	numInnerTrackerStubs += numInnerTrackerStubsPerLayer;                    // this is the definition of a stub generally used.
 	if (numInnerTrackerStubsPerLayer >= 1) hasLayerAtLeastOneStub = 1;
+
+	const int numInnerTrackerStubsWith3HitsPerLayer = (numHitsPerLayer >= 3 ? 1 : 0); // 1 stub <-> (>= 3 hits / layer).
+	if (numInnerTrackerStubsWith3HitsPerLayer >= 1) hasLayerAtLeastOneStubWith3Hits = 1;
       }
 
       // compute number of layers with at least one hit
@@ -3674,9 +3678,15 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
       // STUB COVERAGE
       // stub >= 1
-      const bool isBarrel = (layerName.find("PXB") != std::string::npos);
+      const bool isBarrel = (layerName.find("PXB") != std::string::npos || layerName.find("TB") != std::string::npos);
       const double eta = (isBarrel ? aLine.second : fabs(aLine.second));
+      // OT: hardware stub. IT: 1 stub <-> (>= 2 hits / layer).
       stubCoveragePerLayer_[layerName].Fill(eta, hasLayerAtLeastOneStub);
+
+      // IT only: 1 stub <-> (>= 3 hits / layer).
+      if (isPixelTracker) {
+	stubWith3HitsCoveragePerLayer_[layerName].Fill(eta, hasLayerAtLeastOneStubWith3Hits);
+      }
     } // loop on all layers
 
     return std::make_pair(numLayersWithAtLeastOneHit, numInnerTrackerStubs);
@@ -3695,6 +3705,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     hitCoveragePerLayer_.clear();
     hitCoveragePerLayerDetails_.clear();
     stubCoveragePerLayer_.clear();
+    stubWith3HitsCoveragePerLayer_.clear();
 
     const int plotMaxNumberOfHitsPerLayer = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
 
@@ -3718,14 +3729,25 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       }
 
       // STUBS PER LAYER
-      const bool isBarrel = (layerName.find("PXB") != std::string::npos);
+      const bool isBarrel = (layerName.find("PXB") != std::string::npos || layerName.find("TB") != std::string::npos);
       const double stubsPerLayerMinX = (isBarrel ? -maxEta : 0.);
+      // OT: hardware stub. IT: 1 stub <-> (>= 2 hits / layer).
       TProfile stubsPerLayer = TProfile(Form("stubCoveragePerLayer%s", layerName.c_str()),
 					layerName.c_str(),
 					400, stubsPerLayerMinX, maxEta);  //  HEREEEEEEEEEEEEEEEEEEE
       stubsPerLayer.GetXaxis()->SetTitle("#eta");
       stubsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
       stubCoveragePerLayer_[layerName] = stubsPerLayer;
+
+      // IT only: 1 stub <-> (>= 3 hits / layer).
+      if (isPixelTracker) {
+	TProfile stubsWith3HitsPerLayer = TProfile(Form("stubWith3HitsCoveragePerLayer%s", layerName.c_str()),
+					  layerName.c_str(),
+					  600, stubsPerLayerMinX, maxEta);  //  HEREEEEEEEEEEEEEEEEEEE
+	stubsWith3HitsPerLayer.GetXaxis()->SetTitle("#eta");
+	stubsWith3HitsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
+	stubWith3HitsCoveragePerLayer_[layerName] = stubsWith3HitsPerLayer;
+      }
     }
   }
 
