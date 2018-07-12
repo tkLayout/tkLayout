@@ -3,8 +3,8 @@ SimParms {
     bunchSpacingNs 25
     
     // Luminous region used in analysis (IP always on (Z) axis, with Z centered around 0)
-    lumiRegZError                   0      // mm
-    lumiRegShape                    spot   // Choose among { spot, flat, gaussian }
+    lumiRegZError                   70     // mm
+    lumiRegShape                    flat   // Choose among { spot, flat, gaussian }
     lumiRegShapeInMatBudgetAnalysis spot
 
     // Adds IP to the track with corresponding resolution
