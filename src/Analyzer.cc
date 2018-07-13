@@ -3427,6 +3427,21 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
                           typeToSurface[aSensorType],
                           typeToPower[aSensorType] / typeToSurface[aSensorType] );
   }
+
+  std::cout << pow(nTracksPerSide, 2.) << std::endl;
+  std::cout << nTracks << std::endl;
+  for (auto& diskIt : stubWith3HitsCountPerDiskAndRing_) {
+    //const std::string diskName = diskIt.first;
+    std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
+    for (auto& ringTransitionIt : stubWith3HitsCountPerRing) {
+      //const int ringTransition = ringTransitionIt.first;
+      double& stubWith3HitsCount = ringTransitionIt.second;
+      //stubWith3HitsCountPerDiskAndRing_[diskName][ringTransition] /= (nTracksPerSide^2);
+      stubWith3HitsCount /= nTracks;
+    }
+  }
+  
+
   return;
 }
 
@@ -3629,8 +3644,17 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     for (const auto& layerName : layerNames.data) {
       int hasLayerAtLeastOneHit = 0;
       int hasLayerAtLeastOneStub = 0;
-      int hasLayerAtLeastOneStubWith3Hits = 0; // Inner Tracker only
+      int hasLayerOneStubWith3Hits = 0; // Inner Tracker only
       int numHitsPerLayer = 0;
+
+      // TEPX only
+      const bool isTEPX = (layerName.find("FPIX_2") != std::string::npos);
+      std::set<int> hitRingsIndexes;    
+      std::map<int, int> hasRingTransitionOneStubWith3Hits;
+      for (int ringTransition = 1; ringTransition < 5; ringTransition++) {
+	hasRingTransitionOneStubWith3Hits[ringTransition] = 0;
+      }
+
       for (auto mh : hitModules) {
 	UniRef ur = mh.first->uniRef();
 	if (layerName == (ur.subdetectorName + " " + any2str(ur.layer))) {
@@ -3641,6 +3665,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	  else if (mh.second == HitType::BOTH || mh.second == HitType::STUB) numHitsPerLayer += 2;
 
 	  if (mh.second == HitType::STUB) hasLayerAtLeastOneStub = 1;
+
+	  if (isTEPX) { hitRingsIndexes.insert(ur.ring); }
 	}
       }
       // Inner Tracker stubs
@@ -3650,7 +3676,18 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	if (numInnerTrackerStubsPerLayer >= 1) hasLayerAtLeastOneStub = 1;
 
 	const int numInnerTrackerStubsWith3HitsPerLayer = (numHitsPerLayer >= 3 ? 1 : 0); // 1 stub <-> (>= 3 hits / layer).
-	if (numInnerTrackerStubsWith3HitsPerLayer >= 1) hasLayerAtLeastOneStubWith3Hits = 1;
+	if (numInnerTrackerStubsWith3HitsPerLayer >= 1) {
+	  hasLayerOneStubWith3Hits = 1;
+	  if (isTEPX) {
+	    const int ringTransitionIndex = *std::min_element(std::begin(hitRingsIndexes), std::end(hitRingsIndexes));
+	    const int maxRingIndex = *std::max_element(std::begin(hitRingsIndexes), std::end(hitRingsIndexes));
+	    if (maxRingIndex != (ringTransitionIndex + 1)) { 
+	      std::cout << "Found a stub with 3 hits. But MIN(hitRingsIndexes) = " << ringTransitionIndex << " and MAX(hitRingsIndexes) = " << maxRingIndex << std::endl;
+	    }
+	    //const auto& found = hasRingTransitionOneStubWith3Hits.find(ringTransitionIndex);
+	    hasRingTransitionOneStubWith3Hits[ringTransitionIndex] = 1;
+	  }
+	}
       }
 
       // compute number of layers with at least one hit
@@ -3670,7 +3707,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	// Select the TProfile with the matching number of hits
 	if ( numHitsIndex == numHitsPerLayer
 	     || (numHitsIndex == plotMaxNumberOfHitsPerLayer && numHitsPerLayer >= plotMaxNumberOfHitsPerLayer)
-	     ) { 
+	     ) {
 	  result = 1;
 	}
 	hitCoveragePerLayerDetails_[layerName][numHitsIndex].Fill(aLine.second, result);
@@ -3685,7 +3722,13 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
       // IT only: 1 stub <-> (>= 3 hits / layer).
       if (isPixelTracker) {
-	stubWith3HitsCoveragePerLayer_[layerName].Fill(eta, hasLayerAtLeastOneStubWith3Hits);
+	stubWith3HitsCoveragePerLayer_[layerName].Fill(eta, hasLayerOneStubWith3Hits);
+
+	if (isTEPX) {
+	  for (int ringTransition = 1; ringTransition < 5; ringTransition++) {
+	    stubWith3HitsCountPerDiskAndRing_[layerName][ringTransition] += hasRingTransitionOneStubWith3Hits.at(ringTransition);
+	  }
+	}
       }
     } // loop on all layers
 
@@ -3706,6 +3749,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     hitCoveragePerLayerDetails_.clear();
     stubCoveragePerLayer_.clear();
     stubWith3HitsCoveragePerLayer_.clear();
+    stubWith3HitsCountPerDiskAndRing_.clear();
 
     const int plotMaxNumberOfHitsPerLayer = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
 

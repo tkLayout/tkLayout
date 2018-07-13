@@ -2869,30 +2869,37 @@ namespace insur {
   }
 
   bool Vizard::drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    return drawCoveragePerlayer(myPage, isPixelTracker, "hit", analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails());
+    std::map<std::string, std::map<int, double> > emptyStubWith3HitsCountCount;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "hit", analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails(), emptyStubWith3HitsCountCount);
   }
 
-  bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
-    std::map<std::string, CoveragePerNumberOfHits> detailedPlots;
+  bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {   
     const std::string type = (!isPixelTracker ? "stub" : "1 stub <-> (>= 2 hits)");
-    return drawCoveragePerlayer(myPage, isPixelTracker, type, analyzer.getStubCoveragePerLayer(), detailedPlots);
+    std::map<std::string, CoveragePerNumberOfHits> emptyDetailedPlots;
+    std::map<std::string, std::map<int, double> > emptyStubWith3HitsCountCount;
+    return drawCoveragePerlayer(myPage, isPixelTracker, type, analyzer.getStubCoveragePerLayer(), emptyDetailedPlots, emptyStubWith3HitsCountCount);
   }
 
   bool Vizard::drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer) {
     const bool isPixelTracker = true;
-    std::map<std::string, CoveragePerNumberOfHits> detailedPlots;
-    return drawCoveragePerlayer(myPage, isPixelTracker, "1 stub <-> (>= 3 hits)", analyzer.getStubWith3HitsCoveragePerLayer(), detailedPlots);
+    std::map<std::string, CoveragePerNumberOfHits> emptyDetailedPlots;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "1 stub <-> (>= 3 hits)", analyzer.getStubWith3HitsCoveragePerLayer(), emptyDetailedPlots, analyzer.getStubWith3HitsCountPerDiskAndRing());
   }
 
   /*
    * For each layer, draw dedicated hits or stubs coverage plots.
    */
-  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails) {
+  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, 
+				    std::map<std::string, TProfile>& coveragePerLayer, 
+				    std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails, 
+				    std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing) {
 
     if (coveragePerLayer.size() == 0) return false;
 
     RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
+
+    const bool is3HitsStubStudy = (isPixelTracker && type.find("stub") != std::string::npos && type.find("3") != std::string::npos);
 
     // Loop on all layer(s) / disk(s)
     for (auto& layerIt : coveragePerLayer) {
@@ -2915,7 +2922,7 @@ namespace insur {
 	overallCoverage.Draw();
 	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
 	// In IT, a stub is defined by (>=2 hits / layer) or (>=3 hits/layer).
-	std::string entry = (type.find("2") != std::string::npos ? ">= 2 hits" : ">= 3 hits"); 
+	std::string entry = (is3HitsStubStudy ? ">= 3 hits" : ">= 2 hits"); 
 	centralLegend->AddEntry(&overallCoverage, entry.c_str());
 	centralLegend->Draw();
       }
@@ -2980,6 +2987,27 @@ namespace insur {
       myImage->setComment("Layer coverage in eta for " + title + "s.");
       myContent->addItem(myImage);
     }
+
+    if (is3HitsStubStudy && !stubWith3HitsCountPerDiskAndRing.empty()) {
+      for (const auto& diskIt : stubWith3HitsCountPerDiskAndRing) {
+	RootWTable* stubWith3HitsCountTable = new RootWTable();
+	const std::string diskName = diskIt.first;
+	const std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
+	stubWith3HitsCountTable->setContent(0, 0, diskName);
+	stubWith3HitsCountTable->setContent(1, 0, "Ring transition (Ring i & i+1):");
+	stubWith3HitsCountTable->setContent(2, 0, "Fraction of tracks (‰)");
+	//stubWith3HitsCountTable->setContent(2, 0, "Number of tracks ");
+
+	for (const auto& ringTransitionIt : stubWith3HitsCountPerRing) {
+	  const int ringTransition = ringTransitionIt.first;
+	  const double stubWith3HitsCount = ringTransitionIt.second;
+	  stubWith3HitsCountTable->setContent(1, ringTransition, ringTransition);
+	  stubWith3HitsCountTable->setContent(2, ringTransition, stubWith3HitsCount * 1000., 1);
+	}
+	myContent->addItem(stubWith3HitsCountTable);
+      }
+    }
+
     return true;
   }
 

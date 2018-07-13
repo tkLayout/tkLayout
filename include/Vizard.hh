@@ -204,7 +204,10 @@ namespace insur {
     bool drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
     bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
     bool drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer);
-    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, std::map<std::string, TProfile>& coveragePerLayer, std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails);
+    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, 
+			      std::map<std::string, TProfile>& coveragePerLayer,			      
+			      std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails,
+			      std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing);
     bool drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
 
     int momentumColor(int iMomentum);
