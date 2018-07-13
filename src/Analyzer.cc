@@ -3428,15 +3428,13 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
                           typeToPower[aSensorType] / typeToSurface[aSensorType] );
   }
 
-  std::cout << pow(nTracksPerSide, 2.) << std::endl;
-  std::cout << nTracks << std::endl;
   for (auto& diskIt : stubWith3HitsCountPerDiskAndRing_) {
     //const std::string diskName = diskIt.first;
     std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
     for (auto& ringTransitionIt : stubWith3HitsCountPerRing) {
       //const int ringTransition = ringTransitionIt.first;
       double& stubWith3HitsCount = ringTransitionIt.second;
-      //stubWith3HitsCountPerDiskAndRing_[diskName][ringTransition] /= (nTracksPerSide^2);
+      //stubWith3HitsCountPerDiskAndRing_[diskName][ringTransition] /= nTracks;
       stubWith3HitsCount /= nTracks;
     }
   }
