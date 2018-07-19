@@ -2800,7 +2800,7 @@ namespace insur {
       detailProfile.SetLineColor(Palette::color(colorIndex));
       detailProfile.SetFillColor(Palette::color(colorIndex));
       detailProfile.SetMarkerStyle(8);
-      detailProfile.SetMarkerSize(1.);
+      detailProfile.SetMarkerSize(1.5);
       detailProfile.GetYaxis()->SetTitleOffset(1.3);
       detailProfile.SetStats(0);
       detailProfile.Draw("same");
@@ -2988,6 +2988,7 @@ namespace insur {
       myContent->addItem(myImage);
     }
 
+    // IT only: add tables with detailed 3-hit stubs counts, per ring transition.
     if (is3HitsStubStudy && !stubWith3HitsCountPerDiskAndRing.empty()) {
       for (const auto& diskIt : stubWith3HitsCountPerDiskAndRing) {
 	RootWTable* stubWith3HitsCountTable = new RootWTable();
@@ -2996,7 +2997,6 @@ namespace insur {
 	stubWith3HitsCountTable->setContent(0, 0, diskName);
 	stubWith3HitsCountTable->setContent(1, 0, "Ring transition (Ring i & i+1):");
 	stubWith3HitsCountTable->setContent(2, 0, "Fraction of tracks (‰)");
-	//stubWith3HitsCountTable->setContent(2, 0, "Number of tracks ");
 
 	for (const auto& ringTransitionIt : stubWith3HitsCountPerRing) {
 	  const int ringTransition = ringTransitionIt.first;

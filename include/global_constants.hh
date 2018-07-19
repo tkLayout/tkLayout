@@ -128,6 +128,11 @@ namespace insur {
 
 
   /**
+   * Internal string constants for luminosity measurements
+   */
+  static const std::string lumi_subdetector = "FPIX_2";
+
+  /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types
    */
   static const std::string type_rphi   = "rphi";

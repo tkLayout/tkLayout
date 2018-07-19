@@ -524,6 +524,13 @@ namespace insur {
 						      const LayerNameVisitor& layerNames, 
 						      const bool isPixelTracker, 
 						      const double maxEta);
+    void computeInnerTrackerStubsInfoPerLayer(const int numHitsPerLayer,
+					      const bool isTEPX,
+					      const std::vector<int>& hitTEPXRingsIndexes,
+					      const std::string layerName,
+					      int& numInnerTrackerStubs, 
+					      int& hasLayerAtLeastOneStub, 
+					      int& hasLayerOneStubWith3Hits);
     void createCoveragePerLayerPlots(const LayerNameVisitor& layerNames, 
 				     const bool isPixelTracker, 
 				     const double maxEta);
