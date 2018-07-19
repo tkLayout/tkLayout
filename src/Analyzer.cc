@@ -3138,7 +3138,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
        it!=moduleTypeCount.end(); it++) {
     TProfile& aProfile = etaProfileByType[(*it).first];
-    aProfile.SetBins(100, 0, maxEta);
+    aProfile.SetBins(100, 0, maxEta);  
     aProfile.SetName((*it).first.c_str());
     aProfile.SetTitle((*it).first.c_str());
   }
@@ -3150,11 +3150,15 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     aProfileStubs.SetTitle(mel.first.c_str());
   }
 
-  for (auto mel : moduleTypeCountStubs) {
-    TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
-    aProfileStubs.SetBins(100, 0, maxEta);
-    aProfileStubs.SetName(mel.first.c_str());
-    aProfileStubs.SetTitle(mel.first.c_str());
+  if (!tracker.isPixelTracker()) {
+    // Does not make sense to sort IT stubs per module type.
+    // Indeed, 1 IT 'offline' stub can be on different modules types!
+    for (auto mel : moduleTypeCountStubs) {
+      TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
+      aProfileStubs.SetBins(100, 0, maxEta);
+      aProfileStubs.SetName(mel.first.c_str());
+      aProfileStubs.SetTitle(mel.first.c_str());
+    }
   }
  
   // The real simulation
@@ -3171,6 +3175,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetName("totalEtaProfile");
   totalEtaProfile.SetMarkerStyle(8);
   totalEtaProfile.SetMarkerColor(1);
+  totalEtaProfile.SetLineColor(1);
   totalEtaProfile.SetMarkerSize(1.5);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
   totalEtaProfile.SetBins(100, 0, maxEta);
@@ -3180,6 +3185,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileSensors.SetName("totalEtaProfileSensors");
   totalEtaProfileSensors.SetMarkerStyle(8);
   totalEtaProfileSensors.SetMarkerColor(1);
+  totalEtaProfileSensors.SetLineColor(1);
   totalEtaProfileSensors.SetMarkerSize(1.5);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
   totalEtaProfileSensors.SetBins(100, 0, maxEta);
@@ -3189,6 +3195,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
   totalEtaProfileStubs.SetMarkerStyle(8);
   totalEtaProfileStubs.SetMarkerColor(1);
+  totalEtaProfileStubs.SetLineColor(1);
   totalEtaProfileStubs.SetMarkerSize(1.5);
   if (!tracker.isPixelTracker()) { totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs"); }
   else { totalEtaProfileStubs.SetTitle("Number of stubs;#eta;Number of stubs"); }
@@ -3200,7 +3207,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
-				     100, 0, maxEta);
+				     30, 0, maxEta); 
     tracksDistributionPerNumberOfStubs_[numberOfStubs] = stubProfile;
   }
 
@@ -3208,6 +3215,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileLayers.SetName("totalEtaProfileLayers");
   totalEtaProfileLayers.SetMarkerStyle(8);
   totalEtaProfileLayers.SetMarkerColor(1);
+  totalEtaProfileLayers.SetLineColor(1);
   totalEtaProfileLayers.SetMarkerSize(1.5);
   totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
   totalEtaProfileLayers.SetBins(100, 0, maxEta);
@@ -3266,8 +3274,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         etaProfileByTypeSensors[mel.first].Fill(fabs(aLine.second), mel.second);
       }
 
-      for (auto& mel : moduleTypeCountStubs) {
-        etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
+      if (!tracker.isPixelTracker()) {
+	// Does not make sense to sort IT stubs per module type.
+	// Indeed, 1 IT 'offline' stub can be on different modules types!
+	for (auto& mel : moduleTypeCountStubs) {
+	  etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
+	}
       }
       // Fill other plots
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
@@ -3343,6 +3355,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
     myProfile->SetMarkerStyle(8);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+    myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfile"+(*it).first;
     myProfile->SetName(profileName.c_str());
@@ -3358,6 +3371,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     TProfile* myProfile=(TProfile*)it->second.Clone();
     myProfile->SetMarkerStyle(8);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+    myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfileSensors"+(*it).first;
     myProfile->SetName(profileName.c_str());
@@ -3368,19 +3382,22 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     typeEtaProfileSensors.push_back(*myProfile);
   }
 
-  for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
-       it!=etaProfileByTypeStubs.end(); it++) {
-    TProfile* myProfile=(TProfile*)it->second.Clone();
-    myProfile->SetMarkerStyle(8);
-    myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
-    myProfile->SetMarkerSize(1);
-    std::string profileName = "etaProfileStubs"+(*it).first;
-    myProfile->SetName(profileName.c_str());
-    myProfile->SetTitle((*it).first.c_str());
-    myProfile->GetXaxis()->SetTitle("eta");
-    myProfile->GetYaxis()->SetTitle("Number of stubs");
-    myProfile->Draw("same");
-    typeEtaProfileStubs.push_back(*myProfile);
+  if (!tracker.isPixelTracker()) {
+    for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
+	 it!=etaProfileByTypeStubs.end(); it++) {
+      TProfile* myProfile=(TProfile*)it->second.Clone();
+      myProfile->SetMarkerStyle(8);
+      myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+      myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
+      myProfile->SetMarkerSize(1);
+      std::string profileName = "etaProfileStubs"+(*it).first;
+      myProfile->SetName(profileName.c_str());
+      myProfile->SetTitle((*it).first.c_str());
+      myProfile->GetXaxis()->SetTitle("eta");
+      myProfile->GetYaxis()->SetTitle("Number of stubs");
+      myProfile->Draw("same");
+      typeEtaProfileStubs.push_back(*myProfile);
+    }
   }
 
 
@@ -3411,6 +3428,18 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
                           typeToSurface[aSensorType],
                           typeToPower[aSensorType] / typeToSurface[aSensorType] );
   }
+
+  // Normalize the counts of IT stubs with 3 hits in ring transitions with the number of tracks.
+  for (auto& diskIt : stubWith3HitsCountPerDiskAndRing_) {
+    const std::string diskName = diskIt.first;
+    std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
+    // Normalize by the number of tracks.
+    for (auto& ringTransitionIndexIt : stubWith3HitsCountPerRing) {
+      const int ringTransitionIndex = ringTransitionIndexIt.first;
+      stubWith3HitsCountPerDiskAndRing_[diskName][ringTransitionIndex] /= nTracks;
+    }
+  }
+
   return;
 }
 
@@ -3600,6 +3629,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * Also returns valuable 'layer-related' coverage information:
    * - number of layers with at least one hit (on a given subdetector).
    * - number of Inner Tracker 'stubs' (in the Inner Tracker, a 'stub' on a layer is defined by at least 2 hits on that layer).
+   * NB: This method is called for each track!!
    */
   const std::pair<int, int> Analyzer::computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
 							      const std::vector<std::pair<Module*, HitType>>& hitModules, 
@@ -3610,10 +3640,18 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     int numLayersWithAtLeastOneHit = 0;
     int numInnerTrackerStubs = 0;
     
+    // LOOP ON ALL LAYERS
     for (const auto& layerName : layerNames.data) {
       int hasLayerAtLeastOneHit = 0;
       int hasLayerAtLeastOneStub = 0;
+      int hasLayerOneStubWith3Hits = 0; // Inner Tracker only
       int numHitsPerLayer = 0;
+
+      // TEPX only: luminosity measurements. This is used to count IT stubs with 3 hits.
+      const bool isTEPX = (layerName.find(insur::lumi_subdetector) != std::string::npos);
+      std::vector<int> hitTEPXRingsIndexes;
+
+      // LOOP ON ALL HIT MODULES
       for (auto mh : hitModules) {
 	UniRef ur = mh.first->uniRef();
 	if (layerName == (ur.subdetectorName + " " + any2str(ur.layer))) {
@@ -3623,17 +3661,21 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	  if (mh.second == HitType::INNER || mh.second == HitType::OUTER) numHitsPerLayer += 1;
 	  else if (mh.second == HitType::BOTH || mh.second == HitType::STUB) numHitsPerLayer += 2;
 
+	  // OT stubs
 	  if (mh.second == HitType::STUB) hasLayerAtLeastOneStub = 1;
+
+	  // Luminosity measurements
+	  if (isTEPX) { hitTEPXRingsIndexes.push_back(ur.ring); } // add hit rings indexes
 	}
-      }
-      // Inner Tracker stub: is defined by >= 2 hits / layer.
+      } // end of loop on hit modules
+
+      // Compute Inner Tracker stubs info
       if (isPixelTracker) {
-	const int numInnerTrackerStubsPerLayer = (numHitsPerLayer <= 1 ? 0 : 1);
-	numInnerTrackerStubs += numInnerTrackerStubsPerLayer;
-	if (numInnerTrackerStubsPerLayer >= 1) hasLayerAtLeastOneStub = 1;
+	computeInnerTrackerStubsInfoPerLayer(numHitsPerLayer, isTEPX, hitTEPXRingsIndexes, layerName,
+					     numInnerTrackerStubs, hasLayerAtLeastOneStub, hasLayerOneStubWith3Hits);
       }
 
-      // compute number of layers with at least one hit
+      // Compute number of layers with at least one hit
       if (hasLayerAtLeastOneHit) numLayersWithAtLeastOneHit++;
 
 
@@ -3650,7 +3692,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	// Select the TProfile with the matching number of hits
 	if ( numHitsIndex == numHitsPerLayer
 	     || (numHitsIndex == plotMaxNumberOfHitsPerLayer && numHitsPerLayer >= plotMaxNumberOfHitsPerLayer)
-	     ) { 
+	     ) {
 	  result = 1;
 	}
 	hitCoveragePerLayerDetails_[layerName][numHitsIndex].Fill(aLine.second, result);
@@ -3658,10 +3700,61 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
       // STUB COVERAGE
       // stub >= 1
-      stubCoveragePerLayer_[layerName].Fill(aLine.second, hasLayerAtLeastOneStub);
+      const double eta = (!isPixelTracker ? aLine.second : fabs(aLine.second));
+      // OT: hardware stub. 
+      // IT: 1 stub <-> (>= 2 hits / layer).
+      stubCoveragePerLayer_[layerName].Fill(eta, hasLayerAtLeastOneStub);
+
+      // IT only: 1 stub <-> (>= 3 hits / layer).
+      if (isPixelTracker) {
+	stubWith3HitsCoveragePerLayer_[layerName].Fill(eta, hasLayerOneStubWith3Hits); // fill plots
+      }
     } // loop on all layers
 
     return std::make_pair(numLayersWithAtLeastOneHit, numInnerTrackerStubs);
+  }
+
+
+  /*
+   * Helper method to compute info related to Inner Tracker stubs.
+   * This is called by Analyzer::computeCoveragePerLayer.
+   * NB: This method is called for each track!!
+   */
+  void Analyzer::computeInnerTrackerStubsInfoPerLayer(const int numHitsPerLayer,
+						      const bool isTEPX,
+						      const std::vector<int>& hitTEPXRingsIndexes,
+						      const std::string layerName,
+						      int& numInnerTrackerStubs, 
+						      int& hasLayerAtLeastOneStub, 
+						      int& hasLayerOneStubWith3Hits) {
+
+    // IT STUBS WITH >= 2 HITS / LAYER
+    const int numInnerTrackerStubsPerLayer = (numHitsPerLayer >= 2 ? 1 : 0); // 1 stub <-> (>= 2 hits / layer).
+    numInnerTrackerStubs += numInnerTrackerStubsPerLayer;                    // this is the definition of a IT stub generally used.
+    if (numInnerTrackerStubsPerLayer >= 1) hasLayerAtLeastOneStub = 1;
+
+    // IT STUBS WITH >= 3 HITS / LAYER
+    // TEPX only: luminosity measurements.
+    const int numInnerTrackerStubsWith3HitsPerLayer = (numHitsPerLayer >= 3 ? 1 : 0); // 1 stub <-> (>= 3 hits / layer).
+    if (numInnerTrackerStubsWith3HitsPerLayer >= 1) {
+      hasLayerOneStubWith3Hits = 1;
+      if (isTEPX) {
+	const auto& hitTEPXRingsIndexesMinMax = std::minmax_element(hitTEPXRingsIndexes.begin(), hitTEPXRingsIndexes.end());
+	if (hitTEPXRingsIndexesMinMax.first != hitTEPXRingsIndexes.end() 
+	    && hitTEPXRingsIndexesMinMax.second != hitTEPXRingsIndexes.end()) {
+	  const int minRingIndex = *hitTEPXRingsIndexesMinMax.first;        // MIN hit ring index
+	  const int maxRingIndex = *hitTEPXRingsIndexesMinMax.second;       // MAX hit ring index
+	  // Hit rings by a given track should be adjacent.
+	  if (maxRingIndex != (minRingIndex + 1)) { 
+	    logERROR("Found a stub with 3 hits. But MIN(hitTEPXRingsIndexes) = " + any2str(minRingIndex)
+		     + " and MAX(hitTEPXRingsIndexes) = " + any2str(maxRingIndex));
+	  }
+	  stubWith3HitsCountPerDiskAndRing_[layerName][minRingIndex] += 1.; // KEY POINT: If there is a stub with 3 hits, 
+	                                                                    // fills the corresponding ring transition. 
+	}
+      }
+    }
+
   }
 
 
@@ -3677,6 +3770,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     hitCoveragePerLayer_.clear();
     hitCoveragePerLayerDetails_.clear();
     stubCoveragePerLayer_.clear();
+    stubWith3HitsCoveragePerLayer_.clear();
+    stubWith3HitsCountPerDiskAndRing_.clear();
 
     const int plotMaxNumberOfHitsPerLayer = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
 
@@ -3700,12 +3795,30 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       }
 
       // STUBS PER LAYER
+      // OT: hardware stub. 
+      // IT: 1 stub <-> (>= 2 hits / layer).
+      const double stubsPerLayerMinX = (!isPixelTracker ? -maxEta : 0.);
+      const std::string stubsPerLayerXAxisTitle = (!isPixelTracker ? "#eta" : "|#eta|");
+      // For Inner Tracker stubs per layer, all results gathered on (+Z) side.
+      // Indeed, the worry is not about hermetic coverage as for OT, but to have very good resolution picks to distinguish rings.
       TProfile stubsPerLayer = TProfile(Form("stubCoveragePerLayer%s", layerName.c_str()),
 					layerName.c_str(),
-					200, maxEta, maxEta);
-      stubsPerLayer.GetXaxis()->SetTitle("#eta");
+					400, stubsPerLayerMinX, maxEta);
+      stubsPerLayer.GetXaxis()->SetTitle(stubsPerLayerXAxisTitle.c_str());
       stubsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
       stubCoveragePerLayer_[layerName] = stubsPerLayer;
+
+      // IT only: 1 stub <-> (>= 3 hits / layer).
+      if (isPixelTracker) {
+	TProfile stubsWith3HitsPerLayer = TProfile(Form("stubWith3HitsCoveragePerLayer%s", layerName.c_str()),
+					  layerName.c_str(),
+					  600, stubsPerLayerMinX, maxEta);
+	// For Inner Tracker stubs per layer, all results gathered on (+Z) side.
+	// Indeed, the worry is not about hermetic coverage as for OT, but to have very good resolution picks to distinguish rings.
+	stubsWith3HitsPerLayer.GetXaxis()->SetTitle("|#eta|");
+	stubsWith3HitsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");   
+	stubWith3HitsCoveragePerLayer_[layerName] = stubsWith3HitsPerLayer;
+      }
     }
   }
 
@@ -3714,6 +3827,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * Compute the coverage plots for all layers. These are more specifically the plots which need the 'per layer' information:
    * 'Number of layers with at least one hit' plot.
    * 'Stub coverage' plot (because of the Inner Tracker stubs, which are defined 'per layer').
+   * NB: This method is called for each track!!
    */
   void Analyzer::computeCoveragePlotsAllLayers(const std::pair<XYZVector, double>& aLine, 
 					       const int numLayersWithAtLeastOneHit, 

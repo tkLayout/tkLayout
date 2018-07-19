@@ -283,7 +283,7 @@ OT614_200_IT440.cfg                  OT Version 6.1.4
                                      Based from Inner Tracker version 4.0.4.
                                      TEPX: 
                                      - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 36.
-                                     - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 52.
+                                     - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 28.
                                      - Ring 3: Rhigh: 188.5 mm -> 171 mm.
                                      - Ring 4: Rhigh: 232 mm -> 215 mm.
                                      
@@ -295,7 +295,7 @@ OT614_200_IT441.cfg                  OT Version 6.1.4
                                      - Ring 1: Rhigh: 73.2 mm -> 51 mm.
                                      TEPX: 
                                      - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 32.
-                                     - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 48.
+                                     - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 28.
                                      - Ring 3: Rhigh: 188.5 mm -> 169 mm.
                                      - Ring 4: Rhigh: 232 mm -> 213 mm.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
@@ -314,6 +314,32 @@ OT614_200_IT450.cfg                  OT Version 6.1.4
                                      - i=2: 7.2 mm
                                      - i=3: 7.2 mm
                                      - i=4: 9.2 mm
+                                     
+OT614_200_IT451.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.1: Tune radii and numModules in TEPX to try to equilibrate luminosity measurements.
+                                     Based from Inner Tracker version 4.5.0.
+                                     TEPX:
+                                     - Ring 2: Rhigh: 145 mm -> 146 mm.
+                                     - Ring 3: Rhigh: 182 mm -> 183 mm.
+                                     - Ring 4: Rhigh: 219 mm -> 220 mm, numModules: 40 -> 44.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     - i=1: 6.2 mm
+                                     - i=2: 7.2 mm
+                                     - i=3: 7.2 mm
+                                     - i=4: 10.2 mm
+                                     
+OT614_200_IT452.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.2: Tune radii in TEPX, perfectly equilibrated among rings thanks to the precise counts of fraction of tracks with at least 3 hits.
+                                     Based from Inner Tracker version 4.5.0.
+                                     TEPX:                                     
+                                     * Ring 2: Rhigh: 145 mm -> 149 mm.
+                                     * Ring 3: Rhigh: 182 mm -> 186 mm.
+                                     * Ring 4: Rhigh: 219 mm -> 223 mm, numModules: 40 -> 44.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     * i=1: 3.2 mm
+                                     * i=2: 7.2 mm
+                                     * i=3: 7.2 mm
+                                     * i=4: 13.2 mm
                                      
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
                                                                                              

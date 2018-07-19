@@ -234,6 +234,8 @@ namespace insur {
     std::map<std::string, TProfile>& getHitCoveragePerLayer() { return hitCoveragePerLayer_; } // Layer coverage: hits
     std::map<std::string, CoveragePerNumberOfHits>& getHitCoveragePerLayerDetails() { return hitCoveragePerLayerDetails_; } // Layer coverage: hits details
     std::map<std::string, TProfile>& getStubCoveragePerLayer() { return stubCoveragePerLayer_; } // Layer coverage: stubs
+    std::map<std::string, TProfile>& getStubWith3HitsCoveragePerLayer() { return stubWith3HitsCoveragePerLayer_; } // IT Layer coverage: stubs with 3 hits
+    std::map<std::string, std::map<int, double> >& getStubWith3HitsCountPerDiskAndRing() { return stubWith3HitsCountPerDiskAndRing_; } // TEPX only
     std::map<std::string, std::map<std::string, TH1I*>>& getStubEfficiencyCoverageProfiles() { return stubEfficiencyCoverageProfiles_; } // map of maps: inner map has momenta as keys
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
@@ -438,6 +440,8 @@ namespace insur {
     std::map<std::string, TProfile> hitCoveragePerLayer_;
     std::map<std::string, CoveragePerNumberOfHits> hitCoveragePerLayerDetails_;
     std::map<std::string, TProfile> stubCoveragePerLayer_;
+    std::map<std::string, TProfile> stubWith3HitsCoveragePerLayer_;
+    std::map<std::string, std::map<int, double> > stubWith3HitsCountPerDiskAndRing_;
 
     std::map<std::string, std::map<std::string, TH1I*>> stubEfficiencyCoverageProfiles_;
 
@@ -520,6 +524,13 @@ namespace insur {
 						      const LayerNameVisitor& layerNames, 
 						      const bool isPixelTracker, 
 						      const double maxEta);
+    void computeInnerTrackerStubsInfoPerLayer(const int numHitsPerLayer,
+					      const bool isTEPX,
+					      const std::vector<int>& hitTEPXRingsIndexes,
+					      const std::string layerName,
+					      int& numInnerTrackerStubs, 
+					      int& hasLayerAtLeastOneStub, 
+					      int& hasLayerOneStubWith3Hits);
     void createCoveragePerLayerPlots(const LayerNameVisitor& layerNames, 
 				     const bool isPixelTracker, 
 				     const double maxEta);
