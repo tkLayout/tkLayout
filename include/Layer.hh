@@ -205,7 +205,16 @@ private:
   void buildStraight();
   void buildTilted();
 
-  StraightRodPair* buildPhiRotatedByPiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
+  const double computeRodCenterPhiShift() const;
+  void assignRodCommonProperties(StraightRodPair* rod) const;
+  void placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi);
+  void buildClonedRodsNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, 
+				    const double firstRodCenterPhi, const double secondRodCenterPhi,
+				    const double rodCenterPhiShift);
+  void buildClonedRodsSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
+				 const double firstRodPhi, const double secondRodPhi,
+				 const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift);
+  StraightRodPair* buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
 
   RodTemplate makeRodTemplate(const double skewAngle = 0.);
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);

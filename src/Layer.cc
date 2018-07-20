@@ -286,168 +286,209 @@ void Layer::buildStraight() {
     maxBuildRadius(placeRadius_);
   }
 
-  // SKEWED LAYER: compute parameters of interest
+  // NON-SKEWED LAYER: compute shift in Phi between consecutive rods centers.
+  const double rodCenterPhiShift = computeRodCenterPhiShift();
+
+  // SKEWED LAYER: compute parameters of interest.
   const SkewedLayerPhiShifts& phiShifts = (isSkewedForInstallation() ? buildSkewed() : SkewedLayerPhiShifts());
   const double installationMinusBigDeltaRodCenterPhiShift = phiShifts.installationMinusBigDeltaRodCenterPhiShift;
   const double commonRodCenterPhiShift = phiShifts.commonRodCenterPhiShift;
   const double skewedRodCenterPhiShift = phiShifts.skewedRodCenterPhiShift;
 
-  // PHI FORBIDDEN RANGE: forbid rod placement in phi, in a given phi range.
-  double rodPhiWidth = 0;
-  double forbiddenPhiLowerA, forbiddenPhiUpperA, forbiddenPhiLowerB, forbiddenPhiUpperB;
-  if (!phiForbiddenRanges.state()) rodPhiWidth = 2. * M_PI / numRods();
-  else {
-    forbiddenPhiLowerA = phiForbiddenRanges.at(0) * M_PI / 180.;
-    forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
-    forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
-    forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
-    double forbiddenPhiCircumference = forbiddenPhiUpperA - forbiddenPhiLowerA + forbiddenPhiUpperB - forbiddenPhiLowerB;
-    rodPhiWidth = (2*M_PI - forbiddenPhiCircumference) / numRods();
-  }
 
   // FIRST ROD : assign common properties
-  StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
-  first->myid(1);
-  first->minBuildRadius(minBuildRadius()-bigDelta());
-  first->maxBuildRadius(maxBuildRadius()+bigDelta());
-  if (buildNumModules() > 0) first->buildNumModules(buildNumModules());
-  else if (maxZ.state()) first->maxZ(maxZ());
-  first->smallDelta(smallDelta());
-  //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
-  if (isFlatPart) { first->isFlatPart(true); first->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
-  first->store(propertyTree());
-
+  StraightRodPair* firstRod = GeometryFactory::make<StraightRodPair>();
+  assignRodCommonProperties(firstRod);
+  
   // CLONES FROM FIRST ROD
   logINFO(Form("Copying rod %s", fullid(*this).c_str()));
   // second rod case
-  StraightRodPair* second = GeometryFactory::clone(*first);
-  second->myid(2);
+  StraightRodPair* secondRod = GeometryFactory::clone(*firstRod);
   // skewed rod case
-  StraightRodPair* skewedRod = GeometryFactory::clone(*first);
+  StraightRodPair* skewedRod = GeometryFactory::clone(*firstRod);
 
-  // FIRST ROD : build and store
-  bool isPlusBigDeltaRod = (bigParity() > 0);
-  first->isOuterRadiusRod(isPlusBigDeltaRod);
-  first->build(rodTemplate, isPlusBigDeltaRod);
-  first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  double firstRodPhi = 0.;
-  if (phiForbiddenRanges.state() && !isSkewedForInstallation()) firstRodPhi = (forbiddenPhiUpperA + rodPhiWidth / 2.);
-  if (isSkewedForInstallation()) firstRodPhi = installationMinusBigDeltaRodCenterPhiShift;
-  first->rotateZ(firstRodPhi);
-  if (!isSkewedForInstallation()) {
-    if (!isFlatPart) { rods_.push_back(first); buildNumModulesFlat(first->numModulesSide(1)); }
-    else { flatPartRods_.push_back(first); }
+  // FIRST ROD : place and store
+  const bool isFirstRodAtPlusBigDelta = (bigParity() > 0);
+  double firstRodCenterPhi = 0.;
+  if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
+    const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
+    firstRodCenterPhi = (forbiddenPhiUpperA + rodCenterPhiShift / 2.);
   }
+  if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
+  placeAndStoreRod(firstRod, rodTemplate, isFirstRodAtPlusBigDelta, firstRodCenterPhi);
+  if (!isFlatPart) { buildNumModulesFlat(firstRod->numModulesSide(1)); }
 
-  // SECOND ROD : assign other properties, build and store 
-  if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
-  isPlusBigDeltaRod = (bigParity() < 0);
-  second->isOuterRadiusRod(isPlusBigDeltaRod);
-  second->build(rodTemplate, isPlusBigDeltaRod);
-  second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
-  double secondRodPhi = firstRodPhi + rodPhiWidth;
-  if (isSkewedForInstallation()) secondRodPhi = firstRodPhi + commonRodCenterPhiShift;
-  second->rotateZ(secondRodPhi);
-  if (!isSkewedForInstallation()) {
-    if (!isFlatPart) { rods_.push_back(second); }
-    else { flatPartRods_.push_back(second); }
+  // SECOND ROD : assign other properties, place and store
+  secondRod->myid(2);
+  if (!sameParityRods()) secondRod->zPlusParity(-1 * firstRod->zPlusParity());
+  const bool isSecondRodAtPlusBigDelta = !isFirstRodAtPlusBigDelta;
+  double secondRodCenterPhi = 0.;
+  if (!isSkewedForInstallation()) { secondRodCenterPhi = firstRodCenterPhi + rodCenterPhiShift; }
+  else { secondRodCenterPhi = firstRodCenterPhi + commonRodCenterPhiShift; }
+  placeAndStoreRod(secondRod, rodTemplate, isSecondRodAtPlusBigDelta, secondRodCenterPhi);
+
+  // NON-SKEWED INSTALLATION MODE
+  if (!isSkewedForInstallation()) { 
+    buildClonedRodsNonSkewedMode(firstRod, secondRod,
+				 firstRodCenterPhi, secondRodCenterPhi,
+				 rodCenterPhiShift);
   }
-
-
-  if (!isSkewedForInstallation()) {
-    // All other Rods
-    for (int i = 2; i < numRods(); i++) {
-      StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
-      rod->myid(i+1);
-
-      // Phi rotation
-      double deltaPhi = rodPhiWidth * (i%2 ? i-1 : i);  // Extra Phi, added to the copy of secondRod or firstRod respectively.
-      if (phiForbiddenRanges.state()) {
-	double iRodPhi = (i%2 ? secondRodPhi : firstRodPhi) + deltaPhi;  // Total Phi of rod number i.
-	if (moduloComp(forbiddenPhiLowerB, iRodPhi, 2. * M_PI)) {
-	  deltaPhi += (forbiddenPhiUpperB - forbiddenPhiLowerB);  // Shift all Phi : + Phi forbidden range B circumference when relevant.
-	}
-      }
-      rod->rotateZ(deltaPhi);
-
-      // Store
-      if (!isFlatPart) { rods_.push_back(rod); }
-      else { flatPartRods_.push_back(rod); }
-    }
-  }
-
 
   // SKEWED INSTALLATION MODE
   else {
-    double lastRodPhi = 0.;
-    const int numRodsPerXSide = numRods() / 2;
-    for (int i = 1; i <= (numRodsPerXSide); i++) {
-    
-      // UNSKEWED ROD
-      if (i != (numRodsPerXSide)) {
-	StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods 
-	rod->myid(i);
-
-	if (i >= 3) {
-	  // Phi rotation
-	  double rodPhiReinitialize = (i-1)%2 ? secondRodPhi : firstRodPhi;
-	  double rodPhiShift = -rodPhiReinitialize + secondRodPhi + (i - 2) * commonRodCenterPhiShift;
-	  rod->rotateZ(rodPhiShift);
-	  lastRodPhi = rodPhiShift + rodPhiReinitialize;  // Assumes there are at least 3 rods!!
-	  //std::cout << " i = " << i << " lastRodPhi = " << lastRodPhi << std::endl;
-	}
-
-	// Store
-	rods_.push_back(rod);
-
-	// Rod at + PI also added here
-	StraightRodPair* phiRotatedByPiRod = buildPhiRotatedByPiRod(rod, numRodsPerXSide);
-	// Store
-	rods_.push_back(phiRotatedByPiRod);
-      }
-
-      // SKEWED ROD : assign other properties, build and store 
-      else {
-	const double orientedSkewAngle = -skewAngle();  // negative trigonometric sense in (X) plane
-	RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
-	isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
-	skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
-	skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
-	skewedRod->translateR(skewedModuleCenterRho());
-	skewedRod->myid(numRodsPerXSide);
-
-	// Phi rotation
-	double skewedRodPhi = lastRodPhi + skewedRodCenterPhiShift;
-	//std::cout << " i = " << i << " skewedRodPhi = " << skewedRodPhi << std::endl;
-	skewedRod->rotateZ(skewedRodPhi);
-
-	// Store
-	rods_.push_back(skewedRod);
-
-	// Rod at + PI also added here
-	StraightRodPair* phiRotatedByPiRod = buildPhiRotatedByPiRod(skewedRod, numRodsPerXSide);
-	// Store
-	rods_.push_back(phiRotatedByPiRod);
-      }
-
-    }
-
+    buildClonedRodsSkewedMode(firstRod, secondRod, skewedRod,
+			      firstRodCenterPhi, secondRodCenterPhi,
+			      commonRodCenterPhiShift, skewedRodCenterPhiShift);
   }
 
 }
 
 
-StraightRodPair* Layer::buildPhiRotatedByPiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const {
+const double Layer::computeRodCenterPhiShift() const {
+  double rodCenterPhiShift = 0;
+  if (!phiForbiddenRanges.state()) {
+    rodCenterPhiShift = 2. * M_PI / numRods();
+  }
+  // PHI FORBIDDEN RANGE: forbid rod placement in phi, in a given phi range.
+  else {
+    const double forbiddenPhiLowerA = phiForbiddenRanges.at(0) * M_PI / 180.;
+    const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
+    const double forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
+    const double forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
+    const double forbiddenPhiCircumference = forbiddenPhiUpperA - forbiddenPhiLowerA + forbiddenPhiUpperB - forbiddenPhiLowerB;
+    rodCenterPhiShift = (2*M_PI - forbiddenPhiCircumference) / numRods();
+  }
+  return rodCenterPhiShift;
+}
+
+
+void Layer::assignRodCommonProperties(StraightRodPair* rod) const {
+  rod->myid(1);
+  rod->minBuildRadius(minBuildRadius() - bigDelta());
+  rod->maxBuildRadius(maxBuildRadius() + bigDelta());
+  if (buildNumModules() > 0) rod->buildNumModules(buildNumModules());
+  else if (maxZ.state()) rod->maxZ(maxZ());
+  rod->smallDelta(smallDelta());
+  const bool isFlatPart = isTilted();
+  if (isFlatPart) { rod->isFlatPart(true); rod->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
+  //rod->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
+  rod->store(propertyTree());
+}
+
+
+void Layer::placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi) {
+  rod->isOuterRadiusRod(isPlusBigDeltaRod);
+  rod->build(rodTemplate, isPlusBigDeltaRod);
+  rod->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
+  
+  rod->rotateZ(rodCenterPhi);
+  if (!isSkewedForInstallation()) {
+    const bool isFlatPart = isTilted();
+    if (!isFlatPart) { rods_.push_back(rod); buildNumModulesFlat(rod->numModulesSide(1)); }
+    else { flatPartRods_.push_back(rod); }
+  }
+}
+
+
+void Layer::buildClonedRodsNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod,
+					 const double firstRodCenterPhi, const double secondRodCenterPhi,
+					 const double rodCenterPhiShift) {
+  // All other Rods
+  for (int i = 2; i < numRods(); i++) {
+    StraightRodPair* rod = i%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods
+    rod->myid(i+1);
+
+    // Phi rotation
+    double deltaPhi = rodCenterPhiShift * (i%2 ? i-1 : i);  // Extra Phi, added to the copy of secondRod or firstRod respectively.
+    if (phiForbiddenRanges.state()) {
+      double iRodPhi = (i%2 ? secondRodCenterPhi : firstRodCenterPhi) + deltaPhi;  // Total Phi of rod number i.
+      const double forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
+      const double forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
+      if (moduloComp(forbiddenPhiLowerB, iRodPhi, 2. * M_PI)) {
+	deltaPhi += (forbiddenPhiUpperB - forbiddenPhiLowerB);  // Shift all Phi : + Phi forbidden range B circumference when relevant.
+      }
+    }
+    rod->rotateZ(deltaPhi);
+
+    // Store
+    const bool isFlatPart = isTilted();
+    if (!isFlatPart) { rods_.push_back(rod); }
+    else { flatPartRods_.push_back(rod); }
+  }
+}
+
+
+void Layer::buildClonedRodsSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
+				      const double firstRodCenterPhi, const double secondRodCenterPhi,
+				      const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift) {
+  
+  double lastRodPhi = 0.;
+  const int numRodsPerXSide = numRods() / 2;
+  for (int i = 1; i <= (numRodsPerXSide); i++) {
+    
+    // UNSKEWED ROD
+    if (i != numRodsPerXSide) {
+      StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods 
+      rod->myid(i);
+
+      if (i >= 3) {
+	// Phi rotation
+	double rodPhiReinitialize = (i-1)%2 ? secondRodCenterPhi : firstRodCenterPhi;
+	double rodPhiShift = -rodPhiReinitialize + secondRodCenterPhi + (i - 2) * commonRodCenterPhiShift;
+	rod->rotateZ(rodPhiShift);
+	lastRodPhi = rodPhiShift + rodPhiReinitialize;  // Assumes there are at least 3 rods!!
+	//std::cout << " i = " << i << " lastRodPhi = " << lastRodPhi << std::endl;
+      }
+
+      // Store
+      rods_.push_back(rod);
+
+      // Rod at + PI also added here
+      StraightRodPair* rotatedByPiInPhiRod = buildRotatedByPiInPhiRod(rod, numRodsPerXSide);
+      // Store
+      rods_.push_back(rotatedByPiInPhiRod);
+    }
+
+    // SKEWED ROD : assign other properties, build and store 
+    else {
+      const double orientedSkewAngle = -skewAngle();  // negative trigonometric sense in (XY) plane
+      RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
+      const bool isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
+      skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
+      skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
+      skewedRod->translateR(skewedModuleCenterRho());
+      skewedRod->myid(numRodsPerXSide);
+
+      // Phi rotation
+      double skewedRodPhi = lastRodPhi + skewedRodCenterPhiShift;
+      //std::cout << " i = " << i << " skewedRodPhi = " << skewedRodPhi << std::endl;
+      skewedRod->rotateZ(skewedRodPhi);
+
+      // Store
+      rods_.push_back(skewedRod);
+
+      // Rod at + PI also added here
+      StraightRodPair* rotatedByPiInPhiRod = buildRotatedByPiInPhiRod(skewedRod, numRodsPerXSide);
+      // Store
+      rods_.push_back(rotatedByPiInPhiRod);
+    }
+
+  }
+}
+
+
+
+StraightRodPair* Layer::buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const {
   if (!initialRod) {
     throw PathfulException("Tried to clone a rod which does not exist.");
   }
   else {
-    StraightRodPair* phiRotatedByPiRod = GeometryFactory::clone(*initialRod);
+    StraightRodPair* rotatedByPiInPhiRod = GeometryFactory::clone(*initialRod);
     const int initialRodId = initialRod->myid();
-    phiRotatedByPiRod->myid(initialRodId + numRodsPerXSide);
-    phiRotatedByPiRod->rotateZ(M_PI);
+    rotatedByPiInPhiRod->myid(initialRodId + numRodsPerXSide);
+    rotatedByPiInPhiRod->rotateZ(M_PI);
 
-    return phiRotatedByPiRod;
+    return rotatedByPiInPhiRod;
   }
 }
 
@@ -631,7 +672,7 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodPhiWidth = 2*M_PI/numRods();
+  float rodCenterPhiShift = 2*M_PI/numRods();
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
@@ -645,13 +686,13 @@ void Layer::buildTilted() {
   second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);
-  second->rotateZ(rodPhiWidth);
+  second->rotateZ(rodCenterPhiShift);
   rods_.push_back(second);
 
   for (int i = 2; i < numRods(); i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
-    rod->rotateZ(rodPhiWidth*(i%2 ? i-1 : i));
+    rod->rotateZ(rodCenterPhiShift*(i%2 ? i-1 : i));
     rods_.push_back(rod);
     }
 
