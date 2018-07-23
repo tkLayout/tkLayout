@@ -1859,6 +1859,7 @@ namespace insur {
 
     std::string pageTitle = "Geometry";
     if (name!="") pageTitle+=" (" +name+")";
+    const bool isPixelTracker = (name == "pixel");
 
     RootWPage* myPage = new RootWPage(pageTitle);
 
@@ -2630,7 +2631,7 @@ namespace insur {
     std::vector<TCanvas*> XYCanvasesEC;
     TCanvas *myCanvas = NULL;
     createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesEC);
-    if (name=="pixel") {
+    if (isPixelTracker) {
       logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
       beampipe->SetPoint(0, 0, 45/2.);
@@ -2663,23 +2664,23 @@ namespace insur {
 
     if (summaryCanvas) {
       myImage = new RootWImage(summaryCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
+      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta.");
       myContent->addItem(myImage);
     }
 
     if (RZCanvas) {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ positions of the modules");
+      myImage->setComment("RZ positions of the modules.");
       myContent->addItem(myImage);
     }
-    if ((RZCanvasBarrel) && (name == "pixel")) {
+    if ((RZCanvasBarrel) && isPixelTracker) {
       myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("RZ positions of the barrel modules");
+      myImage->setComment("RZ positions of the barrel modules.");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
       myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("XY Section of the tracker barrel");
+      myImage->setComment("XY Section of the tracker barrel.");
       myContent->addItem(myImage);
     }
     for (auto XYCanvasEC : XYCanvasesEC ) {
@@ -2692,28 +2693,34 @@ namespace insur {
     myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit modules across eta");
+    myImage->setComment("Hit modules across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesSensors(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit coverage across eta");
+    myImage->setComment("Hit coverage across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesStubs(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Stub coverage across eta");
+    myImage->setComment("Stub coverage across eta.");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    if (myCanvas) drawTracksDistributionPerNumberOfStubs(*myCanvas, analyzer, isPixelTracker);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     drawEtaProfilesLayers(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Layer coverage across eta");
+    myImage->setComment("Layer coverage across eta.");
     myContent->addItem(myImage);
 
-    if (name != "pixel") {
+    if (!isPixelTracker) {
       totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
       totalEtaProfileLayers_ = &analyzer.getTotalEtaProfileLayers();
     }
@@ -2735,8 +2742,9 @@ namespace insur {
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
-    drawEtaCoverage(*myPage, analyzer);
-    drawEtaCoverageStubs(*myPage, analyzer);
+    drawHitCoveragePerLayer(*myPage, analyzer, isPixelTracker);
+    drawStubCoveragePerLayer(*myPage, analyzer, isPixelTracker);
+    if (isPixelTracker) { drawStubWith3HitsCoveragePerLayer(*myPage, analyzer); }
 
     // Add detailed geometry info here
     RootWContent* filesContent = new RootWContent("Geometry files", false);
@@ -2786,6 +2794,48 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
+  /*
+   * Draw the distribution of tracks which have exactly a given number of stubs.
+   * If the stubs number is higher than plotMaxNumberOfStubs, all the tracks are gathered into the same category.
+   */
+  bool Vizard::drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    std::map<int, TProfile>& tracksDistributionPerNumberOfStubs = analyzer.getTracksDistributionPerNumberOfStubs();
+    
+    const int plotMaxNumberOfStubs = (!isPixelTracker ? plotMaxNumberOfOuterTrackerStubs :  plotMaxNumberOfInnerTrackerStubs);
+
+    TLegend* layerLegend = new TLegend(0.905, 0.5, 1., 0.9);
+    int colorIndex = 1;
+    for (auto& detailIt : tracksDistributionPerNumberOfStubs) {
+      const int numberOfStubs = detailIt.first;
+      ostringstream titleStream;
+      if (numberOfStubs < plotMaxNumberOfStubs) {
+	titleStream << numberOfStubs << " stub";
+      }
+      else { titleStream << ">=" << numberOfStubs << " stub"; }
+      if (numberOfStubs >= 2) titleStream << "s";
+
+      TProfile& detailProfile = detailIt.second;
+      detailProfile.SetMinimum(0);
+      detailProfile.SetMaximum(1.05);
+      detailProfile.SetMarkerColor(Palette::color(colorIndex));
+      detailProfile.SetLineColor(Palette::color(colorIndex));
+      detailProfile.SetFillColor(Palette::color(colorIndex));
+      detailProfile.SetMarkerStyle(8);
+      detailProfile.SetMarkerSize(1.5);
+      detailProfile.GetYaxis()->SetTitleOffset(1.3);
+      detailProfile.SetStats(0);
+      detailProfile.Draw("same");
+      layerLegend->AddEntry(&detailProfile, titleStream.str().c_str(), "f");
+      colorIndex++;
+    }
+    layerLegend->Draw("same");
+
+
+    return true;
+  }
+
   bool Vizard::drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
@@ -2829,77 +2879,193 @@ namespace insur {
     return drawEtaProfilesStubs(*myVirtualPad, analyzer);
   }
 
+  bool Vizard::drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawTracksDistributionPerNumberOfStubs(*myVirtualPad, analyzer, isPixelTracker);
+  }
+
   bool Vizard::drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer) {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
     return drawEtaProfilesLayers(*myVirtualPad, analyzer);
   }
 
-  bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
-    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
+  bool Vizard::drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {
+    std::map<std::string, std::map<int, double> > emptyStubWith3HitsCountCount;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "hit", analyzer.getHitCoveragePerLayer(), analyzer.getHitCoveragePerLayerDetails(), emptyStubWith3HitsCountCount);
   }
 
-  bool Vizard::drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer) {
-    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfilesStubs(), "Stubs");
+  bool Vizard::drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker) {   
+    const std::string type = (!isPixelTracker ? "stub" : "1 stub <-> (>= 2 hits)");
+    std::map<std::string, CoveragePerNumberOfHits> emptyDetailedPlots;
+    std::map<std::string, std::map<int, double> > emptyStubWith3HitsCountCount;
+    return drawCoveragePerlayer(myPage, isPixelTracker, type, analyzer.getStubCoveragePerLayer(), emptyDetailedPlots, emptyStubWith3HitsCountCount);
   }
 
-  bool Vizard::drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type) {
-    if (layerEtaCoverage.size()==0) return false;
+  bool Vizard::drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer) {
+    const bool isPixelTracker = true;
+    std::map<std::string, CoveragePerNumberOfHits> emptyDetailedPlots;
+    return drawCoveragePerlayer(myPage, isPixelTracker, "1 stub <-> (>= 3 hits)", analyzer.getStubWith3HitsCoveragePerLayer(), emptyDetailedPlots, analyzer.getStubWith3HitsCountPerDiskAndRing());
+  }
 
-    TCanvas* myCanvas;
+  /*
+   * For each layer, draw dedicated hits or stubs coverage plots.
+   */
+  bool Vizard::drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, 
+				    std::map<std::string, TProfile>& coveragePerLayer, 
+				    std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails, 
+				    std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing) {
+
+    if (coveragePerLayer.size() == 0) return false;
+
     RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
 
-    int layerCount = 0;
-    for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
-      TProfile& aProfile = it->second;
-      layerCount++;
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    const bool is3HitsStubStudy = (isPixelTracker && type.find("stub") != std::string::npos && type.find("3") != std::string::npos);
+
+    // Loop on all layer(s) / disk(s)
+    for (auto& layerIt : coveragePerLayer) {
+      const std::string layerName = layerIt.first;
+
+      TCanvas* myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerName.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
 
-
-      TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
-      TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
-      TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
-      myCanvas->cd();
-      upperLeftPad->Draw();
-      upperRightPad->Draw();
-      lowerPad->Draw();
-      aProfile.SetMinimum(0);
-      aProfile.SetMaximum(1.05);
-      aProfile.SetMarkerColor(Palette::color(1));
-      aProfile.SetLineColor(Palette::color(1));
-      aProfile.SetMarkerStyle(1);
-
-      TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", aProfile.GetName()), aProfile.GetTitle(), 50, 0, .1);
-      efficiencyHistogram->SetXTitle("Inefficiency");
-      efficiencyHistogram->SetYTitle("Eta bins");
-      efficiencyHistogram->SetFillColor(Palette::color(1));
-      for (int i=1; i<=aProfile.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-aProfile.GetBinContent(i));
-      TPaveText* tpt;
-      tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
-      tpt->SetBorderSize(1);
-      tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
-      tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));
+      // Distribution of tracks with at least 1 hit / stub.
+      TProfile& overallCoverage = layerIt.second;
+      overallCoverage.SetMinimum(0);
+      overallCoverage.SetMaximum(1.05);
+      overallCoverage.SetMarkerColor(Palette::color(1));
+      overallCoverage.SetLineColor(Palette::color(1));
+      overallCoverage.SetMarkerStyle(1);    
       
-      TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
-      zoomedProfile->SetMinimum(0.9);
-      zoomedProfile->SetMaximum(1.01);
-      zoomedProfile->SetTitle("");
-      upperLeftPad->cd();
-      aProfile.Draw();
-      upperRightPad->cd();
-      efficiencyHistogram->Draw();
-      tpt->Draw();
-      lowerPad->cd();
-      zoomedProfile->Draw();
+      // Regarding Inner tracker 'stubs', it doesn't make sense to zoom in to [0.9 1.0].
+      // The 'stub' coverage does not intend to be hermetic here.
+      if (isPixelTracker && type.find("stub") != std::string::npos) {
+	overallCoverage.Draw();
+	TLegend* centralLegend = new TLegend(0.85, 0.8, 0.999, 0.9);
+	// In IT, a stub is defined by (>=2 hits / layer) or (>=3 hits/layer).
+	std::string entry = (is3HitsStubStudy ? ">= 3 hits" : ">= 2 hits"); 
+	centralLegend->AddEntry(&overallCoverage, entry.c_str());
+	centralLegend->Draw();
+      }
+      else {
+	// Prepare 3 pads
+	TPad* upperLeftPad = new TPad(Form("%s_upper_left", myCanvas->GetName()), "upperLeft", 0, 0.4, 0.5, 1);
+	upperLeftPad->Draw();
+	TPad* upperRightPad = new TPad(Form("%s_upper_right", myCanvas->GetName()), "upperRight", 0.5, 0.4, 1, 1);
+	upperRightPad->Draw();
+	TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
+	lowerPad->Draw();
+
+	// Top left pad: overall hit coverage.
+	// Also draw detailed counts, if exist.
+	upperLeftPad->cd();
+	overallCoverage.Draw();
+	TLegend* layerLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
+	std::string overallCoverageTitle = ">=1 " + type + "(s)";
+	layerLegend->AddEntry(&overallCoverage, overallCoverageTitle.c_str());
+	// Draw detailed hit counts per layer
+	if (type == "hit") {
+	  const int plotMaxNumberOfHits = (!isPixelTracker ? plotMaxNumberOfOuterTrackerHitsPerLayer : plotMaxNumberOfInnerTrackerHitsPerLayer);
+	  const auto& found = coveragePerLayerDetails.find(layerName);
+	  if (found != coveragePerLayerDetails.end()) {
+	    CoveragePerNumberOfHits& detailedInfo = found->second;
+	    drawCoveragePerlayerDetails(detailedInfo, type, layerLegend, plotMaxNumberOfHits);
+	  }	  
+	}
+	layerLegend->Draw("same");
+	
+	// Top right pad: statistics.
+	upperRightPad->cd();
+	TH1D* efficiencyHistogram = new TH1D(Form("%s_histo", overallCoverage.GetName()), overallCoverage.GetTitle(), 50, 0, .1);
+	efficiencyHistogram->SetXTitle("Inefficiency");
+	efficiencyHistogram->SetYTitle("Eta bins");
+	efficiencyHistogram->SetFillColor(Palette::color(1));
+	efficiencyHistogram->Draw();
+	for (int i=1; i<=overallCoverage.GetNbinsX(); ++i) efficiencyHistogram->Fill(1-overallCoverage.GetBinContent(i));
+	TPaveText* tpt;
+	tpt = new TPaveText(0.65, 0.65, 0.95, 0.95, "NB NDC");
+	tpt->SetBorderSize(1);
+	tpt->AddText(Form("#mu = %f%%", 100*efficiencyHistogram->GetMean()));
+	tpt->AddText(Form("#sigma = %f%%", 100*efficiencyHistogram->GetRMS()));	
+	tpt->Draw();
+
+	// Bottom pad: overall coverage is showed zoomed in to [0.9 1.01] window.
+	lowerPad->cd();
+	TProfile* zoomedProfile = (TProfile*) overallCoverage.Clone();
+	zoomedProfile->SetMinimum(0.9);
+	zoomedProfile->SetMaximum(1.01);
+	zoomedProfile->SetTitle("");	
+	zoomedProfile->Draw();
+	std::ostringstream entry;
+	entry << ">=1 " << type << "(s)";
+	TLegend* zoomedLegend = new TLegend(0.85, 0.65, 0.999, 0.95);
+	zoomedLegend->AddEntry(zoomedProfile, entry.str().c_str());
+	zoomedLegend->Draw();
+      }
 
       RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
+      const std::string title = (type.find("stub") != std::string::npos ? "stub" : type);
+      myImage->setComment("Layer coverage in eta for " + title + "s.");
       myContent->addItem(myImage);
     }
+
+    // IT only: add tables with detailed 3-hit stubs counts, per ring transition.
+    if (is3HitsStubStudy && !stubWith3HitsCountPerDiskAndRing.empty()) {
+      for (const auto& diskIt : stubWith3HitsCountPerDiskAndRing) {
+	RootWTable* stubWith3HitsCountTable = new RootWTable();
+	const std::string diskName = diskIt.first;
+	const std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
+	stubWith3HitsCountTable->setContent(0, 0, diskName);
+	stubWith3HitsCountTable->setContent(1, 0, "Ring transition (Ring i & i+1):");
+	stubWith3HitsCountTable->setContent(2, 0, "Fraction of tracks (‰)");
+
+	for (const auto& ringTransitionIt : stubWith3HitsCountPerRing) {
+	  const int ringTransition = ringTransitionIt.first;
+	  const double stubWith3HitsCount = ringTransitionIt.second;
+	  stubWith3HitsCountTable->setContent(1, ringTransition, ringTransition);
+	  stubWith3HitsCountTable->setContent(2, ringTransition, stubWith3HitsCount * 1000., 1);
+	}
+	myContent->addItem(stubWith3HitsCountTable);
+      }
+    }
+
     return true;
   }
+
+  /*
+   * Draw detailed hits or stubs counts per layer.
+   */
+  bool Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
+    int colorIndex = 2;
+
+    for (auto& detailIt : detailedInfo) {
+      const int numberOfHits = detailIt.first;
+      TProfile& detailProfile = detailIt.second;
+
+      if (detailProfile.GetMaximum() > insur::hits_negligible) {	  
+	detailProfile.SetMinimum(0);
+	detailProfile.SetMaximum(1.05);
+	detailProfile.SetMarkerColor(Palette::color(colorIndex));
+	detailProfile.SetLineColor(Palette::color(colorIndex));
+	detailProfile.SetMarkerStyle(8);
+	detailProfile.SetMarkerSize(0.3);  
+	detailProfile.Draw("same");
+
+	std::ostringstream titleStream;
+	if (numberOfHits < plotMaxNumberOfHits) {
+	  titleStream << "= " << numberOfHits << " " << type;
+	}
+	else { titleStream << ">=" << numberOfHits << " " << type; }
+	if (numberOfHits >= 2) titleStream << "s";
+	layerLegend->AddEntry(&detailProfile, titleStream.str().c_str());
+      }
+      colorIndex++;
+    }
+
+  }
+
 
   static int nLayoutCanvases = 0;
   

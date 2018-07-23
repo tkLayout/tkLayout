@@ -42,6 +42,7 @@ Materials FPIX_disk_2500_10000 {
 
   // Power for the module
   // Average on disk
+  // 16 power chains per disk
   // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
     componentName "Power wires"
@@ -49,22 +50,22 @@ Materials FPIX_disk_2500_10000 {
     scaleOnSensor 0
     Element {
       elementName Al
-      quantity 9.98
+      quantity 10.14
       unit g
     }
     Element {
       elementName Cu
-      quantity 1.54
+      quantity 1.38
       unit g
     }
     Element {
       elementName PE
-      quantity 3.37
+      quantity 3.683
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk
+  // 16 power chains per disk
   // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
     componentName "Power wires"
@@ -72,62 +73,62 @@ Materials FPIX_disk_2500_10000 {
     scaleOnSensor 0
     Element {
       elementName FPIX_Al
-      quantity 0.07
+      quantity 0.073
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.01
+      quantity 0.010
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.023
+      quantity 0.026
       unit g/m
     }
   }
 
-  // HV power wires
-  // Power for the module
+  // HV power lines
+  // 16 power chains per disk, 2 HV lines per power chain
   Component {
     componentName "Sensor HV line"
     service false
     scaleOnSensor 0
     Element {
       elementName Al_HV
-      quantity 1.46
+      quantity 1.56
       unit g
     }
     Element {
       elementName Cu
-      quantity 0.52
+      quantity 0.55
       unit g
     }
     Element {
       elementName PE
-      quantity 5.24
+      quantity 5.6
       unit g
     }
   }
   // fake numbers for calculating conversion with a factor of 1000
-  // 12 chains per disk, 2 wires per chain
+  // 16 power chains per disk, 2 HV lines per power chain
   Component {
     componentName "Sensor HV line"
     service true
     scaleOnSensor 0
     Element {
       elementName FPIX_Al_HV
-      quantity 0.0064
+      quantity 0.0073
       unit g/m
     }
     Element {
       elementName FPIX_Cu
-      quantity 0.0023
+      quantity 0.0026
       unit g/m
     }
     Element {
       elementName FPIX_PE
-      quantity 0.0231
+      quantity 0.0264
       unit g/m
     }
   }

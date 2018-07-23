@@ -19,7 +19,8 @@ namespace insur {
     static const double xml_composite_ratio_tolerance = 1E-07;
     static const double xml_outerTrackerEndcapsMinZ = 1250.;
     static const double xml_innerTrackerEndcapsMinZ = 227.;    // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
-  static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
+    static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
+    static const std::string xml_trackerOutermostRadius = "122.15*cm"; // Outermost tracker volume boundary
     /**
      * XML tags and attributes
      */
@@ -29,7 +30,7 @@ namespace insur {
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
-    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
+    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";
     static const std::string xml_new_const_section = "<ConstantsSection label=\"newtracker.xml\" eval=\"true\">\n<Constant name=\"newDummyBackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
     static const std::string xml_recomat_radlength = "TrackerRadLength";
