@@ -208,12 +208,20 @@ private:
   const double computeRodCenterPhiShift() const;
   void assignRodCommonProperties(StraightRodPair* rod) const;
   void placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi);
-  void buildClonedRodsNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, 
-				    const double firstRodCenterPhi, const double secondRodCenterPhi,
-				    const double rodCenterPhiShift);
-  void buildClonedRodsSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
-				 const double firstRodPhi, const double secondRodPhi,
-				 const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift);
+  void buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, 
+					      const double firstRodCenterPhi, const double secondRodCenterPhi,
+					      const double rodCenterPhiShift);
+  
+  void buildAndStoreClonedRodsInSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
+					   const double firstRodPhi, const double secondRodPhi,
+					   const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift);
+  double buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int numRodsPerXSide,
+						const StraightRodPair* firstRod, const StraightRodPair* secondRod,
+						const double firstRodCenterPhi, const double secondRodCenterPhi,
+						const double commonRodCenterPhiShift);
+  void buildAndStoreSkewedRods(const int numRodsPerXSide,
+			       StraightRodPair* skewedRod,
+			       const double lastRodPhi, const double skewedRodCenterPhiShift);
   StraightRodPair* buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
 
   RodTemplate makeRodTemplate(const double skewAngle = 0.);
