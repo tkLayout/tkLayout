@@ -345,10 +345,6 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
       mod->myid(i+1);
     }
     mod->side(side);
-    //std::cout << "mod->skewAngle() = " << mod->skewAngle() << " mod->center().Rho() = " << mod->center().Rho() << " mod->center().Z() = " << mod->center().Z() << std::endl;
-    //mod->skew(mod->skewAngle());
-
-
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
     if (smallDelta() != 0) { mod->flipped(parity != 1); } // When smallDelta() != 0, the flip is alternated.
     else { mod->flipped(!isPlusBigDeltaRod); } // When smallDelta() == 0, the flip only depends whether the rod is located at + BigDelta or at - BigDelta.

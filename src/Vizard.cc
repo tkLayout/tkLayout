@@ -1928,7 +1928,6 @@ namespace insur {
 
       for (int i = 0; i < sv.numSkewedLayers; i++) {
 	// layer
-	//myContent->addItem(sv.skewedLayerNames.at(i));
 	myContent->addItem(sv.tables.at(i));
 	// spacer
 	if (i < sv.numSkewedLayers - 1) { myContent->addItem(spacer); }
@@ -1984,7 +1983,6 @@ namespace insur {
       myContent->addItem(v.diskNames.at(i));
       myContent->addItem(v.zErrorTables.at(i));
     }
-
 
 
     //********************************//

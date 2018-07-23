@@ -178,19 +178,8 @@ void SkewedLayersVisitor::visit(const Layer& l) {
   if (l.isSkewedForInstallation()) {
     numSkewedLayers++;
 
-    // Initializes layer name
-    //RootWTable* skewedLayerName = new RootWTable();
-    //skewedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
-    //skewedLayerNames.push_back(skewedLayerName);
-
     // FILLS LAYER TABLE
     RootWTable* layerTable = new RootWTable();
-
-    //int i = 0;
-    //for (const auto& m : minusBigDeltaModules) {
-    //int ringNumber = i + 1;
-    //layerTable->setContent(0, 0, "Ring");
-    //layerTable->setContent(0, i+1, ringNumber);
     layerTable->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
     layerTable->setContent(1, 0, "layer Rho [mm]");
     layerTable->setContent(1, 1, l.placeRadiusHint(), coordPrecision);
@@ -222,9 +211,6 @@ void SkewedLayersVisitor::visit(const Layer& l) {
     tables.push_back(layerTable);
   } // end of 'fills layer table'
 }
-
-
-
 
 
     //***************************************//

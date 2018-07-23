@@ -94,7 +94,6 @@ public:
 
 class SkewedLayersVisitor : public ConstGeometryVisitor {
 public:
-  //std::vector<RootWTable*> skewedLayerNames;
   std::vector<RootWTable*> tables;
 
   // counter
