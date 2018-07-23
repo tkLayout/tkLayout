@@ -605,29 +605,40 @@ const SkewedLayerPhiShifts Layer::buildSkewed() {
   mod->build();
   const double moduleWidth = mod->width();
 
+  // COMPUTE ALL SKEWED INFO 
+  const SkewedLayerInfo& info = computeSkewedLayerInfo(placeRadiusHint(), bigDelta(), numRods(), moduleWidth, 
+						       skewedModuleEdgeShift(), installationOverlapRatio());
 
-  const SkewedLayerInfo& info = computeSkewedLayerInfo(placeRadiusHint(), bigDelta(), numRods(), moduleWidth, skewedModuleEdgeShift(), installationOverlapRatio());
-
+  // STORE SKEWED INFO OF INTEREST IN THE LAYER
   skewedModuleMinRho(info.skewedModuleMinRho);
   skewedModuleCenterRho(info.skewedModuleCenterRho);
   skewedModuleMaxRho(info.skewedModuleMaxRho);
   skewAngle(info.skewAngle);
   unitPhiOverlapLength(info.unitPhiOverlapLength);
   installationHorizontalOverlapLength(info.installationHorizontalOverlapLength);
-  const SkewedLayerPhiShifts& phiShifts = info.phiShifts;
 
+  // RETURN PHI SHIFTS INFO
+  // This info is not stored in the Layer, because it does not have interest in itself.
+  // It will just be used once, to compute rods phi shifts.
+  const SkewedLayerPhiShifts& phiShifts = info.phiShifts;
   return phiShifts; 
 }
 
 
 /*
  * Skewed layer: geometry helper.
+ * To understand all formulae, look at draft images on tkLayout's wiki.
+ * The present code relies on 2 assumptions: 
+ - there are only 2 skewed rods.
+ - a skewed rod is always placed at +bigDelta.
  */
-const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio) {
+const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, 
+						    const double skewedModuleEdgeShift, const double installationOverlapRatio) {
 
+  // skewAperture is the angle between (XZ) plane and the sensor plane.
   const double skewAperture = 2. * asin( 0.5 * skewedModuleEdgeShift / moduleWidth);
 
-  // FLAT RODS: RADII AND PHI COVERAGE
+  // NON-SKEWED RODS: RADII AND PHI COVERAGE
   const double minusBigDeltaRodCenterRho = layerCenterRho - bigDelta;
   const double plusBigDeltaRodCenterRho = layerCenterRho + bigDelta;
   const double minusBigDeltaRodMaxRho = sqrt( pow(minusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.));
@@ -636,14 +647,17 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
 
   // SKEWED RODS: RADII AND PHI COVERAGE
   const double skewedModuleMinRho = sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-  const double skewedModuleCenterRho = sqrt( pow(skewedModuleMinRho, 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov));
-  const double skewedRodLowerHalfPhiCov = acos( 
-					       (pow(skewedModuleMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
+  const double skewedModuleCenterRho = sqrt( pow(skewedModuleMinRho, 2) + pow(0.5 * moduleWidth, 2.) 
+					     + skewedModuleMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov)
+					     ); // Al-Kashi
+  const double skewedRodLowerHalfPhiCov = acos( (pow(skewedModuleMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
 					       / ( 2. * skewedModuleMinRho * skewedModuleCenterRho)
-						);
+						); // Al-Kashi
   const double skewAngle = skewAperture - (plusBigDeltaRodPhiCov / 2. - skewedRodLowerHalfPhiCov);
 
-  const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift * sin(skewAperture/2.)) / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) );   // the skewed rod is at +bigDelta  
+  const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift * sin(skewAperture/2.)) 
+			    / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) 
+			    );   // the skewed rod is at +bigDelta  
   const double skewedRodTotalPhiCov = plusBigDeltaRodPhiCov / 2. + beta;
 
   const double skewedModuleMaxRho = (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) / cos(beta); // the skewed rod is at +bigDelta
@@ -658,14 +672,18 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
   const int numPlusBigDeltaRods = numRods / 2 - numSkewedRods; // the skewed rods are at +bigDelta
 
   // PHI OVERLAPS!!
-  const double totalPhiCov = numMinusBigDeltaRods * minusBigDeltaRodPhiCov + numPlusBigDeltaRods * plusBigDeltaRodPhiCov + numSkewedRods * skewedRodTotalPhiCov;
+  const double totalPhiCov = numMinusBigDeltaRods * minusBigDeltaRodPhiCov 
+    + numPlusBigDeltaRods * plusBigDeltaRodPhiCov 
+    + numSkewedRods * skewedRodTotalPhiCov;
   const double totalPhiOverlap = totalPhiCov - 2. * M_PI;
   const double unitPhiOverlapAngle = totalPhiOverlap / (numRods - numSkewedRods + numSkewedRods * installationOverlapRatio);
   const double unitPhiOverlapLength = unitPhiOverlapAngle * layerCenterRho;
 
   
   const double installationPhiOverlapAngle = installationOverlapRatio * unitPhiOverlapAngle;
-  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationPhiOverlapAngle)) / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationPhiOverlapAngle)) );
+  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationPhiOverlapAngle)) 
+							 / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationPhiOverlapAngle)) 
+							 );
   const double unskewedInstallationPhiOverlapAngle = installationPhiOverlapAngle - skewedInstallationPhiOverlapAngle;
   const double installationHorizontalOverlapLength = skewedModuleMaxRho * sin(skewedInstallationPhiOverlapAngle);
     
@@ -680,8 +698,11 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
 
 
   // GATHER ALL RESULTS OF INTEREST
-  const SkewedLayerPhiShifts& phiShifts = SkewedLayerPhiShifts{ installationMinusBigDeltaRodCenterPhiShift, commonRodCenterPhiShift, skewedRodCenterPhiShift };
-  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAngle, unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
+  const SkewedLayerPhiShifts& phiShifts = SkewedLayerPhiShifts{ installationMinusBigDeltaRodCenterPhiShift, 
+								commonRodCenterPhiShift, 
+								skewedRodCenterPhiShift };
+  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAngle, 
+						 unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
 
   return info;
 }
