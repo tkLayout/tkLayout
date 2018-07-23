@@ -308,7 +308,7 @@ void Layer::buildStraight() {
   StraightRodPair* skewedRod = GeometryFactory::clone(*firstRod);
 
   // FIRST ROD : place and store
-  const bool isFirstRodAtPlusBigDelta = (bigParity() > 0);
+  const bool isFirstRodAtPlusBigDelta = (!isSkewedForInstallation() ? (bigParity() > 0) : false);
   double firstRodCenterPhi = 0.;
   if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
     const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
@@ -428,15 +428,21 @@ void Layer::buildClonedRodsSkewedMode(const StraightRodPair* firstRod, const Str
     
     // UNSKEWED ROD
     if (i != numRodsPerXSide) {
-      StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods 
+      StraightRodPair* rod = (i-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods
+      const double rodClonedPhi = (i-1)%2 ? secondRodCenterPhi : firstRodCenterPhi;
       rod->myid(i);
+
+      if (i <= 2 && bigParity() > 0) {
+	const double rodPhiPosition = M_PI - rodClonedPhi;
+	rod->rotateZ(-rodClonedPhi + rodPhiPosition);
+      }
 
       if (i >= 3) {
 	// Phi rotation
-	double rodPhiReinitialize = (i-1)%2 ? secondRodCenterPhi : firstRodCenterPhi;
-	double rodPhiShift = -rodPhiReinitialize + secondRodCenterPhi + (i - 2) * commonRodCenterPhiShift;
-	rod->rotateZ(rodPhiShift);
-	lastRodPhi = rodPhiShift + rodPhiReinitialize;  // Assumes there are at least 3 rods!!
+	const double rodPhiShift = secondRodCenterPhi + (i - 2) * commonRodCenterPhiShift;
+	const double rodPhiPosition = (bigParity() < 0 ? rodPhiShift : M_PI - rodPhiShift);
+	rod->rotateZ(-rodClonedPhi + rodPhiPosition);
+	lastRodPhi = rodPhiPosition;  // Assumes there are at least 3 rods!! 
 	//std::cout << " i = " << i << " lastRodPhi = " << lastRodPhi << std::endl;
       }
 
@@ -451,16 +457,16 @@ void Layer::buildClonedRodsSkewedMode(const StraightRodPair* firstRod, const Str
 
     // SKEWED ROD : assign other properties, build and store 
     else {
-      const double orientedSkewAngle = -skewAngle();  // negative trigonometric sense in (XY) plane
+      const double orientedSkewAngle = bigParity() * skewAngle();  // negative trigonometric sense in (XY) plane
       RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
-      const bool isPlusBigDeltaRod = true;                      // the skewed rod is at +bigDelta
+      const bool isPlusBigDeltaRod = true;                        // the skewed rod is at +bigDelta
       skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
       skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
       skewedRod->translateR(skewedModuleCenterRho());
       skewedRod->myid(numRodsPerXSide);
 
       // Phi rotation
-      double skewedRodPhi = lastRodPhi + skewedRodCenterPhiShift;
+      const double skewedRodPhi = lastRodPhi - bigParity() * skewedRodCenterPhiShift;
       //std::cout << " i = " << i << " skewedRodPhi = " << skewedRodPhi << std::endl;
       skewedRod->rotateZ(skewedRodPhi);
 
