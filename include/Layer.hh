@@ -202,36 +202,44 @@ public:
 
 
 private:
+  // STRAIGHT LAYER
   void buildStraight();
-  void buildTilted();
 
+  // generic optimizations methods
+  RodTemplate makeRodTemplate(const double skewAngle = 0.);
+  void computePlaceRadiiAndNumRods(const RodTemplate& rodTemplate);
+  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
+  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   const double computeRodCenterPhiShift() const;
   void assignRodCommonProperties(StraightRodPair* rod) const;
+
+  // not specific to skewed mode
+  const bool placeAndStoreFirstRod(StraightRodPair* firstRod, const RodTemplate& rodTemplate, 
+				   const double rodCenterPhiShift, const double installationMinusBigDeltaRodCenterPhiShift);
+  void placeAndStoreSecondRod(StraightRodPair* secondRod, const RodTemplate& rodTemplate, 
+			      const bool isFirstRodAtPlusBigDelta, const int firstRodZPlusParity, const double firstRodCenterPhi, 
+			      const double rodCenterPhiShift, const double commonRodCenterPhiShift);
   void placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi);
   void buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, 
-					      const double firstRodCenterPhi, const double secondRodCenterPhi,
 					      const double rodCenterPhiShift);
-  
+  // dedicated to skewed mode
+  const SkewedLayerPhiShifts buildSkewed();
+  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
+
   void buildAndStoreClonedRodsInSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
-					   const double firstRodPhi, const double secondRodPhi,
 					   const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift);
   double buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int numRodsPerXSide,
 						const StraightRodPair* firstRod, const StraightRodPair* secondRod,
-						const double firstRodCenterPhi, const double secondRodCenterPhi,
 						const double commonRodCenterPhiShift);
   void buildAndStoreSkewedRods(const int numRodsPerXSide,
 			       StraightRodPair* skewedRod,
-			       const double lastRodPhi, const double skewedRodCenterPhiShift);
+			       const double lastNonSkewedRodCenterPhi, const double skewedRodCenterPhiShift);
   StraightRodPair* buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
 
-  RodTemplate makeRodTemplate(const double skewAngle = 0.);
+  // TILTED LAYER
+  void buildTilted();
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
-
-  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
-  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
-  
-  const SkewedLayerPhiShifts buildSkewed();
-  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
+ 
 
   Container rods_;
   MaterialObject materialObject_;

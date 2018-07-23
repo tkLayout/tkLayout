@@ -254,37 +254,19 @@ void Layer::cutAtEta(double eta) {
 
 /* PRIVATE */
 
+/* STRAIGHT LAYER */
+
 /*
  * Build a straight layer (with opposition to tilted layer).
  * The layer can be skewed around the (X=0) plane if requested.
  */
 void Layer::buildStraight() {
 
-  // Compute a rod
+  // COMPUTES A ROD TEMPLATE
   RodTemplate rodTemplate = makeRodTemplate();
 
-  const bool isFlatPart = isTilted();  // Layer::buildStraight() is also used to build the flat part of a tilted layer.
-  // FLAT LAYER
-  if (!isFlatPart) {
-    // if numRods is not specified, compute it from coverage info.
-    if (!numRods.state()) {
-      std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
-      placeRadius_ = optimalLayerParms.first; 
-      numRods(optimalLayerParms.second);
-    }
-    else {
-      placeRadius_ = placeRadiusHint();
-    }
-  }
-  // FLAT PART OF A TILTED LAYER
-  else {
-    placeRadius_ = placeRadiusHint();
-  }
-
-  if (!minBuildRadius.state() || !maxBuildRadius.state()) {
-    minBuildRadius(placeRadius_);
-    maxBuildRadius(placeRadius_);
-  }
+  // MID-RADIUS PLACEMENT AND NUMRODS
+  computePlaceRadiiAndNumRods(rodTemplate);  
 
   // NON-SKEWED LAYER: compute shift in Phi between consecutive rods centers.
   const double rodCenterPhiShift = computeRodCenterPhiShift();
@@ -308,47 +290,172 @@ void Layer::buildStraight() {
   StraightRodPair* skewedRod = GeometryFactory::clone(*firstRod);
 
   // FIRST ROD : place and store
-  const bool isFirstRodAtPlusBigDelta = (!isSkewedForInstallation() ? (bigParity() > 0) : false);
-  double firstRodCenterPhi = 0.;
-  if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
-    const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
-    firstRodCenterPhi = (forbiddenPhiUpperA + rodCenterPhiShift / 2.);
-  }
-  if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
-  placeAndStoreRod(firstRod, rodTemplate, isFirstRodAtPlusBigDelta, firstRodCenterPhi);
-  if (!isFlatPart) { buildNumModulesFlat(firstRod->numModulesSide(1)); }
+  const bool isFirstRodAtPlusBigDelta = placeAndStoreFirstRod(firstRod, rodTemplate,
+							      rodCenterPhiShift, installationMinusBigDeltaRodCenterPhiShift);
 
   // SECOND ROD : assign other properties, place and store
-  secondRod->myid(2);
-  if (!sameParityRods()) secondRod->zPlusParity(-1 * firstRod->zPlusParity());
-  const bool isSecondRodAtPlusBigDelta = !isFirstRodAtPlusBigDelta;
-  double secondRodCenterPhi = 0.;
-  if (!isSkewedForInstallation()) { secondRodCenterPhi = firstRodCenterPhi + rodCenterPhiShift; }
-  else { secondRodCenterPhi = firstRodCenterPhi + commonRodCenterPhiShift; }
-  placeAndStoreRod(secondRod, rodTemplate, isSecondRodAtPlusBigDelta, secondRodCenterPhi);
+  const double firstRodCenterPhi = firstRod->Phi();
+  placeAndStoreSecondRod(secondRod, rodTemplate, 
+			 isFirstRodAtPlusBigDelta, firstRod->zPlusParity(), firstRodCenterPhi, 
+			 rodCenterPhiShift, commonRodCenterPhiShift);
 
   // NON-SKEWED INSTALLATION MODE
   if (!isSkewedForInstallation()) { 
     buildAndStoreClonedRodsInNonSkewedMode(firstRod, secondRod,
-					   firstRodCenterPhi, secondRodCenterPhi,
 					   rodCenterPhiShift);
   }
 
   // SKEWED INSTALLATION MODE
   else {
     buildAndStoreClonedRodsInSkewedMode(firstRod, secondRod, skewedRod,
-					firstRodCenterPhi, secondRodCenterPhi,
 					commonRodCenterPhiShift, skewedRodCenterPhiShift);
   }
 
 }
 
 
+/* generic optimizations methods */
+
+/*
+ * Create a template untilted rod (can be skewed).
+ */
+RodTemplate Layer::makeRodTemplate(const double skewAngle) {
+  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
+  for (int i = 0; i < rodTemplate.size(); i++) {
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
+    rodTemplate[i]->store(propertyTree());
+    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
+    if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
+    rodTemplate[i]->build();
+  }
+  return rodTemplate;
+}
+
+
+/*
+ * Compute the layer mid-radii and numRods if needed.
+ */
+void Layer::computePlaceRadiiAndNumRods(const RodTemplate& rodTemplate) {
+
+  // Is it a non-tilted layer, or the flat part of a tilted layer?
+  // Indeed, Layer::buildStraight() is also used to build the flat part of a tilted layer.
+  const bool isFlatPart = isTilted();  
+
+  // FLAT LAYER
+  if (!isFlatPart) {
+    // if numRods is not specified, compute it from coverage info.
+    if (!numRods.state()) {
+      std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
+      placeRadius_ = optimalLayerParms.first; 
+      numRods(optimalLayerParms.second);
+    }
+    // otherwise, just place the layer at the specified radius.
+    else { placeRadius_ = placeRadiusHint(); }
+  }
+
+  // FLAT PART OF A TILTED LAYER
+  else { placeRadius_ = placeRadiusHint(); } // place the layer at the specified radius.
+
+  if (!minBuildRadius.state() || !maxBuildRadius.state()) {
+    minBuildRadius(placeRadius_);
+    maxBuildRadius(placeRadius_);
+  }
+}
+
+
+/*
+ * Straight layer: compute parameters of interest.
+ */
+std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
+                                                              
+  // CUIDADO fix placeRadiusHint!!!!!
+  double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
+                                            rodTemplate.end(), 
+                                            [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
+  float moduleWidth = (*rodTemplate.rbegin())->minWidth();
+  float f = moduleWidth/2 - phiOverlap()/2;
+  float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
+
+  float tentativeModsPerSegment = 2. * M_PI / (gamma * phiSegments());
+
+  float optimalRadius;
+  int optimalModsPerSegment;
+
+  switch (radiusMode()) {
+  case SHRINK:
+    optimalModsPerSegment = floor(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    break;
+  case ENLARGE:
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    break;
+  case FIXED:
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
+    optimalRadius = placeRadiusHint();
+    break;
+  case AUTO: {
+    int modsPerSegLo = floor(tentativeModsPerSegment);
+    int modsPerSegHi = ceil(tentativeModsPerSegment);
+    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+
+    if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
+      optimalRadius = radiusHi;
+      optimalModsPerSegment = modsPerSegHi;
+    } else {
+      optimalRadius = radiusLo;
+      optimalModsPerSegment = modsPerSegLo;
+    }
+    break;
+             }
+  default:
+    throw PathfulException("Invalid value for enum radiusMode");
+  }
+
+  return std::make_pair(optimalRadius, optimalModsPerSegment*phiSegments());
+}
+
+
+/*
+ * Straight layer: compute mean radius from other available parameters.
+ */
+double Layer::calculatePlaceRadius(int numRods,
+                                   double bigDelta,
+                                   double smallDelta,
+                                   double dsDistance,
+                                   double moduleWidth,
+                                   double overlap) {
+
+  double d = dsDistance/2;
+
+  double f = (moduleWidth/2) - (overlap/2);
+
+  double R = bigDelta + smallDelta + d;
+  double S = -bigDelta + smallDelta + d;
+
+  double T = tan(2*M_PI/numRods);
+
+  double a = T;
+  double b = R*T + S*T - 2*f;
+  double c = R*S*T - R*f - S*f - T*f*f;
+
+  double r = (-b + sqrt(b*b - 4*a*c))/(2*a);
+
+  return r;
+}
+
+
+/*
+ * Non-Skewed mode:
+ * Compute shift in Phi between consecutive rods centers.
+ */
 const double Layer::computeRodCenterPhiShift() const {
   double rodCenterPhiShift = 0;
-  if (!phiForbiddenRanges.state()) {
-    rodCenterPhiShift = 2. * M_PI / numRods();
-  }
+
+  if (!phiForbiddenRanges.state()) { rodCenterPhiShift = 2. * M_PI / numRods(); }
+
   // PHI FORBIDDEN RANGE: forbid rod placement in phi, in a given phi range.
   else {
     const double forbiddenPhiLowerA = phiForbiddenRanges.at(0) * M_PI / 180.;
@@ -358,10 +465,14 @@ const double Layer::computeRodCenterPhiShift() const {
     const double forbiddenPhiCircumference = forbiddenPhiUpperA - forbiddenPhiLowerA + forbiddenPhiUpperB - forbiddenPhiLowerB;
     rodCenterPhiShift = (2*M_PI - forbiddenPhiCircumference) / numRods();
   }
+
   return rodCenterPhiShift;
 }
 
 
+/*
+ * Assign rod common properties & property tree (use before cloning).
+ */
 void Layer::assignRodCommonProperties(StraightRodPair* rod) const {
   rod->myid(1);
   rod->minBuildRadius(minBuildRadius() - bigDelta());
@@ -376,6 +487,60 @@ void Layer::assignRodCommonProperties(StraightRodPair* rod) const {
 }
 
 
+/* not specific to skewed mode */
+
+/*
+ * Place and store the first rod.
+ */
+const bool Layer::placeAndStoreFirstRod(StraightRodPair* firstRod, const RodTemplate& rodTemplate,
+					const double rodCenterPhiShift, const double installationMinusBigDeltaRodCenterPhiShift) {
+
+  // COMPUTE PHI POSITION
+  double firstRodCenterPhi = 0.;
+  // phi forbidden range: forbid rod placement in phi, in a given phi range.
+  if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
+    const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
+    firstRodCenterPhi = (forbiddenPhiUpperA + rodCenterPhiShift / 2.);
+  }
+  // skewed mode: the first rod has a specific shift in Phi.
+  if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
+
+  // PLACE AND STORE
+  const bool isFirstRodAtPlusBigDelta = (!isSkewedForInstallation() ? (bigParity() > 0) : false);
+  placeAndStoreRod(firstRod, rodTemplate, isFirstRodAtPlusBigDelta, firstRodCenterPhi);
+  const bool isFlatPart = isTilted();
+  if (!isFlatPart) { buildNumModulesFlat(firstRod->numModulesSide(1)); }
+
+  return isFirstRodAtPlusBigDelta;
+}
+
+
+/*
+ * Place and store the second rod.
+ */
+void Layer::placeAndStoreSecondRod(StraightRodPair* secondRod, const RodTemplate& rodTemplate, 
+				   const bool isFirstRodAtPlusBigDelta, const int firstRodZPlusParity, const double firstRodCenterPhi, 
+				   const double rodCenterPhiShift, const double commonRodCenterPhiShift) {
+
+  secondRod->myid(2);
+  if (!sameParityRods()) secondRod->zPlusParity(-1 * firstRodZPlusParity);
+  
+  // COMPUTE PHI POSITION
+  double secondRodCenterPhi = firstRodCenterPhi;
+  if (!isSkewedForInstallation()) { secondRodCenterPhi += rodCenterPhiShift; }
+  // skewed mode: the second rod has a specific shift in Phi.
+  else { secondRodCenterPhi += commonRodCenterPhiShift; }
+
+  // PLACE AND STORE
+  const bool isSecondRodAtPlusBigDelta = !isFirstRodAtPlusBigDelta;
+  placeAndStoreRod(secondRod, rodTemplate, isSecondRodAtPlusBigDelta, secondRodCenterPhi);
+
+}
+
+
+/*
+ * Place a rod radially and in phi + Store it.
+ */
 void Layer::placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi) {
   rod->isOuterRadiusRod(isPlusBigDeltaRod);
   rod->build(rodTemplate, isPlusBigDeltaRod);
@@ -390,17 +555,25 @@ void Layer::placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplat
 }
 
 
+/*
+ * Non-Skewed mode:
+ * General method to build & store all other rods (apart from first 2 rods).
+ */
 void Layer::buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod,
-						   const double firstRodCenterPhi, const double secondRodCenterPhi,
 						   const double rodCenterPhiShift) {
-  // All other Rods
+  // ALL OTHER RODS
   for (int i = 2; i < numRods(); i++) {
-    StraightRodPair* rod = i%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods
+
+    // CLONE RODS
+    StraightRodPair* rod = i%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod);
     rod->myid(i+1);
 
-    // Phi rotation
+    // PHI ROTATION
     double deltaPhi = rodCenterPhiShift * (i%2 ? i-1 : i);  // Extra Phi, added to the copy of secondRod or firstRod respectively.
+    // phiForbidden Range
     if (phiForbiddenRanges.state()) {
+      const double firstRodCenterPhi = firstRod->Phi();
+      const double secondRodCenterPhi = secondRod->Phi();
       double iRodPhi = (i%2 ? secondRodCenterPhi : firstRodCenterPhi) + deltaPhi;  // Total Phi of rod number i.
       const double forbiddenPhiLowerB = phiForbiddenRanges.at(2) * M_PI / 180.;
       const double forbiddenPhiUpperB = phiForbiddenRanges.at(3) * M_PI / 180.;
@@ -410,7 +583,7 @@ void Layer::buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstR
     }
     rod->rotateZ(deltaPhi);
 
-    // Store
+    // STORE
     const bool isFlatPart = isTilted();
     if (!isFlatPart) { rods_.push_back(rod); }
     else { flatPartRods_.push_back(rod); }
@@ -418,97 +591,220 @@ void Layer::buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstR
 }
 
 
+/* dedicated to skewed mode */
+
+/*
+ * Skewed layer: Compute all parameters of interest.
+ */
+const SkewedLayerPhiShifts Layer::buildSkewed() {
+
+  // any module
+  RectangularModule* mod = GeometryFactory::make<RectangularModule>();
+  mod->store(propertyTree());
+  if (ringNode.count(1) > 0) mod->store(ringNode.at(1));  // no different module types allowed along a rod for the moment!!!
+  mod->build();
+  const double moduleWidth = mod->width();
+
+
+  const SkewedLayerInfo& info = computeSkewedLayerInfo(placeRadiusHint(), bigDelta(), numRods(), moduleWidth, skewedModuleEdgeShift(), installationOverlapRatio());
+
+  skewedModuleMinRho(info.skewedModuleMinRho);
+  skewedModuleCenterRho(info.skewedModuleCenterRho);
+  skewedModuleMaxRho(info.skewedModuleMaxRho);
+  skewAngle(info.skewAngle);
+  unitPhiOverlapLength(info.unitPhiOverlapLength);
+  installationHorizontalOverlapLength(info.installationHorizontalOverlapLength);
+  const SkewedLayerPhiShifts& phiShifts = info.phiShifts;
+
+  return phiShifts; 
+}
+
+
+/*
+ * Skewed layer: geometry helper.
+ */
+const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio) {
+
+  const double skewAperture = 2. * asin( 0.5 * skewedModuleEdgeShift / moduleWidth);
+
+  // FLAT RODS: RADII AND PHI COVERAGE
+  const double minusBigDeltaRodCenterRho = layerCenterRho - bigDelta;
+  const double plusBigDeltaRodCenterRho = layerCenterRho + bigDelta;
+  const double minusBigDeltaRodMaxRho = sqrt( pow(minusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.));
+  const double minusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / minusBigDeltaRodCenterRho);
+  const double plusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / plusBigDeltaRodCenterRho);
+
+  // SKEWED RODS: RADII AND PHI COVERAGE
+  const double skewedModuleMinRho = sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
+  const double skewedModuleCenterRho = sqrt( pow(skewedModuleMinRho, 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov));
+  const double skewedRodLowerHalfPhiCov = acos( 
+					       (pow(skewedModuleMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
+					       / ( 2. * skewedModuleMinRho * skewedModuleCenterRho)
+						);
+  const double skewAngle = skewAperture - (plusBigDeltaRodPhiCov / 2. - skewedRodLowerHalfPhiCov);
+
+  const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift * sin(skewAperture/2.)) / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) );   // the skewed rod is at +bigDelta  
+  const double skewedRodTotalPhiCov = plusBigDeltaRodPhiCov / 2. + beta;
+
+  const double skewedModuleMaxRho = (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) / cos(beta); // the skewed rod is at +bigDelta
+  /*const double skewedRodUpperHalfPhiCov = acos( 
+					       (pow(skewedModuleMaxRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
+					       / ( 2. * skewedModuleMaxRho * skewedModuleCenterRho)
+					       );*/
+
+  // NUMBER OF RODS
+  const int numSkewedRods = 2; // Harcoded number of skewed rods!!
+  const int numMinusBigDeltaRods = numRods / 2;
+  const int numPlusBigDeltaRods = numRods / 2 - numSkewedRods; // the skewed rods are at +bigDelta
+
+  // PHI OVERLAPS!!
+  const double totalPhiCov = numMinusBigDeltaRods * minusBigDeltaRodPhiCov + numPlusBigDeltaRods * plusBigDeltaRodPhiCov + numSkewedRods * skewedRodTotalPhiCov;
+  const double totalPhiOverlap = totalPhiCov - 2. * M_PI;
+  const double unitPhiOverlapAngle = totalPhiOverlap / (numRods - numSkewedRods + numSkewedRods * installationOverlapRatio);
+  const double unitPhiOverlapLength = unitPhiOverlapAngle * layerCenterRho;
+
+  
+  const double installationPhiOverlapAngle = installationOverlapRatio * unitPhiOverlapAngle;
+  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationPhiOverlapAngle)) / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationPhiOverlapAngle)) );
+  const double unskewedInstallationPhiOverlapAngle = installationPhiOverlapAngle - skewedInstallationPhiOverlapAngle;
+  const double installationHorizontalOverlapLength = skewedModuleMaxRho * sin(skewedInstallationPhiOverlapAngle);
+    
+
+
+  // PHI SHIFTS (TO BE USED FOR ROD PLACEMENT IN PHI)
+  //installationSkewedRodCenterPhiShift = skewedRodTotalPhiCov / 2. - skewedInstallationPhiOverlapAngle;
+  //nextRodCenterPhiShift = skewedRodTotalPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
+  const double installationMinusBigDeltaRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. - unskewedInstallationPhiOverlapAngle;
+  const double commonRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. + plusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
+  const double skewedRodCenterPhiShift = skewedRodLowerHalfPhiCov + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle; // the skewed rod is at +bigDelta 
+
+
+  // GATHER ALL RESULTS OF INTEREST
+  const SkewedLayerPhiShifts& phiShifts = SkewedLayerPhiShifts{ installationMinusBigDeltaRodCenterPhiShift, commonRodCenterPhiShift, skewedRodCenterPhiShift };
+  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAngle, unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
+
+  return info;
+}
+
+
+/*
+ * Skewed mode:
+ * General method to build & store all rods.
+ */
 void Layer::buildAndStoreClonedRodsInSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
-						const double firstRodCenterPhi, const double secondRodCenterPhi,
 						const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift) {
   
   const int numRodsPerXSide = numRods() / 2;
-  double lastRodPhi = 0.;
+  double lastNonSkewedRodCenterPhi = 0.;  // Phi of the center of the last non-skewed rod which has been computed.
+                                          // This will in turn be used to computed the phi of the skewed rod.
 
+  // LOOP ON ALL RODS
+  // NB: Works on one (X) side.
+  // The other (X) side is automatically computed on the fly, as a rotation in Phi by Pi.
   for (int rodId = 1; rodId <= (numRodsPerXSide); rodId++) {
     
     // NON-SKEWED RODS
     if (rodId != numRodsPerXSide) {
-      lastRodPhi = buildAndStoreNonSkewedRodsInSkewedMode(rodId, numRodsPerXSide,
-							  firstRod, secondRod,
-							  firstRodCenterPhi, secondRodCenterPhi,
-							  commonRodCenterPhiShift);
+      lastNonSkewedRodCenterPhi = buildAndStoreNonSkewedRodsInSkewedMode(rodId, numRodsPerXSide,
+									 firstRod, secondRod,
+									 commonRodCenterPhiShift);
     }
 
-    // SKEWED ROD : assign other properties, build and store 
+    // SKEWED ROD
     else {
       buildAndStoreSkewedRods(numRodsPerXSide,
 			      skewedRod,
-			      lastRodPhi, skewedRodCenterPhiShift);
+			      lastNonSkewedRodCenterPhi, skewedRodCenterPhiShift);
     }
 
   }
 }
 
 
+/*
+ * Skewed mode:
+ * Method to build & store all non-skewed rods.
+ */
 double Layer::buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int numRodsPerXSide,
 						     const StraightRodPair* firstRod, const StraightRodPair* secondRod,
-						     const double firstRodCenterPhi, const double secondRodCenterPhi,
 						     const double commonRodCenterPhiShift) {
-  double lastRodPhi = 0.;
+  double lastNonSkewedRodCenterPhi = 0.;
 
-  StraightRodPair* rod = (rodId-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod); // clone rods
+  // CLONE RODS
+  StraightRodPair* rod = (rodId-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod);
+  const double firstRodCenterPhi = firstRod->Phi();
+  const double secondRodCenterPhi = secondRod->Phi();
   const double rodClonedPhi = (rodId-1)%2 ? secondRodCenterPhi : firstRodCenterPhi;  
   rod->myid(rodId);
-  lastRodPhi = rodClonedPhi;
+  lastNonSkewedRodCenterPhi = rodClonedPhi;
 
+  // FIRST 2 RODS
+  // if bigParity() > 0, mirror all rods phi placements through the (XZ) plane.
   if (rodId <= 2 && bigParity() > 0) {
-    const double rodPhiPosition = M_PI - rodClonedPhi; 
-    rod->rotateZ(-rodClonedPhi + rodPhiPosition);
-    lastRodPhi = rodPhiPosition;
+    const double rodPhiPosition = M_PI - rodClonedPhi; // mirror through (XZ) plane.
+    rod->rotateZ(-rodClonedPhi + rodPhiPosition);      // -rodClonedPhi is to remove whatever phi position the rod already has.
+    lastNonSkewedRodCenterPhi = rodPhiPosition;
   }
-      
+
+  // CLONE THE FIRST 2 RODS, PLACE AND STORE.
   if (rodId >= 3) {
     // Phi rotation
     const double rodPhiShift = secondRodCenterPhi + (rodId - 2) * commonRodCenterPhiShift;
     const double rodPhiPosition = (bigParity() < 0 ? rodPhiShift : M_PI - rodPhiShift);
-    rod->rotateZ(-rodClonedPhi + rodPhiPosition);
-    lastRodPhi = rodPhiPosition;
+    rod->rotateZ(-rodClonedPhi + rodPhiPosition);      // -rodClonedPhi is to remove whatever phi position the rod already has.
+    lastNonSkewedRodCenterPhi = rodPhiPosition;
   }
 
-  // Store
+  // STORE
   rods_.push_back(rod);
       
-  // Rod at + PI also added here
+  // THE OTHER (X) SIDE HALF IS BUILT ON THE FLY HERE.
+  // Build Rod at + PI.
   StraightRodPair* rotatedByPiInPhiRod = buildRotatedByPiInPhiRod(rod, numRodsPerXSide);
-  // Store
+  // Store Rod at + PI.
   rods_.push_back(rotatedByPiInPhiRod);
 
-  return lastRodPhi;
+  return lastNonSkewedRodCenterPhi;
 }
 
 
+/*
+ * Skewed mode:
+ * Method to build & store the skewed rods.
+ */
 void Layer::buildAndStoreSkewedRods(const int numRodsPerXSide,
 				    StraightRodPair* skewedRod,
-				    const double lastRodPhi, const double skewedRodCenterPhiShift) {
+				    const double lastNonSkewedRodCenterPhi, const double skewedRodCenterPhiShift) {
 
+  // BUILD A ROD WITH SKEWED MODULES.
   const double orientedSkewAngle = bigParity() * skewAngle();  // orientation of the skew angle in the (XY) plane
   RodTemplate skewedRodTemplate = makeRodTemplate(orientedSkewAngle);
-  const bool isPlusBigDeltaRod = true;                        // the skewed rod is at +bigDelta
+
+  // PLACE SKEWED ROD RADIALLY
+  const bool isPlusBigDeltaRod = true;                         // the skewed rod is at +bigDelta
   skewedRod->isOuterRadiusRod(isPlusBigDeltaRod);
   skewedRod->build(skewedRodTemplate, isPlusBigDeltaRod);
   skewedRod->translateR(skewedModuleCenterRho());
   skewedRod->myid(numRodsPerXSide);
 
-  // Phi rotation
-  const double skewedRodPhi = lastRodPhi - bigParity() * skewedRodCenterPhiShift;
+  // PLACE SKEWED ROD IN PHI
+  const double skewedRodPhi = lastNonSkewedRodCenterPhi - bigParity() * skewedRodCenterPhiShift;
   skewedRod->rotateZ(skewedRodPhi);
 
-  // Store
+  // STORE
   rods_.push_back(skewedRod);
 
-  // Rod at + PI also added here
+  // THE OTHER (X) SIDE HALF IS BUILT ON THE FLY HERE.
+  // Build Rod at + PI.
   StraightRodPair* rotatedByPiInPhiRod = buildRotatedByPiInPhiRod(skewedRod, numRodsPerXSide);
-  // Store
+  // Store Rod at + PI.
   rods_.push_back(rotatedByPiInPhiRod);
 }
 
 
+/*
+ * Build & return a clone of initialRod, but located at +Pi in Phi.
+ */
 StraightRodPair* Layer::buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const {
   if (!initialRod) {
     throw PathfulException("Tried to clone a rod which does not exist.");
@@ -524,6 +820,7 @@ StraightRodPair* Layer::buildRotatedByPiInPhiRod(const StraightRodPair* initialR
 }
 
 
+/* TILTED LAYER */
 
 /*
  * Build a tilted layer.
@@ -736,23 +1033,6 @@ void Layer::buildTilted() {
 
 
 /*
- * Create a template untilted rod (can be skewed).
- */
-RodTemplate Layer::makeRodTemplate(const double skewAngle) {
-  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
-  //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
-  for (int i = 0; i < rodTemplate.size(); i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
-    rodTemplate[i]->store(propertyTree());
-    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
-    if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
-    rodTemplate[i]->build();
-  }
-  return rodTemplate;
-}
-
-
-/*
  * Create a template tilted rod.
  */
 TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
@@ -777,181 +1057,4 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
   }
 
   return tiltedRingsGeometry;
-}
-
-
-/*
- * Straight layer: compute parameters of interest.
- */
-std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
-                                                              
-  // CUIDADO fix placeRadiusHint!!!!!
-  double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
-                                            rodTemplate.end(), 
-                                            [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
-  float moduleWidth = (*rodTemplate.rbegin())->minWidth();
-  float f = moduleWidth/2 - phiOverlap()/2;
-  float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
-
-  float tentativeModsPerSegment = 2. * M_PI / (gamma * phiSegments());
-
-  float optimalRadius;
-  int optimalModsPerSegment;
-
-  switch (radiusMode()) {
-  case SHRINK:
-    optimalModsPerSegment = floor(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    break;
-  case ENLARGE:
-    optimalModsPerSegment = ceil(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    break;
-  case FIXED:
-    optimalModsPerSegment = ceil(tentativeModsPerSegment);
-    optimalRadius = placeRadiusHint();
-    break;
-  case AUTO: {
-    int modsPerSegLo = floor(tentativeModsPerSegment);
-    int modsPerSegHi = ceil(tentativeModsPerSegment);
-    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
-
-    if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
-      optimalRadius = radiusHi;
-      optimalModsPerSegment = modsPerSegHi;
-    } else {
-      optimalRadius = radiusLo;
-      optimalModsPerSegment = modsPerSegLo;
-    }
-    break;
-             }
-  default:
-    throw PathfulException("Invalid value for enum radiusMode");
-  }
-
-  return std::make_pair(optimalRadius, optimalModsPerSegment*phiSegments());
-}
-
-
-/*
- * Straight layer: compute mean radius from other available parameters.
- */
-double Layer::calculatePlaceRadius(int numRods,
-                                   double bigDelta,
-                                   double smallDelta,
-                                   double dsDistance,
-                                   double moduleWidth,
-                                   double overlap) {
-
-  double d = dsDistance/2;
-
-  double f = (moduleWidth/2) - (overlap/2);
-
-  double R = bigDelta + smallDelta + d;
-  double S = -bigDelta + smallDelta + d;
-
-  double T = tan(2*M_PI/numRods);
-
-  double a = T;
-  double b = R*T + S*T - 2*f;
-  double c = R*S*T - R*f - S*f - T*f*f;
-
-  double r = (-b + sqrt(b*b - 4*a*c))/(2*a);
-
-  return r;
-}
-
-
-/*
- * Skewed layer: Compute all parameters of interest.
- */
-const SkewedLayerPhiShifts Layer::buildSkewed() {
-
-  // any module
-  RectangularModule* mod = GeometryFactory::make<RectangularModule>();
-  mod->store(propertyTree());
-  if (ringNode.count(1) > 0) mod->store(ringNode.at(1));  // no different module types allowed along a rod for the moment!!!
-  mod->build();
-  const double moduleWidth = mod->width();
-
-
-  const SkewedLayerInfo& info = computeSkewedLayerInfo(placeRadiusHint(), bigDelta(), numRods(), moduleWidth, skewedModuleEdgeShift(), installationOverlapRatio());
-
-  skewedModuleMinRho(info.skewedModuleMinRho);
-  skewedModuleCenterRho(info.skewedModuleCenterRho);
-  skewedModuleMaxRho(info.skewedModuleMaxRho);
-  skewAngle(info.skewAngle);
-  unitPhiOverlapLength(info.unitPhiOverlapLength);
-  installationHorizontalOverlapLength(info.installationHorizontalOverlapLength);
-  const SkewedLayerPhiShifts& phiShifts = info.phiShifts;
-
-  return phiShifts; 
-}
-
-
-/*
- * Skewed layer: geometry helper.
- */
-const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio) {
-
-  const double skewAperture = 2. * asin( 0.5 * skewedModuleEdgeShift / moduleWidth);
-
-  // FLAT RODS: RADII AND PHI COVERAGE
-  const double minusBigDeltaRodCenterRho = layerCenterRho - bigDelta;
-  const double plusBigDeltaRodCenterRho = layerCenterRho + bigDelta;
-  const double minusBigDeltaRodMaxRho = sqrt( pow(minusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.));
-  const double minusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / minusBigDeltaRodCenterRho);
-  const double plusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / plusBigDeltaRodCenterRho);
-
-  // SKEWED RODS: RADII AND PHI COVERAGE
-  const double skewedModuleMinRho = sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-  const double skewedModuleCenterRho = sqrt( pow(skewedModuleMinRho, 2) + pow(0.5 * moduleWidth, 2.) + skewedModuleMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov));
-  const double skewedRodLowerHalfPhiCov = acos( 
-					       (pow(skewedModuleMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
-					       / ( 2. * skewedModuleMinRho * skewedModuleCenterRho)
-						);
-  const double skewAngle = skewAperture - (plusBigDeltaRodPhiCov / 2. - skewedRodLowerHalfPhiCov);
-
-  const double beta = atan( (moduleWidth/2. - skewedModuleEdgeShift * sin(skewAperture/2.)) / (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) );   // the skewed rod is at +bigDelta  
-  const double skewedRodTotalPhiCov = plusBigDeltaRodPhiCov / 2. + beta;
-
-  const double skewedModuleMaxRho = (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) / cos(beta); // the skewed rod is at +bigDelta
-  /*const double skewedRodUpperHalfPhiCov = acos( 
-					       (pow(skewedModuleMaxRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
-					       / ( 2. * skewedModuleMaxRho * skewedModuleCenterRho)
-					       );*/
-
-  // NUMBER OF RODS
-  const int numSkewedRods = 2; // Harcoded number of skewed rods!!
-  const int numMinusBigDeltaRods = numRods / 2;
-  const int numPlusBigDeltaRods = numRods / 2 - numSkewedRods; // the skewed rods are at +bigDelta
-
-  // PHI OVERLAPS!!
-  const double totalPhiCov = numMinusBigDeltaRods * minusBigDeltaRodPhiCov + numPlusBigDeltaRods * plusBigDeltaRodPhiCov + numSkewedRods * skewedRodTotalPhiCov;
-  const double totalPhiOverlap = totalPhiCov - 2. * M_PI;
-  const double unitPhiOverlapAngle = totalPhiOverlap / (numRods - numSkewedRods + numSkewedRods * installationOverlapRatio);
-  const double unitPhiOverlapLength = unitPhiOverlapAngle * layerCenterRho;
-
-  
-  const double installationPhiOverlapAngle = installationOverlapRatio * unitPhiOverlapAngle;
-  const double skewedInstallationPhiOverlapAngle = atan( (minusBigDeltaRodMaxRho * sin(installationPhiOverlapAngle)) / (skewedModuleMaxRho + minusBigDeltaRodMaxRho * cos(installationPhiOverlapAngle)) );
-  const double unskewedInstallationPhiOverlapAngle = installationPhiOverlapAngle - skewedInstallationPhiOverlapAngle;
-  const double installationHorizontalOverlapLength = skewedModuleMaxRho * sin(skewedInstallationPhiOverlapAngle);
-    
-
-
-  // PHI SHIFTS (TO BE USED FOR ROD PLACEMENT IN PHI)
-  //installationSkewedRodCenterPhiShift = skewedRodTotalPhiCov / 2. - skewedInstallationPhiOverlapAngle;
-  //nextRodCenterPhiShift = skewedRodTotalPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
-  const double installationMinusBigDeltaRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. - unskewedInstallationPhiOverlapAngle;
-  const double commonRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. + plusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
-  const double skewedRodCenterPhiShift = skewedRodLowerHalfPhiCov + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle; // the skewed rod is at +bigDelta 
-
-
-  // GATHER ALL RESULTS OF INTEREST
-  const SkewedLayerPhiShifts& phiShifts = SkewedLayerPhiShifts{ installationMinusBigDeltaRodCenterPhiShift, commonRodCenterPhiShift, skewedRodCenterPhiShift };
-  const SkewedLayerInfo& info = SkewedLayerInfo{ skewedModuleMinRho, skewedModuleCenterRho, skewedModuleMaxRho, skewAngle, unitPhiOverlapLength, installationHorizontalOverlapLength, phiShifts };
-
-  return info;
 }
