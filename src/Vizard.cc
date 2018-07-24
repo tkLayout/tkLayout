@@ -1901,6 +1901,7 @@ namespace insur {
     tracker.accept(v);
     v.postVisit();
 
+    // TO DO : replace this with a better spacer
     RootWTable* spacer = new RootWTable();
     spacer->setContent(0, 0, " ");
     spacer->setContent(1, 0, " ");
@@ -1912,17 +1913,26 @@ namespace insur {
     myContent->addItem(v.diskTable);
 
 
-    myContent = new RootWContent("Endcaps : additional info", false);
-    myPage->addContent(myContent);
-    for (int i = 0; i < v.nEndcaps; i++) {
-      if (i > 0) myContent->addItem(spacer);
-      myContent->addItem(v.endcapNames.at(i));
-      myContent->addItem(v.endcapTables.at(i));
-    }
-    for (int i = 0; i < v.nDisks; i++) {
-      myContent->addItem(spacer);
-      myContent->addItem(v.diskNames.at(i));
-      myContent->addItem(v.zErrorTables.at(i));
+    //***************************************//
+    //*                                     *//
+    //*              Barrel :               *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+    myContent = new RootWContent("Barrel : additional info", false);
+
+    SkewedLayersVisitor sv;
+    tracker.accept(sv);
+
+    if (sv.numSkewedLayers > 0) {
+      myPage->addContent(myContent);
+
+      for (int i = 0; i < sv.numSkewedLayers; i++) {
+	// layer
+	myContent->addItem(sv.tables.at(i));
+	// spacer
+	if (i < sv.numSkewedLayers - 1) { myContent->addItem(spacer); }
+      }
     }
 
 
@@ -1941,13 +1951,6 @@ namespace insur {
     if (tv.numTiltedLayers > 0) {
       myPage->addContent(myContent);
 
-      // TO DO : replace this with a better spacer
-      RootWTable* spacer = new RootWTable();
-      spacer->setContent(0, 0, " ");
-      spacer->setContent(1, 0, " ");
-      spacer->setContent(2, 0, " ");
-      spacer->setContent(3, 0, " ");
-
       for (int i = 0; i < tv.numTiltedLayers; i++) {
 	// layer name
 	myContent->addItem(tv.tiltedLayerNames.at(i));
@@ -1960,6 +1963,26 @@ namespace insur {
 	// spacer
 	if (i < tv.numTiltedLayers - 1) { myContent->addItem(spacer); }
       }
+    }
+
+
+    //***************************************//
+    //*                                     *//
+    //*              Endcaps :              *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+    myContent = new RootWContent("Endcaps : additional info", false);
+    myPage->addContent(myContent);
+    for (int i = 0; i < v.nEndcaps; i++) {
+      if (i > 0) myContent->addItem(spacer);
+      myContent->addItem(v.endcapNames.at(i));
+      myContent->addItem(v.endcapTables.at(i));
+    }
+    for (int i = 0; i < v.nDisks; i++) {
+      myContent->addItem(spacer);
+      myContent->addItem(v.diskNames.at(i));
+      myContent->addItem(v.zErrorTables.at(i));
     }
 
 

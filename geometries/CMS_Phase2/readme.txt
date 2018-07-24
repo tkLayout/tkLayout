@@ -239,7 +239,7 @@ OT613_200_IT407.cfg                  OT Version 6.1.3
                                       - 50x50 in 1x2 modules, 25x100 in 2x2 modules.   
                                       
 OT613_200_IT408.cfg                  OT Version 6.1.3
-                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2
+                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                           
      
                                      
@@ -373,8 +373,32 @@ OT613_200_IT503.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.3: 
                                       - geometry same as IT5.0.1
                                       - 50x50 in 1x1 and 1x2 modules, 25x100 in 2x2 modules.
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                                                                                               
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
 
+
+============   SKEWED INNER TRACKER STUDIES   ============                 
+OT614_200_IT600.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 6.0.0 : skewed Inner Tracker. Head of series.
+                                     The shift of the edge of a skewed module is set to 5 mm.
+                                     The phi positions are automatically computed, so that the angular overlap around the (X=0) plane
+                                     is 2.x the angular overlap between 2 standard consecutive rods.
+                                     
+OT614_200_IT601.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.0.0.
+                                     Mid-radii in TBPX:                                     
+                                     * Layer 3: 100 mm -> 102 mm.
+                                     * Layer 4: 140 mm -> 143 mm.
+                                     
+OT614_200_IT602.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.0.1.
+                                     bigDelta in TBPX:      
+                                     * Layer 2: 1.5 mm -> 2.5 mm.                                                                    
+                                     * Layer 3: 1.5 mm -> 2.5 mm.  
+                                     * Layer 4: 1.5 mm -> 2.5 mm.  
+                                     Question: so Layer 1 would need to be lifted up?                                  
+                                     
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
+                                                                                           
 
 ============   TIMING BARREL LAYER STUDIES   =============
 OT613_200_IT4025.cfg  Reference "standard" 78 ladders

@@ -83,6 +83,27 @@ public:
 };
 
 
+
+
+    //***************************************//
+    //*                Visitor              *//
+    //*             Skewed layers:          *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+
+class SkewedLayersVisitor : public ConstGeometryVisitor {
+public:
+  std::vector<RootWTable*> tables;
+
+  // counter
+  int numSkewedLayers = 0;
+
+  void visit(const Layer& l) override;     
+};
+
+
+
     //***************************************//
     //*                Visitor              *//
     //* Automatic-placement tilted layers : *//

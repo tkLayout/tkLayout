@@ -27,72 +27,55 @@ using material::ConversionStation;
 
 typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
-class FlatRingsGeometryInfo {
- private:
-  //std::map<int, double> deltaZInner_;
-  //std::map<int, double> deltaZOuter_;
-  std::map<int, double> zErrorInner_;
-  std::map<int, double> zErrorOuter_;
- public:
-  FlatRingsGeometryInfo();
-  void calculateFlatRingsGeometryInfo(std::vector<StraightRodPair*> flatPartRods, double bigParity);
-  //std::map<int, double> deltaZInner() const { return deltaZInner_; }
-  //std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
-  std::map<int, double> zErrorInner() const { return zErrorInner_; }
-  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+struct SkewedLayerPhiShifts {
+  const double installationMinusBigDeltaRodCenterPhiShift;
+  const double commonRodCenterPhiShift;
+  const double skewedRodCenterPhiShift;
 };
 
-class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
- public:
-  typedef PtrVector<RodPair> Container;
- private:
-  class TiltedRingsGeometryInfo {
-  private:
-    std::map<int, double> deltaZInner_;
-    std::map<int, double> deltaZOuter_;
-    //std::map<int, double> covInner_;
-    std::map<int, double> zErrorInner_;
-    std::map<int, double> zErrorOuter_;
-  public:
-    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
-    std::map<int, double> deltaZInner() const { return deltaZInner_; }
-    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
-    //std::map<int, double> covInner() const { return covInner_; }
-    std::map<int, double> zErrorInner() const { return zErrorInner_; }
-    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
-  };
- private:
-  Container rods_;
-  MaterialObject materialObject_;
-  ConversionStation* flangeConversionStation_;
-  std::vector<ConversionStation*> secondConversionStations_;
-  std::vector<StraightRodPair*> flatPartRods_;
-  double flatPartPhiOverlapSmallDeltaMinus_;
-  double flatPartPhiOverlapSmallDeltaPlus_;
-  double flatPartAverageR_;
-  FlatRingsGeometryInfo flatRingsGeometryInfo_;
-  TiltedRingsTemplate tiltedRingsGeometry_;
-  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
-  int layerNumber_;
- 
-  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
-  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
-  RodTemplate makeRodTemplate();
-  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
+struct SkewedLayerInfo {  
+  const double skewedModuleMinRho;
+  const double skewedModuleCenterRho;
+  const double skewedModuleMaxRho;
+  const double skewAngle;
 
-  //Property<double, NoDefault> smallDelta, bigDelta;
-  //Property<int, Default> bigParity;
-  Property<double, NoDefault> phiOverlap;
-  Property<int, NoDefault> phiSegments;
+  const double unitPhiOverlapLength;
+  const double installationHorizontalOverlapLength;
 
-  PropertyNode<int> ringNode; // to grab properties for specific rod modules
-  PropertyNodeUnique<std::string> stationsNode;
+  const SkewedLayerPhiShifts phiShifts;
+};
 
-  double placeRadius_;
 
-  void buildStraight(bool isFlatPart);
-  void buildTilted();
+class FlatRingsGeometryInfo {
 public:
+  void calculateFlatRingsGeometryInfo(std::vector<StraightRodPair*> flatPartRods, double bigParity);
+  std::map<int, double> zErrorInner() const { return zErrorInner_; }
+  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+private:
+  std::map<int, double> zErrorInner_;
+  std::map<int, double> zErrorOuter_;
+};
+
+class TiltedRingsGeometryInfo {
+public:
+  TiltedRingsGeometryInfo() {};
+  TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
+  std::map<int, double> deltaZInner() const { return deltaZInner_; }
+  std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+  std::map<int, double> zErrorInner() const { return zErrorInner_; }
+  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+private:
+  std::map<int, double> deltaZInner_;
+  std::map<int, double> deltaZOuter_;
+  std::map<int, double> zErrorInner_;
+  std::map<int, double> zErrorOuter_;
+};
+
+
+class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
+public:
+  typedef PtrVector<RodPair> Container;
+
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
 
@@ -119,6 +102,18 @@ public:
   Property<bool, NoDefault> isTiltedAuto;
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
+  Property<bool, Default> isSkewedForInstallation;
+  Property<double, NoDefault> skewedModuleEdgeShift;
+  Property<double, Default> installationOverlapRatio;
+  
+  Property<double, AutoDefault> skewAngle;
+  Property<double, AutoDefault> skewedModuleMinRho; 
+  Property<double, AutoDefault> skewedModuleCenterRho;
+  Property<double, AutoDefault> skewedModuleMaxRho; 
+ 
+  Property<double, AutoDefault> unitPhiOverlapLength;
+  Property<double, AutoDefault> installationHorizontalOverlapLength; 
+
   Layer() :
             materialObject_(MaterialObject::LAYER),
             flangeConversionStation_(nullptr),
@@ -143,7 +138,10 @@ public:
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly()),
-            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
+            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly()),
+	    isSkewedForInstallation("isSkewedForInstallation", parsedOnly(), false),
+	    skewedModuleEdgeShift("skewedModuleEdgeShift", parsedOnly()),
+	    installationOverlapRatio("installationOverlapRatio", parsedOnly(), 2.) // remove default??
   { setup(); }
 
   void setup() {
@@ -158,15 +156,18 @@ public:
     minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minRwithHybrids()); } return min; });
   }
 
+  void check() override;
+  void build();
+
+  void cutAtEta(double eta);
+  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
+
   double placeRadius() const { return placeRadius_; }
   int numModulesPerRod() const { return rods_.front().numModules(); }
   int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
   int totalModules() const { return numModulesPerRod()*numRods(); }
   double rodThickness() const { return rods_.front().thickness(); }
   double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
-
-  void check() override;
-  void build();
 
   const Container& rods() const { return rods_; }
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
@@ -181,20 +182,6 @@ public:
   int layerNumber() const { return layerNumber_; }
 
   bool isTiming() const { return rods_.front().isTiming(); }
-  /*int calculateTotalNumRings(int numModulesSide) const { 
-    int num = 0;
-    if (rods_.size() !=0) {
-      if (rods_.front().startZMode() != StartZMode::MODULECENTER) num = 2 * numModulesSide;
-      else num = 2 * numModulesSide - 1;
-    }
-  }
-  int numRings() const { return calculateTotalNumRings(buildNumModules()); }
-  int numFlatRings() const { return calculateTotalNumRings(buildNumModulesFlat()); }
-  int numTiltedRings() const { return calculateTotalNumRings(buildNumModulesTilted()); }*/
-
-
-  void cutAtEta(double eta);
-  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
 
   void accept(GeometryVisitor& v) {
     v.visit(*this);
@@ -208,10 +195,72 @@ public:
     v.visit(*this);
     for (auto& r : rods_) { r.accept(v); }
   }
-  const MaterialObject& materialObject() const;
+  const MaterialObject& materialObject() const { return materialObject_; }
 
-  ConversionStation* flangeConversionStation() const;
-  const std::vector<ConversionStation*>& secondConversionStations() const;
+  ConversionStation* flangeConversionStation() const { return flangeConversionStation_; }
+  const std::vector<ConversionStation*>& secondConversionStations() const { return secondConversionStations_; }
+
+
+private:
+  // STRAIGHT LAYER
+  void buildStraight();
+
+  // generic optimizations methods
+  RodTemplate makeRodTemplate(const double skewAngle = 0.);
+  void computePlaceRadiiAndNumRods(const RodTemplate& rodTemplate);
+  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
+  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
+  const double computeRodCenterPhiShift() const;
+  void assignRodCommonProperties(StraightRodPair* rod) const;
+
+  // not specific to skewed mode
+  const bool placeAndStoreFirstRod(StraightRodPair* firstRod, const RodTemplate& rodTemplate, 
+				   const double rodCenterPhiShift, const double installationMinusBigDeltaRodCenterPhiShift);
+  void placeAndStoreSecondRod(StraightRodPair* secondRod, const RodTemplate& rodTemplate, 
+			      const bool isFirstRodAtPlusBigDelta, const int firstRodZPlusParity, const double firstRodCenterPhi, 
+			      const double rodCenterPhiShift, const double commonRodCenterPhiShift);
+  void placeAndStoreRod(StraightRodPair* rod, const RodTemplate& rodTemplate, const bool isPlusBigDeltaRod, const double rodCenterPhi);
+  void buildAndStoreClonedRodsInNonSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, 
+					      const double rodCenterPhiShift);
+  // dedicated to skewed mode
+  const SkewedLayerPhiShifts buildSkewed();
+  static const SkewedLayerInfo computeSkewedLayerInfo(const double layerCenterRho, const double bigDelta, const int numRods, const double moduleWidth, const double skewedModuleEdgeShift, const double installationOverlapRatio);
+
+  void buildAndStoreClonedRodsInSkewedMode(const StraightRodPair* firstRod, const StraightRodPair* secondRod, StraightRodPair* skewedRod,
+					   const double commonRodCenterPhiShift, const double skewedRodCenterPhiShift);
+  double buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int numRodsPerXSide,
+						const StraightRodPair* firstRod, const StraightRodPair* secondRod,
+						const double commonRodCenterPhiShift);
+  void buildAndStoreSkewedRods(const int numRodsPerXSide,
+			       StraightRodPair* skewedRod,
+			       const double lastNonSkewedRodCenterPhi, const double skewedRodCenterPhiShift);
+  StraightRodPair* buildRotatedByPiInPhiRod(const StraightRodPair* initialRod, const int numRodsPerXSide) const;
+
+  // TILTED LAYER
+  void buildTilted();
+  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
+ 
+
+  Container rods_;
+  MaterialObject materialObject_;
+  ConversionStation* flangeConversionStation_;
+  std::vector<ConversionStation*> secondConversionStations_;
+  std::vector<StraightRodPair*> flatPartRods_;
+  double flatPartPhiOverlapSmallDeltaMinus_;
+  double flatPartPhiOverlapSmallDeltaPlus_;
+  double flatPartAverageR_;
+  FlatRingsGeometryInfo flatRingsGeometryInfo_;
+  TiltedRingsTemplate tiltedRingsGeometry_;
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_;
+  int layerNumber_;
+
+  Property<double, NoDefault> phiOverlap;
+  Property<int, NoDefault> phiSegments;
+
+  PropertyNode<int> ringNode; // to grab properties for specific rod modules
+  PropertyNodeUnique<std::string> stationsNode;
+
+  double placeRadius_;
 };
 
 
