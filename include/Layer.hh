@@ -34,9 +34,7 @@ struct SkewedLayerPhiShifts {
 };
 
 struct SkewedLayerInfo {  
-  const double skewedModuleMinRho;
   const double skewedModuleCenterRho;
-  const double skewedModuleMaxRho;
   const double skewAngle;
 
   const double unitPhiOverlapLength;
@@ -107,9 +105,10 @@ public:
   Property<double, Default> installationOverlapRatio;
   
   Property<double, AutoDefault> skewAngle;
-  Property<double, AutoDefault> skewedModuleMinRho; 
+  Property<double, AutoDefault> skewedModuleMinRho;     // takes sensor thickness into account. 
+                                                        // WARNING: min Rho is not compulsory reached at the skewed sensor edge!!
   Property<double, AutoDefault> skewedModuleCenterRho;
-  Property<double, AutoDefault> skewedModuleMaxRho; 
+  Property<double, AutoDefault> skewedModuleMaxRho;     // takes sensor thickness into account
  
   Property<double, AutoDefault> unitPhiOverlapLength;
   Property<double, AutoDefault> installationHorizontalOverlapLength; 

@@ -362,7 +362,7 @@ void TiltedLayersVisitor::visit(const Layer& l) {
     //************************************//
 void TrackerVisitor::preVisit() {
   //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
-  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
 }
 
 void TrackerVisitor::visit(const Barrel& b) {
@@ -391,6 +391,7 @@ void TrackerVisitor::visit(const Module& m) {
 	  << m.center().Rho() << ", "
 	  << m.center().Z() << ", "
 	  << m.tiltAngle() * 180. / M_PI << ", "
+	  << m.skewAngle() * 180. / M_PI << ", "
 	  << m.center().Phi() * 180. / M_PI << ", "
 	  << m.meanWidth() << ", "
 	  << m.length() << ", "

@@ -7592,7 +7592,7 @@ namespace insur {
 
   std::string Vizard::createModulesDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
