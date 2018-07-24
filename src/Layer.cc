@@ -645,12 +645,12 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
   const double plusBigDeltaRodPhiCov = 2. * atan( 0.5*moduleWidth / plusBigDeltaRodCenterRho);
 
   // SKEWED RODS: COMPUTE RADII AND PHI COVERAGE
-  const double skewedModuleMinRho = sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
-  const double skewedModuleCenterRho = sqrt( pow(skewedModuleMinRho, 2) + pow(0.5 * moduleWidth, 2.) 
-					     + skewedModuleMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov)
+  const double skewedModuleEdgeMinRho = sqrt( pow(plusBigDeltaRodCenterRho, 2.) + pow(moduleWidth/2. , 2.)); // the skewed rod is at +bigDelta
+  const double skewedModuleCenterRho = sqrt( pow(skewedModuleEdgeMinRho, 2) + pow(0.5 * moduleWidth, 2.) 
+					     + skewedModuleEdgeMinRho * moduleWidth * sin(skewAperture - 0.5 * plusBigDeltaRodPhiCov)
 					     ); // Al-Kashi
-  const double skewedRodLowerHalfPhiCov = acos( (pow(skewedModuleMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
-					       / ( 2. * skewedModuleMinRho * skewedModuleCenterRho)
+  const double skewedRodLowerHalfPhiCov = acos( (pow(skewedModuleEdgeMinRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
+					       / ( 2. * skewedModuleEdgeMinRho * skewedModuleCenterRho)
 						); // Al-Kashi
   const double skewAngle = skewAperture - (plusBigDeltaRodPhiCov / 2. - skewedRodLowerHalfPhiCov);
 
@@ -820,7 +820,7 @@ void Layer::buildAndStoreSkewedRods(const int numRodsPerXSide,
   // Store Rod at + PI.
   rods_.push_back(rotatedByPiInPhiRod);
 
-  skewedModuleMinRho(skewedRod->minR());  // takes sensor thickness into account
+  skewedModuleMinRho(skewedRod->minR());  // takes sensor thickness into account. WARNING: min Rho is not compulsory reached at the skewed sensor edge!!
   skewedModuleMaxRho(skewedRod->maxR());  // takes sensor thickness into account
 }
 

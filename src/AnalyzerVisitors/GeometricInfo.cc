@@ -407,7 +407,7 @@ void TrackerVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void BarrelVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), skewAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 void BarrelVisitor::visit(const Barrel& b) {
   barName_ = b.myid();
@@ -425,7 +425,6 @@ void BarrelVisitor::visit(const BarrelModule& m) {
 	  << m.center().Rho() << ", "
 	  << m.center().Z() << ", "
 	  << m.tiltAngle() * 180. / M_PI << ", "
-	  << m.skewAngle() * 180. / M_PI << ", "
 	  << numRods_/2. << ", "
 	  << m.meanWidth() << ", "
 	  << m.length() << ", "
@@ -443,7 +442,7 @@ std::string BarrelVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void EndcapVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), skewAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 
 void EndcapVisitor::visit(const Endcap& e) {
@@ -465,7 +464,6 @@ void EndcapVisitor::visit(const EndcapModule& m) {
 		<< m.center().Rho() << ", "
 		<< m.center().Z() << ", "
 		<< m.tiltAngle() * 180. / M_PI << ", "
-		<< m.skewAngle() * 180. / M_PI << ", "
 		<< m.center().Phi() * 180. / M_PI << ", "
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
