@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Property.hh"
-//#include "Module.hh"
+
 #include "ITCabling/GBT.hh"
 #include "ITCabling/inner_cabling_functions.hh"
 
@@ -14,6 +14,11 @@ namespace insur { class InnerDTC; }
 using insur::InnerDTC;
 
 
+/*
+ * Inner Tracker Fiber Bundle class.
+ * All GBTs connected to a given Bundle can be accessed, as well as the Fiber Cable it is connected to.
+ * General info on the Fiber Bundle is also provided.
+ */
 class InnerBundle : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<GBT> Container; 
 
@@ -42,8 +47,6 @@ public:
   const int bundleIndex() const { return myBundleIndex_; }
 
   const bool isBarrel() const { return isBarrel_; }
-  //const bool isRingInnerEnd() const { return isRingInnerEnd_; }
-  //const InnerBundleType powerChainType() const { return powerChainType_; }  
 
   const int plotColor() const { return plotColor_; }
 

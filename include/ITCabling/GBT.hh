@@ -14,6 +14,12 @@ namespace insur { class InnerBundle; }
 using insur::InnerBundle;
 
 
+/*
+ * Low-Power Giga Bit Transceiver class.
+ * All modules connected to a given GBT can be accessed, as well as the Fiber Bundle the GBT is connected to.
+ * General info on the GBT is also provided.
+ */
+
 class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Module> Container; 
 
@@ -41,7 +47,7 @@ public:
   }
 
 
-  // GENERAL INFO ON THE POWERCHAIN
+  // GENERAL INFO ON THE GBT
   const std::string GBTId() const { return myGBTId_; }
   const int GBTPhiIndex() const { return myGBTIndex_; }
   const int indexColor() const { return myGBTIndexColor_; }

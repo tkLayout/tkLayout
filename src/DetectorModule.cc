@@ -6,10 +6,27 @@
 
 #include "ITCabling/PowerChain.hh"
 #include "ITCabling/HvLine.hh"
-//#include "ITCabling/ELink.hh"
 #include "ITCabling/GBT.hh"
 #include "ITCabling/InnerBundle.hh"
 #include "ITCabling/InnerDTC.hh"
+
+
+DetectorModule::~DetectorModule() {
+  delete myModuleCap_;            // TO DO: switch to smart pointers and remove this!
+  myModuleCap_ = nullptr;
+
+  delete bundle_;    
+  bundle_ = nullptr;
+
+  delete powerChain_;    
+  powerChain_ = nullptr;
+
+  delete hvLine_;
+  hvLine_ = nullptr;
+
+  delete GBT_;
+  GBT_ = nullptr;
+}
 
 
 void DetectorModule::setup() {
@@ -802,6 +819,7 @@ const int DetectorModule::innerDTCPlotColor() const {
   }
   return dtcPlotColor;
 }
+
 
 
 void BarrelModule::build() {

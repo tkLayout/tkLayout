@@ -7,19 +7,23 @@ InnerDTC::InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPosi
 {
   myid(DTCId);
 
-  //DTCType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
-
   plotColor_ = computePlotColor(DTCId);
 };
 
 
-
+/*
+ *  Connect a Bundle to the DTC.
+ */
 void InnerDTC::addBundle(InnerBundle* bundle) { 
   bundles_.push_back(bundle);
 }
 
 
 
+/*
+ * Compute DTC color on website.
+ * DTCs next to each other in space, must be of different colors.
+ */
 const int InnerDTC::computePlotColor(const int DTCId) const {
   const int plotColor = DTCId % 10 + 4;
 

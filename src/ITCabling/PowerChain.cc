@@ -30,6 +30,9 @@ PowerChain::~PowerChain() {
 }
 
 
+/*
+ *  Assign a module to the power chain.
+ */
 void PowerChain::addModule(Module* m) { 
   modules_.push_back(m);
   hvLine_->addModule(m);
@@ -37,9 +40,10 @@ void PowerChain::addModule(Module* m) {
 }
 
 
-
-
-// TO DO: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
+/*
+ * Compute wheter a power chain is 4 Ampere or 8 Ampere.
+ * NB: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
+ */
 const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
   PowerChainType powerChainType = PowerChainType::IUNDEFINED;
   if (isBarrel) {
@@ -56,7 +60,10 @@ const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, cons
 }
 
 
-
+/*
+ * Compute power chain color on website.
+ * Power chains next to each other in space, must be of different colors.
+ */
 const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const {
   int plotColor = 0;
 
@@ -73,7 +80,6 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
 
   return plotColor;
 }
-
 
 
 /* Build HvLine asociated to the power chain.

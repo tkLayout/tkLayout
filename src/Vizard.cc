@@ -1261,6 +1261,9 @@ namespace insur {
   }
 
 
+  /*
+   * Create all Outer Tracker cabling plots and csv files, and display them on website.
+   */
   bool Vizard::outerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     bool isPixelTracker = tracker.isPixelTracker();
 
@@ -1632,24 +1635,9 @@ namespace insur {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  /*
+   * Create all Inner Tracker cabling plots and csv files, and display them on website.
+   */
   bool Vizard::innerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     bool isPixelTracker = tracker.isPixelTracker();
 
@@ -1679,29 +1667,21 @@ namespace insur {
       forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
 
 
-      // MODULES TO POWERCHAINS
-      //TCanvas *RZPowerChainCanvas = nullptr;
+      // MODULES TO POWER CHAINS
       std::vector<TCanvas*> ZPhiPowerChainLayerPlots;
       TCanvas *XYPowerChainNegCanvas = nullptr;
       TCanvas *XYPowerChainCentralCanvas = nullptr;
-      TCanvas *XYPowerChainCanvas = nullptr;   
-      //std::vector<TCanvas*> XYPosPowerChainsDisks;
+      TCanvas *XYPowerChainCanvas = nullptr;
       std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
    
       myContent = new RootWContent("Modules to Serial Power Chains");
       myPage->addContent(myContent);  
       
-      createSummaryCanvasCablingPowerChainNicer(tracker, //RZPowerChainCanvas, 
+      createSummaryCanvasCablingPowerChainNicer(tracker,
 						ZPhiPowerChainLayerPlots,
 						XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
-						//XYPosPowerChainsDisks, 
 						XYPosPowerChainsDiskSurfaces);
 
-      /*if (RZPowerChainCanvas) {
-	myImage = new RootWImage(RZPowerChainCanvas, RZPowerChainCanvas->GetWindowWidth(), RZPowerChainCanvas->GetWindowHeight() );
-	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Serial Power Chains.");
-	myContent->addItem(myImage);
-	}*/
       // bpix
       myContent->addItem(barrelName);
       for (const auto& ZPhiPlot : ZPhiPowerChainLayerPlots) {
@@ -1728,18 +1708,12 @@ namespace insur {
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
-      /*for (const auto& XYPosDisk : XYPosPowerChainsDisks) {
-	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYPosDisk->GetTitle());
-	  myContent->addItem(myImage);
-	  }*/
       for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
 	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setComment(XYPosSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
  
-
 
       // MODULES TO GBTS
       std::vector<TCanvas*> ZPhiGBTLayerPlots;
@@ -1767,7 +1741,6 @@ namespace insur {
 	  myImage->setComment(XYPosSurface->GetTitle());
 	  myContent->addItem(myImage);
       }
-
 
 
       // MODULES TO BUNDLES
@@ -1845,15 +1818,6 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
       filesContent->addItem(myTextFile);
-      // NEGATIVE CABLING SIDE
-      /*isPositiveCablingSide = false;
-      RootWTable* spacer = new RootWTable();
-      spacer->setContent(0, 0, " ");
-      spacer->setContent(1, 0, " ");
-      spacer->setContent(2, 0, " ");
-      filesContent->addItem(spacer);
-      filesContent->addItem(negativeSideName);
-      */
 
 
       // CABLING COUNT
@@ -2001,45 +1965,15 @@ namespace insur {
       const double dtcEfficiency = (double)numBundlesOneXSide / (numDTCsOneXSide * inner_cabling_maxNumBundlesPerCable);
       myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
-      // Overall optical efficiency
-      /*myInfo = new RootWInfo("Overall optical cabling efficiency (%)");
-      const double overallOpticalEfficiency = GBTEfficiency * bundleEfficiency * dtcEfficiency;
-      myInfo->setValue(overallOpticalEfficiency * 100, 0);
-      efficiencyContent->addItem(myInfo);*/
-      
 
-
-      // Distinct DTCs 2.D map
-      /*
-      RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
-      myPage->addContent(dtcMapContent);
-      
-      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      hitMapDTCCanvas->cd();
-      hitMapDTCCanvas->SetFillColor(color_plot_background);
-      hitMapDTCCanvas->SetBorderMode(0);
-      hitMapDTCCanvas->SetBorderSize(0);
-      analyzer.getMapPhiEtaDTC().Draw("colz");
-      analyzer.getMapPhiEtaDTC().SetStats(0);
-      hitMapDTCCanvas->Modified();
-      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Number of distinct DTCs per track");
-      dtcMapContent->addItem(myImage);
-      */
-
-    
-
-      
-    }
+    } // end of isPixelTracker
     return true;
   }
 
 
-
-
-
-
-
+  /*
+   * Count all Power chains, GBTs, Bundles, and DTCs in the Inner Tracker cabling map.
+   */
   void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
 					int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
 					int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,

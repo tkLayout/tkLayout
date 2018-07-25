@@ -9,8 +9,6 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
   numELinksPerModule_(numELinksPerModule)
 {
   myPowerChain_ = myPowerChain;
-
-  //myPowerChain->setGBT(this);
   plotColor_ = computePlotColor(myPowerChain);
 };
 
@@ -24,12 +22,19 @@ GBT::~GBT() {
 }
 
 
+/*
+ *  Assign a module to the GBT.
+ */
 void GBT::addModule(Module* m) { 
   modules_.push_back(m);
 }
 
 
-
+/*
+ * Compute GBT color on website.
+ * GBT color is the same as the power chain its modules belong to.
+ * To distinguish different GBTs on the same power chain, alternation of fill and contour style is used.
+ */
 const int GBT::computePlotColor(const PowerChain* myPowerChain) const {
   const int plotColor = myPowerChain->plotColor();
   return plotColor;

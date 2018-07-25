@@ -356,9 +356,9 @@ struct YZFull : public YZ {
 
 struct ZPhi : public std::pair<double, double>, private Rounder {
   const bool valid;
-  // ZPhi coordinates of the centre of module m. //m.center().Rho()
+  // ZPhi coordinates of the centre of module m.
   ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
-  // ZPhi coordinates of vector v. //v.Rho()
+  // ZPhi coordinates of vector v.
   ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* Rounder::mmFraction, (femod(v.Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
   // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
   ZPhi(const XYZVector& v, const Module& m) : valid(true) {

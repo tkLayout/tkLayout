@@ -219,13 +219,11 @@ public:
     //*                                   //
     //************************************//
 class InnerTrackerModulesToDTCsVisitor : public ConstGeometryVisitor {
-  //bool isPositiveCablingSide_;
   std::stringstream output_;
   string sectionName_;
   int layerId_;
 
 public:
-  //InnerTrackerModulesToDTCsVisitor();
   void preVisit();
   void visit(const Barrel& b);
   void visit(const Endcap& e);

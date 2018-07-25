@@ -22,14 +22,19 @@
 #include "Visitable.hh"
 #include "MaterialObject.hh"
 
+namespace insur { class ModuleCap; }
+using insur::ModuleCap;
+using material::ElementsVector;
 
 using namespace boost::accumulators;
 using material::MaterialObject;
 
+// OT CABLING MAP
 namespace insur { class Bundle; }
 using insur::Bundle;
 namespace insur { class DTC; }
 using insur::DTC;
+// IT CABLING MAP
 namespace insur { class PowerChain; }
 using insur::PowerChain;
 namespace insur { class HvLine; }
@@ -52,51 +57,17 @@ enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
 enum ReadoutMode { BINARY, CLUSTER };
 enum HitType { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
-
-
 struct PosRef { int subdetectorId, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string subdetectorName; int layer, ring, phi, side; };
 
-namespace insur {
-  class ModuleCap;
-}
-
-using insur::ModuleCap;
-using material::ElementsVector;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC) 
 
   PropertyNode<int> sensorNode;
-
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
-
-  Bundle* bundle_ = nullptr;
-  PowerChain* powerChain_ = nullptr;
-  int phiRefInPowerChain_;
-  HvLine* hvLine_ = nullptr;
-  int numELinks_ = 0;
-  GBT* GBT_ =  nullptr;
-protected:
-  MaterialObject materialObject_;
-  Sensors sensors_;
-  std::string subdetectorName_;
-  int16_t subdetectorId_;
-  mutable double cachedZError_ = -1.;
-  mutable std::pair<double,double> cachedMinMaxEtaWithError_;
-  XYZVector rAxis_;
-  double tiltAngle_ = 0., skewAngle_ = 0.;
-
-  int numHits_ = 0;
-  
-  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
-  ModuleCap* myModuleCap_ = nullptr;
-  // Used to compute local parametrized spatial resolution.
-  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
-  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
@@ -230,6 +201,7 @@ public:
       removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
+  ~DetectorModule();
   virtual void setup();
   void check() override;
   virtual void build();
@@ -419,6 +391,36 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const int innerBundlePlotColor() const;
   const InnerDTC* getInnerDTC() const;
   const int innerDTCPlotColor() const;
+
+protected:
+  // Used to compute local parametrized spatial resolution.
+  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
+  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
+
+  MaterialObject materialObject_;
+  Sensors sensors_;
+  std::string subdetectorName_;
+  int16_t subdetectorId_;
+  mutable double cachedZError_ = -1.;
+  mutable std::pair<double,double> cachedMinMaxEtaWithError_;
+  XYZVector rAxis_;
+  double tiltAngle_ = 0., skewAngle_ = 0.;
+
+  int numHits_ = 0;
+  
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
+  ModuleCap* myModuleCap_ = nullptr;
+
+private:
+  // OT CABLING MAP
+  Bundle* bundle_ = nullptr;
+  // IT CABLING MAP
+  PowerChain* powerChain_ = nullptr;
+  int phiRefInPowerChain_;
+  HvLine* hvLine_ = nullptr;
+  int numELinks_;
+  GBT* GBT_ =  nullptr;
 };
 
 

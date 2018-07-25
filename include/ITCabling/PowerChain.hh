@@ -13,6 +13,11 @@ namespace insur { class HvLine; }
 using insur::HvLine;
 
 
+/*
+ * Power chain class.
+ * All modules connected to a given Power Chain can be accessed, as well as the HV line they are connected to.
+ * General info on the Power Chain is also provided.
+ */
 class PowerChain : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Module> Container; 
 
@@ -20,7 +25,7 @@ public:
   PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex);
   ~PowerChain();
 
-  // MODULES CONNECTED TO THE POWERCHAIN.
+  // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
   Container& modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
@@ -32,8 +37,7 @@ public:
     return hvLine_;
   }
 
-  // GENERAL INFO ON THE POWERCHAIN
-  
+  // GENERAL INFO ON THE POWER CHAIN
   const bool isPositiveZEnd() const { return isPositiveZEnd_; }
   const bool isPositiveXSide() const { return isPositiveXSide_; }
   const std::string subDetectorName() const { return subDetectorName_; }

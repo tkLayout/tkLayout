@@ -5,18 +5,21 @@
 #include <string>
 
 #include "Property.hh"
-//#include "Module.hh"
+
 #include "ITCabling/InnerBundle.hh"
 #include "ITCabling/inner_cabling_functions.hh"
 
 
-
+/*
+ * Inner Tracker DTC class.
+ * All Fiber Bundles connected to a given DTC can be accessed.
+ * General info on the DTC is also provided.
+ */
 class InnerDTC : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<InnerBundle> Container; 
 
 public:
   InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
-  //~InnerDTC();
 
   // BUNDLES CONNECTED TO THE DTC
   const Container& bundles() const { return bundles_; }
@@ -28,7 +31,6 @@ public:
   const bool isPositiveXSide() const { return isPositiveXSide_; }
 
   // GENERAL INFO
-  //const InnerDTCType powerChainType() const { return powerChainType_; }
   const int plotColor() const { return plotColor_; }
 
 private:
@@ -38,8 +40,6 @@ private:
 
   bool isPositiveZEnd_;
   bool isPositiveXSide_;
-
-  //DTC* myDTC_ = nullptr;
 
   int plotColor_;
 };

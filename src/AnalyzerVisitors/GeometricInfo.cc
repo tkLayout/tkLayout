@@ -545,9 +545,6 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
     //*    InnerTrackerModulesToDTCsCsv   //
     //*                                   //
     //************************************//
-/*InnerTrackerModulesToDTCsVisitor::InnerTrackerModulesToDTCsVisitor(bool isPositiveZEnd, bool isPositiveXSide) {
-  isPositiveCablingSide_ = isPositiveCablingSide;
-  }*/
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
   output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Long Barrel ?/Boolean, Power Chain #/I, Power Chain Type/C, # ELinks Per Module/I, LP GBT #/C, Bundle #/I, DTC #/I, (+Z) End ?/Boolean, (+X) Side?/Boolean" << std::endl;
@@ -572,7 +569,6 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Disk& d) {
 void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
   const PowerChain* myPowerChain = m.getPowerChain();
   if (myPowerChain != nullptr) {
-    //if (myPowerChain->isPositiveCablingSide() == isPositiveCablingSide_) {
     std::stringstream moduleInfo;
     moduleInfo << m.myDetId() << ","
 	       << sectionName_ << ", "
@@ -610,6 +606,5 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
       else output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << std::endl;
     }
     else output_ << moduleInfo.str() << powerChainInfo.str() << std::endl;
-    //}
   }
 }

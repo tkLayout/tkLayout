@@ -22,12 +22,19 @@ InnerBundle::~InnerBundle() {
 }
 
 
+/*
+ *  Connect a GBT to the Bundle.
+ */
 void InnerBundle::addGBT(GBT* myGBT) { 
   GBTs_.push_back(myGBT);
 }
 
 
 
+/*
+ * Compute bundle color on website.
+ * Bundles next to each other in space, must be of different colors.
+ */
 const int InnerBundle::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int layerDiskNumber, const int bundleIndex) const {
   int plotColor = 0;
 
@@ -38,7 +45,7 @@ const int InnerBundle::computePlotColor(const bool isBarrel, const bool isPositi
     plotColor = plotZEnd * 6 + plotLayer * 3 + plotIndex + 1;  // ? plotZEnd * 7
   }
   else {
-    const int plotLayer = femod(layerDiskNumber, 5);   //  ?
+    const int plotLayer = femod(layerDiskNumber, 5);           //  ?
     const int plotIndex = femod(bundleIndex, 2);
     plotColor = plotLayer * 2 + plotIndex + 1;
   }

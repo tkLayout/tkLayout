@@ -21,8 +21,11 @@ void ModulesToPowerChainsConnector::visit(Layer& l) {
 void ModulesToPowerChainsConnector::visit(RodPair& r) {
   rodPhi_ = r.Phi();
 }
-      
+ 
      
+/*
+ * Gather all module info, build Power Chain, and assign module to it.
+ */     
 void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   // TO DO: this could be placed at the rod level
   const double modCenterX = m.center().X();
@@ -40,6 +43,9 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
 }
 
 
+/*
+ * Gather all module info, build Power Chain, and assign module to it.
+ */   
 void ModulesToPowerChainsConnector::visit(Endcap& e) {
   endcapName_ = e.myid();
 }
@@ -90,6 +96,9 @@ void ModulesToPowerChainsConnector::postVisit() {
 
 
 
+/*
+ * Computes the (X) side on which a module cabling must be located.
+ */
 const bool ModulesToPowerChainsConnector::computeXSide(const double modCenterX) const {   
   if (fabs(modCenterX) < inner_cabling_roundingTolerance) {
     logINFO(any2str("Found a module at X ~ 0. This is not handled.")
@@ -101,6 +110,9 @@ const bool ModulesToPowerChainsConnector::computeXSide(const double modCenterX) 
 }
 
 
+/*
+ * Computes the (Z) end on which a module cabling must be located.
+ */
 const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side, const int ring, const int layerNumber) const {
   bool isPositiveZEnd;
 
@@ -117,7 +129,7 @@ const bool ModulesToPowerChainsConnector::computeBarrelModuleZEnd(const int side
 }
 
 
-/* Compute the Z end to which the central modules in BPIX are cabled.
+/* Compute the (Z) end to which the central modules in BPIX are cabled.
    Modules are alternatively connected to the (+Z) end and the (-Z) end, depending on the layer of the module.
 */
 const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const int layerNumber) const {
@@ -129,6 +141,9 @@ const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const i
 }
 
 
+/*
+ * Assign a Forward Module to a power chain based on its phi position in the ring.
+ */
 const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
   int powerChainPhiRef = 0;
 
