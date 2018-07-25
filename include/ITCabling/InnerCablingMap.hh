@@ -5,8 +5,9 @@
 #include "global_funcs.hh"
 
 #include "Property.hh"
+//#include "Module.hh"
+
 #include "ITCabling/ModulesToPowerChainsConnector.hh"
-#include "ITCabling/ModulesToELinksConnector.hh"
 #include "ITCabling/InnerDTC.hh"
 
 
@@ -20,18 +21,15 @@ public:
 
   // positive cabling side
   const std::map<int, PowerChain*>& getPowerChains() const { return powerChains_; }
-  const std::map<std::string, ELink*>& getELinks() const { return eLinks_; }
   const std::map<std::string, GBT*>& getGBTs() const { return GBTs_; }
   const std::map<int, InnerBundle*>& getBundles() const { return bundles_; }
-  //const std::map<int, Cable*>& getCables() const { return cables_; }
   const std::map<int, InnerDTC*>& getDTCs() const { return DTCs_; }
 
 
 private:
   // CONNECT MODULES TO POWER CHAINS
   void connectModulesToPowerChains(Tracker* tracker);
-  void connectModulesToELinks(Tracker* tracker);
-  void connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs);
+  void connectModulesToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs);
   void connectGBTsToBundles(std::map<std::string, GBT*>& GBTs, std::map<int, InnerBundle*>& bundles);
   void connectBundlesToDTCs(std::map<int, InnerBundle*>& bundles, std::map<int, InnerDTC*>& DTCs);
 
@@ -60,17 +58,8 @@ private:
   void connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const;
   void checkBundlesToDTCsCabling(const std::map<int, InnerDTC*>& DTCs) const;
 
-
-  // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
-  /*
-  void computePowerServicesChannels();
-  void routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide);
-  void checkBundlesToPowerServicesChannels(const std::map<int, Bundle*>& bundles);
-  */
-
   // positive cabling side
   std::map<int, PowerChain*> powerChains_;
-  std::map<std::string, ELink*> eLinks_;
   std::map<std::string, GBT*> GBTs_;
   std::map<int, InnerBundle*> bundles_;
   std::map<int, InnerDTC*> DTCs_;

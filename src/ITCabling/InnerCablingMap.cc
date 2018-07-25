@@ -7,20 +7,14 @@ InnerCablingMap::InnerCablingMap(Tracker* tracker) {
     // CONNECT MODULES TO SERIAL POWER CHAINS
     connectModulesToPowerChains(tracker);
 
-    // CONNECT MODULES TO E-LINKS
-    connectModulesToELinks(tracker); // TO DO: remove class ELINK !! Just put numElinksPerModule in Module class thanks to visitor which is already there.
-
-    // CONNECT ELINKS TO LPGBTS
-    connectELinksToGBTs(powerChains_, GBTs_);
+    // CONNECT MODULES TO LPGBTS
+    connectModulesToGBTs(powerChains_, GBTs_);
     
     // CONNECT LPGBTS TO BUNDLES
     connectGBTsToBundles(GBTs_, bundles_);
 
     // CONNECT BUNDLES TO DTCs
     connectBundlesToDTCs(bundles_, DTCs_);
-
-    // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
-    //computePowerServicesChannels();
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
@@ -37,19 +31,9 @@ void InnerCablingMap::connectModulesToPowerChains(Tracker* tracker) {
 }
 
 
-/* MODULES TO ELINKS CONNECTIONS.
+/* MODULES TO GBTS CONNECTIONS.
  */
-void InnerCablingMap::connectModulesToELinks(Tracker* tracker) {
-  ModulesToELinksConnector eLinksBuilder;
-  tracker->accept(eLinksBuilder);
-  //eLinksBuilder.postVisit();
-  eLinks_ = eLinksBuilder.getELinks();
-}
-
-
-/* ELINKS TO GBTS CONNECTIONS.
- */
-void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs) {
+void InnerCablingMap::connectModulesToGBTs(std::map<int, PowerChain*>& powerChains, std::map<std::string, GBT*>& GBTs) {
 
   for (auto& it : powerChains) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD GBTS
@@ -71,6 +55,8 @@ void InnerCablingMap::connectELinksToGBTs(std::map<int, PowerChain*>& powerChain
     
 
     for (auto& m : myPowerChain->modules()) {
+      m.setNumELinks(numELinksPerModule);
+
       const int powerChainId = myPowerChain->myid();
       const bool isBarrelLong = myPowerChain->isBarrelLong();
       const int ringRef = (isBarrelLong ? m.uniRef().ring - 1 : m.uniRef().ring - 2);

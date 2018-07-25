@@ -23,8 +23,6 @@
 #include "MaterialObject.hh"
 
 
-#include "ITCabling/ELink.hh"
-
 using namespace boost::accumulators;
 using material::MaterialObject;
 
@@ -36,8 +34,6 @@ namespace insur { class PowerChain; }
 using insur::PowerChain;
 namespace insur { class HvLine; }
 using insur::HvLine;
-//namespace insur { class ELink; }
-//using insur::ELink;
 namespace insur { class GBT; }
 using insur::GBT;
 namespace insur { class InnerBundle; }
@@ -69,8 +65,7 @@ namespace insur {
 using insur::ModuleCap;
 using material::ElementsVector;
 
-class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
-  typedef PtrVector<ELink> Container; 
+class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC) 
 
   PropertyNode<int> sensorNode;
 
@@ -82,7 +77,7 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, pub
   PowerChain* powerChain_ = nullptr;
   int phiRefInPowerChain_;
   HvLine* hvLine_ = nullptr;
-  Container eLinks_;
+  int numELinks_ = 0;
   GBT* GBT_ =  nullptr;
 protected:
   MaterialObject materialObject_;
@@ -415,8 +410,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const int powerChainPlotColor() const;
   void setHvLine(HvLine* hvLine) { hvLine_ = hvLine ; }
   const HvLine* getHvLine() const { return hvLine_; }
-  void addELink(ELink* l);
-  const Container& getELinks() const { return eLinks_; }
+  void setNumELinks(const int numELinks) { numELinks_ = numELinks; }
+  const int numELinks() const { return numELinks_; }
   void setGBT(GBT* myGBT) { GBT_ = myGBT; }
   const GBT* getGBT() const { return GBT_; }
   const int gbtPlotColor() const;

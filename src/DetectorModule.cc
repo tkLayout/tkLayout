@@ -754,11 +754,6 @@ const int DetectorModule::powerChainPlotColor() const {
 }
 
 
-void DetectorModule::addELink(ELink* l) { 
-  eLinks_.push_back(l);
-}
-
-
 const int DetectorModule::gbtPlotColor() const {
   int gbtPlotColor = 0;
   const GBT* myGBT = getGBT();
