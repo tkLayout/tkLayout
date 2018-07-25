@@ -9,12 +9,14 @@
 
 namespace inner_cabling_functions {
 
+  // Phi-related free functions (IT cabling map related).
   const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd);
   const double computePhiFromMinY(const double phi, const bool isPositiveZEnd);
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
   const double computePhiUnitWidth(const int numPhiUnits);
   const double computePhiUnitStart(const double phi, const double phiUnitWidth);  
 
+  // Free functions used to locate a module (IT cabling map related).
   const bool isBarrel(const std::string subDetectorName);
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
   const int computeSubDetectorIndex(const std::string subDetectorName);
@@ -22,6 +24,7 @@ namespace inner_cabling_functions {
   const int computeRingNumber(const int ringQuarterIndex);
   const bool isRingInnerEnd(const int ringQuarterIndex);
 
+  // compute number of ELinks per module
   const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber);
 }
 

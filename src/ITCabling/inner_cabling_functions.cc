@@ -7,7 +7,6 @@ namespace inner_cabling_functions {
    * n = 0 for the module with the lowest Phi > -Pi/2.
    * n = 0 for the module with the lowest Phi > Pi/2.
    */
-  //const int computePhiUnitRef(const double phi, const double phiUnitStart, const double phiUnitWidth) {
   const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd) {
 
     const double projectedPhi = computePhiFromMinY(phi, isPositiveZEnd);
@@ -16,7 +15,6 @@ namespace inner_cabling_functions {
     const double phiUnitStart = computePhiUnitStart(projectedPhi, phiUnitWidth);
 
     const double phiRelative = femod(projectedPhi - phiUnitStart, M_PI);
-    //const int phiUnitRef = round( phiRelative / phiUnitWidth );
 
     int phiUnitRef = 0;
     const double phiUnitRefExact = phiRelative / phiUnitWidth;
@@ -25,31 +23,38 @@ namespace inner_cabling_functions {
     if (fabs((phiUnitRefExact - round(phiUnitRefExact))) < inner_cabling_roundingTolerance) phiUnitRef = fabs(round(phiUnitRefExact));
     else phiUnitRef = std::floor(phiUnitRefExact);
 
-    /*std::cout << "phi = " << phi * 180. / M_PI << std::endl;
-    std::cout << "stereoPhi = " << stereoPhi * 180. / M_PI << std::endl;
-    std::cout << "phiUnitWidth = " << phiUnitWidth * 180. / M_PI << std::endl;
-    std::cout << "phiUnitStart = " << phiUnitStart * 180. / M_PI  << std::endl;
-    std::cout << "phiUnitRefExact = " << phiUnitRefExact << std::endl;
-    std::cout << "phiUnitRef = " << phiUnitRef << std::endl;*/
-
     return phiUnitRef;
   }
 
+
+  /*
+   * Starts counting Phi from -Pi/2.
+   * This is useful as the module should be localized in Phi by IT half.
+   */
   const double computePhiFromMinY(const double phi, const bool isPositiveZEnd) {
     const double stereoPhi = computeStereoPhi(phi, isPositiveZEnd);
     const double phiFromMinY = femod(stereoPhi + M_PI / 2., M_PI);
     return phiFromMinY;  
   }
 
+
+  /*
+   * If a module is on the negative cabling side, it is seen here as from a rotation of 180 deg around CMS_Y.
+   */
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd) {
     const double stereoPhi = (isPositiveZEnd ? phi : femod(M_PI - phi, 2.*M_PI) );
     return stereoPhi;
   }
 
+
+  /*
+   * Computes deltaPhi, depending on the number of phi units.
+   */
   const double computePhiUnitWidth(const int numPhiUnits) {
     const double phiUnitWidth = (2.*M_PI) / numPhiUnits;
     return phiUnitWidth;
   }
+
 
   /* Compute the offset in Phi with respect to PhiUnitWidth.
    */
@@ -59,10 +64,9 @@ namespace inner_cabling_functions {
   }
 
 
-
-
-
-
+  /*
+   * Is the subdetector of barrel type?
+   */
   const bool isBarrel(const std::string subDetectorName) {
     if (subDetectorName == inner_cabling_tbpx) return true;
     else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) return false;
@@ -75,6 +79,9 @@ namespace inner_cabling_functions {
   }
 
 
+  /*
+   * Split IT per (Z) end and (X) side: hence per quarter.
+   */
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide) {
     int innerTrackerQuarterIndex = 0;
     if (isPositiveZEnd) {
@@ -88,6 +95,9 @@ namespace inner_cabling_functions {
   }
 
 
+  /*
+   * Each subdetector is identified by a unique index.
+   */
   const int computeSubDetectorIndex(const std::string subDetectorName) {
     int subDetectorIndex = 0;
     if (subDetectorName == inner_cabling_tbpx) subDetectorIndex = 1;
@@ -102,6 +112,10 @@ namespace inner_cabling_functions {
   }
 
 
+  /*
+   * A given IT ring is divided by (X) side AND per dee side: hence notion of ring quarter.
+   * Each ring quarter is identified by a unique index.
+   */
   const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd) {
     const int isRingInnerEndIndex = (!isRingInnerEnd);
     const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isRingInnerEndIndex);
@@ -109,33 +123,32 @@ namespace inner_cabling_functions {
   }
 
 
+  /*
+   * Retrieve the ring index from the ring quarter idex.
+   * This is possible because a ring quarter is a part of a ring.
+   */
   const int computeRingNumber(const int ringQuarterIndex) {
     const int ringNumber = 1 + ringQuarterIndex / 2;
     return ringNumber;
   }
 
 
+  /*
+   * Retrieve, from the index, whether one is on one dee side or the other.
+   */
   const bool isRingInnerEnd(const int ringQuarterIndex) {
     const bool isRingInnerEnd = (ringQuarterIndex % 2 ? true : false);
     return isRingInnerEnd;
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+  /*
+   * Compute the number of ELinks per module, depending on the module location.
+   */
   const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber) {   
     int numELinksPerModule = 0;
 
+    // tbpx
     if (subDetectorName == inner_cabling_tbpx) {
       if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer1;
       else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer2;
@@ -148,6 +161,7 @@ namespace inner_cabling_functions {
 		 );
       }
     }
+    // tfpx
     else if (subDetectorName == inner_cabling_tfpx) {
       if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing1;
       else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing2;
@@ -160,9 +174,11 @@ namespace inner_cabling_functions {
 		 );
       }
     }
+    // tepx
     else if (subDetectorName == inner_cabling_tepx) {
       numELinksPerModule = inner_cabling_numELinksPerModuleEndcap;
     }
+    // other
     else { 
       logERROR(any2str("Unknown subDetector ") + any2str(subDetectorName)
 	       );
@@ -171,6 +187,4 @@ namespace inner_cabling_functions {
     return numELinksPerModule;
   }
 
-
-
-}
+} // namespace
