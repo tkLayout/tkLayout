@@ -189,10 +189,8 @@ namespace insur {
 
     // IT CABLING
     void createInnerCablingPlotsPowerChains(const Tracker& tracker, 
-						   //TCanvas *&RZCanvas, 
 						   std::vector<TCanvas*> &ZPhiLayerPlots,
 						   TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-						   //std::vector<TCanvas*> &XYPosPowerChainsDisks, 
 						   std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
     void createInnerCablingPlotsGBTs(const Tracker& tracker,
 						 std::vector<TCanvas*> &ZPhiLayerPlots,

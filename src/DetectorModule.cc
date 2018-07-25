@@ -11,24 +11,6 @@
 #include "ITCabling/InnerDTC.hh"
 
 
-DetectorModule::~DetectorModule() {
-  delete myModuleCap_;            // TO DO: switch to smart pointers and remove this!
-  myModuleCap_ = nullptr;
-
-  delete bundle_;    
-  bundle_ = nullptr;
-
-  delete powerChain_;    
-  powerChain_ = nullptr;
-
-  delete hvLine_;
-  hvLine_ = nullptr;
-
-  delete GBT_;
-  GBT_ = nullptr;
-}
-
-
 void DetectorModule::setup() {
   nominalResolutionLocalX.setup([this]() {
       // only set up this if no model parameter specified
