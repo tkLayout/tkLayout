@@ -63,7 +63,7 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     bool isOuterRadiusRod_;
   public:
     void preVisit() {
-      output_ << "Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsPowerMean_W, sensorsPowerMax_W, sensorsFluenceMean_Hb, sensorsFluenceMax_Hb" << std::endl;
+      output_ << "Module DetId, Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsPowerMean_W, sensorsPowerMax_W, sensorsFluenceMean_Hb, sensorsFluenceMax_Hb" << std::endl;
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -71,25 +71,26 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
     void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
     void visit(const Module& m) {
-      output_ << sectionName_ << ", "
-	      << layerId_ << ", "
-	      << m.moduleRing() << ", "
-	      << m.moduleType() << ", "
-	      << m.dsDistance() << ", "
-	      << isOuterRadiusRod_ << ", "
-	      << std::fixed << std::setprecision(6)
-	      << m.operatingTemp() << ", "
-	      << m.biasVoltage() << ", "
-	      << m.meanWidth() << ", "
-	      << m.length() << ", "
-	      << m.sensorThickness() << ", "
-	      << m.totalSensorsVolume() << ", "
-	      << std::fixed << std::setprecision(3)
-	      << m.sensorsIrradiationPowerMean() << ", "
-	      << m.sensorsIrradiationPowerMax() << ", "
-	      << m.sensorsIrradiationMean() << ", "
-	      << m.sensorsIrradiationMax()	
-	      << std::endl;
+      output_  << m.myDetId() << ", "
+	       << sectionName_ << ", "
+	       << layerId_ << ", "
+	       << m.moduleRing() << ", "
+	       << m.moduleType() << ", "
+	       << m.dsDistance() << ", "
+	       << isOuterRadiusRod_ << ", "
+	       << std::fixed << std::setprecision(6)
+	       << m.operatingTemp() << ", "
+	       << m.biasVoltage() << ", "
+	       << m.meanWidth() << ", "
+	       << m.length() << ", "
+	       << m.sensorThickness() << ", "
+	       << m.totalSensorsVolume() << ", "
+	       << std::fixed << std::setprecision(3)
+	       << m.sensorsIrradiationPowerMean() << ", "
+	       << m.sensorsIrradiationPowerMax() << ", "
+	       << m.sensorsIrradiationMean() << ", "
+	       << m.sensorsIrradiationMax()	
+	       << std::endl;
     }
 
     std::string output() const { return output_.str(); }

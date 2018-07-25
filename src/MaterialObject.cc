@@ -320,7 +320,8 @@ namespace material {
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
     materialTab_ (MaterialTab::instance()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType) {
+  };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
     if(original.destination.state())
@@ -450,7 +451,8 @@ namespace material {
       elementUnitVal = unitStringMap.at(unit());
       
       if (desiredUnitVal == elementUnitVal) {
-        return quantity();
+	double quant = insur::mat_budget_overall_scaling_factor * quantity();
+	return quant;
       } else if (desiredUnitVal > elementUnitVal) {
         invert = true;
         tempUnit = desiredUnitVal;
@@ -472,6 +474,7 @@ namespace material {
     } catch (const std::out_of_range& ex) {
       logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
     }
+    returnVal *= insur::mat_budget_overall_scaling_factor;
     return returnVal;
   }
 

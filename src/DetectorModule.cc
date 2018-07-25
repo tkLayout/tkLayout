@@ -809,9 +809,14 @@ void BarrelModule::build() {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
+
     rAxis_ = normal();
+
+    // skew
+    decorated().rotateZ(skewAngle());    
+    
+    // tilt
     tiltAngle_ = 0.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
@@ -825,8 +830,9 @@ void EndcapModule::build() {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
+
+    // tilt
     tiltAngle_ = M_PI/2.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }

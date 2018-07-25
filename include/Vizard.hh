@@ -222,11 +222,21 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
+    bool drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
-    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
-    bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
+
+    // COVERAGE PER LAYER: HITS AND STUBS
+    bool drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer);
+    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, 
+			      std::map<std::string, TProfile>& coveragePerLayer,			      
+			      std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails,
+			      std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing);
+    bool drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
+
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
