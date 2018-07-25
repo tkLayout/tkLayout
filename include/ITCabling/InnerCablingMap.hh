@@ -17,6 +17,7 @@
  */
 class InnerCablingMap : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
+  // KEY POINT: CREATE THE INNER TRACKER CABLING MAP.
   InnerCablingMap(Tracker* tracker);
 
   const std::map<int, PowerChain*>& getPowerChains() const { return powerChains_; }
