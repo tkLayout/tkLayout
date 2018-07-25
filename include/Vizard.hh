@@ -171,13 +171,13 @@ namespace insur {
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
 
     // OT CABLING
-    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
+    void createOuterCablingPlotsBundles(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
 					       std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
 					       std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces);
-    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, 
+    void createOuterCablingPlotsDTCs(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, 
 					    TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
+    void createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const CablingMap* myCablingMap, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const CablingMap* myCablingMap,
 						     TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk);
     RootWTable* opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
@@ -188,6 +188,22 @@ namespace insur {
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
 
     // IT CABLING
+    void createInnerCablingPlotsPowerChains(const Tracker& tracker, 
+						   //TCanvas *&RZCanvas, 
+						   std::vector<TCanvas*> &ZPhiLayerPlots,
+						   TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						   //std::vector<TCanvas*> &XYPosPowerChainsDisks, 
+						   std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
+    void createInnerCablingPlotsGBTs(const Tracker& tracker,
+						 std::vector<TCanvas*> &ZPhiLayerPlots,
+						 std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
+    void createInnerCablingPlotsBundles(const Tracker& tracker,
+						    TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+						    std::vector<TCanvas*> &XYPosBundlesDisks);
+    void createInnerCablingPlotsDTCs(const Tracker& tracker,
+						 TCanvas *&RZCanvas,
+						 TCanvas *&XYPosCanvas,
+						 std::vector<TCanvas*> &XYPosDTCsDisks);
     void computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
 				  int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
 				  int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
@@ -195,22 +211,6 @@ namespace insur {
 				  int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
 				  int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
 				  int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const;
-    void createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker, 
-						   //TCanvas *&RZCanvas, 
-						   std::vector<TCanvas*> &ZPhiLayerPlots,
-						   TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-						   //std::vector<TCanvas*> &XYPosPowerChainsDisks, 
-						   std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
-    void createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker,
-						 std::vector<TCanvas*> &ZPhiLayerPlots,
-						 std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
-    void createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
-						    TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
-						    std::vector<TCanvas*> &XYPosBundlesDisks);
-    void createSummaryCanvasInnerCablingDTCNicer(const Tracker& tracker,
-						 TCanvas *&RZCanvas,
-						 TCanvas *&XYPosCanvas,
-						 std::vector<TCanvas*> &XYPosDTCsDisks);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,

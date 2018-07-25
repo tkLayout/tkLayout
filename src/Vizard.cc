@@ -1299,7 +1299,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, 
+      createOuterCablingPlotsBundles(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, 
 					    XYPosBundlesDisks, XYPosBundlesDiskSurfaces, XYNegBundlesDisks, XYNegBundlesDiskSurfaces);
 
       if (RZBundleCanvas) {
@@ -1363,7 +1363,7 @@ namespace insur {
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
+      createOuterCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
@@ -1507,7 +1507,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (optical)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasOpticalCablingChannelNicer(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
+      createOuterCablingPlotsServicesChannelsOptical(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
 
       if (XYChannelOpticalNegCanvas) {
 	myImage = new RootWImage(XYChannelOpticalNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1548,7 +1548,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (powering)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
+      createOuterCablingPlotsServicesChannelsPower(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
 
       // POSITIVE CABLING SIDE
       myContent->addItem(positiveSideName);
@@ -1677,17 +1677,17 @@ namespace insur {
       myContent = new RootWContent("Modules to Serial Power Chains");
       myPage->addContent(myContent);  
       
-      createSummaryCanvasCablingPowerChainNicer(tracker,
-						ZPhiPowerChainLayerPlots,
-						XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
-						XYPosPowerChainsDiskSurfaces);
+      createInnerCablingPlotsPowerChains(tracker,
+					 ZPhiPowerChainLayerPlots,
+					 XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
+					 XYPosPowerChainsDiskSurfaces);
 
       // bpix
       myContent->addItem(barrelName);
       for (const auto& ZPhiPlot : ZPhiPowerChainLayerPlots) {
-	  myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(ZPhiPlot->GetTitle());
-	  myContent->addItem(myImage);
+	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(ZPhiPlot->GetTitle());
+	myContent->addItem(myImage);
       }
       if (XYPowerChainNegCanvas) {
 	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1709,9 +1709,9 @@ namespace insur {
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
       for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
-	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYPosSurface->GetTitle());
-	  myContent->addItem(myImage);
+	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosSurface->GetTitle());
+	myContent->addItem(myImage);
       }
  
 
@@ -1722,24 +1722,24 @@ namespace insur {
       myContent = new RootWContent("Modules to LP GBTs");
       myPage->addContent(myContent);
       
-      createSummaryCanvasInnerCablingGBTNicer(tracker,
-					      ZPhiGBTLayerPlots,
-					      XYPosGBTsDiskSurfaces);
+      createInnerCablingPlotsGBTs(tracker,
+				  ZPhiGBTLayerPlots,
+				  XYPosGBTsDiskSurfaces);
       // bpix
       myContent->addItem(barrelName);
       for (const auto& ZPhiPlot : ZPhiGBTLayerPlots) {
-	  myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(ZPhiPlot->GetTitle());
-	  myContent->addItem(myImage);
+	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(ZPhiPlot->GetTitle());
+	myContent->addItem(myImage);
       }
       // fpix and epix, (+z) end
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
       for (const auto& XYPosSurface : XYPosGBTsDiskSurfaces) {
-	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYPosSurface->GetTitle());
-	  myContent->addItem(myImage);
+	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosSurface->GetTitle());
+	myContent->addItem(myImage);
       }
 
 
@@ -1751,9 +1751,9 @@ namespace insur {
       myContent = new RootWContent("Modules to Fiber Bundles");
       myPage->addContent(myContent);  
       
-      createSummaryCanvasInnerCablingBundleNicer(tracker,
-						 XYBundleNegCanvas, XYBundlePosCanvas, 
-						 XYPosBundlesDisks);
+      createInnerCablingPlotsBundles(tracker,
+				     XYBundleNegCanvas, XYBundlePosCanvas, 
+				     XYPosBundlesDisks);
       // bpix
       myContent->addItem(barrelName);
       if (XYBundleNegCanvas) {
@@ -1785,7 +1785,7 @@ namespace insur {
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasInnerCablingDTCNicer(tracker, RZDTCCanvas, XYDTCPosCanvas, XYPosDTCsDisks);
+      createInnerCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCPosCanvas, XYPosDTCsDisks);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
@@ -1968,280 +1968,6 @@ namespace insur {
 
     } // end of isPixelTracker
     return true;
-  }
-
-
-  /*
-   * Count all Power chains, GBTs, Bundles, and DTCs in the Inner Tracker cabling map.
-   */
-  void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
-					int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
-					int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
-					int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
-					int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
-					int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
-					int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const {
-
-    // PowerChains
-    const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
-    for (const auto& it : powerChains) {
-      const PowerChain* myPowerChain = it.second;
-      if (myPowerChain->isPositiveXSide()) {
-	numPowerChainsOneXSide++;
-	if (myPowerChain->isPositiveZEnd()) numPowerChainsPlusXSidePlusZEnd++; else numPowerChainsPlusXSideMinusZEnd++;
-
-	const int numSensors = myPowerChain->numModules();
-	numSensorsOneXSide += numSensors;
-	if (myPowerChain->isPositiveZEnd()) numSensorsPlusXSidePlusZEnd += numSensors; else numSensorsPlusXSideMinusZEnd += numSensors;
-      }
-    }
-
-    // GBTs
-    const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
-    for (const auto& it : gbts) {
-      const GBT* myGBT = it.second;
-      if (myGBT->isPositiveXSide()) {
-	numGBTsOneXSide++;
-	if (myGBT->isPositiveZEnd()) numGBTsPlusXSidePlusZEnd++; else numGBTsPlusXSideMinusZEnd++;
-
-	const int numELinks = myGBT->numELinks();
-	numELinksOneXSide += numELinks;
-	if (myGBT->isPositiveZEnd()) numELinksPlusXSidePlusZEnd += numELinks; else numELinksPlusXSideMinusZEnd += numELinks;
-      }
-    }
-
-    // Bundles
-    const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
-    for (const auto& it : bundles) {
-      const InnerBundle* myBundle = it.second;
-      if (myBundle->isPositiveXSide()) {
-	numBundlesOneXSide++;
-	if (myBundle->isPositiveZEnd()) numBundlesPlusXSidePlusZEnd++; else numBundlesPlusXSideMinusZEnd++;
-      }
-    }
-
-    // DTCs
-    const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
-    for (const auto& it : dtcs) {
-      const InnerDTC* myDTC = it.second;
-      if (myDTC->isPositiveXSide()) {
-	numDTCsOneXSide++;
-	if (myDTC->isPositiveZEnd()) numDTCsPlusXSidePlusZEnd++; else numDTCsPlusXSideMinusZEnd++;
-      }
-    }
-  }
-
-
-
-  /* Interface to gather information on services channels, and create a table storing it.
-   */
-  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-    std::map<int, std::vector<int> > cablesPerChannel;
-    std::map<int, int> psBundlesPerChannel;
-    std::map<int, int> ssBundlesPerChannel;
-
-    // Fill services channels maps.
-    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-
-    // Create table.
-    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-
-    return channelsTable;
-  }
-
-
-  /* Get the requested Services Channels info from the cabling map.
-   */
-  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
-
-    for (const auto& myCable : cables) {
-      const ChannelSection* mySection = myCable.second->opticalChannelSection();
-      const ChannelSlot& myChannelSlot = mySection->channelSlot();
-
-      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
-      if ( requestedSlot == ChannelSlot::UNKNOWN 
-	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
-	   ) {
-
-	const int channelNumber = mySection->channelNumber();
-
-	const int cableId = myCable.first;
-	cablesPerChannel[channelNumber].push_back(cableId);
-
-	const Category cableType = myCable.second->type();      
-	const int numBundles = myCable.second->numBundles();
-
-	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
-	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
-	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
-      }
-    }
-  }
-
-
-  /* Create the table with Services Channel information.
-   */
-  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    RootWTable* channelsTable = new RootWTable();
-
-    // Header table
-    channelsTable->setContent(0, 1, any2str(requestedSlot));
-    channelsTable->setContent(0, 2, "# MFC");
-    channelsTable->setContent(0, 3, "# MFB PS");
-    channelsTable->setContent(0, 4, "# MFB 2S");
-    channelsTable->setContent(0, 5, "# MFB Total");
-
-    int totalCables = 0;
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
-    int totalBundles = 0;
-
-    // Fill table
-    for (int i = 1; i <= 12; i++) {
-      const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
-
-      // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
-      std::stringstream pp1Name;
-      std::string sign = (pp1 >= 0 ? "+" : "");
-      pp1Name << "PP1" << sign << pp1;
-      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, 0, pp1Name.str());
-
-      // Channel name
-      std::stringstream channelName;
-      channelName << "OT" << channelNumber;
-      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, 1, channelName.str());
-
-      channelsTable->setContent(i, 2, numCablesPerChannel);
-      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 5, numBundlesPerChannel);
-
-      totalCables += numCablesPerChannel;
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
-      totalBundles += numBundlesPerChannel;
-    }
-    channelsTable->setContent(13, 1, "Total");
-    channelsTable->setContent(13, 2, totalCables);
-    channelsTable->setContent(13, 3, totalPsBundles);
-    channelsTable->setContent(13, 4, totalSsBundles);
-    channelsTable->setContent(13, 5, totalBundles);
-
-    return channelsTable;
-  }
-
-
-/* Interface to gather information on powerServices channels, and create a table storing it.
-   */
-  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
-
-    RootWTable* channelsTable = new RootWTable();
-
-    for (const auto& requestedSlot : slots) {
-      std::map<int, int> psBundlesPerChannel;
-      std::map<int, int> ssBundlesPerChannel;
-
-      // Fill powerServices channels maps.
-      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-
-      // Create table.
-      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-    }
-
-    return channelsTable;
-  }
-
-
-  /* Get the requested PowerServices Channels info from the cabling map.
-   */
-  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
-
-    for (const auto& myBundle : bundles) {
-      const ChannelSection* mySection = myBundle.second->powerChannelSection();
-      const ChannelSlot& myChannelSlot = mySection->channelSlot();
-
-      // If necessary, can select the PowerServices Channels corresponding to the requested slot.
-      if ( requestedSlot == ChannelSlot::UNKNOWN 
-	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
-	   ) {
-
-	const int channelNumber = mySection->channelNumber();
-
-	const Category bundleType = myBundle.second->type();      
-
-	if (bundleType == Category::PS10G 
-	    || bundleType == Category::PS10GA 
-	    || bundleType == Category::PS10GB 
-	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
-	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
-	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
-      }
-    }
-  }
-
-
-  /* Create the table with PowerServices Channel information.
-   */
-  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    const int maxCol = channelsTable->maxCol();
-    const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
-
-    // Header table
-    channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
-    channelsTable->setContent(0, startCol + 2, "# PWR PS");
-    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
-    channelsTable->setContent(0, startCol + 4, "# PWR Total");
-
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
-    int totalBundles = 0;
-
-    // Fill table
-    for (int i = 1; i <= 12; i++) {
-      const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
-
-      // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
-      std::stringstream pp1Name;
-      std::string sign = (pp1 >= 0 ? "+" : "");
-      pp1Name << "PP1" << sign << pp1;
-      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, startCol, pp1Name.str());
-
-      // Channel name
-      std::stringstream channelName;
-      channelName << "OT" << channelNumber;
-      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, startCol + 1, channelName.str());
-
-      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
-
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
-      totalBundles += numBundlesPerChannel;
-    }
-    channelsTable->setContent(13, startCol + 1, "Total");
-    channelsTable->setContent(13, startCol + 2, totalPsBundles);
-    channelsTable->setContent(13, startCol + 3, totalSsBundles);
-    channelsTable->setContent(13, startCol + 4, totalBundles);
   }
 
 
@@ -7262,10 +6988,15 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingBundleNicer(const Tracker& tracker,
-						     TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-						     std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
-						     std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
+  /* OT CABLING */
+
+  /* 
+   * Bundle cabling plots.
+   */
+  void Vizard::createOuterCablingPlotsBundles(const Tracker& tracker,
+					      TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+					      std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
+					      std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
     
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
     RZCanvas->cd();
@@ -7421,10 +7152,13 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
-						  TCanvas *&RZCanvas, 
-						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-						  std::vector<TCanvas*> &XYCanvasesDisk) {
+  /* 
+   * DTC cabling plots.
+   */
+  void Vizard::createOuterCablingPlotsDTCs(Tracker& tracker,
+					   TCanvas *&RZCanvas, 
+					   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+					   std::vector<TCanvas*> &XYCanvasesDisk) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
@@ -7492,7 +7226,10 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
+  /*
+   * Optical cables channels assignments plots.
+   */
+  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const CablingMap* myCablingMap,
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
     bool isPowerCabling = false;
@@ -7564,9 +7301,12 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
-							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-							   std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
+  /*
+   * Power cables channels assignments plots.
+   */
+  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const CablingMap* myCablingMap,
+							    TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+							    std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
 
     bool isPositiveCablingSide = true;
@@ -7656,21 +7396,227 @@ namespace insur {
   }
 
 
+  /* Interface to gather information on services channels, and create a table storing it.
+   */
+  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+    std::map<int, std::vector<int> > cablesPerChannel;
+    std::map<int, int> psBundlesPerChannel;
+    std::map<int, int> ssBundlesPerChannel;
+
+    // Fill services channels maps.
+    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+    // Create table.
+    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+    return channelsTable;
+  }
 
 
-  void Vizard::createSummaryCanvasCablingPowerChainNicer(const Tracker& tracker,
-							 //TCanvas *&RZCanvas,
-							 std::vector<TCanvas*> &ZPhiLayerPlots,
-							 TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-							 //std::vector<TCanvas*> &XYPosPowerChainsDisks, 
-							 std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
+  /* Get the requested Services Channels info from the cabling map.
+   */
+  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    /*RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
-    RZCanvas->cd();
-    PlotDrawer<YZFull, TypePowerChainTransparentColor> yzDrawer;
-    yzDrawer.addModules(tracker);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);*/
+    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+
+    for (const auto& myCable : cables) {
+      const ChannelSection* mySection = myCable.second->opticalChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+
+	const int channelNumber = mySection->channelNumber();
+
+	const int cableId = myCable.first;
+	cablesPerChannel[channelNumber].push_back(cableId);
+
+	const Category cableType = myCable.second->type();      
+	const int numBundles = myCable.second->numBundles();
+
+	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
+	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
+	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+      }
+    }
+  }
+
+
+  /* Create the table with Services Channel information.
+   */
+  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    // Header table
+    channelsTable->setContent(0, 1, any2str(requestedSlot));
+    channelsTable->setContent(0, 2, "# MFC");
+    channelsTable->setContent(0, 3, "# MFB PS");
+    channelsTable->setContent(0, 4, "# MFB 2S");
+    channelsTable->setContent(0, 5, "# MFB Total");
+
+    int totalCables = 0;
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      const int channelNumber = (isPositiveCablingSide ? i : -i);
+      int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // PP1 name
+      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, 0, pp1Name.str());
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channelNumber;
+      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, 1, channelName.str());
+
+      channelsTable->setContent(i, 2, numCablesPerChannel);
+      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 5, numBundlesPerChannel);
+
+      totalCables += numCablesPerChannel;
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, 1, "Total");
+    channelsTable->setContent(13, 2, totalCables);
+    channelsTable->setContent(13, 3, totalPsBundles);
+    channelsTable->setContent(13, 4, totalSsBundles);
+    channelsTable->setContent(13, 5, totalBundles);
+
+    return channelsTable;
+  }
+
+
+  /* Interface to gather information on powerServices channels, and create a table storing it.
+   */
+  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    for (const auto& requestedSlot : slots) {
+      std::map<int, int> psBundlesPerChannel;
+      std::map<int, int> ssBundlesPerChannel;
+
+      // Fill powerServices channels maps.
+      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+      // Create table.
+      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    }
+
+    return channelsTable;
+  }
+
+
+  /* Get the requested PowerServices Channels info from the cabling map.
+   */
+  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+
+    for (const auto& myBundle : bundles) {
+      const ChannelSection* mySection = myBundle.second->powerChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If necessary, can select the PowerServices Channels corresponding to the requested slot.
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+
+	const int channelNumber = mySection->channelNumber();
+
+	const Category bundleType = myBundle.second->type();      
+
+	if (bundleType == Category::PS10G 
+	    || bundleType == Category::PS10GA 
+	    || bundleType == Category::PS10GB 
+	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
+	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
+	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+      }
+    }
+  }
+
+
+  /* Create the table with PowerServices Channel information.
+   */
+  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    const int maxCol = channelsTable->maxCol();
+    const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
+
+    // Header table
+    channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
+    channelsTable->setContent(0, startCol + 2, "# PWR PS");
+    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
+    channelsTable->setContent(0, startCol + 4, "# PWR Total");
+
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      const int channelNumber = (isPositiveCablingSide ? i : -i);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // PP1 name
+      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, startCol, pp1Name.str());
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channelNumber;
+      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, startCol + 1, channelName.str());
+
+      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
+
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, startCol + 1, "Total");
+    channelsTable->setContent(13, startCol + 2, totalPsBundles);
+    channelsTable->setContent(13, startCol + 3, totalSsBundles);
+    channelsTable->setContent(13, startCol + 4, totalBundles);
+  }
+
+
+  /* IT CABLING */
+
+  /*
+   * Power chains plots
+   */
+  void Vizard::createInnerCablingPlotsPowerChains(const Tracker& tracker,
+						  std::vector<TCanvas*> &ZPhiLayerPlots,
+						  TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						  std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double barrelViewPort = maxRadii.first;
@@ -7743,25 +7689,6 @@ namespace insur {
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
-    // POSITIVE CABLING SIDE.
-    // ENDCAPS DISK.
-    /*isRotatedY180 = false;
-    for (auto& anEndcap : tracker.endcaps() ) {
-      if (anEndcap.disks().size() > 0) {
-	const Disk& lastDisk = anEndcap.disks().back();
-	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDisk", anEndcap.myid().c_str()),
-					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
-	xyDiskDrawer.addModules(lastDisk);
-	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	XYPosPowerChainsDisks.push_back(XYCanvasDisk);
-      }
-      }*/
-
     // ENDCAPS DISK SURFACE.
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
@@ -7809,9 +7736,12 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasInnerCablingGBTNicer(const Tracker& tracker,
-						       std::vector<TCanvas*> &ZPhiLayerPlots,
-						       std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
+  /*
+   * GBT plots.
+   */
+  void Vizard::createInnerCablingPlotsGBTs(const Tracker& tracker,
+					   std::vector<TCanvas*> &ZPhiLayerPlots,
+					   std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double barrelViewPort = maxRadii.first;
@@ -7877,7 +7807,6 @@ namespace insur {
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
       ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
     }
-
 
 
     // POSITIVE CABLING SIDE.
@@ -7954,9 +7883,12 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasInnerCablingBundleNicer(const Tracker& tracker,
-							  TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
-							  std::vector<TCanvas*> &XYPosBundlesDisks) {
+  /*
+   * Bundles plots.
+   */
+  void Vizard::createInnerCablingPlotsBundles(const Tracker& tracker,
+					      TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+					      std::vector<TCanvas*> &XYPosBundlesDisks) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double barrelViewPort = maxRadii.first;
@@ -8009,10 +7941,13 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasInnerCablingDTCNicer(const Tracker& tracker,
-						       TCanvas *&RZCanvas,
-						       TCanvas *&XYPosCanvas,
-						       std::vector<TCanvas*> &XYPosDTCsDisks) {
+  /*
+   * DTC plots.
+   */
+  void Vizard::createInnerCablingPlotsDTCs(const Tracker& tracker,
+					   TCanvas *&RZCanvas,
+					   TCanvas *&XYPosCanvas,
+					   std::vector<TCanvas*> &XYPosDTCsDisks) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
@@ -8062,11 +7997,65 @@ namespace insur {
   }
 
 
+  /*
+   * Count all Power chains, GBTs, Bundles, and DTCs in the Inner Tracker cabling map.
+   */
+  void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
+					int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
+					int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
+					int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
+					int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
+					int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
+					int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const {
 
+    // PowerChains
+    const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
+    for (const auto& it : powerChains) {
+      const PowerChain* myPowerChain = it.second;
+      if (myPowerChain->isPositiveXSide()) {
+	numPowerChainsOneXSide++;
+	if (myPowerChain->isPositiveZEnd()) numPowerChainsPlusXSidePlusZEnd++; else numPowerChainsPlusXSideMinusZEnd++;
 
+	const int numSensors = myPowerChain->numModules();
+	numSensorsOneXSide += numSensors;
+	if (myPowerChain->isPositiveZEnd()) numSensorsPlusXSidePlusZEnd += numSensors; else numSensorsPlusXSideMinusZEnd += numSensors;
+      }
+    }
 
+    // GBTs
+    const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
+    for (const auto& it : gbts) {
+      const GBT* myGBT = it.second;
+      if (myGBT->isPositiveXSide()) {
+	numGBTsOneXSide++;
+	if (myGBT->isPositiveZEnd()) numGBTsPlusXSidePlusZEnd++; else numGBTsPlusXSideMinusZEnd++;
 
+	const int numELinks = myGBT->numELinks();
+	numELinksOneXSide += numELinks;
+	if (myGBT->isPositiveZEnd()) numELinksPlusXSidePlusZEnd += numELinks; else numELinksPlusXSideMinusZEnd += numELinks;
+      }
+    }
 
+    // Bundles
+    const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
+    for (const auto& it : bundles) {
+      const InnerBundle* myBundle = it.second;
+      if (myBundle->isPositiveXSide()) {
+	numBundlesOneXSide++;
+	if (myBundle->isPositiveZEnd()) numBundlesPlusXSidePlusZEnd++; else numBundlesPlusXSideMinusZEnd++;
+      }
+    }
+
+    // DTCs
+    const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
+    for (const auto& it : dtcs) {
+      const InnerDTC* myDTC = it.second;
+      if (myDTC->isPositiveXSide()) {
+	numDTCsOneXSide++;
+	if (myDTC->isPositiveZEnd()) numDTCsPlusXSidePlusZEnd++; else numDTCsPlusXSideMinusZEnd++;
+      }
+    }
+  }
 
 
   /*
