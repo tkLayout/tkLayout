@@ -146,6 +146,18 @@ inline bool moduloComp(const ArgType& phi1, const ArgType& phi2, const ArgType& 
   return (modPhi1 < modPhi2);
 }
 
+template<typename ArgType> 
+inline ArgType moduloDiff(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  ArgType modPhi1 = femod(phi1, base);
+  ArgType modPhi2 = femod(phi2, base);
+  if (fabs(modPhi1 -  modPhi2) > fabs(base / 2.)) {
+    if (modPhi1 < modPhi2) modPhi1 += base;
+    else modPhi2 += base;
+  }
+  return (modPhi1 - modPhi2);
+}
+
 
 template<typename ArgType> inline int signum(const ArgType& x) {
   return (x > ArgType(0)) - (x < ArgType(0));

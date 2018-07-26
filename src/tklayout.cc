@@ -31,7 +31,8 @@ int main(int argc, char* argv[]) {
     ("resolution,r", "Report resolution analysis.")
     ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("pattern-reco,P", "Report pattern recognition analysis.")
-    ("cablingMap,c", "Build an optical cabling map, which connects each module to a bundle, cable, DTC + Build a power cabling map. Also provide info on routing of services through channels.")
+    ("outerCablingMap", "Outer Tracker : Build an optical cabling map, which connects each module to a bundle, cable, DTC + Build a power cabling map. Also provide info on routing of services through channels.")
+    ("innerCablingMap", "Inner Tracker: Build an optical cabling map.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
@@ -134,9 +135,12 @@ int main(int argc, char* argv[]) {
   // Build cabling map.
   // With option 'all', cabling map is only computed on a specific layout, for which the map is designed.
   // The user can also force the computation by using 'cablingMap' option.
-  const bool buildCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) // Layout on which cabling map was designed.
-				 || vm.count("cablingMap") ); // Forces cabling map computation.
-  if (buildCablingMap && !squid.buildCablingMap(vm.count("cablingMap")) ) return EXIT_FAILURE;
+  const bool buildOuterCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) // Layout on which Outer Tracker cabling map was designed.
+				 || vm.count("outerCablingMap") ); // Forces cabling map computation.
+  if (buildOuterCablingMap && !squid.buildOuterCablingMap(vm.count("outerCablingMap")) ) return EXIT_FAILURE;
+  const bool buildInnerCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledITName) != std::string::npos) // Layout on which Inner Tracker cabling map was designed.
+				 || vm.count("innerCablingMap") ); // Forces cabling map computation.
+  if (buildInnerCablingMap && !squid.buildInnerCablingMap(vm.count("innerCablingMap")) ) return EXIT_FAILURE;
   
   if (!vm.count("tracksim")) {
     // The tracker should pick the types here but in case it does not,
@@ -164,7 +168,8 @@ int main(int argc, char* argv[]) {
       }
     }
     
-    if (buildCablingMap && !squid.reportCablingMapSite(vm.count("cablingMap"), basename)) return EXIT_FAILURE;
+    if (buildOuterCablingMap && !squid.reportOuterCablingMapSite(vm.count("outerCablingMap"), basename)) return EXIT_FAILURE;
+    if (buildInnerCablingMap && !squid.reportInnerCablingMapSite(vm.count("innerCablingMap"), basename)) return EXIT_FAILURE;
 
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;

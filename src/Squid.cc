@@ -179,14 +179,14 @@ namespace insur {
   /**
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
-   * Please note that this is independant from any cable Materiabal Budget consideration, which is done indepedently.
+   * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
    * The underlying cabling was designed for OT614, and will not work for any other layout.
    */
-  bool Squid::buildCablingMap(const bool cablingOption) {
-    startTaskClock("Building optical Cabling map.");
+  bool Squid::buildOuterCablingMap(const bool outerCablingOption) {
+    startTaskClock("Building optical and power cabling map in the Outer Tracker.");
     if (tr) {
       try {
-	// BUILD CABLING MAP.	
+	// BUILD OUTER CABLING MAP.	
 	std::unique_ptr<const CablingMap> map(new CablingMap(tr));
 	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(tr);  // Switch to C++14 :)
 	tr->setCablingMap(std::move(map));
@@ -196,6 +196,37 @@ namespace insur {
 	stopTaskClock();
 	return false;
 	}
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+  /**
+   * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
+   * Can actually be reused for power cables routing.
+   * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
+   * The underlying cabling was designed for IT404, and will not work for any other layout.
+   */
+  bool Squid::buildInnerCablingMap(const bool innerCablingOption) {
+    startTaskClock("Building optical and power cabling map in the Inner Tracker.");
+    if (px) {
+      try {
+	// BUILD INNER CABLING MAP.	
+	std::unique_ptr<const InnerCablingMap> map(new InnerCablingMap(px));
+	// std::unique_ptr<const CablingMap> map = std::make_unique<const CablingMap>(px);  // Switch to C++14 :)
+	px->setInnerCablingMap(std::move(map));
+      }
+      catch (PathfulException& e) {
+	std::cerr << e.path() << " : " << e.what() << std::endl;  // should improve this!
+	stopTaskClock();
+	return false;
+      }
       stopTaskClock();
       return true;
     }
@@ -489,14 +520,34 @@ namespace insur {
 
 
   /**
-   * Add the optical cabling map to the website.
+   * Add the Outer Tracker optical cabling map to the website.
    */
-  bool Squid::reportCablingMapSite(const bool cablingOption, const std::string layoutName) {
-    startTaskClock("Creating optical Cabling map report.");
+  bool Squid::reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating OT Cabling map report.");
     if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT614 only.");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
-      v.cablingSummary(a, *tr, site);
+      v.outerCablingSummary(a, *tr, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+  /**
+   * Add the Outer Tracker optical cabling map to the website.
+   */
+  bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating IT Cabling map report.");
+    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT404 only.");
+    if (px) {
+      // CREATE REPORT ON WEBSITE.
+      v.innerCablingSummary(pixelAnalyzer, *px, site);
       stopTaskClock();
       return true;
     }

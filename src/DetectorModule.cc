@@ -1,10 +1,14 @@
-
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
 #include "Cabling/Bundle.hh"
-
 #include "Cabling/Cable.hh"
 #include "Cabling/DTC.hh"
+
+#include "ITCabling/PowerChain.hh"
+#include "ITCabling/HvLine.hh"
+#include "ITCabling/GBT.hh"
+#include "ITCabling/InnerBundle.hh"
+#include "ITCabling/InnerDTC.hh"
 
 
 void DetectorModule::setup() {
@@ -638,6 +642,7 @@ std::string DetectorModule::summaryFullType() const  {
 };
 
 
+// OT CABLING
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
   const Bundle* myBundle = getBundle();
@@ -715,6 +720,88 @@ const int DetectorModule::dtcPhiSectorRef() const {
   }
   return dtcPhiSectorRef;
 }
+
+
+// IT CABLING
+const int DetectorModule::isPositiveZEnd() const {
+  int isPositiveZEnd = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveZEnd = (myPowerChain->isPositiveZEnd() ? 1 : -1);
+  }
+  return isPositiveZEnd;
+}
+
+
+const bool DetectorModule::isPositiveXSide() const {
+  bool isPositiveXSide;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveXSide = myPowerChain->isPositiveXSide();
+  }
+  return isPositiveXSide;
+}
+
+
+const int DetectorModule::powerChainPlotColor() const {
+  int powerChainPlotColor = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    powerChainPlotColor = myPowerChain->plotColor();
+  }
+  return powerChainPlotColor;
+}
+
+
+const int DetectorModule::gbtPlotColor() const {
+  int gbtPlotColor = 0;
+  const GBT* myGBT = getGBT();
+  if (myGBT != nullptr) {
+    gbtPlotColor = myGBT->plotColor();
+  }
+  return gbtPlotColor;
+}
+
+
+const InnerBundle* DetectorModule::getInnerBundle() const {
+  const InnerBundle* myBundle = nullptr;
+  const GBT* myGBT = getGBT();
+  if (myGBT) {
+    myBundle = myGBT->getBundle();
+  }
+  return myBundle;
+}
+
+
+const int DetectorModule::innerBundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle != nullptr) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
+
+const InnerDTC* DetectorModule::getInnerDTC() const {
+  const InnerDTC* myDTC = nullptr;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle) {
+    myDTC = myBundle->getDTC();
+  }
+  return myDTC;
+}
+
+
+const int DetectorModule::innerDTCPlotColor() const {
+  int dtcPlotColor = 0;
+  const InnerDTC* myDTC = getInnerDTC();
+  if (myDTC != nullptr) {
+    dtcPlotColor = myDTC->plotColor();
+  }
+  return dtcPlotColor;
+}
+
 
 
 void BarrelModule::build() {

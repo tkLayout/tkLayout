@@ -1261,7 +1261,10 @@ namespace insur {
   }
 
 
-  bool Vizard::cablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  /*
+   * Create all Outer Tracker cabling plots and csv files, and display them on website.
+   */
+  bool Vizard::outerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     bool isPixelTracker = tracker.isPixelTracker();
 
     if (!isPixelTracker) {
@@ -1296,7 +1299,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingBundleNicer(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, 
+      createOuterCablingPlotsBundles(tracker, RZBundleCanvas, XYBundleCanvas, XYBundleNegCanvas, 
 					    XYPosBundlesDisks, XYPosBundlesDiskSurfaces, XYNegBundlesDisks, XYNegBundlesDiskSurfaces);
 
       if (RZBundleCanvas) {
@@ -1360,7 +1363,7 @@ namespace insur {
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
 
-      createSummaryCanvasCablingDTCNicer(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
+      createOuterCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
 
       if (RZDTCCanvas) {
 	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
@@ -1504,7 +1507,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (optical)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasOpticalCablingChannelNicer(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
+      createOuterCablingPlotsServicesChannelsOptical(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
 
       if (XYChannelOpticalNegCanvas) {
 	myImage = new RootWImage(XYChannelOpticalNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1545,7 +1548,7 @@ namespace insur {
       myContent = new RootWContent("Modules to Services Channels (powering)");
       myPage->addContent(myContent);
 
-      createSummaryCanvasPowerCablingChannelNicer(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
+      createOuterCablingPlotsServicesChannelsPower(tracker, myCablingMap, XYChannelPowerNegCanvas, XYChannelPowerNegFlatCanvas, XYChannelPowerCanvas, XYChannelPowerFlatCanvas, XYChannelPowerCanvasesDisk, XYNegChannelPowerCanvasesDisk);
 
       // POSITIVE CABLING SIDE
       myContent->addItem(positiveSideName);
@@ -1632,215 +1635,339 @@ namespace insur {
   }
 
 
-  /* Interface to gather information on services channels, and create a table storing it.
+  /*
+   * Create all Inner Tracker cabling plots and csv files, and display them on website.
    */
-  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-    std::map<int, std::vector<int> > cablesPerChannel;
-    std::map<int, int> psBundlesPerChannel;
-    std::map<int, int> ssBundlesPerChannel;
+  bool Vizard::innerCablingSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    bool isPixelTracker = tracker.isPixelTracker();
 
-    // Fill services channels maps.
-    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    if (isPixelTracker) {
+      std::string name = "Inner";
 
-    // Create table.
-    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+      std::string pageTitle = "Cabling";
+      pageTitle += " (" + name + ")";
+      RootWPage* myPage = new RootWPage(pageTitle);
 
-    return channelsTable;
-  }
+      std::string pageAddress ="cabling" + name + ".html";
+      myPage->setAddress(pageAddress);
+
+      site.addPage(myPage);
+      RootWContent* myContent;
+
+      //********************************//
+      //*                              *//
+      //*       Plots                  *//
+      //*                              *//
+      //********************************//
+      RootWImage* myImage;
+
+      RootWTable* barrelName = new RootWTable();
+      barrelName->setContent(0, 0, "BPIX");
+      RootWTable* forwardName = new RootWTable();
+      forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
 
 
-  /* Get the requested Services Channels info from the cabling map.
-   */
-  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+      // MODULES TO POWER CHAINS
+      std::vector<TCanvas*> ZPhiPowerChainLayerPlots;
+      TCanvas *XYPowerChainNegCanvas = nullptr;
+      TCanvas *XYPowerChainCentralCanvas = nullptr;
+      TCanvas *XYPowerChainCanvas = nullptr;
+      std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
+   
+      myContent = new RootWContent("Modules to Serial Power Chains");
+      myPage->addContent(myContent);  
+      
+      createInnerCablingPlotsPowerChains(tracker,
+					 ZPhiPowerChainLayerPlots,
+					 XYPowerChainNegCanvas, XYPowerChainCentralCanvas, XYPowerChainCanvas, 
+					 XYPosPowerChainsDiskSurfaces);
 
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
-
-    for (const auto& myCable : cables) {
-      const ChannelSection* mySection = myCable.second->opticalChannelSection();
-      const ChannelSlot& myChannelSlot = mySection->channelSlot();
-
-      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
-      if ( requestedSlot == ChannelSlot::UNKNOWN 
-	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
-	   ) {
-
-	const int channelNumber = mySection->channelNumber();
-
-	const int cableId = myCable.first;
-	cablesPerChannel[channelNumber].push_back(cableId);
-
-	const Category cableType = myCable.second->type();      
-	const int numBundles = myCable.second->numBundles();
-
-	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
-	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
-	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+      // bpix
+      myContent->addItem(barrelName);
+      for (const auto& ZPhiPlot : ZPhiPowerChainLayerPlots) {
+	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(ZPhiPlot->GetTitle());
+	myContent->addItem(myImage);
       }
-    }
-  }
-
-
-  /* Create the table with Services Channel information.
-   */
-  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    RootWTable* channelsTable = new RootWTable();
-
-    // Header table
-    channelsTable->setContent(0, 1, any2str(requestedSlot));
-    channelsTable->setContent(0, 2, "# MFC");
-    channelsTable->setContent(0, 3, "# MFB PS");
-    channelsTable->setContent(0, 4, "# MFB 2S");
-    channelsTable->setContent(0, 5, "# MFB Total");
-
-    int totalCables = 0;
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
-    int totalBundles = 0;
-
-    // Fill table
-    for (int i = 1; i <= 12; i++) {
-      const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
-
-      // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
-      std::stringstream pp1Name;
-      std::string sign = (pp1 >= 0 ? "+" : "");
-      pp1Name << "PP1" << sign << pp1;
-      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, 0, pp1Name.str());
-
-      // Channel name
-      std::stringstream channelName;
-      channelName << "OT" << channelNumber;
-      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, 1, channelName.str());
-
-      channelsTable->setContent(i, 2, numCablesPerChannel);
-      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 5, numBundlesPerChannel);
-
-      totalCables += numCablesPerChannel;
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
-      totalBundles += numBundlesPerChannel;
-    }
-    channelsTable->setContent(13, 1, "Total");
-    channelsTable->setContent(13, 2, totalCables);
-    channelsTable->setContent(13, 3, totalPsBundles);
-    channelsTable->setContent(13, 4, totalSsBundles);
-    channelsTable->setContent(13, 5, totalBundles);
-
-    return channelsTable;
-  }
-
-
-/* Interface to gather information on powerServices channels, and create a table storing it.
-   */
-  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
-
-    RootWTable* channelsTable = new RootWTable();
-
-    for (const auto& requestedSlot : slots) {
-      std::map<int, int> psBundlesPerChannel;
-      std::map<int, int> ssBundlesPerChannel;
-
-      // Fill powerServices channels maps.
-      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-
-      // Create table.
-      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
-    }
-
-    return channelsTable;
-  }
-
-
-  /* Get the requested PowerServices Channels info from the cabling map.
-   */
-  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
-
-    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
-
-    for (const auto& myBundle : bundles) {
-      const ChannelSection* mySection = myBundle.second->powerChannelSection();
-      const ChannelSlot& myChannelSlot = mySection->channelSlot();
-
-      // If necessary, can select the PowerServices Channels corresponding to the requested slot.
-      if ( requestedSlot == ChannelSlot::UNKNOWN 
-	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
-	   ) {
-
-	const int channelNumber = mySection->channelNumber();
-
-	const Category bundleType = myBundle.second->type();      
-
-	if (bundleType == Category::PS10G 
-	    || bundleType == Category::PS10GA 
-	    || bundleType == Category::PS10GB 
-	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
-	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
-	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+      if (XYPowerChainNegCanvas) {
+	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
       }
-    }
-  }
+      if (XYPowerChainCentralCanvas) {
+	myImage = new RootWImage(XYPowerChainCentralCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, sensors at Z = 0 only. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYPowerChainCanvas) {
+	myImage = new RootWImage(XYPowerChainCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      // fpix and epix, (+z) end
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      myContent->addItem(forwardName);
+      for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
+	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosSurface->GetTitle());
+	myContent->addItem(myImage);
+      }
+ 
+
+      // MODULES TO GBTS
+      std::vector<TCanvas*> ZPhiGBTLayerPlots;
+      std::vector<TCanvas*> XYPosGBTsDiskSurfaces;
+   
+      myContent = new RootWContent("Modules to LP GBTs");
+      myPage->addContent(myContent);
+      
+      createInnerCablingPlotsGBTs(tracker,
+				  ZPhiGBTLayerPlots,
+				  XYPosGBTsDiskSurfaces);
+      // bpix
+      myContent->addItem(barrelName);
+      for (const auto& ZPhiPlot : ZPhiGBTLayerPlots) {
+	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(ZPhiPlot->GetTitle());
+	myContent->addItem(myImage);
+      }
+      // fpix and epix, (+z) end
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      myContent->addItem(forwardName);
+      for (const auto& XYPosSurface : XYPosGBTsDiskSurfaces) {
+	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosSurface->GetTitle());
+	myContent->addItem(myImage);
+      }
 
 
-  /* Create the table with PowerServices Channel information.
-   */
-  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+      // MODULES TO BUNDLES
+      TCanvas *XYBundleNegCanvas = nullptr;
+      TCanvas *XYBundlePosCanvas = nullptr;   
+      std::vector<TCanvas*> XYPosBundlesDisks;
+   
+      myContent = new RootWContent("Modules to Fiber Bundles");
+      myPage->addContent(myContent);  
+      
+      createInnerCablingPlotsBundles(tracker,
+				     XYBundleNegCanvas, XYBundlePosCanvas, 
+				     XYPosBundlesDisks);
+      // bpix
+      myContent->addItem(barrelName);
+      if (XYBundleNegCanvas) {
+	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      if (XYBundlePosCanvas) {
+	myImage = new RootWImage(XYBundlePosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
+	myContent->addItem(myImage);
+      }
+      // fpix and epix, (+z) end
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+      myContent->addItem(forwardName);
+      for (const auto& XYPosDisk : XYPosBundlesDisks) {
+	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosDisk->GetTitle());
+	myContent->addItem(myImage);
+      }
 
-    const int maxCol = channelsTable->maxCol();
-    const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
 
-    // Header table
-    channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
-    channelsTable->setContent(0, startCol + 2, "# PWR PS");
-    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
-    channelsTable->setContent(0, startCol + 4, "# PWR Total");
+      // MODULES TO DTCs
+      TCanvas *RZDTCCanvas = nullptr;
+      TCanvas *XYDTCPosCanvas = nullptr;   
+      std::vector<TCanvas*> XYPosDTCsDisks;
+       
+      myContent = new RootWContent("Modules to DTCs");
+      myPage->addContent(myContent);
 
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
-    int totalBundles = 0;
+      createInnerCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCPosCanvas, XYPosDTCsDisks);
 
-    // Fill table
-    for (int i = 1; i <= 12; i++) {
-      const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+      if (RZDTCCanvas) {
+	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
+	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color <=> 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      if (XYDTCPosCanvas) {
+	myImage = new RootWImage(XYDTCPosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you). 1 color <=> 1 DTC.");
+	myContent->addItem(myImage);
+      }
+      for (const auto& XYPosDisk : XYPosDTCsDisks) {
+	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(XYPosDisk->GetTitle());
+	myContent->addItem(myImage);
+      }
 
-      // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
-      std::stringstream pp1Name;
-      std::string sign = (pp1 >= 0 ? "+" : "");
-      pp1Name << "PP1" << sign << pp1;
-      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, startCol, pp1Name.str());
+      
+      const InnerCablingMap* myInnerCablingMap = tracker.getInnerCablingMap();
 
-      // Channel name
-      std::stringstream channelName;
-      channelName << "OT" << channelNumber;
-      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
-      channelsTable->setContent(i, startCol + 1, channelName.str());
+      // CSV files
+      RootWContent* filesContent = new RootWContent("Cabling files", true);
+      myPage->addContent(filesContent);   
+      RootWTextFile* myTextFile;
+      // Modules to DTCs
+      myTextFile = new RootWTextFile(Form("%sTrackerModulesToDTCs.csv", name.c_str()), "Modules to DTCs");
+      myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
+      filesContent->addItem(myTextFile);
+      // DTCs to modules
+      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
+      myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
+      filesContent->addItem(myTextFile);
 
-      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
 
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
-      totalBundles += numBundlesPerChannel;
-    }
-    channelsTable->setContent(13, startCol + 1, "Total");
-    channelsTable->setContent(13, startCol + 2, totalPsBundles);
-    channelsTable->setContent(13, startCol + 3, totalSsBundles);
-    channelsTable->setContent(13, startCol + 4, totalBundles);
+      // CABLING COUNT
+      int numSensorsOneXSide = 0;
+      int numSensorsPlusXSidePlusZEnd = 0;
+      int numSensorsPlusXSideMinusZEnd = 0;
+      int numPowerChainsOneXSide = 0;
+      int numPowerChainsPlusXSidePlusZEnd = 0;
+      int numPowerChainsPlusXSideMinusZEnd = 0;
+      int numELinksOneXSide = 0;
+      int numELinksPlusXSidePlusZEnd = 0;
+      int numELinksPlusXSideMinusZEnd = 0;
+      int numGBTsOneXSide = 0;
+      int numGBTsPlusXSidePlusZEnd = 0;
+      int numGBTsPlusXSideMinusZEnd = 0;
+      int numBundlesOneXSide = 0;
+      int numBundlesPlusXSidePlusZEnd = 0;
+      int numBundlesPlusXSideMinusZEnd = 0;
+      int numDTCsOneXSide = 0;
+      int numDTCsPlusXSidePlusZEnd = 0;
+      int numDTCsPlusXSideMinusZEnd = 0;
+      computeInnerCablingCount(myInnerCablingMap,
+			       numSensorsOneXSide, numSensorsPlusXSidePlusZEnd, numSensorsPlusXSideMinusZEnd,
+			       numPowerChainsOneXSide, numPowerChainsPlusXSidePlusZEnd, numPowerChainsPlusXSideMinusZEnd,
+			       numELinksOneXSide, numELinksPlusXSidePlusZEnd, numELinksPlusXSideMinusZEnd,
+			       numBundlesOneXSide, numBundlesPlusXSidePlusZEnd, numBundlesPlusXSideMinusZEnd,
+			       numGBTsOneXSide, numGBTsPlusXSidePlusZEnd, numGBTsPlusXSideMinusZEnd,
+			       numDTCsOneXSide, numDTCsPlusXSidePlusZEnd, numDTCsPlusXSideMinusZEnd);
+
+      // CABLING COUNT PER (X) SIDE
+      RootWContent* countContent = new RootWContent("Cabling count (one X side, per Z end)", true);
+      myPage->addContent(countContent);
+      RootWInfo* myInfo = nullptr;
+      // (+Z) end, (+X) side
+      RootWTable* plusXSidePlusZEndName = new RootWTable();
+      plusXSidePlusZEndName->setContent(0, 0, "(+X) side, (+Z) end.");
+      countContent->addItem(plusXSidePlusZEndName);
+      // Sensors
+      myInfo = new RootWInfo("Total number of Sensors");
+      myInfo->setValue(numSensorsPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of Serial Power Chains");
+      myInfo->setValue(numPowerChainsPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks");
+      myInfo->setValue(numELinksPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of GBTs");
+      myInfo->setValue(numGBTsPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of Fiber Bundles");
+      myInfo->setValue(numBundlesPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      //DTCs
+      myInfo = new RootWInfo("Total number of DTCs");
+      myInfo->setValue(numDTCsPlusXSidePlusZEnd);
+      countContent->addItem(myInfo);
+      // (+Z) end, (-X) side
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      countContent->addItem(spacer);
+      RootWTable* plusXSideMinusZEndName = new RootWTable();
+      plusXSideMinusZEndName->setContent(0, 0, "(+X) side, (-Z) end.");
+      countContent->addItem(plusXSideMinusZEndName);
+      // Sensors
+      myInfo = new RootWInfo("Total number of Sensors");
+      myInfo->setValue(numSensorsPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of Serial Power Chains");
+      myInfo->setValue(numPowerChainsPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks");
+      myInfo->setValue(numELinksPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of GBTs");
+      myInfo->setValue(numGBTsPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of Fiber Bundles");
+      myInfo->setValue(numBundlesPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+      //DTCs
+      myInfo = new RootWInfo("Total number of DTCs");
+      myInfo->setValue(numDTCsPlusXSideMinusZEnd);
+      countContent->addItem(myInfo);
+
+      // CABLING EFFICIENCY
+      RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one X side)", true);
+      myPage->addContent(efficiencyContent);
+      // Sensors
+      myInfo = new RootWInfo("Total number of Sensors (one X side)");
+      myInfo->setValue(numSensorsOneXSide);
+      efficiencyContent->addItem(myInfo);
+      // PowerChains
+      myInfo = new RootWInfo("Total number of Serial Power Chains (one X side)");
+      myInfo->setValue(numPowerChainsOneXSide);
+      efficiencyContent->addItem(spacer);
+      efficiencyContent->addItem(myInfo);
+      // PowerChains efficiency
+      myInfo = new RootWInfo("Sensors <-> Serial Power Chains efficiency (%)");
+      const double powerChainEfficiency = (double)numSensorsOneXSide / (numPowerChainsOneXSide * inner_cabling_maxNumModulesPerPowerChain);
+      myInfo->setValue(powerChainEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // ELinks
+      myInfo = new RootWInfo("Total number of ELinks (one X side)");
+      myInfo->setValue(numELinksOneXSide);
+      efficiencyContent->addItem(spacer);
+      efficiencyContent->addItem(myInfo);
+      // GBTs
+      myInfo = new RootWInfo("Total number of LP GBTs (one X side)");
+      myInfo->setValue(numGBTsOneXSide);
+      efficiencyContent->addItem(spacer);
+      efficiencyContent->addItem(myInfo);
+      // GBTs efficiency
+      myInfo = new RootWInfo("ELinks <-> LP GBTs efficiency (%)");
+      const double GBTEfficiency = (double)numELinksOneXSide / (numGBTsOneXSide * inner_cabling_maxNumELinksPerGBT);
+      myInfo->setValue(GBTEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // Bundles
+      myInfo = new RootWInfo("Total number of Fiber Bundles (one X side)");
+      myInfo->setValue(numBundlesOneXSide);
+      efficiencyContent->addItem(spacer);
+      efficiencyContent->addItem(myInfo);
+      // Bundles efficiency
+      myInfo = new RootWInfo("LP GBTs <-> Fiber Bundles efficiency (%)");
+      const double bundleEfficiency = (double)numGBTsOneXSide / (numBundlesOneXSide * inner_cabling_maxNumGBTsPerBundle);
+      myInfo->setValue(bundleEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+      // DTCs
+      myInfo = new RootWInfo("Total number of DTCs (one X side)");
+      myInfo->setValue(numDTCsOneXSide);
+      efficiencyContent->addItem(spacer);
+      efficiencyContent->addItem(myInfo);
+      // DTCs efficiency
+      myInfo = new RootWInfo("Fiber Bundles <-> DTCs efficiency (%)");
+      const double dtcEfficiency = (double)numBundlesOneXSide / (numDTCsOneXSide * inner_cabling_maxNumBundlesPerCable);
+      myInfo->setValue(dtcEfficiency * 100, 0);
+      efficiencyContent->addItem(myInfo);
+
+    } // end of isPixelTracker
+    return true;
   }
 
 
@@ -6986,12 +7113,7 @@ namespace insur {
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         std::vector<TCanvas*> &XYCanvasesEC) {
 
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas",  insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModules(tracker);
@@ -7055,24 +7177,22 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingBundleNicer(const Tracker& tracker,
-						     TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-						     std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
-						     std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
+  /* OT CABLING */
+
+  /* 
+   * Bundle cabling plots.
+   */
+  void Vizard::createOuterCablingPlotsBundles(const Tracker& tracker,
+					      TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
+					      std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
+					      std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
     
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
-
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
    
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7221,17 +7341,16 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasCablingDTCNicer(Tracker& tracker,
-						  TCanvas *&RZCanvas, 
-						  TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-						  std::vector<TCanvas*> &XYCanvasesDisk) {
-    double scaleFactor = tracker.maxR()/600;
-
-    int rzCanvasX = insur::vis_max_canvas_sizeX;//int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::vis_min_canvas_sizeX;//int(tracker.maxR()/scaleFactor);
+  /* 
+   * DTC cabling plots.
+   */
+  void Vizard::createOuterCablingPlotsDTCs(Tracker& tracker,
+					   TCanvas *&RZCanvas, 
+					   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+					   std::vector<TCanvas*> &XYCanvasesDisk) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
@@ -7239,8 +7358,6 @@ namespace insur {
       } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
-
-    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
 
     // NEGATIVE CABLING SIDE. BARREL.
     XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7298,7 +7415,10 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
+  /*
+   * Optical cables channels assignments plots.
+   */
+  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const CablingMap* myCablingMap,
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
     bool isPowerCabling = false;
@@ -7370,9 +7490,12 @@ namespace insur {
   }
 
 
-  void Vizard::createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
-							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-							   std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
+  /*
+   * Power cables channels assignments plots.
+   */
+  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const CablingMap* myCablingMap,
+							    TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
+							    std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
 
     bool isPositiveCablingSide = true;
@@ -7457,6 +7580,668 @@ namespace insur {
 	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendNeg->Draw("same");
 	}
+      }
+    }
+  }
+
+
+  /* Interface to gather information on services channels, and create a table storing it.
+   */
+  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+    std::map<int, std::vector<int> > cablesPerChannel;
+    std::map<int, int> psBundlesPerChannel;
+    std::map<int, int> ssBundlesPerChannel;
+
+    // Fill services channels maps.
+    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+    // Create table.
+    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+    return channelsTable;
+  }
+
+
+  /* Get the requested Services Channels info from the cabling map.
+   */
+  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+
+    for (const auto& myCable : cables) {
+      const ChannelSection* mySection = myCable.second->opticalChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+
+	const int channelNumber = mySection->channelNumber();
+
+	const int cableId = myCable.first;
+	cablesPerChannel[channelNumber].push_back(cableId);
+
+	const Category cableType = myCable.second->type();      
+	const int numBundles = myCable.second->numBundles();
+
+	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
+	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
+	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+      }
+    }
+  }
+
+
+  /* Create the table with Services Channel information.
+   */
+  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    // Header table
+    channelsTable->setContent(0, 1, any2str(requestedSlot));
+    channelsTable->setContent(0, 2, "# MFC");
+    channelsTable->setContent(0, 3, "# MFB PS");
+    channelsTable->setContent(0, 4, "# MFB 2S");
+    channelsTable->setContent(0, 5, "# MFB Total");
+
+    int totalCables = 0;
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      const int channelNumber = (isPositiveCablingSide ? i : -i);
+      int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // PP1 name
+      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, 0, pp1Name.str());
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channelNumber;
+      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, 1, channelName.str());
+
+      channelsTable->setContent(i, 2, numCablesPerChannel);
+      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
+      channelsTable->setContent(i, 5, numBundlesPerChannel);
+
+      totalCables += numCablesPerChannel;
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, 1, "Total");
+    channelsTable->setContent(13, 2, totalCables);
+    channelsTable->setContent(13, 3, totalPsBundles);
+    channelsTable->setContent(13, 4, totalSsBundles);
+    channelsTable->setContent(13, 5, totalBundles);
+
+    return channelsTable;
+  }
+
+
+  /* Interface to gather information on powerServices channels, and create a table storing it.
+   */
+  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
+
+    RootWTable* channelsTable = new RootWTable();
+
+    for (const auto& requestedSlot : slots) {
+      std::map<int, int> psBundlesPerChannel;
+      std::map<int, int> ssBundlesPerChannel;
+
+      // Fill powerServices channels maps.
+      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+
+      // Create table.
+      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    }
+
+    return channelsTable;
+  }
+
+
+  /* Get the requested PowerServices Channels info from the cabling map.
+   */
+  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+
+    for (const auto& myBundle : bundles) {
+      const ChannelSection* mySection = myBundle.second->powerChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If necessary, can select the PowerServices Channels corresponding to the requested slot.
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+
+	const int channelNumber = mySection->channelNumber();
+
+	const Category bundleType = myBundle.second->type();      
+
+	if (bundleType == Category::PS10G 
+	    || bundleType == Category::PS10GA 
+	    || bundleType == Category::PS10GB 
+	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
+	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
+	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+      }
+    }
+  }
+
+
+  /* Create the table with PowerServices Channel information.
+   */
+  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+
+    const int maxCol = channelsTable->maxCol();
+    const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
+
+    // Header table
+    channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
+    channelsTable->setContent(0, startCol + 2, "# PWR PS");
+    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
+    channelsTable->setContent(0, startCol + 4, "# PWR Total");
+
+    int totalPsBundles = 0;
+    int totalSsBundles = 0;
+    int totalBundles = 0;
+
+    // Fill table
+    for (int i = 1; i <= 12; i++) {
+      const int channelNumber = (isPositiveCablingSide ? i : -i);
+      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
+      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+
+      // PP1 name
+      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      std::stringstream pp1Name;
+      std::string sign = (pp1 >= 0 ? "+" : "");
+      pp1Name << "PP1" << sign << pp1;
+      if (requestedSlot != ChannelSlot::UNKNOWN) pp1Name << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, startCol, pp1Name.str());
+
+      // Channel name
+      std::stringstream channelName;
+      channelName << "OT" << channelNumber;
+      if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
+      channelsTable->setContent(i, startCol + 1, channelName.str());
+
+      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
+
+      totalPsBundles += numPsBundlesPerChannel;
+      totalSsBundles += numSsBundlesPerChannel;
+      totalBundles += numBundlesPerChannel;
+    }
+    channelsTable->setContent(13, startCol + 1, "Total");
+    channelsTable->setContent(13, startCol + 2, totalPsBundles);
+    channelsTable->setContent(13, startCol + 3, totalSsBundles);
+    channelsTable->setContent(13, startCol + 4, totalBundles);
+  }
+
+
+  /* IT CABLING */
+
+  /*
+   * Power chains plots
+   */
+  void Vizard::createInnerCablingPlotsPowerChains(const Tracker& tracker,
+						  std::vector<TCanvas*> &ZPhiLayerPlots,
+						  TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						  std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+
+    // BARREL LAYERS, (ZPhi).
+    const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
+    for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
+      // POSITIVE X SIDE
+      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_positiveXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasPos->cd();
+      PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerPos;
+      zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
+      zphiBarrelDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
+      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      // NEGATIVE X SIDE
+      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_negativeXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasNeg->cd();
+      PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerNeg;
+      zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  ); 
+	} );
+      zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
+      zphiBarrelDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
+      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+    }
+       
+    // NEGATIVE CABLING SIDE. BARREL (XY).
+    bool isRotatedY180 = false;
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypePowerChainTransparentColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES (XY).
+    isRotatedY180 = false;
+    XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCentralCanvas->cd();
+    PlotDrawer<XY, TypePowerChainTransparentColor> xyCentralBarrelDrawer;
+    xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
+    xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas);
+    xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL (XY).
+    isRotatedY180 = false;
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas->cd();
+    PlotDrawer<XY, TypePowerChainTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // ENDCAPS DISK SURFACE.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();	
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {  
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    if ((surfaceIndex % 2) == 1) {
+	      isRotatedY180 = true;;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XYRotateY180, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	    // (+Z) towards you
+	    else {
+	      isRotatedY180 = false;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
+	}
+      }
+    }
+
+  }
+
+
+  /*
+   * GBT plots.
+   */
+  void Vizard::createInnerCablingPlotsGBTs(const Tracker& tracker,
+					   std::vector<TCanvas*> &ZPhiLayerPlots,
+					   std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+
+    // BARREL LAYERS, (ZPhi).
+    const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
+    for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
+      // POSITIVE X SIDE
+      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasPos->cd();
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
+      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+		  ); 
+	} );
+      zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
+      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
+      // Filled modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
+      zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+		  ); 
+	} );
+      zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos);
+      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      // NEGATIVE X SIDE
+      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      ZPhiCanvasNeg->cd();
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
+      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+		  ); 
+	} );
+      zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
+      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
+      // Filled modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
+      zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+		  ); 
+	} );
+      zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
+      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+    }
+
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK SURFACE.
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();	
+	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
+	  auto found = allSurfaceModules.find(surfaceIndex);
+	  if (found != allSurfaceModules.end()) {  
+	    // Surface seen rotated: (+Z) towards the depth of the screen
+	    if ((surfaceIndex % 2) == 1) {
+	      bool isRotatedY180 = true;;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180GBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      // Filled modules
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+			   );
+		} );
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Contour modules
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+			   );
+		} );
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	    // (+Z) towards you
+	    else {
+	      bool isRotatedY180 = false;
+	      const std::vector<const Module*>& surfaceModules = found->second;
+	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+	      XYSurfaceDisk->cd();
+	      // Filled modules
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+			   );
+		} );
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      // Contour modules
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+			   );
+		} );
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
+	    }
+	  }
+	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
+	}
+      }
+    }
+
+  }
+
+
+  /*
+   * Bundles plots.
+   */
+  void Vizard::createInnerCablingPlotsBundles(const Tracker& tracker,
+					      TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+					      std::vector<TCanvas*> &XYPosBundlesDisks) {
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+       
+    // NEGATIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = false;
+    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas->cd();
+    PlotDrawer<XYNeg, TypeInnerBundleTransparentColor> xyNegBarrelDrawer;
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE. BARREL.
+    isRotatedY180 = false;
+    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas->cd();
+    PlotDrawer<XY, TypeInnerBundleTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    isRotatedY180 = false;
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you). 1 color <=> 1 Fibre Bundle.", 
+						 anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypeInnerBundleTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	XYPosBundlesDisks.push_back(XYCanvasDisk);
+      }
+    }
+
+  }
+
+
+  /*
+   * DTC plots.
+   */
+  void Vizard::createInnerCablingPlotsDTCs(const Tracker& tracker,
+					   TCanvas *&RZCanvas,
+					   TCanvas *&XYPosCanvas,
+					   std::vector<TCanvas*> &XYPosDTCsDisks) {
+
+    const std::set<Module*>& trackerModules = tracker.modules();
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
+    RZCanvas->cd();
+    PlotDrawer<YZFull, TypeInnerDTCTransparentColor> yzDrawer;
+    yzDrawer.addModules(tracker);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
+    const double barrelScalingFactor = scalingFactors.first;
+    const double forwardScalingFactor = scalingFactors.second;
+
+    // POSITIVE CABLING SIDE. BARREL.
+    bool isRotatedY180 = false;
+    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas->cd();
+    PlotDrawer<XY, TypeInnerDTCTransparentColor> xyBarrelDrawer;
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    drawFrameOfReference(isRotatedY180, barrelScalingFactor);
+
+    // POSITIVE CABLING SIDE.
+    // ENDCAPS DISK.
+    isRotatedY180 = false;
+    for (auto& anEndcap : tracker.endcaps() ) {
+      if (anEndcap.disks().size() > 0) {
+	const Disk& lastDisk = anEndcap.disks().back();
+	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosDTCEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+					    Form("(XY) Projection : %s, one Disk. (CMS +Z points towards you). 1 color <=> 1 DTC.", 
+						 anEndcap.myid().c_str()),
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	XYCanvasDisk->cd();
+	PlotDrawer<XY, TypeInnerDTCTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
+	xyDiskDrawer.addModules(lastDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	XYPosDTCsDisks.push_back(XYCanvasDisk);
+      }
+    }
+  }
+
+
+  /*
+   * Count all Power chains, GBTs, Bundles, and DTCs in the Inner Tracker cabling map.
+   */
+  void Vizard::computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
+					int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
+					int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
+					int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
+					int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
+					int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
+					int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const {
+
+    // PowerChains
+    const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
+    for (const auto& it : powerChains) {
+      const PowerChain* myPowerChain = it.second;
+      if (myPowerChain->isPositiveXSide()) {
+	numPowerChainsOneXSide++;
+	if (myPowerChain->isPositiveZEnd()) numPowerChainsPlusXSidePlusZEnd++; else numPowerChainsPlusXSideMinusZEnd++;
+
+	const int numSensors = myPowerChain->numModules();
+	numSensorsOneXSide += numSensors;
+	if (myPowerChain->isPositiveZEnd()) numSensorsPlusXSidePlusZEnd += numSensors; else numSensorsPlusXSideMinusZEnd += numSensors;
+      }
+    }
+
+    // GBTs
+    const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
+    for (const auto& it : gbts) {
+      const GBT* myGBT = it.second;
+      if (myGBT->isPositiveXSide()) {
+	numGBTsOneXSide++;
+	if (myGBT->isPositiveZEnd()) numGBTsPlusXSidePlusZEnd++; else numGBTsPlusXSideMinusZEnd++;
+
+	const int numELinks = myGBT->numELinks();
+	numELinksOneXSide += numELinks;
+	if (myGBT->isPositiveZEnd()) numELinksPlusXSidePlusZEnd += numELinks; else numELinksPlusXSideMinusZEnd += numELinks;
+      }
+    }
+
+    // Bundles
+    const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
+    for (const auto& it : bundles) {
+      const InnerBundle* myBundle = it.second;
+      if (myBundle->isPositiveXSide()) {
+	numBundlesOneXSide++;
+	if (myBundle->isPositiveZEnd()) numBundlesPlusXSidePlusZEnd++; else numBundlesPlusXSideMinusZEnd++;
+      }
+    }
+
+    // DTCs
+    const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
+    for (const auto& it : dtcs) {
+      const InnerDTC* myDTC = it.second;
+      if (myDTC->isPositiveXSide()) {
+	numDTCsOneXSide++;
+	if (myDTC->isPositiveZEnd()) numDTCsPlusXSidePlusZEnd++; else numDTCsPlusXSideMinusZEnd++;
       }
     }
   }
@@ -7618,7 +8403,7 @@ namespace insur {
   }
 
 
-  /* Create csv file, navigating from Module hierarchy level to DTC hierarchy level.
+  /* Create csv file (Outer Tracker), navigating from Module hierarchy level to DTC hierarchy level.
    */
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, const bool isPositiveCablingSide) {
     ModulesToDTCsVisitor v(isPositiveCablingSide);
@@ -7628,7 +8413,7 @@ namespace insur {
   }
 
 
-  /* Create csv file, navigating from DTC hierarchy level to Module hierarchy level.
+  /* Create csv file (Outer Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
   std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
@@ -7684,6 +8469,75 @@ namespace insur {
     if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
 
     return modulesToDTCsCsv.str();
+  }
+
+
+  /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.
+   */
+  std::string Vizard::createInnerTrackerModulesToDTCsCsv(const Tracker& tracker) {
+    InnerTrackerModulesToDTCsVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
+  /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
+   */
+  std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+
+    std::stringstream dtcsToModulesCsv;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::map<int, InnerDTC*>& myDTCs = myInnerCablingMap->getDTCs();
+    for (const auto& itDTC : myDTCs) {
+      InnerDTC* myDTC = itDTC.second;
+      if (myDTC != nullptr) {
+	std::stringstream DTCInfo;
+	DTCInfo << myDTC->isPositiveZEnd() << ","
+		<< myDTC->isPositiveXSide() << ","
+		<< myDTC->myid() << ",";
+
+	const PtrVector<InnerBundle>& myBundles = myDTC->bundles();
+	for (const auto& myBundle : myBundles) {
+	  std::stringstream bundleInfo;
+	  bundleInfo << myBundle.myid() << ",";
+
+	  const PtrVector<GBT>& myGBTs = myBundle.GBTs();
+	  for (const auto& myGBT : myGBTs) {
+	    std::stringstream GBTInfo;
+	    GBTInfo << any2str(myGBT.GBTId()) << ","
+		    << myGBT.numELinksPerModule() << ",";
+
+	    const PowerChain* myPowerChain = myGBT.getPowerChain();
+	    if (myPowerChain != nullptr) {
+	      std::stringstream powerChainInfo;
+	      powerChainInfo << myPowerChain->myid() << ","
+			     << any2str(myPowerChain->powerChainType()) << ","
+			     << any2str(myPowerChain->isBarrelLong()) << ",";
+
+	      const PtrVector<Module>& myModules = myGBT.modules();
+	      for (const auto& module : myModules) {
+		std::stringstream moduleInfo;
+		moduleInfo << module.myDetId() << ", "
+			   << module.uniRef().subdetectorName << ", "
+			   << module.uniRef().layer << ", "
+			   << module.moduleRing() << ", "
+			   << module.center().Phi() * 180. / M_PI;
+		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
+	      }
+	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;
+	    }
+	    else dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << std::endl;
+	  }
+	  if (myGBTs.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << std::endl;
+	}
+	if (myBundles.size() == 0) dtcsToModulesCsv << DTCInfo.str() << std::endl;
+      }
+    }
+    if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
+
+    return dtcsToModulesCsv.str();
   }
 
 
@@ -7890,11 +8744,13 @@ namespace insur {
 
   /*
    *  Draw frame of reference reminder.
+   *  It is drawn on the top right corner of the plot.
    */
-  void Vizard::drawFrameOfReference(const bool isRotatedY180) {
-    const double arrowMin = 900;
-    const double arrowMax = 1100;
-    const double circleZRadius = 50;
+  void Vizard::drawFrameOfReference(const bool isRotatedY180, const double scalingFactor) {
+
+    const double arrowMin = 900 * scalingFactor;
+    const double arrowMax = 1100 * scalingFactor;
+    const double circleZRadius = 50 * scalingFactor;
     const double arrowWidth = 0.02;
     const double textSize = 0.025;
     
@@ -7902,30 +8758,30 @@ namespace insur {
     if (!isRotatedY180) {
       TArrow* arrowX = new TArrow(arrowMin, arrowMin, arrowMax, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      const double textXAbs = 1000;
-      const double textXOrd = 820;
+      const double textXAbs = 1000 * scalingFactor;
+      const double textXOrd = 820 * scalingFactor;
       TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
       textX->SetTextSize(textSize);
       textX->Draw("same");
 
       TArrow* arrowY = new TArrow(arrowMin, arrowMin, arrowMin, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      const double textYAbs = 820;
-      const double textYOrd = 1000;
+      const double textYAbs = 820 * scalingFactor;
+      const double textYOrd = 1000 * scalingFactor;
       TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
       textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      const double circleZCentre = 1050;
-      const double pointZRadius = 10;
+      const double circleZCentre = 1050 * scalingFactor;
+      const double pointZRadius = 10 * scalingFactor;
       TEllipse* circleZ = new TEllipse(circleZCentre, circleZCentre, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
       TEllipse* pointZ = new TEllipse(circleZCentre, circleZCentre, pointZRadius, pointZRadius);
       pointZ->SetFillColor(kBlack);
       pointZ->Draw("same");
-      const double textZAbs = 1030;
-      const double textZOrd = 1110;
+      const double textZAbs = 1030 * scalingFactor;
+      const double textZOrd = 1110 * scalingFactor;
       TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
       textZ->SetTextSize(textSize);
       textZ->Draw("same");
@@ -7935,41 +8791,74 @@ namespace insur {
     else {
       TArrow* arrowX = new TArrow(arrowMax, arrowMin, arrowMin, arrowMin, arrowWidth, "|>");
       arrowX->Draw();
-      const double textXAbs = 950;
-      const double textXOrd = 820;
+      const double textXAbs = 950 * scalingFactor;
+      const double textXOrd = 820 * scalingFactor;
       TLatex* textX = new TLatex(textXAbs, textXOrd, "X");
       textX->SetTextSize(textSize);
       textX->Draw("same");
 
       TArrow* arrowY = new TArrow(arrowMax, arrowMin, arrowMax, arrowMax, arrowWidth, "|>");
       arrowY->Draw();
-      const double textYAbs = 1020;
-      const double textYOrd = 1000;
+      const double textYAbs = 1020 * scalingFactor;
+      const double textYOrd = 1000 * scalingFactor;
       TLatex* textY = new TLatex(textYAbs, textYOrd, "Y");
       textY->SetTextSize(textSize);
       textY->Draw("same");
 
-      const double circleZCentreAbs = 850;
-      const double circleZCentreOrd = 1050;
+      const double circleZCentreAbs = 850 * scalingFactor;
+      const double circleZCentreOrd = 1050 * scalingFactor;
       TEllipse* circleZ = new TEllipse(circleZCentreAbs, circleZCentreOrd, circleZRadius, circleZRadius);
       circleZ->SetLineWidth(2);
       circleZ->Draw("same");
-      const double crossMinAbs = 815;
-      const double crossMaxAbs = 885;
-      const double crossMinOrd = 1015;
-      const double crossMaxOrd = 1085;
+      const double crossMinAbs = 815 * scalingFactor;
+      const double crossMaxAbs = 885 * scalingFactor;
+      const double crossMinOrd = 1015 * scalingFactor;
+      const double crossMaxOrd = 1085 * scalingFactor;
       TLine* lineU = new TLine(crossMinAbs, crossMinOrd, crossMaxAbs, crossMaxOrd);
       lineU->SetLineWidth(2);
       lineU->Draw("same");
       TLine* lineD = new TLine(crossMinAbs, crossMaxOrd, crossMaxAbs, crossMinOrd);
       lineD->SetLineWidth(2);
       lineD->Draw("same");
-      const double textZAbs = 830;
-      const double textZOrd = 1110;
+      const double textZAbs = 830 * scalingFactor;
+      const double textZOrd = 1110 * scalingFactor;
       TLatex* textZ = new TLatex(textZAbs, textZOrd, "Z");
       textZ->SetTextSize(textSize);
       textZ->Draw("same");
     }
+  }
+
+
+  /*
+   * Compute scaling factor to place the frame of reference reminder at the right position (top right corner of the plot).
+   */
+  const std::pair<double, double> Vizard::computeInnerCablingPlotsScalingFactors(const Tracker& tracker) {
+    const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
+    const double barrelViewPort = maxRadii.first;
+    const double forwardViewPort = maxRadii.second;
+
+    const double barrelScalingFactor = barrelViewPort / geom_outer_strip_radius;  
+    const double forwardScalingFactor = forwardViewPort / geom_outer_strip_radius; 
+
+    return std::make_pair(barrelScalingFactor, forwardScalingFactor);
+  }
+
+
+  /*
+   * Compute the max radii to be drawn on Barrel / Endcaps plots.
+   */
+  const std::pair<double, double> Vizard::computeInnerCablingPlotsMaxRadii(const Tracker& tracker) {
+    double barrelViewPort, forwardViewPort;
+    if (tracker.isPixelTracker()) {
+      if (tracker.barrels().size() > 0 && tracker.endcaps().size() >= 2) {
+	barrelViewPort = tracker.barrels().at(0).maxR() * 1.1;
+	forwardViewPort = tracker.endcaps().at(1).maxR() * 1.1;
+      }
+      else { logERROR("Vizard::computeInnerCablingPlotsMaxRadii : Unexpected number of subdetectors in Inner Tracker."); }
+    }
+    else { logERROR("Vizard::computeInnerCablingPlotsMaxRadii : Should be used on Inner Tracker only."); }
+
+    return std::make_pair(barrelViewPort, forwardViewPort);
   }
 
 

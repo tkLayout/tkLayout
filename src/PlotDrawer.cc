@@ -59,6 +59,15 @@ template<> TH2C* FrameGetter<XYNegRotateY180>::operator()(double viewportX, doub
   return frame;
 }
 
+template<> TH2C* FrameGetter<ZPhi>::operator()(double viewportX, double viewportY) const {
+  std::string name = std::string("frameZPhi") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";z [mm]; phi [rad]",
+			 nBinsZoom, -viewportX, viewportX,
+			 nBinsZoom, (viewportY > M_PI ? 0.9 * M_PI/2. : -viewportY), (viewportY > M_PI ? 1.033 * 3./2.*M_PI : viewportY));
+  frame->GetYaxis()->SetTitleOffset(1.3);
+  return frame;
+}
+
 TPolyLine* drawMod() {
   double x[] = { 131., 31., 31., 131., 131., 101. };
   double y[] = { 132., 132., 32., 32., 81., 81. };
@@ -161,6 +170,10 @@ template<> void SummaryFrameStyle<XYNeg>::operator()(TH2C& frame, TCanvas&, Draw
 }
 
 template<> void SummaryFrameStyle<XYNegRotateY180>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+  frame.Draw();    
+}
+
+template<> void SummaryFrameStyle<ZPhi>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();    
 }
 

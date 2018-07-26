@@ -587,3 +587,73 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
     }
   }
 }
+
+
+    //************************************//
+    //*               Visitor             //
+    //*    InnerTrackerModulesToDTCsCsv   //
+    //*                                   //
+    //************************************//
+
+void InnerTrackerModulesToDTCsVisitor::preVisit() {
+  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Long Barrel ?/Boolean, Power Chain #/I, Power Chain Type/C, # ELinks Per Module/I, LP GBT #/C, Bundle #/I, DTC #/I, (+Z) End ?/Boolean, (+X) Side?/Boolean" << std::endl;
+}
+
+void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
+  sectionName_ = b.myid();
+}
+
+void InnerTrackerModulesToDTCsVisitor::visit(const Endcap& e) {
+  sectionName_ = e.myid();
+}
+
+void InnerTrackerModulesToDTCsVisitor::visit(const Layer& l) {
+  layerId_ = l.myid();
+}
+
+void InnerTrackerModulesToDTCsVisitor::visit(const Disk& d) {
+  layerId_ = d.myid();
+}
+
+void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
+  const PowerChain* myPowerChain = m.getPowerChain();
+  if (myPowerChain != nullptr) {
+    std::stringstream moduleInfo;
+    moduleInfo << m.myDetId() << ","
+	       << sectionName_ << ", "
+	       << layerId_ << ", "
+	       << m.moduleRing() << ", "
+	       << std::fixed << std::setprecision(6)
+	       << m.center().Phi() * 180. / M_PI << ", ";
+
+    std::stringstream powerChainInfo;
+    powerChainInfo << any2str(myPowerChain->isBarrelLong()) << ","
+		   << myPowerChain->myid() << ","
+		   << any2str(myPowerChain->powerChainType()) << ",";
+
+    const GBT* myGBT = m.getGBT();
+    if (myGBT != nullptr) {
+      std::stringstream GBTInfo;
+      GBTInfo << myGBT->numELinksPerModule() << ","
+	      << any2str(myGBT->GBTId()) << ",";
+
+      const InnerBundle* myBundle = myGBT->getBundle();
+      if (myBundle != nullptr) {
+	std::stringstream bundleInfo;
+	bundleInfo << myBundle->myid() << ",";
+	
+	const InnerDTC* myDTC = myBundle->getDTC();
+	if (myDTC != nullptr) {
+	  std::stringstream DTCInfo;
+	  DTCInfo << myDTC->myid() << ","
+		  << myDTC->isPositiveZEnd() << ","
+		  << myDTC->isPositiveXSide();
+	  output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << DTCInfo.str() << std::endl;
+	}
+	else output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << std::endl;
+      }
+      else output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << std::endl;
+    }
+    else output_ << moduleInfo.str() << powerChainInfo.str() << std::endl;
+  }
+}

@@ -19,7 +19,7 @@
 #include "Visitor.hh"
 #include "Visitable.hh"
 #include "Cabling/CablingMap.hh"
-//#include "Cabling/DTC.hh"
+#include "ITCabling/InnerCablingMap.hh"
 #include "MainConfigHandler.hh"
 #include "DetIdBuilder.hh"
 
@@ -77,6 +77,7 @@ private:
 
   //std::map<uint32_t, Module> modules_;
   std::unique_ptr<const CablingMap> myCablingMap_;
+  std::unique_ptr<const InnerCablingMap> myInnerCablingMap_;
 
   //Tracker(const Tracker& otherTracker) = default;
 public:
@@ -156,8 +157,14 @@ public:
 
   void setCablingMap(std::unique_ptr<const CablingMap> map) { myCablingMap_ = std::move(map); }
   const CablingMap* getCablingMap() const {
-    if (!myCablingMap_) throw PathfulException("Tracker has no cabling map, but one tries to access it.");
+    if (!myCablingMap_) throw PathfulException("Tracker has no OT cabling map, but one tries to access it.");
     return myCablingMap_.get();
+  }
+
+  void setInnerCablingMap(std::unique_ptr<const InnerCablingMap> map) { myInnerCablingMap_ = std::move(map); }
+  const InnerCablingMap* getInnerCablingMap() const {
+    if (!myInnerCablingMap_) throw PathfulException("Tracker has no IT cabling map, but one tries to access it.");
+    return myInnerCablingMap_.get();
   }
 
   const Barrels& barrels() const { return barrels_; }
