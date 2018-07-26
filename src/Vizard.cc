@@ -7187,7 +7187,7 @@ namespace insur {
 					      std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
 					      std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
     
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
@@ -7350,7 +7350,7 @@ namespace insur {
 					   std::vector<TCanvas*> &XYCanvasesDisk) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
