@@ -7113,7 +7113,7 @@ namespace insur {
                                         TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         std::vector<TCanvas*> &XYCanvasesEC) {
 
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas",  insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModules(tracker);
@@ -8139,7 +8139,7 @@ namespace insur {
 					   std::vector<TCanvas*> &XYPosDTCsDisks) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_max_canvas_sizeY);
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeInnerDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
@@ -8744,6 +8744,7 @@ namespace insur {
 
   /*
    *  Draw frame of reference reminder.
+   *  It is drawn on the top right corner of the plot.
    */
   void Vizard::drawFrameOfReference(const bool isRotatedY180, const double scalingFactor) {
 
@@ -8828,18 +8829,24 @@ namespace insur {
   }
 
 
+  /*
+   * Compute scaling factor to place the frame of reference reminder at the right position (top right corner of the plot).
+   */
   const std::pair<double, double> Vizard::computeInnerCablingPlotsScalingFactors(const Tracker& tracker) {
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double barrelViewPort = maxRadii.first;
     const double forwardViewPort = maxRadii.second;
 
-    const double barrelScalingFactor = barrelViewPort / 1200.;          // TO DO: Hardcoded 1200. !!!
-    const double forwardScalingFactor = forwardViewPort / 1200.;        // TO DO: Hardcoded 1200. !!!
+    const double barrelScalingFactor = barrelViewPort / geom_outer_strip_radius;  
+    const double forwardScalingFactor = forwardViewPort / geom_outer_strip_radius; 
 
     return std::make_pair(barrelScalingFactor, forwardScalingFactor);
   }
 
 
+  /*
+   * Compute the max radii to be drawn on Barrel / Endcaps plots.
+   */
   const std::pair<double, double> Vizard::computeInnerCablingPlotsMaxRadii(const Tracker& tracker) {
     double barrelViewPort, forwardViewPort;
     if (tracker.isPixelTracker()) {
