@@ -28,19 +28,19 @@ using material::ConversionStation;
 typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
 struct SkewedLayerPhiShifts {
-  const double installationMinusBigDeltaRodCenterPhiShift;
-  const double commonRodCenterPhiShift;
-  const double skewedRodCenterPhiShift;
+  double installationMinusBigDeltaRodCenterPhiShift;
+  double commonRodCenterPhiShift;
+  double skewedRodCenterPhiShift;
 };
 
 struct SkewedLayerInfo {  
-  const double skewedModuleCenterRho;
-  const double skewAngle;
+  double skewedModuleCenterRho;
+  double skewAngle;
 
-  const double unitPhiOverlapLength;
-  const double installationHorizontalOverlapLength;
+  double unitPhiOverlapLength;
+  double installationHorizontalOverlapLength;
 
-  const SkewedLayerPhiShifts phiShifts;
+  SkewedLayerPhiShifts phiShifts;
 };
 
 
