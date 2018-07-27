@@ -43,8 +43,8 @@
 #include <global_constants.hh>
 // Custom objects
 #include <Tracker.hh>
-#include "Cabling/CablingMap.hh"
-#include "ITCabling/InnerCablingMap.hh"
+#include "OuterCabling/CablingMap.hh"
+#include "InnerCabling/InnerCablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
 

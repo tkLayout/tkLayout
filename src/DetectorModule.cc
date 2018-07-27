@@ -1,14 +1,14 @@
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
-#include "Cabling/Bundle.hh"
-#include "Cabling/Cable.hh"
-#include "Cabling/DTC.hh"
+#include "OuterCabling/Bundle.hh"
+#include "OuterCabling/Cable.hh"
+#include "OuterCabling/DTC.hh"
 
-#include "ITCabling/PowerChain.hh"
-#include "ITCabling/HvLine.hh"
-#include "ITCabling/GBT.hh"
-#include "ITCabling/InnerBundle.hh"
-#include "ITCabling/InnerDTC.hh"
+#include "InnerCabling/PowerChain.hh"
+#include "InnerCabling/HvLine.hh"
+#include "InnerCabling/GBT.hh"
+#include "InnerCabling/InnerBundle.hh"
+#include "InnerCabling/InnerDTC.hh"
 
 
 void DetectorModule::setup() {

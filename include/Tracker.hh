@@ -18,8 +18,8 @@
 #include "SupportStructure.hh"
 #include "Visitor.hh"
 #include "Visitable.hh"
-#include "Cabling/CablingMap.hh"
-#include "ITCabling/InnerCablingMap.hh"
+#include "OuterCabling/CablingMap.hh"
+#include "InnerCabling/InnerCablingMap.hh"
 #include "MainConfigHandler.hh"
 #include "DetIdBuilder.hh"
 
