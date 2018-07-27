@@ -32,7 +32,7 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 /* BUNDLES TO CABLES CONNECTIONS.
  */
-void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
+void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
   for (auto& b : bundles) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD CABLES
@@ -239,11 +239,11 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
-void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
+void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
-    Cable* cable = GeometryFactory::make<Cable>(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
+    OuterCable* cable = GeometryFactory::make<OuterCable>(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
     connectOneBundleToOneCable(myBundle, cable);
     cables.insert(std::make_pair(cableId, cable));
 
@@ -279,7 +279,7 @@ const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cabl
 
 /* Connect bundle to cable and vice-versa.
  */
-void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, Cable* cable) const {
+void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const {
   cable->addBundle(bundle);
   bundle->setCable(cable);
 }
@@ -287,14 +287,14 @@ void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, Cable* cable) c
 
 /* Check bundles-cables connections.
  */
-void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
+void CablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables) {
   for (auto& c : cables) {
 
     // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
     const int phiSectorRef = c.second->phiSectorRef();
     if (phiSectorRef <= -1) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
-	       + "Cable " + any2str(c.first) + ", with cableType = " + any2str(c.second->type())
+	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(c.second->type())
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
 	       + ", slot = " + any2str(c.second->slot())
 	       );
@@ -304,7 +304,7 @@ void CablingMap::checkBundlesToCablesCabling(std::map<int, Cable*>& cables) {
     const int numBundles = c.second->numBundles();
     if (numBundles > cabling_maxNumBundlesPerCable) {
       logERROR(any2str("Building cabling map : Staggering bundles. ")
-	       + "Cable "  + any2str(c.first) + " is connected to " + any2str(numBundles) + " bundles."
+	       + "OuterCable "  + any2str(c.first) + " is connected to " + any2str(numBundles) + " bundles."
 	       + "Maximum number of bundles per cable allowed is " + any2str(cabling_maxNumBundlesPerCable)
 	       );
     }
@@ -334,7 +334,7 @@ void CablingMap::computePowerServicesChannels() {
     routeBarrelBundlesPoweringToSemiNonants(isPositiveCablingSide);
  
     // ASSIGN POWER SERVICES CHANNELS
-    std::map<int, Cable*>& cables = (isPositiveCablingSide ? cables_ : negCables_);
+    std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? cables_ : negCables_);
     for (auto& c : cables) {
       c.second->assignPowerChannelSections();
     }

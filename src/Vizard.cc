@@ -7606,7 +7606,7 @@ namespace insur {
    */
   void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+    const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
     for (const auto& myCable : cables) {
       const ChannelSection* mySection = myCable.second->opticalChannelSection();
@@ -8431,7 +8431,7 @@ namespace insur {
 		<< std::fixed << std::setprecision(6)
 		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
 	  cableInfo << cable.myid() << ","
@@ -8563,7 +8563,7 @@ namespace insur {
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
 	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
@@ -8651,7 +8651,7 @@ namespace insur {
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
 	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
@@ -8874,7 +8874,7 @@ namespace insur {
 
     if (!isPowerCabling) {
       // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
-      const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+      const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
       // Loop on all the encountered cables
       for (const auto& myCable : cables) {

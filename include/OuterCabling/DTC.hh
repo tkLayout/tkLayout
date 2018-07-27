@@ -4,12 +4,12 @@
 #include <vector>
 #include <string>
 
-#include "Cable.hh"
+#include "OuterCable.hh"
 #include "Module.hh"
 
 
 class DTC : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Cable> Container;
+  typedef PtrVector<OuterCable> Container;
 
 public:
   DTC(const std::string name, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
@@ -17,7 +17,7 @@ public:
   // CABLE CONNECTED TO THE DTC
   const Container& cable() const { return cable_; }
 
-  void addCable(Cable* c) { cable_.push_back(c); }
+  void addCable(OuterCable* c) { cable_.push_back(c); }
 
   const std::string name() const { return name_; }
   const Category& type() const { return type_; }

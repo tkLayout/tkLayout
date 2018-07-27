@@ -1,5 +1,5 @@
 #include "OuterCabling/OuterBundle.hh"
-#include "OuterCabling/Cable.hh"
+#include "OuterCabling/OuterCable.hh"
 
 
 OuterBundle::OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :

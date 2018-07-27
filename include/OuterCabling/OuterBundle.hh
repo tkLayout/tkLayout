@@ -10,8 +10,8 @@
 #include "OuterCabling/ServicesChannel.hh"
 
 
-namespace insur { class Cable; }
-using insur::Cable;
+namespace insur { class OuterCable; }
+using insur::OuterCable;
 
 
 class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
@@ -28,11 +28,11 @@ public:
   void addModule(Module* m) { modules_.push_back(m); }
 
   // CABLE THE BUNDLE IS CONNECTED TO.
-  const Cable* getCable() const {
+  const OuterCable* getCable() const {
     if (!cable_) throw PathfulException("cable_ is nullptr");
     return cable_;
   }
-  void setCable(Cable* cable) { cable_ = cable; }
+  void setCable(OuterCable* cable) { cable_ = cable; }
 
   // GENERAL INFO ON THE BUNDLE
   const Category& type() const { return type_; }
@@ -87,7 +87,7 @@ private:
 
   Container modules_;
 
-  Cable* cable_ = nullptr;
+  OuterCable* cable_ = nullptr;
 
   Category type_;
   std::string subDetectorName_;

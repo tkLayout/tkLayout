@@ -1,7 +1,7 @@
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
 #include "OuterCabling/OuterBundle.hh"
-#include "OuterCabling/Cable.hh"
+#include "OuterCabling/OuterCable.hh"
 #include "OuterCabling/DTC.hh"
 
 #include "InnerCabling/PowerChain.hh"
@@ -693,7 +693,7 @@ const DTC* DetectorModule::getDTC() const {
   const DTC* myDTC = nullptr;
   const OuterBundle* myBundle = getBundle();
   if (myBundle) {
-    const Cable* myCable = myBundle->getCable();
+    const OuterCable* myCable = myBundle->getCable();
     if (myCable) {
       myDTC = myCable->getDTC();
     }

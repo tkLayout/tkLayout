@@ -19,12 +19,12 @@ public:
 
   // positive cabling side
   const std::map<int, OuterBundle*>& getBundles() const { return bundles_; }
-  const std::map<int, Cable*>& getCables() const { return cables_; }
+  const std::map<int, OuterCable*>& getCables() const { return cables_; }
   const std::map<const std::string, const DTC*>& getDTCs() const { return DTCs_; }
 
   // negative cabling side
   const std::map<int, OuterBundle*>& getNegBundles() const { return negBundles_; }
-  const std::map<int, Cable*>& getNegCables() const { return negCables_; }
+  const std::map<int, OuterCable*>& getNegCables() const { return negCables_; }
   const std::map<const std::string, const DTC*>& getNegDTCs() const { return negDTCs_; }
 
 private:
@@ -32,14 +32,14 @@ private:
   void connectModulesToBundles(Tracker* tracker);
 
   // CONNECT BUNDLES TO CABLES
-  void connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs);
+  void connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs);
   const Category computeCableType(const Category& bundleType) const;
   const std::map<int, std::pair<int, int> > computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const;
   const int computeCableTypeIndex(const Category& cableType) const;
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
-  void createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
-  void connectOneBundleToOneCable(OuterBundle* bundle, Cable* cable) const;
-  void checkBundlesToCablesCabling(std::map<int, Cable*>& cables);  // check bundles to cables connections
+  void createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
+  void connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const;
+  void checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables);  // check bundles to cables connections
 
   // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
   void computePowerServicesChannels();
@@ -48,12 +48,12 @@ private:
 
   // positive cabling side
   std::map<int, OuterBundle*> bundles_;
-  std::map<int, Cable*> cables_;
+  std::map<int, OuterCable*> cables_;
   std::map<const std::string, const DTC*> DTCs_;
 
   // negative cabling side
   std::map<int, OuterBundle*> negBundles_;
-  std::map<int, Cable*> negCables_;
+  std::map<int, OuterCable*> negCables_;
   std::map<const std::string, const DTC*> negDTCs_;
 };
 
