@@ -272,7 +272,7 @@ void Layer::buildStraight() {
   const double rodCenterPhiShift = computeRodCenterPhiShift();
 
   // SKEWED LAYER: compute parameters of interest.
-  const SkewedLayerPhiShifts& phiShifts = (isSkewedForInstallation() ? buildSkewed() : SkewedLayerPhiShifts());
+  const SkewedLayerPhiShifts& phiShifts = (isSkewedForInstallation() ? buildSkewed() : SkewedLayerPhiShifts{ 0.,0.,0.} );
   const double installationMinusBigDeltaRodCenterPhiShift = phiShifts.installationMinusBigDeltaRodCenterPhiShift;
   const double commonRodCenterPhiShift = phiShifts.commonRodCenterPhiShift;
   const double skewedRodCenterPhiShift = phiShifts.skewedRodCenterPhiShift;
