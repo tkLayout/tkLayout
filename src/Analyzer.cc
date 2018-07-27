@@ -3262,7 +3262,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         modulePlotColors[mh.first->moduleType()] = mh.first->plotColor();
       }
       for (auto& mh : hitModules) {
-	const DTC* myDTC = mh.first->getDTC();
+	const OuterDTC* myDTC = mh.first->getDTC();
         if (myDTC) hitModulesDTC.insert(myDTC->name());
       }
       // Fill the module type hit plot

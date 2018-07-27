@@ -1,14 +1,14 @@
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
-#include "Cabling/Bundle.hh"
-#include "Cabling/Cable.hh"
-#include "Cabling/DTC.hh"
+#include "OuterCabling/OuterBundle.hh"
+#include "OuterCabling/OuterCable.hh"
+#include "OuterCabling/OuterDTC.hh"
 
-#include "ITCabling/PowerChain.hh"
-#include "ITCabling/HvLine.hh"
-#include "ITCabling/GBT.hh"
-#include "ITCabling/InnerBundle.hh"
-#include "ITCabling/InnerDTC.hh"
+#include "InnerCabling/PowerChain.hh"
+#include "InnerCabling/HvLine.hh"
+#include "InnerCabling/GBT.hh"
+#include "InnerCabling/InnerBundle.hh"
+#include "InnerCabling/InnerDTC.hh"
 
 
 void DetectorModule::setup() {
@@ -645,7 +645,7 @@ std::string DetectorModule::summaryFullType() const  {
 // OT CABLING
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
   }
@@ -655,7 +655,7 @@ const int DetectorModule::isPositiveCablingSide() const {
 
 const int DetectorModule::bundlePlotColor() const {
   int bundlePlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
@@ -665,7 +665,7 @@ const int DetectorModule::bundlePlotColor() const {
 
 const int DetectorModule::opticalChannelSectionPlotColor() const {
   int opticalChannelPlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     const ChannelSection* mySection = myBundle->opticalChannelSection();
     if (mySection) {
@@ -678,7 +678,7 @@ const int DetectorModule::opticalChannelSectionPlotColor() const {
 
 const int DetectorModule::powerChannelSectionPlotColor() const {
   int powerChannelPlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     const ChannelSection* mySection = myBundle->powerChannelSection();
     if (mySection) {
@@ -689,11 +689,11 @@ const int DetectorModule::powerChannelSectionPlotColor() const {
 }
 
 
-const DTC* DetectorModule::getDTC() const {
-  const DTC* myDTC = nullptr;
-  const Bundle* myBundle = getBundle();
+const OuterDTC* DetectorModule::getDTC() const {
+  const OuterDTC* myDTC = nullptr;
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
-    const Cable* myCable = myBundle->getCable();
+    const OuterCable* myCable = myBundle->getCable();
     if (myCable) {
       myDTC = myCable->getDTC();
     }
@@ -704,7 +704,7 @@ const DTC* DetectorModule::getDTC() const {
 
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPlotColor = myDTC->plotColor();
   }
@@ -714,7 +714,7 @@ const int DetectorModule::dtcPlotColor() const {
 
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }

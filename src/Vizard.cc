@@ -1397,7 +1397,7 @@ namespace insur {
       }
       
       
-      const CablingMap* myCablingMap = tracker.getCablingMap();
+      const OuterCablingMap* myCablingMap = tracker.getOuterCablingMap();
 
       // CSV files
       RootWContent* filesContent = new RootWContent("Cabling files", true);
@@ -1875,7 +1875,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
-      //DTCs
+      // DTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
@@ -1908,7 +1908,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
-      //DTCs
+      // DTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
@@ -7201,7 +7201,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7210,7 +7210,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE.
     // ENDCAPS DISK.
@@ -7225,7 +7225,7 @@ namespace insur {
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	XYPosBundlesDisks.push_back(XYCanvasDisk);
       }
     }
@@ -7250,7 +7250,7 @@ namespace insur {
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
 	      const bool isRotatedY180 = true;
-	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	    // (+Z) towards you
@@ -7264,7 +7264,7 @@ namespace insur {
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	  }
@@ -7288,7 +7288,7 @@ namespace insur {
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
 	const bool isRotatedY180 = true;
-	drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	XYNegBundlesDisks.push_back(XYNegCanvasDisk);
       }
     }
@@ -7313,7 +7313,7 @@ namespace insur {
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
-	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
 	    }
 	    // Surface seen rotated: (+Z) towards the depth of the screen
@@ -7329,7 +7329,7 @@ namespace insur {
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
 	      const bool isRotatedY180 = true;
-	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
 	    }
 	  }
@@ -7366,7 +7366,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7375,7 +7375,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7384,7 +7384,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7393,7 +7393,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -7408,7 +7408,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	}
       }
     }
@@ -7418,7 +7418,7 @@ namespace insur {
   /*
    * Optical cables channels assignments plots.
    */
-  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const CablingMap* myCablingMap,
+  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const OuterCablingMap* myCablingMap,
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
     bool isPowerCabling = false;
@@ -7436,7 +7436,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same"); 
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
@@ -7446,7 +7446,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
@@ -7456,7 +7456,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
@@ -7466,7 +7466,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
     // ENDCAPS DISK.
@@ -7482,7 +7482,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
       }
@@ -7493,7 +7493,7 @@ namespace insur {
   /*
    * Power cables channels assignments plots.
    */
-  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const CablingMap* myCablingMap,
+  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const OuterCablingMap* myCablingMap,
 							    TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							    std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
@@ -7513,7 +7513,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
@@ -7524,7 +7524,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
@@ -7535,7 +7535,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
@@ -7545,7 +7545,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -7562,7 +7562,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
 	// NEGATIVE CABLING SIDE. ENDCAPS DISK.
@@ -7577,7 +7577,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
 	  XYNegCanvasesDisk.push_back(XYNegCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendNeg->Draw("same");
 	}
       }
@@ -7587,7 +7587,7 @@ namespace insur {
 
   /* Interface to gather information on services channels, and create a table storing it.
    */
-  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  RootWTable* Vizard::opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
     std::map<int, std::vector<int> > cablesPerChannel;
     std::map<int, int> psBundlesPerChannel;
     std::map<int, int> ssBundlesPerChannel;
@@ -7604,9 +7604,9 @@ namespace insur {
 
   /* Get the requested Services Channels info from the cabling map.
    */
-  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+    const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
     for (const auto& myCable : cables) {
       const ChannelSection* mySection = myCable.second->opticalChannelSection();
@@ -7695,7 +7695,7 @@ namespace insur {
 
   /* Interface to gather information on powerServices channels, and create a table storing it.
    */
-  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
+  RootWTable* Vizard::powerServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
 
     RootWTable* channelsTable = new RootWTable();
 
@@ -7716,9 +7716,9 @@ namespace insur {
 
   /* Get the requested PowerServices Channels info from the cabling map.
    */
-  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
     for (const auto& myBundle : bundles) {
       const ChannelSection* mySection = myBundle.second->powerChannelSection();
@@ -8415,12 +8415,12 @@ namespace insur {
 
   /* Create csv file (Outer Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
-  std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 	std::stringstream DTCInfo;
@@ -8431,7 +8431,7 @@ namespace insur {
 		<< std::fixed << std::setprecision(6)
 		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
 	  cableInfo << cable.myid() << ","
@@ -8440,7 +8440,7 @@ namespace insur {
 	  const int opticalChannelNumber = myOpticalSection->channelNumber();
 	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
 	    bundleInfo << bundle.myid() << ","
@@ -8551,7 +8551,7 @@ namespace insur {
      - 3 modules from disk surface 3.
      - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
    */
-  std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream bundlesToEndcapModulesCsv;
 
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
@@ -8559,19 +8559,19 @@ namespace insur {
 
     bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 
 	    std::string subDetectorName = bundle.subDetectorName();
 	    // Only in TEDD.
-	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Bundle related info.
 	      std::stringstream bundleInfo;
 	      bundleInfo << bundle.myid() << ",";
@@ -8641,25 +8641,25 @@ namespace insur {
      to group the fibers from each disk surface into one bundle.
      One need to know how many customs aggregation patch cords are needed!
   */
-  std::string Vizard::countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream summaryText;
     summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
 
     std::map<std::multiset<int>, int> combinationsDistribution;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<Cable>& myCables = dtc.second->cable();
+	const PtrVector<OuterCable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 
 	    std::string subDetectorName = bundle.subDetectorName();
 	    // Only in TEDD.
-	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 
@@ -8869,12 +8869,12 @@ namespace insur {
    * Transparent colors are used to distinguish channels sections A and C, which are specific to power cabling.
    * TO DO: Would be nicer to have this drawn on the fly while the plots are created.
    */
-  void Vizard::computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
+  void Vizard::computeServicesChannelsLegend(TLegend* legend, const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
     std::map<std::string, int > channelsColors;
 
     if (!isPowerCabling) {
       // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
-      const std::map<int, Cable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+      const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
       // Loop on all the encountered cables
       for (const auto& myCable : cables) {
@@ -8907,7 +8907,7 @@ namespace insur {
 
     else {
       // Only consider the relevant bundles: bundles from (+Z) side or (-Z) side.
-      const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+      const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
       // Loop on all the encountered bundles
       for (const auto& myBundle : bundles) {
