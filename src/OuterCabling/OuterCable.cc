@@ -1,5 +1,5 @@
 #include "OuterCabling/OuterCable.hh"
-#include "OuterCabling/DTC.hh"
+#include "OuterCabling/OuterDTC.hh"
 
 
 OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) : 
@@ -31,7 +31,7 @@ OuterCable::~OuterCable() {
  */
 void OuterCable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
   std::string dtcName = computeDTCName(phiSectorRef, type, slot, isPositiveCablingSide);
-  DTC* dtc = GeometryFactory::make<DTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
+  OuterDTC* dtc = GeometryFactory::make<OuterDTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
   dtc->addCable(this);
   myDTC_ = dtc;
 }

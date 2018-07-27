@@ -4,7 +4,7 @@
 #include <global_constants.hh>
 #include "global_funcs.hh"
 #include "OuterCabling/PhiPosition.hh"
-#include "OuterCabling/DTC.hh"
+#include "OuterCabling/OuterDTC.hh"
 
 
 /* This class is used to CONNECT MODULES TO BUNDLES.

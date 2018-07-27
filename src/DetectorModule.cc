@@ -2,7 +2,7 @@
 #include "ModuleCap.hh"
 #include "OuterCabling/OuterBundle.hh"
 #include "OuterCabling/OuterCable.hh"
-#include "OuterCabling/DTC.hh"
+#include "OuterCabling/OuterDTC.hh"
 
 #include "InnerCabling/PowerChain.hh"
 #include "InnerCabling/HvLine.hh"
@@ -689,8 +689,8 @@ const int DetectorModule::powerChannelSectionPlotColor() const {
 }
 
 
-const DTC* DetectorModule::getDTC() const {
-  const DTC* myDTC = nullptr;
+const OuterDTC* DetectorModule::getDTC() const {
+  const OuterDTC* myDTC = nullptr;
   const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     const OuterCable* myCable = myBundle->getCable();
@@ -704,7 +704,7 @@ const DTC* DetectorModule::getDTC() const {
 
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPlotColor = myDTC->plotColor();
   }
@@ -714,7 +714,7 @@ const int DetectorModule::dtcPlotColor() const {
 
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }

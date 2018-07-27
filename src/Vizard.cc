@@ -1412,7 +1412,7 @@ namespace insur {
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile = new RootWTextFile(Form("OuterDTCsToModulesPos%s.csv", name.c_str()), "OuterDTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // Bundles to Modules: Aggregation Patterns in TEDD
@@ -1439,7 +1439,7 @@ namespace insur {
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
+      myTextFile = new RootWTextFile(Form("OuterDTCsToModulesNeg%s.csv", name.c_str()), "OuterDTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
@@ -1480,7 +1480,7 @@ namespace insur {
 
 
       // Distinct DTCs 2D map
-      RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
+      RootWContent* dtcMapContent = new RootWContent("OuterDTCs per track", false);
       myPage->addContent(dtcMapContent);
       
       TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1815,7 +1815,7 @@ namespace insur {
       myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
+      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "OuterDTCs to modules");
       myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
       filesContent->addItem(myTextFile);
 
@@ -1875,7 +1875,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
-      //DTCs
+      //OuterDTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
@@ -1908,7 +1908,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
-      //DTCs
+      //OuterDTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
@@ -8418,9 +8418,9 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "OuterDTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 	std::stringstream DTCInfo;
@@ -8559,7 +8559,7 @@ namespace insur {
 
     bundlesToEndcapModulesCsv << "OuterBundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
@@ -8647,7 +8647,7 @@ namespace insur {
 
     std::map<std::multiset<int>, int> combinationsDistribution;
 
-    const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
+    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 

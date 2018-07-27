@@ -32,8 +32,8 @@ using material::MaterialObject;
 // OT CABLING MAP
 namespace insur { class OuterBundle; }
 using insur::OuterBundle;
-namespace insur { class DTC; }
-using insur::DTC;
+namespace insur { class OuterDTC; }
+using insur::OuterDTC;
 // IT CABLING MAP
 namespace insur { class PowerChain; }
 using insur::PowerChain;
@@ -369,7 +369,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   const int bundlePlotColor() const; 
   const int opticalChannelSectionPlotColor() const;
   const int powerChannelSectionPlotColor() const; 
-  const DTC* getDTC() const;
+  const OuterDTC* getDTC() const;
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;
 

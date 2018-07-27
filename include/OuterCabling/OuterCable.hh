@@ -25,7 +25,7 @@ public:
   int numBundles() const { return bundles_.size(); }
 
   // DTC THE CABLE IS CONNECTED TO.
-  const DTC* getDTC() const {
+  const OuterDTC* getDTC() const {
     if (!myDTC_) throw PathfulException("myDTC_ is nullptr");
     return myDTC_; 
   }
@@ -51,7 +51,7 @@ private:
   
   Container bundles_;
 
-  DTC* myDTC_ = nullptr;
+  OuterDTC* myDTC_ = nullptr;
 
   double phiSectorWidth_;
   int phiSectorRef_;

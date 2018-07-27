@@ -570,7 +570,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		   << myBundle->powerChannelSection()->channelNumber() << " " 
 		   << any2str(myBundle->powerChannelSection()->channelSlot()) << ",";
 	
-	const DTC* myDTC = myCable->getDTC();
+	const OuterDTC* myDTC = myCable->getDTC();
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->name() << ","

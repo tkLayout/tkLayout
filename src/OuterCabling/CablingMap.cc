@@ -32,7 +32,7 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 /* BUNDLES TO CABLES CONNECTIONS.
  */
-void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
+void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs) {
 
   for (auto& b : bundles) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD CABLES
@@ -239,7 +239,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
-void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
+void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
@@ -247,7 +247,7 @@ void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int
     connectOneBundleToOneCable(myBundle, cable);
     cables.insert(std::make_pair(cableId, cable));
 
-    const DTC* dtc = cable->getDTC();
+    const OuterDTC* dtc = cable->getDTC();
     DTCs.insert(std::make_pair(dtc->name(), dtc));      
   }
   else {
