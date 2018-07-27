@@ -1412,7 +1412,7 @@ namespace insur {
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("OuterDTCsToModulesPos%s.csv", name.c_str()), "OuterDTCs to modules");
+      myTextFile = new RootWTextFile(Form("DTCsToModulesPos%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // Bundles to Modules: Aggregation Patterns in TEDD
@@ -1422,7 +1422,7 @@ namespace insur {
 	- 4 modules from disk surface 2.
 	- 3 modules from disk surface 3.
 	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
-      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "OuterBundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
@@ -1439,7 +1439,7 @@ namespace insur {
       myTextFile->addText(createModulesToDTCsCsv(tracker, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("OuterDTCsToModulesNeg%s.csv", name.c_str()), "OuterDTCs to modules");
+      myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
@@ -1480,7 +1480,7 @@ namespace insur {
 
 
       // Distinct DTCs 2D map
-      RootWContent* dtcMapContent = new RootWContent("OuterDTCs per track", false);
+      RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
       myPage->addContent(dtcMapContent);
       
       TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -1815,7 +1815,7 @@ namespace insur {
       myTextFile->addText(createInnerTrackerModulesToDTCsCsv(tracker));
       filesContent->addItem(myTextFile);
       // DTCs to modules
-      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "OuterDTCs to modules");
+      myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
       filesContent->addItem(myTextFile);
 
@@ -1875,7 +1875,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
-      //OuterDTCs
+      // DTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSidePlusZEnd);
       countContent->addItem(myInfo);
@@ -1908,7 +1908,7 @@ namespace insur {
       myInfo = new RootWInfo("Total number of Fiber Bundles");
       myInfo->setValue(numBundlesPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
-      //OuterDTCs
+      // DTCs
       myInfo = new RootWInfo("Total number of DTCs");
       myInfo->setValue(numDTCsPlusXSideMinusZEnd);
       countContent->addItem(myInfo);
