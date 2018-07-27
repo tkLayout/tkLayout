@@ -1422,7 +1422,7 @@ namespace insur {
 	- 4 modules from disk surface 2.
 	- 3 modules from disk surface 3.
 	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
-      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "OuterBundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
@@ -7718,7 +7718,7 @@ namespace insur {
    */
   void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
     for (const auto& myBundle : bundles) {
       const ChannelSection* mySection = myBundle.second->powerChannelSection();
@@ -8440,7 +8440,7 @@ namespace insur {
 	  const int opticalChannelNumber = myOpticalSection->channelNumber();
 	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
 	    bundleInfo << bundle.myid() << ","
@@ -8557,7 +8557,7 @@ namespace insur {
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
     bundlesToEndcapModulesCsv << summaryText << std::endl;
 
-    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    bundlesToEndcapModulesCsv << "OuterBundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, const DTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
     for (const auto& dtc : myDTCs) {
@@ -8566,7 +8566,7 @@ namespace insur {
 	const PtrVector<Cable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 
 	    std::string subDetectorName = bundle.subDetectorName();
@@ -8654,7 +8654,7 @@ namespace insur {
 	const PtrVector<Cable>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<Bundle>& myBundles = cable.bundles();
+	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
 	  for (const auto& bundle : myBundles) {
 
 	    std::string subDetectorName = bundle.subDetectorName();
@@ -8907,7 +8907,7 @@ namespace insur {
 
     else {
       // Only consider the relevant bundles: bundles from (+Z) side or (-Z) side.
-      const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+      const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
       // Loop on all the encountered bundles
       for (const auto& myBundle : bundles) {

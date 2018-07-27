@@ -178,7 +178,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
  * Then, the bundle is created, and stored in the bundles_ or negBundles_ containers.
  * Lastly, each module is connected to its bundle, and vice-versa.
  */
-void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
+void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings, const bool isTiltedPart, const bool isExtraFlatPart) {
   
   // COMPUTE BUNDLE ID
   const int bundleTypeIndex = computeBundleTypeIndex(isBarrel, bundleType, totalNumFlatRings, isTiltedPart, isExtraFlatPart);
@@ -191,10 +191,10 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Bun
   const int stereoBundleId = computeStereoBundleId(isBarrel, isPositiveCablingSide, layerDiskNumber, stereoPhiSliceRef, bundleTypeIndex);
 
   // All Bundles from one cabling side
-  const std::map<int, Bundle*>& bundlesOneSide = (isPositiveCablingSide ? bundles : negBundles);
+  const std::map<int, OuterBundle*>& bundlesOneSide = (isPositiveCablingSide ? bundles : negBundles);
 
   // CREATE BUNDLE IF NECESSARY
-  Bundle* bundle = nullptr;
+  OuterBundle* bundle = nullptr;
   auto found = bundlesOneSide.find(bundleId);
   if (found == bundlesOneSide.end()) {
     bundle = createAndStoreBundle(bundles, negBundles, bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
@@ -270,9 +270,9 @@ const int ModulesToBundlesConnector::computeStereoBundleId(const bool isBarrel, 
 /* Create a bundle, if it does not exist yet.
  *  Store it in the bundles_ or negBundles_ containers.
  */
-Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
+OuterBundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  Bundle* bundle = GeometryFactory::make<Bundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  OuterBundle* bundle = GeometryFactory::make<OuterBundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));
@@ -286,7 +286,7 @@ Bundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Bundle*>& 
 
 /* Connect module to bundle and vice-versa.
  */
-void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, Bundle* bundle) const {
+void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, OuterBundle* bundle) const {
   bundle->addModule(&m);
   m.setBundle(bundle);
 }
@@ -299,7 +299,7 @@ void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, Bundle*
    If this is the case, one needs to stagger modules :
    the module closest to an adjacent phiRegion is removed and placed in the adjacent phiRegion.
 */
-void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) {
+void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bundles) {
 
   for (auto& b : bundles) {
     // All this happens in Endcaps only
@@ -344,8 +344,8 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 	auto previousBundleSearch = bundles.find(previousBundleId);
 	auto nextBundleSearch = bundles.find(nextBundleId);
 	if (previousBundleSearch != bundles.end() && nextBundleSearch != bundles.end()) {
-	  Bundle* previousBundle = previousBundleSearch->second;
-	  Bundle* nextBundle = nextBundleSearch->second;
+	  OuterBundle* previousBundle = previousBundleSearch->second;
+	  OuterBundle* nextBundle = nextBundleSearch->second;
 
 	  const int previousBundleNumModules = previousBundle->numModules();
 	  const int nextBundleNumModules = nextBundle->numModules();
@@ -417,7 +417,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, Bundle*>& bundles) 
 
 /* Check modules-bundles connections.
  */
-void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const {
+void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int, OuterBundle*>& bundles) const {
   for (auto& b : bundles) {
 
     // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
@@ -427,7 +427,7 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();
     if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1) {
       logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
-	       + "Bundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
+	       + "OuterBundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
 	       + ", has phiSegmentRef = " + any2str(phiSegmentRef)
 	       + ", phiRegionRef = " + any2str(phiRegionRef)
 	       + ", phiSectorRef = " + any2str(phiSectorRef)
@@ -438,7 +438,7 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     const int bundleNumModules = b.second->numModules();
     if (bundleNumModules > cabling_maxNumModulesPerBundle) {
       logERROR(any2str("Building cabling map : Staggering modules. ")
-	       + "Bundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
+	       + "OuterBundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
 	       + " Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
 	       );
     }

@@ -15,8 +15,8 @@
 */
 class ModulesToBundlesConnector : public GeometryVisitor {
 public:
-  std::map<int, Bundle*> getBundles() { return bundles_; }        // positive cabling side
-  std::map<int, Bundle*> getNegBundles() { return negBundles_; }  // negative cabling side
+  std::map<int, OuterBundle*> getBundles() { return bundles_; }        // positive cabling side
+  std::map<int, OuterBundle*> getNegBundles() { return negBundles_; }  // negative cabling side
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -35,21 +35,21 @@ private:
   const bool computeBarrelFlatPartRodCablingSide(const double rodPhi, const double phiSegmentWidth) const;
 
   const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
-  void buildBundle(DetectorModule& m, std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
+  void buildBundle(DetectorModule& m, std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
   const int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   const int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
   const int computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
-  Bundle* createAndStoreBundle(std::map<int, Bundle*>& bundles, std::map<int, Bundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
-  void connectModuleToBundle(DetectorModule& m, Bundle* bundle) const;
+  OuterBundle* createAndStoreBundle(std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  void connectModuleToBundle(DetectorModule& m, OuterBundle* bundle) const;
 
   // STAGERRING
-  void staggerModules(std::map<int, Bundle*>& bundles);
+  void staggerModules(std::map<int, OuterBundle*>& bundles);
 
   // CHECKING
-  void checkModulesToBundlesCabling(const std::map<int, Bundle*>& bundles) const;
+  void checkModulesToBundlesCabling(const std::map<int, OuterBundle*>& bundles) const;
 
-  std::map<int, Bundle*> bundles_;     // positive cabling side bundles.
-  std::map<int, Bundle*> negBundles_;  // negative cabling side bundles.
+  std::map<int, OuterBundle*> bundles_;     // positive cabling side bundles.
+  std::map<int, OuterBundle*> negBundles_;  // negative cabling side bundles.
 
   bool isBarrel_;
   std::string barrelName_;

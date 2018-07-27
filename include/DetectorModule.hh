@@ -30,8 +30,8 @@ using namespace boost::accumulators;
 using material::MaterialObject;
 
 // OT CABLING MAP
-namespace insur { class Bundle; }
-using insur::Bundle;
+namespace insur { class OuterBundle; }
+using insur::OuterBundle;
 namespace insur { class DTC; }
 using insur::DTC;
 // IT CABLING MAP
@@ -363,8 +363,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryFullType() const;
 
   // OT CABLING
-  void setBundle(Bundle* bundle) { bundle_ = bundle ; }
-  const Bundle* getBundle() const { return bundle_; }
+  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }
+  const OuterBundle* getBundle() const { return bundle_; }
   const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
   const int opticalChannelSectionPlotColor() const;
@@ -415,7 +415,7 @@ protected:
 
 private:
   // OT CABLING MAP
-  Bundle* bundle_ = nullptr;
+  OuterBundle* bundle_ = nullptr;
   // IT CABLING MAP
   PowerChain* powerChain_ = nullptr;
   int phiRefInPowerChain_;

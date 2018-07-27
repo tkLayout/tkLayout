@@ -546,7 +546,7 @@ void ModulesToDTCsVisitor::visit(const Disk& d) {
 }
 
 void ModulesToDTCsVisitor::visit(const Module& m) {
-  const Bundle* myBundle = m.getBundle();
+  const OuterBundle* myBundle = m.getBundle();
   if (myBundle != nullptr) {
     if (myBundle->isPositiveCablingSide() == isPositiveCablingSide_) {
       std::stringstream moduleInfo;

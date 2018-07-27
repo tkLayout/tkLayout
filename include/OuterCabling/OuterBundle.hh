@@ -1,5 +1,5 @@
-#ifndef BUNDLE_HH
-#define BUNDLE_HH
+#ifndef OUTERBUNDLE_HH
+#define OUTERBUNDLE_HH
 
 #include <vector>
 #include <string>
@@ -14,12 +14,12 @@ namespace insur { class Cable; }
 using insur::Cable;
 
 
-class Bundle : public PropertyObject, public Buildable, public Identifiable<int> {
+class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<Module> Container; 
 
 public:
-  Bundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
-  ~Bundle();
+  OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
+  ~OuterBundle();
 
   // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
@@ -48,8 +48,8 @@ public:
   const int plotColor() const { return plotColor_; }
 
   // PHI INFORMATION FROM MODULES CONNECTED TO THE BUNDLE
-  void moveMaxPhiModuleFromOtherBundle(Bundle* otherBundle);
-  void moveMinPhiModuleFromOtherBundle(Bundle* otherBundle);
+  void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
+  void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
 
   const double minPhi() const;
   const double maxPhi() const;

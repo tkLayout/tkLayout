@@ -134,7 +134,7 @@ ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 ANALYZERVISITORS+=ModuleCount
 
-OUTERCABLING+=Bundle
+OUTERCABLING+=OuterBundle
 OUTERCABLING+=Cable
 OUTERCABLING+=cabling_constants
 OUTERCABLING+=cabling_functions

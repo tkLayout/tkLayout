@@ -43,7 +43,7 @@ protected:
  * IMPORTANT NOTE: SECTION IN SERVICES CHANNEL = SECTION IN PP1 (Patch Panel 1).
  */
 class ChannelSection : public PropertyObject, public Buildable {
-  //typedef PtrVector<Bundle> Container;
+  //typedef PtrVector<OuterBundle> Container;
 public:
   const int channelNumber() const { return channelNumber_; }
   const ChannelSlot& channelSlot() const { return channelSlot_; }

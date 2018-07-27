@@ -32,7 +32,7 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 /* BUNDLES TO CABLES CONNECTIONS.
  */
-void CablingMap::connectBundlesToCables(std::map<int, Bundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
+void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs) {
 
   for (auto& b : bundles) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD CABLES
@@ -73,7 +73,7 @@ const Category CablingMap::computeCableType(const Category& bundleType) const {
  * 1 slot = 1 DTC.
  * A staggering of bundles is done on the fly, when the number of bundles per cable is too high.
  */
-const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, Bundle*>& bundles) const {
+const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const {
   std::map<int, std::pair<int, int> > cablesPhiSectorRefAndSlot;
 
   // Used to stagger several bundles
@@ -84,7 +84,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
   std::map<int, int> Layer6PhiSectorsCounter;
 
   for (const auto& b : bundles) {
-    const Bundle* myBundle = b.second;
+    const OuterBundle* myBundle = b.second;
 
     // COLLECT RELEVANT INFO
     const PhiPosition& bundlePhiPosition = myBundle->phiPosition();
@@ -239,7 +239,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
-void CablingMap::createAndStoreCablesAndDTCs(Bundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
+void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, Cable*>& cables, std::map<const std::string, const DTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
@@ -279,7 +279,7 @@ const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cabl
 
 /* Connect bundle to cable and vice-versa.
  */
-void CablingMap::connectOneBundleToOneCable(Bundle* bundle, Cable* cable) const {
+void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, Cable* cable) const {
   cable->addBundle(bundle);
   bundle->setCable(cable);
 }
@@ -340,7 +340,7 @@ void CablingMap::computePowerServicesChannels() {
     }
 
     // CHECK POWER SERVICES CHANNELS
-    const std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+    const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
     checkBundlesToPowerServicesChannels(bundles);
   }
 }
@@ -357,8 +357,8 @@ void CablingMap::computePowerServicesChannels() {
    so that ALL NONANTS AND SEMI-NONANTS PHI BOUNDARIES ARE INVARIANT BY ROTATION OF 180° AROUND CMS_Y.
  */
 void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide) {
-  std::map<int, Bundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
-  const std::map<int, Bundle*>& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
+  std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+  const std::map<int, OuterBundle*>& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
 
   // phiSectorRefMarker keeps track of the Phi nonant we are in.
   int phiSectorRefMarker = -1;
@@ -369,7 +369,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
   // TILTED PART OF TBPS + TB2S
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
-    Bundle* myBundle = b.second;
+    OuterBundle* myBundle = b.second;
     const bool isBarrel = myBundle->isBarrel();
     const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
@@ -394,7 +394,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
       const int stereoBundleId = myBundle->stereoBundleId();
       auto found = stereoBundles.find(stereoBundleId);
       if (found != stereoBundles.end()) {
-	const Bundle* myStereoBundle = found->second;
+	const OuterBundle* myStereoBundle = found->second;
 	// Get the Phi nonant in which the stereoBundle is located.
 	const int stereoPhiSectorRef = myStereoBundle->getCable()->phiSectorRef();
 	
@@ -429,7 +429,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
 
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
-    Bundle* myBundle = b.second;
+    OuterBundle* myBundle = b.second;
     const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
     // Only for Barrel: flat part of TBPS
@@ -439,7 +439,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
       // Get the bundle located at the same Phi, but connected to the tilted modules.
       auto found = bundles.find(tiltedBundleId);
       if (found != bundles.end()) {
-	const Bundle* myTiltedBundle = found->second;
+	const OuterBundle* myTiltedBundle = found->second;
 
 	// Decisive point!!
 	// Get the semi-nonant attribution of the tiltedBundle.
@@ -461,7 +461,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
 
 /* Check services channels sections containing power cables.
  */
-void CablingMap::checkBundlesToPowerServicesChannels(const std::map<int, Bundle*>& bundles) {
+void CablingMap::checkBundlesToPowerServicesChannels(const std::map<int, OuterBundle*>& bundles) {
   std::map<std::pair<const int, const ChannelSlot>, int > channels;
 
   for (auto& b : bundles) {

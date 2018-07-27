@@ -1,5 +1,5 @@
-#ifndef CABLE_HH
-#define CABLE_HH
+#ifndef OUTERCABLE_HH
+#define OUTERCABLE_HH
 
 #include <vector>
 #include <string>
@@ -12,11 +12,11 @@ namespace insur { class DTC; }
 using insur::DTC;
 
 
-class Cable : public PropertyObject, public Buildable, public Identifiable<int> {
+class OuterCable : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef PtrVector<OuterBundle> Container;
 public:
-  Cable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
-  ~Cable();
+  OuterCable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
+  ~OuterCable();
 
   // BUNDLES CONNECTED TO THE CABLE.
   const Container& bundles() const { return bundles_; }
