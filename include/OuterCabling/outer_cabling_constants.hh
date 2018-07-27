@@ -1,5 +1,5 @@
-#ifndef CABLING_CONSTANTS_HH
-#define CABLING_CONSTANTS_HH
+#ifndef OUTER_CABLING_CONSTANTS_HH
+#define OUTER_CABLING_CONSTANTS_HH
 
 #include <math.h>
 #include <string>
@@ -8,38 +8,38 @@
 
 // DESIGN
 // Maximum number of modules per bundle
-static const int cabling_maxNumModulesPerBundle = 12;
+static const int outer_cabling_maxNumModulesPerBundle = 12;
 // Maximum number of bundles per cable
-static const int cabling_maxNumBundlesPerCable = 6;
+static const int outer_cabling_maxNumBundlesPerCable = 6;
 
 
 // PHI SLICES
 // Size of the phi slices used
-static const double cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
-static const double cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
-static const double cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
+static const double outer_cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
+static const double outer_cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
+static const double outer_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
 
 // Offset are sometimes used to set the phi slices.
 // This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)
-static const double cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
-static const double cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
+static const double outer_cabling_tedd1StripStripPhiRegionStart = 0.065 * M_PI / 180.;   // For OT613 (TDR): use -0.55 * M_PI / 180.
+static const double outer_cabling_tedd2StripStripPhiRegionStart = 0.;                    // For OT613 (TDR): use -0.001 * M_PI / 180.
 
 
 // ROUNDING
-static const double cabling_roundingTolerance = 1.E-4;
+static const double outer_cabling_roundingTolerance = 1.E-4;
 
 
 // GEOMETRY NAMES
 // It is unavailable by design to use the geometry blocks names for the cabling map.
 // At least, they are placed here to ease renaming if needed.
-static const std::string cabling_tbps = "TBPS";
-static const std::string cabling_tb2s = "TB2S";
-static const std::string cabling_tedd1 = "TEDD_1";
-static const std::string cabling_tedd2 = "TEDD_2";
+static const std::string outer_cabling_tbps = "TBPS";
+static const std::string outer_cabling_tb2s = "TB2S";
+static const std::string outer_cabling_tedd1 = "TEDD_1";
+static const std::string outer_cabling_tedd2 = "TEDD_2";
 
 
 // NEGATIVE CABLING SIDE
-static const std::string cabling_negativePrefix = "neg";
+static const std::string outer_cabling_negativePrefix = "neg";
 
 
 // CABLING TYPE
@@ -63,15 +63,15 @@ enum Category { UNDEFINED, PS10G, PS10GA, PS10GB, PS5G, SS };
 enum ChannelSlot { UNKNOWN, A, B, C };
 
 // Offsets used in TEDD to split power cables coming from the same Phi nonant.
-static const double cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
-static const double cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
+static const double outer_cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift = 5. * M_PI / 180.;
+static const double outer_cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift = -5. * M_PI / 180.;
 
 // Number of outer tracker services channels (per cabling side)
-static const int cabling_numServicesChannels = 12;
+static const int outer_cabling_numServicesChannels = 12;
 // Maximum number of power cables per channel (used for cross-checking)
-static const int cabling_maxNumPowerCablesPerChannel = 48;
+static const int outer_cabling_maxNumPowerCablesPerChannel = 48;
 // Maximum number of optical fiber bundles per channel (used for cross-checking)
-static const int cabling_maxNumOpticalBundlesPerChannel = 72;
+static const int outer_cabling_maxNumOpticalBundlesPerChannel = 72;
 
 
-#endif  // CABLING_CONSTANTS_HH
+#endif  // OUTER_CABLING_CONSTANTS_HH

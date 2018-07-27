@@ -1,9 +1,9 @@
-#ifndef CABLING_FUNCTIONS_HH
-#define CABLING_FUNCTIONS_HH
+#ifndef OUTER_CABLING_FUNCTIONS_HH
+#define OUTER_CABLING_FUNCTIONS_HH
 
 #include <global_constants.hh>
 #include "global_funcs.hh"
-#include "OuterCabling/cabling_constants.hh"
+#include "OuterCabling/outer_cabling_constants.hh"
 
 
 const double computePhiSegmentStart(const double phi, const double phiSegmentWidth);
@@ -14,4 +14,4 @@ const int computeNextPhiSliceRef(const int phiSliceRef, const int numPhiSlices);
 const int computePreviousPhiSliceRef(const int phiSliceRef, const int numPhiSlices);
 
 
-#endif  // CABLING_FUNCTIONS_HH
+#endif  // OUTER_CABLING_FUNCTIONS_HH

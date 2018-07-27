@@ -7201,7 +7201,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7210,7 +7210,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE.
     // ENDCAPS DISK.
@@ -7225,7 +7225,7 @@ namespace insur {
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	XYPosBundlesDisks.push_back(XYCanvasDisk);
       }
     }
@@ -7250,7 +7250,7 @@ namespace insur {
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
 	      const bool isRotatedY180 = true;
-	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	    // (+Z) towards you
@@ -7264,7 +7264,7 @@ namespace insur {
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
-	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
 	    }
 	  }
@@ -7288,7 +7288,7 @@ namespace insur {
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
 	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
 	const bool isRotatedY180 = true;
-	drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	XYNegBundlesDisks.push_back(XYNegCanvasDisk);
       }
     }
@@ -7313,7 +7313,7 @@ namespace insur {
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
-	      drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
 	    }
 	    // Surface seen rotated: (+Z) towards the depth of the screen
@@ -7329,7 +7329,7 @@ namespace insur {
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
 	      const bool isRotatedY180 = true;
-	      drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
 	    }
 	  }
@@ -7366,7 +7366,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7375,7 +7375,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7384,7 +7384,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
     XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
@@ -7393,7 +7393,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -7408,7 +7408,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	}
       }
     }
@@ -7436,7 +7436,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same"); 
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
@@ -7446,7 +7446,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
@@ -7456,7 +7456,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
@@ -7466,7 +7466,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
     // ENDCAPS DISK.
@@ -7482,7 +7482,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
       }
@@ -7513,7 +7513,7 @@ namespace insur {
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
@@ -7524,7 +7524,7 @@ namespace insur {
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
@@ -7535,7 +7535,7 @@ namespace insur {
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
@@ -7545,7 +7545,7 @@ namespace insur {
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
-    drawPhiSectorsBoundaries(cabling_nonantWidth);  // Spider lines
+    drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
     for (auto& anEndcap : tracker.endcaps() ) {
@@ -7562,7 +7562,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
 	  XYCanvasesDisk.push_back(XYCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
 	// NEGATIVE CABLING SIDE. ENDCAPS DISK.
@@ -7577,7 +7577,7 @@ namespace insur {
 	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
 	  xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
 	  XYNegCanvasesDisk.push_back(XYNegCanvasDisk);
-	  drawPhiSectorsBoundaries(cabling_nonantWidth, isRotatedY180);  // Spider lines
+	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendNeg->Draw("same");
 	}
       }
@@ -8571,7 +8571,7 @@ namespace insur {
 
 	    std::string subDetectorName = bundle.subDetectorName();
 	    // Only in TEDD.
-	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Bundle related info.
 	      std::stringstream bundleInfo;
 	      bundleInfo << bundle.myid() << ",";
@@ -8659,7 +8659,7 @@ namespace insur {
 
 	    std::string subDetectorName = bundle.subDetectorName();
 	    // Only in TEDD.
-	    if (subDetectorName == cabling_tedd1 || subDetectorName == cabling_tedd2) {
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 

@@ -136,8 +136,8 @@ ANALYZERVISITORS+=ModuleCount
 
 OUTERCABLING+=OuterBundle
 OUTERCABLING+=OuterCable
-OUTERCABLING+=cabling_constants
-OUTERCABLING+=cabling_functions
+OUTERCABLING+=outer_cabling_constants
+OUTERCABLING+=outer_cabling_functions
 OUTERCABLING+=OuterCablingMap
 OUTERCABLING+=OuterDTC
 OUTERCABLING+=ModulesToBundlesConnector

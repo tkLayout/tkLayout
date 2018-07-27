@@ -42,7 +42,7 @@ public:
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
   const bool isTiltedPart() const { return isTiltedPart_; }
-  const bool isBarrel() const { return (subDetectorName_ == cabling_tbps || subDetectorName_ == cabling_tb2s); }
+  const bool isBarrel() const { return (subDetectorName_ == outer_cabling_tbps || subDetectorName_ == outer_cabling_tb2s); }
   const bool isBarrelPSFlatPart() const { return (isBarrel() && type_ != Category::SS && !isTiltedPart_); }
 
   const int plotColor() const { return plotColor_; }

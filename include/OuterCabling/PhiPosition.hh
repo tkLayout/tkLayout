@@ -1,7 +1,7 @@
 #ifndef PHIPOSITION_HH
 #define PHIPOSITION_HH
 
-#include "OuterCabling/cabling_functions.hh"
+#include "OuterCabling/outer_cabling_functions.hh"
 
 
 /* This class contains several useful Phi identifiers.
@@ -10,7 +10,7 @@
    * phiRegion : Phi slice of size defined in constructor. It is used for the following:
    Barrel : Phi slice containing bundles which can be connected to the same DTC.
    Endcap : Phi Slice contaning modules which can be connected to the same bundle.
-   * phiSector : Phi slice of size cabling_nonantWidth.
+   * phiSector : Phi slice of size outer_cabling_nonantWidth.
 
    There is the following classification, by the phi angle which is covered : phiSegment < phiRegion < phiSector.
 
@@ -57,7 +57,7 @@ private:
   int phiRegionRef_;
 
   // PHI SECTOR
-  const double phiSectorWidth_ = cabling_nonantWidth;
+  const double phiSectorWidth_ = outer_cabling_nonantWidth;
   double phiSectorStart_;
   int phiSectorRef_;
 };

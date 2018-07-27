@@ -111,29 +111,29 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
     // PS10G
     if (cableType == Category::PS10G) {
       // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
-      if ((subDetectorName == cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
+      if ((subDetectorName == outer_cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
 	slot = 1;
       }
       // BARREL TILTED PART + ENDCAPS DISKS 2, 4
-      if ((subDetectorName == cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4)) {
+      if ((subDetectorName == outer_cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)) {
 	slot = 2;
       }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if (subDetectorName == cabling_tbps && layerDiskNumber == 2) {
+      if (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) {
 	slot = 3;
       }
 
-      else if ((subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5)) {
+      else if ((subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
 	slot = 4;
       }
 
       // STAGGERING
-      else if ( (subDetectorName == cabling_tbps && layerDiskNumber == 3) || (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
 	// TBPS
-	if (subDetectorName == cabling_tbps) {
+	if (subDetectorName == outer_cabling_tbps) {
 	  // TILTED PART
 	  if (myBundle->isTiltedPart()) {
 	    int& myPhiSectorCounter = Layer3TiltedPhiSectorsCounter[phiSectorRef];
@@ -161,8 +161,8 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	}
 	// TEDD_2
 	else {
-	  if (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) slot = 5;
-	  else if (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) slot = 6;
+	  if (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) slot = 5;
+	  else if (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) slot = 6;
 	}
       }
     }
@@ -172,7 +172,7 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
       int phiSectorRefThird = femod(phiSectorRef % 3, 3);
 
       // STAGGERING TB2S LAYER 4
-      if (subDetectorName == cabling_tb2s && layerDiskNumber == 4) {
+      if (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 4) {
 	int& myPhiSectorCounter = Layer4PhiSectorsCounter[phiSectorRef];
 	myPhiSectorCounter += 1;
 	// In a few cases, need to reduce to 5 bundles (additional bundle from Layer 5 will be added).
@@ -184,7 +184,7 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
       }
 
       // STAGGERING TB2S LAYER 5
-      else if (subDetectorName == cabling_tb2s && layerDiskNumber == 5) {
+      else if (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 5) {
 	int& myPhiSectorCounter = Layer5PhiSectorsCounter[phiSectorRef];
 	myPhiSectorCounter += 1;
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 5 TO LAYER 4
@@ -200,9 +200,9 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	}
       }
 
-      else if ( (subDetectorName == cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) ) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
-	if (subDetectorName == cabling_tb2s) {
+	if (subDetectorName == outer_cabling_tb2s) {
 	  int& myPhiSectorCounter = Layer6PhiSectorsCounter[phiSectorRef];
 	  myPhiSectorCounter += 1;
 	  if (myPhiSectorCounter == 1 || myPhiSectorCounter == 5 || myPhiSectorCounter == 8) slot = 4;
@@ -211,11 +211,11 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == cabling_tedd2 && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5) ) {
 	slot = 6;
       }
     }
@@ -302,10 +302,10 @@ void OuterCablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& ca
 
     // CHECK THE NUMBER OF BUNDLES PER CABLE.
     const int numBundles = c.second->numBundles();
-    if (numBundles > cabling_maxNumBundlesPerCable) {
+    if (numBundles > outer_cabling_maxNumBundlesPerCable) {
       logERROR(any2str("Building cabling map : Staggering bundles. ")
 	       + "OuterCable "  + any2str(c.first) + " is connected to " + any2str(numBundles) + " bundles."
-	       + "Maximum number of bundles per cable allowed is " + any2str(cabling_maxNumBundlesPerCable)
+	       + "Maximum number of bundles per cable allowed is " + any2str(outer_cabling_maxNumBundlesPerCable)
 	       );
     }
 
@@ -470,11 +470,11 @@ void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, Ou
     const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
     // Check channel number.
-    if (fabs(myChannelNumber) == 0 || fabs(myChannelNumber) > cabling_numServicesChannels) {
+    if (fabs(myChannelNumber) == 0 || fabs(myChannelNumber) > outer_cabling_numServicesChannels) {
       logERROR(any2str("Invalid channel number = ")
 	       + any2str(myChannelNumber)
 	       + any2str(". Should not be 0 or have abs value > ")
-	       + any2str(cabling_numServicesChannels) + any2str(".")
+	       + any2str(outer_cabling_numServicesChannels) + any2str(".")
 	       );
     }
     // Check channel slot.
@@ -493,12 +493,12 @@ void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, Ou
 
   // Check number of power cables per channel section.
   for (const auto& c : channels) { 
-    if (c.second > cabling_maxNumPowerCablesPerChannel) {
+    if (c.second > outer_cabling_maxNumPowerCablesPerChannel) {
       logERROR(any2str("Services channel ") + any2str(c.first.first) 
 	       + any2str(" section ") + any2str(c.first.second) 
 	       + any2str(" has " ) + any2str(c.second) + any2str(" power cables.")
 	       + any2str(" Max number of power cables per channel section is ") 
-	       + any2str(cabling_maxNumPowerCablesPerChannel)
+	       + any2str(outer_cabling_maxNumPowerCablesPerChannel)
 	       );
     }
   }

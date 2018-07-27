@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string>
 #include "global_funcs.hh"
-#include "OuterCabling/cabling_constants.hh"
+#include "OuterCabling/outer_cabling_constants.hh"
 
 
 // DESIGN
@@ -46,7 +46,7 @@ enum PowerChainType { IUNDEFINED, I4A, I8A };
 
 
 // ROUNDING
-static const double inner_cabling_roundingTolerance = cabling_roundingTolerance;
+static const double inner_cabling_roundingTolerance = outer_cabling_roundingTolerance;
 
 
 // GEOMETRY NAMES

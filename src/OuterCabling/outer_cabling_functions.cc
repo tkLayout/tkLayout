@@ -1,4 +1,4 @@
-#include "OuterCabling/cabling_functions.hh"
+#include "OuterCabling/outer_cabling_functions.hh"
 
 
 /* Compute the offset in Phi with respect to Phi = 0.
@@ -23,7 +23,7 @@ const int computePhiSliceRef(const double phi, const double phiSliceStart, const
   double phiSliceRefExact = femod(phi - phiSliceStart, 2.*M_PI) / phiSliceWidth;
   int phiSliceRef = 0;
   // In case phiSliceRefExact is an integer, round it to an int!
-  if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < cabling_roundingTolerance) phiSliceRef = fabs(round(phiSliceRefExact));
+  if (fabs((phiSliceRefExact - round(phiSliceRefExact))) < outer_cabling_roundingTolerance) phiSliceRef = fabs(round(phiSliceRefExact));
   else phiSliceRef = std::floor(phiSliceRefExact);
 
   return phiSliceRef;

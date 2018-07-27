@@ -31,7 +31,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
   // Here the idea is to compute the cabling side, the isTilted and isExtraFlatPart booleans.
   // 2S BUNDLES
-  if (barrelName_ == cabling_tb2s) {
+  if (barrelName_ == outer_cabling_tb2s) {
 
     isPositiveCablingSide = side_;
     isTilted = false;
@@ -39,7 +39,7 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
   }
 
   // PS BUNDLES
-  else if (barrelName_ == cabling_tbps) {
+  else if (barrelName_ == outer_cabling_tbps) {
 
     // FLAT PART
     if (!m.isTilted()) {
@@ -51,8 +51,8 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
       isExtraFlatPart = false;
 
       // For layer 3, need to add a second bundle for flat part
-      if (isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && !side_) isExtraFlatPart = true;
-      if (!isPositiveCablingSide && (totalNumFlatRings_ > cabling_maxNumModulesPerBundle) && side_) isExtraFlatPart = true;
+      if (isPositiveCablingSide && (totalNumFlatRings_ > outer_cabling_maxNumModulesPerBundle) && !side_) isExtraFlatPart = true;
+      if (!isPositiveCablingSide && (totalNumFlatRings_ > outer_cabling_maxNumModulesPerBundle) && side_) isExtraFlatPart = true;
     }
 
     // TILTED PART
@@ -139,11 +139,11 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
   //BARREL
   if (isBarrel) {
     // TB2S
-    if (subDetectorName == cabling_tb2s) {
+    if (subDetectorName == outer_cabling_tb2s) {
       bundleType = Category::SS;
     }
     // TBPS
-    else if (subDetectorName == cabling_tbps) {
+    else if (subDetectorName == outer_cabling_tbps) {
       bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
     }
   }
@@ -151,7 +151,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
   // ENDCAPS
   else {
     // TEDD_1
-    if (subDetectorName == cabling_tedd1) {
+    if (subDetectorName == outer_cabling_tedd1) {
       if (ringNumber <= 4) bundleType = Category::PS10GA;
       else if (ringNumber >= 5 && ringNumber <= 7) bundleType = Category::PS10GB;
       else if (ringNumber >= 8 && ringNumber <= 10) bundleType = Category::PS5G;
@@ -159,7 +159,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
     }
 
     // TEDD_2
-    else if (subDetectorName == cabling_tedd2) {
+    else if (subDetectorName == outer_cabling_tedd2) {
       if (ringNumber <= 3) bundleType = Category::UNDEFINED;
       else if (ringNumber >= 4 && ringNumber <= 6) bundleType = Category::PS10GB;
       else if (ringNumber >= 7 && ringNumber <= 10) bundleType = Category::PS5G;
@@ -217,7 +217,7 @@ const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel,
     if (bundleType == Category::SS) bundleTypeIndex = 0;
     else {
       if (!isTilted) {
-	if (totalNumFlatRings <= cabling_maxNumModulesPerBundle) bundleTypeIndex = 1;
+	if (totalNumFlatRings <= outer_cabling_maxNumModulesPerBundle) bundleTypeIndex = 1;
 	else {
 	  if (!isExtraFlatPart) bundleTypeIndex = 1;
 	  else bundleTypeIndex = 2;
@@ -303,11 +303,11 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 
   for (auto& b : bundles) {
     // All this happens in Endcaps only
-    if (b.second->subDetectorName() == cabling_tedd1 || b.second->subDetectorName() == cabling_tedd2) {
+    if (b.second->subDetectorName() == outer_cabling_tedd1 || b.second->subDetectorName() == outer_cabling_tedd2) {
       const bool isBarrel = false;
 
       // Too many modules per bundle: staggering needed!
-      while (b.second->numModules() > cabling_maxNumModulesPerBundle) {
+      while (b.second->numModules() > outer_cabling_maxNumModulesPerBundle) {
 	const bool isPositiveCablingSide = b.second->isPositiveCablingSide();
 	const int diskNumber = b.second->layerDiskNumber();
 
@@ -352,22 +352,22 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 	  // A MODULE FROM THE PHI REGION NEEDS TO BE MOVED. LOOK WHERE TO MOVE IT!
 
 	  // Cannot assign the extra module : both neighbouring phi regions are full !
-	  if (previousBundleNumModules >= cabling_maxNumModulesPerBundle && nextBundleNumModules >= cabling_maxNumModulesPerBundle) {
+	  if (previousBundleNumModules >= outer_cabling_maxNumModulesPerBundle && nextBundleNumModules >= outer_cabling_maxNumModulesPerBundle) {
 	    logERROR(any2str("Building cabling map : Staggering modules.")
 		     + "I am a module in side " + any2str(isPositiveCablingSide)
 		     + ", disk " + any2str(diskNumber)
 		     + ", bundleType " + any2str(bundleType) 
 		     + ", phiRegionRef " + any2str(phiRegionRef)
 		     + ", phiRegionWidth " + any2str(phiRegionWidth)
-		     + ". My phiRegion has more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
-		     + " My 2 neighbouring phiRegions have also more than " + any2str(cabling_maxNumModulesPerBundle) + " modules."
+		     + ". My phiRegion has more than " + any2str(outer_cabling_maxNumModulesPerBundle) + " modules."
+		     + " My 2 neighbouring phiRegions have also more than " + any2str(outer_cabling_maxNumModulesPerBundle) + " modules."
 		     + " Hence, I cannot be staggered to any other phiRegion :/ "
 		     );
 	    break;
 	  }
 
 	  // Assign a module to the next phi region.
-	  else if (previousBundleNumModules >= cabling_maxNumModulesPerBundle || maxPhiBorder <= minPhiBorder) {
+	  else if (previousBundleNumModules >= outer_cabling_maxNumModulesPerBundle || maxPhiBorder <= minPhiBorder) {
 	    logINFO(any2str("Building cabling map : Staggering modules.")
 		    + " I am a module in side " + any2str(isPositiveCablingSide)
 		    + ", disk " + any2str(diskNumber)
@@ -375,7 +375,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + ", phiRegionRef " + any2str(phiRegionRef)
 		    + ". maxPhiBorder " + any2str((maxPhiBorder * 180. / M_PI))
 		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
+		    + " > maxNumModulesPerBundle = " + any2str(outer_cabling_maxNumModulesPerBundle)
 		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
 		    );
 		    
@@ -385,7 +385,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 	  }
 
 	  // Assign a module to the previous phi region.
-	  else if (nextBundleNumModules >= cabling_maxNumModulesPerBundle || minPhiBorder < maxPhiBorder) {
+	  else if (nextBundleNumModules >= outer_cabling_maxNumModulesPerBundle || minPhiBorder < maxPhiBorder) {
 	    logINFO(any2str("Building cabling map : Staggering modules.")
 		    + " I am a module in side " + any2str(isPositiveCablingSide)
 		    + ", disk " + any2str(diskNumber)
@@ -393,7 +393,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + ", phiRegionRef " + any2str(phiRegionRef)
 		    + ". minPhiBorder " + any2str((minPhiBorder * 180. / M_PI))
 		    + ". My region has " + any2str(b.second->numModules())
-		    + " > maxNumModulesPerBundle = " + any2str(cabling_maxNumModulesPerBundle)
+		    + " > maxNumModulesPerBundle = " + any2str(outer_cabling_maxNumModulesPerBundle)
 		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
 		    );
 
@@ -436,10 +436,10 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
 
     // CHECK THE NUMBER OF MODULES PER BUNDLE.
     const int bundleNumModules = b.second->numModules();
-    if (bundleNumModules > cabling_maxNumModulesPerBundle) {
+    if (bundleNumModules > outer_cabling_maxNumModulesPerBundle) {
       logERROR(any2str("Building cabling map : Staggering modules. ")
 	       + "OuterBundle "  + any2str(b.first) + " is connected to " + any2str(bundleNumModules) + " modules."
-	       + " Maximum number of modules per bundle allowed is " + any2str(cabling_maxNumModulesPerBundle)
+	       + " Maximum number of modules per bundle allowed is " + any2str(outer_cabling_maxNumModulesPerBundle)
 	       );
     }
 

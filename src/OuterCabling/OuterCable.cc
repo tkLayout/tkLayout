@@ -41,7 +41,7 @@ void OuterCable::buildDTC(const double phiSectorWidth, const int phiSectorRef, c
  */
 const std::string OuterCable::computeDTCName(const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) const {
   std::ostringstream dtcNameStream;
-  if (!isPositiveCablingSide) dtcNameStream << cabling_negativePrefix << "_";
+  if (!isPositiveCablingSide) dtcNameStream << outer_cabling_negativePrefix << "_";
   dtcNameStream << phiSectorRef << "_" << any2str(type) << "_" << slot;
   const std::string dtcName = dtcNameStream.str();
   return dtcName;
@@ -80,9 +80,9 @@ void OuterCable::assignPowerChannelSections() {
 
       // Compute Phi Semi-Nonant boundary
       const double phiShift = ((type == Category::SS) ? 
-				cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift 
-				: cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift);
-      const double semiNonantBoundary = cablePhiSectorRef * cabling_nonantWidth + cabling_semiNonantWidth + phiShift;
+				outer_cabling_powerChannelsTeddStripStripSemiNonantBoundaryShift 
+				: outer_cabling_powerChannelsTeddPixelStripSemiNonantBoundaryShift);
+      const double semiNonantBoundary = cablePhiSectorRef * outer_cabling_nonantWidth + outer_cabling_semiNonantWidth + phiShift;
       isLower = moduloComp(meanPhi, semiNonantBoundary, 2.*M_PI);
     }
 
