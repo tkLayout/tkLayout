@@ -1397,7 +1397,7 @@ namespace insur {
       }
       
       
-      const CablingMap* myCablingMap = tracker.getCablingMap();
+      const OuterCablingMap* myCablingMap = tracker.getOuterCablingMap();
 
       // CSV files
       RootWContent* filesContent = new RootWContent("Cabling files", true);
@@ -7418,7 +7418,7 @@ namespace insur {
   /*
    * Optical cables channels assignments plots.
    */
-  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const CablingMap* myCablingMap,
+  void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const OuterCablingMap* myCablingMap,
 							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							   std::vector<TCanvas*> &XYCanvasesDisk) {
     bool isPowerCabling = false;
@@ -7493,7 +7493,7 @@ namespace insur {
   /*
    * Power cables channels assignments plots.
    */
-  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const CablingMap* myCablingMap,
+  void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const OuterCablingMap* myCablingMap,
 							    TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 							    std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
@@ -7587,7 +7587,7 @@ namespace insur {
 
   /* Interface to gather information on services channels, and create a table storing it.
    */
-  RootWTable* Vizard::opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  RootWTable* Vizard::opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
     std::map<int, std::vector<int> > cablesPerChannel;
     std::map<int, int> psBundlesPerChannel;
     std::map<int, int> ssBundlesPerChannel;
@@ -7604,7 +7604,7 @@ namespace insur {
 
   /* Get the requested Services Channels info from the cabling map.
    */
-  void Vizard::analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
@@ -7695,7 +7695,7 @@ namespace insur {
 
   /* Interface to gather information on powerServices channels, and create a table storing it.
    */
-  RootWTable* Vizard::powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
+  RootWTable* Vizard::powerServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots) {
 
     RootWTable* channelsTable = new RootWTable();
 
@@ -7716,7 +7716,7 @@ namespace insur {
 
   /* Get the requested PowerServices Channels info from the cabling map.
    */
-  void Vizard::analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
@@ -8415,7 +8415,7 @@ namespace insur {
 
   /* Create csv file (Outer Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
-  std::string Vizard::createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "OuterDTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
@@ -8551,7 +8551,7 @@ namespace insur {
      - 3 modules from disk surface 3.
      - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
    */
-  std::string Vizard::createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream bundlesToEndcapModulesCsv;
 
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
@@ -8641,7 +8641,7 @@ namespace insur {
      to group the fibers from each disk surface into one bundle.
      One need to know how many customs aggregation patch cords are needed!
   */
-  std::string Vizard::countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide) {
+  std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream summaryText;
     summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
 
@@ -8869,7 +8869,7 @@ namespace insur {
    * Transparent colors are used to distinguish channels sections A and C, which are specific to power cabling.
    * TO DO: Would be nicer to have this drawn on the fly while the plots are created.
    */
-  void Vizard::computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
+  void Vizard::computeServicesChannelsLegend(TLegend* legend, const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling) {
     std::map<std::string, int > channelsColors;
 
     if (!isPowerCabling) {

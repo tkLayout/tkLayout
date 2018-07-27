@@ -1,8 +1,8 @@
-#include "OuterCabling/CablingMap.hh"
+#include "OuterCabling/OuterCablingMap.hh"
 #include <Tracker.hh>
 
 
-CablingMap::CablingMap(Tracker* tracker) {
+OuterCablingMap::OuterCablingMap(Tracker* tracker) {
   try {
     // CONNECT MODULES TO BUNDLES
     connectModulesToBundles(tracker);
@@ -21,7 +21,7 @@ CablingMap::CablingMap(Tracker* tracker) {
 
 /* MODULES TO BUNDLES CONNECTIONS.
  */
-void CablingMap::connectModulesToBundles(Tracker* tracker) {
+void OuterCablingMap::connectModulesToBundles(Tracker* tracker) {
   ModulesToBundlesConnector bundlesBuilder;
   tracker->accept(bundlesBuilder);
   bundlesBuilder.postVisit();
@@ -32,7 +32,7 @@ void CablingMap::connectModulesToBundles(Tracker* tracker) {
 
 /* BUNDLES TO CABLES CONNECTIONS.
  */
-void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs) {
+void OuterCablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs) {
 
   for (auto& b : bundles) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD CABLES
@@ -61,7 +61,7 @@ void CablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, st
 
 /* Compute cabling type associated to cable.
  */
-const Category CablingMap::computeCableType(const Category& bundleType) const {
+const Category OuterCablingMap::computeCableType(const Category& bundleType) const {
  Category cableType = bundleType;
  if (bundleType == Category::PS10GA || bundleType == Category::PS10GB) cableType = Category::PS10G;
  return cableType;
@@ -73,7 +73,7 @@ const Category CablingMap::computeCableType(const Category& bundleType) const {
  * 1 slot = 1 DTC.
  * A staggering of bundles is done on the fly, when the number of bundles per cable is too high.
  */
-const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const {
+const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const {
   std::map<int, std::pair<int, int> > cablesPhiSectorRefAndSlot;
 
   // Used to stagger several bundles
@@ -239,7 +239,7 @@ const std::map<int, std::pair<int, int> > CablingMap::computeCablesPhiSectorRefA
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
-void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
+void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
@@ -258,7 +258,7 @@ void CablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int
 
 /* Compute cabling type associated to a cable.
  */
-const int CablingMap::computeCableTypeIndex(const Category& cableType) const {
+const int OuterCablingMap::computeCableTypeIndex(const Category& cableType) const {
   int cableTypeIndex;
   if (cableType == Category::PS10G) cableTypeIndex = 0;
   else if (cableType == Category::PS5G) cableTypeIndex = 1;
@@ -269,7 +269,7 @@ const int CablingMap::computeCableTypeIndex(const Category& cableType) const {
 
 /* Compute Id associated to a cable.
  */
-const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const {
+const int OuterCablingMap::computeCableId(const int cablePhiSectorRef, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const {
   int cablingSideIndex = (isPositiveCablingSide ? 0 : 1);
 
   const int cableId = cablingSideIndex * 1000 + cablePhiSectorRef * 100 + cableTypeIndex * 10 + slot;
@@ -279,7 +279,7 @@ const int CablingMap::computeCableId(const int cablePhiSectorRef, const int cabl
 
 /* Connect bundle to cable and vice-versa.
  */
-void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const {
+void OuterCablingMap::connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const {
   cable->addBundle(bundle);
   bundle->setCable(cable);
 }
@@ -287,7 +287,7 @@ void CablingMap::connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cab
 
 /* Check bundles-cables connections.
  */
-void CablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables) {
+void OuterCablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables) {
   for (auto& c : cables) {
 
     // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
@@ -327,7 +327,7 @@ void CablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables)
  * Indeed, the power channel mapping is done so that all modules connected to the same DTC, 
  * have their power cables routed through 2 consecutive channels sections at most.
  */
-void CablingMap::computePowerServicesChannels() {
+void OuterCablingMap::computePowerServicesChannels() {
   for (bool isPositiveCablingSide : { true, false }) {
 
     // BARREL ONLY: IN VIEW OF THE POWER CHANNEL ASSIGNMENT, SPLIT EACH NONANT INTO 2 SEMI-NONANTS
@@ -356,7 +356,7 @@ void CablingMap::computePowerServicesChannels() {
    This is what is done here: the semi-nonant Phi boundaries are defined
    so that ALL NONANTS AND SEMI-NONANTS PHI BOUNDARIES ARE INVARIANT BY ROTATION OF 180° AROUND CMS_Y.
  */
-void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide) {
+void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide) {
   std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
   const std::map<int, OuterBundle*>& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
 
@@ -461,7 +461,7 @@ void CablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCa
 
 /* Check services channels sections containing power cables.
  */
-void CablingMap::checkBundlesToPowerServicesChannels(const std::map<int, OuterBundle*>& bundles) {
+void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, OuterBundle*>& bundles) {
   std::map<std::pair<const int, const ChannelSlot>, int > channels;
 
   for (auto& b : bundles) {

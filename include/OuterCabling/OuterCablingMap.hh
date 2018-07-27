@@ -1,5 +1,5 @@
-#ifndef CABLINGMAP_HH
-#define CABLINGMAP_HH
+#ifndef OUTERCABLINGMAP_HH
+#define OUTERCABLINGMAP_HH
 
 #include <global_constants.hh>
 #include "global_funcs.hh"
@@ -13,9 +13,9 @@
    The cabling map contains all the necessary bundles, cables and DTCs for a given tracker.
    All the relevant connections are made during the building process.
  */
-class CablingMap : public PropertyObject, public Buildable, public Identifiable<int> {
+class OuterCablingMap : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
-  CablingMap(Tracker* tracker);
+  OuterCablingMap(Tracker* tracker);
 
   // positive cabling side
   const std::map<int, OuterBundle*>& getBundles() const { return bundles_; }
@@ -58,4 +58,4 @@ private:
 };
 
 
-#endif  // CABLINGMAP_HH
+#endif  // OUTERCABLINGMAP_HH

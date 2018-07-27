@@ -34,7 +34,7 @@
 
 #include <Tracker.hh>
 #include <Support.hh>
-#include <OuterCabling/CablingMap.hh>
+#include <OuterCabling/OuterCablingMap.hh>
 #include <InnerCabling/InnerCablingMap.hh>
 #include "Materialway.hh"
 #include "WeightDistributionGrid.hh"
