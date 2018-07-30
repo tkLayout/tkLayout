@@ -22,14 +22,30 @@
 #include "Visitable.hh"
 #include "MaterialObject.hh"
 
+namespace insur { class ModuleCap; }
+using insur::ModuleCap;
+using material::ElementsVector;
 
 using namespace boost::accumulators;
 using material::MaterialObject;
 
-namespace insur { class Bundle; }
-using insur::Bundle;
-namespace insur { class DTC; }
-using insur::DTC;
+// OT CABLING MAP
+namespace insur { class OuterBundle; }
+using insur::OuterBundle;
+namespace insur { class OuterDTC; }
+using insur::OuterDTC;
+// IT CABLING MAP
+namespace insur { class PowerChain; }
+using insur::PowerChain;
+namespace insur { class HvLine; }
+using insur::HvLine;
+namespace insur { class GBT; }
+using insur::GBT;
+namespace insur { class InnerBundle; }
+using insur::InnerBundle;
+namespace insur { class InnerDTC; }
+using insur::InnerDTC;
+
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -41,45 +57,17 @@ enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
 enum ReadoutMode { BINARY, CLUSTER };
 enum HitType { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
-
-
 struct PosRef { int subdetectorId, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string subdetectorName; int layer, ring, phi, side; };
 
-namespace insur {
-  class ModuleCap;
-}
 
-using insur::ModuleCap;
-using material::ElementsVector;
+class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC) 
 
-class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
-
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
-
-  Bundle* bundle_ = NULL;
-protected:
-  MaterialObject materialObject_;
-  Sensors sensors_;
-  std::string subdetectorName_;
-  int16_t subdetectorId_;
-  mutable double cachedZError_ = -1.;
-  mutable std::pair<double,double> cachedMinMaxEtaWithError_;
-  XYZVector rAxis_;
-  double tiltAngle_ = 0., skewAngle_ = 0.;
-
-  int numHits_ = 0;
-  
-  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
-  ModuleCap* myModuleCap_ = NULL;
-  // Used to compute local parametrized spatial resolution.
-  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
-  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
@@ -87,6 +75,7 @@ public:
   const ModuleCap* getConstModuleCap() const { return myModuleCap_; }
 
   Property<int16_t, AutoDefault> side;
+  Property<double, AutoDefault> skewAngle;
   
   Property<double, Computable> minPhi, maxPhi;
   
@@ -160,6 +149,7 @@ public:
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
       materialObject_(MaterialObject::MODULE),      sensorNode               ("Sensor"                   , parsedOnly()),
+      skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
@@ -242,7 +232,6 @@ public:
   double physicalLength() const { return decorated().physicalLength(); }
 
   double tiltAngle() const { return tiltAngle_; }
-  double skewAngle() const { return skewAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
   // SPATIAL RESOLUTION
@@ -285,7 +274,8 @@ public:
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
-  void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
+  // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
+  // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
@@ -372,15 +362,66 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryType() const;
   std::string summaryFullType() const;
 
-  void setBundle(Bundle* bundle) { bundle_ = bundle ; }
-  const Bundle* getBundle() const { return bundle_; }
+  // OT CABLING
+  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }
+  const OuterBundle* getBundle() const { return bundle_; }
   const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
   const int opticalChannelSectionPlotColor() const;
   const int powerChannelSectionPlotColor() const; 
-  const DTC* getDTC() const;
+  const OuterDTC* getDTC() const;
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;
+
+  // IT CABLING
+  void setPowerChain(PowerChain* powerChain) { powerChain_ = powerChain ; }
+  const PowerChain* getPowerChain() const { return powerChain_; }
+  void setPhiRefInPowerChain(int phiRefInPowerChain) { phiRefInPowerChain_ = phiRefInPowerChain; }
+  const int getPhiRefInPowerChain() const { return phiRefInPowerChain_; }
+  const int isPositiveZEnd() const;
+  const bool isPositiveXSide() const;
+  const int powerChainPlotColor() const;
+  void setHvLine(HvLine* hvLine) { hvLine_ = hvLine ; }
+  const HvLine* getHvLine() const { return hvLine_; }
+  void setNumELinks(const int numELinks) { numELinks_ = numELinks; }
+  const int numELinks() const { return numELinks_; }
+  void setGBT(GBT* myGBT) { GBT_ = myGBT; }
+  const GBT* getGBT() const { return GBT_; }
+  const int gbtPlotColor() const;
+  const InnerBundle* getInnerBundle() const;
+  const int innerBundlePlotColor() const;
+  const InnerDTC* getInnerDTC() const;
+  const int innerDTCPlotColor() const;
+
+protected:
+  // Used to compute local parametrized spatial resolution.
+  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
+  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
+
+  MaterialObject materialObject_;
+  Sensors sensors_;
+  std::string subdetectorName_;
+  int16_t subdetectorId_;
+  mutable double cachedZError_ = -1.;
+  mutable std::pair<double,double> cachedMinMaxEtaWithError_;
+  XYZVector rAxis_;
+  double tiltAngle_ = 0.;
+
+  int numHits_ = 0;
+  
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
+  ModuleCap* myModuleCap_ = nullptr;
+
+private:
+  // OT CABLING MAP
+  OuterBundle* bundle_ = nullptr;
+  // IT CABLING MAP
+  PowerChain* powerChain_ = nullptr;
+  int phiRefInPowerChain_;
+  HvLine* hvLine_ = nullptr;
+  int numELinks_;
+  GBT* GBT_ =  nullptr;
 };
 
 

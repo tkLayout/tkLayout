@@ -1,10 +1,14 @@
-
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
-#include "Cabling/Bundle.hh"
+#include "OuterCabling/OuterBundle.hh"
+#include "OuterCabling/OuterCable.hh"
+#include "OuterCabling/OuterDTC.hh"
 
-#include "Cabling/Cable.hh"
-#include "Cabling/DTC.hh"
+#include "InnerCabling/PowerChain.hh"
+#include "InnerCabling/HvLine.hh"
+#include "InnerCabling/GBT.hh"
+#include "InnerCabling/InnerBundle.hh"
+#include "InnerCabling/InnerDTC.hh"
 
 
 void DetectorModule::setup() {
@@ -638,9 +642,10 @@ std::string DetectorModule::summaryFullType() const  {
 };
 
 
+// OT CABLING
 const int DetectorModule::isPositiveCablingSide() const {
   int isPositiveCablingSide = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     isPositiveCablingSide = (myBundle->isPositiveCablingSide() ? 1 : -1);
   }
@@ -650,7 +655,7 @@ const int DetectorModule::isPositiveCablingSide() const {
 
 const int DetectorModule::bundlePlotColor() const {
   int bundlePlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
@@ -660,7 +665,7 @@ const int DetectorModule::bundlePlotColor() const {
 
 const int DetectorModule::opticalChannelSectionPlotColor() const {
   int opticalChannelPlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     const ChannelSection* mySection = myBundle->opticalChannelSection();
     if (mySection) {
@@ -673,7 +678,7 @@ const int DetectorModule::opticalChannelSectionPlotColor() const {
 
 const int DetectorModule::powerChannelSectionPlotColor() const {
   int powerChannelPlotColor = 0;
-  const Bundle* myBundle = getBundle();
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
     const ChannelSection* mySection = myBundle->powerChannelSection();
     if (mySection) {
@@ -684,11 +689,11 @@ const int DetectorModule::powerChannelSectionPlotColor() const {
 }
 
 
-const DTC* DetectorModule::getDTC() const {
-  const DTC* myDTC = nullptr;
-  const Bundle* myBundle = getBundle();
+const OuterDTC* DetectorModule::getDTC() const {
+  const OuterDTC* myDTC = nullptr;
+  const OuterBundle* myBundle = getBundle();
   if (myBundle) {
-    const Cable* myCable = myBundle->getCable();
+    const OuterCable* myCable = myBundle->getCable();
     if (myCable) {
       myDTC = myCable->getDTC();
     }
@@ -699,7 +704,7 @@ const DTC* DetectorModule::getDTC() const {
 
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPlotColor = myDTC->plotColor();
   }
@@ -709,7 +714,7 @@ const int DetectorModule::dtcPlotColor() const {
 
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
-  const DTC* myDTC = getDTC();
+  const OuterDTC* myDTC = getDTC();
   if (myDTC != nullptr) {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }
@@ -717,14 +722,101 @@ const int DetectorModule::dtcPhiSectorRef() const {
 }
 
 
+// IT CABLING
+const int DetectorModule::isPositiveZEnd() const {
+  int isPositiveZEnd = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveZEnd = (myPowerChain->isPositiveZEnd() ? 1 : -1);
+  }
+  return isPositiveZEnd;
+}
+
+
+const bool DetectorModule::isPositiveXSide() const {
+  bool isPositiveXSide;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    isPositiveXSide = myPowerChain->isPositiveXSide();
+  }
+  return isPositiveXSide;
+}
+
+
+const int DetectorModule::powerChainPlotColor() const {
+  int powerChainPlotColor = 0;
+  const PowerChain* myPowerChain = getPowerChain();
+  if (myPowerChain) {
+    powerChainPlotColor = myPowerChain->plotColor();
+  }
+  return powerChainPlotColor;
+}
+
+
+const int DetectorModule::gbtPlotColor() const {
+  int gbtPlotColor = 0;
+  const GBT* myGBT = getGBT();
+  if (myGBT != nullptr) {
+    gbtPlotColor = myGBT->plotColor();
+  }
+  return gbtPlotColor;
+}
+
+
+const InnerBundle* DetectorModule::getInnerBundle() const {
+  const InnerBundle* myBundle = nullptr;
+  const GBT* myGBT = getGBT();
+  if (myGBT) {
+    myBundle = myGBT->getBundle();
+  }
+  return myBundle;
+}
+
+
+const int DetectorModule::innerBundlePlotColor() const {
+  int bundlePlotColor = 0;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle != nullptr) {
+    bundlePlotColor = myBundle->plotColor();
+  }
+  return bundlePlotColor;
+}
+
+
+const InnerDTC* DetectorModule::getInnerDTC() const {
+  const InnerDTC* myDTC = nullptr;
+  const InnerBundle* myBundle = getInnerBundle();
+  if (myBundle) {
+    myDTC = myBundle->getDTC();
+  }
+  return myDTC;
+}
+
+
+const int DetectorModule::innerDTCPlotColor() const {
+  int dtcPlotColor = 0;
+  const InnerDTC* myDTC = getInnerDTC();
+  if (myDTC != nullptr) {
+    dtcPlotColor = myDTC->plotColor();
+  }
+  return dtcPlotColor;
+}
+
+
+
 void BarrelModule::build() {
   try {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
+
     rAxis_ = normal();
+
+    // skew
+    decorated().rotateZ(skewAngle());    
+    
+    // tilt
     tiltAngle_ = 0.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
@@ -738,8 +830,9 @@ void EndcapModule::build() {
     DetectorModule::build();
     //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
+
+    // tilt
     tiltAngle_ = M_PI/2.;
-    skewAngle_ = 0.;
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }

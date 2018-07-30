@@ -43,7 +43,8 @@
 #include <global_constants.hh>
 // Custom objects
 #include <Tracker.hh>
-#include "Cabling/CablingMap.hh"
+#include "OuterCabling/OuterCablingMap.hh"
+#include "InnerCabling/InnerCablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
 
@@ -120,7 +121,8 @@ namespace insur {
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
-    bool cablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool outerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool innerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -167,21 +169,46 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasCablingBundleNicer(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
+
+    // OT CABLING
+    void createOuterCablingPlotsBundles(const Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas, 
 					       std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
 					       std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces);
-    void createSummaryCanvasCablingDTCNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, 
+    void createOuterCablingPlotsDTCs(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, 
 					    TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasOpticalCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
-    void createSummaryCanvasPowerCablingChannelNicer(Tracker& tracker, const CablingMap* myCablingMap,
+    void createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const OuterCablingMap* myCablingMap, TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, std::vector<TCanvas*> &XYCanvasEC);
+    void createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const OuterCablingMap* myCablingMap,
 						     TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
 						     std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk);
-    RootWTable* opticalServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
-    void analyzeOpticalServicesChannels(const CablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    RootWTable* opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    void analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     RootWTable* createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
-    RootWTable* powerServicesChannels(const CablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots);
-    void analyzePowerServicesChannels(const CablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    RootWTable* powerServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots);
+    void analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+
+    // IT CABLING
+    void createInnerCablingPlotsPowerChains(const Tracker& tracker, 
+						   std::vector<TCanvas*> &ZPhiLayerPlots,
+						   TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
+						   std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces);
+    void createInnerCablingPlotsGBTs(const Tracker& tracker,
+						 std::vector<TCanvas*> &ZPhiLayerPlots,
+						 std::vector<TCanvas*> &XYPosGBTsDiskSurfaces);
+    void createInnerCablingPlotsBundles(const Tracker& tracker,
+						    TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
+						    std::vector<TCanvas*> &XYPosBundlesDisks);
+    void createInnerCablingPlotsDTCs(const Tracker& tracker,
+						 TCanvas *&RZCanvas,
+						 TCanvas *&XYPosCanvas,
+						 std::vector<TCanvas*> &XYPosDTCsDisks);
+    void computeInnerCablingCount(const InnerCablingMap* myInnerCablingMap,
+				  int& numSensorsOneXSide, int& numSensorsPlusXSidePlusZEnd, int& numSensorsPlusXSideMinusZEnd,
+				  int& numPowerChainsOneXSide, int& numPowerChainsPlusXSidePlusZEnd, int& numPowerChainsPlusXSideMinusZEnd,
+				  int& numELinksOneXSide, int& numELinksPlusXSidePlusZEnd, int& numELinksPlusXSideMinusZEnd,
+				  int& numBundlesOneXSide, int& numBundlesPlusXSidePlusZEnd, int& numBundlesPlusXSideMinusZEnd,
+				  int& numGBTsOneXSide, int& numGBTsPlusXSidePlusZEnd, int& numGBTsPlusXSideMinusZEnd,
+				  int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const;
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
@@ -195,11 +222,21 @@ namespace insur {
     bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawTracksDistributionPerNumberOfStubs(TCanvas& myCanvas, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
+    bool drawTracksDistributionPerNumberOfStubs(TVirtualPad& myPad, Analyzer& analyzer, const bool isPixelTracker); // plots for each number of stubs
     bool drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
-    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
-    bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
+
+    // COVERAGE PER LAYER: HITS AND STUBS
+    bool drawHitCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawStubCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer, const bool isPixelTracker);
+    bool drawStubWith3HitsCoveragePerLayer(RootWPage& myPage, Analyzer& analyzer);
+    bool drawCoveragePerlayer(RootWPage& myPage, const bool isPixelTracker, const std::string type, 
+			      std::map<std::string, TProfile>& coveragePerLayer,			      
+			      std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails,
+			      std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing);
+    bool drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
+
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
@@ -230,9 +267,12 @@ namespace insur {
     std::string createSensorsDetIdListCsv();
 
     std::string createModulesToDTCsCsv(const Tracker& t, const bool isPositiveCablingSide);
-    std::string createDTCsToModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
-    std::string createBundlesToEndcapModulesCsv(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
-    std::string countBundlesToEndcapModulesCombinations(const CablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
+
+    std::string createInnerTrackerModulesToDTCsCsv(const Tracker& tracker);
+    std::string createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) ;
 
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
@@ -249,8 +289,10 @@ namespace insur {
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
-    void drawFrameOfReference(const bool isRotatedY180);
-    void computeServicesChannelsLegend(TLegend* legend, const CablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
+    void drawFrameOfReference(const bool isRotatedY180, const double scalingFactor = 1.);
+    const std::pair<double, double> computeInnerCablingPlotsScalingFactors(const Tracker& tracker);
+    const std::pair<double, double> computeInnerCablingPlotsMaxRadii(const Tracker& tracker);
+    void computeServicesChannelsLegend(TLegend* legend, const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const bool isPowerCabling);
   };
 
 

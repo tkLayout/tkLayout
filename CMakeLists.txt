@@ -169,8 +169,14 @@ SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprec
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
                      ${BOOST_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
-FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cc )
-FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.hh )
+FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc 
+                       ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cc 
+                       ${PROJECT_SOURCE_DIR}/src/InnerCabling/*.cc 
+                       ${PROJECT_SOURCE_DIR}/src/OuterCabling/*.cc)
+FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh 
+                   ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.hh 
+                   ${PROJECT_SOURCE_DIR}/include/InnerCabling*.hh 
+                   ${PROJECT_SOURCE_DIR}/include/OuterCabling*.hh)
 
 # Exlude files with main function defined
 SET ( sources "" )
