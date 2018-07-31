@@ -22,11 +22,12 @@ OuterCablingMap::OuterCablingMap(Tracker* tracker) {
 /* MODULES TO BUNDLES CONNECTIONS.
  */
 void OuterCablingMap::connectModulesToBundles(Tracker* tracker) {
+  // Build bundles
   ModulesToBundlesConnector bundlesBuilder;
   tracker->accept(bundlesBuilder);
   bundlesBuilder.postVisit();
-  //bundles_ = bundlesBuilder.getBundles();
-  //negBundles_ = bundlesBuilder.getNegBundles();
+
+  // Store bundles
   for (const auto& bundleIt : bundlesBuilder.getBundles()) {
     std::unique_ptr<OuterBundle> myBundle(bundleIt.second);
     bundles_.insert(std::make_pair(bundleIt.first, std::move(myBundle)));
