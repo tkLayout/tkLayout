@@ -27,9 +27,7 @@ OuterBundle::OuterBundle(const int id, const int stereoBundleId, const Category&
 
 void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
   Container& otherBundleModules = otherBundle->modules();
-  auto maxPhiModuleIt = std::max_element(otherBundleModules.begin(), otherBundleModules.end(), [](Module* a, Module* b) {
-      return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
-    });
+  auto maxPhiModuleIt = otherBundle->maxPhiModule();
 
   std::move(maxPhiModuleIt, maxPhiModuleIt + 1, std::back_inserter(modules_));
   otherBundleModules.erase(maxPhiModuleIt, maxPhiModuleIt + 1);
@@ -41,9 +39,7 @@ void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
 
 void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
   Container& otherBundleModules = otherBundle->modules();
-  auto minPhiModuleIt = std::min_element(otherBundleModules.begin(), otherBundleModules.end(), [](Module* a, Module* b) {
-      return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
-    });
+  auto minPhiModuleIt = otherBundle->minPhiModule();
 
   std::move(minPhiModuleIt, minPhiModuleIt + 1, std::back_inserter(modules_));
   otherBundleModules.erase(minPhiModuleIt, minPhiModuleIt + 1);
@@ -82,21 +78,19 @@ const double OuterBundle::meanPhi() const {
   return mean;
 }
 
-Module* OuterBundle::minPhiModule() const {
-  Module* mod = *std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+std::vector<Module*>::iterator OuterBundle::minPhiModule() {
+  auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
 	return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
       });
-  //Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
-  return mod;
+  return modIt;
 }
 
 
-Module* OuterBundle::maxPhiModule() const {
-  Module* mod = *std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+std::vector<Module*>::iterator OuterBundle::maxPhiModule() {
+  auto modIt = std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
       return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
     });
-  //Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
-  return mod;
+  return modIt;
 }
 
 

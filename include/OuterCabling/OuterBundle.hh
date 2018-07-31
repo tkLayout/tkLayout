@@ -55,8 +55,8 @@ public:
   const double maxPhi() const;
   const double meanPhi() const;
 
-  Module* minPhiModule() const;
-  Module* maxPhiModule() const; 
+  std::vector<Module*>::iterator minPhiModule();
+  std::vector<Module*>::iterator maxPhiModule(); 
 
   // SERVICES CHANNELS INFORMATION
   // VERY IMPORTANT: connection scheme from modules to optical bundles = connection scheme from modules to power cables.
