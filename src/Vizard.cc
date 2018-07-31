@@ -7606,7 +7606,7 @@ namespace insur {
    */
   void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+    const std::map<const int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
     for (const auto& myCable : cables) {
       const ChannelSection* mySection = myCable.second->opticalChannelSection();
@@ -7718,7 +7718,7 @@ namespace insur {
    */
   void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    const std::map<const int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
     for (const auto& myBundle : bundles) {
       const ChannelSection* mySection = myBundle.second->powerChannelSection();
@@ -8431,32 +8431,32 @@ namespace insur {
 		<< std::fixed << std::setprecision(6)
 		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
 
-	const PtrVector<OuterCable>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
-	  cableInfo << cable.myid() << ","
-		    << any2str(cable.type()) << ",";
-	  const ChannelSection* myOpticalSection = cable.opticalChannelSection();
+	  cableInfo << cable->myid() << ","
+		    << any2str(cable->type()) << ",";
+	  const ChannelSection* myOpticalSection = cable->opticalChannelSection();
 	  const int opticalChannelNumber = myOpticalSection->channelNumber();
 	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
 
-	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
+	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
-	    bundleInfo << bundle.myid() << ","
+	    bundleInfo << bundle->myid() << ","
 		       << opticalChannelNumber << " " 
 		       << any2str(opticalChannelSlot) << ","
-		       << bundle.powerChannelSection()->channelNumber() << " " 
-		       << any2str(bundle.powerChannelSection()->channelSlot()) << ",";
+		       << bundle->powerChannelSection()->channelNumber() << " " 
+		       << any2str(bundle->powerChannelSection()->channelSlot()) << ",";
 
-	    const PtrVector<Module>& myModules = bundle.modules();
+	    const std::vector<Module*>& myModules = bundle->modules();
 	    for (const auto& module : myModules) {
 	      std::stringstream moduleInfo;
-	      moduleInfo << module.myDetId() << ", "
-			 << module.uniRef().subdetectorName << ", "
-			 << module.uniRef().layer << ", "
-			 << module.moduleRing() << ", "
-			 << module.center().Phi() * 180. / M_PI;
+	      moduleInfo << module->myDetId() << ", "
+			 << module->uniRef().subdetectorName << ", "
+			 << module->uniRef().layer << ", "
+			 << module->moduleRing() << ", "
+			 << module->center().Phi() * 180. / M_PI;
 	      modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << moduleInfo.str() << std::endl;
 	    }
 	    if (myModules.size() == 0) modulesToDTCsCsv << DTCInfo.str() << cableInfo.str() << bundleInfo.str() << std::endl;
@@ -8563,35 +8563,35 @@ namespace insur {
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<OuterCable>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
+	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
 	  for (const auto& bundle : myBundles) {
 
-	    std::string subDetectorName = bundle.subDetectorName();
+	    std::string subDetectorName = bundle->subDetectorName();
 	    // Only in TEDD.
 	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Bundle related info.
 	      std::stringstream bundleInfo;
-	      bundleInfo << bundle.myid() << ",";
+	      bundleInfo << bundle->myid() << ",";
 
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 	      std::vector<std::string> modulesInBundleInfo;
-	      const PtrVector<Module>& myModules = bundle.modules();
+	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Module related info.
 		std::stringstream moduleInfo;
-		moduleInfo << module.myDetId() << ", "
-			   << module.uniRef().subdetectorName << ", "
-			   << module.uniRef().layer << ", "
-			   << module.moduleRing() << ", "
-			   << module.center().Phi() * 180. / M_PI;
+		moduleInfo << module->myDetId() << ", "
+			   << module->uniRef().subdetectorName << ", "
+			   << module->uniRef().layer << ", "
+			   << module->moduleRing() << ", "
+			   << module->center().Phi() * 180. / M_PI;
 		modulesInBundleInfo.push_back(moduleInfo.str());
 
 		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module.diskSurface();
+		const int surfaceIndex = module->diskSurface();
 		// Count the number of modules per disk surface.
 		pattern[surfaceIndex] += 1; 
 	      }
@@ -8605,7 +8605,7 @@ namespace insur {
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
+		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
 			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
 	      }
 	      patternInfo << ", ";
@@ -8651,22 +8651,22 @@ namespace insur {
     for (const auto& dtc : myDTCs) {
       if (dtc.second != nullptr) {
 
-	const PtrVector<OuterCable>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = dtc.second->cable();
 	for (const auto& cable : myCables) {
 
-	  const PtrVector<OuterBundle>& myBundles = cable.bundles();
+	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
 	  for (const auto& bundle : myBundles) {
 
-	    std::string subDetectorName = bundle.subDetectorName();
+	    std::string subDetectorName = bundle->subDetectorName();
 	    // Only in TEDD.
 	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 
-	      const PtrVector<Module>& myModules = bundle.modules();
+	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module.diskSurface();
+		const int surfaceIndex = module->diskSurface();
 		// Count the number of modules per disk surface.
 		pattern[surfaceIndex] += 1; 
 	      }
@@ -8683,7 +8683,7 @@ namespace insur {
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle.myid()) 
+		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
 			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
 	      }
 	      // Count the occurences of each combination.
@@ -8874,7 +8874,7 @@ namespace insur {
 
     if (!isPowerCabling) {
       // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
-      const std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+      const std::map<const int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
 
       // Loop on all the encountered cables
       for (const auto& myCable : cables) {
@@ -8907,7 +8907,7 @@ namespace insur {
 
     else {
       // Only consider the relevant bundles: bundles from (+Z) side or (-Z) side.
-      const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+      const std::map<const int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
 
       // Loop on all the encountered bundles
       for (const auto& myBundle : bundles) {

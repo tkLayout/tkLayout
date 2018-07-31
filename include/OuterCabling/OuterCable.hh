@@ -13,10 +13,10 @@ using insur::DTC;
 
 
 class OuterCable : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<OuterBundle> Container;
+  typedef std::vector<OuterBundle*> Container;
 public:
   OuterCable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
-  ~OuterCable();
+  //~OuterCable();
 
   // BUNDLES CONNECTED TO THE CABLE.
   const Container& bundles() const { return bundles_; }
@@ -40,7 +40,7 @@ public:
   // Optical
   const ChannelSection* opticalChannelSection() const {
     if (!opticalChannelSection_) throw PathfulException("opticalChannelSection_ is nullptr");
-    return opticalChannelSection_; 
+    return opticalChannelSection_.get(); 
   }
   // Power
   void assignPowerChannelSections();
@@ -59,7 +59,7 @@ private:
   int slot_;
   bool isPositiveCablingSide_;
 
-  ChannelSection* opticalChannelSection_ = nullptr;
+  std::unique_ptr<const ChannelSection> opticalChannelSection_;
 };
 
 

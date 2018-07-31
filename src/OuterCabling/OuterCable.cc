@@ -11,20 +11,21 @@ OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiS
 { 
   myid(id);
   // ASSIGN AN OPTICAL SERVICESCHANNEL TO THE CABLE
-  opticalChannelSection_ = GeometryFactory::make<OpticalSection>(phiSectorRef, type, slot, isPositiveCablingSide);
+  std::unique_ptr<const ChannelSection> myOpticalChannelSection (GeometryFactory::make<OpticalSection>(phiSectorRef, type, slot, isPositiveCablingSide));
+  opticalChannelSection_ = std::move(myOpticalChannelSection);
 
   // BUILD DTC ASOCIATED TO THE CABLE
   buildDTC(phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);  
 };
 
 
-OuterCable::~OuterCable() {
-  delete myDTC_;       // TO DO: switch to smart pointers and remove this!
-  myDTC_ = nullptr;
+//OuterCable::~OuterCable() {
+  //delete myDTC_;       // TO DO: switch to smart pointers and remove this!
+  //myDTC_ = nullptr;
 
-  delete opticalChannelSection_;
-  opticalChannelSection_ = nullptr;
-}
+  //delete opticalChannelSection_;
+  // opticalChannelSection_ = nullptr;
+//}
 
 
 /* Build DTC asociated to the cable.
@@ -57,7 +58,7 @@ void OuterCable::assignPowerChannelSections() {
   // Loop on all bundles connected to the same DTC.
   for (auto& myBundle : bundles_) {
     
-    const bool isBarrel = myBundle.isBarrel();
+    const bool isBarrel = myBundle->isBarrel();
     const int cablePhiSectorRef = phiSectorRef_;
     
     // COMPUTE ISLOWER
@@ -68,13 +69,13 @@ void OuterCable::assignPowerChannelSections() {
 
     // BARREL: Use complex boundary relying on rotation of 180° around CMS_Y.
     if (isBarrel) { 
-      isLower = myBundle.isPowerRoutedToBarrelLowerSemiNonant(); 
+      isLower = myBundle->isPowerRoutedToBarrelLowerSemiNonant(); 
     }
 
     // ENDCAP: Define a Phi Semi-Nonant boundary and split bundles accordingly.
     else {
       // Average Phi of all modules the Bundle is connected to.
-      const double meanPhi = femod(myBundle.meanPhi(), 2.*M_PI);
+      const double meanPhi = femod(myBundle->meanPhi(), 2.*M_PI);
 
       const Category& type = type_;
 
@@ -91,9 +92,9 @@ void OuterCable::assignPowerChannelSections() {
     const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
 
     // COMPUTE THE POWER CHANEL SECTION CORRESPONDING TO THE PHI SEMINONANT.
-    ChannelSection* powerChannelSection = GeometryFactory::make<PowerSection>(semiPhiRegionRef, isPositiveCablingSide_);
+    std::unique_ptr<const ChannelSection> powerChannelSection (GeometryFactory::make<PowerSection>(semiPhiRegionRef, isPositiveCablingSide_));
 
     // ASSIGN THE POWER CHANNEL SECTION TO THE BUNDLE (bundle = power cable)
-    myBundle.setPowerChannelSection(powerChannelSection);
+    myBundle->setPowerChannelSection(std::move(powerChannelSection));
   }
 }

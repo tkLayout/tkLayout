@@ -15,11 +15,11 @@ using insur::OuterCable;
 
 
 class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Module> Container; 
+  typedef std::vector<Module*> Container; 
 
 public:
   OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
-  ~OuterBundle();
+  //~OuterBundle();
 
   // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
@@ -70,10 +70,10 @@ public:
   // Power
   const ChannelSection* powerChannelSection() const {
     if (!powerChannelSection_) throw PathfulException("powerChannelSection_ is nullptr");
-    return powerChannelSection_; 
+    return powerChannelSection_.get(); 
   }
-  void setPowerChannelSection(ChannelSection* powerChannelSection) {
-    powerChannelSection_ = powerChannelSection;
+  void setPowerChannelSection(std::unique_ptr<const ChannelSection> powerChannelSection) {
+    powerChannelSection_ = std::move(powerChannelSection);
   }
   // Used to compute the power channel section.
   const int tiltedBundleId() const;
@@ -98,7 +98,7 @@ private:
 
   int plotColor_;
 
-  ChannelSection* powerChannelSection_ = nullptr;
+  std::unique_ptr<const ChannelSection> powerChannelSection_;
 
   int stereoBundleId_;
   bool isPowerRoutedToBarrelLowerSemiNonant_;

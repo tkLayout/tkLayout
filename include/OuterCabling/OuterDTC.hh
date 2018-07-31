@@ -9,7 +9,7 @@
 
 
 class OuterDTC : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<OuterCable> Container;
+  typedef std::vector<OuterCable*> Container;
 
 public:
   OuterDTC(const std::string name, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide);
