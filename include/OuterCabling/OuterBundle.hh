@@ -19,7 +19,6 @@ class OuterBundle : public PropertyObject, public Buildable, public Identifiable
 
 public:
   OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
-  //~OuterBundle();
 
   // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
@@ -48,13 +47,12 @@ public:
   const int plotColor() const { return plotColor_; }
 
   // PHI INFORMATION FROM MODULES CONNECTED TO THE BUNDLE
-  void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-  void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-
   const double minPhi() const;
   const double maxPhi() const;
   const double meanPhi() const;
 
+  void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
+  void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
   std::vector<Module*>::iterator minPhiModule();
   std::vector<Module*>::iterator maxPhiModule(); 
 
@@ -98,7 +96,7 @@ private:
 
   int plotColor_;
 
-  std::unique_ptr<const ChannelSection> powerChannelSection_;
+  std::unique_ptr<const ChannelSection> powerChannelSection_; // powerChannelSection is owned by OuterBundle
 
   int stereoBundleId_;
   bool isPowerRoutedToBarrelLowerSemiNonant_;

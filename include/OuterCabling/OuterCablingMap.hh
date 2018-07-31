@@ -103,6 +103,7 @@ private:
   std::map<const int, std::unique_ptr<OuterBundle> > negBundles_;
   std::map<const int, std::unique_ptr<OuterCable> > negCables_;
   std::map<const std::string, std::unique_ptr<const OuterDTC> > negDTCs_;
+  // All bundles, cables, and DTC are owned by the Cabling map, and the Cabling map only!!
 };
 
 

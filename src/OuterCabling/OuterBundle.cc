@@ -16,39 +16,6 @@ OuterBundle::OuterBundle(const int id, const int stereoBundleId, const Category&
 };
 
 
-//OuterBundle::~OuterBundle() {
-  //delete cable_;    // TO DO: switch to smart pointers and remove this!
-  //cable_ = nullptr; 
-
-  //delete powerChannelSection_;
-  //powerChannelSection_ = nullptr;
-//}
-
-
-void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
-  Container& otherBundleModules = otherBundle->modules();
-  auto maxPhiModuleIt = otherBundle->maxPhiModule();
-
-  std::move(maxPhiModuleIt, maxPhiModuleIt + 1, std::back_inserter(modules_));
-  otherBundleModules.erase(maxPhiModuleIt, maxPhiModuleIt + 1);
-  //modules_.transfer(modules_.end(),
-  //		    maxPhiModuleIt,
-  //		    otherBundleModules);
-}
-
-
-void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
-  Container& otherBundleModules = otherBundle->modules();
-  auto minPhiModuleIt = otherBundle->minPhiModule();
-
-  std::move(minPhiModuleIt, minPhiModuleIt + 1, std::back_inserter(modules_));
-  otherBundleModules.erase(minPhiModuleIt, minPhiModuleIt + 1);
-  //modules_.transfer(modules_.end(), 
-  //		    minPhiModuleIt,
-  //		    otherBundleModules);
-}
-
-
 const double OuterBundle::minPhi() const { 
   double min = std::numeric_limits<double>::max();
   for (const auto& m : modules_) { min = MIN(min, femodRounded(m->center().Phi(), 2. * M_PI) ); } return min;
@@ -77,6 +44,25 @@ const double OuterBundle::meanPhi() const {
   mean /= numModules();
   return mean;
 }
+
+
+void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
+  Container& otherBundleModules = otherBundle->modules();
+  auto minPhiModuleIt = otherBundle->minPhiModule();
+
+  std::move(minPhiModuleIt, minPhiModuleIt + 1, std::back_inserter(modules_));
+  otherBundleModules.erase(minPhiModuleIt, minPhiModuleIt + 1);
+}
+
+
+void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
+  Container& otherBundleModules = otherBundle->modules();
+  auto maxPhiModuleIt = otherBundle->maxPhiModule();
+
+  std::move(maxPhiModuleIt, maxPhiModuleIt + 1, std::back_inserter(modules_));
+  otherBundleModules.erase(maxPhiModuleIt, maxPhiModuleIt + 1);
+}
+
 
 std::vector<Module*>::iterator OuterBundle::minPhiModule() {
   auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {

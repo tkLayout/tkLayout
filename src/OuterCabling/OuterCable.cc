@@ -19,15 +19,6 @@ OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiS
 };
 
 
-//OuterCable::~OuterCable() {
-  //delete myDTC_;       // TO DO: switch to smart pointers and remove this!
-  //myDTC_ = nullptr;
-
-  //delete opticalChannelSection_;
-  // opticalChannelSection_ = nullptr;
-//}
-
-
 /* Build DTC asociated to the cable.
  */
 void OuterCable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
