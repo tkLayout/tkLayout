@@ -7606,10 +7606,13 @@ namespace insur {
    */
   void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<const int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+    const std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? 
+								       myCablingMap->getCables() 
+								       : myCablingMap->getNegCables());
 
-    for (const auto& myCable : cables) {
-      const ChannelSection* mySection = myCable.second->opticalChannelSection();
+    for (const auto& myCableIt : cables) {
+      const OuterCable* myCable = myCableIt.second.get();
+      const ChannelSection* mySection = myCable->opticalChannelSection();
       const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
       // If necessary, can select the Services Channels corresponding to the requested channelSlot.
@@ -7619,11 +7622,11 @@ namespace insur {
 
 	const int channelNumber = mySection->channelNumber();
 
-	const int cableId = myCable.first;
+	const int cableId = myCableIt.first;
 	cablesPerChannel[channelNumber].push_back(cableId);
 
-	const Category cableType = myCable.second->type();      
-	const int numBundles = myCable.second->numBundles();
+	const Category cableType = myCable->type();      
+	const int numBundles = myCable->numBundles();
 
 	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
 	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
@@ -7718,10 +7721,13 @@ namespace insur {
    */
   void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
-    const std::map<const int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? 
+									 myCablingMap->getBundles() 
+									 : myCablingMap->getNegBundles());
 
-    for (const auto& myBundle : bundles) {
-      const ChannelSection* mySection = myBundle.second->powerChannelSection();
+    for (const auto& myBundleIt : bundles) {
+      const OuterBundle* myBundle = myBundleIt.second.get();
+      const ChannelSection* mySection = myBundle->powerChannelSection();
       const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
       // If necessary, can select the PowerServices Channels corresponding to the requested slot.
@@ -7731,7 +7737,7 @@ namespace insur {
 
 	const int channelNumber = mySection->channelNumber();
 
-	const Category bundleType = myBundle.second->type();      
+	const Category bundleType = myBundle->type();      
 
 	if (bundleType == Category::PS10G 
 	    || bundleType == Category::PS10GA 
@@ -8420,18 +8426,21 @@ namespace insur {
     std::stringstream modulesToDTCsCsv;
     modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
-    for (const auto& dtc : myDTCs) {
-      if (dtc.second != nullptr) {
+    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
+										   myCablingMap->getDTCs() 
+										   : myCablingMap->getNegDTCs());
+    for (const auto& dtcIt : myDTCs) {
+      const OuterDTC* myDTC = dtcIt.second.get();
+      if (myDTC) {
 	std::stringstream DTCInfo;
-	DTCInfo << dtc.second->name() << ","
-		<< dtc.second->phiSectorRef() << ","
-		<< any2str(dtc.second->type()) << ","
-		<< dtc.second->slot() << ","
+	DTCInfo << myDTC->name() << ","
+		<< myDTC->phiSectorRef() << ","
+		<< any2str(myDTC->type()) << ","
+		<< myDTC->slot() << ","
 		<< std::fixed << std::setprecision(6)
-		<< dtc.second->phiSectorWidth() * 180. / M_PI << ", ";
+		<< myDTC->phiSectorWidth() * 180. / M_PI << ", ";
 
-	const std::vector<OuterCable*>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = myDTC->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
 	  cableInfo << cable->myid() << ","
@@ -8492,7 +8501,7 @@ namespace insur {
     const std::map<int, InnerDTC*>& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
       InnerDTC* myDTC = itDTC.second;
-      if (myDTC != nullptr) {
+      if (myDTC) {
 	std::stringstream DTCInfo;
 	DTCInfo << myDTC->isPositiveZEnd() << ","
 		<< myDTC->isPositiveXSide() << ","
@@ -8559,11 +8568,14 @@ namespace insur {
 
     bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
-    for (const auto& dtc : myDTCs) {
-      if (dtc.second != nullptr) {
+    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
+										   myCablingMap->getDTCs() 
+										   : myCablingMap->getNegDTCs());
+    for (const auto& dtcIt : myDTCs) {
+      const OuterDTC* myDTC = dtcIt.second.get();
+      if (myDTC) {
 
-	const std::vector<OuterCable*>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = myDTC->cable();
 	for (const auto& cable : myCables) {
 
 	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
@@ -8647,11 +8659,14 @@ namespace insur {
 
     std::map<std::multiset<int>, int> combinationsDistribution;
 
-    const std::map<const std::string, const OuterDTC*>& myDTCs = (isPositiveCablingSide ? myCablingMap->getDTCs() : myCablingMap->getNegDTCs());
-    for (const auto& dtc : myDTCs) {
-      if (dtc.second != nullptr) {
+    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
+										   myCablingMap->getDTCs() 
+										   : myCablingMap->getNegDTCs());
+    for (const auto& dtcIt : myDTCs) {
+      const OuterDTC* myDTC = dtcIt.second.get();
+      if (myDTC) {
 
-	const std::vector<OuterCable*>& myCables = dtc.second->cable();
+	const std::vector<OuterCable*>& myCables = myDTC->cable();
 	for (const auto& cable : myCables) {
 
 	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
@@ -8874,11 +8889,14 @@ namespace insur {
 
     if (!isPowerCabling) {
       // Only consider the relevant cables: cables from (+Z) side or (-Z) side.
-      const std::map<const int, OuterCable*>& cables = (isPositiveCablingSide ? myCablingMap->getCables() : myCablingMap->getNegCables());
+      const std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? 
+									 myCablingMap->getCables() 
+									 : myCablingMap->getNegCables());
 
       // Loop on all the encountered cables
-      for (const auto& myCable : cables) {
-	const ChannelSection* mySection = myCable.second->opticalChannelSection();
+      for (const auto& myCableIt : cables) {
+	const OuterCable* myCable = myCableIt.second.get();
+	const ChannelSection* mySection = myCable->opticalChannelSection();
 	const int& myChannelNumber = mySection->channelNumber();
 	const int& myPlotColor = mySection->plotColor();
 
@@ -8907,11 +8925,14 @@ namespace insur {
 
     else {
       // Only consider the relevant bundles: bundles from (+Z) side or (-Z) side.
-      const std::map<const int, OuterBundle*>& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+      const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? 
+									   myCablingMap->getBundles() 
+									   : myCablingMap->getNegBundles());
 
       // Loop on all the encountered bundles
-      for (const auto& myBundle : bundles) {
-	const ChannelSection* mySection = myBundle.second->powerChannelSection();
+      for (const auto& myBundleIt : bundles) {
+	const OuterBundle* myBundle = myBundleIt.second.get();
+	const ChannelSection* mySection = myBundle->powerChannelSection();
 	const int& myChannelNumber = mySection->channelNumber();
 	const int& myPlotColor = mySection->plotColor();
 
