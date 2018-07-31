@@ -379,7 +379,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
 		    );
 		   
-	    std::vector<Module*>::iterator maxPhiModIt = b.second->maxPhiModule();
+	    const auto maxPhiModIt = b.second->maxPhiModule();
 	    if (maxPhiModIt != b.second->modules().end()) { 
 	      Module* maxPhiMod = *maxPhiModIt;
 	      maxPhiMod->setBundle(nextBundle);  
@@ -405,7 +405,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
 		    );
 
-	    std::vector<Module*>::iterator minPhiModIt = b.second->minPhiModule();
+	    const auto minPhiModIt = b.second->minPhiModule();
 	    if (minPhiModIt != b.second->modules().end()) {
 	      Module* minPhiMod = *minPhiModIt;
 	      minPhiMod->setBundle(previousBundle);	  

@@ -53,8 +53,8 @@ public:
 
   void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
   void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-  std::vector<Module*>::iterator minPhiModule();
-  std::vector<Module*>::iterator maxPhiModule(); 
+  const std::vector<Module*>::iterator minPhiModule();
+  const std::vector<Module*>::iterator maxPhiModule(); 
 
   // SERVICES CHANNELS INFORMATION
   // VERY IMPORTANT: connection scheme from modules to optical bundles = connection scheme from modules to power cables.

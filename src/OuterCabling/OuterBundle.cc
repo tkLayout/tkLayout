@@ -48,7 +48,7 @@ const double OuterBundle::meanPhi() const {
 
 void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
   Container& otherBundleModules = otherBundle->modules();
-  auto minPhiModuleIt = otherBundle->minPhiModule();
+  const auto minPhiModuleIt = otherBundle->minPhiModule();
 
   std::move(minPhiModuleIt, minPhiModuleIt + 1, std::back_inserter(modules_));
   otherBundleModules.erase(minPhiModuleIt, minPhiModuleIt + 1);
@@ -57,23 +57,23 @@ void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
 
 void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
   Container& otherBundleModules = otherBundle->modules();
-  auto maxPhiModuleIt = otherBundle->maxPhiModule();
+  const auto maxPhiModuleIt = otherBundle->maxPhiModule();
 
   std::move(maxPhiModuleIt, maxPhiModuleIt + 1, std::back_inserter(modules_));
   otherBundleModules.erase(maxPhiModuleIt, maxPhiModuleIt + 1);
 }
 
 
-std::vector<Module*>::iterator OuterBundle::minPhiModule() {
-  auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+const std::vector<Module*>::iterator OuterBundle::minPhiModule() {
+  const auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
 	return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
       });
   return modIt;
 }
 
 
-std::vector<Module*>::iterator OuterBundle::maxPhiModule() {
-  auto modIt = std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+const std::vector<Module*>::iterator OuterBundle::maxPhiModule() {
+  const auto modIt = std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
       return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
     });
   return modIt;
