@@ -8204,9 +8204,9 @@ namespace insur {
 					int& numDTCsOneXSide, int& numDTCsPlusXSidePlusZEnd, int& numDTCsPlusXSideMinusZEnd) const {
 
     // PowerChains
-    const std::map<int, PowerChain*>& powerChains = myInnerCablingMap->getPowerChains();
+    const std::map<int, std::unique_ptr<PowerChain> >& powerChains = myInnerCablingMap->getPowerChains();
     for (const auto& it : powerChains) {
-      const PowerChain* myPowerChain = it.second;
+      const PowerChain* myPowerChain = it.second.get();
       if (myPowerChain->isPositiveXSide()) {
 	numPowerChainsOneXSide++;
 	if (myPowerChain->isPositiveZEnd()) numPowerChainsPlusXSidePlusZEnd++; else numPowerChainsPlusXSideMinusZEnd++;
@@ -8218,9 +8218,9 @@ namespace insur {
     }
 
     // GBTs
-    const std::map<std::string, GBT*>& gbts = myInnerCablingMap->getGBTs();
+    const std::map<std::string, std::unique_ptr<GBT> >& gbts = myInnerCablingMap->getGBTs();
     for (const auto& it : gbts) {
-      const GBT* myGBT = it.second;
+      const GBT* myGBT = it.second.get();
       if (myGBT->isPositiveXSide()) {
 	numGBTsOneXSide++;
 	if (myGBT->isPositiveZEnd()) numGBTsPlusXSidePlusZEnd++; else numGBTsPlusXSideMinusZEnd++;
@@ -8232,9 +8232,9 @@ namespace insur {
     }
 
     // Bundles
-    const std::map<int, InnerBundle*>& bundles = myInnerCablingMap->getBundles();
+    const std::map<int, std::unique_ptr<InnerBundle> >& bundles = myInnerCablingMap->getBundles();
     for (const auto& it : bundles) {
-      const InnerBundle* myBundle = it.second;
+      const InnerBundle* myBundle = it.second.get();
       if (myBundle->isPositiveXSide()) {
 	numBundlesOneXSide++;
 	if (myBundle->isPositiveZEnd()) numBundlesPlusXSidePlusZEnd++; else numBundlesPlusXSideMinusZEnd++;
@@ -8242,9 +8242,9 @@ namespace insur {
     }
 
     // DTCs
-    const std::map<int, InnerDTC*>& dtcs = myInnerCablingMap->getDTCs();
+    const std::map<int, std::unique_ptr<InnerDTC> >& dtcs = myInnerCablingMap->getDTCs();
     for (const auto& it : dtcs) {
-      const InnerDTC* myDTC = it.second;
+      const InnerDTC* myDTC = it.second.get();
       if (myDTC->isPositiveXSide()) {
 	numDTCsOneXSide++;
 	if (myDTC->isPositiveZEnd()) numDTCsPlusXSidePlusZEnd++; else numDTCsPlusXSideMinusZEnd++;
@@ -8498,41 +8498,41 @@ namespace insur {
     std::stringstream dtcsToModulesCsv;
     dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
-    const std::map<int, InnerDTC*>& myDTCs = myInnerCablingMap->getDTCs();
+    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
-      InnerDTC* myDTC = itDTC.second;
+      InnerDTC* myDTC = itDTC.second.get();
       if (myDTC) {
 	std::stringstream DTCInfo;
 	DTCInfo << myDTC->isPositiveZEnd() << ","
 		<< myDTC->isPositiveXSide() << ","
 		<< myDTC->myid() << ",";
 
-	const PtrVector<InnerBundle>& myBundles = myDTC->bundles();
+	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
 	for (const auto& myBundle : myBundles) {
 	  std::stringstream bundleInfo;
-	  bundleInfo << myBundle.myid() << ",";
+	  bundleInfo << myBundle->myid() << ",";
 
-	  const PtrVector<GBT>& myGBTs = myBundle.GBTs();
+	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
 	  for (const auto& myGBT : myGBTs) {
 	    std::stringstream GBTInfo;
-	    GBTInfo << any2str(myGBT.GBTId()) << ","
-		    << myGBT.numELinksPerModule() << ",";
+	    GBTInfo << any2str(myGBT->GBTId()) << ","
+		    << myGBT->numELinksPerModule() << ",";
 
-	    const PowerChain* myPowerChain = myGBT.getPowerChain();
+	    const PowerChain* myPowerChain = myGBT->getPowerChain();
 	    if (myPowerChain != nullptr) {
 	      std::stringstream powerChainInfo;
 	      powerChainInfo << myPowerChain->myid() << ","
 			     << any2str(myPowerChain->powerChainType()) << ","
 			     << any2str(myPowerChain->isBarrelLong()) << ",";
 
-	      const PtrVector<Module>& myModules = myGBT.modules();
+	      const std::vector<Module*>& myModules = myGBT->modules();
 	      for (const auto& module : myModules) {
 		std::stringstream moduleInfo;
-		moduleInfo << module.myDetId() << ", "
-			   << module.uniRef().subdetectorName << ", "
-			   << module.uniRef().layer << ", "
-			   << module.moduleRing() << ", "
-			   << module.center().Phi() * 180. / M_PI;
+		moduleInfo << module->myDetId() << ", "
+			   << module->uniRef().subdetectorName << ", "
+			   << module->uniRef().layer << ", "
+			   << module->moduleRing() << ", "
+			   << module->center().Phi() * 180. / M_PI;
 		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
 	      }
 	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;

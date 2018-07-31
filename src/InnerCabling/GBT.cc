@@ -13,15 +13,6 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
 };
 
 
-GBT::~GBT() {
-  delete myPowerChain_;    // TO DO: switch to smart pointers and remove this!
-  myPowerChain_ = nullptr;
-
-  delete myBundle_;
-  myBundle_ = nullptr;
-}
-
-
 /*
  *  Assign a module to the GBT.
  */

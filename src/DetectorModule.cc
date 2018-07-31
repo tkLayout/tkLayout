@@ -705,7 +705,7 @@ const OuterDTC* DetectorModule::getDTC() const {
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
   const OuterDTC* myDTC = getDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPlotColor = myDTC->plotColor();
   }
   return dtcPlotColor;
@@ -715,7 +715,7 @@ const int DetectorModule::dtcPlotColor() const {
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
   const OuterDTC* myDTC = getDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }
   return dtcPhiSectorRef;
@@ -756,7 +756,7 @@ const int DetectorModule::powerChainPlotColor() const {
 const int DetectorModule::gbtPlotColor() const {
   int gbtPlotColor = 0;
   const GBT* myGBT = getGBT();
-  if (myGBT != nullptr) {
+  if (myGBT) {
     gbtPlotColor = myGBT->plotColor();
   }
   return gbtPlotColor;
@@ -776,7 +776,7 @@ const InnerBundle* DetectorModule::getInnerBundle() const {
 const int DetectorModule::innerBundlePlotColor() const {
   int bundlePlotColor = 0;
   const InnerBundle* myBundle = getInnerBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
   return bundlePlotColor;
@@ -796,7 +796,7 @@ const InnerDTC* DetectorModule::getInnerDTC() const {
 const int DetectorModule::innerDTCPlotColor() const {
   int dtcPlotColor = 0;
   const InnerDTC* myDTC = getInnerDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPlotColor = myDTC->plotColor();
   }
   return dtcPlotColor;

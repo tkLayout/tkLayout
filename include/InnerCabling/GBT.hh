@@ -21,11 +21,10 @@ using insur::InnerBundle;
  */
 
 class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Module> Container; 
+  typedef std::vector<Module*> Container; 
 
 public:
   GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule);
-  ~GBT();
 
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }

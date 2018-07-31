@@ -16,7 +16,7 @@
  * General info on the DTC is also provided.
  */
 class InnerDTC : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<InnerBundle> Container; 
+  typedef std::vector<InnerBundle*> Container; 
 
 public:
   InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
