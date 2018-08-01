@@ -34,15 +34,14 @@
 
 #include <Tracker.hh>
 #include <Support.hh>
-#include <Cabling/CablingMap.hh>
+#include <OuterCabling/OuterCablingMap.hh>
+#include <InnerCabling/InnerCablingMap.hh>
 #include "Materialway.hh"
 #include "WeightDistributionGrid.hh"
 
 
 using material::Materialway;
 using material::WeightDistributionGrid;
-//namespace insur { class CablingMap; }
-//using insur::CablingMap;
 
 namespace po = boost::program_options;
 /**
@@ -83,7 +82,8 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    bool buildCablingMap(const bool cablingOption);
+    bool buildOuterCablingMap(const bool outerCablingOption);
+    bool buildInnerCablingMap(const bool innerCablingOption);
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
@@ -97,7 +97,8 @@ namespace insur {
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool reportCablingMapSite(const bool cablingOption, const std::string layoutName);
+    bool reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName);
+    bool reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
     bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();

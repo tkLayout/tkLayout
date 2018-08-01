@@ -11,28 +11,28 @@
 #include <vector>
 
 namespace insur {
+
+  /**
+   * Physics constants.
+   **/
   static const double boltzmann_constant = 8.6173303E-05;  // eV/K
   static const double celsius_to_kelvin = 273.15;          // T(K) = T(°C) + celsius_to_kelvin
   static const double siliconEffectiveBandGap = 1.21;      // eV. Used in the Hamburg model (effect of temperature on sensor leakage current).
 
+
   /**
-   * Geometry constants; all length measurements are in mm
-   * @param epsilon The standard distance between one solid object and the next
-   * @param volume_width The standard geometrical thickness of an inactive volume
-   * @param inner_radius The inner radius of the tracker; the inner support tube starts immediately inside, everything below is part of the pixel detector
-   * @param outer_radius The outer radius of the tracker; the outer support tube starts immediately outside, everything above is part of ECAL
-   * @param max_length The maximum length, in +z, available to place the tracker components
+   * Geometry constants.
    */
   static const std::vector<std::string> geom_name_eta_regions  = {""   ,"C","I","F","VF","VVF"};  // Name tracker eta regions
   static const std::vector<double>      geom_range_eta_regions = {0.001,0.8,1.6,2.4 ,3.2 ,4.0  }; // Name tracker eta regions
 
   static const double geom_zero                       = 1E-6;    // mm
-  static const double geom_epsilon                    = 0.1;
-  static const double geom_inactive_volume_width      = 2.0;     // mm
+  static const double geom_epsilon                    = 0.1;     // mm, standard distance between one solid object and the next.
+  static const double geom_inactive_volume_width      = 2.0;     // mm, standard geometrical thickness of an inactive volume
   static const double geom_conversion_station_width   = 2.0;     // mm
-  static const double geom_inner_pixel_radius         = 30.0;    // mm
-  static const double geom_inner_strip_radius         = 150.0;   // mm
-  static const double geom_outer_strip_radius         = 1200.0;  // mm
+  static const double geom_inner_pixel_radius         = 30.0;    // mm, inner support tube starts immediately inside
+  static const double geom_inner_strip_radius         = 150.0;   // mm, inner support tube starts immediately inside
+  static const double geom_outer_strip_radius         = 1200.0;  // mm, outer support tube starts immediately outside
   static const double geom_z_threshold_service_zigzag = 100.0;
   static const double geom_top_volume_pad             = 200;     // mm
 
@@ -43,12 +43,15 @@ namespace insur {
 
   static const double geom_min_radius                 = geom_inner_pixel_radius;
   static const double geom_max_radius                 = geom_outer_strip_radius;
-  static const double geom_max_length                 = 2800.0; // mm
+  static const double geom_max_length                 = 2800.0; // mm, maximum length, in +z, available to place the tracker components
 
   static const double geom_max_eta_coverage           = geom_range_eta_regions[geom_range_eta_regions.size()-1]; // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
   static const int    geom_n_eta_regions              = geom_range_eta_regions.size();                           // Tracking performed in the following Number of eta regions
 
   static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
+
+  static const double hits_negligible = 1.E-10;
+
 
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
@@ -82,6 +85,7 @@ namespace insur {
   static const double mat_budget_overall_scaling_factor = 1.;  // WARNING: DO NOT CHANGE THIS UNLESS YOU ARE OBSOLUTELY SURE OF WHAT YOU ARE DOING!!
                                                                // This will scale absolutely all weights by the mentioned factor (modules + cabling + supports).
                                                                // Was added for CMSSW Material Budget debug purposes.
+
 
   /**
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
@@ -124,17 +128,25 @@ namespace insur {
   static const double vis_material_eta_step  = 0.05;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
+
+  /**
+   * Internal string constants for luminosity measurements
+   */
+  static const std::string lumi_subdetector = "FPIX_2";
+
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types
    */
   static const std::string type_rphi   = "rphi";
   static const std::string type_stereo = "stereo";
 
+
   /**
    * Internal string constants for modules types.
    */
   static const std::string type_pixel   = "pixel";
   static const std::string type_timing = "timing";
+
 
   /**
    * Filename and path constants
@@ -152,6 +164,7 @@ namespace insur {
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
   static const std::string default_cabledOTName                  = "OT614";
+  static const std::string default_cabledITName                  = "IT404";
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
   static const std::string default_chemicalElementsFile          = "chemical_elements.list";

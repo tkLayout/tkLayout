@@ -239,7 +239,7 @@ OT613_200_IT407.cfg                  OT Version 6.1.3
                                       - 50x50 in 1x2 modules, 25x100 in 2x2 modules.   
                                       
 OT613_200_IT408.cfg                  OT Version 6.1.3
-                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2
+                                     Inner Tracker version 4.0.8:  IT4.0.2.5 with 1 disk less in FPX1 and 1 disk less in FPX2.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                           
      
                                      
@@ -266,12 +266,82 @@ OT613_200_IT423.cfg                  OT Version 6.1.3
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     
 
 
+===============    ATLAS CHIP SIZE STUDY   ===============      
 OT614_200_IT430.cfg                  OT Version 6.1.4
                                      Inner Tracker version 4.3.0: smaller chip: 16.4 mm x 20 mm chip, instead of 16.4 mm x 22 mm chip (same length as Atlas).
                                      Based from Inner Tracker version 4.0.4.
                                       - TBPX: shorter of 18 mm.
                                       - TFPX: First disk moved inwards of 18 mm in Z. Other disks Z positions adjusted accordingly to have the same TFPX max Z. Radii: R1 min and R4 max identical, the radii in between are adjusted (coverage). R2 center: +1 mm, R3 center: -2 mm. 
                                       - TEPX: 4 modules added in R4. Radii: R1 min and R5 max identical, the radii in between are adjusted (coverage). R2 center: -3 mm, R3 center: -2.5 mm, R4 center: -6 mm.  
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+
+
+=================   1X1 MODULES STUDIES   ================      
+OT614_200_IT440.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.4.0: 1x1 modules in TEPX Ring 1 (Swiss layout).
+                                     2x2 modules in TEPX Ring 2.
+                                     Based from Inner Tracker version 4.0.4.
+                                     TEPX: 
+                                     - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 36.
+                                     - Ring 2: Rhigh: 149 mm -> 130 mm, numModules: 56 -> 28.
+                                     - Ring 3: Rhigh: 188.5 mm -> 171 mm.
+                                     - Ring 4: Rhigh: 232 mm -> 215 mm.
+                                     
+OT614_200_IT441.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.4.1: Also 1x1 modules in TFPX Ring 1 (Correction by Duccio on Swiss layout).
+                                     2x2 modules in TEPX Ring 2.
+                                     Based from Inner Tracker version 4.0.4.
+                                     TFPX: 
+                                     - Ring 1: Rhigh: 73.2 mm -> 51 mm.
+                                     TEPX: 
+                                     - Ring 1: Rhigh: 108 mm -> 86 mm,  numModules: 40 -> 32.
+                                     - Ring 2: Rhigh: 149 mm -> 127 mm, numModules: 56 -> 28.
+                                     - Ring 3: Rhigh: 188.5 mm -> 169 mm.
+                                     - Ring 4: Rhigh: 232 mm -> 213 mm.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+
+
+=================   LUMINOSITY STUDIES   =================     
+OT614_200_IT450.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.0: Tune radii in TEPX to have radially distributed luminosity measurements.
+                                     Based from Inner Tracker version 4.0.4.
+                                     TEPX:
+                                     - Ring 2: Rhigh: 149 mm -> 145 mm.
+                                     - Ring 3: Rhigh: 188.5 mm -> 182 mm.
+                                     - Ring 4: Rhigh: 232 mm -> 219 mm.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     - i=1: 7.2 mm
+                                     - i=2: 7.2 mm
+                                     - i=3: 7.2 mm
+                                     - i=4: 9.2 mm
+                                     
+OT614_200_IT451.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.1: Tune radii and numModules in TEPX to try to equilibrate luminosity measurements.
+                                     Based from Inner Tracker version 4.5.0.
+                                     TEPX:
+                                     - Ring 2: Rhigh: 145 mm -> 146 mm.
+                                     - Ring 3: Rhigh: 182 mm -> 183 mm.
+                                     - Ring 4: Rhigh: 219 mm -> 220 mm, numModules: 40 -> 44.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     - i=1: 6.2 mm
+                                     - i=2: 7.2 mm
+                                     - i=3: 7.2 mm
+                                     - i=4: 10.2 mm
+                                     
+OT614_200_IT452.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 4.5.2: Tune radii in TEPX, perfectly equilibrated among rings thanks to the precise counts of fraction of tracks with at least 3 hits.
+                                     Based from Inner Tracker version 4.5.0.
+                                     TEPX:                                     
+                                     * Ring 2: Rhigh: 145 mm -> 149 mm.
+                                     * Ring 3: Rhigh: 182 mm -> 186 mm.
+                                     * Ring 4: Rhigh: 219 mm -> 223 mm, numModules: 40 -> 44.
+                                     The resulting radial spacings are, using (Ring (i) Rhigh)  - (Ring (i+1) Rmin):
+                                     * i=1: 3.2 mm
+                                     * i=2: 7.2 mm
+                                     * i=3: 7.2 mm
+                                     * i=4: 13.2 mm
+                                     
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
                                                                                              
 
 ============   TILTED INNER TRACKER STUDIES   ============                 
@@ -303,8 +373,32 @@ OT613_200_IT503.cfg                  OT Version 6.1.3
                                      Inner Tracker version 5.0.3: 
                                       - geometry same as IT5.0.1
                                       - 50x50 in 1x1 and 1x2 modules, 25x100 in 2x2 modules.
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                                                                                               
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
 
+
+============   SKEWED INNER TRACKER STUDIES   ============                 
+OT614_200_IT600.cfg                  OT Version 6.1.4
+                                     Inner Tracker version 6.0.0 : skewed Inner Tracker. Head of series.
+                                     The shift of the edge of a skewed module is set to 5 mm.
+                                     The phi positions are automatically computed, so that the angular overlap around the (X=0) plane
+                                     is 2.x the angular overlap between 2 standard consecutive rods.
+                                     
+OT614_200_IT601.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.0.0.
+                                     Mid-radii in TBPX:                                     
+                                     * Layer 3: 100 mm -> 102 mm.
+                                     * Layer 4: 140 mm -> 143 mm.
+                                     
+OT614_200_IT602.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.0.1.
+                                     bigDelta in TBPX:      
+                                     * Layer 2: 1.5 mm -> 2.5 mm.                                                                    
+                                     * Layer 3: 1.5 mm -> 2.5 mm.  
+                                     * Layer 4: 1.5 mm -> 2.5 mm.  
+                                     Question: so Layer 1 would need to be lifted up?                                  
+                                     
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
+                                                                                           
 
 ============   TIMING BARREL LAYER STUDIES   =============
 OT613_200_IT4025.cfg  Reference "standard" 78 ladders

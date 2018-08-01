@@ -100,6 +100,7 @@ struct Type { // Module-maintained color
   }
 };
 
+// OT CABLING
 struct TypeBundleColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     return Palette::color(m.bundlePlotColor());
@@ -136,6 +137,47 @@ struct TypePowerChannelColor { // Module-maintained channel color
   double operator()(const Module& m) {
     bool isTransparentActivated = true;
     return Palette::colorChannel(m.powerChannelSectionPlotColor(), isTransparentActivated);
+  }
+};
+
+// IT CABLING
+struct TypePowerChainColor { // Module-maintained PowerChain color
+  double operator()(const Module& m) {
+    return Palette::colorScrabble(m.powerChainPlotColor());
+  }
+};
+
+struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
+  double operator()(const Module& m) {
+    bool isTransparent = (!m.isPositiveXSide());
+    return Palette::colorScrabble(m.powerChainPlotColor(), isTransparent);
+  }
+};
+
+struct TypeGBTColor { // Module-maintained GBT color
+  double operator()(const Module& m) {
+    return Palette::colorScrabble(m.gbtPlotColor());
+  }
+};
+
+struct TypeGBTTransparentColor { // Module-maintained GBT color
+  double operator()(const Module& m) {
+    bool isTransparent = (!m.isPositiveXSide());
+    return Palette::colorScrabble(m.gbtPlotColor(), isTransparent);
+  }
+};
+
+struct TypeInnerBundleTransparentColor { // Module-maintained InnerBundle color
+  double operator()(const Module& m) {
+    bool isTransparent = (!m.isPositiveXSide());
+    return Palette::colorScrabble(m.innerBundlePlotColor(), isTransparent);
+  }
+};
+
+struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
+  double operator()(const Module& m) {
+    bool isTransparent = (m.isPositiveZEnd() < 0);
+    return Palette::colorScrabble(m.innerDTCPlotColor(), isTransparent);
   }
 };
 
@@ -311,6 +353,27 @@ struct YZFull : public YZ {
  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
  YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
+
+struct ZPhi : public std::pair<double, double>, private Rounder {
+  const bool valid;
+  // ZPhi coordinates of the centre of module m.
+  ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
+  // ZPhi coordinates of vector v.
+  ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* Rounder::mmFraction, (femod(v.Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
+  // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
+  ZPhi(const XYZVector& v, const Module& m) : valid(true) {
+    this->first = v.Z() * Rounder::mmFraction;
+
+    const double centerPhi = femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.;
+    this->second = (centerPhi + moduloDiff(v.Phi(), m.center().Phi(), M_PI)) * Rounder::mmFraction;  
+    // It is not possible to consider only v.Phi(), and ignore m.center().Phi(). 
+    // Indeed, the module corners must not be drawned at +-Pi, despite the fact that we work modulo Pi.
+    // As a result, the phi of the drawn corners needs to take into account where the module center is.
+  }
+  double x() const { return this->first; }
+  double y() const { return this->second; }
+};
+
 
 TPolyLine* drawMod();
 
