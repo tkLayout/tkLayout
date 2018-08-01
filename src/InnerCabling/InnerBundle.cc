@@ -16,12 +16,6 @@ InnerBundle::InnerBundle(const int bundleId, const bool isPositiveZEnd, const bo
 };
 
 
-InnerBundle::~InnerBundle() {
-  delete myDTC_;    // TO DO: switch to smart pointers and remove this!
-  myDTC_ = nullptr;
-}
-
-
 /*
  *  Connect a GBT to the Bundle.
  */

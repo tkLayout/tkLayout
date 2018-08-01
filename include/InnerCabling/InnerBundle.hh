@@ -20,11 +20,10 @@ using insur::InnerDTC;
  * General info on the Fiber Bundle is also provided.
  */
 class InnerBundle : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<GBT> Container; 
+  typedef std::vector<GBT*> Container; 
 
 public:
   InnerBundle(const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex);
-  ~InnerBundle();
 
   // GBTS CONNECTED TO THE BUNDLE
   const Container& GBTs() const { return GBTs_; }

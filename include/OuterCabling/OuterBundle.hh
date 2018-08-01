@@ -15,11 +15,10 @@ using insur::OuterCable;
 
 
 class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Module> Container; 
+  typedef std::vector<Module*> Container; 
 
 public:
   OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
-  ~OuterBundle();
 
   // MODULES CONNECTED TO THE BUNDLE.
   const Container& modules() const { return modules_; }
@@ -48,15 +47,14 @@ public:
   const int plotColor() const { return plotColor_; }
 
   // PHI INFORMATION FROM MODULES CONNECTED TO THE BUNDLE
-  void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-  void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-
   const double minPhi() const;
   const double maxPhi() const;
   const double meanPhi() const;
 
-  Module* minPhiModule() const;
-  Module* maxPhiModule() const; 
+  void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
+  void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
+  const std::vector<Module*>::iterator minPhiModule();
+  const std::vector<Module*>::iterator maxPhiModule(); 
 
   // SERVICES CHANNELS INFORMATION
   // VERY IMPORTANT: connection scheme from modules to optical bundles = connection scheme from modules to power cables.
@@ -70,10 +68,10 @@ public:
   // Power
   const ChannelSection* powerChannelSection() const {
     if (!powerChannelSection_) throw PathfulException("powerChannelSection_ is nullptr");
-    return powerChannelSection_; 
+    return powerChannelSection_.get(); 
   }
-  void setPowerChannelSection(ChannelSection* powerChannelSection) {
-    powerChannelSection_ = powerChannelSection;
+  void setPowerChannelSection(std::unique_ptr<const ChannelSection> powerChannelSection) {
+    powerChannelSection_ = std::move(powerChannelSection);
   }
   // Used to compute the power channel section.
   const int tiltedBundleId() const;
@@ -98,7 +96,7 @@ private:
 
   int plotColor_;
 
-  ChannelSection* powerChannelSection_ = nullptr;
+  std::unique_ptr<const ChannelSection> powerChannelSection_; // powerChannelSection is owned by OuterBundle
 
   int stereoBundleId_;
   bool isPowerRoutedToBarrelLowerSemiNonant_;

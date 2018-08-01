@@ -422,6 +422,9 @@ private:
   HvLine* hvLine_ = nullptr;
   int numELinks_;
   GBT* GBT_ =  nullptr;
+  // The raw pointers are intended. DetectorModule is NOT owning the cabling resources.
+  // All cabling ressources are owned by the CablingMap, which is a member variable of Tracker.
+  // They get destructed when Tracker is destructed.
 };
 
 
