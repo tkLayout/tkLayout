@@ -99,7 +99,7 @@ namespace material {
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
       Section(const Section& other);
-      virtual ~Section();
+      virtual ~Section() {};
 
       int isHit(int z, int r, int end, Direction aDirection) const;
       void minZ(int minZ);

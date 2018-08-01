@@ -64,6 +64,8 @@ public:
     crystalTiltAngle("crystalTiltAngle", parsedOnly())   
       {}
 
+  //virtual ~Sensor() {};
+
   void parent(const DetectorModule* m) { parent_ = m; }
 
   ModuleSubdetector subdet(ModuleSubdetector s) { subdet_ = s; }

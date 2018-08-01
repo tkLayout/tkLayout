@@ -175,8 +175,7 @@ namespace material {
       inactiveElement(ring);
     }
   }
-  
-  Materialway::Section::~Section() {}
+
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
     if (aDirection==HORIZONTAL) {

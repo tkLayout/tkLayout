@@ -17,6 +17,7 @@ protected:
   bool built_;
 public:
   Buildable() : built_(false) {}
+  virtual ~Buildable() {};
   bool builtok() const { return built_; }
   void builtok(bool state) { built_ = state; }
 };
@@ -26,6 +27,7 @@ protected:
   bool placed_;
 public:
   Placeable() : placed_(false) {}
+  virtual ~Placeable() {};
   bool placed() const { return placed_; }
   void placed(bool state) { placed_ = state; }
 };
@@ -48,6 +50,7 @@ template<class T>
 class Identifiable {
   T myid_;
 public:
+  virtual ~Identifiable() {};
   void myid(const T& id) { myid_ = id; }
   const T& myid() const { return myid_; }
 };
@@ -56,6 +59,7 @@ template<class T> string fullid(const T& o) { return string(typeid(T).name()) + 
 
 class DetIdentifiable {
 public:
+  virtual ~DetIdentifiable() {};
   uint32_t myDetId() const { return myDetId_; }
   std::bitset<32> myBinaryDetId() const { std::bitset<32> myBinaryDetId(myDetId_); return myBinaryDetId; }
   std::map<int, uint32_t> geometryHierarchyIds() const { return geometryHierarchyIds_; }
@@ -75,6 +79,7 @@ protected:
   Clonable(const Clonable&) {}
 public:
   Clonable() {}
+  virtual ~Clonable() {};
   T* clone() const {
     T* t = new T(static_cast<const T&>(*this));
     conditionalSetup(t);

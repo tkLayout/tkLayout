@@ -75,6 +75,7 @@ protected:
 public:
   AbstractPolygon() : allocated_(0), centerDirty_(true), normalDirty_(true) {}
   AbstractPolygon(const Coords& vertex): allocated_(0), centerDirty_(true), normalDirty_(true) { *this << vertex; }
+  virtual ~AbstractPolygon() {};
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const Coords& vertex);
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const std::vector<Coords>& vertices);
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator()(const Coords& vertex) { *this << vertex; return *this; }

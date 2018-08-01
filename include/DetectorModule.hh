@@ -203,6 +203,8 @@ public:
       removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
+  virtual ~DetectorModule() {};
+
   virtual void setup();
   void check() override;
   virtual void build();
