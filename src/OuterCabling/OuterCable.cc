@@ -11,7 +11,7 @@ OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiS
 { 
   myid(id);
   // ASSIGN AN OPTICAL SERVICESCHANNEL TO THE CABLE
-  std::unique_ptr<const ChannelSection> myOpticalChannelSection (GeometryFactory::make<OpticalSection>(phiSectorRef, type, slot, isPositiveCablingSide));
+  std::unique_ptr<const ChannelSection> myOpticalChannelSection (new OpticalSection(phiSectorRef, type, slot, isPositiveCablingSide));
   opticalChannelSection_ = std::move(myOpticalChannelSection);
 
   // BUILD DTC ASOCIATED TO THE CABLE
@@ -23,7 +23,7 @@ OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiS
  */
 void OuterCable::buildDTC(const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) {
   std::string dtcName = computeDTCName(phiSectorRef, type, slot, isPositiveCablingSide);
-  OuterDTC* dtc = GeometryFactory::make<OuterDTC>(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
+  OuterDTC* dtc = new OuterDTC(dtcName, phiSectorWidth, phiSectorRef, type, slot, isPositiveCablingSide);
   dtc->addCable(this);
   myDTC_ = dtc;
 }
@@ -83,7 +83,7 @@ void OuterCable::assignPowerChannelSections() {
     const int semiPhiRegionRef = 2 * cablePhiSectorRef + semiPhiRegionIndex;
 
     // COMPUTE THE POWER CHANEL SECTION CORRESPONDING TO THE PHI SEMINONANT.
-    std::unique_ptr<const ChannelSection> powerChannelSection (GeometryFactory::make<PowerSection>(semiPhiRegionRef, isPositiveCablingSide_));
+    std::unique_ptr<const ChannelSection> powerChannelSection (new PowerSection(semiPhiRegionRef, isPositiveCablingSide_));
 
     // ASSIGN THE POWER CHANNEL SECTION TO THE BUNDLE (bundle = power cable)
     myBundle->setPowerChannelSection(std::move(powerChannelSection));

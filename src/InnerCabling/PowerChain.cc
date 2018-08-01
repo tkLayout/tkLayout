@@ -80,7 +80,7 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
  */
 void PowerChain::buildHvLine(const int powerChainId) {
   std::string hvLineName = computeHvLineName(powerChainId);
-  std::unique_ptr<HvLine> hvLine(GeometryFactory::make<HvLine>(hvLineName));
+  std::unique_ptr<HvLine> hvLine(new HvLine(hvLineName));
   hvLine->setPowerChain(this);
   hvLine_ = std::move(hvLine);
 }
