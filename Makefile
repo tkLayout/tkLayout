@@ -25,6 +25,7 @@ DOXYDIR=doc/doxygen
 #COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Wdelete-non-virtual-dtor
 COMPILERFLAGS+=-Wunused-variable
+COMPILERFLAGS+=-Wreturn-type
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g

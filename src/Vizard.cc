@@ -3161,7 +3161,7 @@ namespace insur {
   /*
    * Draw detailed hits or stubs counts per layer.
    */
-  bool Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
+  void Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
     int colorIndex = 2;
 
     for (auto& detailIt : detailedInfo) {
@@ -9065,7 +9065,7 @@ namespace insur {
 
 
   // Create an extra tab for XML files linking
-  bool Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
+  void Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);
