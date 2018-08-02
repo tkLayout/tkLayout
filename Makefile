@@ -27,6 +27,7 @@ COMPILERFLAGS+=-Wdelete-non-virtual-dtor
 COMPILERFLAGS+=-Wunused-variable
 COMPILERFLAGS+=-Wreturn-type
 COMPILERFLAGS+=-Wsign-compare
+COMPILERFLAGS+=-Wreorder
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g

@@ -126,11 +126,11 @@ namespace material {
 
       bool debug_;
     private:
-      int minZ_, minR_, maxZ_, maxR_;
-      Section* nextSection_;
+      int minZ_, minR_, maxZ_, maxR_;   
       Direction bearing_;
-      MaterialObject materialObject_;
+      Section* nextSection_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
+      MaterialObject materialObject_;
     protected:
       const std::vector<std::string> unitsToPass_ = {"g/m", "mm"};
     }; //class Section
@@ -192,10 +192,10 @@ namespace material {
       }
 
     private:
-      int minZ_, minR_, maxZ_, maxR_;
-      Section* outgoingSection_;
       const Visitable* containedElement_;
       const bool isBarrel_;
+      int minZ_, maxZ_, minR_, maxR_;
+      Section* outgoingSection_;
     }; //class Boundary
 
     typedef std::map<const Barrel*, Boundary*> BarrelBoundaryMap;

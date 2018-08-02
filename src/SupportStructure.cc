@@ -35,13 +35,13 @@ namespace material {
 
 
   SupportStructure::SupportStructure() :
-    componentsNode("Component"   , parsedOnly()),
     type(          "type"        , parsedAndChecked()),
     autoPosition(  "autoPosition", parsedOnly()),
     customZMin(    "customZMin"  , parsedOnly()),
     customRMin(    "customRMin"  , parsedOnly()),
     customLength(  "customLength", parsedOnly()),
-    customDir(     "customDir"   , parsedOnly())
+    customDir(     "customDir"   , parsedOnly()),
+    componentsNode("Component"   , parsedOnly())
   {}
   
   void SupportStructure::buildInTracker() {

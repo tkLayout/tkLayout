@@ -310,7 +310,6 @@ namespace material {
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
     //nStripsAcross("nStripsAcross", parsedOnly()),
     //nSegments("nSegments", parsedOnly()),
-    referenceSensorNode ("ReferenceSensor", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     service ("service", parsedOnly(), false),
     scaleOnSensor ("scaleOnSensor", parsedOnly(), false),
@@ -319,19 +318,18 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
+    referenceSensorNode ("ReferenceSensor", parsedOnly()),
     materialTab_ (MaterialTab::instance()),
     materialType_(newMaterialType) {
   };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
-    if(original.destination.state())
-      destination(original.destination());
     if(original.componentName.state())
-      componentName(original.componentName());
+      componentName(original.componentName());   
     elementName(original.elementName());
     service(original.service());
-    quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     scaleOnSensor(0);
+    quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     unit(original.unit());
     debugInactivate(original.debugInactivate());
   }

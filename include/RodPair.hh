@@ -162,8 +162,8 @@ public:
               startZ              ("startZ"              , parsedOnly()),
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
-	      ringNode            ("Ring"                , parsedOnly()),
-	      isFlatPart          ("isFlatPart"          , parsedOnly(), false)
+	      isFlatPart          ("isFlatPart"          , parsedOnly(), false),
+	      ringNode            ("Ring"                , parsedOnly())
   {}
 
 
