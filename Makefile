@@ -26,6 +26,7 @@ DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-Wdelete-non-virtual-dtor
 COMPILERFLAGS+=-Wunused-variable
 COMPILERFLAGS+=-Wreturn-type
+COMPILERFLAGS+=-Wsign-compare
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
@@ -34,7 +35,7 @@ COMPILERFLAGS+=-lstdc++
 COMPILERFLAGS+=-fmax-errors=2
 #COMPILERFLAGS+=-pg
 #COMPILERFLAGS+=-Werror
-#COMPILERFLAGS+=-O5
+#COMPILERFLAGS+=-O3
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 #LINKERFLAGS+=-pg
 

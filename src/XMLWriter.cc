@@ -939,7 +939,7 @@ namespace insur {
 	bool isTilted = false;
 	std::string firstTiltedRing;
 	int j = 0;
-	while ((isTilted == false) && (j < specs.at(rindex).partselectors.size())) {	     
+	while ((isTilted == false) && (j < (int)specs.at(rindex).partselectors.size())) {	     
 	  std::string& rcurrent = specs.at(rindex).partselectors.at(j);
 	  std::string compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
