@@ -843,7 +843,6 @@ double Track::getExpectedTriggerPoints(const double& triggerMomentum) {
 
       // We've got a possible trigger here
       // Let's find the corresponding module
-      const auto myModule = iHit->getHitModule();
       if (iHit->getHitModule()) {
 
         const auto& myModule = *(iHit->getHitModule());
@@ -1133,7 +1132,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
   int nActiveHitsUsed = 0;
 
   bool bySmallerR = true;
-  bool useIP      = false;
+  //bool useIP      = false;
 
   // Particle traverses inside-out with error propagation outside-in -> hits already sorted correctlly
   if (m_pt>=0 && propagOutIn) {
@@ -1363,7 +1362,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
   int nActiveHitsUsed = 0;
 
   bool bySmallerR = true;
-  bool useIP      = false;
+  //bool useIP      = false;
 
   // Particle traverses inside-out with error propagation outside-in -> hits already sorted correctlly
   if (m_pt>=0 && propagOutIn) {

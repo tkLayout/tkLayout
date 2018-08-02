@@ -98,7 +98,6 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 
     // COLLECT RELEVANT INFO
     const PhiPosition& bundlePhiPosition = myBundle->phiPosition();
-    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef(); 
     const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();  
    

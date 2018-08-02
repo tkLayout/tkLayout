@@ -285,8 +285,8 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
     parity = -parity;
   } 
 
-  double lengthOffset = lastm->length();
-  double physicalLengthOffset = lastm->physicalLength();
+  //double lengthOffset = lastm->length();
+  //double physicalLengthOffset = lastm->physicalLength();
 
   for (; abs(newZ) < targetZ && n < targetMods; n++) {  // in case the rodtemplate vector is finished but we haven't hit the targetZ or targetMods yet, we keep on using the last module for dsDistance and length
     newZ = computeNextZ(lastm->length(), lastm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);

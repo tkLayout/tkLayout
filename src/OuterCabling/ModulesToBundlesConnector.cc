@@ -330,7 +330,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 	const int previousPhiRegionRef = computePreviousPhiSliceRef(phiRegionRef, numPhiRegions);
 
 	// Compute the associated bundles ids (so that the associated bundles can be accessed).
-	const int bundleId = b.first;
+	//const int bundleId = b.first;
 	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
 	const int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
 

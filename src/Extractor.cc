@@ -32,7 +32,7 @@ namespace insur {
     InactiveSurfaces& is = mb.getInactiveSurfaces();
     bool isPixelTracker = tr.isPixelTracker();
 
-    std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
+    //std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& ec = mb.getEndcapModuleCaps();
 
     std::vector<Element>& e = d.elements;
@@ -245,8 +245,6 @@ namespace insur {
    */
   void Extractor::analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
                                          std::vector<std::pair<double, double> >& down) {
-    
-    bool isPixelTracker = t.isPixelTracker();
 
     std::pair<double, double> rz;
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
@@ -347,10 +345,8 @@ namespace insur {
    */
   void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags,
                                          std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
-    
-    bool isPixelTracker = t.isPixelTracker();
 
-    int first, last;
+    int first;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
     up.clear();
@@ -1634,8 +1630,6 @@ namespace insur {
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so,
 			       std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
 
-    bool isPixelTracker = tr.isPixelTracker();
-
     // Container inits
     ShapeInfo shape;
     shape.dyy = 0.0;
@@ -2866,8 +2860,9 @@ namespace insur {
     A_estimate /= pow(radEstimate/radiationLength, 2/3.); // Now, we have A !
 
     // Bonus : calculate estimated radiation length and interaction lengths that one can get from the provided Z and A values.
-    radEstimate = compute_X0(Z, A_estimate);  
-    double intEstimate = pow(A_estimate, 1./3.)*A_a+A_b;
+    //radEstimate = compute_X0(Z, A_estimate);  
+    //double intEstimate = pow(A_estimate, 1./3.)*A_a+A_b;
+
     // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from Z, A and density.
     // Now, a question is whether the computed radiation and interaction lengths on CMMSW side (similar to radEstimate and intEstimate) are closed to the values we initially had at hand (double radiationLength and interactionLength) !
     // The estimated errors can be calculated by :

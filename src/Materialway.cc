@@ -1164,7 +1164,7 @@ namespace material {
 
     bool retValue = false;
 
-    int startTime = time(0);
+    //int startTime = time(0);
     startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
       stopTaskClock();

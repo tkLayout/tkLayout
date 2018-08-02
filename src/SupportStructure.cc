@@ -45,8 +45,6 @@ namespace material {
   {}
   
   void SupportStructure::buildInTracker() {
-    InactiveElement* inactiveElement;
-
     buildBase();
 
     try {
@@ -80,8 +78,6 @@ namespace material {
   }
 
   void SupportStructure::buildInBarrel(Barrel& barrel) {
-    InactiveElement* inactiveElement;
-
     buildBase();
 
     try {
@@ -170,8 +166,6 @@ namespace material {
   }
 
   void SupportStructure::buildInEndcap(Endcap& endcap) {
-
-    InactiveElement* inactiveElement;
     buildBase();
 
     try {
