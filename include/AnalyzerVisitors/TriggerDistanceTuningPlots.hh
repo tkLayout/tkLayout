@@ -24,10 +24,10 @@ class TriggerDistanceTuningPlotsVisitor : public ConstGeometryVisitor {
   typedef std::vector<const DetectorModule*> ModuleVector;
   std::map<std::string, ModuleVector> selectedModules_;
   std::set<double> foundSpacing_;
+  profileBag& myProfileBag_;
   const std::vector<double>& triggerMomenta_;
   const unsigned int nWindows_ = 5;
 
-  profileBag& myProfileBag_;
   std::map<std::string, bool> preparedProfiles_;
   std::map<std::string, bool> preparedTurnOn_;
 

@@ -53,8 +53,8 @@ namespace AnalyzerHelpers {
 
 
 class TriggerEfficiencyMapVisitor : public ConstGeometryVisitor {
-  double myPt_;
   TH2D& myMap_;
+  double myPt_;
   TH2D* counter_;
 public:
   TriggerEfficiencyMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
@@ -82,8 +82,8 @@ public:
 
 
 class PtThresholdMapVisitor : public ConstGeometryVisitor {
-  double myPt_;
   TH2D& myMap_;
+  double myPt_;
   TH2D* counter_;
 public:
   PtThresholdMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }

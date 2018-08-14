@@ -99,7 +99,7 @@ namespace material {
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
       Section(const Section& other);
-      virtual ~Section();
+      virtual ~Section() {};
 
       int isHit(int z, int r, int end, Direction aDirection) const;
       void minZ(int minZ);
@@ -126,11 +126,11 @@ namespace material {
 
       bool debug_;
     private:
-      int minZ_, minR_, maxZ_, maxR_;
-      Section* nextSection_;
+      int minZ_, minR_, maxZ_, maxR_;   
       Direction bearing_;
-      MaterialObject materialObject_;
+      Section* nextSection_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
+      MaterialObject materialObject_;
     protected:
       const std::vector<std::string> unitsToPass_ = {"g/m", "mm"};
     }; //class Section
@@ -192,10 +192,10 @@ namespace material {
       }
 
     private:
-      int minZ_, minR_, maxZ_, maxR_;
-      Section* outgoingSection_;
       const Visitable* containedElement_;
       const bool isBarrel_;
+      int minZ_, maxZ_, minR_, maxR_;
+      Section* outgoingSection_;
     }; //class Boundary
 
     typedef std::map<const Barrel*, Boundary*> BarrelBoundaryMap;

@@ -83,13 +83,13 @@ private:
 public:
 
   Tracker() :
-      barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly()),
-      supportNode("Support", parsedOnly()),
       etaCut("etaCut", parsedOnly(), 7.),
       servicesForcedUp("servicesForcedUp", parsedOnly(), true),
       skipAllServices("skipAllServices", parsedOnly(), false),
       skipAllSupports("skipAllSupports", parsedOnly(), false),
+      barrelNode("Barrel", parsedOnly()),
+      endcapNode("Endcap", parsedOnly()),
+      supportNode("Support", parsedOnly()),
       containsOnly("containsOnly", parsedOnly()),
       barrelDetIdScheme("barrelDetIdScheme", parsedOnly()),
       endcapDetIdScheme("endcapDetIdScheme", parsedOnly())

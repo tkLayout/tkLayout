@@ -52,8 +52,8 @@ public:
   GeometricModule() :
       dsDistance("dsDistance", parsedAndChecked(), 0.),
       sensorThickness("sensorThickness", parsedAndChecked()),
-      contourPointNode("ContourPoint", parsedOnly()),
-      physicalLength("physicalLength", parsedOnly(), 0.)
+      physicalLength("physicalLength", parsedOnly(), 0.),
+      contourPointNode("ContourPoint", parsedOnly())
   {}
   virtual ~GeometricModule() {}
 

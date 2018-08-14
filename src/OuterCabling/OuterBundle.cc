@@ -3,13 +3,13 @@
 
 
 OuterBundle::OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
-  stereoBundleId_(stereoBundleId),
   type_(type),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiPosition_(phiPosition),
   isPositiveCablingSide_(isPositiveCablingSide),
-  isTiltedPart_(isTiltedPart) 
+  isTiltedPart_(isTiltedPart),
+  stereoBundleId_(stereoBundleId)
 {
   myid(id);
   plotColor_ = computePlotColor(id, isPositiveCablingSide);
