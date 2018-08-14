@@ -654,8 +654,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPtHitDProjInOut.find(iHitIDMap)==hisPtHitDProjInOut.end()) {
-		const std::size_t numMomemta = mainConfig.getMomenta().size();
-                for (std::size_t iMom=0; iMom<numMomemta; iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
                   hisPtHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -676,8 +676,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPHitDProjInOut.find(iHitIDMap)==hisPHitDProjInOut.end()) {
-		const std::size_t numMomemta = mainConfig.getMomenta().size();
-                for (std::size_t iMom=0; iMom<numMomemta; iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
                   hisPHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -699,8 +699,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPtHitDProjOutIn.find(iHitIDMap)==hisPtHitDProjOutIn.end()) {
-		const std::size_t numMomemta = mainConfig.getMomenta().size();
-                for (std::size_t iMom=0; iMom<numMomemta; iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
                   hisPtHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -721,8 +721,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPHitDProjOutIn.find(iHitIDMap)==hisPHitDProjOutIn.end()) {
-		const std::size_t numMomemta = mainConfig.getMomenta().size();
-                for (std::size_t iMom=0; iMom<numMomemta; iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
                   hisPHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
