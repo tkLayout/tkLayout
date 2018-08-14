@@ -65,6 +65,8 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
 RootWTable::RootWTable() {
   serialRow_ = 0;
   serialCol_ = 0;
+  maxRow_ = 0;
+  maxCol_ = 0;
 }
 
 ostream& RootWTable::dump(ostream& output) {
