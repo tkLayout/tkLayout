@@ -3923,11 +3923,11 @@ namespace insur {
       // Create a page for the errors
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
-      double verticalScale=1;
+      //double verticalScale=1;
       if (additionalTag!="") {
         pageTitle += " ("+additionalTag+")";
         additionalSummaryTag = "_"+additionalTag+"_";
-        verticalScale = 10;
+        //verticalScale = 10;
       } else {
         additionalSummaryTag = "";
       }
@@ -4317,11 +4317,11 @@ namespace insur {
 
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
-      double verticalScale=1;
+      //double verticalScale=1;
 
       pageTitle              += " ("+tag+")";
       additionalSummaryTag    = "_"+tag+"_";
-      verticalScale           = 10;
+      //verticalScale           = 10;
       std::string pageAddress = "errors" + tag + ".html";
 
       RootWPage* myPage = new RootWPage(pageTitle);

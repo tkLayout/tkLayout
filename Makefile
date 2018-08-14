@@ -25,6 +25,7 @@ DOXYDIR=doc/doxygen
 #COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Wdelete-non-virtual-dtor
 COMPILERFLAGS+=-Wunused-variable
+COMPILERFLAGS+=-Wunused-but-set-variable
 COMPILERFLAGS+=-Wreturn-type
 COMPILERFLAGS+=-Wsign-compare
 COMPILERFLAGS+=-Wreorder

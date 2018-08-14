@@ -125,7 +125,7 @@ std::set<int> StraightRodPair::solveCollisionsZPlus() {
   zGuards[1] = zGuards[-1] = std::numeric_limits<double>::lowest();
   int parity = zPlusParity();
   int n = 1;
-  bool found = false;
+  //bool found = false;
   logINFO("Checking for collisions in Z+ rod");
   for (auto& m : zPlusModules_) {
     double minPhysZ = m.center().Z() - MAX(m.physicalLength(), m.length())/2;
@@ -134,7 +134,7 @@ std::set<int> StraightRodPair::solveCollisionsZPlus() {
       m.translateZ(offset);
       collisions.insert(n);
       logINFO("  Module " + any2str(n) + " collides with previous " + (parity > 0 ? "outer" : "inner") + " module. Translated by " + any2str(offset) + " mm");
-      found = true;
+      //found = true;
     }
     zGuards[parity] = m.center().Z() + MAX(m.physicalLength(), m.length())/2;
     parity = -parity;
