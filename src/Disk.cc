@@ -156,7 +156,7 @@ double Disk::computeNextRho(const int parity, const double zError, const double 
   if (rOverlap.state()) {
     double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
     // Takes the most stringent of cases A and B
-    double nextRho = MAX(nextRho, nextRhoWithROverlap);
+    nextRho = MAX(nextRho, nextRhoWithROverlap);
   }
 
   // If relevant, consider rSafetyMargin.

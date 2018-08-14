@@ -22,13 +22,7 @@ BINDIR=bin
 TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
-#COMPILERFLAGS+=-Wall
-COMPILERFLAGS+=-Wdelete-non-virtual-dtor
-COMPILERFLAGS+=-Wunused-variable
-COMPILERFLAGS+=-Wunused-but-set-variable
-COMPILERFLAGS+=-Wreturn-type
-COMPILERFLAGS+=-Wsign-compare
-COMPILERFLAGS+=-Wreorder
+COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g

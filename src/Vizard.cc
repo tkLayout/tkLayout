@@ -1177,7 +1177,7 @@ namespace insur {
     //XYZVector ex, ey, ez, b, c, d, p;
     //TGeoArb8* arb;
     //TGeoRotation* rot;
-    TGeoCombiTrans* tr;
+    TGeoCombiTrans* tr = nullptr;
     // copy of module placement parameters in Module class
 /*    b = m->getCorner(1) - m->getCorner(0);
     c = m->getCorner(2) - m->getCorner(0);

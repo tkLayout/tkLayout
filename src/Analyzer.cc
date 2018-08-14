@@ -2141,7 +2141,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
   // track loop
   double graphValue;
-  double rPos; // At [0,0] point
+  double rPos = 0.; // At [0,0] point
   for ( const auto& myTrack : aTrackCollection ) {
     const double& dpt  = myTrack->getDeltaPtOverPt(rPos);
     const double& dphi0= myTrack->getDeltaPhi0();
