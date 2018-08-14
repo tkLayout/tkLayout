@@ -6062,7 +6062,7 @@ namespace insur {
     //*                              *//
     //********************************//
 
-    profileBag aProfileBag = a.getProfileBag();
+    profileBag& aProfileBag = a.getProfileBag();
     std::map<double, TProfile>& triggerProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredProfile);
     std::map<double, TProfile>& triggerFractionProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredFractionProfile);
     std::map<double, TProfile>& triggerPurityProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggerPurityProfile);
