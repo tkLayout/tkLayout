@@ -789,17 +789,6 @@ namespace material {
         for(ConversionStation* secondConversionStation : secondConversionStations) {
           bool validConversion = true;
           
-	  
-          if (section->minZ() > discretize(secondConversionStation->maxZ_()) && !isBackwards_) {
-	    //if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-	    std::cout << "section->minZ() =" << section->minZ() << std::endl;
-	    std::cout << "secondConversionStation->maxZ_() = " << secondConversionStation->maxZ_() << std::endl;
-	    std::cout << "discretize(secondConversionStation->maxZ_()) = " << discretize(secondConversionStation->maxZ_()) << std::endl;
-
-            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
-            continue;
-	  }
-          
           //check if the station is already built
           for (auto& existentStation : stationListSecond_) {
             if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
@@ -808,12 +797,25 @@ namespace material {
             }
           }
 
+	  if (isBackwards_) { section = outgoingSection_->nextSection(); }
+
           if (validConversion) {
 
-            attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+	    std::cout << "OOOOOOOOO At layer " << layer.myid() << " , station " << secondConversionStation->stationName_() << " is about to be placed." << std::endl;
 
-	    if (isBackwards_) { section = outgoingSection_->nextSection(); }
-         
+	    if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+	      //if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+	      std::cout << "section->minZ() =" << section->minZ() << std::endl;
+	      std::cout << "secondConversionStation->maxZ_() = " << secondConversionStation->maxZ_() << std::endl;
+	      std::cout << "discretize(secondConversionStation->maxZ_()) = " << discretize(secondConversionStation->maxZ_()) << std::endl;
+
+	      std::cout << "layer.myid() = " << layer.myid() << std::endl;
+	      logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
+	      continue;
+	    }
+
+            attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+        
 	    while(section->maxZ() < attachPoint + sectionTolerance) {
 	      if(!section->hasNextSection()) {
 		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
@@ -993,11 +995,6 @@ namespace material {
           //find attach point
           for(ConversionStation* secondConversionStation : secondConversionStations) {
             bool validConversion = true;
-          
-            if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position ("+to_string(section->minZ())+"), Z too low (Z="+to_string(discretize(secondConversionStation->maxZ_())) + ").");
-              continue;
-            }
 
             //check if the station is already built
             for (auto& existentStation : stationListSecond_) {
@@ -1008,6 +1005,13 @@ namespace material {
             }
 
             if (validConversion) {
+
+	      std::cout << "OOOOOOOOO At disk " << disk.myid() << " , station " << secondConversionStation->stationName_() << " is about to be placed." << std::endl;
+
+	      if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position ("+to_string(section->minZ())+"), Z too low (Z="+to_string(discretize(secondConversionStation->maxZ_())) + ").");
+		continue;
+	      }
 
               attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
          
