@@ -51,17 +51,18 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, const bool routeBackwards) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
       maxR_(maxR),
+      routeBackwards_(routeBackwards),
       outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, true, 0, 0, 0, 0){}
+    Boundary(nullptr, true, 0, 0, 0, 0, false){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -317,6 +318,7 @@ namespace material {
   void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
     Direction direction;
+    bool hasRoutedBackwards = false;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -327,16 +329,44 @@ namespace material {
     bool going=true;
     while (going) {
       // compute direction along which external sections will be built
+
+      std::cout << "!!!!!! Before build direction: startZ = " << startZ << " startR = " << startR 
+		<< " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
       direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
+
+      if (boundary->routeBackwards() && !hasRoutedBackwards) {
+	bool noCollision = true;
+	int secondConversionStationsMinZ = discretize(2.);
+
+	noCollision = buildSection(firstSection, lastSection, startZ, startR, secondConversionStationsMinZ, direction, false);
+	startR += sectionWidth + safetySpace;
+	//startR += sectionWidth + 1000;
+
+	std::cout << "TBPX Between 2 sections U shape: startZ = " << startZ << " startR = " << startR 
+		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
+
+	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, startR, startZ, direction);
+
+	std::cout << "TBPX After 2 sections U shape: startZ = " << startZ << " startR = " << startR 
+		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
+	
+	hasRoutedBackwards = true;
+      }
+ 
 
       // Look for a possible colision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
 
       // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
+    
 
       going = foundBoundaryCollision && noSectionCollision;
     }
+
+    std::cout << "After evth: startZ = " << startZ << " startR = " << startR 
+	      << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
+    std::cout << "firstSection->nextSection() = " << firstSection->nextSection() << std::endl;
 
     boundary->outgoingSection(firstSection);
   }
@@ -460,7 +490,7 @@ namespace material {
    * @param direction is the direction
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, const bool isForward) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -471,7 +501,9 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    if (isForward) {
+      foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    }
 
     //if section collision found update the end
     if(foundSectionCollision) {
@@ -481,13 +513,19 @@ namespace material {
 
     //set coordinates
     if (direction == HORIZONTAL) {
-      minZ = startZ;
+      if (isForward) {
+	minZ = startZ;      
+	maxZ = trueEnd;
+	startZ = trueEnd + safetySpace;
+      }
+      else {
+	minZ = trueEnd;      
+	maxZ = startZ;
+      }
       minR = startR;
-      maxZ = trueEnd;
-      maxR = startR + sectionWidth;
-
-      startZ = trueEnd + safetySpace;
-    } else {
+      maxR = startR + sectionWidth;    
+    } 
+    else {
       minZ = startZ;
       minR = startR;
       maxZ = startZ + sectionWidth;
@@ -656,7 +694,9 @@ namespace material {
         startEndcap(nullptr),
         startDisk(nullptr),
         currLayer_(nullptr),
-        currDisk_(nullptr) {}
+        currDisk_(nullptr),
+	isBackwards_(false),
+	outgoingSection_(nullptr) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
 
@@ -671,6 +711,9 @@ namespace material {
         int maxR = boundary->maxR() - safetySpace;
 
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection());
+	outgoingSection_ = boundary->outgoingSection();
+
+	isBackwards_ = boundary->routeBackwards();
       }
 
       void visit(Layer& layer) {
@@ -696,44 +739,47 @@ namespace material {
         section = startBarrel;
         attachPoint = discretize(layer.maxRwithHybrids()) + layerSectionMargin;        //discretize(layer.minRwithHybrids());
 
-        while(section->maxR() < attachPoint + sectionTolerance) {
-          if(!section->hasNextSection()) {
-            logERROR("Error in finding attach point during construction of services");
-            return;
-          }
-          section = section->nextSection();
-        }
+	
+	while(section->maxR() < attachPoint + sectionTolerance) {
+	  if(!section->hasNextSection()) {
+	    logERROR("Error in finding attach point during construction of services");
+	    return;
+	  }
+	  section = section->nextSection();
+	}
 
-        if (section->minR() < attachPoint - sectionTolerance) {
-          section = splitSection(section, attachPoint);
-        }
+	if (section->minR() < attachPoint - sectionTolerance) {
+	  section = splitSection(section, attachPoint);
+	}
 
-        //built main sections above the layer
+	//built main sections above the layer
 
-        sectionMinZ = safetySpace;
-        sectionMinR = attachPoint;
-        //sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
-        sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
-        sectionMaxR = sectionMinR + sectionWidth;
+	sectionMinZ = safetySpace;
+	sectionMinR = attachPoint;
+	//sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
+	sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+	sectionMaxR = sectionMinR + sectionWidth;
 
-        stationMinZ = sectionMaxZ + safetySpace;
-        stationMinR = sectionMinR - (layerStationWidth / 2);
-        stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-        stationMaxR = sectionMinR + (layerStationWidth / 2);
+	stationMinZ = sectionMaxZ + safetySpace;
+	stationMinR = sectionMinR - (layerStationWidth / 2);
+	stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+	stationMaxR = sectionMinR + (layerStationWidth / 2);
 
-        if(flangeConversionStation != nullptr) {
-          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
-          sectionsList_.push_back(station);
-          stationListFirst_.push_back(station);
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
-          layerRodSections_[currLayer_].setStation(station);
-        } else {
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
-          layerRodSections_[currLayer_].setStation(section);
-          logERROR("Flange conversion not defined, bypassed.");
-        }
-        sectionsList_.push_back(startLayer);
-        layerRodSections_[currLayer_].addSection(startLayer);
+	if(flangeConversionStation != nullptr) {
+	  station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
+	  sectionsList_.push_back(station);
+	  stationListFirst_.push_back(station);
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
+	  layerRodSections_[currLayer_].setStation(station);
+	} else {
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
+	  layerRodSections_[currLayer_].setStation(section);
+	  logERROR("Flange conversion not defined, bypassed.");
+	}
+	sectionsList_.push_back(startLayer);
+	layerRodSections_[currLayer_].addSection(startLayer);
+
+       
         
         
 
@@ -743,10 +789,16 @@ namespace material {
         for(ConversionStation* secondConversionStation : secondConversionStations) {
           bool validConversion = true;
           
-          if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+	  
+          if (section->minZ() > discretize(secondConversionStation->maxZ_()) && !isBackwards_) {
+	    //if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+	    std::cout << "section->minZ() =" << section->minZ() << std::endl;
+	    std::cout << "secondConversionStation->maxZ_() = " << secondConversionStation->maxZ_() << std::endl;
+	    std::cout << "discretize(secondConversionStation->maxZ_()) = " << discretize(secondConversionStation->maxZ_()) << std::endl;
+
             logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
             continue;
-          }
+	  }
           
           //check if the station is already built
           for (auto& existentStation : stationListSecond_) {
@@ -759,14 +811,21 @@ namespace material {
           if (validConversion) {
 
             attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+
+	    if (isBackwards_) { section = outgoingSection_->nextSection(); }
          
-            while(section->maxZ() < attachPoint + sectionTolerance) {
-              if(!section->hasNextSection()) {
-                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
-                return;
-              }
-              section = section->nextSection();
-            }
+	    while(section->maxZ() < attachPoint + sectionTolerance) {
+	      if(!section->hasNextSection()) {
+		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
+		return;
+	      }
+	      section = section->nextSection();
+	    }
+	   
+
+	    std::cout << "AAAAAAAAAAA Conversion station " << " section->minZ() = " << section->minZ()
+		      << " section->maxZ() = " << section->maxZ() 
+		      << " attachPoint - sectionTolerance = " << (attachPoint - sectionTolerance) << std::endl;
 
             if (section->minZ() < attachPoint - sectionTolerance) {
               splitSection(section, attachPoint);
@@ -776,6 +835,9 @@ namespace material {
             stationMinR = section->maxR() + safetySpace;
             stationMaxZ = discretize(secondConversionStation->maxZ_());
             stationMaxR = stationMinR + layerStationLenght;
+
+	    std::cout << "stationMinZ = " << stationMinZ << " stationMinR = " << stationMinR << "stationMaxZ = " << stationMaxZ << " stationMaxR = " << stationMaxR << std::endl;
+	    std::cout << "section->hasNextSection() = " << section->hasNextSection() << std::endl;
 
             if(section->hasNextSection()) {
               station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
@@ -1024,6 +1086,8 @@ namespace material {
       //ZPosition currEndcapPosition;
       Layer* currLayer_;
       Disk* currDisk_;
+      bool isBackwards_;
+      Section* outgoingSection_;
 
 
       //Section* findAttachPoint(Section* section, )
@@ -1201,7 +1265,8 @@ namespace material {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
-	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+	const bool routeBackwards = (barrel.myid() == "PXB");
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, routeBackwards);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
@@ -1212,7 +1277,8 @@ namespace material {
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
-        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+	const bool routeBackwards = false;
+        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR, routeBackwards);
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
