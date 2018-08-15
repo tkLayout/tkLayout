@@ -338,17 +338,20 @@ namespace material {
 	bool noCollision = true;
 	int secondConversionStationsMinZ = discretize(2.);
 
-	noCollision = buildSection(firstSection, lastSection, startZ, startR, secondConversionStationsMinZ, direction, false);
-	startR += sectionWidth + safetySpace;
-	//startR += sectionWidth + 1000;
+	const bool towardsBackward = true;
+	int backwardServicesMinR = startR + safetySpace;
+	noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsBackward);
+	int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
 
 	std::cout << "TBPX Between 2 sections U shape: startZ = " << startZ << " startR = " << startR 
 		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
 
-	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, startR, startZ, direction);
+	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsBackward);
 
 	std::cout << "TBPX After 2 sections U shape: startZ = " << startZ << " startR = " << startR 
 		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
+
+	startR += sectionWidth + safetySpace;
 	
 	hasRoutedBackwards = true;
       }
@@ -490,7 +493,7 @@ namespace material {
    * @param direction is the direction
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, const bool isForward) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool isBackward) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -501,7 +504,7 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    if (isForward) {
+    if (!isBackward) {
       foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
     }
 
@@ -513,7 +516,7 @@ namespace material {
 
     //set coordinates
     if (direction == HORIZONTAL) {
-      if (isForward) {
+      if (!isBackward) {
 	minZ = startZ;      
 	maxZ = trueEnd;
 	startZ = trueEnd + safetySpace;
