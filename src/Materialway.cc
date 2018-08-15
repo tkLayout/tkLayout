@@ -800,46 +800,84 @@ namespace material {
             }
           }
 
-	  if (isBackwards_) { section = outgoingSection_->nextSection(); }
+	  //if (isBackwards_) { section = outgoingSection_->nextSection(); }
+	  if (isBackwards_) { section = outgoingSection_; }
 
           if (validConversion) {
 
 	    std::cout << "OOOOOOOOO At layer " << layer.myid() << " , station " << secondConversionStation->stationName_() << " is about to be placed." << std::endl;
 
-	    if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-	      //if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-	      std::cout << "section->minZ() =" << section->minZ() << std::endl;
-	      std::cout << "secondConversionStation->maxZ_() = " << secondConversionStation->maxZ_() << std::endl;
-	      std::cout << "discretize(secondConversionStation->maxZ_()) = " << discretize(secondConversionStation->maxZ_()) << std::endl;
+	    if (!isBackwards_) {
+	      if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+		std::cout << "section->minZ() =" << section->minZ() << std::endl;
+		std::cout << "secondConversionStation->maxZ_() = " << secondConversionStation->maxZ_() << std::endl;
+		std::cout << "discretize(secondConversionStation->maxZ_()) = " << discretize(secondConversionStation->maxZ_()) << std::endl;
 
-	      std::cout << "layer.myid() = " << layer.myid() << std::endl;
-	      logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
-	      continue;
-	    }
-
-            attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
-        
-	    while(section->maxZ() < attachPoint + sectionTolerance) {
-	      if(!section->hasNextSection()) {
-		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
-		return;
+		std::cout << "layer.myid() = " << layer.myid() << std::endl;
+		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
+		continue;
 	      }
-	      section = section->nextSection();
-	    }
+
+	      attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+        
+	      while(section->maxZ() < attachPoint + sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
+		  return;
+		}
+		section = section->nextSection();
+	      }
 	   
 
-	    std::cout << "AAAAAAAAAAA Conversion station " << " section->minZ() = " << section->minZ()
-		      << " section->maxZ() = " << section->maxZ() 
-		      << " attachPoint - sectionTolerance = " << (attachPoint - sectionTolerance) << std::endl;
+	      std::cout << "AAAAAAAAAAA Conversion station " << " section->minZ() = " << section->minZ()
+			<< " section->maxZ() = " << section->maxZ() 
+			<< " attachPoint - sectionTolerance = " << (attachPoint - sectionTolerance) << std::endl;
 
-            if (section->minZ() < attachPoint - sectionTolerance) {
-              splitSection(section, attachPoint);
-            }
+	      if (section->minZ() < attachPoint - sectionTolerance) {
+		splitSection(section, attachPoint);
+	      }
+	    }
 
-            stationMinZ = discretize(secondConversionStation->minZ_());
-            stationMinR = section->maxR() + safetySpace;
-            stationMaxZ = discretize(secondConversionStation->maxZ_());
-            stationMaxR = stationMinR + layerStationLenght;
+	    else {
+	      if (section->maxZ() < discretize(secondConversionStation->minZ_())) {
+		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+		std::cout << "section->maxZ() =" << section->maxZ() << std::endl;
+		std::cout << "secondConversionStation->minZ_() = " << secondConversionStation->minZ_() << std::endl;
+		std::cout << "discretize(secondConversionStation->minZ_()) = " << discretize(secondConversionStation->minZ_()) << std::endl;
+
+		std::cout << "layer.myid() = " << layer.myid() << std::endl;
+		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->minZ_())) + ").");
+		continue;
+	      }
+
+	      attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+        
+	      while(section->minZ() > attachPoint - sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
+		  return;
+		}
+		section = section->nextSection();
+	      }
+	   
+
+	      std::cout << "AAAAAAAAAAA Conversion station " << " section->minZ() = " << section->minZ()
+			<< " section->maxZ() = " << section->maxZ() 
+			<< " attachPoint - sectionTolerance = " << (attachPoint + sectionTolerance) << std::endl;
+
+	      if (section->maxZ() > attachPoint + sectionTolerance) {
+		splitSection(section, attachPoint, isBackwards_);
+	      }
+
+	    }
+
+
+
+	    stationMinZ = discretize(secondConversionStation->minZ_());
+	    stationMinR = section->maxR() + safetySpace;
+	    stationMaxZ = discretize(secondConversionStation->maxZ_());
+	    stationMaxR = stationMinR + layerStationLenght;
 
 	    std::cout << "stationMinZ = " << stationMinZ << " stationMinR = " << stationMinR << "stationMaxZ = " << stationMaxZ << " stationMaxR = " << stationMaxR << std::endl;
 	    std::cout << "section->hasNextSection() = " << section->hasNextSection() << std::endl;
@@ -1099,23 +1137,17 @@ namespace material {
 
       //Section* findAttachPoint(Section* section, )
 
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool debug = false) {
+      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool routeBackwards = false, bool debug = false) {
         //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
         Section* newSection = nullptr;
 
-        if (section->bearing() == HORIZONTAL) {
-          //if(zPlus) {
-            newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          //} else {
-          //  newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection());
-          //}
+        if (section->bearing() == HORIZONTAL) { 
+	  if (!routeBackwards) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
+	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug); }
           sectionsList_.push_back(newSection);
 
-          //if(zPlus) {
-            section->maxZ(collision - safetySpace);
-          //} else {
-          //  section->minZ(collision + safetySpace);
-          //}
+	  if (!routeBackwards) { section->maxZ(collision - safetySpace); } 
+	  else { section->minZ(collision + safetySpace); }
           section->nextSection(newSection);
 
         } else {
