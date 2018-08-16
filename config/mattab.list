@@ -117,7 +117,7 @@ PE	0.95	44.77	67.7
 PE_TB2S_twp	0.95	44.77	67.7
 PE_OTModule_power	0.95	44.77	67.7
 PE_OTModule_HV	0.95	44.77	67.7
-PE__OTModule_fibers	0.95	44.77	67.7
+PE_OTModule_fibers	0.95	44.77	67.7
 PE_twp	0.95	44.77	67.7
 Steel	7.8	12.71	133.6
 Steel_TB2S_pipe	7.8	12.71	133.6
