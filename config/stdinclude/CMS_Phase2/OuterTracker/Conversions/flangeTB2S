@@ -126,6 +126,7 @@ Conversion {
   // Binder connectors: Micro-T connectors - series 910 
   Conversion {
     // One module's worth of Al_OTModule_power
+    // Local material is added here
     Input {
       Element {
         elementName Al_OTModule_power
@@ -138,19 +139,6 @@ Conversion {
       Element {
         elementName Al
         quantity 2.91
-        unit g/m
-        service true
-      }
-      Element {
-        elementName Cu
-        quantity 1.16
-        unit g/m
-        service true
-      }
-      // Insulator (50% for the module power)
-      Element {
-        elementName PE
-        quantity 4.5 
         unit g/m
         service true
       }
@@ -169,12 +157,53 @@ Conversion {
       }
     }
   }
+  Conversion {
+    // One module's worth of Cu_OTModule_power
+    Input {
+      Element {
+        elementName Cu_OTModule_power
+        quantity 0.218
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+      Element {
+        elementName Cu
+        quantity 1.16
+        unit g/m
+        service true
+      }
+    }
+  }
+  Conversion {
+    // One module's worth of PE_OTModule_power
+    Input {
+      Element {
+        elementName PE_OTModule_power
+        quantity 0.880
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+// Insulator (50% for the module power)
+      Element {
+        elementName PE
+        quantity 4.5 
+        unit g/m
+        service true
+      }
+    }
+  }
+
 
   Conversion {
     // One module's worth of Al_OTModule_HV
+    // Local material is added here
     Input {
       Element {
-        elementName Al_HV
+        elementName Al_OTModule_HV
         quantity 0.2295
         unit g/m
       }
@@ -184,19 +213,6 @@ Conversion {
       Element {
         elementName Al
         quantity 0.91 
-        unit g/m
-        service true
-      }
-      Element {
-        elementName Cu
-        quantity 0.32
-        unit g/m
-        service true
-      }
-      // Insulator (50% for the HV)
-      Element {
-        elementName PE
-        quantity 4.5
         unit g/m
         service true
       }
@@ -215,6 +231,50 @@ Conversion {
       }
     }
   }
+
+
+  Conversion {
+    // One module's worth of Cu_OTModule_HV
+    Input {
+      Element {
+        elementName Cu_OTModule_HV
+        quantity 0.082
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+      Element {
+        elementName Cu
+        quantity 0.32
+        unit g/m
+        service true
+      }
+    }
+  }
+
+
+  Conversion {
+    // One module's worth of PE_OTModule_HV
+    Input {
+      Element {
+        elementName PE_OTModule_HV
+        quantity 0.825
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+       // Insulator (50% for the HV)
+      Element {
+        elementName PE
+        quantity 4.5
+        unit g/m
+        service true
+      }
+    }
+  }
+
 
   // Manifolds + radial pipes + holders
   Conversion {
