@@ -1304,6 +1304,20 @@ namespace material {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
+
+	
+	std::vector<ConversionStation*> secondConversionStations;
+	for (const auto& layer: barrel.layers()) {
+	  const std::vector<ConversionStation*> layerStations = layer.secondConversionStations();
+	  secondConversionStations.insert(secondConversionStations.end(), layerStations.begin(), layerStations.end());
+	}
+	double minZ = std::numeric_limits<double>::max();
+	for (const auto& station : secondConversionStations) {
+	  minZ = MIN(minZ, station->minZ_());
+	}
+
+	std::cout << barrel.myid() << std::endl;
+	std::cout << "minZ = " << minZ << " boundMaxZ = " << boundMaxZ << std::endl;
 	const bool routeBackwards = (barrel.myid() == "PXB");
 	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, routeBackwards);
 
