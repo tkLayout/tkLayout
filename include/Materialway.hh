@@ -170,7 +170,7 @@ namespace material {
     public:
       Boundary();
       //Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR);
-      Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, const bool routeBackwards);
+      Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices = false);
       virtual ~Boundary();
 
       int isHit(int z, int r, Direction aDirection) const;
@@ -184,7 +184,7 @@ namespace material {
       int minR() const;
       int maxZ() const;
       int maxR() const;
-      const bool routeBackwards() const { return routeBackwards_; }
+      const bool hasCShapeOutgoingServices() const { return hasCShapeOutgoingServices_; }
       Section* outgoingSection();
       const bool isBarrel() const { return isBarrel_; }
 
@@ -196,7 +196,7 @@ namespace material {
       const Visitable* containedElement_;
       const bool isBarrel_;
       int minZ_, maxZ_, minR_, maxR_;
-      bool routeBackwards_;
+      bool hasCShapeOutgoingServices_;
       Section* outgoingSection_;
     }; //class Boundary
 
@@ -230,7 +230,7 @@ namespace material {
       Direction buildDirection(const int& startZ, const int& startR, const bool& hasStepInEndcapsOuterRadius, const int& numBarrels);
       bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction);
       bool findSectionCollision(std::pair<int,Section*>& sectionCollision, int startZ, int startR, int end, Direction direction);
-      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool isBackward = false);
+      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsForward = true);
       bool buildSectionPair(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int collision, int border, Direction direction);
       Section* splitSection(Section* section, int collision, Direction direction);
       Direction inverseDirection(Direction direction) const;

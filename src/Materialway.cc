@@ -51,14 +51,14 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, const bool routeBackwards) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
       maxR_(maxR),
-      routeBackwards_(routeBackwards),
+      hasCShapeOutgoingServices_(hasCShapeOutgoingServices),
       outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
@@ -318,7 +318,7 @@ namespace material {
   void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
     Direction direction;
-    bool hasRoutedBackwards = false;
+    bool hasRoutedAlongCShape = false;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -334,26 +334,26 @@ namespace material {
 		<< " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
       direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
 
-      if (boundary->routeBackwards() && !hasRoutedBackwards) {
+      if (boundary->hasCShapeOutgoingServices() && !hasRoutedAlongCShape) {
 	bool noCollision = true;
 	int secondConversionStationsMinZ = discretize(2.);
 
-	const bool towardsBackward = true;
+	const bool towardsForward = false;
 	int backwardServicesMinR = startR + safetySpace;
-	noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsBackward);
+	noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsForward);
 	int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
 
 	std::cout << "TBPX Between 2 sections U shape: startZ = " << startZ << " startR = " << startR 
 		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
 
-	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsBackward);
+	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsForward);
 
 	std::cout << "TBPX After 2 sections U shape: startZ = " << startZ << " startR = " << startR 
 		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
 
 	startR += sectionWidth + safetySpace;
 	
-	hasRoutedBackwards = true;
+	hasRoutedAlongCShape = true;
       }
  
 
@@ -493,7 +493,7 @@ namespace material {
    * @param direction is the direction
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool isBackward) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsForward) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -504,7 +504,7 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    if (!isBackward) {
+    if (towardsForward) {
       foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
     }
 
@@ -516,7 +516,7 @@ namespace material {
 
     //set coordinates
     if (direction == HORIZONTAL) {
-      if (!isBackward) {
+      if (towardsForward) {
 	minZ = startZ;      
 	maxZ = trueEnd;
 	startZ = trueEnd + safetySpace;
@@ -698,7 +698,7 @@ namespace material {
         startDisk(nullptr),
         currLayer_(nullptr),
         currDisk_(nullptr),
-	isBackwards_(false),
+	hasCShapeOutgoingServices_(false),
 	outgoingSection_(nullptr) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
@@ -716,7 +716,7 @@ namespace material {
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection());
 	outgoingSection_ = boundary->outgoingSection();
 
-	isBackwards_ = boundary->routeBackwards();
+	hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
       }
 
       void visit(Layer& layer) {
@@ -800,14 +800,14 @@ namespace material {
             }
           }
 
-	  //if (isBackwards_) { section = outgoingSection_->nextSection(); }
-	  if (isBackwards_) { section = outgoingSection_; }
+	  //if (hasCShapeOutgoingServices_) { section = outgoingSection_->nextSection(); }
+	  if (hasCShapeOutgoingServices_) { section = outgoingSection_; }
 
           if (validConversion) {
 
 	    std::cout << "OOOOOOOOO At layer " << layer.myid() << " , station " << secondConversionStation->stationName_() << " is about to be placed." << std::endl;
 
-	    if (!isBackwards_) {
+	    if (!hasCShapeOutgoingServices_) {
 	      if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
 		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
 		std::cout << "section->minZ() =" << section->minZ() << std::endl;
@@ -840,6 +840,7 @@ namespace material {
 	    }
 
 	    else {
+	      const bool towardsBackward = true;
 	      if (section->maxZ() < discretize(secondConversionStation->minZ_())) {
 		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
 		std::cout << "section->maxZ() =" << section->maxZ() << std::endl;
@@ -847,7 +848,7 @@ namespace material {
 		std::cout << "discretize(secondConversionStation->minZ_()) = " << discretize(secondConversionStation->minZ_()) << std::endl;
 
 		std::cout << "layer.myid() = " << layer.myid() << std::endl;
-		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->minZ_())) + ").");
+		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->maxZ()) + "), Z too high (Z=" +to_string(discretize(secondConversionStation->minZ_())) + ").");
 		continue;
 	      }
 
@@ -855,7 +856,7 @@ namespace material {
         
 	      while(section->minZ() > attachPoint - sectionTolerance) {
 		if(!section->hasNextSection()) {
-		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
+		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
 		  return;
 		}
 		section = section->nextSection();
@@ -867,7 +868,7 @@ namespace material {
 			<< " attachPoint - sectionTolerance = " << (attachPoint + sectionTolerance) << std::endl;
 
 	      if (section->maxZ() > attachPoint + sectionTolerance) {
-		splitSection(section, attachPoint, isBackwards_);
+		splitSection(section, attachPoint, towardsBackward);
 	      }
 
 	    }
@@ -1131,22 +1132,22 @@ namespace material {
       //ZPosition currEndcapPosition;
       Layer* currLayer_;
       Disk* currDisk_;
-      bool isBackwards_;
+      bool hasCShapeOutgoingServices_;
       Section* outgoingSection_;
 
 
       //Section* findAttachPoint(Section* section, )
 
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool routeBackwards = false, bool debug = false) {
+      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool towardsForward = true, bool debug = false) {
         //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
         Section* newSection = nullptr;
 
         if (section->bearing() == HORIZONTAL) { 
-	  if (!routeBackwards) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
+	  if (towardsForward) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
 	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug); }
           sectionsList_.push_back(newSection);
 
-	  if (!routeBackwards) { section->maxZ(collision - safetySpace); } 
+	  if (towardsForward) { section->maxZ(collision - safetySpace); } 
 	  else { section->minZ(collision + safetySpace); }
           section->nextSection(newSection);
 
@@ -1306,20 +1307,16 @@ namespace material {
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
 	
-	std::vector<ConversionStation*> secondConversionStations;
+        int layersSecondStationsMinZ = std::numeric_limits<int>::max();
 	for (const auto& layer: barrel.layers()) {
-	  const std::vector<ConversionStation*> layerStations = layer.secondConversionStations();
-	  secondConversionStations.insert(secondConversionStations.end(), layerStations.begin(), layerStations.end());
-	}
-	double minZ = std::numeric_limits<double>::max();
-	for (const auto& station : secondConversionStations) {
-	  minZ = MIN(minZ, station->minZ_());
+	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
+	  for (const auto& station : secondConversionStations) {
+	    layersSecondStationsMinZ = MIN(layersSecondStationsMinZ, discretize(station->minZ_()));
+	  }
 	}
 
-	std::cout << barrel.myid() << std::endl;
-	std::cout << "minZ = " << minZ << " boundMaxZ = " << boundMaxZ << std::endl;
-	const bool routeBackwards = (barrel.myid() == "PXB");
-	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, routeBackwards);
+	const bool hasCShapeOutgoingServices = (layersSecondStationsMinZ < boundMaxZ);
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
@@ -1330,8 +1327,7 @@ namespace material {
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
-	const bool routeBackwards = false;
-        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR, routeBackwards);
+        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
