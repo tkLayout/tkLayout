@@ -51,7 +51,7 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices, int cShapeMinZ) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
       minZ_(minZ),
@@ -59,10 +59,11 @@ namespace material {
       minR_(minR),
       maxR_(maxR),
       hasCShapeOutgoingServices_(hasCShapeOutgoingServices),
+      cShapeMinZ_(cShapeMinZ),
       outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, true, 0, 0, 0, 0, false){}
+    Boundary(nullptr, true, 0, 0, 0, 0, false, std::numeric_limits<int>::max()){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -335,7 +336,7 @@ namespace material {
       // Example: this is used on the outgoing services over TBPX.
       // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
       if (boundary->hasCShapeOutgoingServices() && !hasRoutedAlongCShape) {
-	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ);	
+	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ, boundary->cShapeMinZ());	
 	hasRoutedAlongCShape = true;
       }
  
@@ -344,7 +345,6 @@ namespace material {
 
       // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
-    
 
       going = foundBoundaryCollision && noSectionCollision;
     }
@@ -389,18 +389,19 @@ namespace material {
    * Example: this is used on the outgoing services out of TBPX.
    * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
    */
-  void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ) {
-    if (direction == VERTICAL) logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
+  void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ) {
+    if (direction == VERTICAL) {
+      logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
+    }
 
     else {
-      int secondConversionStationsMinZ = safetySpace;
-
       const bool towardsBiggerZ = false;
+      //int cShapeMinZ = safetySpace;
       int backwardServicesMinR = startR + safetySpace;
-      bool noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsBiggerZ);
+      bool noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, cShapeMinZ, direction, towardsBiggerZ);
 
       int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
-      noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsBiggerZ);
+      noCollision = buildSection(firstSection, lastSection, cShapeMinZ, forwardServicesMinR, startZ, direction, !towardsBiggerZ);
 
       startR += sectionWidth + safetySpace;
     }
@@ -866,7 +867,8 @@ namespace material {
 
 	      std::cout << "AAAAAAAAAAA Conversion station " << " section->minZ() = " << section->minZ()
 			<< " section->maxZ() = " << section->maxZ() 
-			<< " attachPoint - sectionTolerance = " << (attachPoint + sectionTolerance) << std::endl;
+			<< " attachPoint = " << attachPoint
+			<< " attachPoint - sectionTolerance = " << (attachPoint - sectionTolerance) << std::endl;
 
 	      if (section->maxZ() > attachPoint + sectionTolerance) {
 		splitSection(section, attachPoint, towardsBiggerZ);
@@ -1145,7 +1147,7 @@ namespace material {
 
         if (section->bearing() == HORIZONTAL) { 
 	  if (towardsBiggerZ) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
-	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug); }
+	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug);  std::cout << "splitSection: " << "new section maxZ at " << collision << ", previous section minZ at " << (collision + safetySpace) << std::endl;  }
           sectionsList_.push_back(newSection);
 
 	  if (towardsBiggerZ) { section->maxZ(collision - safetySpace); } 
@@ -1191,6 +1193,11 @@ namespace material {
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
+  const int Materialway::cShapeMinZTolerance = 1.1 * sectionTolerance; /** Distance in Z between the minZ of the cabling along cShape, 
+									   and the center of the conversion station (of type second). 
+									   If there are several conversion stations (of type second) on the boundary, 
+									   consider the station located at the lowest |Z|.
+									   WARNING: By constrcution, cShapeMinZTolerance need to be > sectionTolerance. */
   const int Materialway::layerStationLenght = discretize(insur::geom_conversion_station_width);  /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
@@ -1308,16 +1315,22 @@ namespace material {
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
 	
-        int layersSecondStationsMinZ = std::numeric_limits<int>::max();
+        int minLayersSecondStationMeanZ = std::numeric_limits<int>::max();
 	for (const auto& layer: barrel.layers()) {
 	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
+	  //if (secondConversionStations.size() > 0) { 
+	  //  layersSecondStationsMinZ = MIN(layersSecondStationsMinZ, discretize(station->minZ_()));
+	  //}
 	  for (const auto& station : secondConversionStations) {
-	    layersSecondStationsMinZ = MIN(layersSecondStationsMinZ, discretize(station->minZ_()));
+	    minLayersSecondStationMeanZ = MIN(minLayersSecondStationMeanZ, 
+					   discretize((station->minZ_() + station->maxZ_())/2.)
+					   );
 	  }
 	}
 
-	const bool hasCShapeOutgoingServices = (layersSecondStationsMinZ < boundMaxZ);
-	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices);
+	const bool hasCShapeOutgoingServices = (minLayersSecondStationMeanZ < boundMaxZ);
+	const int cShapeMinZ = minLayersSecondStationMeanZ - cShapeMinZTolerance;
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices, cShapeMinZ);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
