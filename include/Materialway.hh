@@ -233,7 +233,8 @@ namespace material {
       void routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ);
       bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction);
       bool findSectionCollision(std::pair<int,Section*>& sectionCollision, int startZ, int startR, int end, Direction direction);
-      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsBiggerZ = true);
+      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, 
+			bool isTowardsBiggerZ = true, bool isTowardsBiggerR = true);
       bool buildSectionPair(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int collision, int border, Direction direction);
       Section* splitSection(Section* section, int collision, Direction direction);
       Direction inverseDirection(Direction direction) const;

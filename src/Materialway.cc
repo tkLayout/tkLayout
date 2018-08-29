@@ -319,7 +319,7 @@ namespace material {
   void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
     Direction direction;
-    bool hasRoutedAlongCShape = false;
+    bool wasRoutedAlongCShape = false;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -334,10 +334,10 @@ namespace material {
 
       // If requested, build the 'C-shape' outgoing services.
       // Example: this is used on the outgoing services over TBPX.
-      // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
-      if (boundary->hasCShapeOutgoingServices() && !hasRoutedAlongCShape) {
+      // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
+      if (boundary->hasCShapeOutgoingServices() && !wasRoutedAlongCShape) {
 	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ, boundary->cShapeMinZ());	
-	hasRoutedAlongCShape = true;
+	wasRoutedAlongCShape = true;
       }
  
       // Look for a possible collision between the services to be routed and all boundaries
@@ -387,23 +387,32 @@ namespace material {
   /**
    * This is used to build the 'C-shape' outgoing services.
    * Example: this is used on the outgoing services out of TBPX.
-   * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
+   * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
    */
   void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ) {
     if (direction == VERTICAL) {
       logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
     }
 
+    // HORIZONTAL DIRECTION ONLY
     else {
-      const bool towardsBiggerZ = false;
-      //int cShapeMinZ = safetySpace;
-      int backwardServicesMinR = startR + safetySpace;
-      bool noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, cShapeMinZ, direction, towardsBiggerZ);
+      // FIRST, GO TOWARDS SMALLER |Z|.
+      // Z: startZ -> cShapeMinZ
+      const bool isTowardsBiggerZ = false;
+      int towardsSmallerZCablingMinR = startR + safetySpace;
+      bool noCollision = buildSection(firstSection, lastSection, startZ, towardsSmallerZCablingMinR, cShapeMinZ, direction, isTowardsBiggerZ);
 
-      int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
-      noCollision = buildSection(firstSection, lastSection, cShapeMinZ, forwardServicesMinR, startZ, direction, !towardsBiggerZ);
+      // THEN, GO BACK TOWARDS BIGGER |Z|.
+      // Z: cShapeMinZ -> startZ
+      int towardsBiggerZCablingMinR = towardsSmallerZCablingMinR + sectionWidth + layerStationLenght + safetySpace;
+      noCollision = buildSection(firstSection, lastSection, cShapeMinZ, towardsBiggerZCablingMinR, startZ, direction, !isTowardsBiggerZ);
 
       startR += sectionWidth + safetySpace;
+
+      // firstSection has been updated and now points to the Section which is the 'towards smaller |Z|' branch of the C.
+      // lastSection has been updated and now points to the Section which is the 'towards bigger |Z|' branch of the C.
+      // startR is updated, so that the services will leave at a reasonable radius.
+      // startZ is not updated.
     }
   }
 
@@ -493,9 +502,12 @@ namespace material {
    * @param startR is a reference to the rho start coordinate
    * @param end is a reference to the end coordinate (Z if horizontal, rho if vertical)
    * @param direction is the direction
+   * @param isTowardsBiggerZ
+   * @param isTowardsBiggerR  NB: Not used at all so far, added for flexibility purposes!
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsBiggerZ) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, 
+					     bool isTowardsBiggerZ, bool isTowardsBiggerR) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -506,7 +518,9 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    if (towardsBiggerZ) {
+    // Dont handle this if goes towards smaller |Z|, or smaller R. 
+    // These are corner cases which are rare and handled independently (routeOutgoingServicesAlongCShape, or routeOutgoingServicesAlongUShape).
+    if (isTowardsBiggerZ && isTowardsBiggerR) {
       foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
     }
 
@@ -517,26 +531,40 @@ namespace material {
     }
 
     //set coordinates
+    // HORIZONTAL DIRECTION
     if (direction == HORIZONTAL) {
-      if (towardsBiggerZ) {
+      // TOWARDS BIGGER |Z|
+      if (isTowardsBiggerZ) {
 	minZ = startZ;      
 	maxZ = trueEnd;
 	startZ = trueEnd + safetySpace;
       }
+      // TOWARDS SMALLER |Z|
       else {
 	minZ = trueEnd;      
 	maxZ = startZ;
+	// Do not silently update startZ. Here we will just create a section with the desired coordinates.
       }
       minR = startR;
       maxR = startR + sectionWidth;    
     } 
-    else {
-      minZ = startZ;
-      minR = startR;
-      maxZ = startZ + sectionWidth;
-      maxR = trueEnd;
 
-      startR = trueEnd + safetySpace;
+    // VERTICAL DIRECTION
+    else {
+      // TOWARDS BIGGER R
+      if (isTowardsBiggerR) {
+	minR = startR;
+	maxR = trueEnd;
+	startR = trueEnd + safetySpace;
+      }
+      // TOWARDS SMALLER R
+      else {
+	minR = trueEnd;
+	maxR = startR;
+	// Do not silently update startR. Here we will just create a section with the desired coordinates.
+      }
+      minZ = startZ;    
+      maxZ = startZ + sectionWidth;   
     }
 
     //build section and update last section's nextSection pointer
@@ -842,7 +870,7 @@ namespace material {
 	    }
 
 	    else {
-	      const bool towardsBiggerZ = false;
+	      const bool isTowardsBiggerZ = false;
 	      if (section->maxZ() < discretize(secondConversionStation->minZ_())) {
 		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
 		std::cout << "section->maxZ() =" << section->maxZ() << std::endl;
@@ -871,7 +899,7 @@ namespace material {
 			<< " attachPoint - sectionTolerance = " << (attachPoint - sectionTolerance) << std::endl;
 
 	      if (section->maxZ() > attachPoint + sectionTolerance) {
-		splitSection(section, attachPoint, towardsBiggerZ);
+		splitSection(section, attachPoint, isTowardsBiggerZ);
 	      }
 
 	    }
@@ -1141,24 +1169,47 @@ namespace material {
 
       //Section* findAttachPoint(Section* section, )
 
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool towardsBiggerZ = true, bool debug = false) {
-        //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
+      /*
+       * Split section into 2 sections, at the collision coordinate.
+       */
+      Section* splitSection(Section* section, int collision, bool isTowardsBiggerZ = true, bool isTowardsBiggerR = true, bool debug = false) {
         Section* newSection = nullptr;
 
+	// HORIZONTAL DIRECTION
         if (section->bearing() == HORIZONTAL) { 
-	  if (towardsBiggerZ) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
-	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug);  std::cout << "splitSection: " << "new section maxZ at " << collision << ", previous section minZ at " << (collision + safetySpace) << std::endl;  }
+	  // A: Create new section
+	  // TOWARDS BIGGER |Z|
+	  if (isTowardsBiggerZ) { 
+	    newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); 
+	  }
+	  // TOWARDS SMALLER |Z|
+	  else { 
+	    newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug);
+	  }
           sectionsList_.push_back(newSection);
 
-	  if (towardsBiggerZ) { section->maxZ(collision - safetySpace); } 
+	  // B: Update previous section
+	  if (isTowardsBiggerZ) { section->maxZ(collision - safetySpace); } 
 	  else { section->minZ(collision + safetySpace); }
           section->nextSection(newSection);
+        } 
 
-        } else {
-          newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          sectionsList_.push_back(newSection);
+	// VERTICAL DIRECTION
+	else {
+	  // A: Create new section
+	  // TOWARDS BIGGER R
+	  if (isTowardsBiggerR) {
+	    newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);	    
+	  }
+	  // TOWARDS SMALLER R
+	  else {
+	    newSection = new Section(section->minZ(), section->minR(), section->maxZ(), collision, section->bearing(), section->nextSection(), debug);
+	  }
+	  sectionsList_.push_back(newSection);
 
-          section->maxR(collision - safetySpace);
+	  // B: Update previous section
+          if (isTowardsBiggerR) { section->maxR(collision - safetySpace); }
+	  else { section->minR(collision + safetySpace); }
           section->nextSection(newSection);
         }
         return newSection;
