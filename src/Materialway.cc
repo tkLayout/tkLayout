@@ -1193,11 +1193,11 @@ namespace material {
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
-  const int Materialway::cShapeMinZTolerance = 1.1 * sectionTolerance; /** Distance in Z between the minZ of the cabling along cShape, 
+  const int Materialway::cShapeMinZTolerance = 1.1 * sectionTolerance; /** Distance in Z between the minZ of the cabling along C-shape, 
 									   and the center of the conversion station (of type second). 
 									   If there are several conversion stations (of type second) on the boundary, 
 									   consider the station located at the lowest |Z|.
-									   WARNING: By constrcution, cShapeMinZTolerance need to be > sectionTolerance. */
+									   WARNING: By construction, cShapeMinZTolerance need to be > sectionTolerance. */
   const int Materialway::layerStationLenght = discretize(insur::geom_conversion_station_width);  /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
