@@ -329,35 +329,17 @@ namespace material {
     bool going=true;
     while (going) {
       // compute direction along which external sections will be built
-
-      std::cout << "!!!!!! Before build direction: startZ = " << startZ << " startR = " << startR 
-		<< " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
       direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
 
+      // If requested, build the 'C-shape' outgoing services.
+      // Example: this is used on the outgoing services over TBPX.
+      // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
       if (boundary->hasCShapeOutgoingServices() && !hasRoutedAlongCShape) {
-	bool noCollision = true;
-	int secondConversionStationsMinZ = discretize(2.);
-
-	const bool towardsForward = false;
-	int backwardServicesMinR = startR + safetySpace;
-	noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsForward);
-	int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
-
-	std::cout << "TBPX Between 2 sections U shape: startZ = " << startZ << " startR = " << startR 
-		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
-
-	noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsForward);
-
-	std::cout << "TBPX After 2 sections U shape: startZ = " << startZ << " startR = " << startR 
-		  << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
-
-	startR += sectionWidth + safetySpace;
-	
+	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ);	
 	hasRoutedAlongCShape = true;
       }
  
-
-      // Look for a possible colision between the services to be routed and all boundaries
+      // Look for a possible collision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
 
       // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
@@ -366,10 +348,6 @@ namespace material {
 
       going = foundBoundaryCollision && noSectionCollision;
     }
-
-    std::cout << "After evth: startZ = " << startZ << " startR = " << startR 
-	      << " firstSection = " << firstSection << " lastSection = " << lastSection << std::endl;
-    std::cout << "firstSection->nextSection() = " << firstSection->nextSection() << std::endl;
 
     boundary->outgoingSection(firstSection);
   }
@@ -403,6 +381,29 @@ namespace material {
     }
     else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
     return direction;
+  }
+
+
+  /**
+   * This is used to build the 'C-shape' outgoing services.
+   * Example: this is used on the outgoing services out of TBPX.
+   * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = 0, then back horizontally towards bigger |Z|.
+   */
+  void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ) {
+    if (direction == VERTICAL) logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
+
+    else {
+      int secondConversionStationsMinZ = safetySpace;
+
+      const bool towardsBiggerZ = false;
+      int backwardServicesMinR = startR + safetySpace;
+      bool noCollision = buildSection(firstSection, lastSection, startZ, backwardServicesMinR, secondConversionStationsMinZ, direction, towardsBiggerZ);
+
+      int forwardServicesMinR = backwardServicesMinR + sectionWidth + layerStationLenght + safetySpace;
+      noCollision = buildSection(firstSection, lastSection, secondConversionStationsMinZ, forwardServicesMinR, startZ, direction, !towardsBiggerZ);
+
+      startR += sectionWidth + safetySpace;
+    }
   }
 
 
@@ -493,7 +494,7 @@ namespace material {
    * @param direction is the direction
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsForward) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, bool towardsBiggerZ) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -504,7 +505,7 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    if (towardsForward) {
+    if (towardsBiggerZ) {
       foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
     }
 
@@ -516,7 +517,7 @@ namespace material {
 
     //set coordinates
     if (direction == HORIZONTAL) {
-      if (towardsForward) {
+      if (towardsBiggerZ) {
 	minZ = startZ;      
 	maxZ = trueEnd;
 	startZ = trueEnd + safetySpace;
@@ -840,7 +841,7 @@ namespace material {
 	    }
 
 	    else {
-	      const bool towardsBackward = true;
+	      const bool towardsBiggerZ = false;
 	      if (section->maxZ() < discretize(secondConversionStation->minZ_())) {
 		//if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
 		std::cout << "section->maxZ() =" << section->maxZ() << std::endl;
@@ -868,7 +869,7 @@ namespace material {
 			<< " attachPoint - sectionTolerance = " << (attachPoint + sectionTolerance) << std::endl;
 
 	      if (section->maxZ() > attachPoint + sectionTolerance) {
-		splitSection(section, attachPoint, towardsBackward);
+		splitSection(section, attachPoint, towardsBiggerZ);
 	      }
 
 	    }
@@ -1138,16 +1139,16 @@ namespace material {
 
       //Section* findAttachPoint(Section* section, )
 
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool towardsForward = true, bool debug = false) {
+      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool towardsBiggerZ = true, bool debug = false) {
         //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
         Section* newSection = nullptr;
 
         if (section->bearing() == HORIZONTAL) { 
-	  if (towardsForward) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
+	  if (towardsBiggerZ) { newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); }
 	  else { newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug); }
           sectionsList_.push_back(newSection);
 
-	  if (towardsForward) { section->maxZ(collision - safetySpace); } 
+	  if (towardsBiggerZ) { section->maxZ(collision - safetySpace); } 
 	  else { section->minZ(collision + safetySpace); }
           section->nextSection(newSection);
 
