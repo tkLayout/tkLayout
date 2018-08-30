@@ -37,6 +37,7 @@ public:
   PathfulException(const string& what, const string& path) : std::invalid_argument(what.c_str()) { pushPath(path); }
   template<class T> PathfulException(const string& what, const T& obj, const string& objid) : std::invalid_argument(what.c_str()) { pushPath(obj, objid); }
   PathfulException(const string& what) : std::invalid_argument(what.c_str()) {}
+  virtual ~PathfulException() throw() {};
   void pushPath(const string& p) { path_ = p + (!path_.empty() ? "." + path_ : ""); }
   template<class T> void pushPath(const T& obj, const string& objid) { pushPath(string(typeid(obj).name()) + "(" + objid + ")"); }
   template<class T, class U> void pushPath(const T& obj, const U& objid) { pushPath(string(typeid(obj).name()) + "(" + any2str(objid) + ")"); }
@@ -52,12 +53,14 @@ struct InvalidComputable : public PathfulException { InvalidComputable() : Pathf
 
 template<class T>
 struct Stateful { 
+  virtual ~Stateful() {};
   typedef T State;
   virtual State state() const = 0; 
 };
 
 class Validful {
  public:
+  virtual ~Validful() {};
   virtual bool valid() const { return true ; }
 };
 
@@ -404,6 +407,7 @@ protected:
 
 public:
   PropertyObject() {}
+  virtual ~PropertyObject() {};
   virtual void store(const PropertyTree& newpt) {
     if (pt_.empty()) pt_ = newpt;
     else { 

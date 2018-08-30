@@ -19,11 +19,10 @@ using insur::HvLine;
  * General info on the Power Chain is also provided.
  */
 class PowerChain : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Module> Container; 
+  typedef std::vector<Module*> Container; 
 
 public:
   PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex);
-  ~PowerChain();
 
   // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
@@ -34,7 +33,7 @@ public:
   // HIGH VOLTAGE LINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
   const HvLine* getHvLine() const {
     if (!hvLine_) throw PathfulException("hvLine_ is nullptr");
-    return hvLine_;
+    return hvLine_.get();
   }
 
   // GENERAL INFO ON THE POWER CHAIN
@@ -67,7 +66,7 @@ private:
 
   Container modules_;
 
-  HvLine* hvLine_ = nullptr;
+  std::unique_ptr<HvLine> hvLine_; // PowerChain owns HvLine
 
   bool isPositiveZEnd_;
   bool isPositiveXSide_;

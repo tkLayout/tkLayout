@@ -265,6 +265,7 @@ struct CheckPhiIndex {
 
 
 struct Rounder {
+  virtual ~Rounder() {};
   static const int mmFraction = 1000;  // Drawing with 1 micrometer precision
   int round(double x) { return floor(x*mmFraction+0.5); }
 };
@@ -464,6 +465,7 @@ public:
 class IdMaker {
   static int id;
 public:
+  virtual ~IdMaker() {};
   int nextId() const { return id++; }
   std::string nextString() const {
     std::stringstream sid("");

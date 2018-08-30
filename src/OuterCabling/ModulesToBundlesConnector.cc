@@ -272,7 +272,7 @@ const int ModulesToBundlesConnector::computeStereoBundleId(const bool isBarrel, 
  */
 OuterBundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  OuterBundle* bundle = GeometryFactory::make<OuterBundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  OuterBundle* bundle = new OuterBundle(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));
@@ -330,7 +330,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 	const int previousPhiRegionRef = computePreviousPhiSliceRef(phiRegionRef, numPhiRegions);
 
 	// Compute the associated bundles ids (so that the associated bundles can be accessed).
-	const int bundleId = b.first;
+	//const int bundleId = b.first;
 	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
 	const int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
 
@@ -378,10 +378,18 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + " > maxNumModulesPerBundle = " + any2str(outer_cabling_maxNumModulesPerBundle)
 		    + ". I am moved to the next phiRegion, which presently has " + any2str(nextBundleNumModules) + " modules."
 		    );
-		    
-	    Module* maxPhiMod = b.second->maxPhiModule();
-	    maxPhiMod->setBundle(nextBundle);  
-	    nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
+		   
+	    const auto maxPhiModIt = b.second->maxPhiModule();
+	    if (maxPhiModIt != b.second->modules().end()) { 
+	      Module* maxPhiMod = *maxPhiModIt;
+	      maxPhiMod->setBundle(nextBundle);  
+	      nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
+	    }
+	    else { // Modules not found when trying to access them.
+	      logERROR(any2str("Building cabling map : Staggering modules.")
+		       + "Bundle has more than one module, but can find any module!"); 
+	      break; 
+	    }
 	  }
 
 	  // Assign a module to the previous phi region.
@@ -397,9 +405,17 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		    + ". I am moved to the previous phiRegion, which presently has " + any2str(previousBundleNumModules) + " modules."
 		    );
 
-	    Module* minPhiMod = b.second->minPhiModule();
-	    minPhiMod->setBundle(previousBundle);	  
-	    previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
+	    const auto minPhiModIt = b.second->minPhiModule();
+	    if (minPhiModIt != b.second->modules().end()) {
+	      Module* minPhiMod = *minPhiModIt;
+	      minPhiMod->setBundle(previousBundle);	  
+	      previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
+	    }
+	    else { // Modules not found when trying to access them.
+	      logERROR(any2str("Building cabling map : Staggering modules.")
+		       + "Bundle has more than one module, but can find any module!"); 
+	      break; 
+	    }
 	  }
 	}
 	else { // Bundles not found when trying to access them.

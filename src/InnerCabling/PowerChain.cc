@@ -24,19 +24,13 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
 };
 
 
-PowerChain::~PowerChain() {
-  delete hvLine_;    // TO DO: switch to smart pointers and remove this!
-  hvLine_ = nullptr;
-}
-
-
 /*
  *  Assign a module to the power chain.
  */
 void PowerChain::addModule(Module* m) { 
   modules_.push_back(m);
   hvLine_->addModule(m);
-  m->setHvLine(hvLine_);
+  m->setHvLine(hvLine_.get());
 }
 
 
@@ -86,9 +80,9 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
  */
 void PowerChain::buildHvLine(const int powerChainId) {
   std::string hvLineName = computeHvLineName(powerChainId);
-  HvLine* hvLine = GeometryFactory::make<HvLine>(hvLineName);
+  std::unique_ptr<HvLine> hvLine(new HvLine(hvLineName));
   hvLine->setPowerChain(this);
-  hvLine_ = hvLine;
+  hvLine_ = std::move(hvLine);
 }
 
 

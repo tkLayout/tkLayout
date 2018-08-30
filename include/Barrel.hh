@@ -28,31 +28,31 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
+  Property<bool  , Default>   innerRadiusFixed;
+  Property<bool  , Default>   outerRadiusFixed;
   Property<bool  , Default>   sameRods;
   Property<double, Default>   barrelRotation;
   Property<double, Default>   supportMarginOuter;
   Property<double, Default>   supportMarginInner;
-  Property<bool  , Default>   innerRadiusFixed;
-  Property<bool  , Default>   outerRadiusFixed;
-  
+
   PropertyNode<int>               layerNode;
   PropertyNodeUnique<std::string> supportNode;
 
- public:
+public:
   Barrel() : 
-      numLayers(         "numLayers"         , parsedAndChecked()),
-      innerRadius(       "innerRadius"       , parsedAndChecked()),
-      outerRadius(       "outerRadius"       , parsedAndChecked()),
-      innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
-      outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
-      sameRods(          "sameRods"          , parsedAndChecked(), false),
-      barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
-      supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
-      supportMarginInner("supportMarginInner", parsedOnly(), 2.),
-      skipServices(      "skipServices"      , parsedOnly(), false), // broken, do not use
-      layerNode(         "Layer"             , parsedOnly()),
-      supportNode(       "Support"           , parsedOnly())
-      {}
+    innerRadius(       "innerRadius"       , parsedAndChecked()),
+    outerRadius(       "outerRadius"       , parsedAndChecked()),
+    innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
+    outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
+    sameRods(          "sameRods"          , parsedAndChecked(), false),
+    barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
+    supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
+    supportMarginInner("supportMarginInner", parsedOnly(), 2.),
+    layerNode(         "Layer"             , parsedOnly()),
+    supportNode(       "Support"           , parsedOnly()),
+    numLayers(         "numLayers"         , parsedAndChecked()),
+    skipServices(      "skipServices"      , parsedOnly(), false) // broken, do not use     
+  {}
   void setup() {
     maxZ.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
     minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });

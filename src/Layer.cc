@@ -113,7 +113,8 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
 
 
 TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
-  for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
+  const int numTiltedRings = tiltedRingsGeometry.size();
+  for (int i = (numModulesFlat + 1); i < (numModulesFlat + numTiltedRings + 1); i++) {
 
     if (i == (numModulesFlat + 1)) {
       deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - flatPartzEnd;
@@ -322,7 +323,8 @@ void Layer::buildStraight() {
 RodTemplate Layer::makeRodTemplate(const double skewAngle) {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
-  for (int i = 0; i < rodTemplate.size(); i++) {
+  const int numModules = rodTemplate.size();
+  for (int i = 0; i < numModules; i++) {
     rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
@@ -959,10 +961,12 @@ void Layer::buildTilted() {
     }
 
 
-    if (tmspecsi.size() != buildNumModulesFlat()) {
+    const int numInnerUntiltedModules = tmspecsi.size();
+    if (numInnerUntiltedModules != buildNumModulesFlat()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part inner rod has " + to_string(tmspecsi.size()) + " module(s).");
     }
-    if (tmspecso.size() != buildNumModulesFlat()) {
+    const int numOuterUntiltedModules = tmspecso.size();
+    if (numOuterUntiltedModules != buildNumModulesFlat()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part outer rod has " + to_string(tmspecso.size()) + " module(s).");
     }
     
@@ -971,7 +975,8 @@ void Layer::buildTilted() {
 
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
-    if (tiltedRingsGeometry_.size() == buildNumModulesTilted()) {
+    const int numTiltedModules = tiltedRingsGeometry_.size();
+    if (numTiltedModules == buildNumModulesTilted()) {
       for (int i = 0; i < buildNumModulesTilted(); i++) {
 	int ringNumber = buildNumModulesFlat() + 1 + i;
 	TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
@@ -1012,10 +1017,12 @@ void Layer::buildTilted() {
 
     buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
 
-    if (tmspecsi.size() != buildNumModules()) {
+    const int numInnerModules = tmspecsi.size();
+    if (numInnerModules != buildNumModules()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
     }
-    if (tmspecso.size() != buildNumModules()) {
+    const int numOuterModules = tmspecso.size();
+    if (numOuterModules != buildNumModules()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
     }
 

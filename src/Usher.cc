@@ -1360,7 +1360,7 @@ namespace insur {
     int Usher::TrackerIntRep::endcapFromDisc(int discindex) {
       int sum = 0;
       int i = 0;
-      for (; i < n_of_discs.size(); i++) {
+      for (; i < (int)n_of_discs.size(); i++) {
         sum += n_of_discs.at(i);
         if (sum > discindex) break;
       } 

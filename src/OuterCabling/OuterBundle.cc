@@ -3,68 +3,35 @@
 
 
 OuterBundle::OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) :
-  stereoBundleId_(stereoBundleId),
   type_(type),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiPosition_(phiPosition),
   isPositiveCablingSide_(isPositiveCablingSide),
-  isTiltedPart_(isTiltedPart) 
+  isTiltedPart_(isTiltedPart),
+  stereoBundleId_(stereoBundleId)
 {
   myid(id);
   plotColor_ = computePlotColor(id, isPositiveCablingSide);
 };
 
 
-OuterBundle::~OuterBundle() {
-  delete cable_;    // TO DO: switch to smart pointers and remove this!
-  cable_ = nullptr; 
-
-  delete powerChannelSection_;
-  powerChannelSection_ = nullptr;
-}
-
-
-void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
-  Container& otherBundleModules = otherBundle->modules();
-  auto maxPhiModuleIt = std::max_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
-      return (femodRounded(a.center().Phi(), 2. * M_PI) <= femodRounded(b.center().Phi(), 2. * M_PI));
-    });
-
-  modules_.transfer(modules_.end(),
-		    maxPhiModuleIt,
-		    otherBundleModules);
-}
-
-
-void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
-  Container& otherBundleModules = otherBundle->modules();
-  auto minPhiModuleIt = std::min_element(otherBundleModules.begin(), otherBundleModules.end(), [](const Module& a, const Module& b) {
-      return (femodRounded(a.center().Phi(), 2. * M_PI) <= femodRounded(b.center().Phi(), 2. * M_PI));
-    });
-
-  modules_.transfer(modules_.end(), 
-		    minPhiModuleIt,
-		    otherBundleModules);
-}
-
-
 const double OuterBundle::minPhi() const { 
   double min = std::numeric_limits<double>::max();
-  for (const auto& m : modules_) { min = MIN(min, femodRounded(m.center().Phi(), 2. * M_PI) ); } return min;
+  for (const auto& m : modules_) { min = MIN(min, femodRounded(m->center().Phi(), 2. * M_PI) ); } return min;
 }
 
 
 const double OuterBundle::maxPhi() const { 
   double max = 0.;
-  for (const auto& m : modules_) { max = MAX(max, femodRounded(m.center().Phi(), 2. * M_PI) ); } return max;
+  for (const auto& m : modules_) { max = MAX(max, femodRounded(m->center().Phi(), 2. * M_PI) ); } return max;
 }
 
 const double OuterBundle::meanPhi() const {
   std::vector<double> modPhis;
 
   for (const auto& m : modules_) { 
-    double phi = femodRounded(m.center().Phi(), 2. * M_PI);
+    double phi = femodRounded(m->center().Phi(), 2. * M_PI);
     if (modPhis.size() > 0 && (fabs(modPhis.back() - phi) > M_PI)) {
       if (phi < modPhis.back()) phi += 2.*M_PI;
       else phi -= 2.*M_PI;
@@ -78,21 +45,38 @@ const double OuterBundle::meanPhi() const {
   return mean;
 }
 
-Module* OuterBundle::minPhiModule() const {
-  const Module* mod = &(*std::min_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
-	return (femodRounded(a.center().Phi(), 2. * M_PI) <= femodRounded(b.center().Phi(), 2. * M_PI));
-      }));
-  Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
-  return mod2;
+
+void OuterBundle::moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
+  Container& otherBundleModules = otherBundle->modules();
+  const auto minPhiModuleIt = otherBundle->minPhiModule();
+
+  std::move(minPhiModuleIt, minPhiModuleIt + 1, std::back_inserter(modules_));
+  otherBundleModules.erase(minPhiModuleIt, minPhiModuleIt + 1);
 }
 
 
-Module* OuterBundle::maxPhiModule() const {
-  const Module* mod = &(*std::max_element(modules_.begin(), modules_.end(), [](const Module& a, const Module& b) {
-	return (femodRounded(a.center().Phi(), 2. * M_PI) <= femodRounded(b.center().Phi(), 2. * M_PI));
-      }));
-  Module* mod2 = const_cast<Module*>(mod);  // TO DO : Ugly, completely delete this ! actually, PtrSet should be defined and used as a modules container
-  return mod2;
+void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
+  Container& otherBundleModules = otherBundle->modules();
+  const auto maxPhiModuleIt = otherBundle->maxPhiModule();
+
+  std::move(maxPhiModuleIt, maxPhiModuleIt + 1, std::back_inserter(modules_));
+  otherBundleModules.erase(maxPhiModuleIt, maxPhiModuleIt + 1);
+}
+
+
+const std::vector<Module*>::iterator OuterBundle::minPhiModule() {
+  const auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+	return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
+      });
+  return modIt;
+}
+
+
+const std::vector<Module*>::iterator OuterBundle::maxPhiModule() {
+  const auto modIt = std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+      return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
+    });
+  return modIt;
 }
 
 

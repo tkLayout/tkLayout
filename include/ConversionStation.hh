@@ -25,13 +25,14 @@ namespace material {
     enum Type {ERROR, FLANGE, SECOND};
     
     ConversionStation() :
-      stationType_ (ERROR),
+      MaterialObject(MaterialObject::Type::STATION),
       stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
-      conversionsNode_ ("Conversion", parsedOnly()),
-      MaterialObject(MaterialObject::Type::STATION)    {} ;
+      stationType_ (ERROR),
+      conversionsNode_ ("Conversion", parsedOnly())
+    {};
     virtual ~ConversionStation() {};
 
     void build();

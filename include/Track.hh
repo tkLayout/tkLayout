@@ -267,9 +267,9 @@ protected:
 
   double m_theta;             //!< Track shot at given theta & phi, i.e. theta at primary vertex
   double m_phi;               //!< Track shot at given theta & phi, i.e. phi at primary vertex
-  double m_pt;                //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes), pT sign: + -> particle traverses inside-out, - -> particle traverses outside-in
   double m_cotgTheta;         //!< Automatically calculated from theta at [0,0]
   double m_eta;               //!< Automatically calculated from eta at [0,0]
+  double m_pt;                //!< Particle transverse momentum (assuming B = fce of z only -> pT doesn't change along the path, only radius changes), pT sign: + -> particle traverses inside-out, - -> particle traverses outside-in
 
   Polar3DVector  m_direction; //!< Track parameters as a 3-vector: R, theta, phi
   XYZVector      m_origin;    //!< Track origin as a 3-vector: X, Y, Z TODO: For tracking model origin assumed to be at [0,0,0]

@@ -22,23 +22,33 @@ OuterCablingMap::OuterCablingMap(Tracker* tracker) {
 /* MODULES TO BUNDLES CONNECTIONS.
  */
 void OuterCablingMap::connectModulesToBundles(Tracker* tracker) {
+  // Build bundles
   ModulesToBundlesConnector bundlesBuilder;
   tracker->accept(bundlesBuilder);
   bundlesBuilder.postVisit();
-  bundles_ = bundlesBuilder.getBundles();
-  negBundles_ = bundlesBuilder.getNegBundles();
+
+  // Store bundles
+  for (const auto& bundleIt : bundlesBuilder.getBundles()) {
+    std::unique_ptr<OuterBundle> myBundle(bundleIt.second);
+    bundles_.insert(std::make_pair(bundleIt.first, std::move(myBundle)));
+  }
+  for (const auto& bundleIt : bundlesBuilder.getNegBundles()) {
+    std::unique_ptr<OuterBundle> myBundle(bundleIt.second);
+    negBundles_.insert(std::make_pair(bundleIt.first, std::move(myBundle)));
+  }
 }
 
 
 /* BUNDLES TO CABLES CONNECTIONS.
  */
-void OuterCablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs) {
+void OuterCablingMap::connectBundlesToCables(std::map<const int, std::unique_ptr<OuterBundle> >& bundles, std::map<const int, std::unique_ptr<OuterCable> >& cables, std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs) {
 
   for (auto& b : bundles) {
     // COLLECT ALL INFORMATION NEEDED TO BUILD CABLES
-    const double phiSectorWidth = b.second->phiPosition().phiSectorWidth();
+    OuterBundle* myBundle = b.second.get();
+    const double phiSectorWidth = myBundle->phiPosition().phiSectorWidth();
 
-    const Category& bundleType = b.second->type();
+    const Category& bundleType = myBundle->type();
     const Category& cableType = computeCableType(bundleType);
 
     const int bundleId = b.first;
@@ -47,11 +57,11 @@ void OuterCablingMap::connectBundlesToCables(std::map<int, OuterBundle*>& bundle
     const int slot = cablesPhiSectorRefAndSlot.at(bundleId).second;
 
     const int cableTypeIndex = computeCableTypeIndex(cableType);
-    bool isPositiveCablingSide = b.second->isPositiveCablingSide();
+    bool isPositiveCablingSide = myBundle->isPositiveCablingSide();
     const int cableId = computeCableId(cablePhiSectorRef, cableTypeIndex, slot, isPositiveCablingSide);
 
     // BUILD CABLES and DTCS AND STORE THEM
-    createAndStoreCablesAndDTCs(b.second, cables, DTCs, cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
+    createAndStoreCablesAndDTCs(myBundle, cables, DTCs, cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
   }
 
   // CHECK CABLES
@@ -73,7 +83,7 @@ const Category OuterCablingMap::computeCableType(const Category& bundleType) con
  * 1 slot = 1 DTC.
  * A staggering of bundles is done on the fly, when the number of bundles per cable is too high.
  */
-const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const {
+const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSectorRefAndSlot(const std::map<const int, std::unique_ptr<OuterBundle> >& bundles) const {
   std::map<int, std::pair<int, int> > cablesPhiSectorRefAndSlot;
 
   // Used to stagger several bundles
@@ -84,11 +94,10 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
   std::map<int, int> Layer6PhiSectorsCounter;
 
   for (const auto& b : bundles) {
-    const OuterBundle* myBundle = b.second;
+    const OuterBundle* myBundle = b.second.get();
 
     // COLLECT RELEVANT INFO
     const PhiPosition& bundlePhiPosition = myBundle->phiPosition();
-    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef(); 
     const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();  
    
@@ -239,19 +248,19 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 /* Create a cable and DTC, if do not exist yet.
  *  Store them in the cables or DTCs containers.
  */
-void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
+void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<const int, std::unique_ptr<OuterCable> >& cables, std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs, const int cableId, const double phiSectorWidth, const int cablePhiSectorRef, const Category& cableType, const int slot, const bool isPositiveCablingSide) {
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
-    OuterCable* cable = GeometryFactory::make<OuterCable>(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide);
-    connectOneBundleToOneCable(myBundle, cable);
-    cables.insert(std::make_pair(cableId, cable));
+    std::unique_ptr<OuterCable> cable (new OuterCable(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide));
+    connectOneBundleToOneCable(myBundle, cable.get());
+    std::unique_ptr<const OuterDTC> dtc (cable.get()->getDTC());
 
-    const OuterDTC* dtc = cable->getDTC();
-    DTCs.insert(std::make_pair(dtc->name(), dtc));      
+    cables.insert(std::make_pair(cableId, std::move(cable))); 
+    DTCs.insert(std::make_pair(dtc->name(), std::move(dtc)));      
   }
   else {
-    connectOneBundleToOneCable(myBundle, found->second);
+    connectOneBundleToOneCable(myBundle, found->second.get());
   }
 }
 
@@ -287,21 +296,22 @@ void OuterCablingMap::connectOneBundleToOneCable(OuterBundle* bundle, OuterCable
 
 /* Check bundles-cables connections.
  */
-void OuterCablingMap::checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables) {
-  for (auto& c : cables) {
+void OuterCablingMap::checkBundlesToCablesCabling(const std::map<const int, std::unique_ptr<OuterCable> >& cables) {
+  for (const auto& c : cables) {
+    const OuterCable* myCable = c.second.get();
 
     // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
-    const int phiSectorRef = c.second->phiSectorRef();
+    const int phiSectorRef = myCable->phiSectorRef();
     if (phiSectorRef <= -1) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
-	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(c.second->type())
+	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(myCable->type())
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
-	       + ", slot = " + any2str(c.second->slot())
+	       + ", slot = " + any2str(myCable->slot())
 	       );
     }
 
     // CHECK THE NUMBER OF BUNDLES PER CABLE.
-    const int numBundles = c.second->numBundles();
+    const int numBundles = myCable->numBundles();
     if (numBundles > outer_cabling_maxNumBundlesPerCable) {
       logERROR(any2str("Building cabling map : Staggering bundles. ")
 	       + "OuterCable "  + any2str(c.first) + " is connected to " + any2str(numBundles) + " bundles."
@@ -334,13 +344,13 @@ void OuterCablingMap::computePowerServicesChannels() {
     routeBarrelBundlesPoweringToSemiNonants(isPositiveCablingSide);
  
     // ASSIGN POWER SERVICES CHANNELS
-    std::map<int, OuterCable*>& cables = (isPositiveCablingSide ? cables_ : negCables_);
+    std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? cables_ : negCables_);
     for (auto& c : cables) {
-      c.second->assignPowerChannelSections();
+      c.second.get()->assignPowerChannelSections();
     }
 
     // CHECK POWER SERVICES CHANNELS
-    const std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+    const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
     checkBundlesToPowerServicesChannels(bundles);
   }
 }
@@ -357,8 +367,8 @@ void OuterCablingMap::computePowerServicesChannels() {
    so that ALL NONANTS AND SEMI-NONANTS PHI BOUNDARIES ARE INVARIANT BY ROTATION OF 180° AROUND CMS_Y.
  */
 void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide) {
-  std::map<int, OuterBundle*>& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
-  const std::map<int, OuterBundle*>& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
+  std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? bundles_ : negBundles_);
+  const std::map<const int, std::unique_ptr<OuterBundle> >& stereoBundles = (isPositiveCablingSide ? negBundles_ : bundles_);
 
   // phiSectorRefMarker keeps track of the Phi nonant we are in.
   int phiSectorRefMarker = -1;
@@ -369,7 +379,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
   // TILTED PART OF TBPS + TB2S
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
-    OuterBundle* myBundle = b.second;
+    OuterBundle* myBundle = b.second.get();
     const bool isBarrel = myBundle->isBarrel();
     const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
@@ -394,7 +404,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
       const int stereoBundleId = myBundle->stereoBundleId();
       auto found = stereoBundles.find(stereoBundleId);
       if (found != stereoBundles.end()) {
-	const OuterBundle* myStereoBundle = found->second;
+	const OuterBundle* myStereoBundle = found->second.get();
 	// Get the Phi nonant in which the stereoBundle is located.
 	const int stereoPhiSectorRef = myStereoBundle->getCable()->phiSectorRef();
 	
@@ -429,7 +439,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
-    OuterBundle* myBundle = b.second;
+    OuterBundle* myBundle = b.second.get();
     const bool isBarrelPSFlatPart = myBundle->isBarrelPSFlatPart();
 
     // Only for Barrel: flat part of TBPS
@@ -439,7 +449,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
       // Get the bundle located at the same Phi, but connected to the tilted modules.
       auto found = bundles.find(tiltedBundleId);
       if (found != bundles.end()) {
-	const OuterBundle* myTiltedBundle = found->second;
+	const OuterBundle* myTiltedBundle = found->second.get();
 
 	// Decisive point!!
 	// Get the semi-nonant attribution of the tiltedBundle.
@@ -461,11 +471,13 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 
 /* Check services channels sections containing power cables.
  */
-void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<int, OuterBundle*>& bundles) {
+void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<const int, std::unique_ptr<OuterBundle> >& bundles) {
   std::map<std::pair<const int, const ChannelSlot>, int > channels;
 
-  for (auto& b : bundles) {
-    const ChannelSection* mySection = b.second->powerChannelSection();
+  for (const auto& b : bundles) {
+    const OuterBundle* myBundle = b.second.get();
+
+    const ChannelSection* mySection = myBundle->powerChannelSection();
     const int myChannelNumber = mySection->channelNumber();
     const ChannelSlot& myChannelSlot = mySection->channelSlot();
 

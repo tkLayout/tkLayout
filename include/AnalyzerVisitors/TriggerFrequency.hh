@@ -122,7 +122,7 @@ public:
     double trueStubRate = pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_; // highPtParticlesRate * triggerEfficiency
     double misfilteredStubRate = pterr.getTriggerFrequencyTruePerEventBelow(interestingPt_)*nMB_; // low-Pt particles improperly considered to be high-pT, due to pT measurement errors, for which we form stubs
     double combinatorialStubRate = pterr.getTriggerFrequencyFakePerEvent()*pow(nMB_,2); // stubs due to occupancy combinatorics - i.e. random pixels/strips turned on in the upper and lower sensors caused by separate tracks or secondaries which happen to fall within the trigger window
-    double fakeStubRate = misfilteredStubRate + combinatorialStubRate; // combinatoricStubRate scales with the square of Nmb, while misfilteredStubRate scales linearly with Nmb
+    //double fakeStubRate = misfilteredStubRate + combinatorialStubRate; // combinatoricStubRate scales with the square of Nmb, while misfilteredStubRate scales linearly with Nmb
 
     curAvgTrue  += (trueStubRate - curAvgTrue)/(curCnt+1);
     curAvgInteresting += (highPtParticlesRate - curAvgInteresting)/(curCnt+1);

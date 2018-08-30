@@ -66,9 +66,9 @@ public:
 
   void parent(const DetectorModule* m) { parent_ = m; }
 
-  ModuleSubdetector subdet(ModuleSubdetector s) { subdet_ = s; }
+  void subdet(ModuleSubdetector s) { subdet_ = s; }
   ModuleSubdetector subdet() const { return subdet_; }
-  SensorPosition innerOuter(SensorPosition pos) { innerOuter_ = pos; }
+  void innerOuter(SensorPosition pos) { innerOuter_ = pos; }
   SensorPosition innerOuter() const { return innerOuter_; }
 
   int numStripsAcrossEstimate() const;

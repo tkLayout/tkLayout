@@ -238,6 +238,7 @@ struct Helix {
 template<class T>
 class Value {
 public:
+  virtual ~Value() {};
   virtual T get() = 0;
   virtual std::string toString() const = 0;
 };

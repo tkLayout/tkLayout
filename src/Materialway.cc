@@ -54,11 +54,11 @@ namespace material {
   Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
-      outgoingSection_(nullptr),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
-      maxR_(maxR) {}
+      maxR_(maxR),
+      outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
     Boundary(nullptr, true, 0, 0, 0, 0){}
@@ -114,14 +114,14 @@ namespace material {
   //=================================================================================
   //START Materialway::Section
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
+    debug_(debug),
     minZ_(minZ),
     minR_(minR),
     maxZ_(maxZ),
     maxR_(maxR),
     bearing_(bearing),
     nextSection_(nextSection),
-    inactiveElement_(nullptr),
-    debug_(debug),
+    inactiveElement_(nullptr), 
     materialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
@@ -142,6 +142,7 @@ namespace material {
             nullptr) {}
 
   Materialway::Section::Section(const Section& other) :
+    debug_(other.debug_),
     minZ_(other.minZ_),
     minR_(other.minR_),
     maxZ_(other.maxZ_),
@@ -149,7 +150,6 @@ namespace material {
     bearing_(other.bearing_),
     nextSection_(nullptr),
     inactiveElement_(nullptr), //attention, nextSection and inactiveElement are not copied
-    debug_(other.debug_),
     materialObject_(other.materialObject_) {
 
     double zLength = undiscretize(other.maxZ() - other.minZ());
@@ -175,8 +175,7 @@ namespace material {
       inactiveElement(ring);
     }
   }
-  
-  Materialway::Section::~Section() {}
+
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
     if (aDirection==HORIZONTAL) {
@@ -651,9 +650,9 @@ namespace material {
         moduleSectionAssociations_(moduleSectionAssociations),
         layerRodSections_(layerRodSections),
         diskRodSections_(diskRodSections),
-        startLayer(nullptr),
         //startLayerZMinus(nullptr),
         startBarrel(nullptr),
+	startLayer(nullptr),
         startEndcap(nullptr),
         startDisk(nullptr),
         currLayer_(nullptr),
@@ -1017,11 +1016,11 @@ namespace material {
       ModuleSectionMap& moduleSectionAssociations_;
       LayerRodSectionsMap& layerRodSections_;  //map each layer with corresponding sections vector and station
       DiskRodSectionsMap& diskRodSections_;
+      Section* startBarrel;
       Section* startLayer;
       //Section* startLayerZMinus;
-      Section* startDisk;
-      Section* startBarrel;
       Section* startEndcap;
+      Section* startDisk;     
       //ZPosition currEndcapPosition;
       Layer* currLayer_;
       Disk* currDisk_;
@@ -1092,9 +1091,10 @@ namespace material {
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
   Materialway::Materialway() :
+    boundariesList_(),
     outerUsher(sectionsList_, boundariesList_),
-    innerUsher(sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_),
-    boundariesList_() {}
+    innerUsher(sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_)
+  {}
   Materialway::~Materialway() {}
 
   int Materialway::discretize(double input) {
@@ -1165,7 +1165,7 @@ namespace material {
 
     bool retValue = false;
 
-    int startTime = time(0);
+    //int startTime = time(0);
     startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
       stopTaskClock();

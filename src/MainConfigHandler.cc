@@ -489,12 +489,12 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
   while(getline(is, line).good()) {
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
-    int includeStart;
+    std::size_t includeStart;
     // Merging a spec file (adding the latest includepath to the filename)
     if ((includeStart = trimmed.find("tiltedLayerSpecFile")) != string::npos) { 
       string rightPart = trimmed.substr(includeStart + strlen("tiltedLayerSpecFile"));
       string leftPart = trimmed.substr(0, includeStart + strlen("tiltedLayerSpecFile"));
-      int lastSpace;
+      std::size_t lastSpace;
       for (lastSpace=0; (rightPart[lastSpace]==' ')&&(lastSpace<rightPart.size()); lastSpace++);
       rightPart = rightPart.substr(lastSpace);
       line = leftPart + " " + absoluteFileNameDirectory + "/" + rightPart;
@@ -502,7 +502,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
 
     if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
       trimmed = trimmed.substr(includeStart);
-      int quoteStart, quoteEnd;
+      std::size_t quoteStart, quoteEnd;
       string nextIncludeFileName;
       if ((quoteStart = trimmed.find_first_of("\"")) != string::npos && (quoteEnd = trimmed.find_last_of("\"")) != string::npos) {
         nextIncludeFileName = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
@@ -574,7 +574,8 @@ void mainConfigHandler::readDetIdSchemes() {
 	// For example, Tracker volume (hierarchy level 0) is assigned size 4 (ie, 4 bits).
 	std::vector<int> geometryHierarchySizes;
 	int sum = 0;
-	for (int i = 1; i < schemeData.size(); i++) {
+	int detIdSchemeSize = schemeData.size();
+	for (int i = 1; i < detIdSchemeSize; i++) {
 	  int size = str2any<int>(schemeData.at(i));
 	  geometryHierarchySizes.push_back(size);
 	  sum += size; 

@@ -13,11 +13,10 @@
  * All modules connected to a given HV line can be accessed, as well as the Power Chain they are connected to.
  */
 class HvLine : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef PtrVector<Module> Container;
+  typedef std::vector<Module*> Container;
 
 public:
   HvLine(const std::string name);
-  ~HvLine();
 
   // MODULES CONNECTED TO THE HV LINE
   const Container& modules() const { return modules_; }

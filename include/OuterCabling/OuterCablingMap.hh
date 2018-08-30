@@ -18,43 +18,45 @@ public:
   OuterCablingMap(Tracker* tracker);
 
   // positive cabling side
-  const std::map<int, OuterBundle*>& getBundles() const { return bundles_; }
-  const std::map<int, OuterCable*>& getCables() const { return cables_; }
-  const std::map<const std::string, const OuterDTC*>& getDTCs() const { return DTCs_; }
+  const std::map<const int, std::unique_ptr<OuterBundle> >& getBundles() const { return bundles_; }
+  const std::map<const int, std::unique_ptr<OuterCable> >& getCables() const { return cables_; }
+  const std::map<const std::string, std::unique_ptr<const OuterDTC> >& getDTCs() const { return DTCs_; }
 
   // negative cabling side
-  const std::map<int, OuterBundle*>& getNegBundles() const { return negBundles_; }
-  const std::map<int, OuterCable*>& getNegCables() const { return negCables_; }
-  const std::map<const std::string, const OuterDTC*>& getNegDTCs() const { return negDTCs_; }
+  const std::map<const int, std::unique_ptr<OuterBundle> >& getNegBundles() const { return negBundles_; }
+  const std::map<const int, std::unique_ptr<OuterCable> >& getNegCables() const { return negCables_; }
+  const std::map<const std::string, std::unique_ptr<const OuterDTC> >& getNegDTCs() const { return negDTCs_; }
+  
 
 private:
   // CONNECT MODULES TO BUNDLES
   void connectModulesToBundles(Tracker* tracker);
 
   // CONNECT BUNDLES TO CABLES
-  void connectBundlesToCables(std::map<int, OuterBundle*>& bundles, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs);
+  void connectBundlesToCables(std::map<const int, std::unique_ptr<OuterBundle> >& bundles, std::map<const int, std::unique_ptr<OuterCable> >& cables, std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs);
   const Category computeCableType(const Category& bundleType) const;
-  const std::map<int, std::pair<int, int> > computeCablesPhiSectorRefAndSlot(const std::map<int, OuterBundle*>& bundles) const;
+  const std::map<int, std::pair<int, int> > computeCablesPhiSectorRefAndSlot(const std::map<const int, std::unique_ptr<OuterBundle> >& bundles) const;
   const int computeCableTypeIndex(const Category& cableType) const;
   const int computeCableId(const int phiSectorRefCable, const int cableTypeIndex, const int slot, const bool isPositiveCablingSide) const;
-  void createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<int, OuterCable*>& cables, std::map<const std::string, const OuterDTC*>& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
+  void createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<const int, std::unique_ptr<OuterCable> >& cables, std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
   void connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const;
-  void checkBundlesToCablesCabling(std::map<int, OuterCable*>& cables);  // check bundles to cables connections
+  void checkBundlesToCablesCabling(const std::map<const int, std::unique_ptr<OuterCable> >& cables);  // check bundles to cables connections
 
   // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
   void computePowerServicesChannels();
   void routeBarrelBundlesPoweringToSemiNonants(const bool isPositiveCablingSide);
-  void checkBundlesToPowerServicesChannels(const std::map<int, OuterBundle*>& bundles);
+  void checkBundlesToPowerServicesChannels(const std::map<const int, std::unique_ptr<OuterBundle> >& bundles);
 
   // positive cabling side
-  std::map<int, OuterBundle*> bundles_;
-  std::map<int, OuterCable*> cables_;
-  std::map<const std::string, const OuterDTC*> DTCs_;
+  std::map<const int, std::unique_ptr<OuterBundle> > bundles_;
+  std::map<const int, std::unique_ptr<OuterCable> > cables_;
+  std::map<const std::string, std::unique_ptr<const OuterDTC> > DTCs_;
 
   // negative cabling side
-  std::map<int, OuterBundle*> negBundles_;
-  std::map<int, OuterCable*> negCables_;
-  std::map<const std::string, const OuterDTC*> negDTCs_;
+  std::map<const int, std::unique_ptr<OuterBundle> > negBundles_;
+  std::map<const int, std::unique_ptr<OuterCable> > negCables_;
+  std::map<const std::string, std::unique_ptr<const OuterDTC> > negDTCs_;
+  // All bundles, cables, and DTC are owned by the Cabling map, and the Cabling map only!!
 };
 
 

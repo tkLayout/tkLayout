@@ -114,25 +114,19 @@ public:
   Property<double, AutoDefault> installationHorizontalOverlapLength; 
 
   Layer() :
-            materialObject_(MaterialObject::LAYER),
-            flangeConversionStation_(nullptr),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
-	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
-	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
-	    numRods        ("numRods"        , parsedOnly()),
-	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),
-            ringNode       ("Ring"           , parsedOnly()),
-            stationsNode   ("Station"        , parsedOnly()),
-            buildNumModules("numModules"     , parsedOnly()),
+	    buildNumModules("numModules"     , parsedOnly()),
             maxZ           ("maxZ"           , parsedOnly()),
-            radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
-            placeRadiusHint("placeRadiusHint", parsedOnly()),
+	    radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
+	    placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
-	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), true),
+	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
+	    numRods        ("numRods"        , parsedOnly()),
+	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),	    
 	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
@@ -140,7 +134,13 @@ public:
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly()),
 	    isSkewedForInstallation("isSkewedForInstallation", parsedOnly(), false),
 	    skewedModuleEdgeShift("skewedModuleEdgeShift", parsedOnly()),
-	    installationOverlapRatio("installationOverlapRatio", parsedOnly(), 2.) // remove default??
+	    installationOverlapRatio("installationOverlapRatio", parsedOnly(), 2.), // remove default??
+	    materialObject_(MaterialObject::LAYER),
+            flangeConversionStation_(nullptr),
+	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
+	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
+	    ringNode       ("Ring"           , parsedOnly()),
+            stationsNode   ("Station"        , parsedOnly())
   { setup(); }
 
   void setup() {

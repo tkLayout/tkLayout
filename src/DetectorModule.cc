@@ -189,14 +189,14 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     double         rmin;
     double         rmax;
-    double         xmin;
-    double         xmax;
-    double         ymin;
-    double         ymax;
+    //double         xmin;
+    //double         xmax;
+    //double         ymin;
+    //double         ymax;
     double         zmin;
     double         zmax;
-    double         rminatzmin;
-    double         rmaxatzmax;
+    //double         rminatzmin;
+    //double         rmaxatzmax;
     std::vector<XYZVector> vertex; 
 
 
@@ -250,10 +250,10 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
       zv.push_back(v_bottom[ip].Z());
     }
     // Find min and max
-    xmin = *std::min_element(xv.begin(), xv.end());
-    xmax = *std::max_element(xv.begin(), xv.end());
-    ymin = *std::min_element(yv.begin(), yv.end());
-    ymax = *std::max_element(yv.begin(), yv.end());
+    //xmin = *std::min_element(xv.begin(), xv.end());
+    //xmax = *std::max_element(xv.begin(), xv.end());
+    //ymin = *std::min_element(yv.begin(), yv.end());
+    //ymax = *std::max_element(yv.begin(), yv.end());
     zmin = *std::min_element(zv.begin(), zv.end());
     zmax = *std::max_element(zv.begin(), zv.end());
 
@@ -316,8 +316,8 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     // Find min and max
     rmin = *std::min_element(rv.begin(), rv.end());
     rmax = *std::max_element(rv.begin(), rv.end());
-    rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
-    rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
+    //rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
+    //rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
 
 
     extrema["minZ"] = zmin;
@@ -705,7 +705,7 @@ const OuterDTC* DetectorModule::getDTC() const {
 const int DetectorModule::dtcPlotColor() const {
   int dtcPlotColor = 0;
   const OuterDTC* myDTC = getDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPlotColor = myDTC->plotColor();
   }
   return dtcPlotColor;
@@ -715,7 +715,7 @@ const int DetectorModule::dtcPlotColor() const {
 const int DetectorModule::dtcPhiSectorRef() const {
   int dtcPhiSectorRef = 0;
   const OuterDTC* myDTC = getDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPhiSectorRef = myDTC->phiSectorRef();
   }
   return dtcPhiSectorRef;
@@ -756,7 +756,7 @@ const int DetectorModule::powerChainPlotColor() const {
 const int DetectorModule::gbtPlotColor() const {
   int gbtPlotColor = 0;
   const GBT* myGBT = getGBT();
-  if (myGBT != nullptr) {
+  if (myGBT) {
     gbtPlotColor = myGBT->plotColor();
   }
   return gbtPlotColor;
@@ -776,7 +776,7 @@ const InnerBundle* DetectorModule::getInnerBundle() const {
 const int DetectorModule::innerBundlePlotColor() const {
   int bundlePlotColor = 0;
   const InnerBundle* myBundle = getInnerBundle();
-  if (myBundle != nullptr) {
+  if (myBundle) {
     bundlePlotColor = myBundle->plotColor();
   }
   return bundlePlotColor;
@@ -796,7 +796,7 @@ const InnerDTC* DetectorModule::getInnerDTC() const {
 const int DetectorModule::innerDTCPlotColor() const {
   int dtcPlotColor = 0;
   const InnerDTC* myDTC = getInnerDTC();
-  if (myDTC != nullptr) {
+  if (myDTC) {
     dtcPlotColor = myDTC->plotColor();
   }
   return dtcPlotColor;

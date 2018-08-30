@@ -22,6 +22,7 @@ class SimParms;
 
 class GeometryVisitor { 
 public:
+  virtual ~GeometryVisitor() {}
   virtual void visit(Detector&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
@@ -42,6 +43,7 @@ public:
 
 class ConstGeometryVisitor {
 public:
+  virtual ~ConstGeometryVisitor() {}
   virtual void visit(const Detector&) {}
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
@@ -62,6 +64,7 @@ public:
 
 class SensorGeometryVisitor { 
 public:
+  virtual ~SensorGeometryVisitor() {}
   virtual void visit(Detector&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}

@@ -11,6 +11,7 @@ class RootWContent;
 
 class Report {
 public:
+  virtual ~Report() {};
   virtual void analyze() { };  
   virtual void analyze(Detector&) { };
   virtual void analyze(Tracker&) { };

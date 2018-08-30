@@ -64,7 +64,6 @@ struct UniRef { string subdetectorName; int layer, ring, phi, side; };
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase, public DetIdentifiable {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC) 
 
-  PropertyNode<int> sensorNode;
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
@@ -148,28 +147,22 @@ public:
   
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
-      materialObject_(MaterialObject::MODULE),      sensorNode               ("Sensor"                   , parsedOnly()),
       skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
-      readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP), 
-      singleHitEfficiency      ("singleHitEfficiency"      , parsedOnly() , 1.),
-      readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
       zCorrelation             ("zCorrelation"             , parsedOnly()),
+      readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
+      readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP),
+      singleHitEfficiency      ("singleHitEfficiency"      , parsedOnly() , 1.),
+      triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
       numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),
       numSparsifiedPayloadBits ("numSparsifiedPayloadBits" , parsedOnly()),
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
       numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
-      triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
       operatingTemp            ("operatingTemp"            , parsedAndChecked()),
       biasVoltage              ("biasVoltage"              , parsedAndChecked()),
-      powerPerModule           ("powerPerModule"           , parsedOnly()),
-      triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
-      triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
-      stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
-      reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
-      trackingTags             ("trackingTags"             , parsedOnly()),
+      powerPerModule           ("powerPerModule"           , parsedOnly()),     
       nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
       nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
       // Local X resolution parameters
@@ -194,14 +187,23 @@ public:
       resolutionLocalYParam7            ("resolutionLocalYParam7"            , parsedOnly()),
       resolutionLocalYParam8            ("resolutionLocalYParam8"            , parsedOnly()),
       resolutionLocalYParam9            ("resolutionLocalYParam9"            , parsedOnly()),
+      triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
+      triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
+      stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
+      reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
+      trackingTags             ("trackingTags"             , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
-      removeModule             ("removeModule"             , parsedOnly(), false)
+      removeModule             ("removeModule"             , parsedOnly(), false),
+      materialObject_(MaterialObject::MODULE),
+      sensorNode               ("Sensor"                   , parsedOnly())
 	{ }
+
+  virtual ~DetectorModule() {};
 
   virtual void setup();
   void check() override;
@@ -414,6 +416,8 @@ protected:
   ModuleCap* myModuleCap_ = nullptr;
 
 private:
+  PropertyNode<int> sensorNode;
+
   // OT CABLING MAP
   OuterBundle* bundle_ = nullptr;
   // IT CABLING MAP
@@ -422,6 +426,9 @@ private:
   HvLine* hvLine_ = nullptr;
   int numELinks_;
   GBT* GBT_ =  nullptr;
+  // The raw pointers are intended. DetectorModule is NOT owning the cabling resources.
+  // All cabling ressources are owned by the CablingMap, which is a member variable of Tracker.
+  // They get destructed when Tracker is destructed.
 };
 
 

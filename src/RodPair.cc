@@ -125,7 +125,7 @@ std::set<int> StraightRodPair::solveCollisionsZPlus() {
   zGuards[1] = zGuards[-1] = std::numeric_limits<double>::lowest();
   int parity = zPlusParity();
   int n = 1;
-  bool found = false;
+  //bool found = false;
   logINFO("Checking for collisions in Z+ rod");
   for (auto& m : zPlusModules_) {
     double minPhysZ = m.center().Z() - MAX(m.physicalLength(), m.length())/2;
@@ -134,7 +134,7 @@ std::set<int> StraightRodPair::solveCollisionsZPlus() {
       m.translateZ(offset);
       collisions.insert(n);
       logINFO("  Module " + any2str(n) + " collides with previous " + (parity > 0 ? "outer" : "inner") + " module. Translated by " + any2str(offset) + " mm");
-      found = true;
+      //found = true;
     }
     zGuards[parity] = m.center().Z() + MAX(m.physicalLength(), m.length())/2;
     parity = -parity;
@@ -285,8 +285,8 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
     parity = -parity;
   } 
 
-  double lengthOffset = lastm->length();
-  double physicalLengthOffset = lastm->physicalLength();
+  //double lengthOffset = lastm->length();
+  //double physicalLengthOffset = lastm->physicalLength();
 
   for (; abs(newZ) < targetZ && n < targetMods; n++) {  // in case the rodtemplate vector is finished but we haven't hit the targetZ or targetMods yet, we keep on using the last module for dsDistance and length
     newZ = computeNextZ(lastm->length(), lastm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
@@ -337,11 +337,11 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
     BarrelModule* mod;
     if (!mezzanine() && (startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) { // skips the central module information.
-      mod = GeometryFactory::make<BarrelModule>(i < (rodTemplate.size() - 1) ? *rodTemplate[i+1].get() : *rodTemplate.rbegin()->get());
+      mod = GeometryFactory::make<BarrelModule>(i < ((int)rodTemplate.size() - 1) ? *rodTemplate[i+1].get() : *rodTemplate.rbegin()->get());
       mod->myid(i+2);
     }
     else {
-      mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
+      mod = GeometryFactory::make<BarrelModule>(i < (int)rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
       mod->myid(i+1);
     }
     mod->side(side);
@@ -418,7 +418,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   if (tmspecs.empty()) return;
   int i = 0;
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
-  for (; i < tmspecs.size(); i++, ++it) {
+  for (; i < (int)tmspecs.size(); i++, ++it) {
     //std::cout << "i = " << i << std::endl;
     //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
     //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
