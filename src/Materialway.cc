@@ -1318,22 +1318,9 @@ namespace material {
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
-	
-        int minLayersSecondStationMeanZ = std::numeric_limits<int>::max();
-	for (const auto& layer: barrel.layers()) {
-	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
-	  //if (secondConversionStations.size() > 0) { 
-	  //  layersSecondStationsMinZ = MIN(layersSecondStationsMinZ, discretize(station->minZ_()));
-	  //}
-	  for (const auto& station : secondConversionStations) {
-	    minLayersSecondStationMeanZ = MIN(minLayersSecondStationMeanZ, 
-					   discretize((station->minZ_() + station->maxZ_())/2.)
-					   );
-	  }
-	}
-
-	const bool hasCShapeOutgoingServices = (minLayersSecondStationMeanZ < boundMaxZ);
-	const int cShapeMinZ = minLayersSecondStationMeanZ - cShapeMinZTolerance;
+	const int barrelSecondStationsMinMeanZ = computeBarrelSecondStationsMinMeanZ(barrel);
+	const bool hasCShapeOutgoingServices = (barrelSecondStationsMinMeanZ < boundMaxZ); // KEY POINT: Need to route services along a C-shape.
+	const int cShapeMinZ = barrelSecondStationsMinMeanZ - cShapeMinZTolerance;
 	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices, cShapeMinZ);
 
         boundariesList_.insert(newBoundary);
@@ -1351,7 +1338,25 @@ namespace material {
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
       }
 
+
     private:
+      /*
+       * This is used to compute the minimum meanZ of the barrel second conversion stations.
+       */
+      const int computeBarrelSecondStationsMinMeanZ(const Barrel& barrel) {
+	int barrelSecondStationsMinMeanZ = std::numeric_limits<int>::max();
+	
+	for (const auto& layer: barrel.layers()) {
+	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
+	  for (const auto& station : secondConversionStations) {
+	    barrelSecondStationssMinMeanZ = MIN(barrelSecondStationssMinMeanZ, 
+						discretize(station->meanZ_())
+						);
+	  }
+	}
+	return barrelSecondStationsMinMeanZ;
+      }
+
       BoundariesSet& boundariesList_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
