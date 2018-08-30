@@ -401,11 +401,14 @@ namespace material {
       const bool isTowardsBiggerZ = false;
       int towardsSmallerZCablingMinR = startR + safetySpace;
       bool noCollision = buildSection(firstSection, lastSection, startZ, towardsSmallerZCablingMinR, cShapeMinZ, direction, isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
 
       // THEN, GO BACK TOWARDS BIGGER |Z|.
       // Z: cShapeMinZ -> startZ
       int towardsBiggerZCablingMinR = towardsSmallerZCablingMinR + sectionWidth + layerStationLenght + safetySpace;
       noCollision = buildSection(firstSection, lastSection, cShapeMinZ, towardsBiggerZCablingMinR, startZ, direction, !isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
+      
 
       startR += sectionWidth + safetySpace;
 
@@ -1351,9 +1354,9 @@ namespace material {
 	for (const auto& layer: barrel.layers()) {
 	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
 	  for (const auto& station : secondConversionStations) {
-	    barrelSecondStationssMinMeanZ = MIN(barrelSecondStationssMinMeanZ, 
-						discretize(station->meanZ_())
-						);
+	    barrelSecondStationsMinMeanZ = MIN(barrelSecondStationsMinMeanZ, 
+					       discretize(station->meanZ())
+					       );
 	  }
 	}
 	return barrelSecondStationsMinMeanZ;
