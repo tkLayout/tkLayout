@@ -700,7 +700,10 @@ namespace material {
         diskRodSections_(diskRodSections) {}
   Materialway::InnerUsher::~InnerUsher() {}
 
+
   void Materialway::InnerUsher::go(Tracker& tracker) {
+
+
     //Visitor for the barrel layers
     class MultipleVisitor : public GeometryVisitor {
     public:
@@ -732,6 +735,7 @@ namespace material {
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
 
+
       //For the barrels ----------------------------------------------------
       void visit(Barrel& barrel) {
         //build section right to layers
@@ -746,6 +750,7 @@ namespace material {
 
 	hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
       }
+
 
       void visit(Layer& layer) {
         ConversionStation* flangeConversionStation = layer.flangeConversionStation();
@@ -810,8 +815,6 @@ namespace material {
 	sectionsList_.push_back(startLayer);
 	layerRodSections_[currLayer_].addSection(startLayer);
 
-       
-        
         
         //==========second level conversion station
 	buildSecondConversionStations(section, secondConversionStations);
@@ -862,6 +865,7 @@ namespace material {
         */
       }
 
+
       //For the endcaps ----------------------------------------------------
       void visit(Endcap& endcap) {
         if (endcap.minZwithHybrids() >= 0) {
@@ -878,6 +882,7 @@ namespace material {
 	  hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
         }
       }
+
 
       void visit(Disk& disk) {
         Section* section = nullptr;
@@ -931,16 +936,13 @@ namespace material {
           }
           sectionsList_.push_back(startDisk);
           diskRodSections_[currDisk_].addSection(startDisk);
-
-          //TODO:aggiungi riferimento della rod a startZ...
-
         
 
-        //==========second level conversion station
+	  //==========second level conversion station
 	  buildSecondConversionStations(section, secondConversionStations);
-
         }
       }
+
 
       void visit(EndcapModule& module) {
         //if(currEndcapPosition == POSITIVE) {
