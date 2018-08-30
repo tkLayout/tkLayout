@@ -968,118 +968,137 @@ namespace material {
 
 
     private:
+      /*
+       * This is used to build the conversion stations volumes + make the succession of sections and stations correctly point to each other.
+       */
       void buildSecondConversionStations(Section* section, const std::vector<ConversionStation*>& secondConversionStations) {
 
-        //find attach point
-        for(ConversionStation* secondConversionStation : secondConversionStations) {
-          bool validConversion = true;
+	// Loop on all cfg conversion stations
+        for(ConversionStation* stationFromCfg : secondConversionStations) {
+          bool isStationAlreadyBuilt = false;
           
-          //check if the station is already built
+          // Check whether the station is already built
           for (auto& existentStation : stationListSecond_) {
-            if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-              validConversion = false;
+            if (existentStation->conversionStation().stationName_().compare(stationFromCfg->stationName_()) == 0) {
+              isStationAlreadyBuilt = true;
               break;
             }
           }
 
-          if (validConversion) {
-	     
 
+	  // Only do sth if conversion station does not exist yet.
+          if (!isStationAlreadyBuilt) {   
+
+	    // STANDARD CASE: THERE IS NO C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // STATIONS ARE BUILT TOWARDS BIGGER |Z|.
 	    if (!hasCShapeOutgoingServices_) {
-	      if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards bigger |Z|.
+	      if (discretize(stationFromCfg->maxZ_()) < section->minZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards bigger |Z|. ")
+			 + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			 + any2str(" and station maxZ = ") + any2str(stationFromCfg->maxZ_()) + any2str(" mm.")
+			 );
 		continue;
 	      }
 
-	      const int attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
         
+	      // If we are at a too low |Z|, we go on from section to section, towards bigger |Z|.
 	      while(section->maxZ() < attachPoint + sectionTolerance) {
 		if(!section->hasNextSection()) {
-		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards bigger |Z|. ")
+			   + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
 		  return;
 		}
 		section = section->nextSection();
 	      }
-	   
+     
+	      // Now we are correctly placed at section = the section below the conversion station. :)
 
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
 	      if (section->minZ() < attachPoint - sectionTolerance) {
-		splitSection(section, attachPoint);
+		splitSection(section, attachPoint); 
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at smaller |Z| points towards the section at bigger |Z|.
 	      }
 	    }
 
+
+	    // C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // For example, C-shape loop built over TBPX.
+	    // STATIONS ARE BUILT TOWARDS SMALLER |Z|.
+	    // THEY ARE BUILT ALONG THE RADIALLY LOWER HORIZONTAL BRANCH OF THE C.
 	    else {
 	      const bool isTowardsBiggerZ = false;
-	      if (section->maxZ() < discretize(secondConversionStation->minZ_())) {
-		logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->maxZ()) + "), Z too high (Z=" +to_string(discretize(secondConversionStation->minZ_())) + ").");
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards smaller |Z|.
+	      if (discretize(stationFromCfg->minZ_()) > section->maxZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards smaller |Z|. ")
+			 + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			 + any2str(" and station minZ = ") + any2str(stationFromCfg->minZ_()) + any2str(" mm.")
+			 );
 		continue;
 	      }
 
-	      const int attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
         
+	      // If we are at a too big |Z|, we go on from section to section, towards smaller |Z|.
 	      while(section->minZ() > attachPoint - sectionTolerance) {
 		if(!section->hasNextSection()) {
-		  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards smaller |Z|. ")
+			   + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
 		  return;
 		}
 		section = section->nextSection();
 	      }
 	   
+	      // Now we are correctly placed at section = the section below the conversion station. :)
 
-
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
 	      if (section->maxZ() > attachPoint + sectionTolerance) {
 		splitSection(section, attachPoint, isTowardsBiggerZ);
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at bigger |Z| points towards the section at smaller |Z|.
 	      }
-
 	    }
 
 
-
-
-
-
-	    const int stationMinZ = discretize(secondConversionStation->minZ_());
+	    // PART C: BUILD CONVERSION STATION
+	    const int stationMinZ = discretize(stationFromCfg->minZ_());
+	    const int stationMaxZ = discretize(stationFromCfg->maxZ_());
 	    const int stationMinR = section->maxR() + safetySpace;
-	    const int stationMaxZ = discretize(secondConversionStation->maxZ_());
 	    const int stationMaxR = stationMinR + layerStationLenght;
-
-	    Station* station = nullptr;
+	   
+	    Station* myStation = nullptr;
             if(section->hasNextSection()) {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg, section->nextSection());
             } else {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg);
             }
 
-            section->nextSection(station);
+            section->nextSection(myStation);
 
-            sectionsList_.push_back(station);
-            stationListSecond_.push_back(station);
+
+	    // PART D: STORE CONVERSION STATION.
+            sectionsList_.push_back(myStation);
+            stationListSecond_.push_back(myStation);
           }
         }
       }
-      
 
-      enum ZPosition {POSITIVE, NEGATIVE};
-      //int splitCounter;
-      SectionVector& sectionsList_;
-      StationVector& stationListFirst_;
-      StationVector& stationListSecond_;
-      BarrelBoundaryMap& barrelBoundaryAssociations_;
-      EndcapBoundaryMap& endcapBoundaryAssociations_;
-      ModuleSectionMap& moduleSectionAssociations_;
-      LayerRodSectionsMap& layerRodSections_;  //map each layer with corresponding sections vector and station
-      DiskRodSectionsMap& diskRodSections_;
-      Section* startBarrel;
-      Section* startLayer;
-      //Section* startLayerZMinus;
-      Section* startEndcap;
-      Section* startDisk;     
-      //ZPosition currEndcapPosition;
-      Layer* currLayer_;
-      Disk* currDisk_;
-      bool hasCShapeOutgoingServices_;
-
-
-      //Section* findAttachPoint(Section* section, )
 
       /*
        * Split section into 2 sections, at the collision coordinate.
@@ -1127,6 +1146,27 @@ namespace material {
         }
         return newSection;
       }
+      
+
+      enum ZPosition {POSITIVE, NEGATIVE};
+      //int splitCounter;
+      SectionVector& sectionsList_;
+      StationVector& stationListFirst_;
+      StationVector& stationListSecond_;
+      BarrelBoundaryMap& barrelBoundaryAssociations_;
+      EndcapBoundaryMap& endcapBoundaryAssociations_;
+      ModuleSectionMap& moduleSectionAssociations_;
+      LayerRodSectionsMap& layerRodSections_;  //map each layer with corresponding sections vector and station
+      DiskRodSectionsMap& diskRodSections_;
+      Section* startBarrel;
+      Section* startLayer;
+      //Section* startLayerZMinus;
+      Section* startEndcap;
+      Section* startDisk;     
+      //ZPosition currEndcapPosition;
+      Layer* currLayer_;
+      Disk* currDisk_;
+      bool hasCShapeOutgoingServices_;
     }; //END class MultipleVisitor
 
     MultipleVisitor visitor (sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);

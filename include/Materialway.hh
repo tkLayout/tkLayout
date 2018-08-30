@@ -126,7 +126,7 @@ namespace material {
 
       bool debug_;
     private:
-      int minZ_, minR_, maxZ_, maxR_;   
+      int minZ_, minR_, maxZ_, maxR_;
       Direction bearing_;
       Section* nextSection_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
