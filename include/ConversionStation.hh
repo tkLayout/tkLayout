@@ -45,6 +45,7 @@ namespace material {
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;
+    const double meanZ() const { return (minZ_() + maxZ_()) / 2.; }
 
   private:
     static const std::map<std::string, Type> typeString;

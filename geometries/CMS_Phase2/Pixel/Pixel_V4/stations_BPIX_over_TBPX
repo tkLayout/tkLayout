@@ -1,0 +1,34 @@
+// Pixel barrel second-station conversions (placed over TBPX)
+// twisted pairs->GBT
+
+Station {
+  stationName BPIX1
+  type second
+  minZ 156
+  maxZ 220
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+
+Station {
+  stationName BPIX2
+  type second
+  minZ 95
+  maxZ 151
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+
+Station {
+  stationName BPIX3
+  type second
+  minZ 43
+  maxZ 90
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+
+Station {
+  stationName BPIX4
+  type second
+  minZ 5
+  maxZ 38
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}

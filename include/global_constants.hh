@@ -46,7 +46,6 @@ namespace insur {
   static const double geom_max_length                 = 2800.0; // mm, maximum length, in +z, available to place the tracker components
 
   static const double geom_max_eta_coverage           = geom_range_eta_regions[geom_range_eta_regions.size()-1]; // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
-  static const int    geom_n_eta_regions              = geom_range_eta_regions.size();                           // Tracking performed in the following Number of eta regions
 
   static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
 
@@ -89,13 +88,6 @@ namespace insur {
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
    * short_eta_coverage - long_eta_coverage
    */
-  static const double vis_step_eta_short     = 0.2;
-  static const double vis_step_eta_long      = 0.5;
-  static const double vis_step_eta_epsilon   = 0.001;
-  static const double vis_short_eta_coverage = geom_range_eta_regions[1];
-  static const double vis_trk_eta_coverage   = geom_range_eta_regions[2];
-  static const double vis_long_eta_coverage  = geom_range_eta_regions[3];
-
   static const double vis_max_dPtOverPt      = 100;  // [%]
   static const double vis_min_dPtOverPt      = 0.1; // [%]
   static const double vis_max_dZ0            = 5000.;
@@ -113,8 +105,6 @@ namespace insur {
   static const double vis_max_omega          = +M_PI;
   static const double vis_min_omega          = -M_PI;
 
-  static const double vis_safety_factor      = geom_safety_factor;
-
   static const int    vis_min_canvas_sizeX   = 600;
   static const int    vis_std_canvas_sizeX   = 900;
   static const int    vis_max_canvas_sizeX   =1800;
@@ -123,7 +113,6 @@ namespace insur {
   static const int    vis_max_canvas_sizeY   =1800;
 
   static const double vis_eta_step           = 0.1;
-  static const double vis_material_eta_step  = 0.05;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
 
