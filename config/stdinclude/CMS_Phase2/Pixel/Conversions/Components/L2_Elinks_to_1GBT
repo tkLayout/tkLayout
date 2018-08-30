@@ -1,0 +1,16 @@
+// Layer 2:
+// ~2.25 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_L2
+      quantity 1.49175      // = 2.25 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres // = 1 GBT
+  }
+}

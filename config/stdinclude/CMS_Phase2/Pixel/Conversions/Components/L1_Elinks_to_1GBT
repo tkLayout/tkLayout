@@ -1,0 +1,16 @@
+// (6+1) TWP/module
+// 1 module/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_L1
+      quantity 1.547
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres
+  }
+}
