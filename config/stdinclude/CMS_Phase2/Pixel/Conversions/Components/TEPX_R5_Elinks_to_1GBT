@@ -1,0 +1,16 @@
+// TEXP Ring5:
+// 6 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TEPX_R5
+      quantity 2.652               // = 6 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres        // = 1 GBT
+  }
+}
