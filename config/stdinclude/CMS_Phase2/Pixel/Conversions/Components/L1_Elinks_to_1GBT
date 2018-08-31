@@ -1,4 +1,4 @@
-// (6+1) TWP/module
+// Layer 1:
 // 1 module/GBT
 
 Conversion {
@@ -6,11 +6,11 @@ Conversion {
     // Two conductors
     Element {
       elementName Cu_Elinks_L1
-      quantity 1.547
+      quantity 1.547        // = 1. * quantity / module
       unit g/m
     }
   }
   Output {
-    @include GBT_and_fibres
+    @include GBT_and_fibres // = 1 GBT
   }
 }
