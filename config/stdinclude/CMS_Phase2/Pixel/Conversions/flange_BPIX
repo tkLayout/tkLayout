@@ -5,17 +5,29 @@ Station {
   stationName flange_BPIX
   type flange
 
+  // Cooling pipes
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_6:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L2_7:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L3_4:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L4_4:1
   
+  // E-links
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L1
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L2
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3_1x2
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4_1x2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2_2x2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R5
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV

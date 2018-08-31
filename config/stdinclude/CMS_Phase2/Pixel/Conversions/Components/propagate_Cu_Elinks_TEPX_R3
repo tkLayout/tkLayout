@@ -1,0 +1,19 @@
+// 1:1 conversion of Cu_Elinks_TEPX_R3
+
+Conversion {
+  Input {
+    Element {
+      elementName Cu_Elinks_TEPX_R3
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu_Elinks_TEPX_R3
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
