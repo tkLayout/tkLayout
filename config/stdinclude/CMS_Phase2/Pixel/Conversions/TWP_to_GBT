@@ -3,7 +3,9 @@
 @include-std CMS_Phase2/Pixel/Conversions/Components/L1_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/L2_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/L3_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/L3_1x2_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/L4_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/L4_1x2_Elinks_to_1GBT
 
 @include-std CMS_Phase2/Pixel/Conversions/Components/1xTWP_6+1_HS_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/2xTWP_3+1_HS_to_1GBT  

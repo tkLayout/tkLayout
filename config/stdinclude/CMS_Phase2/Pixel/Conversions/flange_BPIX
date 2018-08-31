@@ -13,7 +13,9 @@ Station {
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L1
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L2
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3_1x2
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4_1x2
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV
