@@ -5,10 +5,19 @@ Station {
   stationName flange_tilted_BPIX
   type flange
 
+  // Cooling pipes
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_3:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L2_3:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L3_2:1
   @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L4_2:1
+
+  // E-links
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3_1x2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4_1x2
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV
