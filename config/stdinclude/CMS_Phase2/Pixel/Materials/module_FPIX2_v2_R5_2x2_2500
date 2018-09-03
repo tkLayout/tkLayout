@@ -5,7 +5,7 @@ Materials FPIX2_v2_R5_2x2_2500 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_TWP_1+1_HS
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TEPX_R5
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps

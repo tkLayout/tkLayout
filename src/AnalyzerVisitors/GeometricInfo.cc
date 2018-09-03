@@ -245,7 +245,8 @@ void TiltedLayersVisitor::visit(const Layer& l) {
 
     // FILLS TILTED PART TABLE
     RootWTable* tiltedPartTable = new RootWTable();
-    for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
+    const int numTiltedRings = l.tiltedRingsGeometry().size();
+    for (int i=0; i < numTiltedRings; i++) {
       int ringNumber = l.buildNumModulesFlat() + 1 + i;
       tiltedPartTable->setContent(0, 0, "Ring");
       tiltedPartTable->setContent(0, i+1, ringNumber);

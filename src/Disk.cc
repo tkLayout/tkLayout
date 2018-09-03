@@ -64,7 +64,8 @@ void Disk::check() {
 
 
 const double Disk::getRingInfo(const vector<double>& ringsInfo, int ringNumber) const {
-  if (ringNumber > ringsInfo.size()) {
+  const int numRings = ringsInfo.size();
+  if (ringNumber > numRings) {
     throw PathfulException(Form("When building disk, tried to access information from ring %i", ringNumber));
   }
   return ringsInfo.at(ringNumber - 1);
@@ -155,7 +156,7 @@ double Disk::computeNextRho(const int parity, const double zError, const double 
   if (rOverlap.state()) {
     double nextRhoWithROverlap  = (lastRho + rOverlap()) / lastZ * newZ;
     // Takes the most stringent of cases A and B
-    double nextRho = MAX(nextRho, nextRhoWithROverlap);
+    nextRho = MAX(nextRho, nextRhoWithROverlap);
   }
 
   // If relevant, consider rSafetyMargin.

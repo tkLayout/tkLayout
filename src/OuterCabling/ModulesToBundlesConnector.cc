@@ -272,7 +272,7 @@ const int ModulesToBundlesConnector::computeStereoBundleId(const bool isBarrel, 
  */
 OuterBundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart) {
 
-  OuterBundle* bundle = GeometryFactory::make<OuterBundle>(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
+  OuterBundle* bundle = new OuterBundle(bundleId, stereoBundleId, bundleType, subDetectorName, layerDiskNumber, modulePhiPosition, isPositiveCablingSide, isTiltedPart);
 
   if (isPositiveCablingSide) {
     bundles.insert(std::make_pair(bundleId, bundle));
@@ -330,7 +330,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 	const int previousPhiRegionRef = computePreviousPhiSliceRef(phiRegionRef, numPhiRegions);
 
 	// Compute the associated bundles ids (so that the associated bundles can be accessed).
-	const int bundleId = b.first;
+	//const int bundleId = b.first;
 	const int nextBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, nextPhiRegionRef, bundleTypeIndex);
 	const int previousBundleId = computeBundleId(isBarrel, isPositiveCablingSide, diskNumber, previousPhiRegionRef, bundleTypeIndex);
 

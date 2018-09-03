@@ -385,7 +385,7 @@ namespace insur {
   // TODO: if weightGrid is actually unused, then remove it
   void Vizard::weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
 
-    RootWContent* myContent;
+    //RootWContent* myContent;
 
     // Initialize the page with the material budget
     std::string pageTitle="Weights";
@@ -495,7 +495,9 @@ namespace insur {
     } // subdetector
 
     const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
-    RootWContent& totalContent = myPage.addContent(grandTotal, false);
+    myPage.addContent(grandTotal, false);
+
+    //RootWContent& totalContent = myPage.addContent(grandTotal, false);
     //RootWTable& totalTable = totalContent.addTable();
     //totalTable.setContent(0, 0, totalWeight);
   }
@@ -546,7 +548,7 @@ namespace insur {
     std::map<int, std::vector<double> > averages;
 
     // Book histograms
-    TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
+    TH1D *cr = NULL, *ci = NULL;
     TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
 #ifdef MATERIAL_SHADOW
     TH2D *ir = NULL, *ii = NULL;
@@ -1245,10 +1247,10 @@ namespace insur {
    * @return A pointer to the finished transformation matrix object
    */
   TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
-    XYZVector ex, ey, ez, b, c, d, p;
-    TGeoArb8* arb;
-    TGeoRotation* rot;
-    TGeoCombiTrans* tr;
+    //XYZVector ex, ey, ez, b, c, d, p;
+    //TGeoArb8* arb;
+    //TGeoRotation* rot;
+    TGeoCombiTrans* tr = nullptr;
     // copy of module placement parameters in Module class
 /*    b = m->getCorner(1) - m->getCorner(0);
     c = m->getCorner(2) - m->getCorner(0);
@@ -1423,7 +1425,6 @@ namespace insur {
 
 
       // Modules to DTCs
-      TCanvas *summaryDTCCanvas = nullptr;
       TCanvas *RZDTCCanvas = nullptr;
       TCanvas *XYDTCNegCanvas = nullptr;
       TCanvas *XYDTCNegFlatCanvas = nullptr;
@@ -1568,7 +1569,6 @@ namespace insur {
 
 
       // Modules to Services Channels (optical)
-      TCanvas *summaryChannelOpticalCanvas = nullptr;
       TCanvas *XYChannelOpticalNegCanvas = nullptr;
       TCanvas *XYChannelOpticalNegFlatCanvas = nullptr;
       TCanvas *XYChannelOpticalCanvas = nullptr; 
@@ -1608,7 +1608,6 @@ namespace insur {
 
 
       // Modules to Services Channels (powering)
-      TCanvas *summaryChannelPowerCanvas = nullptr;
       TCanvas *XYChannelPowerNegCanvas = nullptr;
       TCanvas *XYChannelPowerNegFlatCanvas = nullptr;
       TCanvas *XYChannelPowerCanvas = nullptr; 
@@ -3235,7 +3234,7 @@ namespace insur {
   /*
    * Draw detailed hits or stubs counts per layer.
    */
-  bool Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
+  void Vizard::drawCoveragePerlayerDetails(CoveragePerNumberOfHits& detailedInfo, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits) {
     int colorIndex = 2;
 
     for (auto& detailIt : detailedInfo) {
@@ -4023,11 +4022,11 @@ namespace insur {
       // Create a page for the errors
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
-      double verticalScale=1;
+      //double verticalScale=1;
       if (additionalTag!="") {
         pageTitle += " ("+additionalTag+")";
         additionalSummaryTag = "_"+additionalTag+"_";
-        verticalScale = 10;
+        //verticalScale = 10;
       } else {
         additionalSummaryTag = "";
       }
@@ -4417,11 +4416,11 @@ namespace insur {
 
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
-      double verticalScale=1;
+      //double verticalScale=1;
 
       pageTitle              += " ("+tag+")";
       additionalSummaryTag    = "_"+tag+"_";
-      verticalScale           = 10;
+      //verticalScale           = 10;
       std::string pageAddress = "errors" + tag + ".html";
 
       RootWPage* myPage = new RootWPage(pageTitle);
@@ -5481,7 +5480,7 @@ namespace insur {
 
     for (const auto& pIter : mainConfig.getMomenta()) {
 
-      a.hisPatternRecoInOutPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoInOutPt"+any2str(iMomentum)).c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoInOutPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoInOutPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutPt[iMomentum]->SetLineWidth(2.);
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(21);
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerSize(1.);
@@ -5517,7 +5516,7 @@ namespace insur {
 
     for (const auto& pIter : mainConfig.getMomenta()) {
 
-      a.hisPatternRecoOutInPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoOutInPt"+any2str(iMomentum)).c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoOutInPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoOutInPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInPt[iMomentum]->SetLineWidth(2.);
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerStyle(21);
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerSize(1.);
@@ -5560,7 +5559,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5603,7 +5602,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5643,7 +5642,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamInOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5688,7 +5687,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0OutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5731,7 +5730,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0OutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5771,7 +5770,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamOutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5817,7 +5816,7 @@ namespace insur {
 
     for (const auto& pIter : mainConfig.getMomenta()) {
 
-      a.hisPatternRecoInOutP[iMomentum]->SetNameTitle(std::string("hisPBkgContInOut"+any2str(iMomentum)).c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoInOutP[iMomentum]->SetNameTitle(std::string("hisPBkgContInOut"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutP[iMomentum]->SetLineWidth(2.);
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(21);
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerSize(1.);
@@ -5853,7 +5852,7 @@ namespace insur {
 
     for (const auto& pIter : mainConfig.getMomenta()) {
 
-      a.hisPatternRecoOutInP[iMomentum]->SetNameTitle(std::string("hisPBkgContOutIn"+any2str(iMomentum)).c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
+      a.hisPatternRecoOutInP[iMomentum]->SetNameTitle(std::string("hisPBkgContOutIn"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInP[iMomentum]->SetLineWidth(2.);
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerStyle(21);
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerSize(1.);
@@ -5896,7 +5895,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPD0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5939,7 +5938,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0InOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -5981,7 +5980,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamInOut"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -6025,7 +6024,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPD0OutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -6068,7 +6067,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0OutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -6110,7 +6109,7 @@ namespace insur {
       for (const auto& pIter : mainConfig.getMomenta()) {
 
         auto & profHis = iterMap.second;
-        profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamOutIn"+name+any2str(iMomentum)).c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
+        profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
         profHis[iMomentum]->SetMarkerStyle(21);
         profHis[iMomentum]->SetMarkerSize(1.);
@@ -6162,7 +6161,7 @@ namespace insur {
     //*                              *//
     //********************************//
 
-    profileBag aProfileBag = a.getProfileBag();
+    profileBag& aProfileBag = a.getProfileBag();
     std::map<double, TProfile>& triggerProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredProfile);
     std::map<double, TProfile>& triggerFractionProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredFractionProfile);
     std::map<double, TProfile>& triggerPurityProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggerPurityProfile);
@@ -7911,7 +7910,6 @@ namespace insur {
 						  std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
-    const double barrelViewPort = maxRadii.first;
     const double forwardViewPort = maxRadii.second;
 
     const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
@@ -8036,11 +8034,9 @@ namespace insur {
 					   std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
-    const double barrelViewPort = maxRadii.first;
     const double forwardViewPort = maxRadii.second;
 
     const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
-    const double barrelScalingFactor = scalingFactors.first;
     const double forwardScalingFactor = scalingFactors.second;
 
     // BARREL LAYERS, (ZPhi).
@@ -8183,7 +8179,6 @@ namespace insur {
 					      std::vector<TCanvas*> &XYPosBundlesDisks) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
-    const double barrelViewPort = maxRadii.first;
     const double forwardViewPort = maxRadii.second;
 
     const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
@@ -8250,7 +8245,6 @@ namespace insur {
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
-    const double barrelViewPort = maxRadii.first;
     const double forwardViewPort = maxRadii.second;
 
     const std::pair<double, double> scalingFactors = computeInnerCablingPlotsScalingFactors(tracker);
@@ -8262,7 +8256,7 @@ namespace insur {
     XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYPosCanvas->cd();
     PlotDrawer<XY, TypeInnerDTCTransparentColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8423,7 +8417,7 @@ namespace insur {
     else if (nBins <= nPoints) nPoints = nBins;
     resultProfile = new TProfile(Form("%s_timesSin_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
     double x, y;
-    double sintheta;
+    //double sintheta;
     for (int i=0; i<sourceGraph.GetN(); ++i) {
       sourceGraph.GetPoint(i, x, y);
       resultProfile->Fill(x, y/cosh(x));
@@ -9428,7 +9422,7 @@ namespace insur {
 
 
   // Create an extra tab for XML files linking
-  bool Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
+  void Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);

@@ -98,7 +98,6 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 
     // COLLECT RELEVANT INFO
     const PhiPosition& bundlePhiPosition = myBundle->phiPosition();
-    const int phiSegmentRef = bundlePhiPosition.phiSegmentRef(); 
     const double phiSectorWidth = bundlePhiPosition.phiSectorWidth();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();  
    
@@ -253,7 +252,7 @@ void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::ma
 
   auto found = cables.find(cableId);
   if (found == cables.end()) {
-    std::unique_ptr<OuterCable> cable (GeometryFactory::make<OuterCable>(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide));
+    std::unique_ptr<OuterCable> cable (new OuterCable(cableId, phiSectorWidth, cablePhiSectorRef, cableType, slot, isPositiveCablingSide));
     connectOneBundleToOneCable(myBundle, cable.get());
     std::unique_ptr<const OuterDTC> dtc (cable.get()->getDTC());
 

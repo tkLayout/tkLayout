@@ -151,7 +151,7 @@ namespace insur {
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
-    bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
+    void createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
   protected:
     TGeoManager* gm;
@@ -251,7 +251,7 @@ namespace insur {
 			      std::map<std::string, TProfile>& coveragePerLayer,			      
 			      std::map<std::string, CoveragePerNumberOfHits>& coveragePerLayerDetails,
 			      std::map<std::string, std::map<int, double> >& stubWith3HitsCountPerDiskAndRing);
-    bool drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
+    void drawCoveragePerlayerDetails(CoveragePerNumberOfHits& coveragePerLayerDetails, const std::string type, TLegend* layerLegend, const int plotMaxNumberOfHits);
 
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);

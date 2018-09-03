@@ -87,8 +87,8 @@ namespace material {
 	pitchEstimate("pitchEstimate", parsedOnly()),
 	numSegments("numSegments", parsedOnly()),
 	stripLengthEstimate("stripLengthEstimate", parsedOnly()),
-	length("length", parsedOnly()), // not checked because a custom checker is defined for RectangularModules
-	width("width", parsedOnly())  // same here
+        width("width", parsedOnly()),  // same here
+        length("length", parsedOnly()) // not checked because a custom checker is defined for RectangularModules
 	  {}
       int numStripsAcrossEstimate() const {
 	if (numStripsAcross.state()) return numStripsAcross();

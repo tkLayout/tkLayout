@@ -71,17 +71,18 @@ public:
   Disk() :
     materialObject_(MaterialObject::LAYER),
     flangeConversionStation_(nullptr),
-    numRings(    "numRings"   , parsedAndChecked()),
+    
     innerRadius( "innerRadius", parsedAndChecked()),
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
-    zHalfLength( "zHalfLength", parsedAndChecked()),
-    rOverlap(    "rOverlap"   , parsedOnly()),
     bigParity(   "bigParity"  , parsedOnly(), 1),
-    buildZ(      "buildZ"     , parsedOnly()),
-    placeZ(      "placeZ"     , parsedOnly()),
+    rOverlap(    "rOverlap"   , parsedOnly()), 
     ringNode(    "Ring"       , parsedOnly()),
-    stationsNode("Station"    , parsedOnly())
+    stationsNode("Station"    , parsedOnly()),
+    numRings(    "numRings"   , parsedAndChecked()),
+    zHalfLength( "zHalfLength", parsedAndChecked()),
+    buildZ(      "buildZ"     , parsedOnly()),
+    placeZ(      "placeZ"     , parsedOnly())    
   {}
 
   void setup() {

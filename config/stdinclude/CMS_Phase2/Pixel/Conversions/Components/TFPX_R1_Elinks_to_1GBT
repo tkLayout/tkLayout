@@ -1,0 +1,16 @@
+// TFPX Ring1:
+// ~1.67 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TFPX_R1
+      quantity 1.47628             // = 1.67 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres        // = 1 GBT
+  }
+}

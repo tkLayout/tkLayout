@@ -176,12 +176,10 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       int etaSteps,
 				       MaterialBudget* pm) {
 
-  auto& simParms = SimParms::getInstance();
-
   materialTracksUsed = etaSteps;
 
   int nTracks;
-  double etaStep, eta, theta, phi, zPos;
+  double etaStep, eta, theta, phi;
 
   // prepare etaStep, phiStep, nTracks, nScans
   if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -367,12 +365,10 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
                                           const std::vector<double>& thresholdProbabilities,
                                           int etaSteps) {
 
-    auto& simParms = SimParms::getInstance();
-
     materialTracksUsed = etaSteps;
 
     int nTracks;
-    double etaStep, z0, eta, theta, phi;
+    double etaStep, eta, theta, phi;
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -557,7 +553,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
           // Reset track total probability & calculate p/pT based on option
           double pNotContamTot      = 1;
-          double pNotContamTotInner = 1;
+          //double pNotContamTotInner = 1;
 
           if (pOption==0) pT = pIter;             // pT option
           else            pT = pIter*sin(theta);  // p option
@@ -584,7 +580,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             if (testTriplet && !isTripletFromDifLayers(track, iHit, propagOutIn)) continue;
             else testTriplet = false;
 
-            int nHitsUsed = iHit+1; // (C counting from zero)
+            //int nHitsUsed = iHit+1; // (C counting from zero)
 
             // Keep first/last N hits (based on approach) and find paramaters of the next hit
             double nextRPos    = 0;
@@ -645,7 +641,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             // Fill d0proj, z0proj & pContam for individual layers/discs to histograms
 
             // Probability of inner tracker only
-            if (iHitID.find("Inner")!=std::string::npos) pNotContamTotInner *= 1-pContam;
+            //if (iHitID.find("Inner")!=std::string::npos) pNotContamTotInner *= 1-pContam;
 
             // Create artificial map identifier with extra characters to have innermost first, then outermost & then fwd
             std::string iHitIDMap = "";
@@ -658,7 +654,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPtHitDProjInOut.find(iHitIDMap)==hisPtHitDProjInOut.end()) {
-                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
                   hisPtHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -679,7 +676,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPHitDProjInOut.find(iHitIDMap)==hisPHitDProjInOut.end()) {
-                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjInOut";
                   hisPHitDProjInOut[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -701,7 +699,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPtHitDProjOutIn.find(iHitIDMap)==hisPtHitDProjOutIn.end()) {
-                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisPt_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
                   hisPtHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -722,7 +721,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
               // Create profile histograms if don't exist yet
               if (hisPHitDProjOutIn.find(iHitIDMap)==hisPHitDProjOutIn.end()) {
-                for (int iMom=0; iMom<mainConfig.getMomenta().size(); iMom++) {
+		const int numMomemta = mainConfig.getMomenta().size();
+                for (int iMom=0; iMom<numMomemta; iMom++) {
 
                   std::string name = "hisP_" + any2str(iMom) + "_Hit_" + iHitID + "_DProjOutIn";
                   hisPHitDProjOutIn[iHitIDMap].push_back(new TProfile(name.c_str(),name.c_str(),nBins, 0, geom_max_eta_coverage));
@@ -744,7 +744,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
           //
           // Calculate total contamination based on different options: p/pT, in-out/out-in
           double pContamTot      = 1-pNotContamTot;
-          double pContamInnerTot = 1-pNotContamTotInner;
+          //double pContamInnerTot = 1-pNotContamTotInner;
           if (pOption==0) {
 
             if (approachOption==0) {
@@ -913,7 +913,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps,
                                      MaterialBudget* pm) {
 
-  Tracker& tracker = mb.getTracker();
   materialTracksUsed = etaSteps;
   int nTracks;
   double etaStep, eta, theta, phi;
@@ -1544,7 +1543,6 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
         auto h = iter->getModule().checkTrackHits(origin, direction);
         if (h.second != HitType::NONE) {
           distance = h.first.R();
-          HitType type = h.second;
           // module was hit
           hits++;
           r = distance * sin(track.getTheta());
@@ -1642,9 +1640,8 @@ int Analyzer::findHitsModules(Tracker& tracker, Track& t) {
       // same method as in Tracker, same function used
       //distance = aModule->trackCross(origin, direction);
       auto ht = aModule->checkTrackHits(origin, direction);
-      //if (distance > 0) {
+
       if (ht.second != HitType::NONE) {
-        double distance = (ht.first - origin).R();
         // module was hit
         hits++;
 
@@ -1747,7 +1744,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
   std::vector<InactiveElement>::iterator guard = elements.end();
   Material res, corr;
   std::pair<double, double> tmp;
-  double s = 0.0;
+
   while ((iter != guard)) {
     //if  ((iter->getInteractionLength() > 0) && (iter->getRadiationLength() > 0)) {
     // collision detection: rays are in z+ only, so only volumes in z+ need to be considered
@@ -1971,7 +1968,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   TGraph& thisOmegaGraph_Pt     = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::OmegaGraph_Pt   , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::OmegaGraph_Pt     , graphTag, parameter);
 
   // Variables
-  double eta, R;
+  double eta;
   std::ostringstream aName;
 
   // Prepare plot for const pt across eta
@@ -2107,7 +2104,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   TGraph& thisOmegaGraph_P     = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::OmegaGraph_P   , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::OmegaGraph_P     , graphTag, parameter);
 
   // Variables
-  double eta, R;
+  double eta;
   std::ostringstream aName;
 
   // Prepare plot for const pt across eta
@@ -2152,7 +2149,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
   // track loop
   double graphValue;
-  double rPos; // At [0,0] point
+  double rPos = 0.; // At [0,0] point
   for ( const auto& myTrack : aTrackCollection ) {
     const double& dpt  = myTrack->getDeltaPtOverPt(rPos);
     const double& dphi0= myTrack->getDeltaPhi0();
@@ -2542,8 +2539,6 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
   std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
   std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
 
-  TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
-  TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
   TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
   TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
   TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum]; 
@@ -2839,14 +2834,16 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 5.); // every half a cm
-  int materialMapBinsX = int( (geom_max_length) * geom_safety_factor / 5.); // every half a cm
-  mapRadiation.SetBins(       materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteraction.SetBins(     materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapRadiationCount.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapRadiationCalib.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  const double materialMapMaxY = (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor;
+  const double materialMapMaxX = geom_max_length * geom_safety_factor;
+  const int materialMapNumBinsY = materialMapMaxY / 0.5; // every half a mm (used to be every 5 mm)
+  const int materialMapNumBinsX = materialMapMaxX / 1.; // every mm (used to be every 5 mm)
+  mapRadiation.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteraction.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapRadiationCount.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteractionCount.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapRadiationCalib.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteractionCalib.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
 }
 
 /**
@@ -3236,7 +3233,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   //XYZVector dir(0, 1, 0);
   // Shoot nTracksPerSide^2 tracks
-  double angle = M_PI/2/(double)nTracksPerSide;
+  //double angle = M_PI/2/(double)nTracksPerSide;
   for (int i=0; i<nTracksPerSide; i++) {
     for (int j=0; j<nTracksPerSide; j++) {
       // Reset the hit counter
@@ -3486,11 +3483,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
      * @return the total number of module types
      */
     int Analyzer::createResetCounters(Tracker& tracker, std::map <std::string, int> &moduleTypeCount) {
-      ModuleVector result;
-      LayerVector::iterator layIt;
-      ModuleVector* moduleV;
-      ModuleVector::iterator modIt;
-
       std::string aType;
       int typeCounter=0;
 
@@ -3543,7 +3535,6 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
      */
     std::vector<std::pair<Module*, HitType>> Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& moduleV) {
       std::vector<std::pair<Module*, HitType>> result;
-      double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
       //static std::ofstream ofs("hits.txt");

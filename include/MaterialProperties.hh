@@ -115,7 +115,7 @@ namespace insur {
 
         enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, e_sup, o_sup, t_sup, u_sup};
         MaterialProperties();
-        //virtual ~MaterialProperties() {} 
+        virtual ~MaterialProperties() {} 
         // bureaucracy
         Category getCategory();
         void setCategory(Category c);

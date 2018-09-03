@@ -65,6 +65,8 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
 RootWTable::RootWTable() {
   serialRow_ = 0;
   serialCol_ = 0;
+  maxRow_ = 0;
+  maxCol_ = 0;
 }
 
 ostream& RootWTable::dump(ostream& output) {
@@ -1029,7 +1031,8 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
       ostringstream anAlarmColor;
       anAlarmColor.str("");
       anAlarmColor << "rgb(255, "
-		   << int(255 * (*it)->getAlert())
+		   << int(255 * (1-(*it)->getAlert())) // the bigger the alert int, the more red we want to be!
+	                                               // rgb(255,255,0) is yellow, rgb(255,0,0) is red
 		   << ", 0)";
       output << " style = 'background:"
 		   << anAlarmColor.str()

@@ -176,7 +176,7 @@ void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module* m, co
 
   auto found = GBTs.find(myGBTId);
   if (found == GBTs.end()) {
-    std::unique_ptr<GBT> myGBT(GeometryFactory::make<GBT>(myPowerChain, myGBTId, myGBTIndex, myGBTIndexColor, numELinksPerModule));
+    std::unique_ptr<GBT> myGBT(new GBT(myPowerChain, myGBTId, myGBTIndex, myGBTIndexColor, numELinksPerModule));
     connectOneModuleToOneGBT(m, myGBT.get());
     GBTs.insert(std::make_pair(myGBTId, std::move(myGBT)));  
   }
@@ -295,7 +295,7 @@ void InnerCablingMap::createAndStoreBundles(GBT* myGBT, std::map<int, std::uniqu
 
   auto found = bundles.find(bundleId);
   if (found == bundles.end()) {
-    std::unique_ptr<InnerBundle> myBundle(GeometryFactory::make<InnerBundle>(bundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex));
+    std::unique_ptr<InnerBundle> myBundle(new InnerBundle(bundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex));
     connectOneGBTToOneBundle(myGBT, myBundle.get());
     bundles.insert(std::make_pair(bundleId, std::move(myBundle)));  
   }
@@ -399,7 +399,7 @@ void InnerCablingMap::createAndStoreDTCs(InnerBundle* myBundle, std::map<int, st
 
   auto found = DTCs.find(DTCId);
   if (found == DTCs.end()) {
-    std::unique_ptr<InnerDTC> myDTC(GeometryFactory::make<InnerDTC>(DTCId, isPositiveZEnd, isPositiveXSide));
+    std::unique_ptr<InnerDTC> myDTC(new InnerDTC(DTCId, isPositiveZEnd, isPositiveXSide));
     connectOneBundleToOneDTC(myBundle, myDTC.get());
     DTCs.insert(std::make_pair(DTCId, std::move(myDTC)));  
   }

@@ -36,12 +36,12 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
  public:
   Endcap() :
       barrelGap(   "barrelGap"   , parsedOnly()),
+      diskNode(    "Disk"        , parsedOnly()),
+      supportNode( "Support"     , parsedOnly()),
       numDisks(    "numDisks"    , parsedAndChecked()),
       innerZ(      "minZ"        , parsedOnly()),
       outerZ(      "maxZ"        , parsedAndChecked()),
-      skipServices("skipServices", parsedOnly(), false), // broken, do not use
-      diskNode(    "Disk"        , parsedOnly()),
-      supportNode( "Support"     , parsedOnly())
+      skipServices("skipServices", parsedOnly(), false) // broken, do not use
   {}
   void setup() {
     maxR.setup([&]() { double max = 0;                                  for (const auto& d : disks_) { max = MAX(max, d.maxR()); } return max; });

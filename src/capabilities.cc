@@ -10,7 +10,8 @@ void DetIdentifiable::buildDetId(std::map<int, uint32_t> geometryHierarchyIds, s
   geometryHierarchyIds_ = geometryHierarchyIds;
 
   int numLevels = geometryHierarchySizes.size(); // Number of geometry hierarchy levels, as expected by the DetId scheme.
-  if (geometryHierarchyIds.size() == numLevels) {
+  int numComputedLevels = geometryHierarchyIds.size(); // Number of geometry hierarchy levels, as computed by the geometry visitor.
+  if (numComputedLevels == numLevels) {
     for (int level = 0; level < numLevels; level++) {
       uint32_t id = geometryHierarchyIds.at(level);
       int shift = geometryHierarchySizes.at(level);

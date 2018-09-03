@@ -51,17 +51,19 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices, int cShapeMinZ) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
-      outgoingSection_(nullptr),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
-      maxR_(maxR) {}
+      maxR_(maxR),
+      hasCShapeOutgoingServices_(hasCShapeOutgoingServices),
+      cShapeMinZ_(cShapeMinZ),
+      outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, true, 0, 0, 0, 0){}
+    Boundary(nullptr, true, 0, 0, 0, 0, false, std::numeric_limits<int>::max()){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -114,14 +116,14 @@ namespace material {
   //=================================================================================
   //START Materialway::Section
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
+    debug_(debug),
     minZ_(minZ),
     minR_(minR),
     maxZ_(maxZ),
     maxR_(maxR),
     bearing_(bearing),
     nextSection_(nextSection),
-    inactiveElement_(nullptr),
-    debug_(debug),
+    inactiveElement_(nullptr), 
     materialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
@@ -142,6 +144,7 @@ namespace material {
             nullptr) {}
 
   Materialway::Section::Section(const Section& other) :
+    debug_(other.debug_),
     minZ_(other.minZ_),
     minR_(other.minR_),
     maxZ_(other.maxZ_),
@@ -149,7 +152,6 @@ namespace material {
     bearing_(other.bearing_),
     nextSection_(nullptr),
     inactiveElement_(nullptr), //attention, nextSection and inactiveElement are not copied
-    debug_(other.debug_),
     materialObject_(other.materialObject_) {
 
     double zLength = undiscretize(other.maxZ() - other.minZ());
@@ -175,8 +177,7 @@ namespace material {
       inactiveElement(ring);
     }
   }
-  
-  Materialway::Section::~Section() {}
+
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
     if (aDirection==HORIZONTAL) {
@@ -318,6 +319,7 @@ namespace material {
   void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
     Direction direction;
+    bool wasRoutedAlongCShape = false;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -330,7 +332,15 @@ namespace material {
       // compute direction along which external sections will be built
       direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
 
-      // Look for a possible colision between the services to be routed and all boundaries
+      // If requested, build the 'C-shape' outgoing services.
+      // Example: this is used on the outgoing services over TBPX.
+      // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
+      if (boundary->hasCShapeOutgoingServices() && !wasRoutedAlongCShape) {
+	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ, boundary->cShapeMinZ());	
+	wasRoutedAlongCShape = true;
+      }
+ 
+      // Look for a possible collision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
 
       // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
@@ -371,6 +381,42 @@ namespace material {
     }
     else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
     return direction;
+  }
+
+
+  /**
+   * This is used to build the 'C-shape' outgoing services.
+   * Example: this is used on the outgoing services out of TBPX.
+   * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
+   */
+  void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ) {
+    if (direction == VERTICAL) {
+      logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
+    }
+
+    // HORIZONTAL DIRECTION ONLY
+    else {
+      // FIRST, GO TOWARDS SMALLER |Z|.
+      // Z: startZ -> cShapeMinZ
+      const bool isTowardsBiggerZ = false;
+      int towardsSmallerZCablingMinR = startR + safetySpace;
+      bool noCollision = buildSection(firstSection, lastSection, startZ, towardsSmallerZCablingMinR, cShapeMinZ, direction, isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
+
+      // THEN, GO BACK TOWARDS BIGGER |Z|.
+      // Z: cShapeMinZ -> startZ
+      int towardsBiggerZCablingMinR = towardsSmallerZCablingMinR + sectionWidth + layerStationLenght + safetySpace;
+      noCollision = buildSection(firstSection, lastSection, cShapeMinZ, towardsBiggerZCablingMinR, startZ, direction, !isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
+      
+
+      startR += sectionWidth + safetySpace;
+
+      // firstSection has been updated and now points to the Section which is the 'towards smaller |Z|' branch of the C.
+      // lastSection has been updated and now points to the Section which is the 'towards bigger |Z|' branch of the C.
+      // startR is updated, so that the services will leave at a reasonable radius.
+      // startZ is not updated.
+    }
   }
 
 
@@ -459,9 +505,12 @@ namespace material {
    * @param startR is a reference to the rho start coordinate
    * @param end is a reference to the end coordinate (Z if horizontal, rho if vertical)
    * @param direction is the direction
+   * @param isTowardsBiggerZ
+   * @param isTowardsBiggerR  NB: !isTowardsBiggerR not used at all so far, added for flexibility purposes!
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, 
+					     bool isTowardsBiggerZ, bool isTowardsBiggerR) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -472,7 +521,11 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    // Dont handle this if goes towards smaller |Z|, or smaller R. 
+    // These are corner cases which are rare and handled independently (routeOutgoingServicesAlongCShape, or routeOutgoingServicesAlongUShape).
+    if (isTowardsBiggerZ && isTowardsBiggerR) {
+      foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    }
 
     //if section collision found update the end
     if(foundSectionCollision) {
@@ -481,20 +534,40 @@ namespace material {
     }
 
     //set coordinates
+    // HORIZONTAL DIRECTION
     if (direction == HORIZONTAL) {
-      minZ = startZ;
+      // TOWARDS BIGGER |Z|
+      if (isTowardsBiggerZ) {
+	minZ = startZ;      
+	maxZ = trueEnd;
+	startZ = trueEnd + safetySpace;
+      }
+      // TOWARDS SMALLER |Z|
+      else {
+	minZ = trueEnd;      
+	maxZ = startZ;
+	// Do not silently update startZ. Here we will just create a section with the desired coordinates.
+      }
       minR = startR;
-      maxZ = trueEnd;
-      maxR = startR + sectionWidth;
+      maxR = startR + sectionWidth;    
+    } 
 
-      startZ = trueEnd + safetySpace;
-    } else {
-      minZ = startZ;
-      minR = startR;
-      maxZ = startZ + sectionWidth;
-      maxR = trueEnd;
-
-      startR = trueEnd + safetySpace;
+    // VERTICAL DIRECTION
+    else {
+      // TOWARDS BIGGER R
+      if (isTowardsBiggerR) {
+	minR = startR;
+	maxR = trueEnd;
+	startR = trueEnd + safetySpace;
+      }
+      // TOWARDS SMALLER R
+      else {
+	minR = trueEnd;
+	maxR = startR;
+	// Do not silently update startR. Here we will just create a section with the desired coordinates.
+      }
+      minZ = startZ;    
+      maxZ = startZ + sectionWidth;   
     }
 
     //build section and update last section's nextSection pointer
@@ -630,7 +703,10 @@ namespace material {
         diskRodSections_(diskRodSections) {}
   Materialway::InnerUsher::~InnerUsher() {}
 
+
   void Materialway::InnerUsher::go(Tracker& tracker) {
+
+
     //Visitor for the barrel layers
     class MultipleVisitor : public GeometryVisitor {
     public:
@@ -651,15 +727,17 @@ namespace material {
         moduleSectionAssociations_(moduleSectionAssociations),
         layerRodSections_(layerRodSections),
         diskRodSections_(diskRodSections),
-        startLayer(nullptr),
         //startLayerZMinus(nullptr),
         startBarrel(nullptr),
+	startLayer(nullptr),
         startEndcap(nullptr),
         startDisk(nullptr),
         currLayer_(nullptr),
-        currDisk_(nullptr) {}
+        currDisk_(nullptr),
+	hasCShapeOutgoingServices_(false) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
+
 
       //For the barrels ----------------------------------------------------
       void visit(Barrel& barrel) {
@@ -672,7 +750,10 @@ namespace material {
         int maxR = boundary->maxR() - safetySpace;
 
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection());
+
+	hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
       }
+
 
       void visit(Layer& layer) {
         ConversionStation* flangeConversionStation = layer.flangeConversionStation();
@@ -697,116 +778,51 @@ namespace material {
         section = startBarrel;
         attachPoint = discretize(layer.maxRwithHybrids()) + layerSectionMargin;        //discretize(layer.minRwithHybrids());
 
-        while(section->maxR() < attachPoint + sectionTolerance) {
-          if(!section->hasNextSection()) {
-            logERROR("Error in finding attach point during construction of services");
-            return;
-          }
-          section = section->nextSection();
-        }
+	
+	while(section->maxR() < attachPoint + sectionTolerance) {
+	  if(!section->hasNextSection()) {
+	    logERROR("Error in finding attach point during construction of services");
+	    return;
+	  }
+	  section = section->nextSection();
+	}
 
-        if (section->minR() < attachPoint - sectionTolerance) {
-          section = splitSection(section, attachPoint);
-        }
+	if (section->minR() < attachPoint - sectionTolerance) {
+	  section = splitSection(section, attachPoint);
+	}
 
-        //built main sections above the layer
+	//built main sections above the layer
 
-        sectionMinZ = safetySpace;
-        sectionMinR = attachPoint;
-        //sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
-        sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
-        sectionMaxR = sectionMinR + sectionWidth;
+	sectionMinZ = safetySpace;
+	sectionMinR = attachPoint;
+	//sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
+	sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+	sectionMaxR = sectionMinR + sectionWidth;
 
-        stationMinZ = sectionMaxZ + safetySpace;
-        stationMinR = sectionMinR - (layerStationWidth / 2);
-        stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-        stationMaxR = sectionMinR + (layerStationWidth / 2);
+	stationMinZ = sectionMaxZ + safetySpace;
+	stationMinR = sectionMinR - (layerStationWidth / 2);
+	stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+	stationMaxR = sectionMinR + (layerStationWidth / 2);
 
-        if(flangeConversionStation != nullptr) {
-          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
-          sectionsList_.push_back(station);
-          stationListFirst_.push_back(station);
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
-          layerRodSections_[currLayer_].setStation(station);
-        } else {
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
-          layerRodSections_[currLayer_].setStation(section);
-          logERROR("Flange conversion not defined, bypassed.");
-        }
-        sectionsList_.push_back(startLayer);
-        layerRodSections_[currLayer_].addSection(startLayer);
+	if(flangeConversionStation != nullptr) {
+	  station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
+	  sectionsList_.push_back(station);
+	  stationListFirst_.push_back(station);
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
+	  layerRodSections_[currLayer_].setStation(station);
+	} else {
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
+	  layerRodSections_[currLayer_].setStation(section);
+	  logERROR("Flange conversion not defined, bypassed.");
+	}
+	sectionsList_.push_back(startLayer);
+	layerRodSections_[currLayer_].addSection(startLayer);
+
         
-        
-
         //==========second level conversion station
-
-        //find attach point
-        for(ConversionStation* secondConversionStation : secondConversionStations) {
-          bool validConversion = true;
-          
-          if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
-            continue;
-          }
-          
-          //check if the station is already built
-          for (auto& existentStation : stationListSecond_) {
-            if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-              validConversion = false;
-              break;
-            }
-          }
-
-          if (validConversion) {
-
-            attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
-         
-            while(section->maxZ() < attachPoint + sectionTolerance) {
-              if(!section->hasNextSection()) {
-                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
-                return;
-              }
-              section = section->nextSection();
-            }
-
-            if (section->minZ() < attachPoint - sectionTolerance) {
-              splitSection(section, attachPoint);
-            }
-
-            stationMinZ = discretize(secondConversionStation->minZ_());
-            stationMinR = section->maxR() + safetySpace;
-            stationMaxZ = discretize(secondConversionStation->maxZ_());
-            stationMaxR = stationMinR + layerStationLenght;
-
-            if(section->hasNextSection()) {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
-            } else {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
-            }
-
-            section->nextSection(station);
-
-            sectionsList_.push_back(station);
-            stationListSecond_.push_back(station);
-          }
-        }
-
-        /*
-        //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
-        sectionMinZ = - section->minZ() + safetySpace + layerStationLenght;
-        sectionMaxZ = 0 - safetySpace;
-
-        stationMinZ = sectionMinZ - safetySpace - layerStationLenght;
-        stationMaxZ = sectionMinZ - safetySpace;
-
-        station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL); //TODO: check if is ok VERTICAL
-        sectionsList_.push_back(station);
-        startLayerZMinus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
-        sectionsList_.push_back(startLayerZMinus);
-        */
-
-        //TODO:aggiungi riferimento della rod a startZ...
+	buildSecondConversionStations(section, secondConversionStations);
       }
+
 
       void visit(BarrelModule& module) {
         Section* section;
@@ -852,6 +868,7 @@ namespace material {
         */
       }
 
+
       //For the endcaps ----------------------------------------------------
       void visit(Endcap& endcap) {
         if (endcap.minZwithHybrids() >= 0) {
@@ -864,11 +881,11 @@ namespace material {
           int maxZ = boundary->maxZ() - safetySpace;
           int maxR = minR + sectionWidth;
           startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection());
+
+	  hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
         }
-        //else {
-          //currEndcapPosition = NEGATIVE;
-        //}
       }
+
 
       void visit(Disk& disk) {
         Section* section = nullptr;
@@ -922,65 +939,13 @@ namespace material {
           }
           sectionsList_.push_back(startDisk);
           diskRodSections_[currDisk_].addSection(startDisk);
-
-          //TODO:aggiungi riferimento della rod a startZ...
-
         
 
-        //==========second level conversion station
-
-          //find attach point
-          for(ConversionStation* secondConversionStation : secondConversionStations) {
-            bool validConversion = true;
-          
-            if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position ("+to_string(section->minZ())+"), Z too low (Z="+to_string(discretize(secondConversionStation->maxZ_())) + ").");
-              continue;
-            }
-
-            //check if the station is already built
-            for (auto& existentStation : stationListSecond_) {
-              if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-                validConversion = false;
-                break;
-              }
-            }
-
-            if (validConversion) {
-
-              attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
-         
-              while(section->maxZ() < attachPoint + sectionTolerance) {
-                if(!section->hasNextSection()) {
-                  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high");
-                  return;
-                }
-                section = section->nextSection();
-              }
-
-              if (section->minZ() < attachPoint - sectionTolerance) {
-                splitSection(section, attachPoint);
-              }
-
-              stationMinZ = discretize(secondConversionStation->minZ_());
-              stationMinR = section->maxR() + safetySpace;
-              stationMaxZ = discretize(secondConversionStation->maxZ_());
-              stationMaxR = stationMinR + layerStationLenght;
-
-              if(section->hasNextSection()) {
-                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
-              } else {
-                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
-              }
-
-              section->nextSection(station);
-
-              sectionsList_.push_back(station);
-              stationListSecond_.push_back(station);
-            }
-          }
+	  //==========second level conversion station
+	  buildSecondConversionStations(section, secondConversionStations);
         }
       }
+
 
       void visit(EndcapModule& module) {
         //if(currEndcapPosition == POSITIVE) {
@@ -1006,7 +971,188 @@ namespace material {
         }
       }
 
+
     private:
+      /*
+       * This is used to build the conversion stations volumes + make the succession of sections and stations correctly point to each other.
+       */
+      void buildSecondConversionStations(Section* section, const std::vector<ConversionStation*>& secondConversionStations) {
+
+	// Loop on all cfg conversion stations
+        for(ConversionStation* stationFromCfg : secondConversionStations) {
+          bool isStationAlreadyBuilt = false;
+          
+          // Check whether the station is already built
+          for (auto& existentStation : stationListSecond_) {
+            if (existentStation->conversionStation().stationName_().compare(stationFromCfg->stationName_()) == 0) {
+              isStationAlreadyBuilt = true;
+              break;
+            }
+          }
+
+
+	  // Only do sth if conversion station does not exist yet.
+          if (!isStationAlreadyBuilt) {   
+
+	    // STANDARD CASE: THERE IS NO C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // STATIONS ARE BUILT TOWARDS BIGGER |Z|.
+	    if (!hasCShapeOutgoingServices_) {
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards bigger |Z|.
+	      if (discretize(stationFromCfg->maxZ_()) < section->minZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards bigger |Z|. ")
+			 + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			 + any2str(" and station maxZ = ") + any2str(stationFromCfg->maxZ_()) + any2str(" mm.")
+			 );
+		continue;
+	      }
+
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
+        
+	      // If we are at a too low |Z|, we go on from section to section, towards bigger |Z|.
+	      while(section->maxZ() < attachPoint + sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards bigger |Z|. ")
+			   + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
+		  return;
+		}
+		section = section->nextSection();
+	      }
+     
+	      // Now we are correctly placed at section = the section below the conversion station. :)
+
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
+	      if (section->minZ() < attachPoint - sectionTolerance) {
+		splitSection(section, attachPoint); 
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at smaller |Z| points towards the section at bigger |Z|.
+	      }
+	    }
+
+
+	    // C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // For example, C-shape loop built over TBPX.
+	    // STATIONS ARE BUILT TOWARDS SMALLER |Z|.
+	    // THEY ARE BUILT ALONG THE RADIALLY LOWER HORIZONTAL BRANCH OF THE C.
+	    else {
+	      const bool isTowardsBiggerZ = false;
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards smaller |Z|.
+	      if (discretize(stationFromCfg->minZ_()) > section->maxZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards smaller |Z|. ")
+			 + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			 + any2str(" and station minZ = ") + any2str(stationFromCfg->minZ_()) + any2str(" mm.")
+			 );
+		continue;
+	      }
+
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
+        
+	      // If we are at a too big |Z|, we go on from section to section, towards smaller |Z|.
+	      while(section->minZ() > attachPoint - sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards smaller |Z|. ")
+			   + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
+		  return;
+		}
+		section = section->nextSection();
+	      }
+	   
+	      // Now we are correctly placed at section = the section below the conversion station. :)
+
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
+	      if (section->maxZ() > attachPoint + sectionTolerance) {
+		splitSection(section, attachPoint, isTowardsBiggerZ);
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at bigger |Z| points towards the section at smaller |Z|.
+	      }
+	    }
+
+
+	    // PART C: BUILD CONVERSION STATION
+	    const int stationMinZ = discretize(stationFromCfg->minZ_());
+	    const int stationMaxZ = discretize(stationFromCfg->maxZ_());
+	    const int stationMinR = section->maxR() + safetySpace;
+	    const int stationMaxR = stationMinR + layerStationLenght;
+	   
+	    Station* myStation = nullptr;
+            if(section->hasNextSection()) {
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg, section->nextSection());
+            } else {
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg);
+            }
+
+            section->nextSection(myStation);
+
+
+	    // PART D: STORE CONVERSION STATION.
+            sectionsList_.push_back(myStation);
+            stationListSecond_.push_back(myStation);
+          }
+        }
+      }
+
+
+      /*
+       * Split section into 2 sections, at the collision coordinate.
+       * NB: !isTowardsBiggerR not used at all so far, just added for flexibility purposes!
+       */
+      Section* splitSection(Section* section, const int collision, bool isTowardsBiggerZ = true, bool isTowardsBiggerR = true, bool debug = false) {
+        Section* newSection = nullptr;
+
+	// HORIZONTAL DIRECTION
+        if (section->bearing() == HORIZONTAL) { 
+	  // A: Create new section
+	  // TOWARDS BIGGER |Z|
+	  if (isTowardsBiggerZ) { 
+	    newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); 
+	  }
+	  // TOWARDS SMALLER |Z|
+	  else { 
+	    newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug);
+	  }
+          sectionsList_.push_back(newSection);
+
+	  // B: Update previous section
+	  if (isTowardsBiggerZ) { section->maxZ(collision - safetySpace); } 
+	  else { section->minZ(collision + safetySpace); }
+          section->nextSection(newSection);
+        } 
+
+	// VERTICAL DIRECTION
+	else {
+	  // A: Create new section
+	  // TOWARDS BIGGER R
+	  if (isTowardsBiggerR) {
+	    newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);	    
+	  }
+	  // TOWARDS SMALLER R
+	  else {
+	    newSection = new Section(section->minZ(), section->minR(), section->maxZ(), collision, section->bearing(), section->nextSection(), debug);
+	  }
+	  sectionsList_.push_back(newSection);
+
+	  // B: Update previous section
+          if (isTowardsBiggerR) { section->maxR(collision - safetySpace); }
+	  else { section->minR(collision + safetySpace); }
+          section->nextSection(newSection);
+        }
+        return newSection;
+      }
+      
+
       enum ZPosition {POSITIVE, NEGATIVE};
       //int splitCounter;
       SectionVector& sectionsList_;
@@ -1017,46 +1163,15 @@ namespace material {
       ModuleSectionMap& moduleSectionAssociations_;
       LayerRodSectionsMap& layerRodSections_;  //map each layer with corresponding sections vector and station
       DiskRodSectionsMap& diskRodSections_;
+      Section* startBarrel;
       Section* startLayer;
       //Section* startLayerZMinus;
-      Section* startDisk;
-      Section* startBarrel;
       Section* startEndcap;
+      Section* startDisk;     
       //ZPosition currEndcapPosition;
       Layer* currLayer_;
       Disk* currDisk_;
-
-
-      //Section* findAttachPoint(Section* section, )
-
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool debug = false) {
-        //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
-        Section* newSection = nullptr;
-
-        if (section->bearing() == HORIZONTAL) {
-          //if(zPlus) {
-            newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          //} else {
-          //  newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection());
-          //}
-          sectionsList_.push_back(newSection);
-
-          //if(zPlus) {
-            section->maxZ(collision - safetySpace);
-          //} else {
-          //  section->minZ(collision + safetySpace);
-          //}
-          section->nextSection(newSection);
-
-        } else {
-          newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          sectionsList_.push_back(newSection);
-
-          section->maxR(collision - safetySpace);
-          section->nextSection(newSection);
-        }
-        return newSection;
-      }
+      bool hasCShapeOutgoingServices_;
     }; //END class MultipleVisitor
 
     MultipleVisitor visitor (sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);
@@ -1087,14 +1202,20 @@ namespace material {
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
+  const int Materialway::cShapeMinZTolerance = 1.1 * sectionTolerance; /** Distance in Z between the minZ of the cabling along C-shape, 
+									   and the center of the conversion station (of type second). 
+									   If there are several conversion stations (of type second) on the boundary, 
+									   consider the station located at the lowest |Z|.
+									   WARNING: By construction, cShapeMinZTolerance need to be > sectionTolerance. */
   const int Materialway::layerStationLenght = discretize(insur::geom_conversion_station_width);  /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
   Materialway::Materialway() :
+    boundariesList_(),
     outerUsher(sectionsList_, boundariesList_),
-    innerUsher(sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_),
-    boundariesList_() {}
+    innerUsher(sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_)
+  {}
   Materialway::~Materialway() {}
 
   int Materialway::discretize(double input) {
@@ -1165,7 +1286,7 @@ namespace material {
 
     bool retValue = false;
 
-    int startTime = time(0);
+    //int startTime = time(0);
     startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
       stopTaskClock();
@@ -1201,7 +1322,11 @@ namespace material {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
-	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+
+	const int barrelSecondStationsMinMeanZ = computeBarrelSecondStationsMinMeanZ(barrel);
+	const bool hasCShapeOutgoingServices = (barrelSecondStationsMinMeanZ < boundMaxZ); // KEY POINT: Need to route services along a C-shape.
+	const int cShapeMinZ = barrelSecondStationsMinMeanZ - cShapeMinZTolerance;
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices, cShapeMinZ);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
@@ -1218,7 +1343,25 @@ namespace material {
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
       }
 
+
     private:
+      /*
+       * This is used to compute the minimum meanZ of the barrel second conversion stations.
+       */
+      const int computeBarrelSecondStationsMinMeanZ(const Barrel& barrel) {
+	int barrelSecondStationsMinMeanZ = std::numeric_limits<int>::max();
+	
+	for (const auto& layer: barrel.layers()) {
+	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
+	  for (const auto& station : secondConversionStations) {
+	    barrelSecondStationsMinMeanZ = MIN(barrelSecondStationsMinMeanZ, 
+					       discretize(station->meanZ())
+					       );
+	  }
+	}
+	return barrelSecondStationsMinMeanZ;
+      }
+
       BoundariesSet& boundariesList_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;

@@ -107,7 +107,7 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
   //return gROOT->GetColor(paletteIndex);
 
   const int zone = femod(colorIndex % 12, 12);  // unit digit (in a numbering of base 12)
-  const int phiSector = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
+  //const int phiSector = (colorIndex - 1) / 12;  // dizain digit (in a numbering of base 12)
   
   short paletteIndex;
   if (colorIndex == 0) paletteIndex = 1;

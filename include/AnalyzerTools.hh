@@ -49,6 +49,8 @@ namespace insur {
 
 
 class AnalyzerTools {
+public:
+  virtual ~AnalyzerTools() {};
 protected:
   static void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
   static void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
