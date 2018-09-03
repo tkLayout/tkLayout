@@ -9211,10 +9211,10 @@ namespace insur {
 
     for (auto& moduleIt : allModules) {
       const Module* detectorModule = &(moduleIt.getModule());
-      double z1 = detectorModule->minZwithHybrids();
-      double z2 = detectorModule->maxZwithHybrids();
-      double r1 = detectorModule->minRwithHybrids();
-      double r2 = detectorModule->maxRwithHybrids();
+      double z1 = detectorModule->minZ();
+      double z2 = detectorModule->maxZ();
+      double r1 = detectorModule->minR();
+      double r2 = detectorModule->maxR();
       //length = iter.getLength();
       double rl = moduleIt.getRadiationLength();
       double il = moduleIt.getInteractionLength();
