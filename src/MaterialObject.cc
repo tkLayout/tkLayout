@@ -338,8 +338,7 @@ namespace material {
     debugInactivate(original.debugInactivate());
     if(original.destination.state())
       destination(original.destination());
-    // ????
-    // what about targetVolume and referenceSensorNode ?
+    targetVolume(original.targetVolume());
   }
   
   MaterialObject::Element::~Element() { }
