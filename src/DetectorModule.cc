@@ -113,7 +113,7 @@ void DetectorModule::build() {
 
   materialObject_.store(propertyTree());
   materialObject_.matSubdetectorName(subdetectorName());
-  std::cout << "DetectorModule::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
+  //std::cout << "DetectorModule::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
   materialObject_.build();
 }
 

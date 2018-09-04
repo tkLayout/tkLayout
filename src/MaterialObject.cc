@@ -127,7 +127,6 @@ namespace material {
 
   void MaterialObject::addElement(const MaterialObject::Element* element) {
     if(element != nullptr) {
-      if (matSubdetectorName() != "") element->matSubdetectorName(matSubdetectorName());
       serviceElements_.push_back(element);
     }
   }
@@ -200,7 +199,7 @@ namespace material {
       Component* newComponent = new Component(materialType_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
-      if (matSubdetectorName() != "") { std::cout << "MaterialObject::Materials::build : matSubdetectorName() = " << matSubdetectorName() << std::endl; newComponent->matSubdetectorName(matSubdetectorName()); }
+      if (matSubdetectorName() != "") { newComponent->matSubdetectorName(matSubdetectorName()); }
       newComponent->check();
       newComponent->build(newSensorChannels);
 
@@ -265,12 +264,12 @@ namespace material {
     //elements
     for (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element(materialType_);
-      std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
+      //std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
+      if (matSubdetectorName() != "") { newElement->matSubdetectorName(matSubdetectorName()); }
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
-      std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
-      if (matSubdetectorName() != "") { newElement->matSubdetectorName(matSubdetectorName()); }
-      std::cout << "AFTER MAT SUBDETECTORNAME Materialobject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
+      //std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
+      //std::cout << "AFTER MAT SUBDETECTORNAME Materialobject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
       newElement->check();
       newElement->cleanup();
       newElement->build(newSensorChannels);

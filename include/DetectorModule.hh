@@ -144,7 +144,8 @@ public:
   int16_t subdetectorId() const { return subdetectorId_; }
   void subdetectorName(const std::string name) { subdetectorName_ = name; }
   const std::string& subdetectorName() const { return subdetectorName_; }
-  void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
+  //void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
+  void subdetectorNameId(const std::string& name, const int id) { subdetectorId_ = id; }
   
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),

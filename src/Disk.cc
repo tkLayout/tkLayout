@@ -228,7 +228,7 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   ConversionStation* conversionStation;
   materialObject_.store(propertyTree());
   materialObject_.matSubdetectorName(subdetectorName());
-  std::cout << "Disk::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
+  //std::cout << "Disk::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
   materialObject_.build();
 
   try {
