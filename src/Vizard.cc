@@ -9406,10 +9406,10 @@ namespace insur {
     int color;
 
     if (!isEmpty) {
-      if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kCyan;
-      else if (subdetectorName == "TB2S" || subdetectorName == "FPIX_1") color = kRed;
-      else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_2") color = kOrange;
-      else if (subdetectorName == "TEDD_2") color = kBlue;
+      if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
+      else if (subdetectorName == "TB2S") color = kCyan;
+      else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
+      else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
       else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
       else color = kBlack;
     }
