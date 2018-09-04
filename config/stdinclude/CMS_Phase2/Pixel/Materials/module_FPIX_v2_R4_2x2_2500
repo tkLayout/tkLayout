@@ -1,7 +1,6 @@
 
 Materials FPIX_v2_R4_2x2_2500 {
   type module
-  matSubdetectorName FPIX_1
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
