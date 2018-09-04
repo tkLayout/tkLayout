@@ -112,12 +112,15 @@ namespace material {
     class MaterialObjectKey {
     public:
       // TODO embed sensorChannel map into a fancier object?...?
-      MaterialObjectKey(const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+      MaterialObjectKey(const std::string& matSubdetectorName, const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+	matSubdetectorName(matSubdetectorName),
         name(newName), 
         sensorChannels(newSensorChannels),
         destination(newDestination)  {}
 
       bool operator<(const MaterialObjectKey& r ) const {
+	if (this->matSubdetectorName < r.matSubdetectorName) return true;
+	if (this->matSubdetectorName > r.matSubdetectorName) return false;
         if (this->sensorChannels < r.sensorChannels) return true;
         if (this->sensorChannels > r.sensorChannels) return false;
         if (this->name < r.name) return true;
@@ -126,6 +129,7 @@ namespace material {
         return false;
       }
     private:
+      std::string matSubdetectorName;
       std::string name;
       std::map<int, int> sensorChannels;
       std::string destination;

@@ -89,7 +89,7 @@ namespace material {
 
         check();
         if (type_().compare(getTypeString()) == 0) {
-          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
+          MaterialObjectKey myKey(matSubdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
             Materials * newMaterials  = new Materials(materialType_);
             newMaterials->store(currentMaterialNode.second);
