@@ -46,6 +46,7 @@ public:
 private:
   void clearComputables();
 public:
+  Property<std::string, AutoDefault> subdetectorName;
   Property<StartZMode, Default> startZMode;
   //Property<double, NoDefault> maxZ;
   Property<double, Computable> maxZ;

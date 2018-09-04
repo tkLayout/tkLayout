@@ -46,6 +46,10 @@ namespace material {
     MaterialObject(const MaterialObject& other);
     virtual ~MaterialObject();
 
+    //Property<std::string, AutoDefault> matSubdetectorName;
+    void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
+    const std::string matSubdetectorName() const { return matSubdetectorName_; }
+
     double totalGrams(double length, double surface) const;
 
     virtual void build();
@@ -62,6 +66,7 @@ namespace material {
 
   private:
     static const std::map<Type, const std::string> typeString;
+    std::string matSubdetectorName_;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<std::string, NoDefault> destination_;
@@ -175,6 +180,10 @@ namespace material {
     class Component : public PropertyObject {
     public:
       //Property<std::string, NoDefault> componentName;
+      //Property<std::string, AutoDefault> matSubdetectorName;
+      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
+      const std::string matSubdetectorName() const { return matSubdetectorName_; }
+
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
       Component(MaterialObject::Type& newMaterialType);
@@ -189,10 +198,17 @@ namespace material {
       ElementsVector elements_;
 
       MaterialObject::Type& materialType_;
+
+    private:
+      std::string matSubdetectorName_;
     };
 
     class Materials : public PropertyObject {
     public:
+      //Property<std::string, AutoDefault> matSubdetectorName;
+      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
+      const std::string matSubdetectorName() const { return matSubdetectorName_; }
+
       PropertyNodeUnique<std::string> componentsNode_;
       Materials(MaterialObject::Type newMaterialType);
       virtual ~Materials();
@@ -205,6 +221,9 @@ namespace material {
       ComponentsVector components_;
 
       MaterialObject::Type materialType_;
+
+    private:
+      std::string matSubdetectorName_;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects

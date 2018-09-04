@@ -207,6 +207,8 @@ void Layer::build() {
 
   try { 
     materialObject_.store(propertyTree());
+    materialObject_.matSubdetectorName(subdetectorName());
+    std::cout << "Layer::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
     materialObject_.build();
 
     logINFO(Form("Building %s", fullid(*this).c_str()));
@@ -330,6 +332,7 @@ RodTemplate Layer::makeRodTemplate(const double skewAngle) {
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
     if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
+    rodTemplate[i]->subdetectorName(subdetectorName());
     rodTemplate[i]->build();
   }
   return rodTemplate;
@@ -478,6 +481,7 @@ const double Layer::computeRodCenterPhiShift() const {
  */
 void Layer::assignRodCommonProperties(StraightRodPair* rod) const {
   rod->myid(1);
+  rod->subdetectorName(subdetectorName());
   rod->minBuildRadius(minBuildRadius() - bigDelta());
   rod->maxBuildRadius(maxBuildRadius() + bigDelta());
   if (buildNumModules() > 0) rod->buildNumModules(buildNumModules());
@@ -1035,6 +1039,7 @@ void Layer::buildTilted() {
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
+  first->subdetectorName(subdetectorName());
   first->isOuterRadiusRod(false);
   first->store(propertyTree());
   first->build(rodTemplate, tmspecsi, 1);
@@ -1042,6 +1047,7 @@ void Layer::buildTilted() {
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
+  second->subdetectorName(subdetectorName());
   second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);

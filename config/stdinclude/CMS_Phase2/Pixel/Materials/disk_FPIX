@@ -4,7 +4,6 @@
 
 Materials FPIX_disk {
   type layer
-  matSubdetectorName FPIX_1
 
   // Cooling for the module
   // Average on disk

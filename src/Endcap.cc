@@ -55,6 +55,7 @@ void Endcap::build() {
     for (int i = 1; i <= numDisks(); i++) {
       Disk* diskp = GeometryFactory::make<Disk>();
       diskp->myid(i);
+      diskp->subdetectorName(myid());
 
       // Standard is to build & calculate parameters for the central disc (in the middle)
       diskp->buildZ((innerZ() + outerZ())/2);
@@ -77,6 +78,7 @@ void Endcap::build() {
       // Please note that the duplication is a rotation of axis CMS_Y and angle Pi !
       // This is because one does not want to build different disks for both sides, so no 'mirror' should be considered!
       Disk* diskn = GeometryFactory::clone(*diskp);
+      diskn->subdetectorName(myid());
       diskn->rotateToNegativeZSide();
 
       // Compute coverage on +Z side after built (TO DO : adapt for -Z side, and add a Tracker::computeActualCoverage(), completely independant from build() )

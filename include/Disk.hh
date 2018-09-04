@@ -58,6 +58,7 @@ private:
 
   double averageZ_ = 0;
 public:
+  Property<std::string, AutoDefault> subdetectorName;
   Property<int, NoDefault>    numRings;
   Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;

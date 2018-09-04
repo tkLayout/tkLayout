@@ -159,6 +159,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
 
+  Property<std::string, AutoDefault> subdetectorName;
   ReadonlyProperty<double, NoDefault> smallDelta;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<BuildDirection, NoDefault> buildDirection;

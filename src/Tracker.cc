@@ -98,17 +98,17 @@ void Tracker::addHierarchyInfoToModules() {
       subdetectorName_ = e.myid(); 
       subdetectorId_++; 
     }
-    void visit(Layer& l)  { 
-      layerDiskId_ = l.myid(); 
+    void visit(Layer& l)  {
+      layerDiskId_ = l.myid();     
     }
-    void visit(Disk& d)   { 
+    void visit(Disk& d)   {
       layerDiskId_ = d.myid();
       diskAverageZ_ = d.averageZ();
     }
-    void visit(RodPair& r){ 
+    void visit(RodPair& r){
       rodRingId_ = r.myid(); 
     }
-    void visit(Ring& r) { 
+    void visit(Ring& r) {
       rodRingId_ = r.myid();
       ringAverageZ_ = r.averageZ();
       bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);

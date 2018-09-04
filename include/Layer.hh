@@ -74,6 +74,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 public:
   typedef PtrVector<RodPair> Container;
 
+  Property<std::string, AutoDefault> subdetectorName;
+
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
 

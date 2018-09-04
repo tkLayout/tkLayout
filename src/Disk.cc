@@ -185,6 +185,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));
+    ring->subdetectorName(subdetectorName());
 
     // INITIALIZATION
     if (i == numRings()) {
@@ -226,6 +227,8 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   ConversionStation* conversionStation;
   materialObject_.store(propertyTree());
+  materialObject_.matSubdetectorName(subdetectorName());
+  std::cout << "Disk::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
   materialObject_.build();
 
   try {
