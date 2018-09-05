@@ -9288,7 +9288,7 @@ namespace insur {
 
       const LocalElement& myElement = massIt.first;
 
-      const std::string subdetectorName = myElement.matSubdetectorName();
+      const std::string subdetectorName = myElement.subdetectorName();
       volumeSubdetectorNames.insert(subdetectorName);
 
       const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
@@ -9350,7 +9350,9 @@ namespace insur {
 
 
     // ALL VOLUMES: PLOT
-    if (volumeSubdetectorNames.size() > 3) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
+    if (volumeSubdetectorNames.size() > 4) { 
+      std::cout << "!!! More than 4 subdetectors assigned to a materials volume." << std::endl; 
+    }
       
     else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", isEmpty, z1, z2, r1, r2); }
 
@@ -9406,11 +9408,12 @@ namespace insur {
     int color;
 
     if (!isEmpty) {
-      if (subdetectorName == "TBPS" || subdetectorName == "BPIX") color = kCyan;
-      else if (subdetectorName == "TB2S" || subdetectorName == "FPIX_1") color = kRed;
-      else if (subdetectorName == "TEDD" || subdetectorName == "FPIX_2") color = kOrange;
+      if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
+      else if (subdetectorName == "TB2S") color = kCyan;
+      else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
+      else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
       else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
-      else color = kBlack;
+      else color = kGray;
     }
     else { color = kBlack; }
 

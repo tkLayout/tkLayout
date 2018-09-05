@@ -54,7 +54,8 @@ namespace material {
     
     SupportStructure();
     virtual ~SupportStructure() {};
-    void buildInTracker();
+
+    void buildInTracker(const std::string subdetectorName);
     void buildInBarrel(Barrel& barrel);
     void buildInEndcap(Endcap& endcap);
 
@@ -65,6 +66,8 @@ namespace material {
     const double autoLayerMarginUpper = insur::geom_support_margin_bottom; //1.; // margins for the auto barrel support
     const double autoLayerMarginLower = insur::geom_support_margin_top + 2. * insur::geom_inactive_volume_width;    //2.; // + insur::geom_inactive_volume_width; //upper is upper for the support (is lower for the layer) and viceversa
 
+    std::string subdetectorName_;
+
     PropertyNodeUnique<std::string> componentsNode;
 
     ComponentsVector components_;
@@ -72,7 +75,7 @@ namespace material {
     Type supportType_;
     Direction direction_;
 
-    void buildBase();
+    void buildBase(const std::string subdetectorName);
     void populateMaterialProperties(MaterialProperties& materialPropertie) const;
     void buildInactiveElementPair(Direction direction, double zStart, double rStart, double length);
 
@@ -81,7 +84,7 @@ namespace material {
     public:
       PropertyNodeUnique<std::string> componentsNode;
       PropertyNodeUnique<std::string> elementsNode;
-      Component();
+      Component(const std::string subdetectorName);
       virtual ~Component() {};
 
       void build();
@@ -89,20 +92,23 @@ namespace material {
 
       ComponentsVector components_;
       ElementsVector elements_;
+
+    private:
+      std::string subdetectorName_;
     };
     
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       static const std::map<std::string, Unit> unitStringMap;
-      Property<std::string, AutoDefault> matSubdetectorName;
+      Property<std::string, Default> subdetectorName;
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<double, NoDefault> quantity;
       Property<std::string, NoDefault> unit;
       Property<bool, Default> debugInactivate;
 
-      Element();
+      Element(const std::string subdetectorName);
       virtual ~Element() {};
 
       double quantityInGrams(double length, double surface) const;

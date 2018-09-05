@@ -123,7 +123,7 @@ void Ring::buildBottomUp() {
     wmod->build();
 
     modLength = wmod->length();
-    emod = GeometryFactory::make<EndcapModule>(wmod);
+    emod = GeometryFactory::make<EndcapModule>(wmod, subdetectorName());
 
   } else {
 
@@ -136,11 +136,12 @@ void Ring::buildBottomUp() {
 
     modLength = rmod->length();
 
-    emod = GeometryFactory::make<EndcapModule>(rmod); 
+    emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName()); 
 
   }
 
   emod->store(propertyTree());
+  //emod->subdetectorName(subdetectorName());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
 
@@ -172,7 +173,7 @@ void Ring::buildTopDown() {
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
-  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod);
+  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
   emod->store(propertyTree());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
@@ -190,6 +191,7 @@ void Ring::buildTopDown() {
 
 void Ring::build() {
   materialObject_.store(propertyTree());
+  //std::cout << "Ring::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
   materialObject_.build();
 
   if(materialObject_.isPopulated()) {

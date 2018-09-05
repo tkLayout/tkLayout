@@ -16,7 +16,7 @@ void Barrel::build() {
     check();
 
     for (int i = 1; i <= numLayers(); i++) {
-      Layer* layer = GeometryFactory::make<Layer>();
+      Layer* layer = GeometryFactory::make<Layer>(myid());
       layer->myid(i);
 
       if      (i == 1)           { if (innerRadiusFixed()) layer->radiusMode(Layer::FIXED); layer->placeRadiusHint(innerRadius()); } 

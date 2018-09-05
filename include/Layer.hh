@@ -113,7 +113,7 @@ public:
   Property<double, AutoDefault> unitPhiOverlapLength;
   Property<double, AutoDefault> installationHorizontalOverlapLength; 
 
-  Layer() :
+  Layer(const std::string subdetectorName) :
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
@@ -135,8 +135,9 @@ public:
 	    isSkewedForInstallation("isSkewedForInstallation", parsedOnly(), false),
 	    skewedModuleEdgeShift("skewedModuleEdgeShift", parsedOnly()),
 	    installationOverlapRatio("installationOverlapRatio", parsedOnly(), 2.), // remove default??
-	    materialObject_(MaterialObject::LAYER),
+	    materialObject_(MaterialObject::LAYER, subdetectorName),
             flangeConversionStation_(nullptr),
+	    subdetectorName_(subdetectorName),
 	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
 	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
 	    ringNode       ("Ring"           , parsedOnly()),
@@ -177,6 +178,7 @@ public:
   TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
+  const std::string subdetectorName() const { return subdetectorName_; }
   void layerNumber(int num) { layerNumber_ = num; }
   int layerNumber() const { return layerNumber_; }
 
@@ -251,6 +253,8 @@ private:
   FlatRingsGeometryInfo flatRingsGeometryInfo_;
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_;
+
+  std::string subdetectorName_;
   int layerNumber_;
 
   Property<double, NoDefault> phiOverlap;

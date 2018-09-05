@@ -1,9 +1,0 @@
-// pt-PS module 10x5 for the inner region
-// GBT on the module
-
-Materials module-ptPS_200_40_TEDD {
-  type module
-  matSubdetectorName TEDD
-  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/ptPS_200_40_components
-}
-

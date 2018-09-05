@@ -159,7 +159,7 @@ namespace material {
     //std::cout << "STATION" << std::endl;
 
     for (auto& currentConversionNode : conversionsNode_) {
-      Conversion* newConversion = new Conversion();
+      Conversion* newConversion = new Conversion(subdetectorName_);
       newConversion->store(propertyTree());
       newConversion->store(currentConversionNode.second);
       newConversion->check();
@@ -173,7 +173,7 @@ namespace material {
     //std::cout << "  CONVERSION" << std::endl;
 
     if (inputNode_.size() > 0) {
-      input = new Inoutput();
+      input = new Inoutput(subdetectorName_);
       input->store(propertyTree());
       input->store(inputNode_.begin()->second);
       input->check();
@@ -185,7 +185,7 @@ namespace material {
     }
 
     if (outputNode_.size() > 0) {
-      outputs = new Inoutput();
+      outputs = new Inoutput(subdetectorName_);
       outputs->store(propertyTree());
       outputs->store(outputNode_.begin()->second);
       outputs->check();
@@ -199,7 +199,7 @@ namespace material {
     //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
-      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType);
+      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType, subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();

@@ -1,7 +1,6 @@
 
 Materials BPIX_v2_L2_1x2_2500 {
   type module
-  matSubdetectorName BPIX
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Medium
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common

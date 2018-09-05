@@ -37,6 +37,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
 public:
   typedef PtrVector<BarrelModule> Container;
 protected:
+  std::string subdetectorName_;
   Container zPlusModules_, zMinusModules_;
   MaterialObject materialObject_;
 public:
@@ -55,8 +56,9 @@ public:
   Property<bool, Default> beamSpotCover;
   Property<bool, NoDefault> isOuterRadiusRod;
 
-  RodPair() :
-      materialObject_(MaterialObject::ROD),
+  RodPair(const std::string subdetectorName) :
+    subdetectorName_(subdetectorName),
+    materialObject_(MaterialObject::ROD, subdetectorName),
       startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER),
 	beamSpotCover("beamSpotCover", parsedAndChecked(), true)
   {}
@@ -77,6 +79,7 @@ public:
   virtual double thickness() const = 0;
   virtual bool isTilted() const = 0;
 
+  const std::string subdetectorName() const { return subdetectorName_; }
   bool isTiming() const {
     bool isTiming = false;
     if (zPlusModules_.size() != 0) isTiming = zPlusModules_.front().isTimingModule();
@@ -153,7 +156,8 @@ public:
 
   PropertyNode<int> ringNode;
   
-  StraightRodPair() :
+  StraightRodPair(const std::string subdetectorName) :
+              RodPair             (subdetectorName),
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
 	      zError              ("zError"              , parsedAndChecked()),
@@ -211,18 +215,19 @@ public:
 
 
 class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
- 
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 
- public :
+public :
+  TiltedRodPair(const std::string subdetectorName) :
+    RodPair(subdetectorName)
+  {}
 
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   bool isTilted() const override { return true; }
   void check() override;
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
-  
-
+private:
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 }; 
 
 
