@@ -97,12 +97,12 @@ namespace insur {
      * @param elementName The name of the material
      * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(const std::string matSubdetectorName, const std::string elementName, double mass) {
+  void MaterialProperties::addLocalMass(const std::string subdetectorName, const std::string elementName, double mass) {
         msl_set = true;
         localmasses[elementName] += mass;
 
 	const std::string noComponentName = "no componentName";
-	LocalElement localMass = LocalElement(matSubdetectorName, noComponentName, elementName);
+	LocalElement localMass = LocalElement(subdetectorName, noComponentName, elementName);
 	localMassesDetails_[localMass] += mass;
     }
 
@@ -115,13 +115,13 @@ namespace insur {
      * @param comp The name of the component
      * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(const std::string matSubdetectorName, const std::string elementName, const std::string componentName, double mass, int minZ) {
+  void MaterialProperties::addLocalMass(const std::string subdetectorName, const std::string elementName, const std::string componentName, double mass, int minZ) {
         msl_set = true;
         localmasses[elementName] += mass;
         localmassesComp[getSubName(componentName)] += mass;
         localCompMats[componentName][elementName] += mass; 
 
-	LocalElement localMass = LocalElement(matSubdetectorName, componentName, elementName);
+	LocalElement localMass = LocalElement(subdetectorName, componentName, elementName);
 	localMassesDetails_[localMass] += mass;
     }
     

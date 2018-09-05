@@ -55,8 +55,8 @@ namespace material {
     SupportStructure();
     virtual ~SupportStructure() {};
 
-    const std::string matSubdetectorName() const { return matSubdetectorName_; }
-    void buildInTracker(const std::string matSubdetectorName);
+    const std::string subdetectorName() const { return subdetectorName_; }
+    void buildInTracker(const std::string subdetectorName);
     void buildInBarrel(Barrel& barrel);
     void buildInEndcap(Endcap& endcap);
 
@@ -67,7 +67,7 @@ namespace material {
     const double autoLayerMarginUpper = insur::geom_support_margin_bottom; //1.; // margins for the auto barrel support
     const double autoLayerMarginLower = insur::geom_support_margin_top + 2. * insur::geom_inactive_volume_width;    //2.; // + insur::geom_inactive_volume_width; //upper is upper for the support (is lower for the layer) and viceversa
 
-    std::string matSubdetectorName_;
+    std::string subdetectorName_;
 
     PropertyNodeUnique<std::string> componentsNode;
 
@@ -76,7 +76,7 @@ namespace material {
     Type supportType_;
     Direction direction_;
 
-    void buildBase(const std::string matSubdetectorName);
+    void buildBase(const std::string subdetectorName);
     void populateMaterialProperties(MaterialProperties& materialPropertie) const;
     void buildInactiveElementPair(Direction direction, double zStart, double rStart, double length);
 
@@ -88,8 +88,8 @@ namespace material {
       Component();
       virtual ~Component() {};
 
-      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
-      const std::string matSubdetectorName() const { return matSubdetectorName_; }
+      void subdetectorName(const std::string name) { subdetectorName_ = name; }
+      const std::string subdetectorName() const { return subdetectorName_; }
       void build();
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
 
@@ -97,14 +97,14 @@ namespace material {
       ElementsVector elements_;
 
     private:
-      std::string matSubdetectorName_;
+      std::string subdetectorName_;
     };
     
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       static const std::map<std::string, Unit> unitStringMap;
-      Property<std::string, AutoDefault> matSubdetectorName;
+      Property<std::string, AutoDefault> subdetectorName;
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<double, NoDefault> quantity;

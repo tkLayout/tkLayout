@@ -46,9 +46,9 @@ namespace material {
     MaterialObject(const MaterialObject& other);
     virtual ~MaterialObject();
 
-    //Property<std::string, AutoDefault> matSubdetectorName;
-    void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
-    const std::string matSubdetectorName() const { return matSubdetectorName_; }
+    //Property<std::string, AutoDefault> subdetectorName;
+    void subdetectorName(const std::string name) { subdetectorName_ = name; }
+    const std::string subdetectorName() const { return subdetectorName_; }
 
     double totalGrams(double length, double surface) const;
 
@@ -66,7 +66,7 @@ namespace material {
 
   private:
     static const std::map<Type, const std::string> typeString;
-    std::string matSubdetectorName_;
+    std::string subdetectorName_;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<std::string, NoDefault> destination_;
@@ -112,15 +112,15 @@ namespace material {
     class MaterialObjectKey {
     public:
       // TODO embed sensorChannel map into a fancier object?...?
-      MaterialObjectKey(const std::string& matSubdetectorName, const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
-	matSubdetectorName(matSubdetectorName),
+      MaterialObjectKey(const std::string& subdetectorName, const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+	subdetectorName(subdetectorName),
         name(newName), 
         sensorChannels(newSensorChannels),
         destination(newDestination)  {}
 
       bool operator<(const MaterialObjectKey& r ) const {
-	if (this->matSubdetectorName < r.matSubdetectorName) return true;
-	if (this->matSubdetectorName > r.matSubdetectorName) return false;
+	if (this->subdetectorName < r.subdetectorName) return true;
+	if (this->subdetectorName > r.subdetectorName) return false;
         if (this->sensorChannels < r.sensorChannels) return true;
         if (this->sensorChannels > r.sensorChannels) return false;
         if (this->name < r.name) return true;
@@ -129,7 +129,7 @@ namespace material {
         return false;
       }
     private:
-      std::string matSubdetectorName;
+      std::string subdetectorName;
       std::string name;
       std::map<int, int> sensorChannels;
       std::string destination;
@@ -138,7 +138,7 @@ namespace material {
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
-      Property<std::string, AutoDefault> matSubdetectorName;
+      Property<std::string, AutoDefault> subdetectorName;
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
       Property<std::string, NoDefault> componentName; //only the inner component's name
@@ -184,9 +184,9 @@ namespace material {
     class Component : public PropertyObject {
     public:
       //Property<std::string, NoDefault> componentName;
-      //Property<std::string, AutoDefault> matSubdetectorName;
-      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
-      const std::string matSubdetectorName() const { return matSubdetectorName_; }
+      //Property<std::string, AutoDefault> subdetectorName;
+      void subdetectorName(const std::string name) { subdetectorName_ = name; }
+      const std::string subdetectorName() const { return subdetectorName_; }
 
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
@@ -204,14 +204,14 @@ namespace material {
       MaterialObject::Type& materialType_;
 
     private:
-      std::string matSubdetectorName_;
+      std::string subdetectorName_;
     };
 
     class Materials : public PropertyObject {
     public:
-      //Property<std::string, AutoDefault> matSubdetectorName;
-      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
-      const std::string matSubdetectorName() const { return matSubdetectorName_; }
+      //Property<std::string, AutoDefault> subdetectorName;
+      void subdetectorName(const std::string name) { subdetectorName_ = name; }
+      const std::string subdetectorName() const { return subdetectorName_; }
 
       PropertyNodeUnique<std::string> componentsNode_;
       Materials(MaterialObject::Type newMaterialType);
@@ -227,7 +227,7 @@ namespace material {
       MaterialObject::Type materialType_;
 
     private:
-      std::string matSubdetectorName_;
+      std::string subdetectorName_;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects

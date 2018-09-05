@@ -207,8 +207,8 @@ void Layer::build() {
 
   try { 
     materialObject_.store(propertyTree());
-    materialObject_.matSubdetectorName(subdetectorName());
-    //std::cout << "Layer::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
+    materialObject_.subdetectorName(subdetectorName());
+    //std::cout << "Layer::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
     materialObject_.build();
 
     logINFO(Form("Building %s", fullid(*this).c_str()));

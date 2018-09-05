@@ -200,7 +200,7 @@ namespace material {
 
     for  (auto& currentElementNode : elementsNode_) {
       MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType);
-      newElement->matSubdetectorName(subdetectorName_);
+      newElement->subdetectorName(subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();

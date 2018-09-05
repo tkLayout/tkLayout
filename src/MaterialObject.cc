@@ -25,7 +25,7 @@ namespace material {
   };
 
   MaterialObject::MaterialObject(Type materialType) :
-    //matSubdetectorName ("matSubdetectorName", parsedOnly()),
+    //subdetectorName ("subdetectorName", parsedOnly()),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),
@@ -36,7 +36,7 @@ namespace material {
 
   MaterialObject::MaterialObject(const MaterialObject& other) :
     MaterialObject(other.materialType_) {
-    matSubdetectorName(other.matSubdetectorName());
+    subdetectorName(other.subdetectorName());
     materials_ = other.materials_;
     serviceElements_ = other.serviceElements_; //do shallow copies
   }
@@ -89,11 +89,11 @@ namespace material {
 
         check();
         if (type_().compare(getTypeString()) == 0) {
-          MaterialObjectKey myKey(matSubdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
+          MaterialObjectKey myKey(subdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
             Materials * newMaterials  = new Materials(materialType_);
             newMaterials->store(currentMaterialNode.second);
-	    if (matSubdetectorName() != "") newMaterials->matSubdetectorName(matSubdetectorName());
+	    if (subdetectorName() != "") newMaterials->subdetectorName(subdetectorName());
 
             //pass destination to newMaterials
             if(destination_.state()) {
@@ -141,16 +141,16 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
-	if (currElement->matSubdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->matSubdetectorName() = " << currElement->matSubdetectorName() << std::endl;
+	if (currElement->subdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->subdetectorName() = " << currElement->subdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
 	  /*if (currElement->componentName() == "High voltage lines") {
 	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
 	    }*/
-          materialProperties.addLocalMass(currElement->matSubdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
+          materialProperties.addLocalMass(currElement->subdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
 	  std::cout << "MaterialObject::populateMaterialProperties: No component name, element name = " << currElement->elementName() << std::endl;
-          materialProperties.addLocalMass(currElement->matSubdetectorName(), "", currElement->elementName(), quantity);
+          materialProperties.addLocalMass(currElement->subdetectorName(), "", currElement->elementName(), quantity);
         }
       }
     }
@@ -179,7 +179,7 @@ namespace material {
   //}
 
   MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType) :
-    //matSubdetectorName ("matSubdetectorName", parsedOnly()),
+    //subdetectorName ("subdetectorName", parsedOnly()),
     componentsNode_ ("Component", parsedOnly()),
     materialType_(newMaterialType) {};
 
@@ -199,7 +199,7 @@ namespace material {
       Component* newComponent = new Component(materialType_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
-      if (matSubdetectorName() != "") { newComponent->matSubdetectorName(matSubdetectorName()); }
+      if (subdetectorName() != "") { newComponent->subdetectorName(subdetectorName()); }
       newComponent->check();
       newComponent->build(newSensorChannels);
 
@@ -228,7 +228,7 @@ namespace material {
 
   MaterialObject::Component::Component(MaterialObject::Type& newMaterialType) :
     //componentName ("componentName", parsedAndChecked()),
-    //matSubdetectorName ("matSubdetectorName", parsedOnly()),
+    //subdetectorName ("subdetectorName", parsedOnly()),
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()),
     materialType_(newMaterialType) {};
@@ -255,7 +255,7 @@ namespace material {
       Component* newComponent = new Component(materialType_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
-      if (matSubdetectorName() != "") { newComponent->matSubdetectorName(matSubdetectorName()); }
+      if (subdetectorName() != "") { newComponent->subdetectorName(subdetectorName()); }
       newComponent->check();
       newComponent->build(newSensorChannels);
 
@@ -264,12 +264,12 @@ namespace material {
     //elements
     for (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element(materialType_);
-      //std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
-      if (matSubdetectorName() != "") { newElement->matSubdetectorName(matSubdetectorName()); }
+      //std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
+      if (subdetectorName() != "") { newElement->subdetectorName(subdetectorName()); }
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
-      //std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
-      //std::cout << "AFTER MAT SUBDETECTORNAME Materialobject::Component::build :  newElement->matSubdetectorName() = " << newElement->matSubdetectorName() << std::endl;
+      //std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
+      //std::cout << "AFTER MAT SUBDETECTORNAME Materialobject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
       newElement->check();
       newElement->cleanup();
       newElement->build(newSensorChannels);
@@ -318,7 +318,7 @@ namespace material {
   */
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
-    matSubdetectorName ("matSubdetectorName", parsedOnly()),
+    subdetectorName ("subdetectorName", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
@@ -338,7 +338,7 @@ namespace material {
   };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
-    matSubdetectorName(original.matSubdetectorName());
+    subdetectorName(original.subdetectorName());
     if(original.componentName.state())
       componentName(original.componentName());   
     elementName(original.elementName());
@@ -565,8 +565,8 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	if (matSubdetectorName() == "") std::cout << "caca: MaterialObject::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
-        materialProperties.addLocalMass(matSubdetectorName(), elementName(), componentName(), quantity);
+	if (subdetectorName() == "") std::cout << "caca: MaterialObject::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+        materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
       }
     }
   }

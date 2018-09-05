@@ -196,8 +196,8 @@ void Ring::buildTopDown() {
 
 void Ring::build() {
   materialObject_.store(propertyTree());
-  materialObject_.matSubdetectorName(subdetectorName());
-  //std::cout << "Ring::build()  : materialObject_.matSubdetectorName() = " << materialObject_.matSubdetectorName() << std::endl;
+  materialObject_.subdetectorName(subdetectorName());
+  //std::cout << "Ring::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
   materialObject_.build();
 
   if(materialObject_.isPopulated()) {

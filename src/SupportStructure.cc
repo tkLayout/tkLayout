@@ -44,8 +44,8 @@ namespace material {
     componentsNode("Component"   , parsedOnly())
   {}
   
-  void SupportStructure::buildInTracker(const std::string matSubdetectorName) {
-    buildBase(matSubdetectorName);
+  void SupportStructure::buildInTracker(const std::string subdetectorName) {
+    buildBase(subdetectorName);
 
     try {
       supportType_ = typeStringMap.at(type());
@@ -209,12 +209,12 @@ namespace material {
     }
   }
 
-  void SupportStructure::buildBase(const std::string matSubdetectorName) {
-    matSubdetectorName_ = matSubdetectorName;
+  void SupportStructure::buildBase(const std::string subdetectorName) {
+    subdetectorName_ = subdetectorName;
 
     for (auto& currentComponentNode : componentsNode) {
       Component* newComponent = new Component();
-      newComponent->matSubdetectorName(matSubdetectorName_);
+      newComponent->subdetectorName(subdetectorName_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second); 
       newComponent->check();
@@ -290,7 +290,7 @@ namespace material {
     //sub components
     for (auto& currentComponentNode : componentsNode) {
       Component* newComponent = new Component();
-      newComponent->matSubdetectorName(matSubdetectorName_);
+      newComponent->subdetectorName(subdetectorName_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second); 
       newComponent->check();
@@ -301,7 +301,7 @@ namespace material {
     //elements
     for (auto& currentElementNode : elementsNode) {
       Element* newElement = new Element();
-      newElement->matSubdetectorName(matSubdetectorName_);
+      newElement->subdetectorName(subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -324,7 +324,7 @@ namespace material {
   
   //=============== begin class SupportStructure::Element
   SupportStructure::Element::Element() :
-    matSubdetectorName ("matSubdetectorName", parsedOnly()),
+    subdetectorName ("subdetectorName", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     quantity ("quantity", parsedAndChecked()),
@@ -373,8 +373,8 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
-      if (matSubdetectorName() == "") std::cout << "SupportStructure::Element::populateMaterialProperties matSubdetectorName() = " << matSubdetectorName() << std::endl;
-      materialProperties.addLocalMass(matSubdetectorName(), elementName(), componentName(), quantity);
+      if (subdetectorName() == "") std::cout << "SupportStructure::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+      materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
     }
   }
   

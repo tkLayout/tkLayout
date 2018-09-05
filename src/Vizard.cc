@@ -9288,7 +9288,7 @@ namespace insur {
 
       const LocalElement& myElement = massIt.first;
 
-      const std::string subdetectorName = myElement.matSubdetectorName();
+      const std::string subdetectorName = myElement.subdetectorName();
       volumeSubdetectorNames.insert(subdetectorName);
 
       const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
@@ -9411,7 +9411,7 @@ namespace insur {
       else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
       else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
       else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
-      else color = kBlack;
+      else color = kGray;
     }
     else { color = kBlack; }
 

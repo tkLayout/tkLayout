@@ -42,15 +42,15 @@ namespace insur {
 
   class LocalElement {
   public:
-    LocalElement(const std::string matSubdetectorName, const std::string componentName, const std::string elementName) :
-      matSubdetectorName_(matSubdetectorName),
+    LocalElement(const std::string subdetectorName, const std::string componentName, const std::string elementName) :
+      subdetectorName_(subdetectorName),
       componentName_(componentName),
       elementName_(elementName) 
     { 
       category_ = computeMechanicalCategory(componentName);
     }
 
-    const std::string matSubdetectorName() const { return matSubdetectorName_; }
+    const std::string subdetectorName() const { return subdetectorName_; }
     const MechanicalCategory mechanicalCategory() const { return category_; }
     const std::string componentName() const { return componentName_; }
     const std::string elementName() const { return elementName_; }
@@ -65,7 +65,7 @@ namespace insur {
       else return MechanicalCategory::UNKNOWN;
     }
 
-    std::string matSubdetectorName_;
+    std::string subdetectorName_;
     MechanicalCategory category_;
     std::string componentName_;
     std::string elementName_;
@@ -74,7 +74,7 @@ namespace insur {
 
   struct ElementNameCompare {
     bool operator() (const LocalElement& localA, const LocalElement& localB) const {
-      if (localA.matSubdetectorName() != localB.matSubdetectorName()) return (localA.matSubdetectorName() < localB.matSubdetectorName());
+      if (localA.subdetectorName() != localB.subdetectorName()) return (localA.subdetectorName() < localB.subdetectorName());
       else {
 	if (localA.mechanicalCategory() != localB.mechanicalCategory()) return (localA.mechanicalCategory() < localB.mechanicalCategory());
 	else {
@@ -130,8 +130,8 @@ namespace insur {
 
       const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
 
-        void addLocalMass(const std::string matSubdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
-        void addLocalMass(const std::string matSubdetectorName, const std::string tag, double ms);
+        void addLocalMass(const std::string subdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
+        void addLocalMass(const std::string subdetectorName, const std::string tag, double ms);
       //void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
       //void addLocalMass(std::string tag, double ms);
         unsigned int localMassCount();
