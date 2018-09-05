@@ -9410,7 +9410,7 @@ namespace insur {
       else if (subdetectorName == "TB2S") color = kCyan;
       else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
       else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
-      else if (subdetectorName == "Outer" || subdetectorName == "ITST") color = kGreen;
+      else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
       else color = kBlack;
     }
     else { color = kBlack; }
