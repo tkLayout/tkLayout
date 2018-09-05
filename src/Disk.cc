@@ -238,7 +238,7 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
   for (auto& currentStationNode : stationsNode) {
-    conversionStation = new ConversionStation();
+    conversionStation = new ConversionStation(subdetectorName());
     conversionStation->store(propertyTree());
     conversionStation->store(currentStationNode.second);
     conversionStation->check();
