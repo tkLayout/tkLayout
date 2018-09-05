@@ -263,16 +263,11 @@ namespace material {
     //elements
     for (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element(materialType_, subdetectorName());
-      //std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
-      //std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
-      //std::cout << "AFTER MAT SUBDETECTORNAME Materialobject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
       newElement->check();
       newElement->cleanup();
       newElement->build(newSensorChannels);
-      //bool test1 = newElement->componentName.state();
-      //bool test2 = newElement->nSegments.state();
 
       elements_.push_back(newElement);
     }

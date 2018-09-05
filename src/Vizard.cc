@@ -9362,7 +9362,10 @@ namespace insur {
       for (const auto& subdetectorName : volumeSubdetectorNames) {  
 
 	if (isModule && detectorModule != nullptr) {
-	  if (detectorModule->isTilted() && subdetectorName != "TEDD") {
+	  if (detectorModule->isTilted() 
+	      && subdetectorName != "TEDD_1" && subdetectorName != "TEDD_2"
+	      && subdetectorName != "FPIX_1" && subdetectorName != "FPIX_2"
+	      ) {
 	    const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
 	    const double rhoAtMaxZ = (z1 > 0. ? r1 : r2);
 	    const bool isFilled = false;
