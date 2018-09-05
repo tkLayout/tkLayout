@@ -91,11 +91,9 @@ void Tracker::addHierarchyInfoToModules() {
   class HierarchyInfoToModulesVisitor : public GeometryVisitor {  
   public:
     void visit(Barrel& b) { 
-      subdetectorName_ = b.myid(); 
       subdetectorId_++; 
     }
     void visit(Endcap& e) { 
-      subdetectorName_ = e.myid(); 
       subdetectorId_++; 
     }
     void visit(Layer& l)  {
@@ -114,7 +112,7 @@ void Tracker::addHierarchyInfoToModules() {
       bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);
     }
     void visit(Module& m) { 
-      m.subdetectorNameId(subdetectorName_, subdetectorId_); 
+      m.subdetectorId(subdetectorId_); 
     }
     void visit(BarrelModule& m) { 
       m.layer(layerDiskId_); 
@@ -132,7 +130,6 @@ void Tracker::addHierarchyInfoToModules() {
     }
 
   private:
-    string subdetectorName_;
     int subdetectorId_ = 0;
     int layerDiskId_;
     int rodRingId_;

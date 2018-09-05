@@ -141,10 +141,9 @@ public:
 
   Property<bool, Default> removeModule;
 
-  int16_t subdetectorId() const { return subdetectorId_; }
-  const std::string& subdetectorName() const { return subdetectorName_; }
-  //void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
-  void subdetectorNameId(const std::string& name, const int id) { subdetectorId_ = id; }
+  const std::string subdetectorName() const { return subdetectorName_; }
+  void subdetectorId(const int id) { subdetectorId_ = id; }
+  const int subdetectorId() const { return subdetectorId_; }
   
   DetectorModule(Decorated* decorated, const std::string subdetectorName) : 
     Decorator<GeometricModule>(decorated),
