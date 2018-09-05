@@ -57,7 +57,7 @@ void Tracker::build() {
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());
       s->store(mapel.second);
-      s->buildInTracker();
+      s->buildInTracker(myid());
       supportStructures_.push_back(s);
     }
   }

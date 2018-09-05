@@ -54,7 +54,9 @@ namespace material {
     
     SupportStructure();
     virtual ~SupportStructure() {};
-    void buildInTracker();
+
+    const std::string matSubdetectorName() const { return matSubdetectorName_; }
+    void buildInTracker(const std::string matSubdetectorName);
     void buildInBarrel(Barrel& barrel);
     void buildInEndcap(Endcap& endcap);
 
@@ -65,6 +67,8 @@ namespace material {
     const double autoLayerMarginUpper = insur::geom_support_margin_bottom; //1.; // margins for the auto barrel support
     const double autoLayerMarginLower = insur::geom_support_margin_top + 2. * insur::geom_inactive_volume_width;    //2.; // + insur::geom_inactive_volume_width; //upper is upper for the support (is lower for the layer) and viceversa
 
+    std::string matSubdetectorName_;
+
     PropertyNodeUnique<std::string> componentsNode;
 
     ComponentsVector components_;
@@ -72,7 +76,7 @@ namespace material {
     Type supportType_;
     Direction direction_;
 
-    void buildBase();
+    void buildBase(const std::string matSubdetectorName);
     void populateMaterialProperties(MaterialProperties& materialPropertie) const;
     void buildInactiveElementPair(Direction direction, double zStart, double rStart, double length);
 
@@ -84,11 +88,16 @@ namespace material {
       Component();
       virtual ~Component() {};
 
+      void matSubdetectorName(const std::string name) { matSubdetectorName_ = name; }
+      const std::string matSubdetectorName() const { return matSubdetectorName_; }
       void build();
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
 
       ComponentsVector components_;
       ElementsVector elements_;
+
+    private:
+      std::string matSubdetectorName_;
     };
     
     class Element : public PropertyObject {
