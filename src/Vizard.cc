@@ -9350,7 +9350,9 @@ namespace insur {
 
 
     // ALL VOLUMES: PLOT
-    if (volumeSubdetectorNames.size() > 3) { std::cout << "!!! More than 3 subdetectors assigned to a materials volume." << std::endl; }
+    if (volumeSubdetectorNames.size() > 4) { 
+      std::cout << "!!! More than 4 subdetectors assigned to a materials volume." << std::endl; 
+    }
       
     else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", isEmpty, z1, z2, r1, r2); }
 
