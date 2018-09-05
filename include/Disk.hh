@@ -36,6 +36,7 @@ private:
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
+  std::string subdetectorName_;
   int diskNumber_;
 
   Property<double, NoDefault> innerRadius;
@@ -58,7 +59,6 @@ private:
 
   double averageZ_ = 0;
 public:
-  Property<std::string, AutoDefault> subdetectorName;
   Property<int, NoDefault>    numRings;
   Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;
@@ -69,10 +69,10 @@ public:
   ReadonlyProperty<int, Computable> totalModules;
   ReadonlyProperty<double, Computable> maxRingThickness;
 
-  Disk() :
-    materialObject_(MaterialObject::LAYER),
+  Disk(const std::string subdetectorName) :
+    materialObject_(MaterialObject::LAYER, subdetectorName),
     flangeConversionStation_(nullptr),
-    
+    subdetectorName_(subdetectorName),    
     innerRadius( "innerRadius", parsedAndChecked()),
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
@@ -83,7 +83,7 @@ public:
     numRings(    "numRings"   , parsedAndChecked()),
     zHalfLength( "zHalfLength", parsedAndChecked()),
     buildZ(      "buildZ"     , parsedOnly()),
-    placeZ(      "placeZ"     , parsedOnly())    
+    placeZ(      "placeZ"     , parsedOnly())
   {}
 
   void setup() {
@@ -115,6 +115,7 @@ public:
   const Container& rings() const { return rings_; }
   const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
+  const std::string subdetectorName() const { return subdetectorName_; }
   void diskNumber(int num) { diskNumber_ = num; }
   int diskNumber() const { return diskNumber_; }
   int numEmptyRings() const { return count_if(rings_.begin(), rings_.end(), [](const Ring& r) { return r.numModules() == 0; }); }

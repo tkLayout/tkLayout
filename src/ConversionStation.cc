@@ -199,8 +199,7 @@ namespace material {
     //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
-      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType);
-      newElement->subdetectorName(subdetectorName_);
+      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType, subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();

@@ -142,12 +142,11 @@ public:
   Property<bool, Default> removeModule;
 
   int16_t subdetectorId() const { return subdetectorId_; }
-  void subdetectorName(const std::string name) { subdetectorName_ = name; }
   const std::string& subdetectorName() const { return subdetectorName_; }
   //void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
   void subdetectorNameId(const std::string& name, const int id) { subdetectorId_ = id; }
   
- DetectorModule(Decorated* decorated) : 
+  DetectorModule(Decorated* decorated, const std::string subdetectorName) : 
     Decorator<GeometricModule>(decorated),
       skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
@@ -201,7 +200,8 @@ public:
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
       removeModule             ("removeModule"             , parsedOnly(), false),
-      materialObject_(MaterialObject::MODULE),
+      materialObject_          (MaterialObject::MODULE, subdetectorName),
+      subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
 	{ }
 
@@ -442,8 +442,8 @@ public:
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) :
-    DetectorModule(decorated)
+  BarrelModule(Decorated* decorated, const std::string subdetectorName) :
+    DetectorModule(decorated, subdetectorName)
   { setup(); }
 
   void accept(GeometryVisitor& v) {
@@ -575,8 +575,8 @@ public:
   Property<int, AutoDefault> endcapDiskSurface;
   const int diskSurface() const override { return endcapDiskSurface(); }
 
-  EndcapModule(Decorated* decorated) :
-    DetectorModule(decorated)
+  EndcapModule(Decorated* decorated, const std::string subdetectorName) :
+    DetectorModule(decorated, subdetectorName)
   { setup(); }
 
 

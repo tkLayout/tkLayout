@@ -84,7 +84,6 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->myid(i+1);
-    mod->subdetectorName(subdetectorName());
     mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
@@ -112,7 +111,6 @@ void Ring::buildBottomUp() {
   if (moduleShape() == ModuleShape::WEDGE) {
     WedgeModule* wmod = GeometryFactory::make<WedgeModule>();
     wmod->store(propertyTree());
-    //wmod->subdetectorName(subdetectorName());
 
     auto optimalRingParms = computeOptimalRingParametersWedge(wmod->waferDiameter(), buildStartRadius());
     double alpha = optimalRingParms.first;
@@ -125,13 +123,12 @@ void Ring::buildBottomUp() {
     wmod->build();
 
     modLength = wmod->length();
-    emod = GeometryFactory::make<EndcapModule>(wmod);
+    emod = GeometryFactory::make<EndcapModule>(wmod, subdetectorName());
 
   } else {
 
     RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
     rmod->store(propertyTree());
-    //rmod->subdetectorName(subdetectorName());
     rmod->build();
 
     auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius() + rmod->length());
@@ -139,12 +136,12 @@ void Ring::buildBottomUp() {
 
     modLength = rmod->length();
 
-    emod = GeometryFactory::make<EndcapModule>(rmod); 
+    emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName()); 
 
   }
 
   emod->store(propertyTree());
-  emod->subdetectorName(subdetectorName());
+  //emod->subdetectorName(subdetectorName());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
 
@@ -172,14 +169,12 @@ void Ring::buildTopDown() {
 
   RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
   rmod->store(propertyTree());
-  //rmod->subdetectorName(subdetectorName());
 
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
-  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod);
+  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
   emod->store(propertyTree());
-  emod->subdetectorName(subdetectorName());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
 
@@ -196,7 +191,6 @@ void Ring::buildTopDown() {
 
 void Ring::build() {
   materialObject_.store(propertyTree());
-  materialObject_.subdetectorName(subdetectorName());
   //std::cout << "Ring::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
   materialObject_.build();
 

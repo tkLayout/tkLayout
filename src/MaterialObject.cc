@@ -24,19 +24,20 @@ namespace material {
       {LAYER, "layer"}
   };
 
-  MaterialObject::MaterialObject(Type materialType) :
-    //subdetectorName ("subdetectorName", parsedOnly()),
+  MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
+    subdetectorName_(subdetectorName),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       // sensorNode_ ("Sensor", parsedOnly()),
-      materials_ (nullptr) {}
+      materials_ (nullptr) 
+  {}
 
   MaterialObject::MaterialObject(const MaterialObject& other) :
-    MaterialObject(other.materialType_) {
-    subdetectorName(other.subdetectorName());
+    MaterialObject(other.materialType_, other.subdetectorName()) 
+  {
     materials_ = other.materials_;
     serviceElements_ = other.serviceElements_; //do shallow copies
   }
@@ -91,9 +92,8 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           MaterialObjectKey myKey(subdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
-            Materials * newMaterials  = new Materials(materialType_);
+            Materials * newMaterials  = new Materials(materialType_, subdetectorName());
             newMaterials->store(currentMaterialNode.second);
-	    if (subdetectorName() != "") newMaterials->subdetectorName(subdetectorName());
 
             //pass destination to newMaterials
             if(destination_.state()) {
@@ -178,10 +178,11 @@ namespace material {
   //  materials_->chargeTrain(train);
   //}
 
-  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType) :
-    //subdetectorName ("subdetectorName", parsedOnly()),
+  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Materials::~Materials() {}
 
@@ -196,10 +197,9 @@ namespace material {
   void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
     check();        
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
-      if (subdetectorName() != "") { newComponent->subdetectorName(subdetectorName()); }
       newComponent->check();
       newComponent->build(newSensorChannels);
 
@@ -226,12 +226,12 @@ namespace material {
     }
   }
 
-  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType) :
-    //componentName ("componentName", parsedAndChecked()),
-    //subdetectorName ("subdetectorName", parsedOnly()),
+  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Component::~Component() { }
 
@@ -252,10 +252,9 @@ namespace material {
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
-      if (subdetectorName() != "") { newComponent->subdetectorName(subdetectorName()); }
       newComponent->check();
       newComponent->build(newSensorChannels);
 
@@ -263,9 +262,8 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode_) {
-      Element* newElement = new Element(materialType_);
+      Element* newElement = new Element(materialType_, subdetectorName());
       //std::cout << "BEFORE STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
-      if (subdetectorName() != "") { newElement->subdetectorName(subdetectorName()); }
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       //std::cout << "AFTER STORE MaterialObject::Component::build :  newElement->subdetectorName() = " << newElement->subdetectorName() << std::endl;
@@ -317,8 +315,7 @@ namespace material {
   };
   */
 
-  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
-    subdetectorName ("subdetectorName", parsedOnly()),
+  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
     //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
@@ -333,12 +330,14 @@ namespace material {
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
+    subdetectorName_(subdetectorName),
     materialsTable_ (MaterialsTable::instance()),
-    materialType_(newMaterialType) {
-  };
+    materialType_(newMaterialType) 
+  {};
 
-  MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
-    subdetectorName(original.subdetectorName());
+  MaterialObject::Element::Element(const Element& original, double multiplier) : 
+    Element(original.materialType_, original.subdetectorName()) 
+  {
     if(original.componentName.state())
       componentName(original.componentName());   
     elementName(original.elementName());

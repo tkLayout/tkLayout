@@ -16,7 +16,7 @@ void Barrel::build() {
     check();
 
     for (int i = 1; i <= numLayers(); i++) {
-      Layer* layer = GeometryFactory::make<Layer>();
+      Layer* layer = GeometryFactory::make<Layer>(myid());
       layer->myid(i);
 
       if      (i == 1)           { if (innerRadiusFixed()) layer->radiusMode(Layer::FIXED); layer->placeRadiusHint(innerRadius()); } 
@@ -31,7 +31,6 @@ void Barrel::build() {
 
       layer->store(propertyTree());
       if (layerNode.count(i) > 0) layer->store(layerNode.at(i)); // TO DO: WARNING!! layer->placeRadiusHint is reassigned here!!
-      layer->subdetectorName(myid());
       layer->build();
       layer->rotateZ(barrelRotation());
       layer->rotateZ(layer->layerRotation());

@@ -124,7 +124,7 @@ namespace material {
     bearing_(bearing),
     nextSection_(nextSection),
     inactiveElement_(nullptr), 
-    materialObject_ (MaterialObject::SERVICE) {}
+    materialObject_ (MaterialObject::SERVICE, "") {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
     Section(minZ,
@@ -283,7 +283,7 @@ namespace material {
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection) :
       Section(minZ, minR, maxZ, maxR, bearing, nextSection),
       conversionStation_ (conversionStation),
-      outgoingMaterialObject_ (MaterialObject::SERVICE) {}
+      outgoingMaterialObject_ (MaterialObject::SERVICE, "") {}
 
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation) :
       Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}

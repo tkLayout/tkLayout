@@ -207,8 +207,6 @@ void Layer::build() {
 
   try { 
     materialObject_.store(propertyTree());
-    materialObject_.subdetectorName(subdetectorName());
-    //std::cout << "Layer::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
     materialObject_.build();
 
     logINFO(Form("Building %s", fullid(*this).c_str()));
@@ -283,7 +281,7 @@ void Layer::buildStraight() {
 
 
   // FIRST ROD : assign common properties
-  StraightRodPair* firstRod = GeometryFactory::make<StraightRodPair>();
+  StraightRodPair* firstRod = GeometryFactory::make<StraightRodPair>(subdetectorName());
   assignRodCommonProperties(firstRod);
   
   // CLONES FROM FIRST ROD
@@ -328,11 +326,11 @@ RodTemplate Layer::makeRodTemplate(const double skewAngle) {
   //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   const int numModules = rodTemplate.size();
   for (int i = 0; i < numModules; i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>(), subdetectorName())));
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
     if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);
-    rodTemplate[i]->subdetectorName(subdetectorName());
+    //rodTemplate[i]->subdetectorName(subdetectorName());
     rodTemplate[i]->build();
   }
   return rodTemplate;
@@ -481,7 +479,6 @@ const double Layer::computeRodCenterPhiShift() const {
  */
 void Layer::assignRodCommonProperties(StraightRodPair* rod) const {
   rod->myid(1);
-  rod->subdetectorName(subdetectorName());
   rod->minBuildRadius(minBuildRadius() - bigDelta());
   rod->maxBuildRadius(maxBuildRadius() + bigDelta());
   if (buildNumModules() > 0) rod->buildNumModules(buildNumModules());
@@ -1037,17 +1034,15 @@ void Layer::buildTilted() {
 
   float rodCenterPhiShift = 2*M_PI/numRods();
 
-  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
+  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(subdetectorName());
   first->myid(1);
-  first->subdetectorName(subdetectorName());
   first->isOuterRadiusRod(false);
   first->store(propertyTree());
   first->build(rodTemplate, tmspecsi, 1);
   rods_.push_back(first);
 
-  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
+  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(subdetectorName());
   second->myid(2);
-  second->subdetectorName(subdetectorName());
   second->isOuterRadiusRod(true);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecso, 0);

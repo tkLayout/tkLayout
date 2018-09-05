@@ -25,7 +25,7 @@ namespace material {
     enum Type {ERROR, FLANGE, SECOND};
     
     ConversionStation(const std::string subdetectorName) :
-      MaterialObject(MaterialObject::Type::STATION),
+      MaterialObject(MaterialObject::Type::STATION, subdetectorName),
       stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),

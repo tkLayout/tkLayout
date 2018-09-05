@@ -8,7 +8,7 @@ const std::vector<double> Disk::scanSmallDeltas() const {
   std::vector<double> ringsSmallDeltas;
 
   for (int i = 1; i <= numRings(); i++) {
-    Ring* ringTemplate = GeometryFactory::make<Ring>();
+    Ring* ringTemplate = GeometryFactory::make<Ring>(subdetectorName());
     ringTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) ringTemplate->store(ringNode.at(i));
     ringsSmallDeltas.push_back(ringTemplate->smallDelta());
@@ -181,11 +181,10 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
-    Ring* ring = GeometryFactory::make<Ring>();
+    Ring* ring = GeometryFactory::make<Ring>(subdetectorName());
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));
-    ring->subdetectorName(subdetectorName());
 
     // INITIALIZATION
     if (i == numRings()) {
@@ -227,8 +226,6 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   ConversionStation* conversionStation;
   materialObject_.store(propertyTree());
-  materialObject_.subdetectorName(subdetectorName());
-  //std::cout << "Disk::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
   materialObject_.build();
 
   try {

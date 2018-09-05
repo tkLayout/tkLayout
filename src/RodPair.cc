@@ -399,7 +399,6 @@ void StraightRodPair::check() {
 
 void StraightRodPair::build(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   materialObject_.store(propertyTree());
-  materialObject_.subdetectorName(subdetectorName());
   materialObject_.build();
 
   try {
