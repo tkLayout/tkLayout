@@ -55,7 +55,6 @@ namespace material {
     SupportStructure();
     virtual ~SupportStructure() {};
 
-    const std::string subdetectorName() const { return subdetectorName_; }
     void buildInTracker(const std::string subdetectorName);
     void buildInBarrel(Barrel& barrel);
     void buildInEndcap(Endcap& endcap);
@@ -85,11 +84,9 @@ namespace material {
     public:
       PropertyNodeUnique<std::string> componentsNode;
       PropertyNodeUnique<std::string> elementsNode;
-      Component();
+      Component(const std::string subdetectorName);
       virtual ~Component() {};
 
-      void subdetectorName(const std::string name) { subdetectorName_ = name; }
-      const std::string subdetectorName() const { return subdetectorName_; }
       void build();
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
 
@@ -104,14 +101,14 @@ namespace material {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       static const std::map<std::string, Unit> unitStringMap;
-      Property<std::string, AutoDefault> subdetectorName;
+      Property<std::string, Default> subdetectorName;
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<double, NoDefault> quantity;
       Property<std::string, NoDefault> unit;
       Property<bool, Default> debugInactivate;
 
-      Element();
+      Element(const std::string subdetectorName);
       virtual ~Element() {};
 
       double quantityInGrams(double length, double surface) const;

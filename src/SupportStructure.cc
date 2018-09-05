@@ -213,8 +213,7 @@ namespace material {
     subdetectorName_ = subdetectorName;
 
     for (auto& currentComponentNode : componentsNode) {
-      Component* newComponent = new Component();
-      newComponent->subdetectorName(subdetectorName_);
+      Component* newComponent = new Component(subdetectorName_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second); 
       newComponent->check();
@@ -282,15 +281,16 @@ namespace material {
   //=============== end class SupportStructure
 
   //=============== begin class SupportStructure::Component
-  SupportStructure::Component::Component() :
+  SupportStructure::Component::Component(const std::string subdetectorName) :
     componentsNode("Component", parsedOnly()),
-    elementsNode("Element", parsedOnly()) {}
+    elementsNode("Element", parsedOnly()), 
+    subdetectorName_(subdetectorName)
+  {}
 
   void SupportStructure::Component::build() {
     //sub components
     for (auto& currentComponentNode : componentsNode) {
-      Component* newComponent = new Component();
-      newComponent->subdetectorName(subdetectorName_);
+      Component* newComponent = new Component(subdetectorName_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second); 
       newComponent->check();
@@ -300,8 +300,7 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode) {
-      Element* newElement = new Element();
-      newElement->subdetectorName(subdetectorName_);
+      Element* newElement = new Element(subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -323,8 +322,8 @@ namespace material {
   //=============== end class SupportStructure::Component
   
   //=============== begin class SupportStructure::Element
-  SupportStructure::Element::Element() :
-    subdetectorName ("subdetectorName", parsedOnly()),
+  SupportStructure::Element::Element(const std::string mySubdetectorName) :
+    subdetectorName ("subdetectorName", parsedOnly(), mySubdetectorName),
     componentName ("componentName", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     quantity ("quantity", parsedAndChecked()),
