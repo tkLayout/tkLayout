@@ -312,28 +312,28 @@ namespace insur {
       if (!is) is = new InactiveSurfaces();
       if (mb) delete mb;
       mb  = new MaterialBudget(*tr, *is);
-      if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
-      if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
-      if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-        if (verbose) mb->print();
+      //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
+      //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
+      //if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+      if (verbose) mb->print();
 
-        if (px) {
-	  if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-	    if (!pi) pi = new InactiveSurfaces();
-	    if (pm) delete pm;
-	    pm = new MaterialBudget(*px, *pi);
-	    if (verbose) pm->print();
-	  }
-        }
-        return true;
-      } else {
-        if (mb) delete mb;
-        mb = NULL;
-        if (pm) delete pm;
-        pm = NULL;
-        logERROR(err_init_failed);
-        return false;
+      if (px) {
+	//if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+	if (!pi) pi = new InactiveSurfaces();
+	if (pm) delete pm;
+	pm = new MaterialBudget(*px, *pi);
+	if (verbose) pm->print();
+	//}
       }
+      return true;
+      //} else {
+      //if (mb) delete mb;
+      // mb = NULL;
+      //if (pm) delete pm;
+      //pm = NULL;
+      //logERROR(err_init_failed);
+      //return false;
+      //}
     } else {
       logERROR(err_no_tracker);
       return false;

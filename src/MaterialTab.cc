@@ -472,45 +472,33 @@ namespace material {
 
     
     
-    for (const auto& mixIt : allChemicalMixtures) {
+    //for (const auto& mixIt : allChemicalMixtures) {
 
-      //if (!mixIt.second.hasChemicalFormula()) {
-      const MaterialTab& oldTable = MaterialTab::instance();
-      if (oldTable.find(mixIt.first) != oldTable.end()) {
+      /*
+	HEREEEEEEEEE
+	const MaterialTab& oldTable = MaterialTab::instance();
+	if (oldTable.find(mixIt.first) != oldTable.end()) {
 	const double oldRad = oldTable.radiationLength(mixIt.first);
 	const double oldInt = oldTable.interactionLength(mixIt.first);
 	const double oldDensity = oldTable.density(mixIt.first);
-
-	/*
-	  std::string closestElementName = "none";
-	  double closestElementRad = -1.;
-	  double closestElementInt = -1.;
-	  double distance = 10000.;
-	  for (const auto& elemIt : allChemicalElements) {
-	  const std::string elementName = elemIt.first;
-	  const ChemicalElement& elem = elemIt.second;
-	  const double elementRad = elem.getRadiationLength();
-	  const double elementInt = elem.getInteractionLength();
-
-	  double elementRadDistance = fabs(elementRad - oldRad) / oldRad;
-	  double elementIntDistance = fabs(elementInt - oldInt) / oldInt;
-	  if ( (elementRadDistance + elementIntDistance) < distance) {
-	  closestElementName = elementName;
-	  closestElementRad = elementRad;
-	  closestElementInt = elementInt;
-	  distance = elementRadDistance + elementIntDistance;
-	  }
-	  }
-	  std::cout << mixIt.first << " " << closestElementName << std::endl;
-	  const double radRatio = (closestElementRad - oldRad) / oldRad * 100.;
-	  const double intRatio = (closestElementInt - oldInt) / oldInt * 100.;*/
 
 	const ChemicalMixture& mix = mixIt.second;
 	const double radRatio = (mix.getRadiationLength() - oldRad) / oldRad * 100.;
 	const double intRatio = (mix.getInteractionLength() - oldInt) / oldInt * 100.;
 	const double densityRatio = (mix.getDensity() - oldDensity) / oldDensity * 100.;
 	std::cout << mixIt.first << " radRatio = " << radRatio << " intRatio = " << intRatio << " densityRatio = " << densityRatio << std::endl;
-      }	
+	}	
+      */
+
+
+
+
+
+
+
+
+
+
 
       
       /*
@@ -535,7 +523,7 @@ namespace material {
 
 
       //}
-    }
+      //}
     
     
 
