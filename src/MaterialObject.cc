@@ -559,7 +559,7 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-	if (subdetectorName() == "") std::cout << "caca: MaterialObject::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+	if (subdetectorName() == "") std::cout << "canary: MaterialObject::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
         materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
       }
     }

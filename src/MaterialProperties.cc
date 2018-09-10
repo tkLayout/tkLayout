@@ -156,8 +156,8 @@ namespace insur {
     //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
     for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
       for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit) {
-	std::string caca = "caca: copyMassVectors is used";
-	mp.addLocalMass(caca, matit->first, compit->first, matit->second);
+	std::string canary = "canary: copyMassVectors is used";
+	mp.addLocalMass(canary, matit->first, compit->first, matit->second);
       }
   }
     
