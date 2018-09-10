@@ -9167,6 +9167,14 @@ namespace insur {
     //std::vector<MaterialProperties*> totalMaterials;
     //Vector<unique_ptr<Base>>.  vec.emplace_back(new Derived())
 
+    std::vector<int> allColors;
+    allColors.push_back(kOrange);
+    allColors.push_back(kCyan);
+    allColors.push_back(kRed);
+    allColors.push_back(kGreen);
+    allColors.push_back(kAzure + 1);
+    int colorIndex = 0;
+    std::map<std::string, int> subdetectorColors;
 
     // SERVICES
     bool isModule = false;
@@ -9193,7 +9201,10 @@ namespace insur {
      
       const std::map<LocalElement, double, ElementNameCompare>& allMasses = serviceIt.getLocalElementsDetails();
       plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
-				  allMasses, z1, z2, r1, r2, rl, il, isModule, serviceId, serviceLength);
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, serviceId, serviceLength
+				  );
     
       serviceId++;
     }
@@ -9242,7 +9253,10 @@ namespace insur {
 
       const std::map<LocalElement, double, ElementNameCompare>& allMasses = moduleIt.getLocalElementsDetails();
       plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
-				  allMasses, z1, z2, r1, r2, rl, il, isModule, 0, 0., detectorModule, printModulesCsv);
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, 0, 0., detectorModule, printModulesCsv
+				  );
     }
 
 
@@ -9272,6 +9286,7 @@ namespace insur {
   void Vizard::plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
 					   const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
 					   const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+					   std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 					   const bool isModule, const int serviceId, const double serviceLength, 
 					   const Module* detectorModule, const bool printModulesCsv) {
 
@@ -9354,7 +9369,7 @@ namespace insur {
       std::cout << "!!! More than 4 subdetectors assigned to a materials volume." << std::endl; 
     }
       
-    else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", isEmpty, z1, z2, r1, r2); }
+    else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2); }
 
     else {
       double plotR1 = r1;
@@ -9368,13 +9383,13 @@ namespace insur {
 	    const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
 	    const double rhoAtMaxZ = (z1 > 0. ? r1 : r2);
 	    const bool isFilled = false;
-	    plotVolumeBox(subdetectorName, isEmpty, z1, z2, rhoAtMinZ, rhoAtMaxZ, isFilled);
+	    plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, rhoAtMinZ, rhoAtMaxZ, isFilled);
 	  }
-	  else plotVolumeBox(subdetectorName, isEmpty, z1, z2, r1, r2);
+	  else plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2);
 	}
 
 	else {
-	  plotVolumeBox(subdetectorName, isEmpty, z1, z2, plotR1, plotR2);
+	  plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, plotR1, plotR2);
 	  if (!isModule) {
 	    plotR1 += 2;
 	    plotR2 += 2;
@@ -9386,9 +9401,12 @@ namespace insur {
 
   }
 
-  void Vizard::plotVolumeBox(const std::string subdetectorName, const bool isEmpty, const double z1, const double z2, const double r1, const double r2, const bool isFilled) {
+  void Vizard::plotVolumeBox(const std::string subdetectorName, 
+			     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+			     const bool isEmpty, 
+			     const double z1, const double z2, const double r1, const double r2, const bool isFilled) {
 
-    const int color = computeSubdetectorColor(subdetectorName, isEmpty);
+    const int color = computeSubdetectorColor(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty);
    
     if (isFilled) {
       TBox* myBox = new TBox(z1, r1, z2, r2);
@@ -9406,16 +9424,34 @@ namespace insur {
 
 
 
-  const int Vizard::computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty) {
+  const int Vizard::computeSubdetectorColor(const std::string subdetectorName,
+					    std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+					    const bool isEmpty) {
     int color;
 
     if (!isEmpty) {
-      if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
-      else if (subdetectorName == "TB2S") color = kCyan;
-      else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
-      else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
-      else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
-      else color = kGray;
+      if (subdetectorName == "") color = kGray;
+      else {
+	const auto& found = subdetectorColors.find(subdetectorName);
+	if (found != subdetectorColors.end()) {
+	  color = found->second;
+	}
+	else {
+	  const int numColors = allColors.size();
+	  if (colorIndex < numColors) {
+	    color = allColors.at(colorIndex);
+	    colorIndex++;
+	    subdetectorColors.insert(std::make_pair(subdetectorName, color));
+	  }
+	  else { logERROR("Not enough colors are defined with respect to the total number of subdetectors"); }
+	}
+	//if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
+	//else if (subdetectorName == "TB2S") color = kCyan;
+	//else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
+	// else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
+	//else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
+	//else color = kMagenta;
+      }
     }
     else { color = kBlack; }
 

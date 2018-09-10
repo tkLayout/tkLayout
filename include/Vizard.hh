@@ -309,10 +309,16 @@ namespace insur {
     void plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
 				     const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
 				     const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+				     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 				     const bool isModule, const int serviceId = 0, const double serviceLength = 0., 
 				     const Module* detectorModule = nullptr, const bool printModulesCsv = false);
-    void plotVolumeBox(const std::string subdetectorName, const bool isEmpty, const double z1, const double z2, const double r1, const double r2, const bool isFilled = true);
-    const int computeSubdetectorColor(const std::string subdetectorName, const bool isEmpty);
+    void plotVolumeBox(const std::string subdetectorName, 
+		       std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+		       const bool isEmpty, 
+		       const double z1, const double z2, const double r1, const double r2, const bool isFilled = true);
+    const int computeSubdetectorColor(const std::string subdetectorName, 
+				      std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+				      const bool isEmpty);
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);
