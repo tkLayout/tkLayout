@@ -1,0 +1,16 @@
+// TFPX Ring3:
+// 3 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TFPX_R3
+      quantity 1.989               // = 3 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres        // = 1 GBT
+  }
+}

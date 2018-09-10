@@ -2826,14 +2826,16 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 5.); // every half a cm
-  int materialMapBinsX = int( (geom_max_length) * geom_safety_factor / 5.); // every half a cm
-  mapRadiation.SetBins(       materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteraction.SetBins(     materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapRadiationCount.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapRadiationCalib.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  const double materialMapMaxY = (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor;
+  const double materialMapMaxX = geom_max_length * geom_safety_factor;
+  const int materialMapNumBinsY = materialMapMaxY / 0.5; // every half a mm (used to be every 5 mm)
+  const int materialMapNumBinsX = materialMapMaxX / 1.; // every mm (used to be every 5 mm)
+  mapRadiation.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteraction.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapRadiationCount.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteractionCount.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapRadiationCalib.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
+  mapInteractionCalib.SetBins(materialMapNumBinsX, 0., materialMapMaxX, materialMapNumBinsY, 0., materialMapMaxY);
 }
 
 /**
