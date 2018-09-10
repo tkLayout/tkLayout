@@ -188,7 +188,7 @@ namespace insur {
     }
 
     // Translate entries in mt to elementary materials
-    analyseElements(mt, e);
+    analyseElements(e, c);
     std::cout << "Elementary materials done." << std::endl;
     // Analyse barrel
     analyseLayers(mt, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
@@ -214,21 +214,63 @@ namespace insur {
    * @param mattab A reference to the global material table; used as input
    * @param elems A reference to the collection of elementary material information; used as output
    */
-  void Extractor::analyseElements(MaterialTable&mattab, std::vector<Element>& elems) {
+  void Extractor::analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites) {
+    
+    /*
+    // PREVIOUS CODE
     for (unsigned int i = 0; i < mattab.rowCount(); i++) {
+    Element e;
+    MaterialRow& r = mattab.getMaterial(i);
+    e.tag = r.tag;
+    e.density = r.density;
+    std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
+    e.atomic_weight = AZ.first;
+    e.atomic_number = AZ.second;
+    // Z and A are calculated from radiation length and nuclear interaction lengths.
+    // THIS IS BECAUSE RADIATION LENGTH AND NUCLEAR INTERACTION LENGTH CANNOT BE TRANSMITED DIRECTLY TO CMSSW.
+    // Hence, Z and A (and density) only are transmitted to CMSSW.
+    // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from this Z, A, and density info.
+    elems.push_back(e);
+    }
+    */
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+
+    // FROM TABLE: CHEMICAL ELEMENTS
+    const ChemicalElementMap& allChemicalElements = myTable.getAllChemicalElements();
+
+    for (const auto& elemIt : allChemicalElements) {
+      const std::string elementName = elemIt.first;
+      const ChemicalElement& elem = elemIt.second;
+
       Element e;
-      MaterialRow& r = mattab.getMaterial(i);
-      e.tag = r.tag;
-      e.density = r.density;
-      std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
-      e.atomic_weight = AZ.first;
-      e.atomic_number = AZ.second;
-      // Z and A are calculated from radiation length and nuclear interaction lengths.
-      // THIS IS BECAUSE RADIATION LENGTH AND NUCLEAR INTERACTION LENGTH CANNOT BE TRANSMITED DIRECTLY TO CMSSW.
-      // Hence, Z and A (and density) only are transmitted to CMSSW.
-      // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from this Z, A, and density info.
+      e.tag = elementName;
+      e.density = elem.getDensity() * 1000.;  // g/cm3
+      e.atomic_number = elem.getAtomicNumber();
+      e.atomic_weight = elem.getAtomicWeight();
       elems.push_back(e);
     }
+
+
+    // FROM TABLE: MIXTURES (INCLUDE COMPOUNDS)
+    const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      const std::string mixtureName = mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+
+      Composite comp;
+      comp.name = xml_tkLayout_material + mixtureName;
+      comp.density = mix.getDensity() * 1000.;  // g/cm3
+      comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
+
+      const MassComposition& fractions = mix.getMassComposition();
+      for (const auto& fractionIt : fractions) {
+	comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
+      }
+      allComposites.push_back(comp);
+    }
+
   }
 
   /**

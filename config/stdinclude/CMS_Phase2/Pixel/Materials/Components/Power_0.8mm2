@@ -1,7 +1,7 @@
 // 0.8 mm^2 power wires NEW TYPE OF CABLE based on Habia specs
 // Serial power: the power lines do not accumulate
 Component {
-  componentName "Power wires"
+  componentName "Cabling: Serial power chains"
   service true
   scaleOnSensor 0
   // ONE wire

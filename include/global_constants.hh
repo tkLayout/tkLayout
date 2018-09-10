@@ -67,6 +67,8 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
+  static const double mat_negligible         = 1.0E-06; 
+
   static const double mat_a_silicon          = 28.0855;
   static const double mat_z_silicon          = 14;
   static const double mat_d_silicon          = 2.329;
@@ -154,6 +156,10 @@ namespace insur {
   static const std::string default_cabledITName                  = "IT404";
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
+  static const std::string default_chemicalElementsFile          = "chemical_elements.list";
+  static const std::string default_chemicalCompoundsFile         = "chemical_compounds.list";
+  static const std::string default_chemicalMixturesFile          = "chemical_mixtures.list";
+  static const std::string default_composition_delimiter         = ":";
   static const std::string default_irradiationdir                = "config";
   static const std::string default_fluence_file                  = "fluencePer1ppCol.map";
   static const std::string default_materialsdir                  = "config";

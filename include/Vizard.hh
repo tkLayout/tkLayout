@@ -42,11 +42,17 @@
 // Program constants
 #include <global_constants.hh>
 // Custom objects
+
+#include "MaterialTab.hh"
+
 #include <Tracker.hh>
 #include "OuterCabling/OuterCablingMap.hh"
 #include "InnerCabling/InnerCablingMap.hh"
 #include <Analyzer.hh>
 #include <TagMaker.hh>
+
+
+
 
 #include <InactiveSurfaces.hh>
 #include "Module.hh"
@@ -58,6 +64,10 @@
 #include <PlotDrawer.hh>
 #include <AnalyzerVisitors/GeometricInfo.hh>
 #include "VizardTools.hh"
+
+
+using namespace material;
+
 
 namespace material {
   class WeightDistributionGrid;
@@ -89,6 +99,12 @@ namespace insur {
     }
   };
 
+
+  typedef std::map<std::string, double> WeightsPerComponent;
+  typedef std::map<std::string, WeightsPerComponent> WeightsPerMechanicalCategory;
+  typedef std::map<std::string, WeightsPerMechanicalCategory> WeightsPerSubdetector;
+
+
   /**
    * @class Vizard
    * @brief This class bundles a number of output functions for different parts and stages of the material budget buildup.
@@ -116,10 +132,10 @@ namespace insur {
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site, std::string alternativeName);
     void totalMaterialSummary(Analyzer& analyzer, Analyzer& pixelAnalyzer, RootWSite& site);
-    void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
+    void weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool outerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool innerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
@@ -130,7 +146,7 @@ namespace insur {
     bool patternRecoSummary(Analyzer& a, mainConfigHandler& mainConfig, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
-    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page);
+    WeightsPerSubdetector computeDetailedWeights(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
@@ -266,6 +282,9 @@ namespace insur {
     std::string createModulesDetIdListCsv();
     std::string createSensorsDetIdListCsv();
 
+    std::string createChemicalElementsCsv();
+    std::string createChemicalMixturesCsv(const bool hasChemicalFormula);
+
     std::string createModulesToDTCsCsv(const Tracker& t, const bool isPositiveCablingSide);
     std::string createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
     std::string createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
@@ -286,6 +305,20 @@ namespace insur {
     TCanvas* drawFullLayoutRZ();
     TCanvas* drawFullLayoutServicesRZ();
     TCanvas* drawFullLayoutBarrelXY();
+
+    void plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
+				     const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
+				     const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+				     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+				     const bool isModule, const int serviceId = 0, const double serviceLength = 0., 
+				     const Module* detectorModule = nullptr, const bool printModulesCsv = false);
+    void plotVolumeBox(const std::string subdetectorName, 
+		       std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+		       const bool isEmpty, 
+		       const double z1, const double z2, const double r1, const double r2, const bool isFilled = true);
+    const int computeSubdetectorColor(const std::string subdetectorName, 
+				      std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+				      const bool isEmpty);
 
     void drawCircle(double radius, bool full, int color=kBlack);
     void drawPhiSectorsBoundaries(const double phiSectorWidth, const bool isRotatedY180 = false);

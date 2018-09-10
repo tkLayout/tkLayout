@@ -6,6 +6,7 @@
 #include <MaterialProperties.hh>
 #include<MaterialTab.hh>
 
+
 RILength& RILength::operator+=(const RILength &a) {
   interaction += a.interaction;
   radiation += a.radiation;
@@ -21,6 +22,9 @@ const RILength RILength::operator+(const RILength &other) const {
 
 
 namespace insur {
+
+  define_enum_strings(MechanicalCategory) = { "UNKNOWN", "MODULE", "CABLING", "SUPPORT", "COOLING" };
+
     /*-----public functions-----*/
     /**
      * The constructor sets a few defaults. The flags for the initialisation status of the material vectors are
@@ -87,31 +91,38 @@ namespace insur {
     const std::map<std::string, double>& MaterialProperties::getLocalMassesComp() const { return localmassesComp; }
 
     /**
-     * Add the local mass for a material, as specified by its tag, to the internal list.
+     * Add the local mass for a material, as specified by its elementName, to the internal list.
      * If the given material is already listed with a mass value, the new value is added
      * to the existing one.
-     * @param tag The name of the material
-     * @param ms The mass value
+     * @param elementName The name of the material
+     * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, double ms) {
+  void MaterialProperties::addLocalMass(const std::string subdetectorName, const std::string elementName, double mass) {
         msl_set = true;
-        localmasses[tag] += ms;
+        localmasses[elementName] += mass;
+
+	const std::string noComponentName = "no componentName";
+	LocalElement localMass = LocalElement(subdetectorName, noComponentName, elementName);
+	localMassesDetails_[localMass] += mass;
     }
 
     /**
-     * Add the local mass for a material, as specified by its tag, to the internal list.
+     * Add the local mass for a material, as specified by its elementName, to the internal list.
      * Also keeps track of the originating component
      * If the given material is already listed with a mass value, the new value is added
      * to the existing one.
-     * @param tag The name of the material
+     * @param elementName The name of the material
      * @param comp The name of the component
-     * @param ms The mass value
+     * @param mass The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms, int minZ) {
+  void MaterialProperties::addLocalMass(const std::string subdetectorName, const std::string elementName, const std::string componentName, double mass, int minZ) {
         msl_set = true;
-        localmasses[tag] += ms;
-        localmassesComp[getSubName(comp)] += ms;
-        localCompMats[comp][tag] += ms; 
+        localmasses[elementName] += mass;
+        localmassesComp[getSubName(componentName)] += mass;
+        localCompMats[componentName][elementName] += mass; 
+
+	LocalElement localMass = LocalElement(subdetectorName, componentName, elementName);
+	localMassesDetails_[localMass] += mass;
     }
     
     /**
@@ -139,14 +150,16 @@ namespace insur {
      * Copy the entire mass vector to another instance of <i>MaterialProperties</i>
      * @param mp The destination object
      */
-    void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
-      mp.clearMassVectors(); //TODO: why?!?!?!?!?!
-        //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
-        //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
-        for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
-            for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit)
-                mp.addLocalMass(matit->first, compit->first, matit->second);
-    }
+  void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
+    mp.clearMassVectors(); //TODO: why?!?!?!?!?!
+    //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
+    //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
+    for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
+      for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit) {
+	std::string canary = "canary: copyMassVectors is used";
+	mp.addLocalMass(canary, matit->first, compit->first, matit->second);
+      }
+  }
     
     /**
      * Get the cumulative mass of the inactive element.
@@ -207,6 +220,21 @@ namespace insur {
         }
     }
     
+  /**
+   * Returns total mass belonging to Mechanical Module category.
+   * Service: Should be 0. if materials arew correctly defined in cfg files.
+   * Module: Will not take into account the cabling, cooling and extra support weights which do not belong to the mechanical module.
+   */
+  const double MaterialProperties::getMechanicalModuleWeight() const {
+    double mechanicalModuleWeight = 0.;
+    for (const auto& massIt: localMassesDetails_) {
+      const LocalElement& myElement = massIt.first;
+      const double myMass = massIt.second;
+      if (myElement.mechanicalCategory() == MechanicalCategory::MODULE) mechanicalModuleWeight += myMass;
+    }
+    return mechanicalModuleWeight;
+  }
+
     /**
      * Calculate the overall radiation length of the inactive element from the material table and the material vectors,
      * if they have at least one element in them, and an offset value.
@@ -256,18 +284,19 @@ namespace insur {
 
   // Versions with new material tab definition
     void MaterialProperties::calculateRadiationLength(double offset) {
-      const material::MaterialTab& materialTab = material::MaterialTab::instance();
+      //const material::MaterialTab& materialTab = material::MaterialTab::instance();
+      const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
  
         if (getSurface() > 0) {
             r_length = offset;
             if (msl_set) {
                 // local mass loop
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
-                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface() / 100.0);
+                    r_length += it->second / (materialsTable.getRadiationLength(it->first) * getSurface() / 100.0);
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialsTable.getRadiationLength(mit->first) * getSurface() / 100.0);
                     }
                 }
             }
@@ -275,19 +304,20 @@ namespace insur {
     }
     
     void MaterialProperties::calculateInteractionLength(double offset) {
-      const material::MaterialTab& materialTab =  material::MaterialTab::instance();
+      //const material::MaterialTab& materialTab =  material::MaterialTab::instance();
+      const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
 
         if (getSurface() > 0) {
             i_length = offset;
             if (msl_set) {
                 // local mass loop
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
-                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface() / 100.0);
+                    i_length += it->second / (materialsTable.getInteractionLength(it->first) * getSurface() / 100.0);
                 }
                     
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialsTable.getInteractionLength(mit->first) * getSurface() / 100.0);
                     }
                 }
             }

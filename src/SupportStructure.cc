@@ -44,8 +44,8 @@ namespace material {
     componentsNode("Component"   , parsedOnly())
   {}
   
-  void SupportStructure::buildInTracker() {
-    buildBase();
+  void SupportStructure::buildInTracker(const std::string subdetectorName) {
+    buildBase(subdetectorName);
 
     try {
       supportType_ = typeStringMap.at(type());
@@ -78,7 +78,7 @@ namespace material {
   }
 
   void SupportStructure::buildInBarrel(Barrel& barrel) {
-    buildBase();
+    buildBase(barrel.myid());
 
     try {
       supportType_ = typeStringMap.at(type());
@@ -166,7 +166,7 @@ namespace material {
   }
 
   void SupportStructure::buildInEndcap(Endcap& endcap) {
-    buildBase();
+    buildBase(endcap.myid());
 
     try {
       supportType_ = typeStringMap.at(type());
@@ -209,11 +209,13 @@ namespace material {
     }
   }
 
-  void SupportStructure::buildBase() {
+  void SupportStructure::buildBase(const std::string subdetectorName) {
+    subdetectorName_ = subdetectorName;
+
     for (auto& currentComponentNode : componentsNode) {
-      Component* newComponent = new Component();
+      Component* newComponent = new Component(subdetectorName_);
       newComponent->store(propertyTree());
-      newComponent->store(currentComponentNode.second);
+      newComponent->store(currentComponentNode.second); 
       newComponent->check();
       newComponent->build();
 
@@ -279,16 +281,18 @@ namespace material {
   //=============== end class SupportStructure
 
   //=============== begin class SupportStructure::Component
-  SupportStructure::Component::Component() :
+  SupportStructure::Component::Component(const std::string subdetectorName) :
     componentsNode("Component", parsedOnly()),
-    elementsNode("Element", parsedOnly()) {}
+    elementsNode("Element", parsedOnly()), 
+    subdetectorName_(subdetectorName)
+  {}
 
   void SupportStructure::Component::build() {
     //sub components
     for (auto& currentComponentNode : componentsNode) {
-      Component* newComponent = new Component();
+      Component* newComponent = new Component(subdetectorName_);
       newComponent->store(propertyTree());
-      newComponent->store(currentComponentNode.second);
+      newComponent->store(currentComponentNode.second); 
       newComponent->check();
       newComponent->build();
 
@@ -296,7 +300,7 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode) {
-      Element* newElement = new Element();
+      Element* newElement = new Element(subdetectorName_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -318,13 +322,16 @@ namespace material {
   //=============== end class SupportStructure::Component
   
   //=============== begin class SupportStructure::Element
-  SupportStructure::Element::Element() :
+  SupportStructure::Element::Element(const std::string mySubdetectorName) :
+    subdetectorName ("subdetectorName", parsedOnly(), mySubdetectorName),
     componentName ("componentName", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
-    materialTab_ (MaterialTab::instance()) {}
+    //materialsTable_(MaterialTab::instance()),
+    materialsTable_ (MaterialsTable::instance())
+  {}
     
   const std::string SupportStructure::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -348,7 +355,7 @@ namespace material {
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
-        double elementDensity = materialTab_.density(elementNameString);
+        double elementDensity = materialsTable_.getDensity(elementNameString);
         returnVal = elementDensity * surface * quantity();
         break;
       }
@@ -365,7 +372,8 @@ namespace material {
     
     if(debugInactivate() == false) {
       quantity = quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
-      materialProperties.addLocalMass(elementName(), componentName(), quantity);
+      if (subdetectorName() == "") std::cout << "SupportStructure::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+      materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
     }
   }
   

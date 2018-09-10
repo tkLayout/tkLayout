@@ -1,13 +1,13 @@
 //Component {
   Element {
-    componentName "GBT"
+    componentName "Cabling: GBT"
     elementName Cu
     quantity 0.474
     unit g
     service false
   }
   Element {
-    componentName "GBT"
+    componentName "Cabling: GBT"
     elementName PS-ROH-mix
     quantity 3.024
     unit g
@@ -19,21 +19,21 @@
 // 2 Optical fibers
 //Component {
   Element {
-    componentName "Optical fibers"
+    componentName "Cabling: Optical fibers"
     elementName PE
     quantity 1.139
     unit g/m
     service true
   }
   Element {
-    componentName "Optical fibers" 
+    componentName "Cabling: Optical fibers" 
     elementName Glass
     quantity 0.06
     unit g/m
     service true
   }
   Element {
-    componentName "Optical fibers"
+    componentName "Cabling: Optical fibers"
     elementName Acrylate
     quantity 0.07
     unit g/m
@@ -45,21 +45,21 @@
 // Two wires 0.4 mm^2
 //Component {
   Element {
-    componentName "alim"
+    componentName "Cabling: GBT alim power wires"
     elementName Cu
     quantity 0.558
     unit g/m
     service true
   }
   Element {
-    componentName "alim"
+    componentName "Cabling: GBT alim power wires"
     elementName PE
     quantity 0.444
     unit g/m
     service true
   }
   Element {
-    componentName "alim"
+    componentName "Cabling: GBT alim power wires"
     elementName Al
     quantity 2.16
     unit g/m

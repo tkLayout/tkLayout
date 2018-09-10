@@ -1,0 +1,251 @@
+#	CHEMICAL MIXTURES
+# name              | density (g/cm^3) |     substance:massFraction
+#
+# Can be made of any chemical element, chemical compound, or previously defined mixture.
+
+                   
+Steel	                     7.8	                    C:0.00089992039   Si:0.0015987127    Mn:0.0042943177       S:0.00017903506  P:0.00012830888  Ni:0.000095139401  Cu:0.00029757275   Al:0.00069973892  Fe:0.99180725          
+# from trackermaterial.xml
+ 
+Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
+# Polyimide. from trackermaterial.xml (density 1.40 g/cm3 ?)                        
+   
+Acrylate                   1.16                      C:0.5581   H:0.06977    O:0.3720           
+# from materials.xml  (density 1.17 g/cm3 ?)  
+
+Glass                      2.33	                     Si:0.36611059    O:0.53173295   B:0.042228491  Na:0.059927964       
+# from materials.xml  (density 2.23 g/cm3 ?)
+
+Airex                      0.06                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
+# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)       
+            
+Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
+# from materials.xml  (density 1.44 g/cm3 ?)
+
+FR4                         1.85               Si:0.18077359           O:0.4056325        C:0.27804208      H:0.068442752       Br:0.067109079     
+# Fiber glass reinforced, from trackermaterial.xml (density 1.7 g/cm3 ?)
+
+
+
+
+
+Brass                      8.7                       Cu:0.6       Zn:0.4       
+# from Duccio, Composite materials, 17/08/2015
+
+Siliconeglue	             1.50	           (C6H5)2SiO:1 
+# from Duccio, Composite materials, 14/01/2015
+
+WB-enc                    1.50          Siliconeglue:1
+# Wirebond encapsulant. From Duccio, Composite materials, 14/01/2015
+
+Acrylicglue                1.16                C5O2H8:1
+# from Duccio, Composite materials, 14/01/2015
+
+Epoxy	                     1.16                CH2OCN:1	 
+# EX1515 from Duccio, Composite materials, 14/01/2015
+
+CFRP	                     1.84	                   C:0.96            Epoxy:0.27
+# from Duccio, Composite materials, 14/01/2015
+
+CFRP_OTST                  1.55	                   CFRP:1
+# density from Szymon, composition from 'CFRP'
+
+HexWebHRH10_OTST           0.0496	                 Airex:1
+# density from Sczymon, composition from 'Airex'
+
+Polyethylene                0.89              C2H4:1
+# from Duccio, Composite materials, 14/01/2015
+
+Parylene	                 1.30	                C8H8:1  
+# from Duccio, Composite materials, 14/01/2015    
+
+Kovar                      8.36                   Ni:0.29                 Co:0.17                   Fe:0.54     
+# from Duccio, Composite materials, 14/01/2015
+
+Oxetane                    1.36                C3H6O:1
+# from Duccio, Composite materials, 14/01/2015
+          
+Al-CF	                     2.40	                  Al:0.45                  C:0.55   
+# from Duccio, Composite materials, 14/01/2015
+
+SMDCapacitors              6.33                BaTiO3:0.86           Ni:0.08       Sn:0.06
+# from Duccio, Composite materials, 14/01/2015
+
+SMDResistors               4.56                 Al2O3:0.86           Ni:0.08       Sn:0.06
+# from Duccio, Composite materials, 14/01/2015
+
+
+# DEFINING 2S-FEH-mix:
+2S_FEH_Solder_mask_layer_top	     1.42	             Kapton:1
+2S_FEH_Solder_mask_layer_bottom	 1.42	               Kapton:1
+2S_FEH_Solder_paste	             7.31	               Sn:1
+2S_FEH_Polyimide_core	           1.42	               Kapton:1
+2S_FEH_polyimide_buildup	         1.42	             Kapton:1          
+2S_FEH_Glue_for_lamination	       1.19	             Acrylicglue:1
+2S_FEH_CBC_chip_bumps_8x771pc	   11.35	             Pb:1
+2S_FEH_CBC_chip_silicon	          2.33	             Si:1
+2S_FEH_Under_fill	                1.50	             Siliconeglue:1
+2S_FEH_CIC_chip	                  2.33	             Si:1
+2S_FEH_SMDResistors	               6.02	             SMDResistors:1
+2S_FEH_SMDCapacitors               6.02	             SMDCapacitors:1
+2S-FEH-mix	                1.83	    2S_FEH_Solder_mask_layer_top:0.076      2S_FEH_Solder_mask_layer_bottom:0.089       2S_FEH_Solder_paste:0.013    2S_FEH_Polyimide_core:0.121    2S_FEH_polyimide_buildup:0.121  2S_FEH_Glue_for_lamination:0.102       2S_FEH_CBC_chip_bumps_8x771pc:0.116  2S_FEH_CBC_chip_silicon:0.291  2S_FEH_Under_fill:0.073   2S_FEH_CIC_chip:0.003   2S_FEH_SMDResistors:0.003     2S_FEH_SMDCapacitors:0.024
+# from Duccio, Composite materials, 14/01/2015
+
+
+# DEFINING 2S-SEH-mix:
+2S_SEH_Polyimide				   1.42                Kapton:1
+2S_SEH_Solder_mask		     1.42                Kapton:1
+2S_Opto_Plastic		         0.89          Polyethylene:1
+2S_Opto_Ceramic		         5.85                BaTiO3:1	
+2S_Opto_Kovar				       8.36                 Kovar:1
+2S_Opto_Tin		             7.31                    Sn:1
+2S_Opto_LCP		             0.89          Polyethylene:1
+2S_Opto_Silicon				     2.33                    Si:1
+2S_Opto_FR4			         	1.85                    FR4:1
+2S_Opto_Oxetane			     	1.36                Oxetane:1
+2S_DCDC_Al				        2.70                     Al:1
+2S_DCDC_Capacitors				6.02          SMDCapacitors:1
+2S_DCDC_Resistors			  	6.02           SMDResistors:1
+2S_DCDC_Tin				        7.31                     Sn:1
+2S_DCDC_LCP		            0.89           Polyethylene:1
+2S_DCDC_Silicon				    2.33                     Si:1
+2S_DCDC_Plastic		        0.89           Polyethylene:1
+2S-SEH-mix	              1.22       2S_SEH_Polyimide:0.1781     2S_SEH_Solder_mask:0.0869	   2S_Opto_Plastic:0.5179   2S_Opto_Ceramic:0.0250  2S_Opto_Kovar:0.4200   2S_Opto_Tin:0.0076   2S_Opto_LCP:0.1000  2S_Opto_Silicon:0.0699   2S_Opto_FR4:0.4067   2S_Opto_Oxetane:1.3600   2S_DCDC_Al:0.0707    2S_DCDC_Capacitors:0.1955  2S_DCDC_Resistors:0.0041   2S_DCDC_Tin:0.0051   2S_DCDC_LCP:1.0000   2S_DCDC_Silicon:0.0113   2S_DCDC_Plastic:1.2845
+# from Duccio, Composite materials, 14/01/2015
+
+
+# DEFINING PS-ROH-mix:
+PS_ROH_Polyimide				   1.42               Kapton:1
+PS_ROH_Solder_mask				 1.42					      Kapton:1
+PS_Opto_Plastic	           0.89         Polyethylene:1
+PS_Opto_Ceramic			       5.85               BaTiO3:1	
+PS_Opto_Kovar			         8.36                Kovar:1 
+PS_Opto_Tin				         7.31                   Sn:1
+PS_Opto_LCP				         0.89         Polyethylene:1
+PS_Opto_Silicon				     2.33                   Si:1
+PS_Opto_FR4			           1.85                  FR4:1
+PS_Opto_Oxetane				     1.36              Oxetane:1
+PS-ROH-mix	               1.54     PS_ROH_Polyimide:0.0785     PS_ROH_Solder_mask:0.0383		     PS_Opto_Plastic:0.5179     PS_Opto_Ceramic:0.0250     PS_Opto_Kovar:0.4200     PS_Opto_Tin:0.0076     PS_Opto_LCP:0.1000     PS_Opto_Silicon:0.0699     PS_Opto_FR4:0.4067     PS_Opto_Oxetane:1.3600
+# from Duccio, Composite materials, 14/01/2015
+
+
+# DEFINING PS-POH-mix:
+PS_POH_Polyimide				   1.42             Kapton:1
+PS_POH_Solder_mask			   1.42					    Kapton:1
+PS_DCDC_Al				         2.70                 Al:1
+PS_DCDC_Capacitors			   6.02      SMDCapacitors:1
+PS_DCDC_Resistors			     6.02       SMDResistors:1
+PS_DCDC_Tin				         7.31                 Sn:1
+PS_DCDC_LCP				         0.89       Polyethylene:1
+PS_DCDC_Silicon				     2.33                 Si:1
+PS_DCDC_Plastic		      	 0.89       Polyethylene:1
+PS-POH-mix	               0.99	    PS_POH_Polyimide:0.0785     	PS_POH_Solder_mask:0.0383	     	PS_DCDC_Al:0.1061     	PS_DCDC_Capacitors:0.2072     	PS_DCDC_Resistors:0.0062     	PS_DCDC_Tin:0.0071     	PS_DCDC_LCP:1.0000     	PS_DCDC_Silicon:0.0169     	PS_DCDC_Plastic:1.6474
+# from Duccio, Composite materials, 17/08/2015
+
+
+# DEFINING PS-FEH-mix:
+PS_FEH_Solder_mask_layer_top	     1.42	             Kapton:1
+PS_FEH_Solder_mask_layer_bottom	 1.42	               Kapton:1
+PS_FEH_Solder_paste	             7.31	               Sn:1
+PS_FEH_Polyimide_core	           1.42	               Kapton:1
+PS_FEH_polyimide_buildup	         1.42	             Kapton:1          
+PS_FEH_Glue_for_lamination	       1.19	             Acrylicglue:1
+PS_FEH_CBC_chip_bumps_8x771pc	   11.35	             Pb:1
+PS_FEH_CBC_chip_silicon	          2.33	             Si:1
+PS_FEH_Under_fill	                1.50	             Siliconeglue:1
+PS_FEH_CIC_chip	                  2.33	             Si:1
+PS_FEH_SMDResistors	               6.02	             SMDResistors:1
+PS_FEH_SMDCapacitors               6.02	             SMDCapacitors:1
+PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_FEH_Solder_mask_layer_bottom:0.067       PS_FEH_Solder_paste:0.013    PS_FEH_Polyimide_core:0.092    PS_FEH_polyimide_buildup:0.092  PS_FEH_Glue_for_lamination:0.077      PS_FEH_CBC_chip_bumps_8x771pc:0.028     PS_FEH_CBC_chip_silicon:0.070  PS_FEH_Under_fill:0.087   PS_FEH_CIC_chip:0.003   PS_FEH_SMDResistors:0.003     PS_FEH_SMDCapacitors:0.024
+# from Duccio, Composite materials, 17/08/2015
+
+
+
+
+
+
+Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
+# from Duccio, Pixel Phase 2 materials.
+                 
+Pix_Caps                   6.33              SMDCapacitors:1
+# The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
+# So took the one from OT.
+
+Scint                      7.40              Lu:0.71         Si:0.07         O:0.18          Y:0.04        
+SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019
+# TO DO!! BTL people should adapt this to some more realistic composition!!
+
+
+
+
+
+
+
+
+
+
+# This are only for renaming purposes: they could (and sometimes should) be deleted.
+SenSi	                   2.3296	                  Si:1
+Al_MV	                   2.698	                  Al:1
+Al_HV	                   2.698	                  Al:1
+TEDD_Al	                 2.698	                  Al:1
+FPIX_Al	                 2.698	                  Al:1
+FPIX_Al_HV	             2.698	                  Al:1
+Cu_TWP_1+1_LS	           8.96	                    Cu:1
+Cu_TWP_1+1_LS_div4	     8.96	                    Cu:1
+Cu_TWP_1+1_HS	           8.96	                    Cu:1
+Cu_TWP_1+1_HS_div4	     8.96	                    Cu:1
+Cu_TWP_2+1_HS	           8.96                     Cu:1
+Cu_TWP_3+1_HS	           8.96	                    Cu:1
+Cu_TWP_6+1_HS	           8.96	                    Cu:1
+Cu_HV	                   8.96	                    Cu:1
+Cu_MV                    8.96                    	Cu:1
+Cu_twp	                 8.96	                    Cu:1
+Cu_Elinks_L1	           8.96	                    Cu:1
+Cu_Elinks_L2	           8.96	                    Cu:1
+Cu_Elinks_L3		         8.96	                    Cu:1
+Cu_Elinks_L3_1x2	       8.96	                    Cu:1
+Cu_Elinks_L4	           8.96	                    Cu:1
+Cu_Elinks_L4_1x2	       8.96	                    Cu:1
+Cu_Elinks_TFPX_R1	       8.96	                    Cu:1
+Cu_Elinks_TFPX_R2	       8.96	                    Cu:1
+Cu_Elinks_TFPX_R3		     8.96	                    Cu:1
+Cu_Elinks_TFPX_R4	       8.96	                    Cu:1
+Cu_Elinks_TEPX_R1	       8.96	                    Cu:1
+Cu_Elinks_TEPX_R2		     8.96	                    Cu:1
+Cu_Elinks_TEPX_R2_2x2		 8.96	                    Cu:1
+Cu_Elinks_TEPX_R3	       8.96	                    Cu:1
+Cu_Elinks_TEPX_R4	       8.96	                    Cu:1
+Cu_Elinks_TEPX_R5	       8.96	                    Cu:1
+TEDD_Cu	                 8.96                   	Cu:1
+FPIX_Cu	                 8.96	                    Cu:1
+FPIX_Ti	                 4.54                     Ti:1
+Ti_L1                    4.54	                    Ti:1
+Ti_L2	                   4.54	                    Ti:1
+Ti_L3	                   4.54	                    Ti:1
+Ti_L4	                   4.54	                    Ti:1
+
+CO2_L1	                 1.0	                   CO2:1
+CO2_L2	                 1.0	                   CO2:1
+CO2_L3	                 1.0	                   CO2:1
+CO2_L4	                 1.0	                   CO2:1
+TEDD_CO2	               1.0	                   CO2:1
+FPIX_CO2	               1.0	                   CO2:1
+PE                       0.89           Polyethylene:1
+TEDD_PE	                 0.95	                    PE:1
+FPIX_PE	                 0.95	                    PE:1
+# different density from PE!!
+TEDD_Steel	             7.8	                 Steel:1
+CF	                     1.84	                  CFRP:1
+
+
+
+
+
+
+
+
+
+
+
+

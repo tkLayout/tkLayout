@@ -2,7 +2,7 @@
 // According to Murata web page (from Stella)
 
 Component {
-  componentName "Pixel hybrid"
+  componentName "IT Module: Hybrid"
   service false
   scaleOnSensor 0
   Element {

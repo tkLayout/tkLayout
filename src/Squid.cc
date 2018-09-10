@@ -312,28 +312,28 @@ namespace insur {
       if (!is) is = new InactiveSurfaces();
       if (mb) delete mb;
       mb  = new MaterialBudget(*tr, *is);
-      if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
-      if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
-      if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-        if (verbose) mb->print();
+      //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
+      //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
+      //if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+      if (verbose) mb->print();
 
-        if (px) {
-	  if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-	    if (!pi) pi = new InactiveSurfaces();
-	    if (pm) delete pm;
-	    pm = new MaterialBudget(*px, *pi);
-	    if (verbose) pm->print();
-	  }
-        }
-        return true;
-      } else {
-        if (mb) delete mb;
-        mb = NULL;
-        if (pm) delete pm;
-        pm = NULL;
-        logERROR(err_init_failed);
-        return false;
+      if (px) {
+	//if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+	if (!pi) pi = new InactiveSurfaces();
+	if (pm) delete pm;
+	pm = new MaterialBudget(*px, *pi);
+	if (verbose) pm->print();
+	//}
       }
+      return true;
+      //} else {
+      //if (mb) delete mb;
+      // mb = NULL;
+      //if (pm) delete pm;
+      //pm = NULL;
+      //logERROR(err_init_failed);
+      //return false;
+      //}
     } else {
       logERROR(err_no_tracker);
       return false;
@@ -709,16 +709,16 @@ namespace insur {
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportMaterialBudgetSite(bool debugServices) {
+  bool Squid::reportMaterialBudgetSite() {
     if (mb) {
       startTaskClock("Creating material budget report");
-      v.histogramSummary(a, *mb, debugServices, site, "outer");
+      v.histogramSummary(a, *mb, site, "outer");
       if (pm) {
-	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.histogramSummary(pixelAnalyzer, *pm, site, "pixel");
 	v.totalMaterialSummary(a, pixelAnalyzer, site);
       }
-      v.weigthSummart(a, weightDistributionTracker, site, "outer");
-      if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
+      v.weigthSummary(a, *mb, weightDistributionTracker, site, "outer");
+      if (pm) v.weigthSummary(pixelAnalyzer, *pm, weightDistributionPixel, site, "pixel");
       stopTaskClock();
       return true;
     }

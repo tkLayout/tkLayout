@@ -24,6 +24,10 @@
 #include <MaterialBudget.hh>
 #include <MaterialObject.hh>
 
+#include "MaterialTab.hh"
+using namespace material;
+
+
 namespace insur {
   /**
    * @class Extractor
@@ -78,7 +82,7 @@ namespace insur {
   public:
     void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
   protected:
-    void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
+    void analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites);
     void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
     void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,

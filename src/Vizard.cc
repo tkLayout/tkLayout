@@ -14,6 +14,9 @@
 
 #include "MainConfigHandler.hh"
 
+
+//#include "MaterialTab.hh"
+
 namespace insur {
   // public
   /**
@@ -367,8 +370,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    histogramSummary(a, materialBudget, debugServices, site, "outer");
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site) {
+    histogramSummary(a, materialBudget, site, "outer");
   }
 
   /**
@@ -380,8 +383,9 @@ namespace insur {
    */
 
   // TODO: if weightGrid is actually unused, then remove it
-  void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
-    RootWContent* myContent;
+  void Vizard::weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+
+    //RootWContent* myContent;
 
     // Initialize the page with the material budget
     std::string pageTitle="Weights";
@@ -390,10 +394,14 @@ namespace insur {
     RootWPage& myPage = site.addPage(pageTitle);
     myPage.setAddress(pageAddress);
 
-    // weight plot
-    myContent = new RootWContent("Overview plot", true);
-    myPage.addContent(myContent);
 
+    const WeightsPerSubdetector& weightsPerSubdetector = computeDetailedWeights(materialBudget, myPage);
+
+    // weight plot
+    //myContent = new RootWContent("Overview plot", true);
+    //myPage.addContent(myContent);
+
+    /*
     std::map<std::string, SummaryTable>* summaryTables;
 
     // Write the summary for barrel first and endcap second
@@ -404,7 +412,7 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first, false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (chemical elements)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
@@ -418,23 +426,92 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first + " - components", false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (components)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
     }
+    */
+
+
+    // TOTAL WEIGHT
+    //const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+
+    double totalWeight = 0.;
+
+    for (const auto& subdetectorIt : weightsPerSubdetector) {
+      const std::string subdetectorName = subdetectorIt.first;
+      RootWContent& myContent = myPage.addContent(subdetectorName, true);
+      RootWTable& myTable = myContent.addTable();
+
+      const WeightsPerMechanicalCategory& weightsPerMechanicalCategory = subdetectorIt.second;
+
+      double totalWeightInSubdetector = 0.;
+      int rowCounter = 0;
+      const bool boldCell = true;
+      const int weightPrecision = 1;
+
+      for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategory) {
+
+	const std::string mechanicalCategory = mechanicalCategoryIt.first;
+
+	const WeightsPerComponent& weightsPerComponent = mechanicalCategoryIt.second;
+
+	double totalWeightInMechanicalCategory = 0.;
+
+	myTable.setContent(rowCounter, 0, mechanicalCategory, boldCell);
+	myTable.setContent(rowCounter, 1, "mass (kg)", boldCell);
+	rowCounter++;
+ 
+	for (const auto& componentIt : weightsPerComponent) {
+	  const std::string componentName = componentIt.first;
+	  const double mass = componentIt.second;
+	  std::ostringstream massStream;
+	  const double massInKg = mass / 1000.;  // kg
+	  totalWeightInMechanicalCategory += massInKg;
+
+	  myTable.setContent(rowCounter, 0, componentName);
+	  myTable.setContent(rowCounter, 1, massInKg, weightPrecision);
+	  rowCounter++;
+	} // component
+
+	const int mechanicalCategoryTotalColor = kBlue;
+
+	myTable.setContent(rowCounter, 0, "TOTAL " + mechanicalCategory, !boldCell, mechanicalCategoryTotalColor);
+	myTable.setContent(rowCounter, 1, totalWeightInMechanicalCategory, weightPrecision, !boldCell, mechanicalCategoryTotalColor);
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	totalWeightInSubdetector += totalWeightInMechanicalCategory;	
+      } // mechanical category
+      
+      myTable.setContent(rowCounter, 0, "TOTAL " + subdetectorName, boldCell);
+      myTable.setContent(rowCounter, 1, totalWeightInSubdetector, weightPrecision, boldCell);
+      totalWeight += totalWeightInSubdetector;
+    } // subdetector
+
+    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
+    myPage.addContent(grandTotal, false);
+
+    //RootWContent& totalContent = myPage.addContent(grandTotal, false);
+    //RootWTable& totalTable = totalContent.addTable();
+    //totalTable.setContent(0, 0, totalWeight);
   }
 
 
 
-  /**
-   * This function draws some of the histograms that were filled during material budget analysis
+/**
+ * This function draws some of the histograms that were filled during material budget analysis
    * with the rootweb library
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site, std::string name) {
     materialBudgets_.push_back(&materialBudget);
     
     // Initialize the page with the material budget
@@ -1159,10 +1236,6 @@ namespace insur {
     //} else {
     //  delete materialSummaryTable;
     //}
-
-    if (debugServices) {
-        drawInactiveSurfacesSummary(materialBudget, *myPage);
-    }
 
   }
 
@@ -3511,6 +3584,8 @@ namespace insur {
 
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
+    RootWContent* materialsTablesContent = new RootWContent("Materials tables");
+    myPage->addContent(materialsTablesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
     configFilesContent = new RootWContent("Configuration files", false);
@@ -3617,6 +3692,30 @@ namespace insur {
     RootWGraphViz* myGv = new RootWGraphViz("include_graph.gv", "Include structure");
     myGv->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myGv);
+
+
+    //********************************//
+    //*                              *//
+    //*  Materials tables            *//
+    //*                              *//
+    //********************************//
+ 
+    // Chemical elements
+    RootWTextFile* chemicalElementsFile = new RootWTextFile("chemical_elements.csv", "Chemical elements");
+    chemicalElementsFile->addText(createChemicalElementsCsv());
+    materialsTablesContent->addItem(chemicalElementsFile);
+
+    // Chemical compounds
+    bool hasChemicalFormula = true;
+    RootWTextFile* chemicalCompoundsFile = new RootWTextFile("chemical_compounds.csv", "Chemical compounds");
+    chemicalCompoundsFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalCompoundsFile);
+
+    // Chemical mixtures
+    hasChemicalFormula = false;
+    RootWTextFile* chemicalMixturesFile = new RootWTextFile("chemical_mixtures.csv", "Chemical mixtures");
+    chemicalMixturesFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalMixturesFile);
 
     return true;
   }
@@ -8401,6 +8500,77 @@ namespace insur {
   }
 
 
+  std::string Vizard::createChemicalElementsCsv() {
+
+    std::stringstream myCsv;
+    myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Atomic Number /I, Standard Atomic Weight (u) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    /*
+    double density = myTable.density("CO2");
+    double rl = myTable.radiationLength("CO2");
+    double il = myTable.interactionLength("CO2");
+    std::cout << "CO2" << " density = " << density << " rl = " << rl << " il = " << il << std::endl;
+    */
+    const ChemicalElementMap& allChemicalElements = myTable.getAllChemicalElements();
+
+    for (const auto& elemIt : allChemicalElements) {
+      const std::string elementName = elemIt.first;
+      const ChemicalElement& elem = elemIt.second;
+      myCsv << elementName << ","
+	    << (elem.getDensity() * 1000.) << ","
+	    << elem.getAtomicNumber() << ","
+	    << elem.getAtomicWeight() << ","
+	    << elem.getRadiationLength() << ","
+	    << elem.getInteractionLength() 
+	    << std::endl;
+      //myCsv << std::endl;
+    }
+
+    return myCsv.str();
+  }
+
+
+  std::string Vizard::createChemicalMixturesCsv(const bool hasChemicalFormula) {
+
+    std::stringstream myCsv;
+    if (hasChemicalFormula) myCsv << "Compound Name /C, Density (g/cm^3) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+    else { myCsv << "Mixture Name /C,  Substance name /C, Substance mass fraction /D, Mixture Density (g/cm^3) /D, Mixture Radiation length (g/cm^2) /D, Mixture Interaction length (g/cm^2) /D" << std::endl; }
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      const std::string mixtureName = mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+
+      if (mix.hasChemicalFormula() == hasChemicalFormula) {
+	myCsv << mixtureName << ",";
+	if (!hasChemicalFormula) myCsv << "," << ",";	      
+	myCsv << (mix.getDensity() * 1000.) << ","     // g/ cm3
+	      << mix.getRadiationLength() << ","
+	      << mix.getInteractionLength() 
+	      << std::endl;
+
+	if (!hasChemicalFormula) {
+	  const MassComposition& fractions = mix.getMassComposition();
+	  for (const auto& fractionIt : fractions) {
+	    myCsv << ","
+		  << fractionIt.first << ","
+		  << fractionIt.second
+		  << std::endl;
+	  }
+	  myCsv << std::endl;
+	  myCsv << std::endl;
+	}
+	
+      }
+    }
+
+    return myCsv.str();
+  }
+
+
   /* Create csv file (Outer Tracker), navigating from Module hierarchy level to DTC hierarchy level.
    */
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, const bool isPositiveCablingSide) {
@@ -8970,40 +9140,95 @@ namespace insur {
   }
 
 
-  void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
+  WeightsPerSubdetector Vizard::computeDetailedWeights(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
+    //const bool isIT = myTracker.isPixelTracker();
     std::string myTrackerName = myTracker.myid();
-    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
+    RootWContent& myContent = myPage.addContent("All volumes details");
+ 
 
-    RootWContent& myContent = myPage.addContent("Service details");
-
-    // Counting services with an ad-hoc index
-    int serviceId = 0;
-    double z1, z2, r1, r2, length, il, rl;
-    double mass;
-    std::stringstream myStringStream;
-
-    // Graphic representation of the services in the rz plane
+    // Graphic representation of the materials volumes in the (RZ) plane
     double maxR = myTracker.maxR()*1.2;
     double maxZ = myTracker.maxZ()*1.2;
-    TCanvas* servicesCanvas = new TCanvas("servicesCanvas", "servicesCanvas"); // TODO Factory for canvases?!
-    servicesCanvas->cd();
-    TH2D* aServicesFrame = new TH2D("aServicesFrame", ";z [mm];r [mm]", 200, -maxZ, maxZ, 100, 0, maxR);
-    maxZ=0; maxR=0;
-    aServicesFrame->Draw();
-    TBox* myBox;
-    TText* myText;
+    TCanvas* allVolumesCanvas = new TCanvas("allVolumesCanvas", "allVolumesCanvas"); // TODO Factory for canvases?!
+    allVolumesCanvas->cd();
+    TH2D* allVolumesPlot = new TH2D("allVolumesPlot", ";z [mm];r [mm]", 200, -maxZ, maxZ, 100, 0, maxR);
+    allVolumesPlot->Draw();
+  
 
-    myStringStream << "serviceID/I,elementID/I,z1/D,z2/D,r1/D,r2/D,Element/C,mass/D,mass_per_length/D,rl/D,il/D,local/I" << std::endl;
+    std::stringstream allVolumesStream;
+    allVolumesStream << "volume_ID/I,sim_category/C,z1 (mm)/D,z2 (mm)/D,r1 (mm)/D,r2 (mm)/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,mechanical_category/C,Component/C,Element/C,mass (g)/D,mass_per_length (g/mm)/D" << std::endl;
 
-    for (auto& iter : allServices) {
-      z1 = iter.getZOffset();
-      z2 = iter.getZOffset()+iter.getZLength();
-      r1 = iter.getInnerRadius();
-      r2 = iter.getInnerRadius()+iter.getRWidth();
-      length = iter.getLength();
-      rl = iter.getRadiationLength();
-      il = iter.getInteractionLength();
+    std::stringstream modulesStream;
+    modulesStream << "subdetector/C,layer_or_disk/I,ring/I,sim_category/C,volume_RL/D,volume_IL/D, mechanical_category/C,Component/C,Element/C,mass (g)/D" << std::endl;
+
+
+    WeightsPerSubdetector totalWeights;
+    //std::vector<MaterialProperties*> totalMaterials;
+    //Vector<unique_ptr<Base>>.  vec.emplace_back(new Derived())
+
+    std::vector<int> allColors;
+    allColors.push_back(kOrange);
+    allColors.push_back(kCyan);
+    allColors.push_back(kRed);
+    allColors.push_back(kGreen);
+    allColors.push_back(kAzure + 1);
+    int colorIndex = 0;
+    std::map<std::string, int> subdetectorColors;
+
+    // SERVICES
+    bool isModule = false;
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices(); 
+   
+    // Counting services with an ad-hoc index
+    int serviceId = 0;
+    maxZ = 0.; maxR = 0.;
+    for (auto& serviceIt : allServices) {
+      double z1 = serviceIt.getZOffset();
+      double z2 = serviceIt.getZOffset()+serviceIt.getZLength();
+      double r1 = serviceIt.getInnerRadius();
+      double r2 = serviceIt.getInnerRadius()+serviceIt.getRWidth();
+      double serviceLength = serviceIt.getLength();
+      double rl = serviceIt.getRadiationLength();
+      double il = serviceIt.getInteractionLength();
+
+      // Update the maxZ and maxR with respect to the inactive surfaces
+      if (fabs(z1)>maxZ) maxZ=fabs(z1);
+      if (fabs(z2)>maxZ) maxZ=fabs(z2);
+      if (fabs(r1)>maxR) maxR=fabs(r1);
+      if (fabs(r2)>maxR) maxR=fabs(r2);
+  
+     
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = serviceIt.getLocalElementsDetails();
+      plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, serviceId, serviceLength
+				  );
+    
+      serviceId++;
+    }
+
+
+    // MODULE CAPS
+    isModule = true;
+    const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
+    std::vector<ModuleCap> allModules;
+    for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
+    for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
+
+    std::set<std::tuple<std::string, int, int> > allModuleMaterialsRefs;
+
+    for (auto& moduleIt : allModules) {
+      const Module* detectorModule = &(moduleIt.getModule());
+      double z1 = detectorModule->minZ();
+      double z2 = detectorModule->maxZ();
+      double r1 = detectorModule->minR();
+      double r2 = detectorModule->maxR();
+      //length = iter.getLength();
+      double rl = moduleIt.getRadiationLength();
+      double il = moduleIt.getInteractionLength();
 
       // Update the maxZ and maxR with respect to the inactive surfaces
       if (fabs(z1)>maxZ) maxZ=fabs(z1);
@@ -9011,57 +9236,230 @@ namespace insur {
       if (fabs(r1)>maxR) maxR=fabs(r1);
       if (fabs(r2)>maxR) maxR=fabs(r2);
 
-      bool isEmpty = true;
+      // Find out whether the module info will be printed in the modules dedicated csv file.
+      // Indeed, only one module per subdetector + layer + ring is printed.
+      bool printModulesCsv = false;
+      if (detectorModule != nullptr) {
+	const std::string subdetectorName = detectorModule->uniRef().subdetectorName;
+	const int layerOrDiskIndex = detectorModule->uniRef().layer;
+	const int ringIndex = detectorModule->uniRef().ring;
 
-      const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+	const std::tuple<std::string, int, int> moduleMaterialsRef = std::make_tuple(subdetectorName, layerOrDiskIndex, ringIndex);
+	if (allModuleMaterialsRefs.find(moduleMaterialsRef) == allModuleMaterialsRefs.end()) {
+	  printModulesCsv = true;
+	  allModuleMaterialsRefs.insert(moduleMaterialsRef);
+	}
+      }
 
-      int elementId=0;
-      for (auto& massIt : localMasses) {
-	mass = massIt.second;
-	if (mass!=0) isEmpty=false;
-	myStringStream << serviceId << ","
-                       << elementId++ << ","
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = moduleIt.getLocalElementsDetails();
+      plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, 0, 0., detectorModule, printModulesCsv
+				  );
+    }
+
+
+    // ADD PLOT AND CSV FILE TO WEBSITE
+    allVolumesPlot->GetXaxis()->SetRangeUser(-maxZ, maxZ);
+    allVolumesPlot->GetYaxis()->SetRangeUser(0, maxR);
+
+    RootWImage& servicesImage = myContent.addImage(allVolumesCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
+    servicesImage.setComment("All material volumes, (RZ) view.");
+    servicesImage.setName("AllMaterialVolumesRZ");
+
+    RootWTextFile* allVolumesFile = new RootWTextFile(Form("allVolumesMaterials_%s.csv", myTrackerName.c_str()), "All volumes weights");
+    allVolumesFile->addText(allVolumesStream.str());
+    myContent.addItem(allVolumesFile);
+
+    RootWTextFile* modulesFile = new RootWTextFile(Form("modulesMaterials_%s.csv", myTrackerName.c_str()), "Modules weights");
+    modulesFile->addText(modulesStream.str());
+    myContent.addItem(modulesFile);
+
+
+    return totalWeights;
+  }
+
+
+
+
+  void Vizard::plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
+					   const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
+					   const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+					   std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+					   const bool isModule, const int serviceId, const double serviceLength, 
+					   const Module* detectorModule, const bool printModulesCsv) {
+
+    bool isEmpty = true;
+    int elementId = 0;
+    std::set<std::string> volumeSubdetectorNames;
+    const uint32_t detId = ( (isModule && detectorModule != nullptr) ? detectorModule->myDetId() : 0);
+    const int layerOrDiskIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().layer : 0);
+    const int ringIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().ring : 0);
+    double moduleMass = 0.;
+
+    // LOOP ON ALL LOCAL ELEMENTS
+    for (const auto& massIt : allMasses) {
+
+      const LocalElement& myElement = massIt.first;
+
+      const std::string subdetectorName = myElement.subdetectorName();
+      volumeSubdetectorNames.insert(subdetectorName);
+
+      const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
+      std::string tableMechanicalCategory = any2str(mechanicalCategory);
+      if (mechanicalCategory == MechanicalCategory::COOLING || mechanicalCategory == MechanicalCategory::SUPPORT) tableMechanicalCategory = "SUPPORTS & COOLING";
+
+      const std::string componentName = myElement.componentName();
+      const std::string elementName = myElement.elementName();
+
+      const double mass = massIt.second;
+	    
+      if (mass > 0.) isEmpty = false;
+
+
+      // ALL VOLUMES: COMPUTE WEIGHTS TOTALS
+      totalWeights[subdetectorName][tableMechanicalCategory][componentName] += mass;
+	
+
+      // ALL VOLUMES: DETAILED CSV OUTPUT
+      allVolumesStream << (isModule ? detId : serviceId) << ","
+		       << (isModule ? "Module" : "Service") << ","
 		       << z1 << ","
 		       << z2 << ","
 		       << r1 << ","
 		       << r2 << ","
-		       << massIt.first << ","
-		       << mass << ","
-		       << mass/length << ","
-                       << rl << ","
-                       << il << ","
-                       << "1" << std::endl;
+		       << rl << ","
+		       << il << ","
+		       << elementId++ << ","
+		       << subdetectorName << ","
+		       << any2str(mechanicalCategory) << ","
+		       << componentName << ","	       
+		       << elementName << ","
+		       << mass;
+      if (!isModule) allVolumesStream << "," << (mass / serviceLength);
+      allVolumesStream << std::endl;
+
+
+      if (printModulesCsv) {
+	// MODULE VOLUMES: DETAILED CSV OUTPUT
+	modulesStream << subdetectorName << ","
+		      << layerOrDiskIndex << ","
+		      << ringIndex << ","
+		      << "Module" << ","
+		      << rl << ","
+		      << il << ","
+		      << any2str(mechanicalCategory) << ","
+		      << componentName << ","	       
+		      << elementName << ","
+		      << mass
+		      << std::endl;
+	moduleMass += mass;
       }
-
-      myBox = new TBox(z1, r1, z2, r2);
-      myBox->SetLineColor(kBlack);
-      myBox->SetFillStyle(3003);
-      if (isEmpty) myBox->SetFillColor(kRed);
-      else myBox->SetFillColor(kGray);
-      myBox->Draw("l");
-
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
-      myText->SetTextAlign(22);
-      myText->SetTextSize(2e-2);
-      if (isEmpty) myText->SetTextColor(kRed);
-      else myText->SetTextColor(kBlack);
-      myText->Draw();
-
-      serviceId++;
+    }
+    allVolumesStream << std::endl;
+    if (printModulesCsv) {
+      modulesStream <<  "," << "," << "," << "," << "," << "," << "," << "," << "Total " << "," << moduleMass << std::endl;
+      modulesStream << std::endl;
     }
 
-    aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
-    aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
 
-    RootWImage& servicesImage = myContent.addImage(servicesCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
-    servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
-    servicesImage.setName("InactiveSurfacesPosition");
+    // ALL VOLUMES: PLOT
+    if (volumeSubdetectorNames.size() > 4) { 
+      std::cout << "!!! More than 4 subdetectors assigned to a materials volume." << std::endl; 
+    }
+      
+    else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2); }
 
-    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
-    myTextFile->addText(myStringStream.str());
-    myContent.addItem(myTextFile);
+    else {
+      double plotR1 = r1;
+      double plotR2 = r2;
+      for (const auto& subdetectorName : volumeSubdetectorNames) {  
+
+	if (isModule && detectorModule != nullptr) {
+	  if (detectorModule->isTilted() 
+	      && detectorModule->subdet() == ModuleSubdetector::BARREL
+	      ) {
+	    const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
+	    const double rhoAtMaxZ = (z1 > 0. ? r1 : r2);
+	    const bool isFilled = false;
+	    plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, rhoAtMinZ, rhoAtMaxZ, isFilled);
+	  }
+	  else plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2);
+	}
+
+	else {
+	  plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, plotR1, plotR2);
+	  if (!isModule) {
+	    plotR1 += 2;
+	    plotR2 += 2;
+	  }
+	}
+      }
+    }
+    
 
   }
+
+  void Vizard::plotVolumeBox(const std::string subdetectorName, 
+			     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+			     const bool isEmpty, 
+			     const double z1, const double z2, const double r1, const double r2, const bool isFilled) {
+
+    const int color = computeSubdetectorColor(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty);
+   
+    if (isFilled) {
+      TBox* myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(color);
+      myBox->SetFillStyle(3003);
+      myBox->SetFillColor(color);
+      myBox->Draw("l");
+    }
+    else {
+      TLine* myLine = new TLine(z1, r1, z2, r2);
+      myLine->SetLineColor(color);
+      myLine->Draw("l");
+    }
+  }
+
+
+
+  const int Vizard::computeSubdetectorColor(const std::string subdetectorName,
+					    std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+					    const bool isEmpty) {
+    int color;
+
+    if (!isEmpty) {
+      if (subdetectorName == "") color = kGray;
+      else {
+	const auto& found = subdetectorColors.find(subdetectorName);
+	if (found != subdetectorColors.end()) {
+	  color = found->second;
+	}
+	else {
+	  const int numColors = allColors.size();
+	  if (colorIndex < numColors) {
+	    color = allColors.at(colorIndex);
+	    colorIndex++;
+	    subdetectorColors.insert(std::make_pair(subdetectorName, color));
+	  }
+	  else { logERROR("Not enough colors are defined with respect to the total number of subdetectors"); }
+	}
+	//if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
+	//else if (subdetectorName == "TB2S") color = kCyan;
+	//else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
+	// else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
+	//else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
+	//else color = kMagenta;
+      }
+    }
+    else { color = kBlack; }
+
+    return color;
+  }
+
+
+
 
 
   // Create an extra tab for XML files linking

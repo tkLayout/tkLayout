@@ -57,7 +57,7 @@ void Tracker::build() {
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());
       s->store(mapel.second);
-      s->buildInTracker();
+      s->buildInTracker(myid());
       supportStructures_.push_back(s);
     }
   }
@@ -91,30 +91,28 @@ void Tracker::addHierarchyInfoToModules() {
   class HierarchyInfoToModulesVisitor : public GeometryVisitor {  
   public:
     void visit(Barrel& b) { 
-      subdetectorName_ = b.myid(); 
       subdetectorId_++; 
     }
     void visit(Endcap& e) { 
-      subdetectorName_ = e.myid(); 
       subdetectorId_++; 
     }
-    void visit(Layer& l)  { 
-      layerDiskId_ = l.myid(); 
+    void visit(Layer& l)  {
+      layerDiskId_ = l.myid();     
     }
-    void visit(Disk& d)   { 
+    void visit(Disk& d)   {
       layerDiskId_ = d.myid();
       diskAverageZ_ = d.averageZ();
     }
-    void visit(RodPair& r){ 
+    void visit(RodPair& r){
       rodRingId_ = r.myid(); 
     }
-    void visit(Ring& r) { 
+    void visit(Ring& r) {
       rodRingId_ = r.myid();
       ringAverageZ_ = r.averageZ();
       bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);
     }
     void visit(Module& m) { 
-      m.subdetectorNameId(subdetectorName_, subdetectorId_); 
+      m.subdetectorId(subdetectorId_); 
     }
     void visit(BarrelModule& m) { 
       m.layer(layerDiskId_); 
@@ -132,7 +130,6 @@ void Tracker::addHierarchyInfoToModules() {
     }
 
   private:
-    string subdetectorName_;
     int subdetectorId_ = 0;
     int layerDiskId_;
     int rodRingId_;

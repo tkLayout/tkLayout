@@ -24,17 +24,20 @@ namespace material {
       {LAYER, "layer"}
   };
 
-  MaterialObject::MaterialObject(Type materialType) :
+  MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
+    subdetectorName_(subdetectorName),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       // sensorNode_ ("Sensor", parsedOnly()),
-      materials_ (nullptr) {}
+      materials_ (nullptr) 
+  {}
 
   MaterialObject::MaterialObject(const MaterialObject& other) :
-    MaterialObject(other.materialType_) {
+    MaterialObject(other.materialType_, other.subdetectorName()) 
+  {
     materials_ = other.materials_;
     serviceElements_ = other.serviceElements_; //do shallow copies
   }
@@ -87,9 +90,9 @@ namespace material {
 
         check();
         if (type_().compare(getTypeString()) == 0) {
-          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
+          MaterialObjectKey myKey(subdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
-            Materials * newMaterials  = new Materials(materialType_);
+            Materials * newMaterials  = new Materials(materialType_, subdetectorName());
             newMaterials->store(currentMaterialNode.second);
 
             //pass destination to newMaterials
@@ -138,14 +141,16 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
+	if (currElement->subdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->subdetectorName() = " << currElement->subdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
-	  /*if (currElement->componentName() == "Sensor HV line") {
+	  /*if (currElement->componentName() == "High voltage lines") {
 	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
 	    }*/
-          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
+          materialProperties.addLocalMass(currElement->subdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
-          materialProperties.addLocalMass(currElement->elementName(), quantity);
+	  std::cout << "MaterialObject::populateMaterialProperties: No component name, element name = " << currElement->elementName() << std::endl;
+          materialProperties.addLocalMass(currElement->subdetectorName(), "", currElement->elementName(), quantity);
         }
       }
     }
@@ -173,9 +178,11 @@ namespace material {
   //  materials_->chargeTrain(train);
   //}
 
-  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType) :
+  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Materials::~Materials() {}
 
@@ -190,7 +197,7 @@ namespace material {
   void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
     check();        
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -219,11 +226,12 @@ namespace material {
     }
   }
 
-  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType) :
-    //componentName ("componentName", parsedAndChecked()),
+  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Component::~Component() { }
 
@@ -244,7 +252,7 @@ namespace material {
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -254,14 +262,12 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode_) {
-      Element* newElement = new Element(materialType_);
+      Element* newElement = new Element(materialType_, subdetectorName());
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
       newElement->cleanup();
       newElement->build(newSensorChannels);
-      //bool test1 = newElement->componentName.state();
-      //bool test2 = newElement->nSegments.state();
 
       elements_.push_back(newElement);
     }
@@ -304,7 +310,7 @@ namespace material {
   };
   */
 
-  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
+  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
     //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
@@ -319,11 +325,14 @@ namespace material {
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
-    materialTab_ (MaterialTab::instance()),
-    materialType_(newMaterialType) {
-  };
+    subdetectorName_(subdetectorName),
+    materialsTable_ (MaterialsTable::instance()),
+    materialType_(newMaterialType) 
+  {};
 
-  MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
+  MaterialObject::Element::Element(const Element& original, double multiplier) : 
+    Element(original.materialType_, original.subdetectorName()) 
+  {
     if(original.componentName.state())
       componentName(original.componentName());   
     elementName(original.elementName());
@@ -332,6 +341,9 @@ namespace material {
     quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     unit(original.unit());
     debugInactivate(original.debugInactivate());
+    if(original.destination.state())
+      destination(original.destination());
+    targetVolume(original.targetVolume());
   }
   
   MaterialObject::Element::~Element() { }
@@ -413,7 +425,7 @@ namespace material {
      
   double MaterialObject::Element::quantityInUnit(const std::string desiredUnit, const double length, const double surface) const {
     double returnVal = 0;
-    double density = materialTab_.density(elementName());
+    double density = materialsTable_.getDensity(elementName());
     bool invert;
     Unit desiredUnitVal, elementUnitVal, tempUnit;
 
@@ -547,7 +559,8 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-        materialProperties.addLocalMass(elementName(), componentName(), quantity);
+	if (subdetectorName() == "") std::cout << "canary: MaterialObject::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+        materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
       }
     }
   }

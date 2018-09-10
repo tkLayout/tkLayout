@@ -108,8 +108,10 @@ ostream& RootWTable::dump(ostream& output) {
   for (int iRow = minRow; iRow<=maxRow; ++iRow) {
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
-      if ((iRow==minRow)&&(iRow==0)) myCellCode = "th";
+
+      if ((iRow==minRow) && (iRow==0)) myCellCode = "th";
       else myCellCode = "td";
+
       output << "<" << myCellCode;
       myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
       if (myColorIndex!=0) {
@@ -117,7 +119,19 @@ ostream& RootWTable::dump(ostream& output) {
 	      output << " style=\"color:" << myColorCode << ";\" " << std::endl;
       }
       output << ">";
+
+      // FINT OUT WHETHER THE CELL SHOULD BE BOLD
+      const std::pair<int, int> myCellPos = std::make_pair(iRow, iCol);
+      const auto& isBoldIt = tableContentBold_.find(myCellPos);
+      const bool isBoldCell = (isBoldIt != tableContentBold_.end() ? isBoldIt->second : false);
+      if (isBoldCell) output << "<strong>";
+
+      // ADD CONTENT
       output << myTableContent[make_pair(iRow, iCol)];
+
+      // BOLD CELL CASE
+      if (isBoldCell) output << "</strong>";
+
       output << "</" << myCellCode << ">" << " ";
     }
     output << "</tr>";
@@ -127,35 +141,44 @@ ostream& RootWTable::dump(ostream& output) {
   return output;
 }
 
-void RootWTable::setColor(int row, int column, int newColor) {
-  tableContentColor_[make_pair(row, column)] = newColor;
+void RootWTable::setColor(const int row, const int column, const int color) {
+  if (color != kBlack) {
+    tableContentColor_[make_pair(row, column)] = color;
+  }
 }
 
-void RootWTable::setContent(int row, int column, string content) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<content<<")"<<endl; // debug
+void RootWTable::setBold(const int row, const int column, const bool isBold) {
+  tableContentBold_[make_pair(row, column)] = isBold;
+}
+
+void RootWTable::setContent(int row, int column, string content, const bool isBold, const int color) {
   tableContent_[make_pair(row, column)] = content;
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, int number) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
+void RootWTable::setContent(int row, int column, int number, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, double number, int precision) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
+void RootWTable::setContent(int row, int column, double number, int precision, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
 pair<int, int> RootWTable::addContent(string myContent) {

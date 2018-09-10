@@ -32,6 +32,65 @@ typedef RILength Material;
 
 
 namespace insur {
+
+  static const std::string mechanical_module = "Module:";
+  static const std::string mechanical_cabling = "Cabling:";
+  static const std::string mechanical_cooling = "Cooling";
+  static const std::string mechanical_support = "Supports Mechanics:";
+
+  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT, COOLING };
+
+  class LocalElement {
+  public:
+    LocalElement(const std::string subdetectorName, const std::string componentName, const std::string elementName) :
+      subdetectorName_(subdetectorName),
+      componentName_(componentName),
+      elementName_(elementName) 
+    { 
+      category_ = computeMechanicalCategory(componentName);
+    }
+
+    const std::string subdetectorName() const { return subdetectorName_; }
+    const MechanicalCategory mechanicalCategory() const { return category_; }
+    const std::string componentName() const { return componentName_; }
+    const std::string elementName() const { return elementName_; }
+
+ 
+  protected:
+    MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
+      if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
+      else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
+      else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::COOLING;
+      else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT;
+      else return MechanicalCategory::UNKNOWN;
+    }
+
+    std::string subdetectorName_;
+    MechanicalCategory category_;
+    std::string componentName_;
+    std::string elementName_;
+  };
+
+
+  struct ElementNameCompare {
+    bool operator() (const LocalElement& localA, const LocalElement& localB) const {
+      if (localA.subdetectorName() != localB.subdetectorName()) return (localA.subdetectorName() < localB.subdetectorName());
+      else {
+	if (localA.mechanicalCategory() != localB.mechanicalCategory()) return (localA.mechanicalCategory() < localB.mechanicalCategory());
+	else {
+	  if (localA.componentName() != localB.componentName()) return (localA.componentName() < localB.componentName());
+	  else return (localA.elementName() < localB.elementName());
+	}
+      }
+    }
+    // NB: No need of operator==
+    // (a == b)  <=>  ( !(a<b) && !(b<a) )
+  };
+
+  
+
+
+
     /**
      * Errors and messages that may be reported during operations on member variables
      */
@@ -68,8 +127,13 @@ namespace insur {
         const std::map<std::string, double>& getLocalMassesComp() const;
         double getLocalMass(std::string tag); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
-        void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
-        void addLocalMass(std::string tag, double ms);
+
+      const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
+
+        void addLocalMass(const std::string subdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
+        void addLocalMass(const std::string subdetectorName, const std::string tag, double ms);
+      //void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
+      //void addLocalMass(std::string tag, double ms);
         unsigned int localMassCount();
         unsigned int localMassCompCount();
         void clearMassVectors();
@@ -77,6 +141,7 @@ namespace insur {
         // calculated output values
         double getTotalMass() const;
         double getLocalMass();
+      const double getMechanicalModuleWeight() const;
         double getRadiationLength();
         double getInteractionLength();
         RILength getMaterialLengths();
@@ -100,8 +165,11 @@ namespace insur {
         // geometry-dependent parameters
         Category cat;
         std::map<std::string, double> localmasses;
-        std::map<std::string, double> localmassesComp;
 
+        // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalElementDetails:
+      std::map<LocalElement, double, ElementNameCompare> localMassesDetails_;
+
+        std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >
 
         std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
