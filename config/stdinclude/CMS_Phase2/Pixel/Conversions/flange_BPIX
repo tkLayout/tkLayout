@@ -13,15 +13,15 @@ Station {
   
   // E-links
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1_1chip
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1_1chipmodules
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2_1chip
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2_1chipmodules
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_1chip
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_2chips
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_2chipmodules
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_1chip
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_2chips
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_2chipmodules
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV

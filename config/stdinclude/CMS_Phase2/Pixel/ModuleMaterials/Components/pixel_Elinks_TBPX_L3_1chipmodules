@@ -1,4 +1,4 @@
-// (1+1) Low-Speed TWP 
+// (1+1) High-Speed TWP 
 // quantities / 4 (modules 1x1)
 
 Component {
@@ -7,7 +7,7 @@ Component {
   scaleOnSensor 0
   // Two conductors
   Element {
-    elementName Cu_Elinks_TBPX_L4_1chip
+    elementName Cu_Elinks_TBPX_L3_1chipmodules
     quantity 0.1105
     unit g/m
     targetVolume 1

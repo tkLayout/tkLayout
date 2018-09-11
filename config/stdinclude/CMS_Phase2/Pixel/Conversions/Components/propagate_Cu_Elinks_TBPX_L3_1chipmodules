@@ -1,16 +1,16 @@
-// 1:1 conversion of Cu_Elinks_TBPX_L4_2chips
+// 1:1 conversion of Cu_Elinks_TBPX_L3_1chipmodules
 
 Conversion {
   Input {
     Element {
-      elementName Cu_Elinks_TBPX_L4_2chips
+      elementName Cu_Elinks_TBPX_L3_1chipmodules
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Cu_Elinks_TBPX_L4_2chips
+      elementName Cu_Elinks_TBPX_L3_1chipmodules
       quantity 1
       unit g/m
       service true

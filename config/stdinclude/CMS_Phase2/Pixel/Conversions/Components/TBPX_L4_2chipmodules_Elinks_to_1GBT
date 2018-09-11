@@ -5,7 +5,7 @@ Conversion {
   Input {
     // Two conductors
     Element {
-      elementName Cu_Elinks_TBPX_L4_2chips
+      elementName Cu_Elinks_TBPX_L4_2chipmodules
       quantity 1.989        // = 4.5 * quantity / module
       unit g/m
     }

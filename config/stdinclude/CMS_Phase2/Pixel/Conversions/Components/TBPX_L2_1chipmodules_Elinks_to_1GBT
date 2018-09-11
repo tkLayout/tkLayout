@@ -1,12 +1,12 @@
-// Layer 4:
-// 56 modules/GBT
+// Layer 2:
+// 6 modules/GBT
 
 Conversion {
   Input {
     // Two conductors
     Element {
-      elementName Cu_Elinks_TBPX_L4_1chip
-      quantity 6.188         // = 56 * quantity / module
+      elementName Cu_Elinks_TBPX_L2_1chipmodules
+      quantity 2.652         // = 6 * quantity / module
       unit g/m
     }
   }
