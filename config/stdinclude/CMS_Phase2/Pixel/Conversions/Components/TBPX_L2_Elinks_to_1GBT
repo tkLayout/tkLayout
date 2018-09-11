@@ -1,11 +1,11 @@
-// Layer 3:
+// Layer 2:
 // ~2.25 modules/GBT
 
 Conversion {
   Input {
     // Two conductors
     Element {
-      elementName Cu_Elinks_L3
+      elementName Cu_Elinks_TBPX_L2
       quantity 1.49175      // = 2.25 * quantity / module
       unit g/m
     }

@@ -1,16 +1,16 @@
-// 1:1 conversion of Cu_Elinks_L4
+// 1:1 conversion of Cu_Elinks_TBPX_L2
 
 Conversion {
   Input {
     Element {
-      elementName Cu_Elinks_L4
+      elementName Cu_Elinks_TBPX_L2
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Cu_Elinks_L4
+      elementName Cu_Elinks_TBPX_L2
       quantity 1
       unit g/m
       service true

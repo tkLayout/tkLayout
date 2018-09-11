@@ -6,7 +6,7 @@ Component {
   scaleOnSensor 0
   // Two conductors
   Element {
-    elementName Cu_Elinks_L4
+    elementName Cu_Elinks_TBPX_L3_2chips
     quantity 0.442
     unit g/m
     targetVolume 1
