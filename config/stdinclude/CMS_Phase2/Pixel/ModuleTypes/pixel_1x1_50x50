@@ -1,0 +1,26 @@
+// 1x1 chips pixel module (50um x 50um)
+// Chip size 16.4x22
+moduleType pixel_1x1_50x50  // pixel modules should always have a type starting with keyword 'pixel_'
+
+// Active silicon size
+width 16.4
+length 22.0
+
+numSensors 1
+
+powerPerModule 0 // mW
+
+sensorThickness 0.150
+hybridThickness 0.5
+chipThickness 0.5
+
+Sensor 1 {
+  sensorType pixel
+  pitchEstimate 0.050
+  stripLengthEstimate 0.050
+  numROCX 1 
+  numROCY 1
+  powerPerChannel 0.0 // mW
+}
+
+plotColor 5  // brown

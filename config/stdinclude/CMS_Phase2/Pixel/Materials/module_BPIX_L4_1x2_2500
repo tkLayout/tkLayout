@@ -5,7 +5,7 @@ Materials BPIX_L4_1x2_2500 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Light
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_L4_1x2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TBPX_L4_2chipmodules
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
 }

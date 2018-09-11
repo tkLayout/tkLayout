@@ -1,15 +1,15 @@
 // Convert E-links to GBT
 // TBPX
-@include-std CMS_Phase2/Pixel/Conversions/Components/L1_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_1chip_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/L2_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L2_1chip_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/L3_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L3_1chip_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/L3_1x2_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/L4_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L4_1chip_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/L4_1x2_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_1chipmodules_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L2_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L2_1chipmodules_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L3_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L3_1chipmodules_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L3_2chipmodules_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L4_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L4_1chipmodules_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L4_2chipmodules_Elinks_to_1GBT
 // TFPX
 @include-std CMS_Phase2/Pixel/Conversions/Components/TFPX_R1_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TFPX_R2_Elinks_to_1GBT
@@ -18,7 +18,7 @@
 // TEPX
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R1_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_2x2_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_4chipmodules_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R3_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R4_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R5_Elinks_to_1GBT

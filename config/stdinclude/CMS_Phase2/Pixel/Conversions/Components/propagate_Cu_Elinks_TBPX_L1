@@ -1,0 +1,19 @@
+// 1:1 conversion of Cu_Elinks_TBPX_L1
+
+Conversion {
+  Input {
+    Element {
+      elementName Cu_Elinks_TBPX_L1
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu_Elinks_TBPX_L1
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
