@@ -25,13 +25,6 @@ Station {
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R4
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R5
 
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_HS
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_LS
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_HS_div4
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_LS_div4
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_2+1_HS
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_3+1_HS
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_6+1_HS
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Kapton
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_PE
 }
