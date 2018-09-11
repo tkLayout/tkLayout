@@ -20,7 +20,7 @@ Station {
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R4
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R1
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2
-  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2_2x2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2_4chipmodules
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R3
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R4
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R5

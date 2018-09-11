@@ -18,7 +18,7 @@
 // TEPX
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R1_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_Elinks_to_1GBT
-@include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_2x2_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R2_4chipmodules_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R3_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R4_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TEPX_R5_Elinks_to_1GBT
