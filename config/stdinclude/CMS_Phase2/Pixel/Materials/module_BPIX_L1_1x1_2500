@@ -1,5 +1,5 @@
 
-Materials BPIX_v2_L1_1x1_2500 {
+Materials BPIX_L1_1x1_2500 {
   type module
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Heavy
