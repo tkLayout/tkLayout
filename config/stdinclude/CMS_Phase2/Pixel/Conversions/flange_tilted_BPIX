@@ -13,10 +13,14 @@ Station {
 
   // E-links
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1_1chip
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2_1chip
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_1chip
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L3_1x2
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_1chip
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_L4_1x2
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
