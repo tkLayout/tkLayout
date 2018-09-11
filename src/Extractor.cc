@@ -3001,6 +3001,11 @@ namespace insur {
   const int ModuleComplex::PixelModuleHybrid   = 1; 
   const int ModuleComplex::PixelModuleSensor   = 2; 
   const int ModuleComplex::PixelModuleChip     = 3; 
+  const int ModuleComplex::PixelModuleDeadAreaRight = 4;
+  const int ModuleComplex::PixelModuleDeadAreaLeft  = 5;
+  const int ModuleComplex::PixelModuleDeadAreaFront = 6;
+  const int ModuleComplex::PixelModuleDeadAreaBack  = 7;
+  const int ModuleComplex::PixelModuleDeadArea      = 4567;
 
   
 
@@ -3020,13 +3025,19 @@ namespace insur {
                                                              hybridThickness(module.hybridThickness()),
                                                              supportPlateThickness(module.supportPlateThickness()),
                                                              chipThickness(module.chipThickness()),
+							     deadAreaExtraLength(deadAreaExtraLength),
+							     deadAreaExtraWidth(deadAreaExtraWidth),
+							     chipExtraLeftWidth(chipExtraLeftWidth),
+							     chipExtraRightWidth(chipExtraRightWidth),
                                                              hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
+							     deadAreaTotalVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
-                                                             expandedModWidth(modWidth+2*serviceHybridWidth),
-                                                             expandedModLength(modLength+2*frontEndHybridWidth),
+                                                             expandedModWidth(modWidth + 2*serviceHybridWidth 
+									      + MAX(2.*deadAreaExtraWidth, chipExtraLeftWidth + chipExtraRightWidth)),
+                                                             expandedModLength(modLength + 2*frontEndHybridWidth + 2.*deadAreaExtraLength),
                                                              center(module.center()),
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
@@ -3213,37 +3224,99 @@ namespace insur {
       //                                                      PIXEL MODULE
       //
       //  Top View 
-      //        ------------------           y
-      //        |                |           ^
-      //        |     Hybrid     |           |
-      //        |       (1)      |           +----> x
-      //        ------------------    
-      //                                             z
+      //           
+      //            6
+      //      ----------------         y
+      //        |          |           ^
+      //        |          |           |
+      //        |          |           |
+      //        |          |           |
+      //        |          |           |
+      //        |  Sensor  |           |
+      //    5   |   (2)    | 4         |
+      //        |          |           |
+      //        |          |           |
+      //        |          |           +----> x
+      //      -----------------    
+      //             7                               z
+      //             
       //                                             ^
       //  Side View                                  |
-      //         ================ Hybrid  (1)        +----> x
-      //         ---------------- Sensor  (2)
-      //         ================ Chip    (3)
+      //         ================       Hybrid  (1)  +----> x
+      //       5 ---------------- 4     Sensor  (2)
+      //       ====================     Chip    (3)
       //
       // Chip(3) volume can contain Bumps and any other material for simplification.
 
       //Unused pointers
       vol[PixelModuleNull] = 0;
 
-      double dx = modWidth;              
-      double dy = modLength; 
-      double dz = hybridThickness;  
-      double posx = 0.;
-      double posy = 0.;
-      double posz = sensorThickness / 2. + hybridThickness / 2.;
-
       // Hybrid Volume (Top Inactive)
-      vol[PixelModuleHybrid] = new Volume(moduleId + "Hybrid", PixelModuleHybrid, parentId, dx, dy, dz, posx, posy, posz);
+      const double myHybridWidth = modWidth;
+      const double myHybridLength = modLength;
+      const double myHybridThickness = hybridThickness; 
+      const double myHybridPosX = 0.;
+      const double myHybridPosY = 0.;
+      const double myHybridPosZ = sensorThickness / 2. + hybridThickness / 2.;
+      vol[PixelModuleHybrid] = new Volume(moduleId + "Hybrid", PixelModuleHybrid, parentId, 
+					  myHybridWidth, myHybridLength, myHybridThickness, 
+					  myHybridPosX, myHybridPosY, myHybridPosZ);
 
-      dz = chipThickness;
-      posz = - sensorThickness / 2. - chipThickness / 2.; 
+      // Dead area Right (Inactive silicon around sensor)
+      const double myDeadAreaRightWidth = deadAreaExtraWidth;
+      const double myDeadAreaRightLength = modLength;
+      const double myDeadAreaRightThickness = sensorThickness; 
+      const double myDeadAreaRightPosX = modWidth + deadAreaExtraWidth / 2.;
+      const double myDeadAreaRightPosY = 0.;
+      const double myDeadAreaRightPosZ = 0.;
+      vol[PixelModuleDeadAreaRight] = new Volume(moduleId + "DeadAreaRight", PixelModuleDeadAreaRight, parentId, 
+					  myDeadAreaRightWidth, myDeadAreaRightLength, myDeadAreaRightThickness, 
+					  myDeadAreaRightPosX, myDeadAreaRightPosY, myDeadAreaRightPosZ);
+
+      // Dead area Left (Inactive silicon around sensor)
+      const double myDeadAreaLeftWidth = deadAreaExtraWidth;
+      const double myDeadAreaLeftLength = modLength;
+      const double myDeadAreaLeftThickness = sensorThickness; 
+      const double myDeadAreaLeftPosX = -modWidth - deadAreaExtraWidth / 2.;
+      const double myDeadAreaLeftPosY = 0.;
+      const double myDeadAreaLeftPosZ = 0.;
+      vol[PixelModuleDeadAreaLeft] = new Volume(moduleId + "DeadAreaLeft", PixelModuleDeadAreaLeft, parentId, 
+					  myDeadAreaLeftWidth, myDeadAreaLeftLength, myDeadAreaLeftThickness, 
+					  myDeadAreaLeftPosX, myDeadAreaLeftPosY, myDeadAreaLeftPosZ);
+
+
+      // Dead area Front (Inactive silicon around sensor)
+      const double myDeadAreaFrontWidth = modWidth + 2. * deadAreaExtraWidth;
+      const double myDeadAreaFrontLength = deadAreaExtraLength;
+      const double myDeadAreaFrontThickness = sensorThickness; 
+      const double myDeadAreaFrontPosX = 0.;
+      const double myDeadAreaFrontPosY = modLength + deadAreaExtraLength / 2.;
+      const double myDeadAreaFrontPosZ = 0.;
+      vol[PixelModuleDeadAreaFront] = new Volume(moduleId + "DeadAreaFront", PixelModuleDeadAreaFront, parentId, 
+					  myDeadAreaFrontWidth, myDeadAreaFrontLength, myDeadAreaFrontThickness, 
+					  myDeadAreaFrontPosX, myDeadAreaFrontPosY, myDeadAreaFrontPosZ);
+
+      // Dead area Back (Inactive silicon around sensor)
+      const double myDeadAreaBackWidth = modWidth + 2. * deadAreaExtraWidth;
+      const double myDeadAreaBackLength = deadAreaExtraLength;
+      const double myDeadAreaBackThickness = sensorThickness; 
+      const double myDeadAreaBackPosX = 0.;
+      const double myDeadAreaBackPosY = -modLength - deadAreaExtraLength / 2.;
+      const double myDeadAreaBackPosZ = 0.;
+      vol[PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", PixelModuleDeadAreaBack, parentId, 
+					  myDeadAreaBackWidth, myDeadAreaBackLength, myDeadAreaBackThickness, 
+					  myDeadAreaBackPosX, myDeadAreaBackPosY, myDeadAreaBackPosZ);
+
       // Chip Volume (Bottom Inactive)
-      vol[PixelModuleChip] = new Volume(moduleId + "Chip", PixelModuleChip, parentId, dx, dy, dz, posx, posy, posz);
+      const double myChipWidth = modWidth + chipExtraLeftWidth + chipExtraRightWidth;
+      const double myChipLength = modLength;
+      const double myChipThickness = chipThickness; 
+      const double myChipPosX = (chipExtraRightWidth - chipExtraLeftWidth) / 2.;
+      const double myChipPosY = 0.;
+      const double myChipPosZ = - sensorThickness / 2. - chipThickness / 2.;
+      vol[PixelModuleChip] = new Volume(moduleId + "Chip", PixelModuleChip, parentId,  
+					myChipWidth, myChipLength, myChipThickness, 
+					myChipPosX, myChipPosY, myChipPosZ);
     }
 
 
@@ -3468,16 +3541,48 @@ namespace insur {
 	  continue; // Still to skip sensors, in case not detected by the component name.
 	}
 	else if ( el->targetVolume() != PixelModuleHybrid &&
-		  el->targetVolume() != PixelModuleChip ) {
+		  el->targetVolume() != PixelModuleChip &&
+		  el->targetVolume() != PixelModuleDeadAreaRight && 
+		  el->targetVolume() != PixelModuleDeadAreaLeft && 
+		  el->targetVolume() != PixelModuleDeadAreaFront && 
+		  el->targetVolume() != PixelModuleDeadAreaBack && 
+		  el->targetVolume() != PixelModuleDeadArea
+		  ) {
 	  throw PathfulException("!!!! ERROR !!!! : Found unexpected targetVolume, not supported for Pixel Barrel modules.");
 	}
 	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
 	if ( el->targetVolume() == PixelModuleHybrid   ||
-	     el->targetVolume() == PixelModuleChip        ) {
+	     el->targetVolume() == PixelModuleChip ||
+	     el->targetVolume() == PixelModuleDeadAreaRight ||     
+	     el->targetVolume() == PixelModuleDeadAreaLeft ||
+	     el->targetVolume() == PixelModuleDeadAreaFront ||
+	     el->targetVolume() == PixelModuleDeadAreaBack
+	     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
 	}
+
+	else if ( el->targetVolume() == PixelModuleDeadArea) { // Uniformly Distribute
+          vol[PixelModuleDeadAreaRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[PixelModuleDeadAreaLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[PixelModuleDeadAreaFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[PixelModuleDeadAreaBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
+
+          if (deadAreaTotalVolume_mm3 < 0) { // Need only once
+            deadAreaTotalVolume_mm3 = vol[PixelModuleDeadAreaRight]->getVolume()
+	      + vol[PixelModuleDeadAreaLeft]->getVolume()
+	      + vol[PixelModuleDeadAreaFront]->getVolume()
+	      + vol[PixelModuleDeadAreaBack]->getVolume();
+          }
+
+          // Uniform density distribution and consistent with total mass
+          vol[PixelModuleDeadAreaRight]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3); 
+          vol[PixelModuleDeadAreaLeft]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);   
+          vol[PixelModuleDeadAreaFront]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);   
+          vol[PixelModuleDeadAreaBack]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
+  	}
+
       }
 
     }
@@ -3495,6 +3600,10 @@ namespace insur {
     else {
       volumes.push_back(vol[PixelModuleHybrid]);
       volumes.push_back(vol[PixelModuleChip]);
+      volumes.push_back(vol[PixelModuleDeadAreaRight]);
+      volumes.push_back(vol[PixelModuleDeadAreaLeft]);
+      volumes.push_back(vol[PixelModuleDeadAreaFront]);
+      volumes.push_back(vol[PixelModuleDeadAreaBack]);     
     }
 
   }

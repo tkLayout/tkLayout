@@ -172,7 +172,12 @@ namespace insur {
       static const int PixelModuleNull;
       static const int PixelModuleHybrid;
       static const int PixelModuleSensor;
-      static const int PixelModuleChip;    
+      static const int PixelModuleChip;
+      static const int PixelModuleDeadAreaRight; 
+      static const int PixelModuleDeadAreaLeft;
+      static const int PixelModuleDeadAreaFront; 
+      static const int PixelModuleDeadAreaBack; 
+      static const int PixelModuleDeadArea; 
       
       class Volume {
         public :
@@ -242,10 +247,15 @@ namespace insur {
       const double         hybridThickness;
       const double         supportPlateThickness;
       const double         chipThickness;
+      const double         deadAreaExtraLength;
+      const double         deadAreaExtraWidth;
+      const double         chipExtraLeftWidth;
+      const double         chipExtraRightWidth;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;
+            double         deadAreaTotalVolume_mm3;
             double         moduleMassWithoutSensors_expected;
             double         rmin;
             double         rmax;

@@ -13,6 +13,18 @@ Component {
 }
 
 Component {
+  componentName "IT Module: Inactive silicon around sensor" 
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.1  // !!!!!!!!!!!!! RANDOM
+    unit g
+    targetVolume 4567
+  }
+}
+
+Component {
   componentName "IT Module: Hybrid"
   service false
   scaleOnSensor 0
