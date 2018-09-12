@@ -3000,12 +3000,13 @@ namespace insur {
   const int ModuleComplex::PixelModuleNull   = 0;
   const int ModuleComplex::PixelModuleHybrid   = 1; 
   const int ModuleComplex::PixelModuleSensor   = 2; 
-  const int ModuleComplex::PixelModuleChip     = 3; 
-  const int ModuleComplex::PixelModuleDeadAreaRight = 4;
-  const int ModuleComplex::PixelModuleDeadAreaLeft  = 5;
-  const int ModuleComplex::PixelModuleDeadAreaFront = 6;
-  const int ModuleComplex::PixelModuleDeadAreaBack  = 7;
-  const int ModuleComplex::PixelModuleDeadArea      = 4567;
+  const int ModuleComplex::PixelModuleChip     = 3;
+  const int ModuleComplex::PixelModuleDeadArea      = 4;
+  const int ModuleComplex::PixelModuleDeadAreaRight = 5;
+  const int ModuleComplex::PixelModuleDeadAreaLeft  = 6;
+  const int ModuleComplex::PixelModuleDeadAreaFront = 7;
+  const int ModuleComplex::PixelModuleDeadAreaBack  = 8;
+  
 
   
 
@@ -3224,29 +3225,30 @@ namespace insur {
       //                                                      PIXEL MODULE
       //
       //  Top View 
-      //           
-      //            6
-      //      ----------------         y
-      //        |          |           ^
-      //        |          |           |
-      //        |          |           |
-      //        |          |           |
-      //        |          |           |
-      //        |  Sensor  |           |
-      //    5   |   (2)    | 4         |
-      //        |          |           |
-      //        |          |           |
-      //        |          |           +----> x
-      //      -----------------    
-      //             7                               z
-      //             
-      //                                             ^
-      //  Side View                                  |
-      //         ================       Hybrid  (1)  +----> x
-      //       5 ---------------- 4     Sensor  (2)
-      //       ====================     Chip    (3)
       //
-      // Chip(3) volume can contain Bumps and any other material for simplification.
+      //    --------------------       
+      //    |        (7)       |
+      //    --------------------        y
+      //    |   |          |   |        ^
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |  Sensor  |   |        |
+      //    |(6)|    (2)   |(5)|        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        +----> x
+      //    --------------------    
+      //    |        (8)       |                        
+      //    --------------------                        z
+      //                                                ^
+      //  Side View                                     |
+      //         ================          Hybrid  (1)  +----> x
+      //     (6) ---------------- (5)      Sensor  (2)
+      //     =========================     Chip    (3)
+      //
+      // Chip(3) volume can contain Bumps and any other material (supports, etc) for simplification.
 
       //Unused pointers
       vol[PixelModuleNull] = 0;
