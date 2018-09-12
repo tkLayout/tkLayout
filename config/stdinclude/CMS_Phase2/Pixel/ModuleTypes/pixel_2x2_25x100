@@ -16,8 +16,8 @@ hybridThickness 0.5
 chipThickness 0.5
 deadAreaExtraLength 0.05
 deadAreaExtraWidth 0.05
-chipExtraLeftWidth 1.34
-chipExtraRightWidth 1.34
+chipExtraLeftWidth 1.15    // 1.34
+chipExtraRightWidth 1.15   // 1.34
 
 Sensor 1 {
   sensorType pixel
