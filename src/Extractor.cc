@@ -3036,7 +3036,7 @@ namespace insur {
 							     deadAreaTotalVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
                                                              expandedModWidth(modWidth + 2*serviceHybridWidth 
-									      + MAX(2.*deadAreaExtraWidth, chipExtraLeftWidth + chipExtraRightWidth)),
+									      + MAX(2.*deadAreaExtraWidth, 2.*MAX(chipExtraLeftWidth, chipExtraRightWidth))),
                                                              expandedModLength(modLength + 2*frontEndHybridWidth + 2.*deadAreaExtraLength),
                                                              center(module.center()),
                                                              normal(module.normal()),
@@ -3266,7 +3266,7 @@ namespace insur {
       const double myDeadAreaRightWidth = deadAreaExtraWidth;
       const double myDeadAreaRightLength = modLength;
       const double myDeadAreaRightThickness = sensorThickness; 
-      const double myDeadAreaRightPosX = modWidth + deadAreaExtraWidth / 2.;
+      const double myDeadAreaRightPosX = (modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaRightPosY = 0.;
       const double myDeadAreaRightPosZ = 0.;
       vol[PixelModuleDeadAreaRight] = new Volume(moduleId + "DeadAreaRight", PixelModuleDeadAreaRight, parentId, 
@@ -3277,7 +3277,7 @@ namespace insur {
       const double myDeadAreaLeftWidth = deadAreaExtraWidth;
       const double myDeadAreaLeftLength = modLength;
       const double myDeadAreaLeftThickness = sensorThickness; 
-      const double myDeadAreaLeftPosX = -modWidth - deadAreaExtraWidth / 2.;
+      const double myDeadAreaLeftPosX = -(modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaLeftPosY = 0.;
       const double myDeadAreaLeftPosZ = 0.;
       vol[PixelModuleDeadAreaLeft] = new Volume(moduleId + "DeadAreaLeft", PixelModuleDeadAreaLeft, parentId, 
@@ -3290,7 +3290,7 @@ namespace insur {
       const double myDeadAreaFrontLength = deadAreaExtraLength;
       const double myDeadAreaFrontThickness = sensorThickness; 
       const double myDeadAreaFrontPosX = 0.;
-      const double myDeadAreaFrontPosY = modLength + deadAreaExtraLength / 2.;
+      const double myDeadAreaFrontPosY = (modLength + deadAreaExtraLength) / 2.;
       const double myDeadAreaFrontPosZ = 0.;
       vol[PixelModuleDeadAreaFront] = new Volume(moduleId + "DeadAreaFront", PixelModuleDeadAreaFront, parentId, 
 					  myDeadAreaFrontWidth, myDeadAreaFrontLength, myDeadAreaFrontThickness, 
@@ -3301,7 +3301,7 @@ namespace insur {
       const double myDeadAreaBackLength = deadAreaExtraLength;
       const double myDeadAreaBackThickness = sensorThickness; 
       const double myDeadAreaBackPosX = 0.;
-      const double myDeadAreaBackPosY = -modLength - deadAreaExtraLength / 2.;
+      const double myDeadAreaBackPosY = -(modLength - deadAreaExtraLength) / 2.;
       const double myDeadAreaBackPosZ = 0.;
       vol[PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", PixelModuleDeadAreaBack, parentId, 
 					  myDeadAreaBackWidth, myDeadAreaBackLength, myDeadAreaBackThickness, 
