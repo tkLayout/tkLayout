@@ -18,8 +18,8 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.01  // !!!!!!!!!!!!! RANDOM // Can adjust easily to land on same density as Si (but need to be sure of volume first).
-    unit g
+    quantity 0.15      // !!!!!!!!!!!!! RANDOM
+    unit mm
     targetVolume 4
   }
 }
