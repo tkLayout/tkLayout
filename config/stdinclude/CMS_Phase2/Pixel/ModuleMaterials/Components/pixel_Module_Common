@@ -18,7 +18,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.18      // !!!!!!!!!!!!! RANDOM VALUE! NEED TO BE TUNED!
+    quantity 0.0018      // !!!!!!!!!!!!! RANDOM VALUE! NEED TO BE TUNED!
     unit g              
     targetVolume 4
   }

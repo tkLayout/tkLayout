@@ -19,6 +19,7 @@
 #include <cmath>
 #include <limits.h>
 #include <sstream>
+#include "Units.hh"
 #include <Tracker.hh>
 #include <MaterialTable.hh>
 #include <MaterialBudget.hh>
@@ -155,30 +156,7 @@ namespace insur {
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
-    private :
-      static const double kmm3Tocm3;
-      static const int HybridFBLR_0; // Front Back Left Right
-      static const int InnerSensor;
-      static const int OuterSensor;
-      static const int HybridFront;
-      static const int HybridBack;
-      static const int HybridLeft;
-      static const int HybridRight;
-      static const int HybridBetween;
-      static const int SupportPlate;
-      static const int HybridFB;
-      static const int HybridLR;
-      static const int HybridFBLR_3456; // Front Back Left Right (ailias of HybridFBLR_0)
-      static const int PixelModuleNull;
-      static const int PixelModuleHybrid;
-      static const int PixelModuleSensor;
-      static const int PixelModuleChip;
-      static const int PixelModuleDeadArea; 
-      static const int PixelModuleDeadAreaRight; 
-      static const int PixelModuleDeadAreaLeft;
-      static const int PixelModuleDeadAreaFront; 
-      static const int PixelModuleDeadAreaBack; 
-      
+    private :      
       class Volume {
         public :
           Volume(std::string name, const int type, std::string pname, 
@@ -192,7 +170,7 @@ namespace insur {
                                                           fx(posx),
                                                           fy(posy),
                                                           fz(posz),
-                                                          fdxyz(dx*dy*dz*kmm3Tocm3), // mm3 to cm3
+                                                          fdxyz(dx*dy*dz / Units::cm3), // mm3 to cm3
                                                           fdensity(-1.),
                                                           fmass(0.){}
 
