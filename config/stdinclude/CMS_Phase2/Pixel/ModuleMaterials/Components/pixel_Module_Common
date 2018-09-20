@@ -6,8 +6,8 @@ Component {
   scaleOnSensor 0
   Element {
     elementName SenSi
-    quantity 0.15
-    unit mm
+    quantity 0.15       
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 2
   }
 }
@@ -18,8 +18,8 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.01  // !!!!!!!!!!!!! RANDOM // Can adjust easily to land on same density as Si (but need to be sure of volume first).
-    unit g
+    quantity 0.18      // !!!!!!!!!!!!! RANDOM VALUE! NEED TO BE TUNED!
+    unit g              
     targetVolume 4
   }
 }
@@ -30,20 +30,20 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.15
-    unit mm
+    quantity 0.15       
+    unit mm               // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
   Element {
     elementName PS-FEH-mix  /// ???????
     quantity 0.15
-    unit mm
+    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
   Element {
     elementName Cu
     quantity 0.05
-    unit mm
+    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
 }
@@ -56,7 +56,7 @@ Component {
   Element {
     elementName CF
     quantity 0.2
-    unit mm
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
 }

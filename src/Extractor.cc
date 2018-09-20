@@ -3252,6 +3252,7 @@ namespace insur {
 
       //Unused pointers
       vol[PixelModuleNull] = 0;
+      vol[PixelModuleDeadArea] = 0;
 
       // Hybrid Volume (Top Inactive)
       const double myHybridWidth = modWidth;
