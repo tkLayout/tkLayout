@@ -3573,7 +3573,7 @@ namespace insur {
       volumes.push_back(vol[xml_PixelModuleDeadAreaRight]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaLeft]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaFront]);
-      volumes.push_back(vol[xml_PixelModuleDeadAreaBack]);     
+      volumes.push_back(vol[xml_PixelModuleDeadAreaBack]);
     }
 
   }

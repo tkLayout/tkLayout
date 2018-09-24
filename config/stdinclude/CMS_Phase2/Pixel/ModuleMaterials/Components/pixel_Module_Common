@@ -18,7 +18,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.0018      // !!!!!!!!!!!!! RANDOM VALUE! NEED TO BE TUNED!
+    quantity 0.021525504      // !!!!!!!!!!!!! RANDOM VALUE! NEED TO BE TUNED!
     unit g              
     targetVolume 4
   }
@@ -57,6 +57,6 @@ Component {
     elementName CF
     quantity 0.2
     unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1
+    targetVolume 1      // ???? Not targetVolume 3 ?
   }
 }

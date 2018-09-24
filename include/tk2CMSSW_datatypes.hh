@@ -79,12 +79,16 @@ namespace insur {
      * @param density The overall density of the composite material (in g/cm3)
      * @param method The type of mixture: by weight, by volume or by atomic proportion
      * @param elements A list of elements in the compound, key = name of the element, value = massic fraction of the whole
+     * @param fileName The name of the file in which the composite description ends up being printed (used for referring to that description)
      */
     struct Composite {
         std::string name;
         double density;
         CompType method;
         std::map<std::string, double> elements;
+
+        std::string fileName;
+        const std::string fullName() const { return fileName + ":" + name; }
 
         // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
         // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
