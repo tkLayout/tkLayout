@@ -3271,7 +3271,7 @@ namespace insur {
       const double myDeadAreaBackLength = deadAreaExtraLength;
       const double myDeadAreaBackThickness = sensorThickness; 
       const double myDeadAreaBackPosX = 0.;
-      const double myDeadAreaBackPosY = -(modLength - deadAreaExtraLength) / 2.;
+      const double myDeadAreaBackPosY = -(modLength + deadAreaExtraLength) / 2.;
       const double myDeadAreaBackPosZ = 0.;
       vol[xml_PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", xml_PixelModuleDeadAreaBack, parentId, 
 					  myDeadAreaBackWidth, myDeadAreaBackLength, myDeadAreaBackThickness, 

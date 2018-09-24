@@ -14,10 +14,11 @@ powerPerModule 0 // mW
 sensorThickness 0.150
 hybridThickness 0.5
 chipThickness 0.5
+
 deadAreaExtraLength 0.5
 deadAreaExtraWidth 0.5
-chipExtraLeftWidth 0.0   
-chipExtraRightWidth 1.0   // 1.34
+chipNegativeXExtraWidth 0.0   
+chipPositiveXExtraWidth 1.0
 
 Sensor 1 {
   sensorType pixel
