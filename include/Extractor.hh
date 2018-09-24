@@ -127,6 +127,19 @@ namespace insur {
   // This should be moved to tk2CMSSW_strings.h at some point.
   static const std::string rot_sensor_tag = "SensorFlip";
 #endif
+ 
+
+  namespace ModuleComplexHelpers {
+    const double computeExpandedModWidth(const double moduleWidth, 
+					 const double serviceHybridWidth, 
+					 const double deadAreaExtraWidth,
+					 const double chipNegativeXExtraWidth,
+					 const double chipPositiveXExtraWidth);
+    const double computeExpandedModLength(const double moduleLength, 
+					  const double frontEndHybridWidth, 
+					  const double deadAreaExtraLength);
+  };
+
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);

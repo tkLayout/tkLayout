@@ -2977,6 +2977,29 @@ namespace insur {
 
   
 
+  const double ModuleComplexHelpers::computeExpandedModWidth(const double moduleWidth, 
+							     const double serviceHybridWidth, 
+							     const double deadAreaExtraWidth,
+							     const double chipNegativeXExtraWidth,
+							     const double chipPositiveXExtraWidth) {
+    const double totalServiceHybridWidth = 2. * serviceHybridWidth; // OT case
+    const double totalDeadAreaExtraWidth = 2. * deadAreaExtraWidth; // IT case: around sensor
+    const double totalChipExtraWidth = 2. * MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth); // IT case: around chip
+    const double expandedModWidth = moduleWidth + totalServiceHybridWidth + MAX(totalDeadAreaExtraWidth, totalChipExtraWidth);
+    return expandedModWidth;
+  }
+
+  const double ModuleComplexHelpers::computeExpandedModLength(const double moduleLength, 
+							      const double frontEndHybridWidth, 
+							      const double deadAreaExtraLength) {
+    const double totalFrontEndHybridWidth = 2. * frontEndHybridWidth; // OT case
+    const double totalDeadAreaExtraLength = 2.* deadAreaExtraLength;  // IT case
+    const double expandedModLength = moduleLength + totalFrontEndHybridWidth + totalDeadAreaExtraLength;
+    return expandedModLength;
+  }
+
+
+
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
                                ModuleCap&  modcap        ) : modulecap(modcap),
@@ -3003,10 +3026,18 @@ namespace insur {
                                                              hybridLeftAndRightVolume_mm3(-1.),
 							     deadAreaTotalVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
-                                                             expandedModWidth(modWidth + 2*serviceHybridWidth 
-									      + MAX(2.*deadAreaExtraWidth, 2.*MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth))),
-                                                             expandedModLength(modLength + 2*frontEndHybridWidth + 2.*deadAreaExtraLength),
-                                                             center(module.center()),
+                                                             expandedModWidth(ModuleComplexHelpers::computeExpandedModWidth(modWidth, 
+															    serviceHybridWidth, 
+															    deadAreaExtraWidth,
+															    chipNegativeXExtraWidth,
+															    chipPositiveXExtraWidth)
+									      ),
+		      
+                                                             expandedModLength(ModuleComplexHelpers::computeExpandedModLength(modLength,
+															      frontEndHybridWidth,
+															      deadAreaExtraLength)
+									       ),
+							     center(module.center()),
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
     if (!module.isPixelModule()) {
