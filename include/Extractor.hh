@@ -227,8 +227,8 @@ namespace insur {
       const double         chipThickness;
       const double         deadAreaExtraLength;
       const double         deadAreaExtraWidth;
-      const double         chipExtraLeftWidth;
-      const double         chipExtraRightWidth;
+      const double         chipNegativeXExtraWidth;
+      const double         chipPositiveXExtraWidth;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;

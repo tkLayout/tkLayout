@@ -2995,8 +2995,8 @@ namespace insur {
                                                              chipThickness(module.chipThickness()),
 							     deadAreaExtraLength(module.deadAreaExtraLength()),
 							     deadAreaExtraWidth(module.deadAreaExtraWidth()),
-							     chipExtraLeftWidth(module.chipExtraLeftWidth()),
-							     chipExtraRightWidth(module.chipExtraRightWidth()),
+							     chipNegativeXExtraWidth(module.chipNegativeXExtraWidth()),
+							     chipPositiveXExtraWidth(module.chipPositiveXExtraWidth()),
                                                              hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
@@ -3004,7 +3004,7 @@ namespace insur {
 							     deadAreaTotalVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
                                                              expandedModWidth(modWidth + 2*serviceHybridWidth 
-									      + MAX(2.*deadAreaExtraWidth, 2.*MAX(chipExtraLeftWidth, chipExtraRightWidth))),
+									      + MAX(2.*deadAreaExtraWidth, 2.*MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth))),
                                                              expandedModLength(modLength + 2*frontEndHybridWidth + 2.*deadAreaExtraLength),
                                                              center(module.center()),
                                                              normal(module.normal()),
@@ -3278,10 +3278,10 @@ namespace insur {
 					  myDeadAreaBackPosX, myDeadAreaBackPosY, myDeadAreaBackPosZ);
 
       // Chip Volume (Bottom Inactive)
-      const double myChipWidth = modWidth + chipExtraLeftWidth + chipExtraRightWidth;
+      const double myChipWidth = modWidth + chipNegativeXExtraWidth + chipPositiveXExtraWidth;
       const double myChipLength = modLength;
       const double myChipThickness = chipThickness; 
-      const double myChipPosX = (chipExtraRightWidth - chipExtraLeftWidth) / 2.;
+      const double myChipPosX = (chipPositiveXExtraWidth - chipNegativeXExtraWidth) / 2.;
       const double myChipPosY = 0.;
       const double myChipPosZ = - sensorThickness / 2. - chipThickness / 2.;
       vol[xml_PixelModuleChip] = new Volume(moduleId + "Chip", xml_PixelModuleChip, parentId,  
