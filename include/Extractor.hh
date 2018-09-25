@@ -145,6 +145,7 @@ namespace insur {
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
      ~ModuleComplex();
      void buildSubVolumes();
+     void checkSubVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
      void addLogicInfo   (std::vector<LogicalInfo>& vec);
      void addPositionInfo(std::vector<PosInfo>&     vec);
@@ -211,7 +212,37 @@ namespace insur {
             else             std::cout << "   " << fname << " mass =" << fmass 
                                        <<" volume=" << fdxyz << " cm3, density=" << fdensity << " g/cm3" <<std::endl; 
           }
-        private :
+
+	void check() { 
+	  if (fmass < mat_negligible) {
+	    isValid_ = false;
+
+	    if (fdx > geom_zero && fdy > geom_zero && fdz > geom_zero) {
+	      logERROR(any2str("Module ") + any2str(fname) 
+		       + any2str(", subvolume ") + any2str(ftype)
+		       + any2str(" with shape dx = ") + any2str(fdx) + any2str(" dy = ") +  any2str(fdy) + any2str(" dz = ") +  any2str(fdz) 
+		       + any2str(" has a mass = ") + any2str(fmass) + any2str(" < ") + any2str(mat_negligible)
+		       );
+	      isValid_ = false;
+	    }
+	    return;
+	  }
+
+	  if ((fmass > mat_negligible) && (fdx < geom_zero || fdy < geom_zero || fdz < geom_zero)) {
+	    logERROR(any2str("Module ") + any2str(fname) 
+		     + any2str(", subvolume ") + any2str(ftype)
+		     + any2str(" with mass = ") + any2str(fmass)
+		     + any2str(" has shape dx = ") +  any2str(fdx) + any2str(" dy = ") +  any2str(fdy) + any2str(" dz = ") +  any2str(fdz)	    
+		     );
+	    isValid_ = false;
+	    return;
+	  }
+
+	  isValid_ = true;
+	}
+	const bool isValid() const { return isValid_; }	
+
+      private :
           std::string  fname;
           const int    ftype;
           std::string  fparentname;
@@ -221,6 +252,7 @@ namespace insur {
           double       fdensity;
           double       fmass;
           std::map<std::string, double> fmatlist;
+	  bool isValid_;
       };
 
       ModuleCap&           modulecap;

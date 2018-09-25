@@ -45,6 +45,6 @@ Component {
     elementName CF
     quantity 0.2
     unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1      // ???? Not targetVolume 3 ?
+    targetVolume 1
   }
 }

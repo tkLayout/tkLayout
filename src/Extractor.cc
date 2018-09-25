@@ -3607,30 +3607,35 @@ namespace insur {
       volumes.push_back(vol[xml_PixelModuleDeadAreaBack]);
     }
 
+    checkSubVolumes();
+  }
+
+  void ModuleComplex::checkSubVolumes() {
+    for (auto& vit : volumes) {
+      vit->check();
+    }
   }
 
   void ModuleComplex::addShapeInfo(std::vector<ShapeInfo>& vec) {
     ShapeInfo ele;
     ele.type = bx; // Box 
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.name_tag = (*vit)->getName();
-      ele.dx = (*vit)->getDx()/2.; // half length
-      ele.dy = (*vit)->getDy()/2.; // half length
-      ele.dz = (*vit)->getDz()/2.; // half length
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.name_tag = myVolume->getName();
+      ele.dx = myVolume->getDx()/2.; // half length
+      ele.dy = myVolume->getDy()/2.; // half length
+      ele.dz = myVolume->getDz()/2.; // half length
       vec.push_back(ele);
     }
   }
 
   void ModuleComplex::addLogicInfo(std::vector<LogicalInfo>& vec) {
     LogicalInfo ele;
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.name_tag     = (*vit)->getName();
-      ele.shape_tag    = prefix_xmlfile + (*vit)->getName(); 
-      ele.material_tag = prefix_xmlfile + prefix_material + (*vit)->getName();
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.name_tag     = myVolume->getName();
+      ele.shape_tag    = prefix_xmlfile + myVolume->getName(); 
+      ele.material_tag = prefix_xmlfile + prefix_material + myVolume->getName();
       vec.push_back(ele);
     }
   }
@@ -3638,28 +3643,28 @@ namespace insur {
   void ModuleComplex::addPositionInfo(std::vector<PosInfo>& vec) {
     PosInfo ele;
     ele.copy = 1;
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.parent_tag = prefix_xmlfile + (*vit)->getParentName();
-      ele.child_tag  = prefix_xmlfile + (*vit)->getName();
-      ele.trans.dx   = (*vit)->getX();
-      ele.trans.dy   = (*vit)->getY();
-      ele.trans.dz   = (*vit)->getZ();
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.parent_tag = prefix_xmlfile + myVolume->getParentName();
+      ele.child_tag  = prefix_xmlfile + myVolume->getName();
+      ele.trans.dx   = myVolume->getX();
+      ele.trans.dy   = myVolume->getY();
+      ele.trans.dz   = myVolume->getZ();
       vec.push_back(ele);
     }
   }
 
   void ModuleComplex::addMaterialInfo(std::vector<Composite>& vec) {
-    for (const auto& vit : volumes) {
-      if (!(vit->getDensity() > 0.)) continue; 
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+
       Composite comp;
-      comp.name    = prefix_material + vit->getName();
-      comp.density = vit->getDensity();
+      comp.name    = prefix_material + myVolume->getName();
+      comp.density = myVolume->getDensity();
       comp.method  = wt;
 
       double m = 0.0;
-      for (const auto& it : vit->getMaterialList()) {
+      for (const auto& it : myVolume->getMaterialList()) {
 	comp.elements.insert(it);
 	m += it.second;
       }
@@ -3693,13 +3698,13 @@ namespace insur {
       else 
         std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << ")" << std::endl;
     }
-    std::vector<Volume*>::const_iterator vit;
     double moduleTotalMass = 0.;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      (*vit)->print();
-      moduleTotalMass += (*vit)->getMass();
+    for (const auto& myVolume : volumes) {
+      myVolume->print();
+      moduleTotalMass += myVolume->getMass();
     }
     std::cerr << "  Module Total Mass = " << moduleTotalMass 
               << " (" << moduleMassWithoutSensors_expected << " is expected.)" << std::endl; 
   }
+
 }
