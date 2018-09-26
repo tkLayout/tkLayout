@@ -590,6 +590,17 @@ namespace insur {
     if (foundComposite != printedComposites_.end()) {
       mapCompoToPrintedCompo_.insert(std::make_pair(fullName, foundComposite->fullName())); // Just map the name of the composite 
                                                                                             // to the name of the one which is already printed.
+
+      if (fileName == xml_fileident && fullName != foundComposite->fullName() && fullName.find("composite") == std::string::npos) {
+	stream << xml_composite_material_open << name << xml_composite_material_first_inter;
+	stream << density << xml_composite_material_second_inter ;
+	stream << "mixture by weight";
+	stream << xml_general_inter;
+	stream << xml_material_fraction_open << 1.0 << xml_material_fraction_inter;
+	stream << foundComposite->fullName() << xml_material_fraction_close;
+	stream << xml_composite_material_close;
+      }
+
     }
     // Case where the materials composition is not already printed : hence, print it !
     else {
@@ -608,7 +619,14 @@ namespace insur {
       stream << xml_general_inter;
       for (const auto& elem : elements) {
 	stream << xml_material_fraction_open << elem.second << xml_material_fraction_inter;
+	//const std::string elemFullName = fileName + ":" + xml_tkLayout_material + elem.first;
+	//auto printedElem = mapCompoToPrintedCompo_.find(elemFullName);
+	//if (printedElem != mapCompoToPrintedCompo_.end()) {
+	//  stream << printedElem->second << xml_material_fraction_close;
+	//}
+	//else {
 	stream << xml_fileident << ":" << xml_tkLayout_material << elem.first << xml_material_fraction_close;
+	//}
       }
       stream << xml_composite_material_close;
       comp.fileName = fileName; // comp has been printed in fileName
