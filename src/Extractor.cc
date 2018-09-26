@@ -3497,37 +3497,38 @@ namespace insur {
 	     el->targetVolume() == xml_SupportPlate     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
-	} else if ( el->targetVolume() == xml_HybridFB ) { 
+	} 
+	else if ( el->targetVolume() == xml_HybridFB ) { 
           if (hybridFrontAndBackVolume_mm3 < 0) { // Need only once
             hybridFrontAndBackVolume_mm3 = vol[xml_HybridFront]->getVolume()
 	      + vol[xml_HybridBack]->getVolume();
           }
-          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
           vol[xml_HybridFront]->addMass(el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
           vol[xml_HybridBack]->addMass(el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
-	} else if ( el->targetVolume() == xml_HybridLR ) {
+	} 
+	else if ( el->targetVolume() == xml_HybridLR ) {
           if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
             hybridLeftAndRightVolume_mm3 = vol[xml_HybridLeft]->getVolume()
 	      + vol[xml_HybridRight]->getVolume();
           }
-          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
           vol[xml_HybridLeft]->addMass(el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
           vol[xml_HybridRight]->addMass(el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
-	} else if ( el->targetVolume() == xml_HybridFBLR_0 || el->targetVolume() == xml_HybridFBLR_3456 ) { // Uniformly Distribute
-          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
-
-          if (hybridTotalVolume_mm3 < 0) { // Need only once
+	} 
+	else if ( el->targetVolume() == xml_HybridFBLR_0 || el->targetVolume() == xml_HybridFBLR_3456 ) { // Uniformly Distribute
+	  if (hybridTotalVolume_mm3 < 0) { // Need only once
             hybridTotalVolume_mm3 = vol[xml_HybridFront]->getVolume()
 	      + vol[xml_HybridBack]->getVolume()
 	      + vol[xml_HybridLeft]->getVolume()
 	      + vol[xml_HybridRight]->getVolume();
           }
-
+          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridTotalVolume_mm3);    
           // Uniform density distribution and consistent with total mass
           vol[xml_HybridFront]->addMass(el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridTotalVolume_mm3); 
           vol[xml_HybridBack]->addMass(el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridTotalVolume_mm3);   
@@ -3565,17 +3566,18 @@ namespace insur {
 	}
 
 	else if ( el->targetVolume() == xml_PixelModuleDeadArea) { // Uniformly Distribute
-          vol[xml_PixelModuleDeadAreaRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_PixelModuleDeadAreaLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_PixelModuleDeadAreaFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[xml_PixelModuleDeadAreaBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
 
-          if (deadAreaTotalVolume_mm3 < 0) { // Need only once
+	  if (deadAreaTotalVolume_mm3 < 0) { // Need only once
             deadAreaTotalVolume_mm3 = vol[xml_PixelModuleDeadAreaRight]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
           }
+
+          vol[xml_PixelModuleDeadAreaRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
 
           // Uniform density distribution and consistent with total mass
           vol[xml_PixelModuleDeadAreaRight]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3); 
