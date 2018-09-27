@@ -138,6 +138,10 @@ public:
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
   Property<double, Default> chipThickness;
+  Property<double, AutoDefault> deadAreaExtraLength;
+  Property<double, AutoDefault> deadAreaExtraWidth;
+  Property<double, AutoDefault> chipNegativeXExtraWidth;
+  Property<double, AutoDefault> chipPositiveXExtraWidth;
 
   Property<bool, Default> removeModule;
 
@@ -198,6 +202,10 @@ public:
       hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
+      deadAreaExtraLength      ("deadAreaExtraLength"      , parsedOnly()),
+      deadAreaExtraWidth       ("deadAreaExtraWidth"       , parsedOnly()),
+      chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
+      chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
