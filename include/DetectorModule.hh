@@ -140,8 +140,8 @@ public:
   Property<double, Default> chipThickness;
   Property<double, AutoDefault> deadAreaExtraLength;
   Property<double, AutoDefault> deadAreaExtraWidth;
-  Property<double, AutoDefault> chipExtraLeftWidth;
-  Property<double, AutoDefault> chipExtraRightWidth;
+  Property<double, AutoDefault> chipNegativeXExtraWidth;
+  Property<double, AutoDefault> chipPositiveXExtraWidth;
 
   Property<bool, Default> removeModule;
 
@@ -204,8 +204,8 @@ public:
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
       deadAreaExtraLength      ("deadAreaExtraLength"      , parsedOnly()),
       deadAreaExtraWidth       ("deadAreaExtraWidth"       , parsedOnly()),
-      chipExtraLeftWidth       ("chipExtraLeftWidth"       , parsedOnly()),
-      chipExtraRightWidth      ("chipExtraRightWidth"      , parsedOnly()),
+      chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
+      chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),

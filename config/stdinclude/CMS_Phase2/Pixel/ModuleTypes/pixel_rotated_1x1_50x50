@@ -14,6 +14,11 @@ sensorThickness 0.150
 hybridThickness 0.5
 chipThickness 0.5
 
+deadAreaExtraLength 0.5
+deadAreaExtraWidth 0.5
+chipNegativeXExtraWidth 0.0   
+chipPositiveXExtraWidth 0.0
+
 Sensor 1 {
   sensorType pixel
   pitchEstimate 0.050

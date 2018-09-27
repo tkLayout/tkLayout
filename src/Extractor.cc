@@ -2975,40 +2975,30 @@ namespace insur {
     return 716.408 * pA / (Z*Z*(L_Z-f_Z) + Z*L_prime_Z);
   }
 
- 
-
-  const double ModuleComplex::kmm3Tocm3 = 1e-3;
-
-// These value should be consistent with 
-// the configuration file
-           // OUTER TRACKER MODULE
-  const int ModuleComplex::HybridFBLR_0  = 0; // Front + Back + Right + Left
-  const int ModuleComplex::InnerSensor   = 1; 
-  const int ModuleComplex::OuterSensor   = 2; 
-  const int ModuleComplex::HybridFront   = 3; 
-  const int ModuleComplex::HybridBack    = 4; 
-  const int ModuleComplex::HybridLeft    = 5; 
-  const int ModuleComplex::HybridRight   = 6; 
-  const int ModuleComplex::HybridBetween = 7; 
-  const int ModuleComplex::SupportPlate  = 8; // Support Plate
-  // extras
-  const int ModuleComplex::HybridFB        = 34; 
-  const int ModuleComplex::HybridLR        = 56; 
-  const int ModuleComplex::HybridFBLR_3456 = 3456;
-
-           // PIXEL MODULE
-  const int ModuleComplex::PixelModuleNull   = 0;
-  const int ModuleComplex::PixelModuleHybrid   = 1; 
-  const int ModuleComplex::PixelModuleSensor   = 2; 
-  const int ModuleComplex::PixelModuleChip     = 3;
-  const int ModuleComplex::PixelModuleDeadArea      = 4;
-  const int ModuleComplex::PixelModuleDeadAreaRight = 5;
-  const int ModuleComplex::PixelModuleDeadAreaLeft  = 6;
-  const int ModuleComplex::PixelModuleDeadAreaFront = 7;
-  const int ModuleComplex::PixelModuleDeadAreaBack  = 8;
   
 
-  
+  const double ModuleComplexHelpers::computeExpandedModWidth(const double moduleWidth, 
+							     const double serviceHybridWidth, 
+							     const double deadAreaExtraWidth,
+							     const double chipNegativeXExtraWidth,
+							     const double chipPositiveXExtraWidth) {
+    const double totalServiceHybridWidth = 2. * serviceHybridWidth; // OT case
+    const double totalDeadAreaExtraWidth = 2. * deadAreaExtraWidth; // IT case: around sensor
+    const double totalChipExtraWidth = 2. * MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth); // IT case: around chip
+    const double expandedModWidth = moduleWidth + totalServiceHybridWidth + MAX(totalDeadAreaExtraWidth, totalChipExtraWidth);
+    return expandedModWidth;
+  }
+
+  const double ModuleComplexHelpers::computeExpandedModLength(const double moduleLength, 
+							      const double frontEndHybridWidth, 
+							      const double deadAreaExtraLength) {
+    const double totalFrontEndHybridWidth = 2. * frontEndHybridWidth; // OT case
+    const double totalDeadAreaExtraLength = 2.* deadAreaExtraLength;  // IT case
+    const double expandedModLength = moduleLength + totalFrontEndHybridWidth + totalDeadAreaExtraLength;
+    return expandedModLength;
+  }
+
+
 
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
@@ -3028,18 +3018,26 @@ namespace insur {
                                                              chipThickness(module.chipThickness()),
 							     deadAreaExtraLength(module.deadAreaExtraLength()),
 							     deadAreaExtraWidth(module.deadAreaExtraWidth()),
-							     chipExtraLeftWidth(module.chipExtraLeftWidth()),
-							     chipExtraRightWidth(module.chipExtraRightWidth()),
+							     chipNegativeXExtraWidth(module.chipNegativeXExtraWidth()),
+							     chipPositiveXExtraWidth(module.chipPositiveXExtraWidth()),
                                                              hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
 							     deadAreaTotalVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
-                                                             expandedModWidth(modWidth + 2*serviceHybridWidth 
-									      + MAX(2.*deadAreaExtraWidth, 2.*MAX(chipExtraLeftWidth, chipExtraRightWidth))),
-                                                             expandedModLength(modLength + 2*frontEndHybridWidth + 2.*deadAreaExtraLength),
-                                                             center(module.center()),
+                                                             expandedModWidth(ModuleComplexHelpers::computeExpandedModWidth(modWidth, 
+															    serviceHybridWidth, 
+															    deadAreaExtraWidth,
+															    chipNegativeXExtraWidth,
+															    chipPositiveXExtraWidth)
+									      ),
+		      
+                                                             expandedModLength(ModuleComplexHelpers::computeExpandedModLength(modLength,
+															      frontEndHybridWidth,
+															      deadAreaExtraLength)
+									       ),
+							     center(module.center()),
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
     if (!module.isPixelModule()) {
@@ -3051,7 +3049,7 @@ namespace insur {
     else {
       expandedModThickness = sensorThickness + 2.0 * MAX(chipThickness, hybridThickness);
       prefix_xmlfile = xml_PX_fileident + ":";
-      nTypes = 4;
+      nTypes = 9;
     }
   }
 
@@ -3091,9 +3089,9 @@ namespace insur {
 	//  SupportPlate(8) thickness is of course null for 2S modules
     
 	//Unused pointers
-	vol[HybridFBLR_0] = 0;
-	vol[InnerSensor]  = 0;
-	vol[OuterSensor]  = 0;
+	vol[xml_HybridFBLR_0] = 0;
+	vol[xml_InnerSensor]  = 0;
+	vol[xml_OuterSensor]  = 0;
 
 	double dx = serviceHybridWidth;              
 	double dy = modLength; 
@@ -3102,13 +3100,13 @@ namespace insur {
 	double posy = 0.;
 	double posz = 0.;
 	// Hybrid FrontSide Volume
-	vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridFront] = new Volume(moduleId+"FSide",xml_HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
 	posx = -(modWidth+serviceHybridWidth)/2.;
 	posy = 0.;
 	posz = 0.;
 	// Hybrid BackSide Volume
-	vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridBack] = new Volume(moduleId+"BSide",xml_HybridBack,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = modWidth+2*serviceHybridWidth;  
 	dy = frontEndHybridWidth;
@@ -3116,13 +3114,13 @@ namespace insur {
 	posy = (modLength+frontEndHybridWidth)/2.;
 	posz = 0.;
 	// Hybrid LeftSide Volume
-	vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridLeft] = new Volume(moduleId+"LSide",xml_HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
 
 	posx = 0.;
 	posy = -(modLength+frontEndHybridWidth)/2.;
 	posz = 0.;
 	// Hybrid RightSide Volume
-	vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridRight] = new Volume(moduleId+"RSide",xml_HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = modWidth; 
 	dy = modLength; 
@@ -3130,7 +3128,7 @@ namespace insur {
 	posy = 0.;
 	posz = 0.;
 	// Hybrid Between Volume
-	vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridBetween] = new Volume(moduleId+"Between",xml_HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = expandedModWidth;  
 	dy = expandedModLength; 
@@ -3139,7 +3137,7 @@ namespace insur {
 	posy = 0.;
 	posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
 	// SupportPlate
-	vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_SupportPlate] = new Volume(moduleId+"SupportPlate",xml_SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
       }
 
       else {
@@ -3169,9 +3167,9 @@ namespace insur {
   
     
 	//Unused pointers
-	vol[HybridFBLR_0] = 0;
-	vol[InnerSensor]  = 0;
-	vol[OuterSensor]  = 0;
+	vol[xml_HybridFBLR_0] = 0;
+	vol[xml_InnerSensor]  = 0;
+	vol[xml_OuterSensor]  = 0;
 
 	double dx = serviceHybridWidth;              
 	double dy = modLength; 
@@ -3180,13 +3178,13 @@ namespace insur {
 	double posy = 0.;
 	double posz = sensorThickness / 2. + hybridThickness / 2.;
 	// Hybrid FrontSide Volume
-	vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridFront] = new Volume(moduleId+"FSide",xml_HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
 	posx = -(modWidth+serviceHybridWidth)/2.;
 	posy = 0.;
 	posz = sensorThickness / 2. + hybridThickness / 2.; 
 	// Hybrid BackSide Volume
-	vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridBack] = new Volume(moduleId+"BSide",xml_HybridBack,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = modWidth+2*serviceHybridWidth;  
 	dy = frontEndHybridWidth;
@@ -3194,13 +3192,13 @@ namespace insur {
 	posy = (modLength+frontEndHybridWidth)/2.;
 	posz = sensorThickness / 2. + hybridThickness / 2.; 
 	// Hybrid LeftSide Volume
-	vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridLeft] = new Volume(moduleId+"LSide",xml_HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
 
 	posx = 0.;
 	posy = -(modLength+frontEndHybridWidth)/2.;
 	posz = sensorThickness / 2. + hybridThickness / 2.; 
 	// Hybrid RightSide Volume
-	vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridRight] = new Volume(moduleId+"RSide",xml_HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = modWidth; 
 	dy = modLength; 
@@ -3208,7 +3206,7 @@ namespace insur {
 	posy = 0.;
 	posz = sensorThickness / 2. + hybridThickness / 2.; 
 	// Hybrid Between Volume
-	vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_HybridBetween] = new Volume(moduleId+"Between",xml_HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
 
 	dx = expandedModWidth;  
 	dy = expandedModLength; 
@@ -3217,7 +3215,7 @@ namespace insur {
 	posy = 0.;
 	posz = - sensorThickness / 2. - supportPlateThickness / 2.;
 	// SupportPlate
-	vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+	vol[xml_SupportPlate] = new Volume(moduleId+"SupportPlate",xml_SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
       }
     }
 
@@ -3251,7 +3249,8 @@ namespace insur {
       // Chip(3) volume can contain Bumps and any other material (supports, etc) for simplification.
 
       //Unused pointers
-      vol[PixelModuleNull] = 0;
+      vol[xml_PixelModuleNull] = 0;
+      vol[xml_PixelModuleDeadArea] = 0;
 
       // Hybrid Volume (Top Inactive)
       const double myHybridWidth = modWidth;
@@ -3260,7 +3259,7 @@ namespace insur {
       const double myHybridPosX = 0.;
       const double myHybridPosY = 0.;
       const double myHybridPosZ = sensorThickness / 2. + hybridThickness / 2.;
-      vol[PixelModuleHybrid] = new Volume(moduleId + "Hybrid", PixelModuleHybrid, parentId, 
+      vol[xml_PixelModuleHybrid] = new Volume(moduleId + "Hybrid", xml_PixelModuleHybrid, parentId, 
 					  myHybridWidth, myHybridLength, myHybridThickness, 
 					  myHybridPosX, myHybridPosY, myHybridPosZ);
 
@@ -3271,7 +3270,7 @@ namespace insur {
       const double myDeadAreaRightPosX = (modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaRightPosY = 0.;
       const double myDeadAreaRightPosZ = 0.;
-      vol[PixelModuleDeadAreaRight] = new Volume(moduleId + "DeadAreaRight", PixelModuleDeadAreaRight, parentId, 
+      vol[xml_PixelModuleDeadAreaRight] = new Volume(moduleId + "DeadAreaRight", xml_PixelModuleDeadAreaRight, parentId, 
 					  myDeadAreaRightWidth, myDeadAreaRightLength, myDeadAreaRightThickness, 
 					  myDeadAreaRightPosX, myDeadAreaRightPosY, myDeadAreaRightPosZ);
 
@@ -3282,7 +3281,7 @@ namespace insur {
       const double myDeadAreaLeftPosX = -(modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaLeftPosY = 0.;
       const double myDeadAreaLeftPosZ = 0.;
-      vol[PixelModuleDeadAreaLeft] = new Volume(moduleId + "DeadAreaLeft", PixelModuleDeadAreaLeft, parentId, 
+      vol[xml_PixelModuleDeadAreaLeft] = new Volume(moduleId + "DeadAreaLeft", xml_PixelModuleDeadAreaLeft, parentId, 
 					  myDeadAreaLeftWidth, myDeadAreaLeftLength, myDeadAreaLeftThickness, 
 					  myDeadAreaLeftPosX, myDeadAreaLeftPosY, myDeadAreaLeftPosZ);
 
@@ -3294,7 +3293,7 @@ namespace insur {
       const double myDeadAreaFrontPosX = 0.;
       const double myDeadAreaFrontPosY = (modLength + deadAreaExtraLength) / 2.;
       const double myDeadAreaFrontPosZ = 0.;
-      vol[PixelModuleDeadAreaFront] = new Volume(moduleId + "DeadAreaFront", PixelModuleDeadAreaFront, parentId, 
+      vol[xml_PixelModuleDeadAreaFront] = new Volume(moduleId + "DeadAreaFront", xml_PixelModuleDeadAreaFront, parentId, 
 					  myDeadAreaFrontWidth, myDeadAreaFrontLength, myDeadAreaFrontThickness, 
 					  myDeadAreaFrontPosX, myDeadAreaFrontPosY, myDeadAreaFrontPosZ);
 
@@ -3303,20 +3302,20 @@ namespace insur {
       const double myDeadAreaBackLength = deadAreaExtraLength;
       const double myDeadAreaBackThickness = sensorThickness; 
       const double myDeadAreaBackPosX = 0.;
-      const double myDeadAreaBackPosY = -(modLength - deadAreaExtraLength) / 2.;
+      const double myDeadAreaBackPosY = -(modLength + deadAreaExtraLength) / 2.;
       const double myDeadAreaBackPosZ = 0.;
-      vol[PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", PixelModuleDeadAreaBack, parentId, 
+      vol[xml_PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", xml_PixelModuleDeadAreaBack, parentId, 
 					  myDeadAreaBackWidth, myDeadAreaBackLength, myDeadAreaBackThickness, 
 					  myDeadAreaBackPosX, myDeadAreaBackPosY, myDeadAreaBackPosZ);
 
       // Chip Volume (Bottom Inactive)
-      const double myChipWidth = modWidth + chipExtraLeftWidth + chipExtraRightWidth;
+      const double myChipWidth = modWidth + chipNegativeXExtraWidth + chipPositiveXExtraWidth;
       const double myChipLength = modLength;
       const double myChipThickness = chipThickness; 
-      const double myChipPosX = (chipExtraRightWidth - chipExtraLeftWidth) / 2.;
+      const double myChipPosX = (chipPositiveXExtraWidth - chipNegativeXExtraWidth) / 2.;
       const double myChipPosY = 0.;
       const double myChipPosZ = - sensorThickness / 2. - chipThickness / 2.;
-      vol[PixelModuleChip] = new Volume(moduleId + "Chip", PixelModuleChip, parentId,  
+      vol[xml_PixelModuleChip] = new Volume(moduleId + "Chip", xml_PixelModuleChip, parentId,  
 					myChipWidth, myChipLength, myChipThickness, 
 					myChipPosX, myChipPosY, myChipPosZ);
     }
@@ -3476,13 +3475,13 @@ namespace insur {
 
       // OUTER TRACKER MODULE
       if (!module.isPixelModule()) {
-	if ( el->targetVolume() == InnerSensor  ||
-	     el->targetVolume() == OuterSensor     ) {
+	if ( el->targetVolume() == xml_InnerSensor  ||
+	     el->targetVolume() == xml_OuterSensor     ) {
 	  continue; // Still to skip sensors, in case not detected by the component name.
 	} else if ( el->targetVolume() >= nTypes   &&
-		    el->targetVolume() != HybridFB &&
-		    el->targetVolume() != HybridLR &&
-		    el->targetVolume() != HybridFBLR_3456  ) {
+		    el->targetVolume() != xml_HybridFB &&
+		    el->targetVolume() != xml_HybridLR &&
+		    el->targetVolume() != xml_HybridFBLR_3456  ) {
 	  std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
 	  std::cerr << "targetVolume " << el->targetVolume() << " is not supported for Outer Barrel modules. Exit." << std::endl;
 	  std::exit(1);
@@ -3490,99 +3489,101 @@ namespace insur {
 
 	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
-	if ( el->targetVolume() == HybridFront   ||
-	     el->targetVolume() == HybridBack    ||
-	     el->targetVolume() == HybridLeft    ||
-	     el->targetVolume() == HybridRight   ||
-	     el->targetVolume() == HybridBetween ||
-	     el->targetVolume() == SupportPlate     ) {
+	if ( el->targetVolume() == xml_HybridFront   ||
+	     el->targetVolume() == xml_HybridBack    ||
+	     el->targetVolume() == xml_HybridLeft    ||
+	     el->targetVolume() == xml_HybridRight   ||
+	     el->targetVolume() == xml_HybridBetween ||
+	     el->targetVolume() == xml_SupportPlate     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
-	} else if ( el->targetVolume() == HybridFB ) { 
+	} 
+	else if ( el->targetVolume() == xml_HybridFB ) { 
           if (hybridFrontAndBackVolume_mm3 < 0) { // Need only once
-            hybridFrontAndBackVolume_mm3 = vol[HybridFront]->getVolume()
-	      + vol[HybridBack]->getVolume();
+            hybridFrontAndBackVolume_mm3 = vol[xml_HybridFront]->getVolume()
+	      + vol[xml_HybridBack]->getVolume();
           }
-          vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
-          vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
-	} else if ( el->targetVolume() == HybridLR ) {
+          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[xml_HybridFront]->addMass(el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[xml_HybridBack]->addMass(el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
+	} 
+	else if ( el->targetVolume() == xml_HybridLR ) {
           if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
-            hybridLeftAndRightVolume_mm3 = vol[HybridLeft]->getVolume()
-	      + vol[HybridRight]->getVolume();
+            hybridLeftAndRightVolume_mm3 = vol[xml_HybridLeft]->getVolume()
+	      + vol[xml_HybridRight]->getVolume();
           }
-          vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
-          vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
-	} else if ( el->targetVolume() == HybridFBLR_0 || el->targetVolume() == HybridFBLR_3456 ) { // Uniformly Distribute
-          vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
-
-          if (hybridTotalVolume_mm3 < 0) { // Need only once
-            hybridTotalVolume_mm3 = vol[HybridFront]->getVolume()
-	      + vol[HybridBack]->getVolume()
-	      + vol[HybridLeft]->getVolume()
-	      + vol[HybridRight]->getVolume();
+          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[xml_HybridLeft]->addMass(el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[xml_HybridRight]->addMass(el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
+	} 
+	else if ( el->targetVolume() == xml_HybridFBLR_0 || el->targetVolume() == xml_HybridFBLR_3456 ) { // Uniformly Distribute
+	  if (hybridTotalVolume_mm3 < 0) { // Need only once
+            hybridTotalVolume_mm3 = vol[xml_HybridFront]->getVolume()
+	      + vol[xml_HybridBack]->getVolume()
+	      + vol[xml_HybridLeft]->getVolume()
+	      + vol[xml_HybridRight]->getVolume();
           }
-
+          vol[xml_HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridTotalVolume_mm3);    
           // Uniform density distribution and consistent with total mass
-          vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridTotalVolume_mm3); 
-          vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridTotalVolume_mm3);   
-          vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridTotalVolume_mm3);   
-          vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridTotalVolume_mm3);
+          vol[xml_HybridFront]->addMass(el->quantityInGrams(module)*vol[xml_HybridFront]->getVolume()/hybridTotalVolume_mm3); 
+          vol[xml_HybridBack]->addMass(el->quantityInGrams(module)*vol[xml_HybridBack]->getVolume()/hybridTotalVolume_mm3);   
+          vol[xml_HybridLeft]->addMass(el->quantityInGrams(module)*vol[xml_HybridLeft]->getVolume()/hybridTotalVolume_mm3);   
+          vol[xml_HybridRight]->addMass(el->quantityInGrams(module)*vol[xml_HybridRight]->getVolume()/hybridTotalVolume_mm3);
   	}
       }
 
       // PIXEL MODULE
       else {
-	if ( el->targetVolume() == PixelModuleSensor ) {
+	if ( el->targetVolume() == xml_PixelModuleSensor ) {
 	  continue; // Still to skip sensors, in case not detected by the component name.
 	}
-	else if ( el->targetVolume() != PixelModuleHybrid &&
-		  el->targetVolume() != PixelModuleChip &&
-		  el->targetVolume() != PixelModuleDeadAreaRight && 
-		  el->targetVolume() != PixelModuleDeadAreaLeft && 
-		  el->targetVolume() != PixelModuleDeadAreaFront && 
-		  el->targetVolume() != PixelModuleDeadAreaBack && 
-		  el->targetVolume() != PixelModuleDeadArea
+	else if ( el->targetVolume() != xml_PixelModuleHybrid &&
+		  el->targetVolume() != xml_PixelModuleChip &&
+		  el->targetVolume() != xml_PixelModuleDeadAreaRight && 
+		  el->targetVolume() != xml_PixelModuleDeadAreaLeft && 
+		  el->targetVolume() != xml_PixelModuleDeadAreaFront && 
+		  el->targetVolume() != xml_PixelModuleDeadAreaBack && 
+		  el->targetVolume() != xml_PixelModuleDeadArea
 		  ) {
 	  throw PathfulException("!!!! ERROR !!!! : Found unexpected targetVolume, not supported for Pixel Barrel modules.");
 	}
 	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
-	if ( el->targetVolume() == PixelModuleHybrid   ||
-	     el->targetVolume() == PixelModuleChip ||
-	     el->targetVolume() == PixelModuleDeadAreaRight ||     
-	     el->targetVolume() == PixelModuleDeadAreaLeft ||
-	     el->targetVolume() == PixelModuleDeadAreaFront ||
-	     el->targetVolume() == PixelModuleDeadAreaBack
+	if ( el->targetVolume() == xml_PixelModuleHybrid   ||
+	     el->targetVolume() == xml_PixelModuleChip ||
+	     el->targetVolume() == xml_PixelModuleDeadAreaRight ||     
+	     el->targetVolume() == xml_PixelModuleDeadAreaLeft ||
+	     el->targetVolume() == xml_PixelModuleDeadAreaFront ||
+	     el->targetVolume() == xml_PixelModuleDeadAreaBack
 	     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
 	}
 
-	else if ( el->targetVolume() == PixelModuleDeadArea) { // Uniformly Distribute
-          vol[PixelModuleDeadAreaRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[PixelModuleDeadAreaLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[PixelModuleDeadAreaFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[PixelModuleDeadAreaBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
+	else if ( el->targetVolume() == xml_PixelModuleDeadArea) { // Uniformly Distribute
 
-          if (deadAreaTotalVolume_mm3 < 0) { // Need only once
-            deadAreaTotalVolume_mm3 = vol[PixelModuleDeadAreaRight]->getVolume()
-	      + vol[PixelModuleDeadAreaLeft]->getVolume()
-	      + vol[PixelModuleDeadAreaFront]->getVolume()
-	      + vol[PixelModuleDeadAreaBack]->getVolume();
+	  if (deadAreaTotalVolume_mm3 < 0) { // Need only once
+            deadAreaTotalVolume_mm3 = vol[xml_PixelModuleDeadAreaRight]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
           }
 
+          vol[xml_PixelModuleDeadAreaRight]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaLeft]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaFront]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaBack]->addMaterial(el->elementName(),el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
+
           // Uniform density distribution and consistent with total mass
-          vol[PixelModuleDeadAreaRight]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3); 
-          vol[PixelModuleDeadAreaLeft]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);   
-          vol[PixelModuleDeadAreaFront]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);   
-          vol[PixelModuleDeadAreaBack]->addMass(el->quantityInGrams(module)*vol[PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
+          vol[xml_PixelModuleDeadAreaRight]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3); 
+          vol[xml_PixelModuleDeadAreaLeft]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);   
+          vol[xml_PixelModuleDeadAreaFront]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);   
+          vol[xml_PixelModuleDeadAreaBack]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
   	}
 
       }
@@ -3591,47 +3592,52 @@ namespace insur {
 
     // OUTER TRACKER MODULE
     if (!module.isPixelModule()) {
-      volumes.push_back(vol[HybridFront]);
-      volumes.push_back(vol[HybridBack]);
-      volumes.push_back(vol[HybridLeft]);
-      volumes.push_back(vol[HybridRight]);
-      volumes.push_back(vol[HybridBetween]);
-      volumes.push_back(vol[SupportPlate]);
+      volumes.push_back(vol[xml_HybridFront]);
+      volumes.push_back(vol[xml_HybridBack]);
+      volumes.push_back(vol[xml_HybridLeft]);
+      volumes.push_back(vol[xml_HybridRight]);
+      volumes.push_back(vol[xml_HybridBetween]);
+      volumes.push_back(vol[xml_SupportPlate]);
     }
     // PIXEL MODULE
     else {
-      volumes.push_back(vol[PixelModuleHybrid]);
-      volumes.push_back(vol[PixelModuleChip]);
-      volumes.push_back(vol[PixelModuleDeadAreaRight]);
-      volumes.push_back(vol[PixelModuleDeadAreaLeft]);
-      volumes.push_back(vol[PixelModuleDeadAreaFront]);
-      volumes.push_back(vol[PixelModuleDeadAreaBack]);     
+      volumes.push_back(vol[xml_PixelModuleHybrid]);
+      volumes.push_back(vol[xml_PixelModuleChip]);
+      volumes.push_back(vol[xml_PixelModuleDeadAreaRight]);
+      volumes.push_back(vol[xml_PixelModuleDeadAreaLeft]);
+      volumes.push_back(vol[xml_PixelModuleDeadAreaFront]);
+      volumes.push_back(vol[xml_PixelModuleDeadAreaBack]);
     }
 
+    checkSubVolumes();
+  }
+
+  void ModuleComplex::checkSubVolumes() {
+    for (auto& vit : volumes) {
+      vit->check();
+    }
   }
 
   void ModuleComplex::addShapeInfo(std::vector<ShapeInfo>& vec) {
     ShapeInfo ele;
     ele.type = bx; // Box 
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.name_tag = (*vit)->getName();
-      ele.dx = (*vit)->getDx()/2.; // half length
-      ele.dy = (*vit)->getDy()/2.; // half length
-      ele.dz = (*vit)->getDz()/2.; // half length
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.name_tag = myVolume->getName();
+      ele.dx = myVolume->getDx()/2.; // half length
+      ele.dy = myVolume->getDy()/2.; // half length
+      ele.dz = myVolume->getDz()/2.; // half length
       vec.push_back(ele);
     }
   }
 
   void ModuleComplex::addLogicInfo(std::vector<LogicalInfo>& vec) {
     LogicalInfo ele;
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.name_tag     = (*vit)->getName();
-      ele.shape_tag    = prefix_xmlfile + (*vit)->getName(); 
-      ele.material_tag = prefix_xmlfile + prefix_material + (*vit)->getName();
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.name_tag     = myVolume->getName();
+      ele.shape_tag    = prefix_xmlfile + myVolume->getName(); 
+      ele.material_tag = prefix_xmlfile + prefix_material + myVolume->getName();
       vec.push_back(ele);
     }
   }
@@ -3639,28 +3645,28 @@ namespace insur {
   void ModuleComplex::addPositionInfo(std::vector<PosInfo>& vec) {
     PosInfo ele;
     ele.copy = 1;
-    std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      if ( !((*vit)->getDensity()>0.) ) continue; 
-      ele.parent_tag = prefix_xmlfile + (*vit)->getParentName();
-      ele.child_tag  = prefix_xmlfile + (*vit)->getName();
-      ele.trans.dx   = (*vit)->getX();
-      ele.trans.dy   = (*vit)->getY();
-      ele.trans.dz   = (*vit)->getZ();
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+      ele.parent_tag = prefix_xmlfile + myVolume->getParentName();
+      ele.child_tag  = prefix_xmlfile + myVolume->getName();
+      ele.trans.dx   = myVolume->getX();
+      ele.trans.dy   = myVolume->getY();
+      ele.trans.dz   = myVolume->getZ();
       vec.push_back(ele);
     }
   }
 
   void ModuleComplex::addMaterialInfo(std::vector<Composite>& vec) {
-    for (const auto& vit : volumes) {
-      if (!(vit->getDensity() > 0.)) continue; 
+    for (const auto& myVolume : volumes) {
+      if (!myVolume->isValid()) continue;
+
       Composite comp;
-      comp.name    = prefix_material + vit->getName();
-      comp.density = vit->getDensity();
+      comp.name    = prefix_material + myVolume->getName();
+      comp.density = myVolume->getDensity();
       comp.method  = wt;
 
       double m = 0.0;
-      for (const auto& it : vit->getMaterialList()) {
+      for (const auto& it : myVolume->getMaterialList()) {
 	comp.elements.insert(it);
 	m += it.second;
       }
@@ -3694,13 +3700,13 @@ namespace insur {
       else 
         std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << ")" << std::endl;
     }
-    std::vector<Volume*>::const_iterator vit;
     double moduleTotalMass = 0.;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      (*vit)->print();
-      moduleTotalMass += (*vit)->getMass();
+    for (const auto& myVolume : volumes) {
+      myVolume->print();
+      moduleTotalMass += myVolume->getMass();
     }
     std::cerr << "  Module Total Mass = " << moduleTotalMass 
               << " (" << moduleMassWithoutSensors_expected << " is expected.)" << std::endl; 
   }
+
 }

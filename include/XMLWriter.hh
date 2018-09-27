@@ -53,7 +53,7 @@ namespace insur {
     void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
     void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
     void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
-    void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
+    void elementaryMaterial(Element& elem, std::ostringstream& stream);
     void compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);

@@ -138,6 +138,37 @@ namespace insur {
 
 
   /**
+   * Integers used for materials assignments to modules volumes (XML export only!!).
+   * This is not placed in the XMLs dedicated file, as it might be needed to move this to core tkLayout MB analysis.
+   */
+  // OUTER TRACKER MODULE
+  static const int xml_HybridFBLR_0  = 0; // Front + Back + Right + Left
+  static const int xml_InnerSensor   = 1; 
+  static const int xml_OuterSensor   = 2; 
+  static const int xml_HybridFront   = 3; 
+  static const int xml_HybridBack    = 4; 
+  static const int xml_HybridLeft    = 5; 
+  static const int xml_HybridRight   = 6; 
+  static const int xml_HybridBetween = 7; 
+  static const int xml_SupportPlate  = 8; // Support Plate
+  // extras
+  static const int xml_HybridFB        = 34; 
+  static const int xml_HybridLR        = 56; 
+  static const int xml_HybridFBLR_3456 = 3456; // Front + Back + Right + Left
+
+  // PIXEL MODULE
+  static const int xml_PixelModuleNull   = 0;
+  static const int xml_PixelModuleHybrid   = 1; 
+  static const int xml_PixelModuleSensor   = 2; 
+  static const int xml_PixelModuleChip     = 3;
+  static const int xml_PixelModuleDeadArea      = 4;
+  static const int xml_PixelModuleDeadAreaRight = 5;
+  static const int xml_PixelModuleDeadAreaLeft  = 6;
+  static const int xml_PixelModuleDeadAreaFront = 7;
+  static const int xml_PixelModuleDeadAreaBack  = 8;
+
+
+  /**
    * Filename and path constants
    * @param default_mattabdir Relative path to the list of materials
    * @param default_mattabfile List of materials and of their properties as required by <i>MaterialTable</i>
