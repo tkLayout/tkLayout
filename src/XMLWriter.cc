@@ -619,14 +619,7 @@ namespace insur {
       stream << xml_general_inter;
       for (const auto& elem : elements) {
 	stream << xml_material_fraction_open << elem.second << xml_material_fraction_inter;
-	//const std::string elemFullName = fileName + ":" + xml_tkLayout_material + elem.first;
-	//auto printedElem = mapCompoToPrintedCompo_.find(elemFullName);
-	//if (printedElem != mapCompoToPrintedCompo_.end()) {
-	//  stream << printedElem->second << xml_material_fraction_close;
-	//}
-	//else {
 	stream << xml_fileident << ":" << xml_tkLayout_material << elem.first << xml_material_fraction_close;
-	//}
       }
       stream << xml_composite_material_close;
       comp.fileName = fileName; // comp has been printed in fileName
