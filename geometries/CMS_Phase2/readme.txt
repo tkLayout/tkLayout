@@ -403,7 +403,29 @@ OT614_200_IT602.cfg                  OT Version 6.1.4
                                      * Layer 2: 1.5 mm -> 2.5 mm.                                                                    
                                      * Layer 3: 1.5 mm -> 2.5 mm.  
                                      * Layer 4: 1.5 mm -> 2.5 mm.  
-                                     Question: so Layer 1 would need to be lifted up?                                  
+                                     Question: so Layer 1 would need to be lifted up?   
+                                     
+OT614_200_IT610.cfg                  OT Version 6.1.4                                     
+                                     Based from TBPX version 6.0.2., and TFPX + TEPX version 4.5.1.
+                                     Everywhere:
+                                     ROC size: 16.4 mm x 22 mm -> 16.8 mm x 21.6 mm.
+                                     Spacing between ROCs: 0.2 mm -> 0.3 mm.
+                                     TBPX:      
+                                     * Layer 1: layerRho: 29 mm -> 30 mm. bigDelta 1.5 mm -> 2.5 mm.                                                                    
+                                     * Layer 2: layerRho: 60 mm -> 61.5 mm.    
+                                     * Layer 3: layerRho: 102 mm -> 104.5 mm.  
+                                     * Layer 4: layerRho: 143 mm -> 146.5 mm.  
+                                     Spacing in Z: 0.2 mm -> 1.3 mm.
+                                     TFPX:
+                                     * Ring 1: Rmin + 2 mm (pending change).
+                                     * Ring 2: Rcenter: +0.2 mm. 
+                                     * Ring 4: Rcenter: +0.35 mm (keep same Rhigh). 
+                                     TEPX:
+                                     * Ring 1: Rcenter: -0.35 mm (keep same Rmin). numModules: 40 -> 36.
+                                     * Ring 2: Rcenter: 126.9 mm -> 116.25 mm.
+                                     * Ring 3: Rcenter: 166.4 mm -> 155.75 mm.
+                                     * Ring 3: Rcenter: 209.9 mm -> 196.25 mm.
+                                     * Ring 4: Rcenter: +0.36 mm (keep same Rhigh).                                                                         
                                      
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
                                                                                            
