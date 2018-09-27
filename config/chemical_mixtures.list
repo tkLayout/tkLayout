@@ -184,9 +184,10 @@ SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019
 
 
 
-# This are only for renaming purposes: they could (and sometimes should) be deleted.
+# This is only for renaming purposes: they could (and sometimes should) be deleted.
 Al_MV	                   2.698	                  Al:1
 Al_HV	                   2.698	                  Al:1
+
 TEDD_Al	                 2.698	                  Al:1
 FPIX_Al	                 2.698	                  Al:1
 FPIX_Al_HV	             2.698	                  Al:1
@@ -230,6 +231,21 @@ FPIX_PE	                 0.95	                    PE:1
 # different density from PE!!
 TEDD_Steel	             7.8	                 Steel:1
 CF	                     1.84	                  CFRP:1
+
+Al_OTModule_power        2.698                    Al:1
+Cu_OTModule_power        8.96                     Cu:1
+PE_OTModule_power        0.95                     PE:1
+Al_OTModule_HV           2.698                    Al:1
+Cu_OTModule_HV           8.96                     Cu:1
+PE_OTModule_HV           0.95                     PE:1
+PE_OTModule_fibers       0.95                     PE:1
+Glass_OTModule_fibers    2.33                  Glass:1
+Acrylate_OTModule_fibers 1.16               Acrylate:1
+Steel_TB2S_pipe          7.8                   Steel:1
+CO2_TB2S_pipe            1.0                     CO2:1
+Cu_TB2S_twp              8.96                     Cu:1
+PE_TB2S_twp              0.95                     PE:1
+Al_TB2S_twp              2.698                    Al:1
 
 
 

@@ -7,12 +7,117 @@ Station {
   stationName flangeTB2S
   type flange
 
-  // Cabling: Optical fibers and twp propagation
-  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_PE
-  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Al
-  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Cu
-  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Glass
-  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Acrylate
+  // Optical fibres convert 1:1 for the time being  
+  // 1:1 conversion of Acrylate
+Conversion {
+  Input {
+    Element {
+      elementName Acrylate_OTModule_fibers 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Acrylate
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+// 1:1 conversion of Glass
+Conversion {
+  Input {
+    Element {
+      elementName Glass_OTModule_fibers 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Glass
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}  
+// 1:1 conversion of PE
+Conversion {
+  Input {
+    Element {
+      elementName PE_OTModule_fibers 
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName PE
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+  
+ //twp convert 1:1 for the time being
+ // 1:1 conversion of Cu
+Conversion {
+  Input {
+    Element {
+      elementName Cu_TB2S_twp
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+ // 1:1 conversion of Al
+Conversion {
+  Input {
+    Element {
+      elementName Al_TB2S_twp
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Al
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
+ // 1:1 conversion of PE
+Conversion {
+  Input {
+    Element {
+      elementName PE_TB2S_twp
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName PE
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}
 
   // Power cables conversions
   // As per Habia cables PP1-PP0 (700063813 Rev 03)
@@ -20,10 +125,11 @@ Station {
   // Connectors same as 1-rod connector from http://cern.ch/go/P9bG
   // Binder connectors: Micro-T connectors - series 910 
   Conversion {
-    // One module's worth of Al_MV
+    // One module's worth of Al_OTModule_power
+    // Local material is added here
     Input {
       Element {
-        elementName Al_MV
+        elementName Al_OTModule_power
         quantity 0.612
         unit g/m
       }
@@ -33,19 +139,6 @@ Station {
       Element {
         elementName Al
         quantity 2.91
-        unit g/m
-        service true
-      }
-      Element {
-        elementName Cu
-        quantity 1.16
-        unit g/m
-        service true
-      }
-      // Insulator (50% for the MV)
-      Element {
-        elementName PE
-        quantity 4.5 
         unit g/m
         service true
       }
@@ -64,12 +157,53 @@ Station {
       }
     }
   }
-
   Conversion {
-    // One module's worth of Al_HV
+    // One module's worth of Cu_OTModule_power
     Input {
       Element {
-        elementName Al_HV
+        elementName Cu_OTModule_power
+        quantity 0.218
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+      Element {
+        elementName Cu
+        quantity 1.16
+        unit g/m
+        service true
+      }
+    }
+  }
+  Conversion {
+    // One module's worth of PE_OTModule_power
+    Input {
+      Element {
+        elementName PE_OTModule_power
+        quantity 0.880
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+// Insulator (50% for the module power)
+      Element {
+        elementName PE
+        quantity 4.5 
+        unit g/m
+        service true
+      }
+    }
+  }
+
+
+  Conversion {
+    // One module's worth of Al_OTModule_HV
+    // Local material is added here
+    Input {
+      Element {
+        elementName Al_OTModule_HV
         quantity 0.2295
         unit g/m
       }
@@ -79,19 +213,6 @@ Station {
       Element {
         elementName Al
         quantity 0.91 
-        unit g/m
-        service true
-      }
-      Element {
-        elementName Cu
-        quantity 0.32
-        unit g/m
-        service true
-      }
-      // Insulator (50% for the HV)
-      Element {
-        elementName PE
-        quantity 4.5
         unit g/m
         service true
       }
@@ -111,11 +232,55 @@ Station {
     }
   }
 
+
+  Conversion {
+    // One module's worth of Cu_OTModule_HV
+    Input {
+      Element {
+        elementName Cu_OTModule_HV
+        quantity 0.082
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+      Element {
+        elementName Cu
+        quantity 0.32
+        unit g/m
+        service true
+      }
+    }
+  }
+
+
+  Conversion {
+    // One module's worth of PE_OTModule_HV
+    Input {
+      Element {
+        elementName PE_OTModule_HV
+        quantity 0.825
+        unit g/m
+      }
+    }
+    // Per module
+    Output {
+       // Insulator (50% for the HV)
+      Element {
+        elementName PE
+        quantity 4.5
+        unit g/m
+        service true
+      }
+    }
+  }
+
+
   // Manifolds + radial pipes + holders
   Conversion {
     Input {
       Element {
-        elementName Steel
+        elementName Steel_TB2S_pipe
         quantity 7.9
         unit g/m
       }
@@ -144,7 +309,7 @@ Station {
   Conversion {
     Input {
       Element {
-        elementName CO2
+        elementName CO2_TB2S_pipe
         quantity 1.8
         unit g/m
       }

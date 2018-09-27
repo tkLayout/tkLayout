@@ -13,12 +13,12 @@ Materials rodPt2S {
     service true
     scaleOnSensor 0
     Element {
-      elementName Steel
+      elementName Steel_TB2S_pipe
       quantity 10.29
       unit g/m
     }
     Element {
-      elementName CO2
+      elementName CO2_TB2S_pipe
       quantity 6.28
       unit g/m
     }
@@ -33,19 +33,19 @@ Materials rodPt2S {
     scaleOnSensor 0
     // Two conductors and a drain
     Element {
-      elementName Cu
+      elementName Cu_TB2S_twp
       quantity 0.339
       unit g/m
     }
     // Two insulations
     Element {
-      elementName PE
+      elementName PE_TB2S_twp
       quantity 0.194
       unit g/m
     }
     // Aluminium polyester foil
     Element {
-      elementName Al
+      elementName Al_TB2S_twp
       quantity 0.330
       unit g/m
     }
