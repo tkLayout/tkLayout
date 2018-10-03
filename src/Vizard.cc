@@ -1516,6 +1516,42 @@ namespace insur {
       filesContent->addItem(myTextFile);
 
 
+
+      std::map<int, int> ps10gBundlesPerNumModules;
+      std::map<int, int> ps5gBundlesPerNumModules;
+      std::map<int, int> ssBundlesPerNumModules;
+
+      for (const auto& myBundleIt : myCablingMap->getBundles()) {
+	const OuterBundle* myBundle = myBundleIt.second.get();
+
+	const Category bundleType = myBundle->type();      
+	const int numModules = myBundle->numModules();	  
+
+	if (bundleType == Category::PS10G || bundleType == Category::PS10GA || bundleType == Category::PS10GB) ps10gBundlesPerNumModules[numModules] += 1;
+	else if (bundleType == Category::PS5G) ps5gBundlesPerNumModules[numModules] += 1;
+	else if (bundleType == Category::SS) ssBundlesPerNumModules[numModules] += 1;
+	else { std::cout << "debug printout : Undetected bundle type " << bundleType << std::endl; }
+      }
+
+      std::cout << "PS 10G" << std::endl;
+      for (const auto& numModulesIt : ps10gBundlesPerNumModules) {
+	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
+      }
+      std::cout << "PS 5G" << std::endl;
+      for (const auto& numModulesIt : ps5gBundlesPerNumModules) {
+	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
+      }
+      std::cout << "2S" << std::endl;
+      for (const auto& numModulesIt : ssBundlesPerNumModules) {
+	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
+      }
+
+
+
+
+
+
+
       // Cabling efficiency
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
       myPage->addContent(efficiencyContent);
