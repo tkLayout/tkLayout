@@ -3,9 +3,9 @@
 moduleType pixel_1x2_25x100_wide  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
-// (includes space between chips 0.3mm)
+// (includes space between chips 0.25mm)
 width 16.8
-length 43.5
+length 43.45
 
 numSensors 1
 
