@@ -409,7 +409,7 @@ OT614_200_IT610.cfg                  OT Version 6.1.4
                                      Based from TBPX version 6.0.2., and TFPX + TEPX version 4.5.1.
                                      Everywhere:
                                      ROC size: 16.4 mm x 22 mm -> 16.8 mm x 21.6 mm.
-                                     Spacing between ROCs: 0.2 mm -> 0.3 mm.
+                                     Spacing between ROCs: 0.2 mm -> 0.25 mm.
                                      TBPX:      
                                      * Layer 1: layerRho: 29 mm -> 30 mm. bigDelta 1.5 mm -> 2.5 mm.                                                                    
                                      * Layer 2: layerRho: 60 mm -> 61.5 mm.    
@@ -421,7 +421,7 @@ OT614_200_IT610.cfg                  OT Version 6.1.4
                                      * Ring 2: Rcenter: +0.2 mm. 
                                      * Ring 4: Rcenter: +0.35 mm (keep same Rhigh). 
                                      TEPX:
-                                     * Ring 1: Rcenter: -0.35 mm (keep same Rmin). numModules: 40 -> 36.
+                                     * Ring 1: Rcenter: -0.375 mm (keep same Rmin). numModules: 40 -> 36.
                                      * Ring 2: Rcenter: 126.9 mm -> 116.25 mm.
                                      * Ring 3: Rcenter: 166.4 mm -> 155.75 mm.
                                      * Ring 3: Rcenter: 209.9 mm -> 196.25 mm.
