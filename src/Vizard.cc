@@ -6596,47 +6596,50 @@ namespace insur {
 
       int nBins = profileNames.size();
 
-      TH1D myFrame("myFrame", "", nBins, 0, nBins);
-      myFrame.SetYTitle("Optimal distance range [mm]");
-      myFrame.SetMinimum(0);
-      myFrame.SetMaximum(6);
-      TAxis* xAxis = myFrame.GetXaxis();
+      TH1D* myFrame = new TH1D("myFrame", "", nBins, 0, nBins);
+      myFrame->SetYTitle("Optimal distance range [mm]");
+      myFrame->SetMinimum(0);
+      myFrame->SetMaximum(6);
+      TAxis* xAxis = myFrame->GetXaxis();
 
-      TGraphErrors rangeGraphBad;
-      TGraphErrors rangeGraph;
+      TGraphErrors* rangeGraphBad = new TGraphErrors();
+      TGraphErrors* rangeGraph = new TGraphErrors();
       int rangeGraphPoints;
 
       std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
       TGraphErrors& availableSpacings = spacingTuningGraphs[-1];
 
-
       for (unsigned int i=0; i<profileNames.size(); ++i) {
-        double min = a.getTriggerRangeLowLimit(profileNames[i]);
-        double max = a.getTriggerRangeHighLimit(profileNames[i]);
-        tempString = profileNames[i];
-        tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
-        xAxis->SetBinLabel(i+1, tempString.c_str());
-        if (min<max) {
-          rangeGraphPoints=rangeGraph.GetN();
-          rangeGraph.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-          rangeGraph.SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
-        } else {
-          rangeGraphPoints=rangeGraphBad.GetN();
-          rangeGraphBad.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-          rangeGraphBad.SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
-        }
+	double min = a.getTriggerRangeLowLimit(profileNames[i]);
+	double max = a.getTriggerRangeHighLimit(profileNames[i]);
+	tempString = profileNames[i];
+	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	xAxis->SetBinLabel(i+1, tempString.c_str());
+	if (min<max) {
+	  rangeGraphPoints=rangeGraph->GetN();
+	  rangeGraph->SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraph->SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
+	} else {
+	  rangeGraphPoints=rangeGraph->GetN();
+	  rangeGraphBad->SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraphBad->SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
+	}
       }
 
       TCanvas* rangeCanvas = new TCanvas();
       rangeCanvas->cd();
       rangeCanvas->SetFillColor(color_plot_background);
       rangeCanvas->SetGrid(0,1);
-      myFrame.Draw();
-      rangeGraph.SetFillColor(Palette::color(1));
-      rangeGraph.Draw("same 2");
-      rangeGraphBad.SetFillColor(Palette::color(2));
-      rangeGraphBad.Draw("same 2");
+      myFrame->SetBit(1); // rangeCanvas takes ownership of it
+      myFrame->Draw();
+      rangeGraph->SetFillColor(Palette::color(1));
+      rangeGraph->SetBit(1);  // rangeCanvas takes ownership of it
+      rangeGraph->Draw("same 2");
+      rangeGraphBad->SetFillColor(Palette::color(2));
+      rangeGraphBad->SetBit(1);  // rangeCanvas takes ownership of it
+      rangeGraphBad->Draw("same 2");
       availableSpacings.SetMarkerStyle(0);
+      availableSpacings.SetBit(0);
       availableSpacings.Draw("p same");
 
       RootWImage& RangeImage = spacingSummaryContent.addImage(rangeCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);

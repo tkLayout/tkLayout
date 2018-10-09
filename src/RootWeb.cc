@@ -293,9 +293,7 @@ std::string RootWImage::getName() {
 }
 
 void RootWImage::setCanvas(TCanvas* myCanvas) {
-  //if (myCanvas_) delete myCanvas_;
   myCanvas_.reset(myCanvas);
-  //myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
@@ -683,9 +681,7 @@ ostream& RootWContent::dump(ostream& output) {
       if ( (myImage=dynamic_cast<RootWImage*>(myItem)) ) {
         myImage->setTargetDirectory(targetDirectory_);
 	if (summaryFile) myImage->saveSummary(baseName, summaryFile);
-	std::cout << "zoom a " << std::endl;
         myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
-	std::cout << "zoom b " << std::endl;
       } else {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
