@@ -212,7 +212,7 @@ pair<int, int> RootWTable::newLine() {
 
 RootWImage::RootWImage() {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   zoomedWidth_ = 0; zoomedHeight_ = 0;
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
@@ -224,7 +224,7 @@ RootWImage::RootWImage() {
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   relativeHtmlDirectory_ = "";
@@ -237,7 +237,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
@@ -250,7 +250,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
 
 RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   relativeHtmlDirectory_ = "";
@@ -263,7 +263,7 @@ RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
 
 RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
@@ -272,10 +272,6 @@ RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relative
   name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
-}
-
-RootWImage::~RootWImage() {
-  if (myCanvas_) delete myCanvas_;
 }
 
 void RootWImage::setDefaultExtensions() {
@@ -297,8 +293,9 @@ std::string RootWImage::getName() {
 }
 
 void RootWImage::setCanvas(TCanvas* myCanvas) {
-  if (myCanvas_) delete myCanvas_;
-  myCanvas_ = (TCanvas*)myCanvas->DrawClone();
+  //if (myCanvas_) delete myCanvas_;
+  myCanvas_.reset(myCanvas);
+  //myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
@@ -439,7 +436,7 @@ bool RootWImage::addExtension(string myExtension) {
 void RootWImage::saveSummary(std::string baseName, TFile* myTargetFile) {
   if (!myCanvas_) return;
   baseName += name_;
-  saveSummaryLoop(myCanvas_, baseName, myTargetFile);
+  saveSummaryLoop(myCanvas_.get(), baseName, myTargetFile);
 }
 
 void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile) {
@@ -686,7 +683,9 @@ ostream& RootWContent::dump(ostream& output) {
       if ( (myImage=dynamic_cast<RootWImage*>(myItem)) ) {
         myImage->setTargetDirectory(targetDirectory_);
 	if (summaryFile) myImage->saveSummary(baseName, summaryFile);
+	std::cout << "zoom a " << std::endl;
         myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
+	std::cout << "zoom b " << std::endl;
       } else {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }

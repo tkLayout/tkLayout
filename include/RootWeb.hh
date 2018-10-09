@@ -14,6 +14,7 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -108,7 +109,6 @@ typedef string RootWImageSize;
 
 class RootWImage : public RootWItem {
 public:
-  ~RootWImage();
   RootWImage();
   // TODO: the methods with TCanvas* (pointer) should be made obsolete
   RootWImage(TCanvas* myCanvas, int witdh, int height);
@@ -130,7 +130,7 @@ public:
   bool addExtension(string newExt);
   void saveSummary(std::string baseName, TFile* myTargetFile);
 private:
-  TCanvas* myCanvas_;
+  std::unique_ptr<TCanvas> myCanvas_ = nullptr;
   int zoomedWidth_;
   int zoomedHeight_;
   string relativeHtmlDirectory_;

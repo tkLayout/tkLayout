@@ -30,9 +30,11 @@ COMPILERFLAGS+=-g
 COMPILERFLAGS+=-fpermissive
 COMPILERFLAGS+=-lstdc++
 COMPILERFLAGS+=-fmax-errors=2
-#COMPILERFLAGS+=-pg
+
 #COMPILERFLAGS+=-O3
+
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
+#COMPILERFLAGS+=-pg
 #LINKERFLAGS+=-pg
 
 OUT_DIR+=$(LIBDIR)

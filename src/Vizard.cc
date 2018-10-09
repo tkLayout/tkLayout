@@ -2683,28 +2683,28 @@ namespace insur {
 	gStyle->SetTitleW(1);
 	gStyle->SetOptStat("emr");
 	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoXBarCanvas;
-	  resoXBarCanvas.SetFillColor(color_plot_background);
-	  resoXBarCanvas.Divide(2,2);
+	  TCanvas* resoXBarCanvas = new TCanvas();
+	  resoXBarCanvas->SetFillColor(color_plot_background);
+	  resoXBarCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad = resoXBarCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad = resoXBarCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad = resoXBarCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalXBarrelDistribution[tag].Integral();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalXBarrelDistribution[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(3);
+	  myPad = resoXBarCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalXBarrelDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalXBarrelDistribution[tag].Integral();
 	  incidentAngleLocalXBarrelDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalXBarrelDistribution[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(4);
+	  myPad = resoXBarCanvas->GetPad(4);
 	  myPad->cd();
 	  trackPhiBarrelDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackPhiBarrelDistribution[tag].Integral();
@@ -2715,28 +2715,28 @@ namespace insur {
 	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoYBarCanvas;
-	  resoYBarCanvas.SetFillColor(color_plot_background);
-	  resoYBarCanvas.Divide(2,2);
+	  TCanvas* resoYBarCanvas = new TCanvas();
+	  resoYBarCanvas->SetFillColor(color_plot_background);
+	  resoYBarCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad = resoYBarCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad = resoYBarCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad = resoYBarCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalYBarrelDistribution[tag].Integral();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalYBarrelDistribution[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(3);
+	  myPad = resoYBarCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalYBarrelDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalYBarrelDistribution[tag].Integral();
 	  incidentAngleLocalYBarrelDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalYBarrelDistribution[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(4);
+	  myPad = resoYBarCanvas->GetPad(4);
 	  myPad->cd();
 	  trackEtaBarrelDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackEtaBarrelDistribution[tag].Integral();
@@ -2747,28 +2747,28 @@ namespace insur {
 	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoXEndCanvas;
-	  resoXEndCanvas.SetFillColor(color_plot_background);
-	  resoXEndCanvas.Divide(2,2);
+	  TCanvas* resoXEndCanvas = new TCanvas();
+	  resoXEndCanvas->SetFillColor(color_plot_background);
+	  resoXEndCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad = resoXEndCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad = resoXEndCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad = resoXEndCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalXEndcapsDistribution[tag].Integral();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(3);
+	  myPad = resoXEndCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalXEndcapsDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalXEndcapsDistribution[tag].Integral();
 	  incidentAngleLocalXEndcapsDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalXEndcapsDistribution[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(4);
+	  myPad = resoXEndCanvas->GetPad(4);
 	  myPad->cd();
 	  trackPhiEndcapsDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackPhiEndcapsDistribution[tag].Integral();
@@ -2779,28 +2779,28 @@ namespace insur {
 	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoYEndCanvas;
-	  resoYEndCanvas.SetFillColor(color_plot_background);
-	  resoYEndCanvas.Divide(2,2);
+	  TCanvas* resoYEndCanvas = new TCanvas();
+	  resoYEndCanvas->SetFillColor(color_plot_background);
+	  resoYEndCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad = resoYEndCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad = resoYEndCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad = resoYEndCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalYEndcapsDistribution[tag].Integral();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(3);
+	  myPad = resoYEndCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalYEndcapsDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalYEndcapsDistribution[tag].Integral();
 	  incidentAngleLocalYEndcapsDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalYEndcapsDistribution[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(4);
+	  myPad = resoYEndCanvas->GetPad(4);
 	  myPad->cd();
 	  trackEtaEndcapsDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackEtaEndcapsDistribution[tag].Integral();
@@ -3820,8 +3820,8 @@ namespace insur {
 
     myContent = &myPage->addContent("Trigger bandwidth and frequency maps", true);
 
-    TCanvas triggerDataBandwidthCanvas;
-    TCanvas triggerFrequencyPerEventCanvas;
+    TCanvas* triggerDataBandwidthCanvas = new TCanvas();
+    TCanvas* triggerFrequencyPerEventCanvas = new TCanvas();
 
     PlotDrawer<YZ, Type, Max> yzbwDrawer(0, 0); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
     PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
@@ -3829,11 +3829,11 @@ namespace insur {
     yzbwDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yztfDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
-    yzbwDrawer.drawFrame<HistogramFrameStyle>(triggerDataBandwidthCanvas);
-    yztfDrawer.drawFrame<HistogramFrameStyle>(triggerFrequencyPerEventCanvas);
+    yzbwDrawer.drawFrame<HistogramFrameStyle>(*triggerDataBandwidthCanvas);
+    yztfDrawer.drawFrame<HistogramFrameStyle>(*triggerFrequencyPerEventCanvas);
 
-    yzbwDrawer.drawModules<ContourStyle>(triggerDataBandwidthCanvas);
-    yztfDrawer.drawModules<ContourStyle>(triggerFrequencyPerEventCanvas);
+    yzbwDrawer.drawModules<ContourStyle>(*triggerDataBandwidthCanvas);
+    yztfDrawer.drawModules<ContourStyle>(*triggerFrequencyPerEventCanvas);
 
     RootWImage& triggerDataBandwidthImage = myContent->addImage(triggerDataBandwidthCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     triggerDataBandwidthImage.setComment("Map of the bandwidth for trigger data in Gbps");
@@ -3858,8 +3858,8 @@ namespace insur {
         myContent = &myPage->addContent(std::string("Stub rate plots (") + layer.first + ")", false);
         currCntName = layer.first;
       }
-      TCanvas graphCanvas;
-      graphCanvas.cd();
+      TCanvas* graphCanvas = new TCanvas();
+      graphCanvas->cd();
       totalHisto->SetLineColor(1);
       totalHisto->SetMinimum(trueHisto->GetMinimum()*.9 < 0.1 ? 0 : trueHisto->GetMinimum()*.9);
       totalHisto->Draw();
@@ -3899,8 +3899,8 @@ namespace insur {
     
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
     RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
-    TCanvas sharedConnCanvas;
-    sharedConnCanvas.cd();
+    TCanvas* sharedConnCanvas = new TCanvas();
+    sharedConnCanvas->cd();
     TH2I& sharedConnMap = analyzer.getProcessorCommonConnectionMap();
     sharedConnMap.GetXaxis()->LabelsOption("v");
     sharedConnMap.GetXaxis()->SetLabelSize(0.03);
@@ -3924,9 +3924,9 @@ namespace insur {
 
     RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
 
-    TCanvas moduleConnectionEtaCanvas;
-    TCanvas moduleConnectionPhiCanvas;
-    TCanvas moduleConnectionEndcapPhiCanvas;
+    TCanvas* moduleConnectionEtaCanvas = new TCanvas();
+    TCanvas* moduleConnectionPhiCanvas = new TCanvas();
+    TCanvas* moduleConnectionEndcapPhiCanvas = new TCanvas();
 
     struct EtaConnections {
       const ModuleConnectionMap& mm_;
@@ -3947,48 +3947,48 @@ namespace insur {
     xyDrawer.addModules<CheckType<BARREL>>(tracker.modules().begin(), tracker.modules().end());
     xyecDrawer.addModules<CheckType<ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
 
-    yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
-    xyDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionPhiCanvas);
+    yzDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEtaCanvas);
+    xyDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionPhiCanvas);
     std::pair<Circle, Circle> petal = analyzer.getSampleTriggerPetal();
     TArc a1(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
     TArc a2(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
     a1.SetFillStyle(0);
     a2.SetFillStyle(0);
-    moduleConnectionPhiCanvas.cd();
+    moduleConnectionPhiCanvas->cd();
     a1.Draw("only");
     a2.Draw("only");
 
-    xyecDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEndcapPhiCanvas);
-    moduleConnectionEndcapPhiCanvas.cd();
+    xyecDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEndcapPhiCanvas);
+    moduleConnectionEndcapPhiCanvas->cd();
     a1.Draw("only");
     a2.Draw("only");
 
-    yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
-    xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);
-    xyecDrawer.drawModules<ContourStyle>(moduleConnectionEndcapPhiCanvas);
+    yzDrawer.drawModules<ContourStyle>(*moduleConnectionEtaCanvas);
+    xyDrawer.drawModules<ContourStyle>(*moduleConnectionPhiCanvas);
+    xyecDrawer.drawModules<ContourStyle>(*moduleConnectionEndcapPhiCanvas);
 
 
 
     /*
-       moduleConnectionEtaCanvas.SetFillColor(color_plot_background);
-       moduleConnectionPhiCanvas.SetFillColor(color_plot_background);
-    //moduleConnectionEndcapPhiCanvas.SetFillColor(color_plot_background);
+       moduleConnectionEtaCanvas->SetFillColor(color_plot_background);
+       moduleConnectionPhiCanvas->SetFillColor(color_plot_background);
+    //moduleConnectionEndcapPhiCanvas->SetFillColor(color_plot_background);
 
-    moduleConnectionEtaCanvas.cd();
+    moduleConnectionEtaCanvas->cd();
     moduleConnectionEtaMap.Draw("colz");
     */
     RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
     /*
-       moduleConnectionPhiCanvas.cd();
+       moduleConnectionPhiCanvas->cd();
        moduleConnectionPhiMap.Draw("colz");
        */
     RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
     moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
 
-    // moduleConnectionEndcapPhiCanvas.cd();
+    // moduleConnectionEndcapPhiCanvas->cd();
     // moduleConnectionEndcapPhiMap.Draw("colz");
 
     RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -3997,8 +3997,8 @@ namespace insur {
 
     //    myContent = myPage->addContent("Module Connections distribution", true);
 
-    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    moduleConnectionsCanvas.cd();
+    TCanvas* moduleConnectionsCanvas = new TCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    moduleConnectionsCanvas->cd();
     TH1I& moduleConnectionsDistribution = analyzer.getModuleConnectionsDistribution();
     moduleConnectionsDistribution.SetFillColor(Palette::color(2));
     moduleConnectionsDistribution.Draw();
@@ -4052,14 +4052,14 @@ namespace insur {
           scenarioStr = "noMS";
         }
 
-        TCanvas linearMomentumCanvas;
-        TCanvas momentumCanvas;
-        TCanvas distanceCanvas;
-        TCanvas angleCanvas;
-        TCanvas ctgThetaCanvas;
-        TCanvas etaCanvas;
-        TCanvas z0Canvas;
-        TCanvas pCanvas;
+        TCanvas* linearMomentumCanvas = new TCanvas();
+        TCanvas* momentumCanvas = new TCanvas();
+        TCanvas* distanceCanvas = new TCanvas();
+        TCanvas* angleCanvas = new TCanvas();
+        TCanvas* ctgThetaCanvas = new TCanvas();
+        TCanvas* etaCanvas = new TCanvas();
+        TCanvas* z0Canvas = new TCanvas();
+        TCanvas* pCanvas = new TCanvas();
 
         int myColor=0;
         int nRebin = 2;
@@ -4067,14 +4067,14 @@ namespace insur {
         double markerSize = 1.;
         double lineWidth = 2.;
 
-        linearMomentumCanvas.SetGrid(1,1);
-        momentumCanvas.SetGrid(1,1);
-        distanceCanvas.SetGrid(1,1);
-        angleCanvas.SetGrid(1,1);
-        ctgThetaCanvas.SetGrid(1,1);
-        etaCanvas.SetGrid(1,1);
-        z0Canvas.SetGrid(1,1);
-        pCanvas.SetGrid(1,1);
+        linearMomentumCanvas->SetGrid(1,1);
+        momentumCanvas->SetGrid(1,1);
+        distanceCanvas->SetGrid(1,1);
+        angleCanvas->SetGrid(1,1);
+        ctgThetaCanvas->SetGrid(1,1);
+        etaCanvas->SetGrid(1,1);
+        z0Canvas->SetGrid(1,1);
+        pCanvas->SetGrid(1,1);
         std::string plotOption = "";
         std::map<int, TGraph>::iterator g_iter, g_guard;
         // momentum canvas loop
@@ -4092,20 +4092,20 @@ namespace insur {
             momentumProfile.SetMinimum(vis_min_dPtOverPt);//4E-3*100);
             momentumProfile.SetMaximum(vis_max_dPtOverPt);//.5*100*verticalScale);
           }
-          linearMomentumCanvas.SetLogy(0);
-          momentumCanvas.SetLogy(1);
+          linearMomentumCanvas->SetLogy(0);
+          momentumCanvas->SetLogy(1);
           momentumProfile.SetLineColor(momentumColor(myColor));
           momentumProfile.SetMarkerColor(momentumColor(myColor));
           momentumProfile.SetLineWidth(lineWidth);
           myColor++;
           momentumProfile.SetMarkerStyle(markerStyle);
           momentumProfile.SetMarkerSize(markerSize);
-          momentumCanvas.SetFillColor(color_plot_background);
-          linearMomentumCanvas.SetFillColor(color_plot_background);
+          momentumCanvas->SetFillColor(color_plot_background);
+          linearMomentumCanvas->SetFillColor(color_plot_background);
           if (momentumGraph.GetN()>0) {
-            momentumCanvas.cd();
+            momentumCanvas->cd();
             momentumProfile.Draw(plotOption.c_str());
-            linearMomentumCanvas.cd();
+            linearMomentumCanvas->cd();
             momentumProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4124,16 +4124,16 @@ namespace insur {
             distanceProfile.SetMinimum(vis_min_dD0);//4*1e-4);
             distanceProfile.SetMaximum(vis_max_dD0);//4E2*1e-4*verticalScale);
           }
-          distanceCanvas.SetLogy();
+          distanceCanvas->SetLogy();
           distanceProfile.SetLineColor(momentumColor(myColor));
           distanceProfile.SetMarkerColor(momentumColor(myColor));
           distanceProfile.SetLineWidth(lineWidth);
           myColor++;
           distanceProfile.SetMarkerStyle(markerStyle);
           distanceProfile.SetMarkerSize(markerSize);
-          distanceCanvas.SetFillColor(color_plot_background);
+          distanceCanvas->SetFillColor(color_plot_background);
           if (distanceGraph.GetN()>0) {
-            distanceCanvas.cd();
+            distanceCanvas->cd();
             distanceProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4152,16 +4152,16 @@ namespace insur {
             angleProfile.SetMinimum(vis_min_dPhi);//1E-5);
             angleProfile.SetMaximum(vis_max_dPhi);//0.01*verticalScale);
           }
-          angleCanvas.SetLogy();
+          angleCanvas->SetLogy();
           angleProfile.SetLineColor(momentumColor(myColor));
           angleProfile.SetMarkerColor(momentumColor(myColor));
           angleProfile.SetLineWidth(lineWidth);
           myColor++;
           angleProfile.SetMarkerStyle(markerStyle);
           angleProfile.SetMarkerSize(markerSize);
-          angleCanvas.SetFillColor(color_plot_background);
+          angleCanvas->SetFillColor(color_plot_background);
           if (angleGraph.GetN() > 0) {
-            angleCanvas.cd();
+            angleCanvas->cd();
             angleProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4177,25 +4177,25 @@ namespace insur {
 	  etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
           ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-          ctgThetaCanvas.SetLogy();
+          ctgThetaCanvas->SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
           etaProfile.SetMinimum(vis_min_dCtgTheta);
           etaProfile.SetMaximum(vis_max_dCtgTheta);
-          etaCanvas.SetLogy();
+          etaCanvas->SetLogy();
           etaProfile.SetLineColor(momentumColor(myColor));
           etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
-          ctgThetaCanvas.SetFillColor(color_plot_background);
+          ctgThetaCanvas->SetFillColor(color_plot_background);
           etaProfile.SetMarkerStyle(markerStyle);
           etaProfile.SetMarkerSize(markerSize);
-          etaCanvas.SetFillColor(color_plot_background);
+          etaCanvas->SetFillColor(color_plot_background);
           if (ctgThetaGraph.GetN() > 0) {
-            ctgThetaCanvas.cd();
+            ctgThetaCanvas->cd();
             ctgThetaProfile.Draw(plotOption.c_str());
-            etaCanvas.cd();
+            etaCanvas->cd();
             etaProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4209,15 +4209,15 @@ namespace insur {
           TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
           z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
-          z0Canvas.SetLogy();
+          z0Canvas->SetLogy();
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
-          z0Canvas.SetFillColor(color_plot_background);
+          z0Canvas->SetFillColor(color_plot_background);
           if (z0Graph.GetN() > 0) {
-            z0Canvas.cd();
+            z0Canvas->cd();
             z0Profile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
@@ -4236,15 +4236,15 @@ namespace insur {
             pProfile.SetMinimum(vis_min_dPtOverPt);//4E-3*100);
             pProfile.SetMaximum(vis_max_dPtOverPt);//.11*100*verticalScale);
           }
-          pCanvas.SetLogy();
+          pCanvas->SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
-          pCanvas.SetFillColor(color_plot_background);
+          pCanvas->SetFillColor(color_plot_background);
           if (pGraph.GetN() > 0) {
-            pCanvas.cd();
+            pCanvas->cd();
             pProfile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
@@ -4461,17 +4461,17 @@ namespace insur {
             scenarioStr = "noMS_Pt";
           }
 
-          TCanvas linMomCanvas_Pt;
-          TCanvas logMomCanvas_Pt;
-          TCanvas d0Canvas_Pt;
-          TCanvas phiCanvas_Pt;
-          TCanvas ctgThetaCanvas_Pt;
-          TCanvas etaCanvas_Pt;
-          TCanvas z0Canvas_Pt;
-          TCanvas pCanvas_Pt;
-          TCanvas lCanvas_Pt;
-          TCanvas betaCanvas_Pt;
-          TCanvas omegaCanvas_Pt;
+          TCanvas* linMomCanvas_Pt = new TCanvas();
+          TCanvas* logMomCanvas_Pt = new TCanvas();
+          TCanvas* d0Canvas_Pt = new TCanvas();
+          TCanvas* phiCanvas_Pt = new TCanvas();
+          TCanvas* ctgThetaCanvas_Pt = new TCanvas();
+          TCanvas* etaCanvas_Pt = new TCanvas();
+          TCanvas* z0Canvas_Pt = new TCanvas();
+          TCanvas* pCanvas_Pt = new TCanvas();
+          TCanvas* lCanvas_Pt = new TCanvas();
+          TCanvas* betaCanvas_Pt = new TCanvas();
+          TCanvas* omegaCanvas_Pt = new TCanvas();
 
           // Default attributes
           int myColor            = 0;
@@ -4481,17 +4481,17 @@ namespace insur {
           double lineWidth       = 2.;
           std::string plotOption = "";
 
-          linMomCanvas_Pt.SetGrid(1,1);
-          logMomCanvas_Pt.SetGrid(1,1);
-          d0Canvas_Pt.SetGrid(1,1);
-          phiCanvas_Pt.SetGrid(1,1);
-          ctgThetaCanvas_Pt.SetGrid(1,1);
-          etaCanvas_Pt.SetGrid(1,1);
-          z0Canvas_Pt.SetGrid(1,1);
-          pCanvas_Pt.SetGrid(1,1);
-          lCanvas_Pt.SetGrid(1,1);
-          betaCanvas_Pt.SetGrid(1,1);
-          omegaCanvas_Pt.SetGrid(1,1);
+          linMomCanvas_Pt->SetGrid(1,1);
+          logMomCanvas_Pt->SetGrid(1,1);
+          d0Canvas_Pt->SetGrid(1,1);
+          phiCanvas_Pt->SetGrid(1,1);
+          ctgThetaCanvas_Pt->SetGrid(1,1);
+          etaCanvas_Pt->SetGrid(1,1);
+          z0Canvas_Pt->SetGrid(1,1);
+          pCanvas_Pt->SetGrid(1,1);
+          lCanvas_Pt->SetGrid(1,1);
+          betaCanvas_Pt->SetGrid(1,1);
+          omegaCanvas_Pt->SetGrid(1,1);
 
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -4511,10 +4511,10 @@ namespace insur {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
             }
-            linMomCanvas_Pt.SetLogy(0);
-            logMomCanvas_Pt.SetLogy(1);
-            linMomCanvas_Pt.SetFillColor(color_plot_background);
-            logMomCanvas_Pt.SetFillColor(color_plot_background);
+            linMomCanvas_Pt->SetLogy(0);
+            logMomCanvas_Pt->SetLogy(1);
+            linMomCanvas_Pt->SetFillColor(color_plot_background);
+            logMomCanvas_Pt->SetFillColor(color_plot_background);
 
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
@@ -4524,9 +4524,9 @@ namespace insur {
             momentumProfile.SetMarkerSize(markerSize);
 
             if (momentumGraph.GetN()>0) {
-              linMomCanvas_Pt.cd();
+              linMomCanvas_Pt->cd();
               momentumProfile.Draw(plotOption.c_str());
-              logMomCanvas_Pt.cd();
+              logMomCanvas_Pt->cd();
               momentumProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4546,8 +4546,8 @@ namespace insur {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
             }
-            pCanvas_Pt.SetLogy();
-            pCanvas_Pt.SetFillColor(color_plot_background);
+            pCanvas_Pt->SetLogy();
+            pCanvas_Pt->SetFillColor(color_plot_background);
 
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
@@ -4557,7 +4557,7 @@ namespace insur {
             pProfile.SetMarkerSize(markerSize);
 
             if (pGraph.GetN() > 0) {
-              pCanvas_Pt.cd();
+              pCanvas_Pt->cd();
               pProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4577,8 +4577,8 @@ namespace insur {
               distanceProfile.SetMinimum(vis_min_dD0);
               distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
             }
-            d0Canvas_Pt.SetLogy();
-            d0Canvas_Pt.SetFillColor(color_plot_background);
+            d0Canvas_Pt->SetLogy();
+            d0Canvas_Pt->SetFillColor(color_plot_background);
 
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
@@ -4588,7 +4588,7 @@ namespace insur {
             distanceProfile.SetMarkerSize(markerSize);
 
             if (distanceGraph.GetN()>0) {
-              d0Canvas_Pt.cd();
+              d0Canvas_Pt->cd();
               distanceProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4608,8 +4608,8 @@ namespace insur {
               angleProfile.SetMinimum(vis_min_dPhi);
               angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
             }
-            phiCanvas_Pt.SetLogy();
-            phiCanvas_Pt.SetFillColor(color_plot_background);
+            phiCanvas_Pt->SetLogy();
+            phiCanvas_Pt->SetFillColor(color_plot_background);
 
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
@@ -4619,7 +4619,7 @@ namespace insur {
             angleProfile.SetMarkerSize(markerSize);
 
             if (angleGraph.GetN() > 0) {
-              phiCanvas_Pt.cd();
+              phiCanvas_Pt->cd();
               angleProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4636,12 +4636,12 @@ namespace insur {
 
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-            ctgThetaCanvas_Pt.SetLogy();
-            ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
+            ctgThetaCanvas_Pt->SetLogy();
+            ctgThetaCanvas_Pt->SetFillColor(color_plot_background);
             etaProfile.SetMinimum(vis_min_dCtgTheta);
             etaProfile.SetMaximum(vis_max_dCtgTheta);
-            etaCanvas_Pt.SetLogy();
-            etaCanvas_Pt.SetFillColor(color_plot_background);
+            etaCanvas_Pt->SetLogy();
+            etaCanvas_Pt->SetFillColor(color_plot_background);
 
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4656,9 +4656,9 @@ namespace insur {
             etaProfile.SetMarkerSize(markerSize);
 
             if (ctgThetaGraph.GetN() > 0) {
-              ctgThetaCanvas_Pt.cd();
+              ctgThetaCanvas_Pt->cd();
               ctgThetaProfile.Draw(plotOption.c_str());
-              etaCanvas_Pt.cd();
+              etaCanvas_Pt->cd();
               etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4673,8 +4673,8 @@ namespace insur {
 
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
-            z0Canvas_Pt.SetLogy();
-            z0Canvas_Pt.SetFillColor(color_plot_background);
+            z0Canvas_Pt->SetLogy();
+            z0Canvas_Pt->SetFillColor(color_plot_background);
 
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
@@ -4682,10 +4682,10 @@ namespace insur {
             myColor++;
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
-            z0Canvas_Pt.SetFillColor(color_plot_background);
+            z0Canvas_Pt->SetFillColor(color_plot_background);
 
             if (z0Graph.GetN() > 0) {
-              z0Canvas_Pt.cd();
+              z0Canvas_Pt->cd();
               z0Profile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4701,8 +4701,8 @@ namespace insur {
 
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
-            lCanvas_Pt.SetLogy();
-            lCanvas_Pt.SetFillColor(color_plot_background);
+            lCanvas_Pt->SetLogy();
+            lCanvas_Pt->SetFillColor(color_plot_background);
 
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
@@ -4710,10 +4710,10 @@ namespace insur {
             myColor++;
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
-            lCanvas_Pt.SetFillColor(color_plot_background);
+            lCanvas_Pt->SetFillColor(color_plot_background);
 
             if (LGraph.GetN() > 0) {
-              lCanvas_Pt.cd();
+              lCanvas_Pt->cd();
               lProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4729,8 +4729,8 @@ namespace insur {
 
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
-            betaCanvas_Pt.SetLogy(0);
-            betaCanvas_Pt.SetFillColor(color_plot_background);
+            betaCanvas_Pt->SetLogy(0);
+            betaCanvas_Pt->SetFillColor(color_plot_background);
 
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4738,10 +4738,10 @@ namespace insur {
             myColor++;
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
-            betaCanvas_Pt.SetFillColor(color_plot_background);
+            betaCanvas_Pt->SetFillColor(color_plot_background);
 
             if (BetaGraph.GetN() > 0) {
-              betaCanvas_Pt.cd();
+              betaCanvas_Pt->cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4757,8 +4757,8 @@ namespace insur {
 
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
-            omegaCanvas_Pt.SetLogy(0);
-            omegaCanvas_Pt.SetFillColor(color_plot_background);
+            omegaCanvas_Pt->SetLogy(0);
+            omegaCanvas_Pt->SetFillColor(color_plot_background);
 
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4766,10 +4766,10 @@ namespace insur {
             myColor++;
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
-            omegaCanvas_Pt.SetFillColor(color_plot_background);
+            omegaCanvas_Pt->SetFillColor(color_plot_background);
 
             if (OmegaGraph.GetN() > 0) {
-              omegaCanvas_Pt.cd();
+              omegaCanvas_Pt->cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4842,17 +4842,17 @@ namespace insur {
             scenarioStr = "noMS_P";
           }
 
-          TCanvas linMomCanvas_P;
-          TCanvas logMomCanvas_P;
-          TCanvas d0Canvas_P;
-          TCanvas phiCanvas_P;
-          TCanvas ctgThetaCanvas_P;
-          TCanvas etaCanvas_P;
-          TCanvas z0Canvas_P;
-          TCanvas pCanvas_P;
-          TCanvas lCanvas_P;
-          TCanvas betaCanvas_P;
-          TCanvas omegaCanvas_P;
+          TCanvas* linMomCanvas_P = new TCanvas();
+          TCanvas* logMomCanvas_P = new TCanvas();
+          TCanvas* d0Canvas_P = new TCanvas();
+          TCanvas* phiCanvas_P = new TCanvas();
+          TCanvas* ctgThetaCanvas_P = new TCanvas();
+          TCanvas* etaCanvas_P = new TCanvas();
+          TCanvas* z0Canvas_P = new TCanvas();
+          TCanvas* pCanvas_P = new TCanvas();
+          TCanvas* lCanvas_P = new TCanvas();
+          TCanvas* betaCanvas_P = new TCanvas();
+          TCanvas* omegaCanvas_P = new TCanvas();
 
           // Default attributes
           int myColor            = 0;
@@ -4862,17 +4862,17 @@ namespace insur {
           double lineWidth       = 2.;
           std::string plotOption = "";
 
-          linMomCanvas_P.SetGrid(1,1);
-          logMomCanvas_P.SetGrid(1,1);
-          d0Canvas_P.SetGrid(1,1);
-          phiCanvas_P.SetGrid(1,1);
-          ctgThetaCanvas_P.SetGrid(1,1);
-          etaCanvas_P.SetGrid(1,1);
-          z0Canvas_P.SetGrid(1,1);
-          pCanvas_P.SetGrid(1,1);
-          lCanvas_P.SetGrid(1,1);
-          betaCanvas_P.SetGrid(1,1);
-          omegaCanvas_P.SetGrid(1,1);
+          linMomCanvas_P->SetGrid(1,1);
+          logMomCanvas_P->SetGrid(1,1);
+          d0Canvas_P->SetGrid(1,1);
+          phiCanvas_P->SetGrid(1,1);
+          ctgThetaCanvas_P->SetGrid(1,1);
+          etaCanvas_P->SetGrid(1,1);
+          z0Canvas_P->SetGrid(1,1);
+          pCanvas_P->SetGrid(1,1);
+          lCanvas_P->SetGrid(1,1);
+          betaCanvas_P->SetGrid(1,1);
+          omegaCanvas_P->SetGrid(1,1);
 
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -4892,10 +4892,10 @@ namespace insur {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
             }
-            linMomCanvas_P.SetLogy(0);
-            logMomCanvas_P.SetLogy(1);
-            linMomCanvas_P.SetFillColor(color_plot_background);
-            logMomCanvas_P.SetFillColor(color_plot_background);
+            linMomCanvas_P->SetLogy(0);
+            logMomCanvas_P->SetLogy(1);
+            linMomCanvas_P->SetFillColor(color_plot_background);
+            logMomCanvas_P->SetFillColor(color_plot_background);
 
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
@@ -4905,9 +4905,9 @@ namespace insur {
             momentumProfile.SetMarkerSize(markerSize);
 
             if (momentumGraph.GetN()>0) {
-              linMomCanvas_P.cd();
+              linMomCanvas_P->cd();
               momentumProfile.Draw(plotOption.c_str());
-              logMomCanvas_P.cd();
+              logMomCanvas_P->cd();
               momentumProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4927,8 +4927,8 @@ namespace insur {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
             }
-            pCanvas_P.SetLogy();
-            pCanvas_P.SetFillColor(color_plot_background);
+            pCanvas_P->SetLogy();
+            pCanvas_P->SetFillColor(color_plot_background);
 
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
@@ -4938,7 +4938,7 @@ namespace insur {
             pProfile.SetMarkerSize(markerSize);
 
             if (pGraph.GetN() > 0) {
-              pCanvas_P.cd();
+              pCanvas_P->cd();
               pProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4958,8 +4958,8 @@ namespace insur {
                 distanceProfile.SetMinimum(vis_min_dD0);
                 distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
             }
-            d0Canvas_P.SetLogy();
-            d0Canvas_P.SetFillColor(color_plot_background);
+            d0Canvas_P->SetLogy();
+            d0Canvas_P->SetFillColor(color_plot_background);
 
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
@@ -4969,7 +4969,7 @@ namespace insur {
             distanceProfile.SetMarkerSize(markerSize);
 
             if (distanceGraph.GetN()>0) {
-              d0Canvas_P.cd();
+              d0Canvas_P->cd();
               distanceProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4989,8 +4989,8 @@ namespace insur {
               angleProfile.SetMinimum(vis_min_dPhi);
               angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
             }
-            phiCanvas_P.SetLogy();
-            phiCanvas_P.SetFillColor(color_plot_background);
+            phiCanvas_P->SetLogy();
+            phiCanvas_P->SetFillColor(color_plot_background);
 
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
@@ -5000,7 +5000,7 @@ namespace insur {
             angleProfile.SetMarkerSize(markerSize);
 
             if (angleGraph.GetN() > 0) {
-              phiCanvas_P.cd();
+              phiCanvas_P->cd();
               angleProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -5017,12 +5017,12 @@ namespace insur {
 
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-            ctgThetaCanvas_P.SetLogy();
-            ctgThetaCanvas_P.SetFillColor(color_plot_background);
+            ctgThetaCanvas_P->SetLogy();
+            ctgThetaCanvas_P->SetFillColor(color_plot_background);
             etaProfile.SetMinimum(vis_min_dCtgTheta);
             etaProfile.SetMaximum(vis_max_dCtgTheta);
-            etaCanvas_P.SetLogy();
-            etaCanvas_P.SetFillColor(color_plot_background);
+            etaCanvas_P->SetLogy();
+            etaCanvas_P->SetFillColor(color_plot_background);
 
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
@@ -5037,9 +5037,9 @@ namespace insur {
             etaProfile.SetMarkerSize(markerSize);
 
             if (ctgThetaGraph.GetN() > 0) {
-              ctgThetaCanvas_P.cd();
+              ctgThetaCanvas_P->cd();
               ctgThetaProfile.Draw(plotOption.c_str());
-              etaCanvas_P.cd();
+              etaCanvas_P->cd();
               etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -5054,8 +5054,8 @@ namespace insur {
 
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
-            z0Canvas_P.SetLogy();
-            z0Canvas_P.SetFillColor(color_plot_background);
+            z0Canvas_P->SetLogy();
+            z0Canvas_P->SetFillColor(color_plot_background);
 
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
@@ -5063,10 +5063,10 @@ namespace insur {
             myColor++;
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
-            z0Canvas_P.SetFillColor(color_plot_background);
+            z0Canvas_P->SetFillColor(color_plot_background);
 
             if (z0Graph.GetN() > 0) {
-              z0Canvas_P.cd();
+              z0Canvas_P->cd();
               z0Profile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5084,8 +5084,8 @@ namespace insur {
 
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
-            lCanvas_P.SetLogy();
-            lCanvas_P.SetFillColor(color_plot_background);
+            lCanvas_P->SetLogy();
+            lCanvas_P->SetFillColor(color_plot_background);
 
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
@@ -5093,10 +5093,10 @@ namespace insur {
             myColor++;
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
-            lCanvas_P.SetFillColor(color_plot_background);
+            lCanvas_P->SetFillColor(color_plot_background);
 
             if (LGraph.GetN() > 0) {
-              lCanvas_P.cd();
+              lCanvas_P->cd();
               lProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5112,8 +5112,8 @@ namespace insur {
 
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
-            betaCanvas_P.SetLogy(0);
-            betaCanvas_P.SetFillColor(color_plot_background);
+            betaCanvas_P->SetLogy(0);
+            betaCanvas_P->SetFillColor(color_plot_background);
 
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
@@ -5121,10 +5121,10 @@ namespace insur {
             myColor++;
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
-            betaCanvas_P.SetFillColor(color_plot_background);
+            betaCanvas_P->SetFillColor(color_plot_background);
 
             if (BetaGraph.GetN() > 0) {
-              betaCanvas_P.cd();
+              betaCanvas_P->cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5140,8 +5140,8 @@ namespace insur {
 
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
-            omegaCanvas_P.SetLogy(0);
-            omegaCanvas_P.SetFillColor(color_plot_background);
+            omegaCanvas_P->SetLogy(0);
+            omegaCanvas_P->SetFillColor(color_plot_background);
 
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
@@ -5149,10 +5149,10 @@ namespace insur {
             myColor++;
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
-            omegaCanvas_P.SetFillColor(color_plot_background);
+            omegaCanvas_P->SetFillColor(color_plot_background);
 
             if (OmegaGraph.GetN() > 0) {
-              omegaCanvas_P.cd();
+              omegaCanvas_P->cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5466,11 +5466,11 @@ namespace insur {
     myInfoPt.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability -> In-Out approach
-    TCanvas canvasPtBkgContInOut("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPtBkgContInOut.SetGrid(1,1);
-    canvasPtBkgContInOut.SetLogy(0);
-    canvasPtBkgContInOut.SetFillColor(color_plot_background);
-    canvasPtBkgContInOut.SetObjectStat(false);
+    TCanvas* canvasPtBkgContInOut = new TCanvas("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPtBkgContInOut->SetGrid(1,1);
+    canvasPtBkgContInOut->SetLogy(0);
+    canvasPtBkgContInOut->SetFillColor(color_plot_background);
+    canvasPtBkgContInOut->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     int iMomentum = 0;
@@ -5502,11 +5502,11 @@ namespace insur {
     myImagePtBkgContInOut.setName("bkg_pt_pContam_inout");
 
     // b) Bkg contamination probability -> OutIn approach
-    TCanvas canvasPtBkgContOutIn("canvasPtBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPtBkgContOutIn.SetGrid(1,1);
-    canvasPtBkgContOutIn.SetLogy(0);
-    canvasPtBkgContOutIn.SetFillColor(color_plot_background);
-    canvasPtBkgContOutIn.SetObjectStat(false);
+    TCanvas* canvasPtBkgContOutIn = new TCanvas("canvasPtBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPtBkgContOutIn->SetGrid(1,1);
+    canvasPtBkgContOutIn->SetLogy(0);
+    canvasPtBkgContOutIn->SetFillColor(color_plot_background);
+    canvasPtBkgContOutIn->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
@@ -5550,11 +5550,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtD0InOut(std::string("canvasPtD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtD0InOut.SetGrid(1,1);
-      canvasPtD0InOut.SetLogy(0);
-      canvasPtD0InOut.SetFillColor(color_plot_background);
-      canvasPtD0InOut.SetObjectStat(false);
+      TCanvas* canvasPtD0InOut = new TCanvas(std::string("canvasPtD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtD0InOut->SetGrid(1,1);
+      canvasPtD0InOut->SetLogy(0);
+      canvasPtD0InOut->SetFillColor(color_plot_background);
+      canvasPtD0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5593,11 +5593,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtZ0InOut(std::string("canvasPtZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtZ0InOut.SetGrid(1,1);
-      canvasPtZ0InOut.SetLogy(0);
-      canvasPtZ0InOut.SetFillColor(color_plot_background);
-      canvasPtZ0InOut.SetObjectStat(false);
+      TCanvas* canvasPtZ0InOut = new TCanvas(std::string("canvasPtZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtZ0InOut->SetGrid(1,1);
+      canvasPtZ0InOut->SetLogy(0);
+      canvasPtZ0InOut->SetFillColor(color_plot_background);
+      canvasPtZ0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5633,11 +5633,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtProbContamInOut(std::string("canvasPtProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtProbContamInOut.SetGrid(1,1);
-      canvasPtProbContamInOut.SetLogy(0);
-      canvasPtProbContamInOut.SetFillColor(color_plot_background);
-      canvasPtProbContamInOut.SetObjectStat(false);
+      TCanvas* canvasPtProbContamInOut = new TCanvas(std::string("canvasPtProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtProbContamInOut->SetGrid(1,1);
+      canvasPtProbContamInOut->SetLogy(0);
+      canvasPtProbContamInOut->SetFillColor(color_plot_background);
+      canvasPtProbContamInOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5678,11 +5678,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtD0OutIn(std::string("canvasPtD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtD0OutIn.SetGrid(1,1);
-      canvasPtD0OutIn.SetLogy(0);
-      canvasPtD0OutIn.SetFillColor(color_plot_background);
-      canvasPtD0OutIn.SetObjectStat(false);
+      TCanvas* canvasPtD0OutIn = new TCanvas(std::string("canvasPtD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtD0OutIn->SetGrid(1,1);
+      canvasPtD0OutIn->SetLogy(0);
+      canvasPtD0OutIn->SetFillColor(color_plot_background);
+      canvasPtD0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5721,11 +5721,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtZ0OutIn(std::string("canvasPtZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtZ0OutIn.SetGrid(1,1);
-      canvasPtZ0OutIn.SetLogy(0);
-      canvasPtZ0OutIn.SetFillColor(color_plot_background);
-      canvasPtZ0OutIn.SetObjectStat(false);
+      TCanvas* canvasPtZ0OutIn = new TCanvas(std::string("canvasPtZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtZ0OutIn->SetGrid(1,1);
+      canvasPtZ0OutIn->SetLogy(0);
+      canvasPtZ0OutIn->SetFillColor(color_plot_background);
+      canvasPtZ0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5761,11 +5761,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtProbContamOutIn(std::string("canvasPtProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtProbContamOutIn.SetGrid(1,1);
-      canvasPtProbContamOutIn.SetLogy(0);
-      canvasPtProbContamOutIn.SetFillColor(color_plot_background);
-      canvasPtProbContamOutIn.SetObjectStat(false);
+      TCanvas* canvasPtProbContamOutIn = new TCanvas(std::string("canvasPtProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPtProbContamOutIn->SetGrid(1,1);
+      canvasPtProbContamOutIn->SetLogy(0);
+      canvasPtProbContamOutIn->SetFillColor(color_plot_background);
+      canvasPtProbContamOutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5802,11 +5802,11 @@ namespace insur {
     myInfoP.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability - In-Out approach
-    TCanvas canvasPBkgContInOut("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPBkgContInOut.SetGrid(1,1);
-    canvasPBkgContInOut.SetLogy(0);
-    canvasPBkgContInOut.SetFillColor(color_plot_background);
-    canvasPBkgContInOut.SetObjectStat(false);
+    TCanvas* canvasPBkgContInOut = new TCanvas("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPBkgContInOut->SetGrid(1,1);
+    canvasPBkgContInOut->SetLogy(0);
+    canvasPBkgContInOut->SetFillColor(color_plot_background);
+    canvasPBkgContInOut->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
@@ -5838,11 +5838,11 @@ namespace insur {
     myImagePBkgContInOut.setName("bkg_p_pContam_inout");
 
     // b) Bkg contamination probability - Out-In approach
-    TCanvas canvasPBkgContOutIn("canvasPBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPBkgContOutIn.SetGrid(1,1);
-    canvasPBkgContOutIn.SetLogy(0);
-    canvasPBkgContOutIn.SetFillColor(color_plot_background);
-    canvasPBkgContOutIn.SetObjectStat(false);
+    TCanvas* canvasPBkgContOutIn = new TCanvas("canvasPBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+    canvasPBkgContOutIn->SetGrid(1,1);
+    canvasPBkgContOutIn->SetLogy(0);
+    canvasPBkgContOutIn->SetFillColor(color_plot_background);
+    canvasPBkgContOutIn->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
@@ -5886,11 +5886,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPD0InOut(std::string("canvasPD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPD0InOut.SetGrid(1,1);
-      canvasPD0InOut.SetLogy(0);
-      canvasPD0InOut.SetFillColor(color_plot_background);
-      canvasPD0InOut.SetObjectStat(false);
+      TCanvas* canvasPD0InOut = new TCanvas(std::string("canvasPD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPD0InOut->SetGrid(1,1);
+      canvasPD0InOut->SetLogy(0);
+      canvasPD0InOut->SetFillColor(color_plot_background);
+      canvasPD0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5929,11 +5929,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPZ0InOut(std::string("canvasPZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPZ0InOut.SetGrid(1,1);
-      canvasPZ0InOut.SetLogy(0);
-      canvasPZ0InOut.SetFillColor(color_plot_background);
-      canvasPZ0InOut.SetObjectStat(false);
+      TCanvas* canvasPZ0InOut = new TCanvas(std::string("canvasPZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPZ0InOut->SetGrid(1,1);
+      canvasPZ0InOut->SetLogy(0);
+      canvasPZ0InOut->SetFillColor(color_plot_background);
+      canvasPZ0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5971,11 +5971,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPProbContamInOut(std::string("canvasPProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPProbContamInOut.SetGrid(1,1);
-      canvasPProbContamInOut.SetLogy(0);
-      canvasPProbContamInOut.SetFillColor(color_plot_background);
-      canvasPProbContamInOut.SetObjectStat(false);
+      TCanvas* canvasPProbContamInOut = new TCanvas(std::string("canvasPProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPProbContamInOut->SetGrid(1,1);
+      canvasPProbContamInOut->SetLogy(0);
+      canvasPProbContamInOut->SetFillColor(color_plot_background);
+      canvasPProbContamInOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -6015,11 +6015,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPD0OutIn(std::string("canvasPD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPD0OutIn.SetGrid(1,1);
-      canvasPD0OutIn.SetLogy(0);
-      canvasPD0OutIn.SetFillColor(color_plot_background);
-      canvasPD0OutIn.SetObjectStat(false);
+      TCanvas* canvasPD0OutIn = new TCanvas(std::string("canvasPD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPD0OutIn->SetGrid(1,1);
+      canvasPD0OutIn->SetLogy(0);
+      canvasPD0OutIn->SetFillColor(color_plot_background);
+      canvasPD0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -6058,11 +6058,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPZ0OutIn(std::string("canvasPZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPZ0OutIn.SetGrid(1,1);
-      canvasPZ0OutIn.SetLogy(0);
-      canvasPZ0OutIn.SetFillColor(color_plot_background);
-      canvasPZ0OutIn.SetObjectStat(false);
+      TCanvas* canvasPZ0OutIn = new TCanvas(std::string("canvasPZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPZ0OutIn->SetGrid(1,1);
+      canvasPZ0OutIn->SetLogy(0);
+      canvasPZ0OutIn->SetFillColor(color_plot_background);
+      canvasPZ0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -6100,11 +6100,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPProbContamOutIn(std::string("canvasPProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPProbContamOutIn.SetGrid(1,1);
-      canvasPProbContamOutIn.SetLogy(0);
-      canvasPProbContamOutIn.SetFillColor(color_plot_background);
-      canvasPProbContamOutIn.SetObjectStat(false);
+      TCanvas* canvasPProbContamOutIn = new TCanvas(std::string("canvasPProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
+      canvasPProbContamOutIn->SetGrid(1,1);
+      canvasPProbContamOutIn->SetLogy(0);
+      canvasPProbContamOutIn->SetFillColor(color_plot_background);
+      canvasPProbContamOutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -6178,8 +6178,8 @@ namespace insur {
 
       // Create the contents
       RootWContent& myContent = myPage.addContent("Overall trigger");
-      TCanvas pointsCanvas;
-      pointsCanvas.SetGrid(1,1);
+      TCanvas* pointsCanvas = new TCanvas();
+      pointsCanvas->SetGrid(1,1);
       plotOption = "E1"; // or "E6"
 
       // Strings according to the content
@@ -6216,9 +6216,9 @@ namespace insur {
         npointsProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         npointsProfile.SetMarkerStyle(8);
-        pointsCanvas.SetFillColor(color_plot_background);
+        pointsCanvas->SetFillColor(color_plot_background);
 
-        pointsCanvas.cd();
+        pointsCanvas->cd();
         // std::cerr << "About to draw plot " << myPt << std::endl; // debug
         npointsProfile.Draw(plotOption.c_str());
         //plotOption = "E6 same";
@@ -6233,7 +6233,7 @@ namespace insur {
 
       // std::cerr << "now to log scale..." << std::endl; // debug
 
-      pointsCanvas.SetLogy();
+      pointsCanvas->SetLogy();
       RootWImage& npointsLogImage = myContent.addImage(pointsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       npointsLogImage.setComment(tempSS.str().c_str());
@@ -6241,8 +6241,8 @@ namespace insur {
 
       // std::cerr << "done..." << std::endl; // debug
 
-      TCanvas fractionCanvas;
-      fractionCanvas.SetGrid(1,1);
+      TCanvas* fractionCanvas = new TCanvas();
+      fractionCanvas->SetGrid(1,1);
       plotOption = "E1";
 
       // Strings according to the content
@@ -6280,9 +6280,9 @@ namespace insur {
         fractionProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         fractionProfile.SetMarkerStyle(8);
-        fractionCanvas.SetFillColor(color_plot_background);
+        fractionCanvas->SetFillColor(color_plot_background);
 
-        fractionCanvas.cd();
+        fractionCanvas->cd();
         // std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
         fractionProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
@@ -6297,15 +6297,15 @@ namespace insur {
       RootWImage& fractionImage = myContent.addImage(fractionCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       fractionImage.setComment(tempSS.str().c_str());
       fractionImage.setName("fractiontrigpoints");
-      fractionCanvas.SetLogy();
+      fractionCanvas->SetLogy();
       RootWImage& fractionLogImage = myContent.addImage(fractionCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       fractionLogImage.setComment(tempSS.str().c_str());
       fractionLogImage.setName("fractiontrigpointsLog");
 
 
-      TCanvas purityCanvas;
-      purityCanvas.SetGrid(1,1);
+      TCanvas* purityCanvas = new TCanvas();
+      purityCanvas->SetGrid(1,1);
       plotOption = "E1";
 
       // Strings according to the content
@@ -6343,9 +6343,9 @@ namespace insur {
         purityProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         purityProfile.SetMarkerStyle(8);
-        purityCanvas.SetFillColor(color_plot_background);
+        purityCanvas->SetFillColor(color_plot_background);
 
-        purityCanvas.cd();
+        purityCanvas->cd();
         // std::cerr << "About to draw purity plot " << myPt << std::endl; // debug
         purityProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
@@ -6360,7 +6360,7 @@ namespace insur {
       RootWImage& purityImage = myContent.addImage(purityCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       purityImage.setComment(tempSS.str().c_str());
       purityImage.setName("puritytrigpoints");
-      purityCanvas.SetLogy();
+      purityCanvas->SetLogy();
       RootWImage& purityLogImage = myContent.addImage(purityCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       purityLogImage.setComment(tempSS.str().c_str());
@@ -6389,12 +6389,12 @@ namespace insur {
            it != efficiencyMaps.end(); ++it) {
 
         // One canvas per map
-        TCanvas myCanvas;
+        TCanvas* myCanvas = new TCanvas();
         double myPt = it->first;
         if (myPt>maxPt) maxPt=myPt;
         TH2D& myMap = it->second;
-        myCanvas.SetFillColor(color_plot_background);
-        myCanvas.cd();
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
 
         // Actually plot the map
         myMap.SetMinimum(0);
@@ -6427,7 +6427,7 @@ namespace insur {
       RootWContent& myContent = myPage.addContent("Stub efficiency coverage", false);
       for (const auto& lmel : profiles) {
         TCanvas* myCanvas = new TCanvas(Form("StubEfficiencyCoverageCanvas%s", lmel.first.c_str()), "Stub efficiency eta coverage", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-        //myCanvas.SetFillColor(color_plot_background);
+        //myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
         std::vector<std::string> momenta;
         int myColor = 1;
@@ -6467,11 +6467,11 @@ namespace insur {
            it != thresholdMaps.end(); ++it) {
 
         // One canvas per map
-        TCanvas myCanvas;
+        TCanvas* myCanvas = new TCanvas();
         double myEfficiency = it->first;
         TH2D& myMap = it->second;
-        myCanvas.SetFillColor(color_plot_background);
-        myCanvas.cd();
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
 
         // Actually plot the map
         myMap.SetMinimum(0);
@@ -6506,47 +6506,47 @@ namespace insur {
     RootWContent& myContent = myPage.addContent("Module configuration maps", false);
 
     // One canvas per map
-    TCanvas thickCanvas;
-    TCanvas windowCanvas;
-    TCanvas suggestedSpacingCanvas;
-    TCanvas suggestedSpacingAWCanvas;
-    TCanvas nominalCutCanvas;
-    thickCanvas.SetFillColor(color_plot_background);
-    windowCanvas.SetFillColor(color_plot_background);
-    suggestedSpacingCanvas.SetFillColor(color_plot_background);
-    suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
-    nominalCutCanvas.SetFillColor(color_plot_background);
+    TCanvas* thickCanvas = new TCanvas();
+    TCanvas* windowCanvas = new TCanvas();
+    TCanvas* suggestedSpacingCanvas = new TCanvas();
+    TCanvas* suggestedSpacingAWCanvas = new TCanvas();
+    TCanvas* nominalCutCanvas = new TCanvas();
+    thickCanvas->SetFillColor(color_plot_background);
+    windowCanvas->SetFillColor(color_plot_background);
+    suggestedSpacingCanvas->SetFillColor(color_plot_background);
+    suggestedSpacingAWCanvas->SetFillColor(color_plot_background);
+    nominalCutCanvas->SetFillColor(color_plot_background);
 
     struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } };
     PlotDrawer<YZ, Spacing> thicknessDrawer;
     thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
-    thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
+    thicknessDrawer.drawFrame<HistogramFrameStyle>(*thickCanvas);
+    thicknessDrawer.drawModules<ContourStyle>(*thickCanvas);
 
     struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
     PlotDrawer<YZ, TriggerWindow> windowDrawer;
     windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
-    windowDrawer.drawModules<ContourStyle>(windowCanvas);
+    windowDrawer.drawFrame<HistogramFrameStyle>(*windowCanvas);
+    windowDrawer.drawModules<ContourStyle>(*windowCanvas);
 
 
     // Actually plot the maps
-    //thickCanvas.cd();
+    //thickCanvas->cd();
     //thicknessMap.Draw("colz");
-    //windowCanvas.cd();
+    //windowCanvas->cd();
     //windowMap.Draw("colz");
     if (extended) {
-      suggestedSpacingCanvas.cd();
+      suggestedSpacingCanvas->cd();
       suggestedSpacingMap.Draw("colz");
-      suggestedSpacingAWCanvas.cd();
+      suggestedSpacingAWCanvas->cd();
       suggestedSpacingMapAW.Draw("colz");
-      nominalCutCanvas.cd();
+      nominalCutCanvas->cd();
       //struct PtCut { double operator()(const Module& m) { return PtErrorAdapter(m).getPtCut(); } };
       //PlotDrawer<YZ, PtCut> cutDrawer;
       //cutDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-      //cutDrawer.drawFrame<HistogramFrameStyle>(nominalCutCanvas);
-      //cutDrawer.drawModules<ContourStyle>(nominalCutCanvas);
-      nominalCutCanvas.SetLogz();
+      //cutDrawer.drawFrame<HistogramFrameStyle>(*nominalCutCanvas);
+      //cutDrawer.drawModules<ContourStyle>(*nominalCutCanvas);
+      nominalCutCanvas->SetLogz();
       nominalCutMap.Draw("colz");
     }
 
@@ -6627,10 +6627,10 @@ namespace insur {
         }
       }
 
-
-      TCanvas rangeCanvas;
-      rangeCanvas.SetFillColor(color_plot_background);
-      rangeCanvas.SetGrid(0,1);
+      TCanvas* rangeCanvas = new TCanvas();
+      rangeCanvas->cd();
+      rangeCanvas->SetFillColor(color_plot_background);
+      rangeCanvas->SetGrid(0,1);
       myFrame.Draw();
       rangeGraph.SetFillColor(Palette::color(1));
       rangeGraph.Draw("same 2");
@@ -6645,9 +6645,10 @@ namespace insur {
       tempSS.str(""); tempSS << "TriggerRangeTuning";
       RangeImage.setName(tempSS.str());
 
-      TCanvas tuningCanvas;
-      tuningCanvas.SetFillColor(color_plot_background);
-      tuningCanvas.SetGrid(0,1);
+      TCanvas* tuningCanvas = new TCanvas();
+      tuningCanvas->cd();
+      tuningCanvas->SetFillColor(color_plot_background);
+      tuningCanvas->SetGrid(0,1);
       //std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
       std::map<int, TGraphErrors>& spacingTuningGraphsBad = a.getSpacingTuningGraphsBad();
       TH1D& spacingTuningFrame = a.getSpacingTuningFrame();
@@ -6682,18 +6683,18 @@ namespace insur {
       tuningImage.setName(tempSS.str());
 
       TH1D& spacingDistribution = a.getHistoOptimalSpacing(false);
-      TCanvas spacingCanvas;
-      spacingCanvas.SetFillColor(color_plot_background);
-      spacingCanvas.cd();
+      TCanvas* spacingCanvas = new TCanvas();
+      spacingCanvas->SetFillColor(color_plot_background);
+      spacingCanvas->cd();
       spacingDistribution.SetFillColor(Palette::color(1));
       spacingDistribution.Draw();
       RootWImage& spacingImage = spacingSummaryContent.addImage(spacingCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       spacingImage.setComment("Distribution of minimal spacing for low pT rejection @ standard window");
       spacingImage.setName("SpacingDistribution");
       TH1D& spacingDistributionAW = a.getHistoOptimalSpacing(true);
-      TCanvas spacingCanvasAW;
-      spacingCanvasAW.SetFillColor(color_plot_background);
-      spacingCanvasAW.cd();
+      TCanvas* spacingCanvasAW = new TCanvas();
+      spacingCanvasAW->SetFillColor(color_plot_background);
+      spacingCanvasAW->cd();
       spacingDistributionAW.SetFillColor(Palette::color(1));
       spacingDistributionAW.Draw();
       RootWImage& spacingImageAW = spacingSummaryContent.addImage(spacingCanvasAW, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
@@ -6715,9 +6716,9 @@ namespace insur {
         std::map<double, TProfile>& tuningProfiles = aProfileBag.getNamedProfiles(*itName);
 
         int myColor = 1;
-        TCanvas tuningCanvas;
-        tuningCanvas.SetFillColor(color_plot_background);
-        tuningCanvas.cd();
+        TCanvas* tuningCanvas = new TCanvas();
+        tuningCanvas->SetFillColor(color_plot_background);
+        tuningCanvas->cd();
 
         std::string plotOption = "E1";
         for (std::map<double, TProfile>::iterator itProfile = tuningProfiles.begin() ; itProfile!= tuningProfiles.end(); ++itProfile) {
@@ -6772,9 +6773,9 @@ namespace insur {
         std::map<double, TProfile>& turnonProfiles = aProfileBag.getNamedProfiles(*itName);
 
         int myColor = 1;
-        TCanvas turnonCanvas;
-        turnonCanvas.SetFillColor(color_plot_background);
-        turnonCanvas.cd();
+        TCanvas* turnonCanvas = new TCanvas();
+        turnonCanvas->SetFillColor(color_plot_background);
+        turnonCanvas->cd();
 
         std::string plotOption = "E1";
         tempSS.str("");

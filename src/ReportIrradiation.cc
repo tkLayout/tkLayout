@@ -155,15 +155,15 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
 
   RootWContent& myContent = myPage.addContent("Power maps", true);
 
-  TCanvas sensorsIrradiationPowerCanvas;
-  TCanvas totalPowerCanvas;
+  TCanvas* sensorsIrradiationPowerCanvas = new TCanvas();
+  TCanvas* totalPowerCanvas = new TCanvas();
 
-  yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(sensorsIrradiationPowerCanvas);
-  yzSensorsPowerDrawer.drawModules<ContourStyle>(sensorsIrradiationPowerCanvas);
+  yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(*sensorsIrradiationPowerCanvas);
+  yzSensorsPowerDrawer.drawModules<ContourStyle>(*sensorsIrradiationPowerCanvas);
 
 
-  yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
-  yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
+  yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(*totalPowerCanvas);
+  yzTotalPowerDrawer.drawModules<ContourStyle>(*totalPowerCanvas);
 
   RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
   sensorsIrradiationPowerImage.setComment("Power dissipation in irradiated sensors (due to leakage current) (average per module) (W)");
