@@ -6376,7 +6376,7 @@ namespace insur {
     //*   Trigger efficiency maps    *//
     //*                              *//
     //********************************//
-    mapBag myMapBag = a.getMapBag();
+    mapBag& myMapBag = a.getMapBag();
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
     double maxPt = -1;
     // Check if the maps exist at all
