@@ -248,32 +248,6 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
-  imageCounter_++;
-  myCanvas_ = nullptr;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  relativeHtmlDirectory_ = "";
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
-  imageCounter_++;
-  myCanvas_ = nullptr;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  setRelativeHtmlDirectory(relativehtmlDirectory);
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
 void RootWImage::setDefaultExtensions() {
    //addExtension("C");
    addExtension("pdf");
@@ -599,18 +573,6 @@ RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
 }
 
 RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory) {
   RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);

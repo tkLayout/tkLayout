@@ -113,8 +113,6 @@ public:
   // TODO: the methods with TCanvas* (pointer) should be made obsolete
   RootWImage(TCanvas* myCanvas, int witdh, int height);
   RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  RootWImage(TCanvas& myCanvas, int witdh, int height);
-  RootWImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   void setCanvas(TCanvas* myCanvas);
   void setCanvas(TCanvas& myCanvas);
   void setComment(string newComment);
@@ -253,8 +251,6 @@ public:
   RootWImage& addImage();
   RootWImage& addImage(TCanvas* myCanvas, int witdh, int height);
   RootWImage& addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  RootWImage& addImage(TCanvas& myCanvas, int witdh, int height);
-  RootWImage& addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   RootWTextFile& addTextFile();
   RootWTextFile& addTextFile(string newFileName);
   RootWTextFile& addTextFile(string newFileName, string newDescription);
