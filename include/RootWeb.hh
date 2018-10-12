@@ -111,10 +111,8 @@ class RootWImage : public RootWItem {
 public:
   RootWImage();
   // TODO: the methods with TCanvas* (pointer) should be made obsolete
-  RootWImage(TCanvas* myCanvas, int witdh, int height);
   RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
-  RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  void setCanvas(TCanvas* myCanvas);
+  RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   void setCanvas(std::unique_ptr<TCanvas> myCanvas);
   void setComment(string newComment);
   void setName(string newName);
@@ -250,9 +248,8 @@ public:
   RootWInfo& addInfo(string description, string value);
   RootWTable& addTable();
   RootWImage& addImage();
-  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height);
   RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
-  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   RootWTextFile& addTextFile();
   RootWTextFile& addTextFile(string newFileName);
   RootWTextFile& addTextFile(string newFileName, string newDescription);

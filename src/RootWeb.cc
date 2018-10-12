@@ -222,19 +222,6 @@ RootWImage::RootWImage() {
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
-  imageCounter_++;
-  myCanvas_ = nullptr;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  relativeHtmlDirectory_ = "";
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
 RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
   imageCounter_++;
   myCanvas_ = nullptr;
@@ -248,10 +235,10 @@ RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height)
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativehtmlDirectory) {
   imageCounter_++;
   myCanvas_ = nullptr;
-  setCanvas(myCanvas);
+  setCanvas(std::move(myCanvas));
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
   targetDirectory_ = "";
@@ -279,44 +266,11 @@ std::string RootWImage::getName() {
   return name_ ;
 }
 
-void RootWImage::setCanvas(TCanvas* myCanvas) {
-  myCanvas_.reset(myCanvas);
-  std::ostringstream canvasName("");
-  canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
-  myCanvas_->SetName(canvasName.str().c_str());
-  /*TView* myView = myCanvas->GetView();
-  if (myView) {
-    TView* newView = myCanvas_->GetView();
-    if (newView) {
-      double min[3], max[3];
-      Int_t irep;
-      newView->SetView(myView->GetLongitude(),
-		       myView->GetLatitude(),
-		       myView->GetPsi(), irep);
-      myView->GetRange(min, max);
-      newView->SetRange(min, max);
-    }
-    }*/
-}
-
 void RootWImage::setCanvas(std::unique_ptr<TCanvas> myCanvas) {
   myCanvas_.reset(myCanvas.release());
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
-  /*TView* myView = myCanvas->GetView();
-  if (myView) {
-    TView* newView = myCanvas_->GetView();
-    if (newView) {
-      double min[3], max[3];
-      Int_t irep;
-      newView->SetView(myView->GetLongitude(),
-		       myView->GetLatitude(),
-		       myView->GetPsi(), irep);
-      myView->GetRange(min, max);
-      newView->SetRange(min, max);
-    }
-    }*/
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {
@@ -595,20 +549,14 @@ RootWImage& RootWContent::addImage() {
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
-  addItem(newImage);
-  return (*newImage);
-}
-
 RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
   RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height);
   addItem(newImage);
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+  RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);
 }
