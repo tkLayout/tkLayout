@@ -1165,15 +1165,16 @@ namespace insur {
     for (unsigned int i=0;
          i<hadronGoodTracksFraction.size();
          ++i) {
-      TGraph& myGraph = hadronGoodTracksFraction.at(i);
-      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph.GetN() << " points" << std::endl;
+      TGraph* myGraph = &hadronGoodTracksFraction.at(i);
+      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph->GetN() << " points" << std::endl;
       //double xx, yy;
-      //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
+      //myGraph->GetPoint(myGraph->GetN()-1, xx, yy);
       //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = Analyzer::average(myGraph, geom_range_eta_regions);
-      closeGraph(myGraph);
-      myGraph.SetFillColor(Palette::color(i+1));
-      myGraph.Draw("same F");
+      averages[i] = Analyzer::average(*myGraph, geom_range_eta_regions);
+      closeGraph(*myGraph);
+      myGraph->SetFillColor(Palette::color(i+1));
+      myGraph->SetBit(1);
+      myGraph->Draw("same F");
       tempSS.str("");
       if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
         if (hadronNeededHitsFraction.at(i)==Analyzer::OneHitRequired)
@@ -1182,7 +1183,7 @@ namespace insur {
           tempSS << int(hadronNeededHitsFraction.at(i)*100)
             << "%% hits required";
         fractionTitles[i]=tempSS.str();
-        myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
+        myLegend->AddEntry(myGraph, fractionTitles[i].c_str(), "F");
       }
     }
     ranger->Draw("sameaxis");

@@ -10,9 +10,9 @@
  * @brief This is the header file for the core visualisation class
  */
 
-#ifndef _VIZARD_HTCanvas
+#ifndef _VIZARD_H
 #define	_VIZARD_H
-// Standard includestc
+// Standard includes
 #include <fstream>
 #include <sstream>
 // ROOT objects

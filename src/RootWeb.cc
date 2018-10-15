@@ -267,7 +267,7 @@ std::string RootWImage::getName() {
 }
 
 void RootWImage::setCanvas(std::unique_ptr<TCanvas> myCanvas) {
-  myCanvas_.reset(myCanvas.release());
+  myCanvas_.reset(myCanvas.release()); // KEY POINT: instead of using TCanvas::DrawClone(), just transfer TCanvas object ownership from Vizard to RootWeb!
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
@@ -1015,9 +1015,9 @@ bool RootWSite::makeSite(bool verbose) {
 
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
-    summaryFile_ = new TFile(Form("%s/%s",
+    summaryFile_.reset(new TFile(Form("%s/%s",
 				  targetDirectory_.c_str(),
-				  summaryFileName_.c_str()), "RECREATE");
+				      summaryFileName_.c_str()), "RECREATE"));
   } else summaryFile_ = nullptr;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
@@ -1041,7 +1041,7 @@ bool RootWSite::makeSite(bool verbose) {
 }
 
 TFile* RootWSite::getSummaryFile() {
-  return summaryFile_;
+  return summaryFile_.get();
 }
 
 void RootWSite::setSummaryFile(bool doSummary) {

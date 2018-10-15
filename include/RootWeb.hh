@@ -282,7 +282,7 @@ private:
   string programSite_;
   string revision_;
   string targetDirectory_;
-  TFile* summaryFile_;
+  std::unique_ptr<TFile> summaryFile_;
   bool createSummaryFile_;
   string summaryFileName_;
 public:
