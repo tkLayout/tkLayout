@@ -71,8 +71,9 @@ namespace insur {
     for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
     gStyle->SetPalette(vis_temperature_levels, myPalette);
 
-    gStyle->SetTitleX(0.54);
-    gStyle->SetTitleW(1);
+    // Each title centered and specified width
+    gStyle->SetTitleX(0.5);
+    gStyle->SetTitleW(1.);
   }
 
   /**
@@ -1109,6 +1110,7 @@ namespace insur {
     mapRad->SetContour(vis_temperature_levels, nullptr);
     mapRad->GetZaxis()->SetLabelSize(0.02);  // palette font size
     //myCanvas->SetLogz();
+    mapRad->SetStats(0);
     mapRad->Draw("COLZ");
     myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation length material map");
@@ -1122,6 +1124,7 @@ namespace insur {
     mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
     mapInt->SetContour(vis_temperature_levels, nullptr);
     mapInt->GetZaxis()->SetLabelSize(0.02); // palette font size
+    mapInt->SetStats(0);
     mapInt->Draw("COLZ");
     myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Interaction length material map");
@@ -2706,8 +2709,6 @@ namespace insur {
 	myTable->setContent(3, 1, " ");
 	myTable->setContent(4, 1, " ");
 
-	gStyle->SetTitleX(0.54);
-	gStyle->SetTitleW(1);
 	gStyle->SetOptStat("emr");
 	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
 	  std::unique_ptr<TCanvas> resoXBarCanvas(new TCanvas());
@@ -3634,6 +3635,7 @@ namespace insur {
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetStats(0.);
     totalEtaStack->GetStack()->Last()->Draw();
     // add profile for types here...#####
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
@@ -5523,7 +5525,6 @@ namespace insur {
 
     // For each momentum/transverse momentum compute
     int iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPtInOut = new TLegend(0.11,0.66,0.36,0.89,"p_{T} options (InOut+IP, full TRK):");
     legendPtInOut->SetTextSize(0.025);
 
@@ -5559,7 +5560,6 @@ namespace insur {
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPtOutIn = new TLegend(0.11,0.66,0.36,0.89,"p_{T} options (OutIn, full TRK):");
     legendPtOutIn->SetTextSize(0.025);
 
@@ -5859,7 +5859,6 @@ namespace insur {
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPInOut = new TLegend(0.11,0.66,0.36,0.89,"p options (InOut+IP, full TRK):");
     legendPInOut->SetTextSize(0.025);
 
@@ -5895,7 +5894,6 @@ namespace insur {
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPOutIn = new TLegend(0.11,0.66,0.36,0.89,"p options (OutIn, full TRK):");
     legendPOutIn->SetTextSize(0.025);
 
