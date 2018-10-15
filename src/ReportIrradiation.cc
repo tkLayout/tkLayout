@@ -155,20 +155,20 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
 
   RootWContent& myContent = myPage.addContent("Power maps", true);
 
-  TCanvas sensorsIrradiationPowerCanvas;
-  TCanvas totalPowerCanvas;
+  std::unique_ptr<TCanvas> sensorsIrradiationPowerCanvas(new TCanvas());
+  std::unique_ptr<TCanvas> totalPowerCanvas(new TCanvas());
 
-  yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(sensorsIrradiationPowerCanvas);
-  yzSensorsPowerDrawer.drawModules<ContourStyle>(sensorsIrradiationPowerCanvas);
+  yzSensorsPowerDrawer.drawFrame<HistogramFrameStyle>(*sensorsIrradiationPowerCanvas.get());
+  yzSensorsPowerDrawer.drawModules<ContourStyle>(*sensorsIrradiationPowerCanvas.get());
 
 
-  yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
-  yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
+  yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(*totalPowerCanvas.get());
+  yzTotalPowerDrawer.drawModules<ContourStyle>(*totalPowerCanvas.get());
 
-  RootWImage& sensorsIrradiationPowerImage = myContent.addImage(sensorsIrradiationPowerCanvas, insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
+  RootWImage& sensorsIrradiationPowerImage = myContent.addImage(std::move(sensorsIrradiationPowerCanvas), insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
   sensorsIrradiationPowerImage.setComment("Power dissipation in irradiated sensors (due to leakage current) (average per module) (W)");
   sensorsIrradiationPowerImage.setName("sensorsIrradiationPowerMap");
-  RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
+  RootWImage& totalPowerImage = myContent.addImage(std::move(totalPowerCanvas), insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
   totalPowerImage.setComment("Total power dissipation in irradiated modules (W)");
   totalPowerImage.setName("totalPowerMap");
   

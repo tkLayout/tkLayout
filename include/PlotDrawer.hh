@@ -606,6 +606,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
   viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
   TH2C* frame = getFrame(viewportMaxX_, viewportMaxY_);
+  frame->SetStats(0);
   frameStyle(*frame, canvas, palette_);
 }
 
