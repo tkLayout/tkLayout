@@ -3654,6 +3654,7 @@ namespace insur {
       totalLayersCountOuter->SetMarkerStyle(8);
       totalLayersCountOuter->SetMarkerSize(1);
       totalLayersCountOuter->SetMarkerColor(Palette::color(1));
+      totalLayersCountOuter->SetStats(0);
     }
     TH1D* totalLayersCountInner = (totalEtaProfileLayersPixel_ ? (TH1D*)totalEtaProfileLayersPixel_->ProjectionX()->Clone() : nullptr);
     if (totalLayersCountInner) {   
@@ -3662,11 +3663,13 @@ namespace insur {
       totalLayersCountInner->SetMarkerStyle(8);
       totalLayersCountInner->SetMarkerSize(1);
       totalLayersCountInner->SetMarkerColor(Palette::color(2));
+      totalLayersCountInner->SetStats(0);
     }
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetStats(0);
     totalLayersEtaStack->GetStack()->Last()->Draw();
     // Per detector here
     if (totalLayersCountOuter) totalLayersCountOuter->Draw("same");
