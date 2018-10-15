@@ -1144,8 +1144,8 @@ namespace insur {
     hadronAverageHitsGraph->Draw("same lp");
 
     // Number of hits
-    std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
-    std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
+    std::vector<TGraph>& hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
+    std::vector<double>& hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
@@ -2832,7 +2832,6 @@ namespace insur {
 	}
       }
     } // debugResolution
-    gStyle->SetOptStat(0);
 
 
     //********************************//
@@ -3638,24 +3637,33 @@ namespace insur {
     if (fullLayoutContent) fullLayoutContent->addItem(myImage);
 
     // Number of layers count
-    THStack* totalLayersEtaStack = new THStack();
-    if (totalEtaProfileLayers_) {
-      totalLayersEtaStack->Add(totalEtaProfileLayers_->ProjectionX());
-      totalEtaProfileLayers_->SetMarkerColor(kBlack);
-    }
-    if (totalEtaProfileLayersPixel_) {
-      totalLayersEtaStack->Add(totalEtaProfileLayersPixel_->ProjectionX());
-      totalEtaProfileLayersPixel_->SetMarkerColor(kBlack);
-    }
     std::unique_ptr<TCanvas> totalEtaProfileLayersFull(new TCanvas("totalEtaProfileLayersFull", "Full eta profile (Layers)", vis_std_canvas_sizeX, vis_std_canvas_sizeY));
     totalEtaProfileLayersFull->cd();
+    THStack* totalLayersEtaStack = new THStack();
+    TH1D* totalLayersCountOuter = (totalEtaProfileLayers_ ? (TH1D*)totalEtaProfileLayers_->ProjectionX()->Clone() : nullptr);
+    if (totalLayersCountOuter) {
+      totalLayersCountOuter->SetBit(1);
+      totalLayersEtaStack->Add(totalLayersCountOuter);
+      totalLayersCountOuter->SetMarkerStyle(8);
+      totalLayersCountOuter->SetMarkerSize(1);
+      totalLayersCountOuter->SetMarkerColor(Palette::color(1));
+    }
+    TH1D* totalLayersCountInner = (totalEtaProfileLayersPixel_ ? (TH1D*)totalEtaProfileLayersPixel_->ProjectionX()->Clone() : nullptr);
+    if (totalLayersCountInner) {   
+      totalLayersCountInner->SetBit(1);
+      totalLayersEtaStack->Add(totalLayersCountInner);
+      totalLayersCountInner->SetMarkerStyle(8);
+      totalLayersCountInner->SetMarkerSize(1);
+      totalLayersCountInner->SetMarkerColor(Palette::color(2));
+    }
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalLayersEtaStack->GetStack()->Last()->Draw();
     // Per detector here
-    if (totalEtaProfileLayers_) totalEtaProfileLayers_->Draw("same");
-    if (totalEtaProfileLayersPixel_) totalEtaProfileLayersPixel_->Draw("same");
+    if (totalLayersCountOuter) totalLayersCountOuter->Draw("same");
+    if (totalLayersCountInner) totalLayersCountInner->Draw("same");
     totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
     RootWImage* myImageLayers = new RootWImage(std::move(totalEtaProfileLayersFull), vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
