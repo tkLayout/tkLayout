@@ -70,6 +70,9 @@ namespace insur {
     Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, vis_temperature_levels);
     for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
     gStyle->SetPalette(vis_temperature_levels, myPalette);
+
+    gStyle->SetTitleX(0.54);
+    gStyle->SetTitleW(1);
   }
 
   /**
@@ -569,6 +572,7 @@ namespace insur {
     //crProf->Rebin(10);
     crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
     crProf->SetFillColor(kGray + 2);
+    crProf->SetLineColor(kBlue);
     crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
@@ -577,6 +581,7 @@ namespace insur {
     ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
     ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
     ciProf->SetFillColor(kGray + 2);
+    ciProf->SetLineColor(kBlue);
     ciProf->Draw("hist");
 
     // Put the full volume materials plots to the site
@@ -949,6 +954,7 @@ namespace insur {
       rTrackingVolume = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
       rTrackingVolumeProf = newProfile(rTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
       rTrackingVolumeProf->SetFillColor(kGray + 2);
+      rTrackingVolumeProf->SetLineColor(kBlue);
       rTrackingVolumeProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
       rTrackingVolumeProf->Draw("hist");
     }
@@ -959,6 +965,7 @@ namespace insur {
       iTrackingVolume = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
       iTrackingVolumeProf = newProfile(iTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
       iTrackingVolumeProf->SetFillColor(kGray + 2);
+      iTrackingVolumeProf->SetLineColor(kBlue);
       iTrackingVolumeProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
       iTrackingVolumeProf->Draw("hist");
     }
@@ -3987,18 +3994,20 @@ namespace insur {
     yzDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEtaCanvas.get());
     xyDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionPhiCanvas.get());
     std::pair<Circle, Circle> petal = analyzer.getSampleTriggerPetal();
-    TArc a1(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
-    TArc a2(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
-    a1.SetFillStyle(0);
-    a2.SetFillStyle(0);
+    TArc* a1 = new TArc(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
+    TArc* a2 = new TArc(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
+    a1->SetFillStyle(0);
+    a2->SetFillStyle(0);
     moduleConnectionPhiCanvas->cd();
-    a1.Draw("only");
-    a2.Draw("only");
+    a1->Draw("only");
+    a2->Draw("only");
 
     xyecDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEndcapPhiCanvas.get());
     moduleConnectionEndcapPhiCanvas->cd();
-    a1.Draw("only");
-    a2.Draw("only");
+    a1->Draw("only");
+    a2->Draw("only");
+    a1->SetBit(1);
+    a2->SetBit(1);
 
     yzDrawer.drawModules<ContourStyle>(*moduleConnectionEtaCanvas.get());
     xyDrawer.drawModules<ContourStyle>(*moduleConnectionPhiCanvas.get());
