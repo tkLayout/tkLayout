@@ -1,5 +1,5 @@
-// Layer 4:
-// 56 modules/GBT
+// Layer 4: module with 1 chip
+// 56 modules/GBT !!!!!!! Warning: Obviously wrong, was put as temp material for tilted IT.
 
 Conversion {
   Input {
