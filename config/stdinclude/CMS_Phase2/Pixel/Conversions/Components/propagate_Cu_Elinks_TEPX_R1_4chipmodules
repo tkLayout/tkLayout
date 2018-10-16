@@ -1,16 +1,16 @@
-// 1:1 conversion of Cu_Elinks_TEPX_R2_4chipmodules
+// 1:1 conversion of Cu_Elinks_TEPX_R1_4chipmodules
 
 Conversion {
   Input {
     Element {
-      elementName Cu_Elinks_TEPX_R2_4chipmodules
+      elementName Cu_Elinks_TEPX_R1_4chipmodules
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Cu_Elinks_TEPX_R2_4chipmodules
+      elementName Cu_Elinks_TEPX_R1_4chipmodules
       quantity 1
       unit g/m
       service true
