@@ -559,7 +559,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		 << m.center().Phi() * 180. / M_PI << ", ";
 
       std::stringstream bundleInfo;
-      bundleInfo << myBundle->myid() << ",";
+      bundleInfo << myBundle->myid() << ", ";
 
       const OuterCable* myCable = myBundle->getCable();
       if (myCable != nullptr) {
