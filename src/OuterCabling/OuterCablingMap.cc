@@ -119,28 +119,43 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 
     // PS10G
     if (cableType == Category::PS10G) {
-      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
-      if ((subDetectorName == outer_cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      // BARREL LAYER 1 FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && !myBundle->isTiltedPart()) 
+	   || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1)
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3)	   
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 1;
       }
-      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
-      if ((subDetectorName == outer_cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)) {
+      // BARREL LAYER 1 TILTED PART + ENDCAPS DISKS 2B, 4
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && myBundle->isTiltedPart()) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GB)
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 2;
+      }
+      // BARREL FULL LAYER 2 + ENDCAPS DISK 2A
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
+		) {
+	slot = 3;
       }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) {
-	slot = 3;
-      }
-
-      else if ((subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 4;
       }
 
       // STAGGERING
-      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	// TBPS
 	if (subDetectorName == outer_cabling_tbps) {
 	  // TILTED PART
@@ -209,7 +224,9 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	}
       }
 
-      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+		) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
 	if (subDetectorName == outer_cabling_tb2s) {
 	  int& myPhiSectorCounter = Layer6PhiSectorsCounter[phiSectorRef];
@@ -220,11 +237,15 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+		) {
 	slot = 6;
       }
     }
