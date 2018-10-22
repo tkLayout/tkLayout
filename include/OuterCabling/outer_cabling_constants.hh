@@ -11,13 +11,16 @@
 static const int outer_cabling_maxNumModulesPerBundle = 12;
 // Maximum number of bundles per cable
 static const int outer_cabling_maxNumBundlesPerCable = 6;
+// Maximum number of DTCs per phi sector (one (Z) end)
+static const int outer_cabling_maxNumDTCsPerNonantPerZEnd = 12;
 
 
 // PHI SLICES
 // Size of the phi slices used
-static const double outer_cabling_nonantWidth = 2. * M_PI / 9.;                          // 40°
-static const double outer_cabling_semiNonantWidth = 2. * M_PI / 18.;                     // 20°
-static const double outer_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / 27.;      // 13.333°
+static const int outer_cabling_numNonants = 9;
+static const double outer_cabling_nonantWidth = 2. * M_PI / outer_cabling_numNonants;                            // 40°
+static const double outer_cabling_semiNonantWidth = 2. * M_PI / (2. * outer_cabling_numNonants);                 // 20°
+static const double outer_cabling_endcapStripStripPhiRegionWidth = 2. * M_PI / (3. * outer_cabling_numNonants);  // 13.333°
 
 // Offset are sometimes used to set the phi slices.
 // This has been tried to be reduced to the bare minimum: only 2 hardcoded constants :)

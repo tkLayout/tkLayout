@@ -1534,6 +1534,16 @@ namespace insur {
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
+      // BOTH SIDES, SUMMARY
+      filesContent->addItem(spacer);
+      RootWTable* bothSidesName = new RootWTable();
+      bothSidesName->setContent(0, 0, "Both cabling sides, summary:");
+      filesContent->addItem(bothSidesName);
+      // CMSSW MODULES DETIDS TO DTC IDS
+      myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMMSW: Modules DetIds to DTCs Ids");
+      myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker));
+      filesContent->addItem(myTextFile);
+
 
       // Cabling efficiency
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
@@ -1550,7 +1560,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
       myInfo = new RootWInfo("Fiber bundles efficiency (%)");
-      double bundleEfficiency = numLinks / (numBundles * 12.);
+      double bundleEfficiency = numLinks / (double)(numBundles * outer_cabling_maxNumModulesPerBundle);
       myInfo->setValue(bundleEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Cables
@@ -1560,7 +1570,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Cables efficiency
       myInfo = new RootWInfo("Fiber cables efficiency (%)");
-      double cableEfficiency = numBundles / (numCables * 6.);
+      double cableEfficiency = numBundles / (double)(numCables * outer_cabling_maxNumBundlesPerCable);
       myInfo->setValue(cableEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Overall efficiency
@@ -8641,7 +8651,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8650,18 +8660,19 @@ namespace insur {
       const OuterDTC* myDTC = dtcIt.second.get();
       if (myDTC) {
 	std::stringstream DTCInfo;
-	DTCInfo << myDTC->name() << ","
-		<< myDTC->phiSectorRef() << ","
-		<< any2str(myDTC->type()) << ","
-		<< myDTC->slot() << ","
+	DTCInfo << myDTC->name() << ", "
+		<< myDTC->getCMSSWId() << ", "
+		<< myDTC->phiSectorRef() << ", "
+		<< any2str(myDTC->type()) << ", "
+		<< myDTC->slot() << ", "
 		<< std::fixed << std::setprecision(6)
 		<< myDTC->phiSectorWidth() * 180. / M_PI << ", ";
 
 	const std::vector<OuterCable*>& myCables = myDTC->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
-	  cableInfo << cable->myid() << ","
-		    << any2str(cable->type()) << ",";
+	  cableInfo << cable->myid() << ", "
+		    << any2str(cable->type()) << ", ";
 	  const ChannelSection* myOpticalSection = cable->opticalChannelSection();
 	  const int opticalChannelNumber = myOpticalSection->channelNumber();
 	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
@@ -8669,11 +8680,11 @@ namespace insur {
 	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
-	    bundleInfo << bundle->myid() << ","
+	    bundleInfo << bundle->myid() << ", "
 		       << opticalChannelNumber << " " 
-		       << any2str(opticalChannelSlot) << ","
+		       << any2str(opticalChannelSlot) << ", "
 		       << bundle->powerChannelSection()->channelNumber() << " " 
-		       << any2str(bundle->powerChannelSection()->channelSlot()) << ",";
+		       << any2str(bundle->powerChannelSection()->channelSlot()) << ", ";
 
 	    const std::vector<Module*>& myModules = bundle->modules();
 	    for (const auto& module : myModules) {
@@ -8695,6 +8706,16 @@ namespace insur {
     if (myDTCs.size() == 0) modulesToDTCsCsv << std::endl;
 
     return modulesToDTCsCsv.str();
+  }
+
+
+  /* Create csv file (Outer Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
+   */
+  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker) {
+    CMSSWOuterTrackerCablingMapVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
   }
 
 

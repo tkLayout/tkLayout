@@ -230,8 +230,13 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
     }
   
     if (slot == 0) {
-      std::cout << "bundleType = "  << bundleType << " cableType = " << cableType <<  " subDetectorName  =" << subDetectorName << " layerDiskNumber = " << layerDiskNumber << " isPositiveCablingSide = " << isPositiveCablingSide << std::endl;
-      logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
+      logERROR(any2str("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.")
+	       + " bundleType = " + any2str(bundleType) 
+	       + ", cableType = " + any2str(cableType) 
+	       + ", subDetectorName  =" + any2str(subDetectorName) 
+	       + ", layerDiskNumber = " + any2str(layerDiskNumber) 
+	       + ", isPositiveCablingSide = " + any2str(isPositiveCablingSide)
+	       );
     }
 
 
@@ -300,13 +305,18 @@ void OuterCablingMap::checkBundlesToCablesCabling(const std::map<const int, std:
   for (const auto& c : cables) {
     const OuterCable* myCable = c.second.get();
 
-    // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
+    // CHECK THE CABLES TYPES, PHI SLICES REF AND SLOTS.
+    const Category& type = myCable->type();
     const int phiSectorRef = myCable->phiSectorRef();
-    if (phiSectorRef <= -1) {
+    const int slot = myCable->slot();
+    if (type == Category::UNDEFINED
+	|| phiSectorRef <= -1 || phiSectorRef >= outer_cabling_numNonants
+	|| (slot <= 0) || (slot >= (outer_cabling_maxNumDTCsPerNonantPerZEnd / 2 + 1))
+	) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
-	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(myCable->type())
+	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(type)
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
-	       + ", slot = " + any2str(myCable->slot())
+	       + ", slot = " + any2str(slot)
 	       );
     }
 

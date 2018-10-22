@@ -236,6 +236,21 @@ public:
 
     //************************************//
     //*               Visitor             //
+    //*     CMSSWOuterTrackerCablingMap   //
+    //*                                   //
+    //************************************//
+class CMSSWOuterTrackerCablingMapVisitor : public ConstGeometryVisitor {
+  std::stringstream output_;
+ 
+public:
+  void preVisit();
+  void visit(const Module& m);
+  std::string output() const { return output_.str(); }
+};
+
+
+    //************************************//
+    //*               Visitor             //
     //*   InnerTrackerModulesToDTCsCsv    //
     //*                                   //
     //************************************//
