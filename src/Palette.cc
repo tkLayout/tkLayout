@@ -121,10 +121,10 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
       paletteIndex= kOrange;
       break;
     case 2 :
-      paletteIndex= kRed;
+      paletteIndex= kRed + 1;
       break;
     case 3 :
-      paletteIndex=kPink;
+      paletteIndex=kPink + 1;
       break;
     case 4 :
       paletteIndex=kMagenta;

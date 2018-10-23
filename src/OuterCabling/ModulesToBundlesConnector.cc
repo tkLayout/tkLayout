@@ -144,7 +144,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
     }
     // TBPS
     else if (subDetectorName == outer_cabling_tbps) {
-      bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
+      bundleType = (layerDiskNumber == 3 ? Category::PS5G : Category::PS10G);
     }
   }
 
@@ -441,7 +441,7 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     const int phiSegmentRef = bundlePhiPosition.phiSegmentRef();
     const int phiRegionRef = bundlePhiPosition.phiRegionRef();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();
-    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1) {
+    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1 || phiSectorRef >= outer_cabling_numNonants) {
       logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
 	       + "OuterBundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
 	       + ", has phiSegmentRef = " + any2str(phiSegmentRef)
