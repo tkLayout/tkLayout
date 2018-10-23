@@ -285,12 +285,16 @@ namespace insur {
     std::string createChemicalElementsCsv();
     std::string createChemicalMixturesCsv(const bool hasChemicalFormula);
 
+    // Outer Tracker
     std::string createModulesToDTCsCsv(const Tracker& t, const bool isPositiveCablingSide);
     std::string createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
-    std::string createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker);
+   
     std::string createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
     std::string countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string createPowerCablesDistributionCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
+    std::string createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker);
 
+    // Inner Tracker
     std::string createInnerTrackerModulesToDTCsCsv(const Tracker& tracker);
     std::string createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) ;
 

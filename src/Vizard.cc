@@ -1516,6 +1516,10 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+      // Power cables distribution
+      myTextFile = new RootWTextFile(Form("PowerCablesDistributionPos%s.csv", name.c_str()), "Power cables distribution");
+      myTextFile->addText(createPowerCablesDistributionCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
 
       // NEGATIVE CABLING SIDE
       isPositiveCablingSide = false;
@@ -1543,42 +1547,6 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMMSW: Modules DetIds to DTCs Ids");
       myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker));
       filesContent->addItem(myTextFile);
-
-
-
-      std::map<int, int> ps10gBundlesPerNumModules;
-      std::map<int, int> ps5gBundlesPerNumModules;
-      std::map<int, int> ssBundlesPerNumModules;
-
-      for (const auto& myBundleIt : myCablingMap->getBundles()) {
-	const OuterBundle* myBundle = myBundleIt.second.get();
-
-	const Category bundleType = myBundle->type();      
-	const int numModules = myBundle->numModules();	  
-
-	if (bundleType == Category::PS10G || bundleType == Category::PS10GA || bundleType == Category::PS10GB) ps10gBundlesPerNumModules[numModules] += 1;
-	else if (bundleType == Category::PS5G) ps5gBundlesPerNumModules[numModules] += 1;
-	else if (bundleType == Category::SS) ssBundlesPerNumModules[numModules] += 1;
-	else { std::cout << "debug printout : Undetected bundle type " << bundleType << std::endl; }
-      }
-
-      std::cout << "PS 10G" << std::endl;
-      for (const auto& numModulesIt : ps10gBundlesPerNumModules) {
-	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
-      }
-      std::cout << "PS 5G" << std::endl;
-      for (const auto& numModulesIt : ps5gBundlesPerNumModules) {
-	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
-      }
-      std::cout << "2S" << std::endl;
-      for (const auto& numModulesIt : ssBundlesPerNumModules) {
-	std::cout << "numModules = " << numModulesIt.first << " num power cables = " << numModulesIt.second << std::endl;
-      }
-
-
-
-
-
 
 
       // Cabling efficiency
@@ -8745,85 +8713,6 @@ namespace insur {
   }
 
 
-  /* Create csv file (Outer Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
-   */
-  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker) {
-    CMSSWOuterTrackerCablingMapVisitor v;
-    v.preVisit();
-    tracker.accept(v);
-    return v.output();
-  }
-
-
-  /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.
-   */
-  std::string Vizard::createInnerTrackerModulesToDTCsCsv(const Tracker& tracker) {
-    InnerTrackerModulesToDTCsVisitor v;
-    v.preVisit();
-    tracker.accept(v);
-    return v.output();
-  }
-
-
-  /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
-   */
-  std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
-
-    std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
-
-    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
-    for (const auto& itDTC : myDTCs) {
-      InnerDTC* myDTC = itDTC.second.get();
-      if (myDTC) {
-	std::stringstream DTCInfo;
-	DTCInfo << myDTC->isPositiveZEnd() << ","
-		<< myDTC->isPositiveXSide() << ","
-		<< myDTC->myid() << ",";
-
-	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
-	for (const auto& myBundle : myBundles) {
-	  std::stringstream bundleInfo;
-	  bundleInfo << myBundle->myid() << ",";
-
-	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
-	  for (const auto& myGBT : myGBTs) {
-	    std::stringstream GBTInfo;
-	    GBTInfo << any2str(myGBT->GBTId()) << ","
-		    << myGBT->numELinksPerModule() << ",";
-
-	    const PowerChain* myPowerChain = myGBT->getPowerChain();
-	    if (myPowerChain != nullptr) {
-	      std::stringstream powerChainInfo;
-	      powerChainInfo << myPowerChain->myid() << ","
-			     << any2str(myPowerChain->powerChainType()) << ","
-			     << any2str(myPowerChain->isBarrelLong()) << ",";
-
-	      const std::vector<Module*>& myModules = myGBT->modules();
-	      for (const auto& module : myModules) {
-		std::stringstream moduleInfo;
-		moduleInfo << module->myDetId() << ", "
-			   << module->uniRef().subdetectorName << ", "
-			   << module->uniRef().layer << ", "
-			   << module->moduleRing() << ", "
-			   << module->center().Phi() * 180. / M_PI;
-		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
-	      }
-	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;
-	    }
-	    else dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << std::endl;
-	  }
-	  if (myGBTs.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << std::endl;
-	}
-	if (myBundles.size() == 0) dtcsToModulesCsv << DTCInfo.str() << std::endl;
-      }
-    }
-    if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
-
-    return dtcsToModulesCsv.str();
-  }
-
-
   /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
      This also provides modules aggregation patterns. 
      A pattern is, for a given bundle, the number of connected modules per disk surface.
@@ -8998,6 +8887,156 @@ namespace insur {
   }
 
 
+  /**
+   * Create Power Cables distribution csv file.
+   * This provides a count of power cables based on their connections (how many modules per cable, of which type).
+   */
+  std::string Vizard::createPowerCablesDistributionCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
+    std::stringstream powerCablesDistributionCsv;
+    powerCablesDistributionCsv << " , # Modules per power cable /U, # Power Cables /U" << std::endl;
+
+    std::map<int, int> countBundlesPerPS10GConnections;
+    std::map<int, int> countBundlesPerPS5GConnections;
+    std::map<int, int> countBundlesPerSSConnections;
+
+    // IN THE OT CABLING MAP, 1 OPTICAL BUNDLE <=> 1 POWER CABLE!!!!
+    const std::map<const int, std::unique_ptr<OuterBundle> >& myBundles = (isPositiveCablingSide ? 
+									   myCablingMap->getBundles() 
+									   : myCablingMap->getNegBundles());
+    // Fill counters
+    for (const auto& myBundleIt : myBundles) {
+      const OuterBundle* myBundle = myBundleIt.second.get();
+
+      const Category& bundleType = myBundle->type();      
+      const int numModulesPerBundle = myBundle->numModules();	  
+
+      // PS 10G
+      if (bundleType == Category::PS10G || bundleType == Category::PS10GA || bundleType == Category::PS10GB) {
+	countBundlesPerPS10GConnections[numModulesPerBundle] += 1;
+      }
+      // PS 5G
+      else if (bundleType == Category::PS5G) { 
+	countBundlesPerPS5GConnections[numModulesPerBundle] += 1;
+      }
+      // 2S
+      else if (bundleType == Category::SS) {
+	countBundlesPerSSConnections[numModulesPerBundle] += 1;
+      }
+      else { 
+	logERROR("Unknown bundle type: " + any2str(bundleType));
+      }
+    }
+
+    int totalNumBundles = 0;
+    // Print info
+    // PS 10G
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerPS10GConnections) {
+      powerCablesDistributionCsv << any2str(Category::PS10G) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+    // PS 5G
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerPS5GConnections) {
+      powerCablesDistributionCsv << any2str(Category::PS5G) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+    // 2S
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerSSConnections) {
+      powerCablesDistributionCsv << any2str(Category::SS) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+
+    powerCablesDistributionCsv << std::endl;
+    powerCablesDistributionCsv << " , Total, " << totalNumBundles << std::endl;
+
+    return powerCablesDistributionCsv.str();
+  }
+
+
+  /* Create csv file (Outer Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
+   */
+  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker) {
+    CMSSWOuterTrackerCablingMapVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
+  /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.
+   */
+  std::string Vizard::createInnerTrackerModulesToDTCsCsv(const Tracker& tracker) {
+    InnerTrackerModulesToDTCsVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
+  /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
+   */
+  std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+
+    std::stringstream dtcsToModulesCsv;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+
+    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
+    for (const auto& itDTC : myDTCs) {
+      InnerDTC* myDTC = itDTC.second.get();
+      if (myDTC) {
+	std::stringstream DTCInfo;
+	DTCInfo << myDTC->isPositiveZEnd() << ","
+		<< myDTC->isPositiveXSide() << ","
+		<< myDTC->myid() << ",";
+
+	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
+	for (const auto& myBundle : myBundles) {
+	  std::stringstream bundleInfo;
+	  bundleInfo << myBundle->myid() << ",";
+
+	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
+	  for (const auto& myGBT : myGBTs) {
+	    std::stringstream GBTInfo;
+	    GBTInfo << any2str(myGBT->GBTId()) << ","
+		    << myGBT->numELinksPerModule() << ",";
+
+	    const PowerChain* myPowerChain = myGBT->getPowerChain();
+	    if (myPowerChain != nullptr) {
+	      std::stringstream powerChainInfo;
+	      powerChainInfo << myPowerChain->myid() << ","
+			     << any2str(myPowerChain->powerChainType()) << ","
+			     << any2str(myPowerChain->isBarrelLong()) << ",";
+
+	      const std::vector<Module*>& myModules = myGBT->modules();
+	      for (const auto& module : myModules) {
+		std::stringstream moduleInfo;
+		moduleInfo << module->myDetId() << ", "
+			   << module->uniRef().subdetectorName << ", "
+			   << module->uniRef().layer << ", "
+			   << module->moduleRing() << ", "
+			   << module->center().Phi() * 180. / M_PI;
+		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
+	      }
+	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;
+	    }
+	    else dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << std::endl;
+	  }
+	  if (myGBTs.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << std::endl;
+	}
+	if (myBundles.size() == 0) dtcsToModulesCsv << DTCInfo.str() << std::endl;
+      }
+    }
+    if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
+
+    return dtcsToModulesCsv.str();
+  }
+
+
+  /*
+   * Draw circle of a given radius, fill, and color.
+   */
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
     TEllipse* myEllipse = new TEllipse(0,0,radius);
     if (full) {
