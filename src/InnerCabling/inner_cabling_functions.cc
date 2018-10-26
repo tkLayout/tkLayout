@@ -116,9 +116,9 @@ namespace inner_cabling_functions {
    * A given IT ring is divided by (X) side AND per dee side: hence notion of ring quarter.
    * Each ring quarter is identified by a unique index.
    */
-  const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd) {
-    const int isRingInnerEndIndex = (!isRingInnerEnd);
-    const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isRingInnerEndIndex);
+  const int computeRingQuarterIndex(const int ringNumber, const bool isSmallerAbsZRingSide) {
+    const int isSmallerAbsZRingSideIndex = (!isSmallerAbsZRingSide);
+    const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZRingSideIndex);
     return ringQuarterIndex;
   }
 
@@ -134,11 +134,11 @@ namespace inner_cabling_functions {
 
 
   /*
-   * Retrieve, from the index, whether one is on one dee side or the other.
+   * Retrieve, from the index, whether one is on one ring (Z) side or the other.
    */
-  const bool isRingInnerEnd(const int ringQuarterIndex) {
-    const bool isRingInnerEnd = (ringQuarterIndex % 2 ? true : false);
-    return isRingInnerEnd;
+  const bool isSmallerAbsZRingSide(const int ringQuarterIndex) {
+    const bool isSmallerAbsZRingSide = (ringQuarterIndex % 2 ? false : true);
+    return isSmallerAbsZRingSide;
   }
 
 

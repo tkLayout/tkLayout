@@ -212,6 +212,8 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
+    ring->setIsSmallerAbsZRingInDisk(parity < 0);
+    ring->setIsRingOn4Dees(ring->smallDelta() > bigDelta());
 
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
