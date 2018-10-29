@@ -216,14 +216,13 @@ namespace insur {
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
-     * @param isZPlus Is the ring (and disk) in the positive-z side ?
-     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
-     * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
-     * @param modules The number of modules within the ring
-     * @param mthk Thickness of one of the ring's modules (hybrids included)
-     * @param rmin The minimum radius of the ring, as measured from the z-axis 
-     * @param rmid The radius of the module mean point, as measured from the z-axis
-     * @param rmax The maximum radius of the ring, as measured from the z-axis
+     * @param isDiskAtPlusZEnd Is the ring (and disk) in the positive-z side ?
+     * @param numModules The number of modules within the ring
+     * @param moduleThickness Thickness of one of the ring's modules (hybrids included)
+     * @param radiusMin The minimum radius of the ring, as measured from the z-axis 
+     * @param radiusMid The radius of the module mean point, as measured from the z-axis
+     * @param radiusMax The maximum radius of the ring, as measured from the z-axis
+     * @param surface1StartPhi The angle <i>phi</i> in the x/y-plane of the first module on the ring
      */
     struct ERingInfo {
         std::string name;
