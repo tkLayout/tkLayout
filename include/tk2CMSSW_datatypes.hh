@@ -216,7 +216,6 @@ namespace insur {
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw Is it the forward ring of the disk ?
      * @param isZPlus Is the ring (and disk) in the positive-z side ?
      * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
      * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
@@ -229,20 +228,25 @@ namespace insur {
     struct ERingInfo {
         std::string name;
         std::string childname;
-        bool fw;
-        bool isZPlus;
-        bool fw_flipped;
-        int modules;
-        double mthk;
-        double rmin;
-        double rmid;
-        double rmax;
-        double zmin;
-        double zmax;
-        double zfw;
-        double startPhiAnglefw;  // in RAD
-        double zbw;
-        double startPhiAnglebw;  // in RAD
+        bool isDiskAtPlusZEnd;
+        int numModules;
+        double moduleThickness;
+        double radiusMin;
+        double radiusMid;
+        double radiusMax;
+        double zMin;
+        double smallAbsZModulesZMax;
+        double zMean;
+        double bigAbsZModulesZMin;
+        double zMax;
+        bool isRingOn4Dees;
+        
+        double surface1ZMean;
+        double surface1StartPhi;  // in RAD       
+        bool surface1IsFlipped;
+        double surface2ZMean;
+        double surface2StartPhi;  // in RAD
+        bool surface2IsFlipped;
     };
     /**
      * @struct BTiltedRingInfo

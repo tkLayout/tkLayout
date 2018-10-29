@@ -210,10 +210,10 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
     // NOW THAT RADIUS HAS BEEN CALCULATED, FINISH BUILDING THE RING AND STORE IT
     ring->myid(i);
-    ring->build();
-    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
-    ring->setIsSmallerAbsZRingInDisk(parity < 0);
     ring->setIsRingOn4Dees(ring->smallDelta() > bigDelta());
+    ring->setIsSmallerAbsZRingInDisk(parity < 0);
+    ring->build();
+    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());   
 
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;

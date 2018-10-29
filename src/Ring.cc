@@ -87,8 +87,9 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
     mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
-    mod->setIsSmallerAbsZModuleInRing(parity != 1);
-    mod->flipped(parity != 1);
+    mod->setIsSmallerAbsZModuleInRing(parity < 0);
+    const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) : isSmallerAbsZRingInDisk());
+    mod->flipped(isFlipped);
     modules_.push_back(mod);  
   }
 }
