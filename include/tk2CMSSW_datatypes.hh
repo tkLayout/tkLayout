@@ -214,15 +214,24 @@ namespace insur {
     /**
      * @struct ERingInfo
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
-     * @param name The logical part name that identifies the ring
-     * @param childname The logical part name that identifies the modules contained in the ring
-     * @param isDiskAtPlusZEnd Is the ring (and disk) in the positive-z side ?
-     * @param numModules The number of modules within the ring
-     * @param moduleThickness Thickness of one of the ring's modules (hybrids included)
-     * @param radiusMin The minimum radius of the ring, as measured from the z-axis 
-     * @param radiusMid The radius of the module mean point, as measured from the z-axis
-     * @param radiusMax The maximum radius of the ring, as measured from the z-axis
-     * @param surface1StartPhi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     * @param name The logical part name that identifies the ring.
+     * @param childname The logical part name that identifies the modules contained in the ring.
+     * @param isDiskAtPlusZEnd Is the ring (and disk) in the Tracker positive (Z) end ?
+     * @param numModules The number of modules within the ring.
+     * @param moduleThickness Thickness of one of the ring's modules (hybrids included).
+     * @param radiusMin The minimum radius of the ring, as measured from the (Z) axis.
+     * @param radiusMid The radius of the module mean point, as measured from the (Z) axis.
+     * @param radiusMax The maximum radius of the ring, as measured from the (Z) axis.
+     * @param zMin Min Z ever reached by any point of a module belonging to the ring.
+     * @param smallAbsZSurfaceZMax MaxZ of the half of the modules which are located at the smallest |Z|.
+     * @param zMid ring's placement Z.
+     * @param bigAbsZSurfaceZMin MinZ of the half of the modules which are located at the biggest |Z|.
+     * @param zMax Max Z ever reached by any point of a module belonging to the ring.
+     * @param isRingOn4Dees Are the ring modules spread over 4 dees?
+     * surface i is randomly one half of the ring modules (Either the modules located at smaller |Z|, either the modules located at bigger |Z|).
+     * @param surfaceiZMid ZMid of modules belonging to surface i. Assumption: same for all modules.
+     * @param surfaceiStartPhi Start Phi Angle of modules belonging to surface i.
+     * @param surfaceiIsFlipped Are the modules belonging to surface i flipped?
      */
     struct ERingInfo {
         std::string name;
@@ -234,16 +243,16 @@ namespace insur {
         double radiusMid;
         double radiusMax;
         double zMin;
-        double smallAbsZModulesZMax;
-        double zMean;
-        double bigAbsZModulesZMin;
+        double smallAbsZSurfaceZMax;
+        double zMid;
+        double bigAbsZSurfaceZMin;
         double zMax;
         bool isRingOn4Dees;
         
-        double surface1ZMean;
+        double surface1ZMid;
         double surface1StartPhi;  // in RAD       
         bool surface1IsFlipped;
-        double surface2ZMean;
+        double surface2ZMid;
         double surface2StartPhi;  // in RAD
         bool surface2IsFlipped;
     };
