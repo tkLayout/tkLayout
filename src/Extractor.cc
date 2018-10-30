@@ -2133,7 +2133,7 @@ namespace insur {
 
 		  shape.name_tag = myRingInfo.name + "InnerCut";
 		  shape.rmin = myRingInfo.radiusMin - 2. * xml_epsilon;
-		  shape.rmax = myInnerRingRMax + xml_epsilon;
+		  shape.rmax = myInnerRingRMax + 2. * xml_epsilon;
 		  shape.dz = (myRingInfo.bigAbsZSurfaceZMin - myRingInfo.smallAbsZSurfaceZMax) / 2.0 - xml_epsilon;
 		  s.push_back(shape);
 
@@ -2154,7 +2154,7 @@ namespace insur {
 		   const double myOuterRingRMin = myOuterRingInfo.radiusMin;
 
 		  shape.name_tag = myRingInfo.name + "OuterCut";
-		  shape.rmin = myOuterRingRMin - xml_epsilon;
+		  shape.rmin = myOuterRingRMin - 2. * xml_epsilon;
 		  shape.rmax = myRingInfo.radiusMax + 2. * xml_epsilon;
 		  shape.dz = (myRingInfo.bigAbsZSurfaceZMin - myRingInfo.smallAbsZSurfaceZMax) / 2.0 - xml_epsilon;
 		  s.push_back(shape);
