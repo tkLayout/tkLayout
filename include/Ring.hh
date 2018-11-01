@@ -154,6 +154,9 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   Property<double, Default> ringGap;
   Property<int   , Default> smallParity;
 
+  bool isSmallerAbsZRingInDisk_;
+  bool isRingOn4Dees_;
+
   double minRadius_, maxRadius_;
 
   std::string subdetectorName_;
@@ -239,6 +242,11 @@ public:
     for (const auto& m : modules_) { averageZ = averageZ + m.center().Z(); } 
     averageZ /= numModules(); return averageZ;
   }
+
+  void setIsSmallerAbsZRingInDisk(const bool isSmallerAbsZRingInDisk) { isSmallerAbsZRingInDisk_ = isSmallerAbsZRingInDisk; }
+  const bool isSmallerAbsZRingInDisk() const { return isSmallerAbsZRingInDisk_; }
+  void setIsRingOn4Dees(const bool isRingOn4Dees) { isRingOn4Dees_ = isRingOn4Dees; }
+  const bool isRingOn4Dees() const { return isRingOn4Dees_; }
 
   void cutAtEta(double eta);
 

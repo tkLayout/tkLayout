@@ -433,8 +433,12 @@ OT614_200_IT611.cfg                  OT Version 6.1.4
                                      Materials: adapted correspondingly.
                                      NB: numModules / GBT still follow IT404 cabling map, will need slight update (+4 modules in R4).
                                      WARNING: Rings radii to be tuned!! 
-                                     Rmin set to 62.9 mm, is that fine? Rmax < 254 mm, is that the constrainst?  
-                                     What is the Rmax constrainst on TFPX???                                                                                                     
+                                     Rmin set to 62.9 mm, is that fine? Rmax < 254.52 mm, is that the constrainst?  
+                                     What is the Rmax constrainst on TFPX???  
+                                     
+OT614_200_IT612.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.1.1.
+                                     bigDelta: 4 mm -> 2 mm, smallDelta: 2 mm -> 4 mm.                                                                                                                                    
                                      
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
                                                                                            

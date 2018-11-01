@@ -1753,9 +1753,12 @@ namespace insur {
 	double zmax = 0;
 	// z extrema of ring
 	std::map<int,double> ringzmin, ringzmax;
+	std::map<int,double> ringSmallAbsZModulesZMax, ringBigAbsZModulesZMin;
 	for (const auto& i : ringsIndexes) {
 	  ringzmin.insert( {i, std::numeric_limits<double>::max()} );
 	  ringzmax.insert( {i, 0.} );
+	  ringSmallAbsZModulesZMax.insert( {i, 0.} );
+	  ringBigAbsZModulesZMin.insert( {i, std::numeric_limits<double>::max()} );
 	}
 
 	// loop on module caps
@@ -1779,6 +1782,12 @@ namespace insur {
 	    zmax = MAX(zmax, modcomplex.getZmax());
 	    ringzmin.at(modRing) = MIN(ringzmin.at(modRing), modcomplex.getZmin());  
 	    ringzmax.at(modRing) = MAX(ringzmax.at(modRing), modcomplex.getZmax());
+	    if (iiter->getModule().isSmallerAbsZModuleInRing()) { 
+	      ringSmallAbsZModulesZMax.at(modRing) = MAX(ringSmallAbsZModulesZMax.at(modRing), modcomplex.getZmax());
+	    }
+	    else {
+	      ringBigAbsZModulesZMin.at(modRing) = MIN(ringBigAbsZModulesZMin.at(modRing), modcomplex.getZmin());
+	    }
 	  }
 	}
 
@@ -2037,26 +2046,29 @@ namespace insur {
 	      modcomplex.print();
 #endif
 	      
+	      // Collect ring info
+	      const Ring* myRing = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing);
+	      ERingInfo myRingInfo;
+	      myRingInfo.name = rname.str();
+	      myRingInfo.childname = mname.str();
+	      myRingInfo.isDiskAtPlusZEnd = iiter->getModule().uniRef().side;
+	      myRingInfo.numModules = myRing->numModules();
+	      myRingInfo.moduleThickness = modcomplex.getExpandedModuleThickness();
+	      myRingInfo.radiusMin  = modcomplex.getRmin();
+	      myRingInfo.radiusMid = iiter->getModule().center().Rho();
+	      myRingInfo.radiusMax = modcomplex.getRmax();
+	      myRingInfo.zMin = ringzmin.at(modRing);
+	      myRingInfo.smallAbsZSurfaceZMax = ringSmallAbsZModulesZMax.at(modRing);
+	      myRingInfo.bigAbsZSurfaceZMin = ringBigAbsZModulesZMin.at(modRing);
+	      myRingInfo.zMax = ringzmax.at(modRing);
+	      myRingInfo.zMid = (myRingInfo.zMin + myRingInfo.zMax) / 2.;
+	      myRingInfo.isRingOn4Dees = myRing->isRingOn4Dees();
 
-
-	      // collect ring info
-	      ERingInfo rinf;
-	      rinf.name = rname.str();
-	      rinf.childname = mname.str();
-	      rinf.fw = (iiter->getModule().center().Z() > (zmin + zmax) / 2.0);
-	      rinf.isZPlus = iiter->getModule().uniRef().side;
-	      rinf.fw_flipped = iiter->getModule().flipped();	      
-	      rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
-	      rinf.mthk = modcomplex.getExpandedModuleThickness();
-	      rinf.rmin  = modcomplex.getRmin();
-	      rinf.rmid = iiter->getModule().center().Rho();
-	      rinf.rmax = modcomplex.getRmax();
-	      rinf.zmin = ringzmin.at(modRing);
-	      rinf.zmax = ringzmax.at(modRing);
-	      rinf.zfw = iiter->getModule().center().Z();
-	      rinf.startPhiAnglefw = iiter->getModule().center().Phi();
-	      rinfo.insert(std::pair<int, ERingInfo>(modRing, rinf));
-
+	      // surface 1 is whatever surface the (phi == 1) module belongs to.
+	      myRingInfo.surface1ZMid = iiter->getModule().center().Z();
+	      myRingInfo.surface1StartPhi = iiter->getModule().center().Phi();
+	      myRingInfo.surface1IsFlipped = iiter->getModule().flipped();
+	      rinfo.insert(std::pair<int, ERingInfo>(modRing, myRingInfo));
 
 	      // material properties
 	      rtotal = rtotal + iiter->getRadiationLength();
@@ -2066,11 +2078,14 @@ namespace insur {
 
 	    if (iiter->getModule().uniRef().phi == 2) {
 	      std::map<int,ERingInfo>::iterator it;
-	      // fill the info of the z-backward part of the ring with matching ring number
+	      // Fill the info of the other surface of the same ring.
+	      // This assumes that the (phi == 1) module is on another surface.
+	      // Hence that the surfaces the modules are assigned to are alternated, as one goes along Phi.
 	      it = rinfo.find(modRing);
 	      if (it != rinfo.end()) {
-		it->second.zbw = iiter->getModule().center().Z();
-		it->second.startPhiAnglebw = iiter->getModule().center().Phi();
+		it->second.surface2ZMid = iiter->getModule().center().Z();
+		it->second.surface2StartPhi = iiter->getModule().center().Phi();
+		it->second.surface2IsFlipped = iiter->getModule().flipped();
 	      }
 	    }
 	  }
@@ -2087,20 +2102,87 @@ namespace insur {
         shape.dx = 0.0;
         shape.dy = 0.0;
         shape.dyy = 0.0;
-        //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
-        //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
-        std::set<int>::const_iterator siter, sguard = ridx.end();
-        for (siter = ridx.begin(); siter != sguard; siter++) {
-          if (rinfo[*siter].modules > 0) {
+        for (const auto& ringIndex : ridx) {
 
-            shape.name_tag = rinfo[*siter].name;
-            shape.rmin = rinfo[*siter].rmin - xml_epsilon;
-            shape.rmax = rinfo[*siter].rmax + xml_epsilon;
-	    shape.dz = (rinfo[*siter].zmax - rinfo[*siter].zmin) / 2.0 + xml_epsilon;
-            s.push_back(shape);
+	  const auto& found = rinfo.find(ringIndex);
+	  if (found != rinfo.end()) {
+	    const ERingInfo& myRingInfo = found->second;
+	    if (myRingInfo.numModules > 0) {
 
-            logic.name_tag = shape.name_tag;
+	      // CASE WHERE SMALLDELTA > BIGDELTA: MODULES OF A GIVEN RING ARE SPREAD ALONG 4 DEES.
+	      if (myRingInfo.isRingOn4Dees) {
+
+		const auto& lookForInnerRing = rinfo.find(ringIndex - 1);
+		const bool hasAnInnerRing = lookForInnerRing != rinfo.end();
+		const auto& lookForOuterRing = rinfo.find(ringIndex + 1);
+		const bool hasAnOuterRing = lookForOuterRing != rinfo.end();
+
+		// Full ring cylinder
+		shape.name_tag = ((hasAnInnerRing || hasAnOuterRing) ? (myRingInfo.name + "Full") : myRingInfo.name);
+		shape.rmin = myRingInfo.radiusMin - xml_epsilon;
+		shape.rmax = myRingInfo.radiusMax + xml_epsilon;
+		shape.dz = (myRingInfo.zMax - myRingInfo.zMin) / 2.0 + xml_epsilon;
+		s.push_back(shape);
+
+		// Is there another ring with smaller radius?
+		// If so, a section needs to be removed to avoid clashes.
+		if (hasAnInnerRing) {
+		  ERingInfo& myInnerRingInfo = lookForInnerRing->second;
+		  const double myInnerRingRMax = myInnerRingInfo.radiusMax;
+
+		  shape.name_tag = myRingInfo.name + "InnerCut";
+		  shape.rmin = myRingInfo.radiusMin - 2. * xml_epsilon;
+		  shape.rmax = myInnerRingRMax + 2. * xml_epsilon;
+		  shape.dz = (myRingInfo.bigAbsZSurfaceZMin - myRingInfo.smallAbsZSurfaceZMax) / 2.0 - xml_epsilon;
+		  s.push_back(shape);
+
+		  shapeOp.name_tag = (hasAnOuterRing ? (myRingInfo.name + "SubtractionIntermediate") : myRingInfo.name);
+		  shapeOp.type = substract;
+		  shapeOp.rSolid1 = myRingInfo.name + "Full";
+		  shapeOp.rSolid2 = myRingInfo.name + "InnerCut";
+		  shapeOp.trans.dx = 0.;
+		  shapeOp.trans.dy = 0.;
+		  shapeOp.trans.dz = 0.;
+		  so.push_back(shapeOp);
+		}
+		
+		// Is there another ring with bigger radius?
+		// If so, a section needs to be removed to avoid clashes.
+		if (hasAnOuterRing) {
+		  ERingInfo& myOuterRingInfo = lookForOuterRing->second;
+		   const double myOuterRingRMin = myOuterRingInfo.radiusMin;
+
+		  shape.name_tag = myRingInfo.name + "OuterCut";
+		  shape.rmin = myOuterRingRMin - 2. * xml_epsilon;
+		  shape.rmax = myRingInfo.radiusMax + 2. * xml_epsilon;
+		  shape.dz = (myRingInfo.bigAbsZSurfaceZMin - myRingInfo.smallAbsZSurfaceZMax) / 2.0 - xml_epsilon;
+		  s.push_back(shape);
+
+		  shapeOp.name_tag = myRingInfo.name;
+		  shapeOp.type = substract;
+		  shapeOp.rSolid1 = (hasAnInnerRing ? (myRingInfo.name + "SubtractionIntermediate") : (myRingInfo.name + "Full"));
+		  shapeOp.rSolid2 = myRingInfo.name + "OuterCut";
+		  shapeOp.trans.dx = 0.;
+		  shapeOp.trans.dy = 0.;
+		  shapeOp.trans.dz = 0.;
+		  so.push_back(shapeOp);
+		}	  
+	      }
+
+	      // CASE WHERE SMALLDELTA < BIGDELTA: MODULES OF A GIVEN RING ARE PLACED ON BOTH SIDES OF THE SAME DEE.
+	      // There are only 2 dees per ring: one per (X) side.
+	      else {
+		shape.name_tag = myRingInfo.name;
+		shape.rmin = myRingInfo.radiusMin - xml_epsilon;
+		shape.rmax = myRingInfo.radiusMax + xml_epsilon;
+		shape.dz = (myRingInfo.zMax - myRingInfo.zMin) / 2.0 + xml_epsilon;
+		s.push_back(shape);
+	      }
+	    }
+	      
+
+	    logic.name_tag = myRingInfo.name;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
@@ -2108,62 +2190,60 @@ namespace insur {
             pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
-	    pos.trans.dz = (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0 - diskZ;
+	    pos.trans.dz = myRingInfo.zMid - diskZ;
             p.push_back(pos);
-            //pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
-            //p.push_back(pos);
 
             rspec.partselectors.push_back(logic.name_tag);
             rspec.moduletypes.push_back(minfo_zero);
 
-	    // forward part of the ring
+	    // Ring Surface 1 (half the modules)
 	    alg.name = xml_trackerring_algo;
             alg.parent = logic.shape_tag;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo[*siter].childname));
-            pconverter << (rinfo[*siter].modules / 2);
+            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+            pconverter << (myRingInfo.numModules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << rinfo[*siter].startPhiAnglefw * 180. / M_PI << "*deg";
+            pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << rinfo[*siter].rmid;
+            pconverter << myRingInfo.radiusMid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-	    alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].zfw - (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0));
-	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
+	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
 	    pconverter.str("");
 	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << rinfo[*siter].fw_flipped;
+	    pconverter << myRingInfo.surface1IsFlipped;
 	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	    pconverter.str("");
             a.push_back(alg);
             alg.parameters.clear();
 
-	    // backward part of the ring
+	    // Ring Surface 2 (half the modules)
 	    alg.name = xml_trackerring_algo;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo[*siter].childname));
-            pconverter << (rinfo[*siter].modules / 2);
+            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+            pconverter << (myRingInfo.numModules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << rinfo[*siter].startPhiAnglebw * 180. / M_PI << "*deg";
+            pconverter << myRingInfo.surface2StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << rinfo[*siter].rmid;
+            pconverter << myRingInfo.radiusMid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-	    alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].zbw - (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0));
-	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
+	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
 	    pconverter.str("");
 	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << !rinfo[*siter].fw_flipped;
+	    pconverter << myRingInfo.surface2IsFlipped;
 	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	    pconverter.str("");
             a.push_back(alg);

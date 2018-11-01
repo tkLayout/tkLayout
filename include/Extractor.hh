@@ -40,6 +40,10 @@ namespace insur {
    */
   class Extractor {
     class LayerAggregator : public GeometryVisitor { // CUIDADO quick'n'dirty visitor-based adaptor to interface with legacy spaghetti code
+      // NB: What the hell is this design??
+      // What should be done: add moduleComplex directy in the geo core, allowing to get extrema info as soon as the geo is built, from the geo classes.
+      // Remove the geo bundles and directly access info from the existing classes!
+      // Full Extractor in general would need to be written in a clean way (would require ~1 month work though).
       std::vector<Layer*> barrelLayers_;
       std::vector<Disk*> endcapLayers_;
       std::vector<std::vector<ModuleCap> > layerCap_;

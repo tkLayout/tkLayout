@@ -360,6 +360,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
   virtual const int diskSurface() const { return -1; }
+  virtual const bool isSmallerAbsZModuleInRing() const { return true; }
 
   inline bool isPixelModule() const { return (moduleType().find(insur::type_pixel) != std::string::npos); }
   inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
@@ -580,6 +581,8 @@ public:
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
   Property<int, AutoDefault> endcapDiskSurface;
+  void setIsSmallerAbsZModuleInRing(const bool isSmallerAbsZModuleInRing) { isSmallerAbsZModuleInRing_ = isSmallerAbsZModuleInRing; }
+  const bool isSmallerAbsZModuleInRing() const override { return isSmallerAbsZModuleInRing_; }
   const int diskSurface() const override { return endcapDiskSurface(); }
 
   EndcapModule(Decorated* decorated, const std::string subdetectorName) :
@@ -739,6 +742,9 @@ public:
   PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }
   UniRef uniRef() const { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
+
+private:
+  bool isSmallerAbsZModuleInRing_;
 };
 
 
