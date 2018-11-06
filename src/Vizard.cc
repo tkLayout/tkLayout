@@ -1553,7 +1553,7 @@ namespace insur {
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
       myPage->addContent(efficiencyContent);
       // Links
-      myInfo = new RootWInfo("Total number of fiber links (one side)");
+      myInfo = new RootWInfo("Total number of modules (one side)");
       int numLinks = tracker.modules().size() / 2;
       myInfo->setValue(numLinks);
       efficiencyContent->addItem(myInfo);
@@ -7352,10 +7352,14 @@ namespace insur {
 					      std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDiskSurfaces,
 					      std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDiskSurfaces) {
     
+    const std::set<Module*>& trackerModules = tracker.modules();
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
-    yzDrawer.addModules(tracker);
+    //yzDrawer.addModules(tracker);
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+	return ( (!m.getBundle()->isBarrelPSFlatPart()) || (m.getBundle()->isBarrelPSFlatPart() && (m.getBundle()->phiPosition().phiSegmentRef() == 0 || m.getBundle()->phiPosition().phiSegmentRef() == 1) ) ); 
+      } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
     yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
    
