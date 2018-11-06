@@ -213,6 +213,16 @@ OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
                            TBPS L1 small delta: 3.5625 mm -> 3.5475 mm
                            TBPS L2 small delta: 3.47 mm -> 3.0475 mm
                            TBPS L3 small delta: 3.47 mm -> 3.5844 mm
+                           
+OT616_200_IT404.cfg	   Diff with OT615:
+                       Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
+                         - TEDD:
+                           TEDD 1, inner rings: +7 mm                   # IT insertion
+                           TEDD 2, inner rings: +2 mm                   # IT insertion
+                           TEDD 1 and 2, outer rings: -27 mm            # Leave space for BTL
+                           TEDD rings radii recomputed: use ~70 mm zError constrainst. Will have to get feedback from Mechanics anyway.
+                         - TB2S:
+                         L3: rods radii: -25 mm. numRods: -2 rods.      # Leave space for BTL
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
