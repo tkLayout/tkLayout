@@ -197,11 +197,19 @@ namespace insur {
 						     std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYNegFlatCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYFlatCanvas, 
 						     std::vector<std::unique_ptr<TCanvas> > &XYCanvasesDisk, std::vector<std::unique_ptr<TCanvas> > &XYNegCanvasesDisk);
     RootWTable* opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
-    void analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
-    RootWTable* createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    void analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel,
+					std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    RootWTable* createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, 
+						  std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+						  const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
     RootWTable* powerServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const std::vector<ChannelSlot>& slots);
-    void analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
-    void createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    void analyzePowerServicesChannels(const OuterCablingMap* myCablingMap,
+				      std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel, 
+				      const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
+    void createPowerServicesChannelTable(RootWTable* channelsTable, 
+					 std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					 const bool isPositiveCablingSide, const ChannelSlot requestedSlot = ChannelSlot::UNKNOWN);
 
     // IT CABLING
     void createInnerCablingPlotsPowerChains(const Tracker& tracker, 

@@ -7754,14 +7754,16 @@ namespace insur {
    */
   RootWTable* Vizard::opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
     std::map<int, std::vector<int> > cablesPerChannel;
-    std::map<int, int> psBundlesPerChannel;
-    std::map<int, int> ssBundlesPerChannel;
+    std::map<int, int> tbpsBundlesPerChannel;
+    std::map<int, int> tbssBundlesPerChannel;
+    std::map<int, int> teddpsBundlesPerChannel;
+    std::map<int, int> teddssBundlesPerChannel;
 
     // Fill services channels maps.
-    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
     // Create table.
-    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
     return channelsTable;
   }
@@ -7769,7 +7771,9 @@ namespace insur {
 
   /* Get the requested Services Channels info from the cabling map.
    */
-  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, 
+					      std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					      const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? 
 								       myCablingMap->getCables() 
@@ -7790,42 +7794,70 @@ namespace insur {
 	const int cableId = myCableIt.first;
 	cablesPerChannel[channelNumber].push_back(cableId);
 
-	const Category cableType = myCable->type();      
-	const int numBundles = myCable->numBundles();
-
-	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
-	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
-	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
       }
     }
+
+    const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    for (const auto& myBundle : bundles) {
+      const ChannelSection* mySection = myBundle.second->opticalChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If necessary, can select the Services Channels corresponding to the requested slot.
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+	const int channelNumber = mySection->channelNumber();
+	const std::string subDetectorName = myBundle.second->subDetectorName();
+	const Category bundleType = myBundle.second->type();      
+	if (subDetectorName == outer_cabling_tbps) tbpsBundlesPerChannel[channelNumber] += 1;
+	else if (subDetectorName == outer_cabling_tb2s) tbssBundlesPerChannel[channelNumber] += 1;
+	else {
+	  if (bundleType == Category::PS10G 
+	      || bundleType == Category::PS10GA 
+	      || bundleType == Category::PS10GB 
+	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
+	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
+	  else { std::cout << "analyzeServicesChannels : Undetected bundle type" << std::endl; }
+	}
+      }
+    }
+
   }
 
 
   /* Create the table with Services Channel information.
    */
-  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, 
+							std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+							const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     RootWTable* channelsTable = new RootWTable();
 
     // Header table
     channelsTable->setContent(0, 1, any2str(requestedSlot));
     channelsTable->setContent(0, 2, "# MFC");
-    channelsTable->setContent(0, 3, "# MFB PS");
-    channelsTable->setContent(0, 4, "# MFB 2S");
-    channelsTable->setContent(0, 5, "# MFB Total");
+    channelsTable->setContent(0, 3, "# MFB TBPS");
+    channelsTable->setContent(0, 4, "# MFB TB2S");
+    channelsTable->setContent(0, 5, "# MFB TEDD PS");
+    channelsTable->setContent(0, 6, "# MFB TEDD 2S");
+    channelsTable->setContent(0, 7, "# MFB Total");
 
     int totalCables = 0;
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
+    int totalTbpsBundles = 0;
+    int totalTbssBundles = 0;
+    int totalTeddpsBundles = 0;
+    int totalTeddssBundles = 0;
     int totalBundles = 0;
 
     // Fill table
     for (int i = 1; i <= 12; i++) {
       const int channelNumber = (isPositiveCablingSide ? i : -i);
       int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+      int numTbpsBundlesPerChannel = (tbpsBundlesPerChannel.count(channelNumber) != 0 ? tbpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTbssBundlesPerChannel = (tbssBundlesPerChannel.count(channelNumber) != 0 ? tbssBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddpsBundlesPerChannel = (teddpsBundlesPerChannel.count(channelNumber) != 0 ? teddpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddssBundlesPerChannel = (teddssBundlesPerChannel.count(channelNumber) != 0 ? teddssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;     
 
       // PP1 name
       const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
@@ -7842,20 +7874,26 @@ namespace insur {
       channelsTable->setContent(i, 1, channelName.str());
 
       channelsTable->setContent(i, 2, numCablesPerChannel);
-      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 5, numBundlesPerChannel);
+      channelsTable->setContent(i, 3, numTbpsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numTbssBundlesPerChannel);
+      channelsTable->setContent(i, 5, numTeddpsBundlesPerChannel);
+      channelsTable->setContent(i, 6, numTeddssBundlesPerChannel);
+      channelsTable->setContent(i, 7, numBundlesPerChannel);
 
       totalCables += numCablesPerChannel;
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
+      totalTbpsBundles += numTbpsBundlesPerChannel;
+      totalTbssBundles += numTbssBundlesPerChannel;
+      totalTeddpsBundles += numTeddpsBundlesPerChannel;
+      totalTeddssBundles += numTeddssBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
     channelsTable->setContent(13, 1, "Total");
     channelsTable->setContent(13, 2, totalCables);
-    channelsTable->setContent(13, 3, totalPsBundles);
-    channelsTable->setContent(13, 4, totalSsBundles);
-    channelsTable->setContent(13, 5, totalBundles);
+    channelsTable->setContent(13, 3, totalTbpsBundles);
+    channelsTable->setContent(13, 4, totalTbssBundles);
+    channelsTable->setContent(13, 5, totalTeddpsBundles);
+    channelsTable->setContent(13, 6, totalTeddssBundles);
+    channelsTable->setContent(13, 7, totalBundles);
 
     return channelsTable;
   }
@@ -7868,14 +7906,16 @@ namespace insur {
     RootWTable* channelsTable = new RootWTable();
 
     for (const auto& requestedSlot : slots) {
-      std::map<int, int> psBundlesPerChannel;
-      std::map<int, int> ssBundlesPerChannel;
+      std::map<int, int> tbpsBundlesPerChannel;
+      std::map<int, int> tbssBundlesPerChannel;
+      std::map<int, int> teddpsBundlesPerChannel;
+      std::map<int, int> teddssBundlesPerChannel;
 
       // Fill powerServices channels maps.
-      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+      analyzePowerServicesChannels(myCablingMap, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
       // Create table.
-      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+      createPowerServicesChannelTable(channelsTable, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
     }
 
     return channelsTable;
@@ -7884,7 +7924,9 @@ namespace insur {
 
   /* Get the requested PowerServices Channels info from the cabling map.
    */
-  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, 
+					    std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					    const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? 
 									 myCablingMap->getBundles() 
@@ -7902,14 +7944,19 @@ namespace insur {
 
 	const int channelNumber = mySection->channelNumber();
 
-	const Category bundleType = myBundle->type();      
+	const std::string subDetectorName = myBundle->subDetectorName();
+	const Category bundleType = myBundle->type();    
 
-	if (bundleType == Category::PS10G 
-	    || bundleType == Category::PS10GA 
-	    || bundleType == Category::PS10GB 
-	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
-	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
-	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+	if (subDetectorName == outer_cabling_tbps) { tbpsBundlesPerChannel[channelNumber] += 1; }
+	else if (subDetectorName == outer_cabling_tb2s) { tbssBundlesPerChannel[channelNumber] += 1; }
+	else {
+	  if (bundleType == Category::PS10G 
+	      || bundleType == Category::PS10GA 
+	      || bundleType == Category::PS10GB 
+	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
+	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
+	  else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+	}
       }
     }
   }
@@ -7917,27 +7964,35 @@ namespace insur {
 
   /* Create the table with PowerServices Channel information.
    */
-  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, 
+					       std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					       const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const int maxCol = channelsTable->maxCol();
     const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
 
     // Header table
     channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
-    channelsTable->setContent(0, startCol + 2, "# PWR PS");
-    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
-    channelsTable->setContent(0, startCol + 4, "# PWR Total");
-
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
+    channelsTable->setContent(0, startCol + 2, "# PWR TBPS");
+    channelsTable->setContent(0, startCol + 3, "# PWR TB2S");
+    channelsTable->setContent(0, startCol + 4, "# PWR TEDD PS");
+    channelsTable->setContent(0, startCol + 5, "# PWR TEDD 2S");
+    channelsTable->setContent(0, startCol + 6, "# PWR Total");
+    
+    int totalTbpsBundles = 0;
+    int totalTbssBundles = 0;
+    int totalTeddpsBundles = 0;
+    int totalTeddssBundles = 0;
     int totalBundles = 0;
 
     // Fill table
     for (int i = 1; i <= 12; i++) {
       const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+      int numTbpsBundlesPerChannel = (tbpsBundlesPerChannel.count(channelNumber) != 0 ? tbpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTbssBundlesPerChannel = (tbssBundlesPerChannel.count(channelNumber) != 0 ? tbssBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddpsBundlesPerChannel = (teddpsBundlesPerChannel.count(channelNumber) != 0 ? teddpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddssBundlesPerChannel = (teddssBundlesPerChannel.count(channelNumber) != 0 ? teddssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;
 
       // PP1 name
       const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
@@ -7953,18 +8008,24 @@ namespace insur {
       if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
       channelsTable->setContent(i, startCol + 1, channelName.str());
 
-      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 2, numTbpsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 3, numTbssBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 4, numTeddpsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 5, numTeddssBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 6, numBundlesPerChannel);
 
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
+      totalTbpsBundles += numTbpsBundlesPerChannel;
+      totalTbssBundles += numTbssBundlesPerChannel;
+      totalTeddpsBundles += numTeddpsBundlesPerChannel;
+      totalTeddssBundles += numTeddssBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
     channelsTable->setContent(13, startCol + 1, "Total");
-    channelsTable->setContent(13, startCol + 2, totalPsBundles);
-    channelsTable->setContent(13, startCol + 3, totalSsBundles);
-    channelsTable->setContent(13, startCol + 4, totalBundles);
+    channelsTable->setContent(13, startCol + 2, totalTbpsBundles);
+    channelsTable->setContent(13, startCol + 3, totalTbssBundles);
+    channelsTable->setContent(13, startCol + 4, totalTeddpsBundles);
+    channelsTable->setContent(13, startCol + 5, totalTeddssBundles);
+    channelsTable->setContent(13, startCol + 6, totalBundles);
   }
 
 
