@@ -104,8 +104,9 @@ OT365_200_IT4025.cfg                 OT Version 3.6.5
 OT365_200_IT4026.cfg                 OT Version 3.6.5
                                      Inner tracker version 4.0.2.6 <- based one 4.0.2.5 but with 7 FPIX disks
 
-OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adjusted TBPS flat part
-                                     bigDelta = 11.9 (unchanged) smallDelta=3.5625 (from CML)
+OT366_200_IT4025.cfg                 OT Version 3.6.6 <- like 365, but with adjusted TBPS flat part.
+                                     bigDelta = 11.9 (unchanged) smallDelta=3.5625 (from CML).
+                                     12-th ring in Layer 1.
                                      New TEDD following Nick's indications:
                                      Outer Physical envelope = 1125 -- Considering 20.54 mm 2S FEH + 1.1 mm sensor margin => outerRadius 1103.36 (+8.36 mm w.r.t v3.5.1)
                                      Inner Physical envelope = 215/315 -- Considering 10.65 mm PS FEH + 1.45 mm sensor margin => 227/327 mm inner envelope for sensors
@@ -178,7 +179,7 @@ OT602_200_IT4025.cfg                       9,7 PS rings in TEDD1,2
 
 OT603_200_IT4025.cfg                      like 602, but overlap mainly through PS modules
 
-OT611_200_IT4025.cfg                      TDR geometry
+OT611_200_IT4025.cfg                      Adjusted rings radii in TEDD.
 
 OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paired-up layers:
                                              Z coordinates in TEDD: 1356.8 1440 1854.67 1937.67 2567 2650
@@ -217,12 +218,15 @@ OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
 OT616_200_IT404.cfg	   Diff with OT615:
                        Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
                          - TEDD:
-                           TEDD 1, inner rings: +7 mm                   # IT insertion
+                             TEDD 1, inner rings: +7 mm                   # IT insertion
                            TEDD 2, inner rings: +2 mm                   # IT insertion
                            TEDD 1 and 2, outer rings: -27 mm            # Leave space for BTL
-                           TEDD rings radii recomputed: use ~70 mm zError constrainst. Will have to get feedback from Mechanics anyway.
+                           TEDD 2: -4 modules in Ring 7, -4 modules in Ring 14.
+                           Will have to get feedback from Mechanics on intermediate radii and numModules anyway.
                          - TB2S:
-                         L3: rods radii: -25 mm. numRods: -2 rods.      # Leave space for BTL
+                             L3: rods radii: -25 mm. numRods: -2 rods.      # Leave space for BTL
+                         - TBPS:
+                             L1: +2 mm in last 5 rings radii.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
