@@ -29,6 +29,8 @@ public:
 
 protected:
   int channelNumber_;
+  std::string channelName_;
+  std::string chanelNamePP1Convention_;
   bool isPositiveCablingSide_; 
   Container sections_;
   };*/

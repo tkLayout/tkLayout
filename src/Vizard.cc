@@ -7356,9 +7356,12 @@ namespace insur {
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
-    //yzDrawer.addModules(tracker);
+    // TBPS flat part: only draw 2 consecutives MFBs in phi, otherwise confusing drawing effect happens on bundle coloring.
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
-	return ( (!m.getBundle()->isBarrelPSFlatPart()) || (m.getBundle()->isBarrelPSFlatPart() && (m.getBundle()->phiPosition().phiSegmentRef() == 0 || m.getBundle()->phiPosition().phiSegmentRef() == 1) ) ); 
+	return ( (!m.getBundle()->isBarrelPSFlatPart()) 
+		 || (m.getBundle()->isBarrelPSFlatPart() && (m.getBundle()->phiPosition().phiSegmentRef() == 0 
+							     || m.getBundle()->phiPosition().phiSegmentRef() == 1)) 
+		 ); 
       } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
     yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
@@ -7779,49 +7782,58 @@ namespace insur {
 					      std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
 					      const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
+    // MFCs
     const std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? 
 								       myCablingMap->getCables() 
 								       : myCablingMap->getNegCables());
-
+    // loop on all MFCs
     for (const auto& myCableIt : cables) {
       const OuterCable* myCable = myCableIt.second.get();
       const ChannelSection* mySection = myCable->opticalChannelSection();
       const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
-      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
+      // If a specific slot is requested, select that slot only!
       if ( requestedSlot == ChannelSlot::UNKNOWN 
 	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
 	   ) {
-
+	// Channel number
 	const int channelNumber = mySection->channelNumber();
 
+	// MFC
 	const int cableId = myCableIt.first;
 	cablesPerChannel[channelNumber].push_back(cableId);
-
       }
     }
 
+    // MFBs
     const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    // loop on all MFBs
     for (const auto& myBundle : bundles) {
       const ChannelSection* mySection = myBundle.second->opticalChannelSection();
       const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
-      // If necessary, can select the Services Channels corresponding to the requested slot.
+      // If a specific slot is requested, select that slot only!
       if ( requestedSlot == ChannelSlot::UNKNOWN 
 	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
 	   ) {
+
+	// Channel number
 	const int channelNumber = mySection->channelNumber();
 	const std::string subDetectorName = myBundle.second->subDetectorName();
-	const Category bundleType = myBundle.second->type();      
+	const Category bundleType = myBundle.second->type();   
+	// TBPS   
 	if (subDetectorName == outer_cabling_tbps) tbpsBundlesPerChannel[channelNumber] += 1;
+	// TB2S
 	else if (subDetectorName == outer_cabling_tb2s) tbssBundlesPerChannel[channelNumber] += 1;
+	// TEDD
 	else {
 	  if (bundleType == Category::PS10G 
 	      || bundleType == Category::PS10GA 
 	      || bundleType == Category::PS10GB 
 	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
 	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
-	  else { std::cout << "analyzeServicesChannels : Undetected bundle type" << std::endl; }
+	  else { logERROR("analyzeServicesChannels : subdetector " + any2str(subDetectorName) 
+			  + " has undetected bundle type" + any2str(bundleType)); }
 	}
       }
     }
@@ -7864,7 +7876,9 @@ namespace insur {
       int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;     
 
       // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      const int pp1 = channelNumber 
+	+ (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) 
+	   : -(fabs(channelNumber) <= 6 ? 2 : 5) );
       std::stringstream pp1Name;
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
@@ -7884,6 +7898,7 @@ namespace insur {
       channelsTable->setContent(i, 6, numTeddssBundlesPerChannel);
       channelsTable->setContent(i, 7, numBundlesPerChannel);
 
+      // Gather totals
       totalCables += numCablesPerChannel;
       totalTbpsBundles += numTbpsBundlesPerChannel;
       totalTbssBundles += numTbssBundlesPerChannel;
@@ -7932,6 +7947,7 @@ namespace insur {
 					    std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
 					    const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
+    // Power cables = MFBs scheme
     const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? 
 									 myCablingMap->getBundles() 
 									 : myCablingMap->getNegBundles());
@@ -7946,20 +7962,25 @@ namespace insur {
 	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
 	   ) {
 
+	// Channel number
 	const int channelNumber = mySection->channelNumber();
 
 	const std::string subDetectorName = myBundle->subDetectorName();
 	const Category bundleType = myBundle->type();    
 
+	// TBPS
 	if (subDetectorName == outer_cabling_tbps) { tbpsBundlesPerChannel[channelNumber] += 1; }
+	// TB2S
 	else if (subDetectorName == outer_cabling_tb2s) { tbssBundlesPerChannel[channelNumber] += 1; }
+	// TEDD
 	else {
 	  if (bundleType == Category::PS10G 
 	      || bundleType == Category::PS10GA 
 	      || bundleType == Category::PS10GB 
 	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
 	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
-	  else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+	  else { logERROR("analyzePowerServicesChannels : subdetector " + any2str(subDetectorName) 
+			  + " has undetected bundle type" + any2str(bundleType)); }
 	}
       }
     }
@@ -7999,7 +8020,9 @@ namespace insur {
       int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;
 
       // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      const int pp1 = channelNumber 
+	+ (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) 
+	   : -(fabs(channelNumber) <= 6 ? 2 : 5) );
       std::stringstream pp1Name;
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
