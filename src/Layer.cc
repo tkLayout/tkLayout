@@ -1030,8 +1030,6 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodCenterPhiShift = 2*M_PI/numRods();
-
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(subdetectorName());
   first->store(propertyTree());
   first->myid(1); 
@@ -1048,6 +1046,7 @@ void Layer::buildTilted() {
   const std::vector<TiltedModuleSpecs> mySecondRodSensorsCenters = (bigParity() > 0 ? tmspecsi : tmspecso);
   second->isOuterRadiusRod(isSecondRodAtOuterRadius);  
   second->build(rodTemplate, mySecondRodSensorsCenters, !isSecondRodAtOuterRadius);
+  const double rodCenterPhiShift = 2 * M_PI / numRods();
   second->rotateZ(rodCenterPhiShift);
   rods_.push_back(second);
 
