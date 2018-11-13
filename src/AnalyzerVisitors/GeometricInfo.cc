@@ -46,6 +46,11 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   endcapName->setContent(0, 0, endcapId + ",  Disc 1 :");
   endcapNames.push_back(endcapName);
 
+  std::map<int, double> minMap;
+  std::map<int, double> maxMap;
+  myMinMaps[endcapId] = minMap;
+  myMaxMaps[endcapId] = maxMap;
+
   RootWTable* endcapTable = new RootWTable();
   endcapTable->setContent(0, 0, "Ring :");
   endcapTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
@@ -55,6 +60,9 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   endcapTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
   endcapTable->setContent(6, 0, "phiOverlap");
   endcapTable->setContent(7, 0, "# mods");
+  endcapTable->setContent(8, 0, "minR Hybrids");
+  endcapTable->setContent(9, 0, "maxR Hybrids");
+  endcapTable->setContent(10, 0, "radial gap Rings (i) & (i+1)");
   endcapTables.push_back(endcapTable);
 }
 
@@ -154,6 +162,19 @@ void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
   endcapTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
   endcapTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
   endcapTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
+
+  double fullHalfWidth = 0.;
+  double fullHalfLength = 0.;
+  if (m.moduleType() == "ptPS") { fullHalfWidth = 65; fullHalfLength = 35.43; }
+  else if (m.moduleType() == "pt2S") { fullHalfWidth = 62.5; fullHalfLength = 71.951; }
+  else { std::cout << "undetected module type = " << m.moduleType() << std::endl; }
+
+  const double minRWithHybrids = m.center().Rho() - fullHalfLength;
+  endcapTables.at(nEndcaps-1)->setContent(8, nRings, minRWithHybrids, coordPrecision);
+  minMap[nRings] = minRWithHybrids;
+  const double maxRWithHybrids = sqrt(pow((m.center().Rho() + fullHalfLength), 2.) + pow(fullHalfWidth, 2.));
+  endcapTables.at(nEndcaps-1)->setContent(9, nRings, maxRWithHybrids, coordPrecision);
+  maxMap[nRings] = maxRWithHybrids;
 }
 
 void LayerDiskSummaryVisitor::postVisit() {
@@ -161,6 +182,12 @@ void LayerDiskSummaryVisitor::postVisit() {
   layerTable->setContent(5, nBarrelLayers+1, totalBarrelModules);
   diskTable->setContent(0, nDisks+1, "Total");
   diskTable->setContent(4, nDisks+1, totalEndcapModules*2);
+
+
+  //for (const auto& myTable : endcapTables) {
+  // const double radialGap = myTable->getContent(9, 
+  //}
+
 }
 
 

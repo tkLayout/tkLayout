@@ -71,6 +71,9 @@ public:
 
   double nMB;
 
+  std::map<std::string, std::map<int, double> > myMinMaps;
+  std::map<std::string, std::map<int, double> > myMaxMaps;
+
   void preVisit();
   void visit(const Barrel& b) override;
   void visit(const Layer& l) override;
