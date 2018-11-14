@@ -362,7 +362,7 @@ OT614_200_IT460.cfg                  OT Version 6.1.4
                                      Inner Tracker version 4.6.0: TBPX conversion station placed on top of TBPX.
                                      
 OT614_200_IT461.cfg                  OT Version 6.1.4
-                                     Inner Tracker version 4.6.1: TBPX conversion stations placed on services cylinders (Z positions by Andre).                                                                       
+                                     Inner Tracker version 4.6.1: TBPX conversion stations placed on services cylinders (Z positions from Yadira).                                                                       
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
                                                                                              
 
