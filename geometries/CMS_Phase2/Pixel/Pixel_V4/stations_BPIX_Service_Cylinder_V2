@@ -32,7 +32,7 @@ Station {
 Station {
   stationName BPIX4
   type second
-  minZ 756.08
-  maxZ 799.08
+  minZ 728.08
+  maxZ 771.08
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
