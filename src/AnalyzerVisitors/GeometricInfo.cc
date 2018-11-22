@@ -62,7 +62,7 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   endcapTable->setContent(7, 0, "# mods");
   endcapTable->setContent(8, 0, "minR Hybrids");
   endcapTable->setContent(9, 0, "maxR Hybrids");
-  endcapTable->setContent(10, 0, "radial gap Rings (i) & (i+1)");
+  endcapTable->setContent(10, 0, "radial gap Rings (i-2) & (i)");
   endcapTables.push_back(endcapTable);
 }
 
@@ -165,16 +165,35 @@ void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
 
   double fullHalfWidth = 0.;
   double fullHalfLength = 0.;
-  if (m.moduleType() == "ptPS") { fullHalfWidth = 65; fullHalfLength = 35.43; }
-  else if (m.moduleType() == "pt2S") { fullHalfWidth = 62.5; fullHalfLength = 71.951; }
+  double fullHalfWidth2 = 0.;
+  double fullHalfLength2 = 0.;
+  if (m.moduleType() == "ptPS") { 
+    fullHalfWidth = 60; 
+    fullHalfLength = 34.63 + 2.1; 
+    fullHalfWidth2 = 65; 
+    fullHalfLength2 = 29.63 + 2.1; 
+  }
+  else if (m.moduleType() == "pt2S") { 
+    fullHalfWidth = 62.5; 
+    fullHalfLength = (fabs(m.dsDistance() - 1.8) < 0.00001 ? 72.054 : 72.363); 
+    std::cout <<  "m.dsDistance()  = " << m.dsDistance() << " fullHalfLength = " << fullHalfLength << std::endl;
+  }
   else { std::cout << "undetected module type = " << m.moduleType() << std::endl; }
 
   const double minRWithHybrids = m.center().Rho() - fullHalfLength;
   endcapTables.at(nEndcaps-1)->setContent(8, nRings, minRWithHybrids, coordPrecision);
-  minMap[nRings] = minRWithHybrids;
-  const double maxRWithHybrids = sqrt(pow((m.center().Rho() + fullHalfLength), 2.) + pow(fullHalfWidth, 2.));
+  myMinMaps[endcapId][nRings] = minRWithHybrids;
+  const double maxRWithHybrids1 = sqrt(pow((m.center().Rho() + fullHalfLength), 2.) + pow(fullHalfWidth, 2.));
+  const double maxRWithHybrids2 = sqrt(pow((m.center().Rho() + fullHalfLength2), 2.) + pow(fullHalfWidth2, 2.));
+  const double maxRWithHybrids = MAX(maxRWithHybrids1, maxRWithHybrids2);
   endcapTables.at(nEndcaps-1)->setContent(9, nRings, maxRWithHybrids, coordPrecision);
-  maxMap[nRings] = maxRWithHybrids;
+  myMaxMaps[endcapId][nRings] = maxRWithHybrids;
+
+  if ((nEndcaps == 1 && nRings >= 3) || (nEndcaps == 2 && nRings >= 3)) {
+    const double gap = minRWithHybrids - myMaxMaps.at(endcapId).at(nRings-2);
+    endcapTables.at(nEndcaps-1)->setContent(10, nRings, gap, coordPrecision);
+  }
+
 }
 
 void LayerDiskSummaryVisitor::postVisit() {
