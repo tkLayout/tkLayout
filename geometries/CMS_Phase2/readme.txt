@@ -218,11 +218,11 @@ OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
 OT616_200_IT404.cfg	   Diff with OT615:
                        Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
                          - TEDD:
-                             TEDD 1, inner rings: +7 mm                   # IT insertion
+                           TEDD 1, inner rings: +7 mm                   # IT insertion
                            TEDD 2, inner rings: +2 mm                   # IT insertion
                            TEDD 1 and 2, outer rings: -27 mm            # Leave space for BTL
                            TEDD 2: -4 modules in Ring 7, -4 modules in Ring 14.
-                           Will have to get feedback from Mechanics on intermediate radii and numModules anyway.
+                           Adjusted intermediate radii (needs feedback from Mechanics)
                          - TB2S:
                              L3: rods radii: -25 mm. numRods: -2 rods.      # Leave space for BTL
                          - TBPS:
