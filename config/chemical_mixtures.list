@@ -16,8 +16,9 @@ Acrylate                   1.16                      C:0.5581   H:0.06977    O:0
 Glass                      2.33	                     Si:0.36611059    O:0.53173295   B:0.042228491  Na:0.059927964       
 # from materials.xml  (density 2.23 g/cm3 ?)
 
-Airex                      0.06                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
-# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)       
+Airex                      0.08                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
+# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml
+# density from [1].
             
 Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
 # from materials.xml  (density 1.44 g/cm3 ?)
@@ -41,6 +42,9 @@ WB-enc                    1.50          Siliconeglue:1
 Acrylicglue                1.16                C5O2H8:1
 # from Duccio, Composite materials, 14/01/2015
 
+TPG	                       2.26	                   C:1
+# from materials.xml
+
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
@@ -52,6 +56,14 @@ CFRP_OTST                  1.55	                   CFRP:1
 
 HexWebHRH10_OTST           0.0496	                 Airex:1
 # density from Sczymon, composition from 'Airex'
+
+CFRP_EPX	                 1.43	                   C:0.96            Epoxy:0.27
+# from [1].
+# check compo???
+
+PCB_panel_EPX	             1.9	                   FR4:1
+# from [1].
+# should also have Cu, connectors?????
 
 Polyethylene                0.89              C2H4:1
 # from Duccio, Composite materials, 14/01/2015
@@ -236,6 +248,8 @@ CF	                     1.84	                  CFRP:1
 
 
 
+
+# [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
 
 
 

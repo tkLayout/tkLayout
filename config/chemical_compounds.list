@@ -20,6 +20,9 @@ C3H6O                      1.36                       C:3                  H:6  
 C2H4                       0.89                       C:2                  H:4      
 # ethylene
 
+AlN	                       3.26	                     Al:1                  N:1
+# aluminium-nitride
+
 
 # Unused:
 #BaF2                       4.89                     Ba:1                  F:2

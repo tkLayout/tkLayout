@@ -134,21 +134,63 @@ Materials FPIX_2_disk {
     }
   }
 
-  // Supports Mechanics
-  //Mechanics
+
+  // Supports Mechanics: Airex foam insert
   Component {
-    componentName "Supports Mechanics: disk"
+    componentName "Supports Mechanics: Dee Foam"
     service false
     scaleOnSensor 0
-    Element {
-      elementName CF
-      quantity 0.4
-      unit mm
-    }
+ 
     Element {
       elementName Airex
-      quantity 4
-      unit mm
+      quantity 52             // 13g per dee, hence 4*13 = 52g per double-disk. Source: [1].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
+      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [1].
     }
   }
+ 
+ 
+  // Supports Mechanics: PCB panel
+  Component {
+    componentName "Supports Mechanics: Dee PCB panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName PCB_panel_EPX
+      quantity 424        // 106g per dee, hence 4*106 = 424g per double-disk. Source: [1].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [1].
+    }
+
+  }
+  
+    
+  // Supports Mechanics: CFRP panel (also called CFK stiffener)
+  Component {
+    componentName "Supports Mechanics: Dee CFRP panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName CFRP_EPX
+      quantity 300          // 75g per dee, hence 4*75 = 300g per double-disk. Source: [1].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      
+      // thickness approach would be as follows (but far more precise because of modules holes).                     
+      //quantity 1.2        // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
+                            // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
+                            // total thickness = 4 * 0.3 = 1.2 mm
+                            // Source: [1].
+      //unit mm
+    }   
+  }
+
+  
+  
 }
+
+// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
