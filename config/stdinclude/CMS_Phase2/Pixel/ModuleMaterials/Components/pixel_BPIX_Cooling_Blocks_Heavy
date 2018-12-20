@@ -1,8 +1,26 @@
 // BPIX Cooling blocks
-// Model (quantity [g/m] = chip power [Watt] * 3)
 
+
+// NO Al-N RAILS ?????????????????????
+
+
+// High conductivity CF plate
 Component {
-  componentName "IT Module: Cooling blocks"
+  componentName "IT Module: Cooling blocks (CF plate)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName CF
+    quantity 0.2        // Source: [1]
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 1    
+  }
+}
+
+// Housing pipe
+// Model (quantity [g/m] = chip power [Watt] * 3)
+Component {
+  componentName "IT Module: Cooling blocks (housing pipe)"
   service false
   Element {
     scaleOnSensor 0

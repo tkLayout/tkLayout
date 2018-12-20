@@ -1,0 +1,29 @@
+// Capacitors for one pixel chip
+// According to Murata web page (from Stella)
+
+Component {
+  componentName "IT Module: Capacitors (remove?)"  // NB: THIS NEEDS TO BE CONFIRMED!!!!
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Pix_Caps
+    quantity 0.1878
+    unit g
+    targetVolume 3
+  }
+}
+
+
+Component {
+  componentName "IT Module: ROC"  // Source: [1]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.1425       
+    unit g             
+    targetVolume 3
+  }
+}
+
+// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018

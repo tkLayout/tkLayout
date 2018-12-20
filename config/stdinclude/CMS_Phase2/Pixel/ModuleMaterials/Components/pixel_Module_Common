@@ -12,16 +12,11 @@ Component {
   }
 }
 
+
 Component {
-  componentName "IT Module: Hybrid"
+  componentName "IT Module: HDI" // NB: THIS NEEDS TO BE CONFIRMED!!!! 
   service false
   scaleOnSensor 0
-  Element {
-    elementName Si
-    quantity 0.15       
-    unit mm               // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1
-  }
   Element {
     elementName PS-FEH-mix  /// ???????
     quantity 0.15
@@ -36,15 +31,21 @@ Component {
   }
 }
 
-Component {
-  componentName "IT Module: Support plate"
-  service false
-  scaleOnSensor 0
-  // Support
-  Element {
-    elementName CF
-    quantity 0.2
-    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1
-  }
-}
+// NB: REPLACE THE HDI WITH THIS????
+//Component {
+//  componentName "IT Module: HDI" // NB: THIS NEEDS TO BE CONFIRMED!!!!
+//  service false
+//  scaleOnSensor 0
+ 
+// Element {
+//    elementName HDI_module  /// ??????? compo to modify!!!
+//    quantity 0.13734     // Source: [1]
+//    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+//    targetVolume 1
+//  }
+//}
+
+
+
+
+// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018

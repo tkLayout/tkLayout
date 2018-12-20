@@ -5,10 +5,12 @@ Materials FPIX_R3_2x2_10000 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_2x2
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_10000
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TEPX           // NB: Use temporary cooling blocks from EPX info, as there was no cooling blocks until now!! Update with FPX if different.
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Mounting_TEPX                 // NB: Use temporary Mounting from EPX info, this needs to be updated for FPX!!
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TFPX_R3
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
 }
 

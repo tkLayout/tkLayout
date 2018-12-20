@@ -1,7 +1,7 @@
 // Cooling for the pixel modules along the rod: 1 cooling pipe/rod
 
 Component {
-  componentName "Cooling"
+  componentName "Cooling: Pipes & Coolant"
   service true
   scaleOnSensor 0
   Element {

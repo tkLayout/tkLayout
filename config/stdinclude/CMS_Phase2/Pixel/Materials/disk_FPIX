@@ -8,7 +8,7 @@ Materials FPIX_disk {
   // Cooling for the module
   // Average on disk
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant"
     service false
     scaleOnSensor 0
     Element {
@@ -25,7 +25,7 @@ Materials FPIX_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 8 pipes per disk
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant"
     service true
     scaleOnSensor 0
     Element {

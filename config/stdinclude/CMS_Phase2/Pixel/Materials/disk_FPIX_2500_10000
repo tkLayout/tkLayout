@@ -8,7 +8,7 @@ Materials FPIX_disk_2500_10000 {
   // Cooling for the module
   // Average on disk
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant"
     service false
     scaleOnSensor 0
     Element {
@@ -25,7 +25,7 @@ Materials FPIX_disk_2500_10000 {
   // fake numbers for calculating conversion with a factor of 1000
   // 8 pipes per disk
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant"
     service true
     scaleOnSensor 0
     Element {
@@ -133,21 +133,65 @@ Materials FPIX_disk_2500_10000 {
     }
   }
 
-  // Supports Mechanics
-  //Mechanics
+
+
+  // Supports Mechanics: Airex foam insert
+  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
   Component {
-    componentName "Supports Mechanics: disk"
+    componentName "Supports Mechanics: Dee Foam"
     service false
     scaleOnSensor 0
-    Element {
-      elementName CF
-      quantity 0.4
-      unit mm
-    }
+ 
     Element {
       elementName Airex
-      quantity 4
-      unit mm
+      quantity 20.8             // 0.4*52 = 20.8 g
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
+      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [1].
     }
   }
+ 
+ 
+  // Supports Mechanics: PCB panel
+  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
+  Component {
+    componentName "Supports Mechanics: Dee PCB panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName PCB_panel_EPX
+      quantity 169.6        // 0.4*424 = 169.6 g
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [1].
+    }
+
+  }
+  
+    
+  // Supports Mechanics: CFRP panel (also called CFK stiffener)
+  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
+  Component {
+    componentName "Supports Mechanics: Dee CFRP panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName CFRP_EPX
+      quantity 120          // 0.4*300 = 120 g
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      
+      // thickness approach would be as follows (but far more precise because of modules holes).                     
+      //quantity 1.2        // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
+                            // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
+                            // total thickness = 4 * 0.3 = 1.2 mm
+                            // Source: [1].
+      //unit mm
+    }   
+  }
+
+  
+  
 }
