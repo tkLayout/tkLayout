@@ -32,7 +32,8 @@ namespace material {
       maxZ_ ("maxZ", parsedOnly()),
       subdetectorName_(subdetectorName),
       stationType_ (ERROR),
-      conversionsNode_ ("Conversion", parsedOnly())
+      conversionsNode_ ("Conversion", parsedOnly()),
+      nonConvertedLocalMaterialsNode_ ("NonConvertedLocalMaterials", parsedOnly())
     {};
     virtual ~ConversionStation() {};
 
@@ -54,6 +55,7 @@ namespace material {
     Type stationType_;
     bool valid_;
     PropertyNodeUnique<std::string> conversionsNode_;
+    PropertyNodeUnique<std::string> nonConvertedLocalMaterialsNode_;
 
     void buildConversions();
 
@@ -75,6 +77,27 @@ namespace material {
       //void build();
     };
     */
+
+
+    class NonConvertedLocalMaterials : public PropertyObject {
+    public:
+      NonConvertedLocalMaterials(const std::string subdetectorName) :
+        elementsNode_ ("Element", parsedOnly()),
+	elementMaterialType_(MaterialObject::Type::STATION),
+	subdetectorName_(subdetectorName)
+      {};
+      virtual ~NonConvertedLocalMaterials() {};
+      void build();
+      const std::vector<MaterialObject::Element*> elements() const { return elements_; }
+
+      PropertyNodeUnique<std::string> elementsNode_;
+
+    private:
+      std::vector<MaterialObject::Element*> elements_;
+      MaterialObject::Type elementMaterialType_;
+      std::string subdetectorName_;
+    };
+
 
     class Inoutput : public PropertyObject {
     public:
@@ -119,6 +142,7 @@ namespace material {
     };
 
     std::vector<Conversion *> conversions;
+    std::vector<NonConvertedLocalMaterials*> nonConvertedLocalMaterials_;
   };
 
 } /* namespace material */

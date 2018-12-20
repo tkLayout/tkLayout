@@ -36,6 +36,7 @@ namespace material {
     std::set<std::string> infoMaterials;
     std::set<std::string> warningMaterials;
     
+    // CONVERSIONS
     for (const MaterialObject::Element* currElement : serviceElements_) { //inputElements) {
       converted = false;
       //if the material need to be converted (flange station, or endcap station with right destination)
@@ -106,6 +107,7 @@ namespace material {
       }
     }
 
+    // WARNING IF ISSUES WHILE CONVERSION
     for(auto& warningMaterial : warningMaterials) {
       logWARNING("Element \"" + warningMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
@@ -113,50 +115,29 @@ namespace material {
       logINFO("Element \"" + infoMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
 
-    /*
-    for (const Conversion* currConversion : conversions) {
-      inputElement = currConversion->input->elements[0];
-      totalGrams = 0.0;
 
-      for (const MaterialObject::Element* currElement : inputElements) {
-        if (inputElement->elementName().compare(currElement->elementName()) == 0) {
-          totalGrams += currElement->quantityInGrams(inactiveElement);
-        }
-      }
+    // MATERIALS LOCAL TO THE STATIONS
+    for (const NonConvertedLocalMaterials* currLocal : nonConvertedLocalMaterials_) {
+      for (const MaterialObject::Element* localElement : currLocal->elements()) {
 
-      multiplier = totalGrams / inputElement->quantityInGrams(inactiveElement);
-
-      for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
-    
-        MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
-
-        if (newElement->service()) {
-          serviceOutput.addElement(newElement);
-        } else {
-          localOutput.addElement(newElement);
-        }
+	// Should not be of routed service type
+	if (localElement->service()) {
+	  logWARNING("Element " + localElement->elementName() + ", which is local in station " + stationName_() + " is of routed service type!!!");
+	}
+	localOutput.addElement(localElement);
       }
     }
-    */
-  }
 
-  /*
-  void ConversionStation::routeConvertedServicesTo(MaterialObject& outputObject) const {
 
   }
 
-  void ConversionStation::routeConvertedLocalsTo(MaterialObject& outputObject) const {
-
-  }
-  */
-
+ 
 
   ConversionStation::Type ConversionStation::stationType() const {
     return stationType_;
   }
 
   void ConversionStation::buildConversions() {
-    //std::cout << "STATION" << std::endl;
 
     for (auto& currentConversionNode : conversionsNode_) {
       Conversion* newConversion = new Conversion(subdetectorName_);
@@ -167,10 +148,38 @@ namespace material {
 
       conversions.push_back(newConversion);
     }
+
+    for (const auto& node : nonConvertedLocalMaterialsNode_) {
+      NonConvertedLocalMaterials* newNonConverted = new NonConvertedLocalMaterials(subdetectorName_);
+      newNonConverted->store(propertyTree());
+      newNonConverted->store(node.second);
+      newNonConverted->check();
+      newNonConverted->build();
+
+      nonConvertedLocalMaterials_.push_back(newNonConverted);
+    }
+  
   }
 
+
+
+  void ConversionStation::NonConvertedLocalMaterials::build() {
+
+    for (const auto& currentElementNode : elementsNode_) {
+      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType_, subdetectorName_);
+      newElement->store(propertyTree());
+      newElement->store(currentElementNode.second);
+      newElement->check();     
+      newElement->cleanup();
+
+      elements_.push_back(newElement);
+    }
+    cleanup();
+  }
+
+
+
   void ConversionStation::Conversion::build() {
-    //std::cout << "  CONVERSION" << std::endl;
 
     if (inputNode_.size() > 0) {
       input = new Inoutput(subdetectorName_);
@@ -195,8 +204,6 @@ namespace material {
   }
 
   void ConversionStation::Inoutput::build() {
-
-    //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
       MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType, subdetectorName_);

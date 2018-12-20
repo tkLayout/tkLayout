@@ -1,5 +1,6 @@
 // Flange service conversion
 // used to generate services at the FPIX flange 
+// Used for each TFPX or TEPX double-disk
 
 Station {
   stationName flange_FPIX
@@ -28,4 +29,7 @@ Station {
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Kapton
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_PE
+  
+  // MATERIALS LOCAL TO THE CONVERSION STATION (INDEPENDENT FROM CONVERSIONS)
+  @include-std CMS_Phase2/Pixel/Conversions/Components/disk_extension_to_cylinder  
 }
