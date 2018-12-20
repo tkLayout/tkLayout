@@ -49,7 +49,7 @@ TPG	                       2.26	                   C:1
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
-CFRP	                     1.84	                   C:0.96            Epoxy:0.04
+CFRP	                     1.84	                   C:0.96            Epoxy:0.27
 # from Duccio, Composite materials, 14/01/2015
 
 CFRP_OTST                  1.55	                   CFRP:1
@@ -66,11 +66,11 @@ CFRP_module	               1.43	                   C:0.96            Epoxy:0.27
 # from [1].
 # check compo???
 
-HDI_module	               2.97	                   FR4:0.96            Cu:0.04
+HDI_module	               2.97	                   FR4:0.66             Cu:0.34
 # from [1].
-# check compo??? randow proportion of Cu!!!!!
+# check compo??? proportion of Cu!!!!!
 
-PCB_panel_EPX	             1.9	                   FR4:1
+PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
 # from [1].
 # should also have Cu, connectors?????
 
