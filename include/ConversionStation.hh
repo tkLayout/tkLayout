@@ -1,10 +1,3 @@
-/**
- * @file ConversionStation.h
- *
- * @date Jul 21, 2014
- * @author Stefano Martina
- */
-
 #ifndef CONVERSIONSTATION_H_
 #define CONVERSIONSTATION_H_
 
@@ -18,9 +11,14 @@ namespace insur {
 using insur::InactiveElement;
 
 namespace material {
-  //class MaterialObject;
   
-  class ConversionStation :public MaterialObject {
+  /////////////////////////////////////////////////////
+  /* CONVERSION STATION: 
+   * VOLUME AT A SPECIFIC LOCATION, WICH PRODUCES CONVERSIONS.
+   * CAN ALSO HAVE CONVERSION-INDEPENDENT LOCAL MATERIALS.
+   *///////////////////////////////////////////////////
+
+  class ConversionStation : public MaterialObject {
   public:
     enum Type {ERROR, FLANGE, SECOND};
     
@@ -39,9 +37,7 @@ namespace material {
 
     void build();
     void routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement);
-    //void routeConvertedServicesTo(MaterialObject& outputObject) const;
-    //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
-    Type stationType() const;
+    Type stationType() const { return stationType_; }
 
     ReadonlyProperty<std::string, NoDefault> stationName_;
     ReadonlyProperty<std::string, NoDefault> type_;
@@ -59,91 +55,81 @@ namespace material {
 
     void buildConversions();
 
-    /*
-    class Element : public PropertyObject {
-    public:
-      ReadonlyProperty<std::string, NoDefault> elementName;
-      ReadonlyProperty<long, NoDefault> quantity;
-      ReadonlyProperty<std::string, NoDefault> unit;
-      ReadonlyProperty<bool, Default> service;
-
-      Element() :
-        elementName ("elementName", parsedAndChecked()),
-        quantity ("quantity", parsedAndChecked()),
-        unit ("unit", parsedAndChecked()),
-        service ("service", parsedOnly(), false) {};
-      virtual ~Element() {};
-
-      //void build();
-    };
-    */
-
-
-    class NonConvertedLocalMaterials : public PropertyObject {
-    public:
-      NonConvertedLocalMaterials(const std::string subdetectorName) :
-        elementsNode_ ("Element", parsedOnly()),
-	elementMaterialType_(MaterialObject::Type::STATION),
-	subdetectorName_(subdetectorName)
-      {};
-      virtual ~NonConvertedLocalMaterials() {};
-      void build();
-      const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
-
-      PropertyNodeUnique<std::string> elementsNode_;
-
-    private:
-      std::vector<std::unique_ptr<MaterialObject::Element> > elements_;
-      MaterialObject::Type elementMaterialType_;
-      std::string subdetectorName_;
-    };
-
-
-    class Inoutput : public PropertyObject {
-    public:
-      PropertyNodeUnique<std::string> elementsNode_;
-
-      Inoutput(const std::string subdetectorName) :
-        elementsNode_ ("Element", parsedOnly()),
-        elementMaterialType(MaterialObject::Type::STATION),
-	subdetectorName_(subdetectorName)
-      {};
-
-        virtual ~Inoutput() {};
-
-      void build();
-
-      std::vector<MaterialObject::Element*> elements;
-      MaterialObject::Type elementMaterialType;
-
-    private:
-      std::string subdetectorName_;
-    };
-
-    class Conversion : public PropertyObject {
-    public:
-      PropertyNode<std::string> inputNode_;
-      PropertyNode<std::string> outputNode_;
-
-      Conversion(const std::string subdetectorName) :
-        inputNode_ ("Input", parsedAndChecked()),
-        outputNode_ ("Output", parsedAndChecked()),
-	subdetectorName_(subdetectorName)
-      {};
-      virtual ~Conversion() {};
-
-      void build();
-
-      Inoutput* input;
-      Inoutput* outputs;
-
-    private:
-      std::string subdetectorName_;
-    };
-
-    std::vector<Conversion *> conversions;
+    class Conversion;
+    class Inoutput;
+    class NonConvertedLocalMaterials;
+   
+    std::vector<Conversion*> conversions;
     std::vector<NonConvertedLocalMaterials*> nonConvertedLocalMaterials_;
   };
+
+
+
+  /////////////////////////////////////////////////////
+  /* CONVERSIONS: 
+   * DEFINE THE ASSOCIATED OUTPUTS TO A GIVEN INPUT
+   *///////////////////////////////////////////////////
+  class ConversionStation::Conversion : public PropertyObject {
+  public:
+    PropertyNode<std::string> inputNode_;
+    PropertyNode<std::string> outputNode_;
+
+    Conversion(const std::string subdetectorName);
+    virtual ~Conversion() {};
+
+    void build();
+
+    Inoutput* input;
+    Inoutput* outputs;
+
+  private:
+    std::string subdetectorName_;
+  };
+
+
+
+  ////////////////////////////////////////////////////////////////////
+  /* INOUTPUTS: 
+   * DEFINE A LIST OF ELEMENTS MAKING UP THE INPUT OR THE OUTPUT NODE
+   *//////////////////////////////////////////////////////////////////
+  class ConversionStation::Inoutput : public PropertyObject {
+  public:
+    PropertyNodeUnique<std::string> elementsNode_;
+
+    Inoutput(const std::string subdetectorName);
+    virtual ~Inoutput() {};
+
+    void build();
+
+    std::vector<MaterialObject::Element*> elements;
+    MaterialObject::Type elementMaterialType;
+
+  private:
+    std::string subdetectorName_;
+  };
+
+
+
+  /////////////////////////////////////////////////////
+  /* LOCAL MATERIALS INDEPENDENT FROM THE CONVERSIONS.
+   * These are the materials that should not be scaled as a function of the input. They are independent from the conversions!!
+   * Whether the input is nothing, 10 g of Cu, or 50 g of ALN, the non converted materials are the same!
+   *///////////////////////////////////////////////////
+  class ConversionStation::NonConvertedLocalMaterials : public PropertyObject {
+  public:
+    NonConvertedLocalMaterials(const std::string subdetectorName);
+    virtual ~NonConvertedLocalMaterials() {};
+    void build();
+    const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
+
+  private:
+    PropertyNodeUnique<std::string> elementsNode_;
+    MaterialObject::Type elementMaterialType_;
+    std::string subdetectorName_;
+    std::vector<std::unique_ptr<MaterialObject::Element> > elements_;
+  };
+
+
 
 } /* namespace material */
 

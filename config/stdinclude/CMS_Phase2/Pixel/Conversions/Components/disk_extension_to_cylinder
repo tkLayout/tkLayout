@@ -1,4 +1,5 @@
 // External CFK stiffener & extension
+// quantity for one double-disk
 NonConvertedLocalMaterials {
    Element {
         service false
