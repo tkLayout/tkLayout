@@ -88,12 +88,12 @@ namespace material {
       {};
       virtual ~NonConvertedLocalMaterials() {};
       void build();
-      const std::vector<MaterialObject::Element*> elements() const { return elements_; }
+      const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
 
       PropertyNodeUnique<std::string> elementsNode_;
 
     private:
-      std::vector<MaterialObject::Element*> elements_;
+      std::vector<std::unique_ptr<MaterialObject::Element> > elements_;
       MaterialObject::Type elementMaterialType_;
       std::string subdetectorName_;
     };

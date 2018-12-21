@@ -118,13 +118,13 @@ namespace material {
 
     // MATERIALS LOCAL TO THE STATIONS
     for (const NonConvertedLocalMaterials* currLocal : nonConvertedLocalMaterials_) {
-      for (const MaterialObject::Element* localElement : currLocal->elements()) {
+      for (const std::unique_ptr<MaterialObject::Element>& localElement : currLocal->elements()) {
 
 	// Should not be of routed service type
 	if (localElement->service()) {
 	  logWARNING("Element " + localElement->elementName() + ", which is local in station " + stationName_() + " is of routed service type!!!");
 	}
-	localOutput.addElement(localElement);
+	localOutput.addElement(localElement.get());
       }
     }
 
@@ -166,13 +166,13 @@ namespace material {
   void ConversionStation::NonConvertedLocalMaterials::build() {
 
     for (const auto& currentElementNode : elementsNode_) {
-      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType_, subdetectorName_);
+      std::unique_ptr<MaterialObject::Element> newElement (new MaterialObject::Element(elementMaterialType_, subdetectorName_));
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();     
       newElement->cleanup();
 
-      elements_.push_back(newElement);
+      elements_.push_back(std::move(newElement));
     }
     cleanup();
   }
