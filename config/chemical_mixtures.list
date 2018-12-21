@@ -7,6 +7,10 @@
 Steel	                     7.8	                    C:0.00089992039   Si:0.0015987127    Mn:0.0042943177       S:0.00017903506  P:0.00012830888  Ni:0.000095139401  Cu:0.00029757275   Al:0.00069973892  Fe:0.99180725          
 # from trackermaterial.xml
  
+StainlessSteel             8.02                     Fe:0.6996          C:0.0004       Mn:0.01         Cr:0.19   Ni:0.1
+# from materials.xml
+# NB: Density from Lea and Stefanos in [1] is 7.8, which is probably a bit too low (stainless steel is more dense than steel).
+ 
 Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
 # Polyimide. from trackermaterial.xml (density 1.40 g/cm3 ?)                        
    
@@ -44,7 +48,7 @@ Acrylicglue                1.16                C5O2H8:1
 
 TPG	                       2.26	                   C:1
 # from materials.xml
-# compo: no foam????
+# WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
 
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
@@ -68,11 +72,11 @@ CFRP_module	               1.43	                   C:0.96            Epoxy:0.27
 
 HDI_module	               2.97	                   FR4:0.66             Cu:0.34
 # from [1].
-# check compo??? proportion of Cu!!!!!
+# check compo??? proportion of FR4!! ~2/3 from Lea.
 
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
 # from [1].
-# should also have Cu, connectors?????
+# check compo??? proportion of FR4!! ~2/3 from Lea. Should also have connectors?????
 
 Polyethylene                0.89              C2H4:1
 # from Duccio, Composite materials, 14/01/2015
