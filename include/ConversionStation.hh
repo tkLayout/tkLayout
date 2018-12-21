@@ -60,7 +60,7 @@ namespace material {
     class NonConvertedLocalMaterials;
    
     std::vector<Conversion*> conversions;
-    std::vector<NonConvertedLocalMaterials*> nonConvertedLocalMaterials_;
+    std::vector<std::unique_ptr<NonConvertedLocalMaterials> > nonConvertedLocalMaterials_;
   };
 
 

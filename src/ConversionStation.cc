@@ -16,6 +16,7 @@ namespace material {
     {"second", SECOND}
   };
 
+
   void ConversionStation::build() {
     try {
       stationType_ = typeString.at(type_());
@@ -25,6 +26,7 @@ namespace material {
     }
     cleanup();
   }
+
 
   void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
     MaterialObject::Element* inputElement;
@@ -115,8 +117,8 @@ namespace material {
 
 
     // MATERIALS LOCAL TO THE STATIONS, INDEPENDENT FROM THE CONVERSIONS
-    for (const NonConvertedLocalMaterials* currLocal : nonConvertedLocalMaterials_) {
-      for (const std::unique_ptr<MaterialObject::Element>& localElement : currLocal->elements()) {
+    for (const std::unique_ptr<NonConvertedLocalMaterials>& it : nonConvertedLocalMaterials_) {
+      for (const std::unique_ptr<MaterialObject::Element>& localElement : it->elements()) {
 
 	// Local materials: if routed service type is found, there is a problem!
 	if (localElement->service()) {
@@ -152,13 +154,13 @@ namespace material {
 
     // Stores conversion-independent info.
     for (const auto& node : nonConvertedLocalMaterialsNode_) {
-      NonConvertedLocalMaterials* newNonConverted = new NonConvertedLocalMaterials(subdetectorName_);
+      std::unique_ptr<NonConvertedLocalMaterials> newNonConverted (new NonConvertedLocalMaterials(subdetectorName_));
       newNonConverted->store(propertyTree());
       newNonConverted->store(node.second);
       newNonConverted->check();
       newNonConverted->build();
 
-      nonConvertedLocalMaterials_.push_back(newNonConverted);
+      nonConvertedLocalMaterials_.push_back(std::move(newNonConverted));
     }
   
   }
