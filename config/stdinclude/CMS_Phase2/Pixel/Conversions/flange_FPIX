@@ -14,6 +14,8 @@ Station {
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_HV_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000
   
+  @include-std CMS_Phase2/Pixel/Conversions/Components/gold
+  
   // E-links
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R1
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R2

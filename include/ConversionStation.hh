@@ -113,7 +113,7 @@ namespace material {
   /////////////////////////////////////////////////////
   /* LOCAL MATERIALS INDEPENDENT FROM THE CONVERSIONS.
    * These are the materials that should not be scaled as a function of the input. They are independent from the conversions!!
-   * Whether the input is nothing, 10 g of Cu, or 50 g of ALN, the non converted materials are the same!
+   * Whether the input is nothing, 10 g of Cu, or 50 g of ALN, the non converted materials are of the quantity!
    *///////////////////////////////////////////////////
   class ConversionStation::NonConvertedLocalMaterials : public PropertyObject {
   public:

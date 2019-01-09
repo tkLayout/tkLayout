@@ -69,6 +69,7 @@ namespace material {
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
+	      if(currElement->destination.state()) std::cout << currElement->destination() << std::endl;
               //TODO: check if is ok to do this
               if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
                 newElement->destination(currElement->destination());
@@ -122,11 +123,15 @@ namespace material {
 
 	// Local materials: if routed service type is found, there is a problem!
 	if (localElement->service()) {
-	  logWARNING("Element " + localElement->elementName() + ", which is local in station " + stationName_() + " is of routed service type!!!");
+	  serviceOutput.addElement(localElement.get());
+	  std::cout << "SERVICE localElement->elementName() = " << localElement->elementName() << std::endl;
+	  //logWARNING("Element " + localElement->elementName() + ", which is local in station " + stationName_() + " is of routed service type!!!");
 	}
 
-	// Add the materials to the station volume
-	localOutput.addElement(localElement.get());
+	else {
+	  // Add the materials to the station volume
+	  localOutput.addElement(localElement.get());
+	}
       }
     }
 
