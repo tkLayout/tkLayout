@@ -1,6 +1,6 @@
 // External CFK stiffener & extension
 // quantity for one double-disk
-NonConvertedLocalMaterials {
+NonConvertedMaterials {
    Element {
         service false
         scaleOnSensor 0

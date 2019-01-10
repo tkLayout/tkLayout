@@ -8,7 +8,7 @@ namespace material {
   /////////////////////////////////////////////////////
   /* CONVERSION STATION: 
    * VOLUME AT A SPECIFIC LOCATION, WICH PRODUCES CONVERSIONS.
-   * CAN ALSO HAVE CONVERSION-INDEPENDENT LOCAL MATERIALS.
+   * CAN ALSO HAVE CONVERSION-INDEPENDENT MATERIALS.
    *///////////////////////////////////////////////////
 
   const std::map<std::string, ConversionStation::Type> ConversionStation::typeString = {
@@ -30,7 +30,6 @@ namespace material {
 
   void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
     MaterialObject::Element* inputElement;
-    //double totalGrams = 0.0;
     double multiplier = 0.0;
     bool converted = false;
     std::set<std::string> infoMaterials;
@@ -46,6 +45,7 @@ namespace material {
           if (inputElement->elementName().compare(currElement->elementName()) == 0) {
             converted = true;
 
+	    // Calculate conversion factor
             multiplier = currElement->quantityInUnit(inputElement->unit(), inactiveElement) / 
               inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
           
@@ -69,26 +69,20 @@ namespace material {
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
-	      if(currElement->destination.state()) std::cout << currElement->destination() << std::endl;
               //TODO: check if is ok to do this
               if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
                 newElement->destination(currElement->destination());
               }
 
-	      // We now have our newElement :)
-              if (newElement->service()) {
-                if (newElement->unit().compare("g") != 0) {
-                  serviceOutput.addElement(newElement);
-                } else {
-                  logERROR(err_service1 + newElement->elementName() + err_service2);
-                }        
-              } else {
-                localOutput.addElement(newElement);
-              }
+	      // We now have our converted newElement :)
+	      // Amount of its material is proportional to the input.
+	      // We add it to the relevant volumes (these volumes depend whether the newElement is a service or local).
+	      addOutputElements(newElement, localOutput, serviceOutput);
             }
           }
         }
       }
+      // WARNINGS / INFOS on materials that were assigned in cfg to be converted, but that were eventually not converted!!
       if (!converted) {
         serviceOutput.addElement(currElement);
         // We may want a warning or an info here
@@ -108,7 +102,6 @@ namespace material {
       }
     }
 
-    // WARNING IF ISSUES WHILE CONVERSION
     for(auto& warningMaterial : warningMaterials) {
       logWARNING("Element \"" + warningMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
@@ -117,24 +110,17 @@ namespace material {
     }    
 
 
-    // MATERIALS LOCAL TO THE STATIONS, INDEPENDENT FROM THE CONVERSIONS
-    for (const std::unique_ptr<NonConvertedLocalMaterials>& it : nonConvertedLocalMaterials_) {
-      for (const std::unique_ptr<MaterialObject::Element>& localElement : it->elements()) {
+    // MATERIALS INDEPENDENT FROM THE CONVERSIONS
+    for (const std::unique_ptr<NonConvertedMaterials>& it : nonConvertedMaterials_) {
+      for (const std::unique_ptr<MaterialObject::Element>& nonConvertedOutputElementUPtr : it->elements()) {
 
-	// Local materials: if routed service type is found, there is a problem!
-	if (localElement->service()) {
-	  serviceOutput.addElement(localElement.get());
-	  std::cout << "SERVICE localElement->elementName() = " << localElement->elementName() << std::endl;
-	  //logWARNING("Element " + localElement->elementName() + ", which is local in station " + stationName_() + " is of routed service type!!!");
-	}
-
-	else {
-	  // Add the materials to the station volume
-	  localOutput.addElement(localElement.get());
-	}
+	// We now have our non-converted output Element :)
+	// Amount of its material is INDEPENDENT from the input.
+	// We add it to the relevant volumes (these volumes depend whether the output Element is a service or local).
+	MaterialObject::Element* outputElement = nonConvertedOutputElementUPtr.get();
+	addOutputElements(outputElement, localOutput, serviceOutput);
       }
     }
-
 
   }
 
@@ -142,7 +128,7 @@ namespace material {
   /*
    * Build conversion station.
    * This stores all the station's conversions.
-   * It also stores all the materials local to the station, and which are independent from the conversion.
+   * It also stores all the materials which are independent from the conversion.
    */
   void ConversionStation::buildConversions() {
 
@@ -158,16 +144,39 @@ namespace material {
     }
 
     // Stores conversion-independent info.
-    for (const auto& node : nonConvertedLocalMaterialsNode_) {
-      std::unique_ptr<NonConvertedLocalMaterials> newNonConverted (new NonConvertedLocalMaterials(subdetectorName_));
+    for (const auto& node : nonConvertedMaterialsNode_) {
+      std::unique_ptr<NonConvertedMaterials> newNonConverted (new NonConvertedMaterials(subdetectorName_));
       newNonConverted->store(propertyTree());
       newNonConverted->store(node.second);
       newNonConverted->check();
       newNonConverted->build();
 
-      nonConvertedLocalMaterials_.push_back(std::move(newNonConverted));
+      nonConvertedMaterials_.push_back(std::move(newNonConverted));
     }
   
+  }
+
+
+  /*
+   * Add the output of the conversion station (whether in converted or non-converted category, local or service) to the relevant volumes.
+   * The 'relevant volumes" are:
+   * local: MaterialObject& localOutput (assigned to the station volume).
+   * service: MaterialObject& serviceOutput (routed from the station volume).
+   */
+  void ConversionStation::addOutputElements(MaterialObject::Element* outputElement, MaterialObject& localOutput, MaterialObject& serviceOutput) {
+
+    // OUTPUT SERVICES 
+    if (outputElement->service()) {
+      if (outputElement->unit().compare("g") != 0) {
+	serviceOutput.addElement(outputElement);
+      } 
+      else { logERROR(err_service1 + outputElement->elementName() + err_service2); } // services cannot be set in g!  
+
+      // OUTPUT LOCAL MATERIALS  
+    } else {
+      localOutput.addElement(outputElement);
+    }
+
   }
 
 
@@ -248,10 +257,10 @@ namespace material {
 
 
   /////////////////////////////////////////////////////
-  /* LOCAL MATERIALS INDEPENDENT FROM THE CONVERSIONS.
+  /* MATERIALS INDEPENDENT FROM THE CONVERSIONS.
    *///////////////////////////////////////////////////
 
-  ConversionStation::NonConvertedLocalMaterials::NonConvertedLocalMaterials(const std::string subdetectorName) 
+  ConversionStation::NonConvertedMaterials::NonConvertedMaterials(const std::string subdetectorName) 
     : elementsNode_ ("Element", parsedOnly()),
       elementMaterialType_(MaterialObject::Type::STATION),
       subdetectorName_(subdetectorName)
@@ -261,7 +270,7 @@ namespace material {
   /*
    * Takes info from cfg files.
    */
-  void ConversionStation::NonConvertedLocalMaterials::build() {
+  void ConversionStation::NonConvertedMaterials::build() {
 
     // Takes info from Element nodes.
     for (const auto& currentElementNode : elementsNode_) {

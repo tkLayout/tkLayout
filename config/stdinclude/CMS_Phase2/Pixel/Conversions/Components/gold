@@ -1,6 +1,5 @@
-NonConvertedLocalMaterials {
+NonConvertedMaterials {
    Element {
-        //destination FPIX5
         service true
         scaleOnSensor 0
         componentName "Gold without trick"               

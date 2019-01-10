@@ -15,7 +15,7 @@ namespace material {
   /////////////////////////////////////////////////////
   /* CONVERSION STATION: 
    * VOLUME AT A SPECIFIC LOCATION, WICH PRODUCES CONVERSIONS.
-   * CAN ALSO HAVE CONVERSION-INDEPENDENT LOCAL MATERIALS.
+   * CAN ALSO HAVE CONVERSION-INDEPENDENT MATERIALS.
    *///////////////////////////////////////////////////
 
   class ConversionStation : public MaterialObject {
@@ -31,7 +31,7 @@ namespace material {
       subdetectorName_(subdetectorName),
       stationType_ (ERROR),
       conversionsNode_ ("Conversion", parsedOnly()),
-      nonConvertedLocalMaterialsNode_ ("NonConvertedLocalMaterials", parsedOnly())
+      nonConvertedMaterialsNode_ ("NonConvertedMaterials", parsedOnly())
     {};
     virtual ~ConversionStation() {};
 
@@ -51,16 +51,17 @@ namespace material {
     Type stationType_;
     bool valid_;
     PropertyNodeUnique<std::string> conversionsNode_;
-    PropertyNodeUnique<std::string> nonConvertedLocalMaterialsNode_;
+    PropertyNodeUnique<std::string> nonConvertedMaterialsNode_;
 
     void buildConversions();
+    void addOutputElements(MaterialObject::Element* outputElement, MaterialObject& localOutput, MaterialObject& serviceOutput);
 
     class Conversion;
     class Inoutput;
-    class NonConvertedLocalMaterials;
+    class NonConvertedMaterials;
    
     std::vector<Conversion*> conversions;
-    std::vector<std::unique_ptr<NonConvertedLocalMaterials> > nonConvertedLocalMaterials_;
+    std::vector<std::unique_ptr<NonConvertedMaterials> > nonConvertedMaterials_;
   };
 
 
@@ -111,14 +112,15 @@ namespace material {
 
 
   /////////////////////////////////////////////////////
-  /* LOCAL MATERIALS INDEPENDENT FROM THE CONVERSIONS.
+  /* MATERIALS INDEPENDENT FROM THE CONVERSIONS.
    * These are the materials that should not be scaled as a function of the input. They are independent from the conversions!!
-   * Whether the input is nothing, 10 g of Cu, or 50 g of ALN, the non converted materials are of the quantity!
+   * The non converted materials are of the same quantity, whether the input is nothing, 10 g of Cu, or 50 g of ALN!
+   * These materials can be local (assigned to the station volume) or services (routed from the station volume).
    *///////////////////////////////////////////////////
-  class ConversionStation::NonConvertedLocalMaterials : public PropertyObject {
+  class ConversionStation::NonConvertedMaterials : public PropertyObject {
   public:
-    NonConvertedLocalMaterials(const std::string subdetectorName);
-    virtual ~NonConvertedLocalMaterials() {};
+    NonConvertedMaterials(const std::string subdetectorName);
+    virtual ~NonConvertedMaterials() {};
     void build();
     const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
 
