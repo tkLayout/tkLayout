@@ -29,57 +29,78 @@ namespace material {
 
 
   void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
-    MaterialObject::Element* inputElement;
     double multiplier = 0.0;
-    bool converted = false;
     std::set<std::string> infoMaterials;
     std::set<std::string> warningMaterials;
     
     // CONVERSIONS
-    for (const MaterialObject::Element* currElement : serviceElements_) { //inputElements) {
-      converted = false;
-      //if the material need to be converted (flange station, or endcap station with right destination)
-      if ((stationType_ == FLANGE) || (stationType_ == SECOND && currElement->destination.state() && currElement->destination().compare(stationName_()) == 0)) {
-        for (const Conversion* currConversion : conversions) {
-          inputElement = currConversion->input->elements[0];
-          if (inputElement->elementName().compare(currElement->elementName()) == 0) {
-            converted = true;
+    // Loop on all incoming materials
+    for (const MaterialObject::Element* currElement : serviceElements_) {
+      bool converted = false;
+      // Find whether the material need to be converted (flange station, or endcap station with right destination)
+      if ( (stationType_ == FLANGE) 
+	  || (stationType_ == SECOND && currElement->destination.state() && currElement->destination().compare(stationName_()) == 0)
+	  ) {
 
-	    // Calculate conversion factor
-            multiplier = currElement->quantityInUnit(inputElement->unit(), inactiveElement) / 
-              inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
-          
-            for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
-	      // newElement is the converted Element.
-	      // newElement is assigned the properties from OUTPUT Element.
-	      // Notably, in the rare case where outputElement has a componentName (see conversion station cfg file), 
-	      // that name is assigned to newElement.
-              MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+	// Loop on all conversions of the station
+        for (const std::unique_ptr<Conversion>& currConversion : conversions_) {
 
-	      // Here, new Element is assigned additional info from the INPUT Elements.
-	      // newElement is assigned the same componentName as in input
-	      // (except if outputElement has a componentName).
-	      if (currElement->componentName.state() && !outputElement->componentName.state()) {
-		newElement->componentName(currElement->componentName());
+	  // Find the input material of each conversion
+	  Inoutput* myInput = currConversion->input();
+	  MaterialObject::Element* inputElement = nullptr;
+	  if (myInput) {
+	    const std::vector<std::unique_ptr<MaterialObject::Element> >& myInputElements = myInput->elements();
+	    if (myInputElements.size() == 1) { inputElement = myInputElements.at(0).get(); }
+	  }
+
+	  if (inputElement && currElement) {
+	    // If incoming material and conversion input element are the same: do conversion!
+	    if (inputElement->elementName().compare(currElement->elementName()) == 0) {
+	      converted = true;
+
+	      // Calculate conversion factor
+	      multiplier = currElement->quantityInUnit(inputElement->unit(), inactiveElement) / 
+		inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
+
+	      // Compute the output and store result
+	      Inoutput* myOutput = currConversion->outputs();
+	      if (myOutput) {
+		for (const std::unique_ptr<MaterialObject::Element>& outputElementUPtr : myOutput->elements()) {
+		  MaterialObject::Element* outputElement = outputElementUPtr.get();
+		  if (outputElement) {
+		    // newElement is the converted Element.
+		    // newElement is assigned the properties from OUTPUT Element.
+		    // Notably, in the rare case where outputElement has a componentName (see conversion station cfg file), 
+		    // that name is assigned to newElement.
+		    MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+
+		    // Here, new Element is assigned additional info from the INPUT Elements.
+		    // newElement is assigned the same componentName as in input
+		    // (except if outputElement has a componentName).
+		    if (currElement->componentName.state() && !outputElement->componentName.state()) {
+		      newElement->componentName(currElement->componentName());
+		    }
+		    // If we end up with a converted element belonging to no component, there is a problem !
+		    if (!newElement->componentName.state()) {
+		      logWARNING("Element " + newElement->elementName() + "which is at output of station" + stationName_() + "has no assigned componentName.");
+		    }
+		    if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
+		      newElement->debugInactivate(true);
+		    }
+		    //TODO: check if is ok to do this
+		    if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
+		      newElement->destination(currElement->destination());
+		    }
+
+		    // We now have our converted newElement :)
+		    // Amount of its material is proportional to the input.
+		    // We add it to the relevant volumes (these volumes depend whether the newElement is a service or local).
+		    addOutputElements(newElement, localOutput, serviceOutput);
+		  }
+		}
 	      }
-	      // If we end up with a converted element belonging to no component, there is a problem !
-	      if (!newElement->componentName.state()) {
-		logWARNING("Element " + newElement->elementName() + "which is at output of station" + stationName_() + "has no assigned componentName.");
-	      }
-              if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
-                newElement->debugInactivate(true);
-              }
-              //TODO: check if is ok to do this
-              if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
-                newElement->destination(currElement->destination());
-              }
-
-	      // We now have our converted newElement :)
-	      // Amount of its material is proportional to the input.
-	      // We add it to the relevant volumes (these volumes depend whether the newElement is a service or local).
-	      addOutputElements(newElement, localOutput, serviceOutput);
-            }
-          }
+	    }
+	  }
         }
       }
       // WARNINGS / INFOS on materials that were assigned in cfg to be converted, but that were eventually not converted!!
@@ -134,13 +155,13 @@ namespace material {
 
     // Stores all conversions.
     for (auto& currentConversionNode : conversionsNode_) {
-      Conversion* newConversion = new Conversion(subdetectorName_);
+      std::unique_ptr<Conversion> newConversion (new Conversion(subdetectorName_));
       newConversion->store(propertyTree());
       newConversion->store(currentConversionNode.second);
       newConversion->check();
       newConversion->build();
 
-      conversions.push_back(newConversion);
+      conversions_.push_back(std::move(newConversion));
     }
 
     // Stores conversion-independent info.
@@ -186,11 +207,11 @@ namespace material {
    * DEFINE THE ASSOCIATED OUTPUTS TO A GIVEN INPUT
    *///////////////////////////////////////////////////
 
-  ConversionStation::Conversion::Conversion(const std::string subdetectorName) :
-      inputNode_ ("Input", parsedAndChecked()),
+  ConversionStation::Conversion::Conversion(const std::string subdetectorName) 
+    : inputNode_ ("Input", parsedAndChecked()),
       outputNode_ ("Output", parsedAndChecked()),
       subdetectorName_(subdetectorName)
-    {};
+  {};
 
  
   /*
@@ -200,24 +221,30 @@ namespace material {
 
     // Takes info from Input node.
     if (inputNode_.size() > 0) {
-      input = new Inoutput(subdetectorName_);
-      input->store(propertyTree());
-      input->store(inputNode_.begin()->second);
-      input->check();
-      input->build();
+      input_.reset(new Inoutput(subdetectorName_));
+      input_->store(propertyTree());
+      input_->store(inputNode_.begin()->second);
+      input_->check();
+      input_->build();
 
-      if(input->elements[0]->unit().compare("g") == 0) {
-        logWARNING("Converted element unit is 'g' in conversion rule.");
+      const std::vector<std::unique_ptr<MaterialObject::Element> >& myInputElements = input_->elements();
+      if (myInputElements.size() != 1) { 
+	logERROR("Conversion with " + any2str(myInputElements.size()) + " elements in input, only 1 element is supported."); 
+      }
+      else {
+	if(myInputElements.at(0)->unit().compare("g") == 0) {
+	  logWARNING("Converted element unit is 'g' in conversion rule.");
+	}
       }
     }
 
     // Takes info from Output node.
     if (outputNode_.size() > 0) {
-      outputs = new Inoutput(subdetectorName_);
-      outputs->store(propertyTree());
-      outputs->store(outputNode_.begin()->second);
-      outputs->check();
-      outputs->build();
+      outputs_.reset(new Inoutput(subdetectorName_));
+      outputs_->store(propertyTree());
+      outputs_->store(outputNode_.begin()->second);
+      outputs_->check();
+      outputs_->build();
     }
     cleanup();
   }
@@ -229,10 +256,10 @@ namespace material {
    * DEFINE A LIST OF ELEMENTS MAKING UP THE INPUT OR THE OUTPUT NODE
    *//////////////////////////////////////////////////////////////////
 
-  ConversionStation::Inoutput::Inoutput(const std::string subdetectorName) :
-    elementsNode_ ("Element", parsedOnly()),
-    elementMaterialType(MaterialObject::Type::STATION),
-    subdetectorName_(subdetectorName)
+  ConversionStation::Inoutput::Inoutput(const std::string subdetectorName) 
+    : elementsNode_ ("Element", parsedOnly()),
+      elementMaterialType_(MaterialObject::Type::STATION),
+      subdetectorName_(subdetectorName)
   {};
 
 
@@ -243,13 +270,13 @@ namespace material {
 
     // Takes info from Element nodes.
     for (auto& currentElementNode : elementsNode_) {
-      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType, subdetectorName_);
+      std::unique_ptr<MaterialObject::Element> newElement (new MaterialObject::Element(elementMaterialType_, subdetectorName_));
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
       newElement->cleanup();
 
-      elements.push_back(newElement);
+      elements_.push_back(std::move(newElement));
     }
     cleanup();
   }

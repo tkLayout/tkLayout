@@ -60,7 +60,7 @@ namespace material {
     class Inoutput;
     class NonConvertedMaterials;
    
-    std::vector<Conversion*> conversions;
+    std::vector<std::unique_ptr<Conversion> > conversions_;
     std::vector<std::unique_ptr<NonConvertedMaterials> > nonConvertedMaterials_;
   };
 
@@ -72,19 +72,19 @@ namespace material {
    *///////////////////////////////////////////////////
   class ConversionStation::Conversion : public PropertyObject {
   public:
-    PropertyNode<std::string> inputNode_;
-    PropertyNode<std::string> outputNode_;
-
     Conversion(const std::string subdetectorName);
     virtual ~Conversion() {};
 
     void build();
-
-    Inoutput* input;
-    Inoutput* outputs;
+    Inoutput* input() { return input_.get(); }
+    Inoutput* outputs() { return outputs_.get(); }
 
   private:
+    PropertyNode<std::string> inputNode_;
+    PropertyNode<std::string> outputNode_;
     std::string subdetectorName_;
+    std::unique_ptr<Inoutput> input_;
+    std::unique_ptr<Inoutput> outputs_;
   };
 
 
@@ -95,18 +95,17 @@ namespace material {
    *//////////////////////////////////////////////////////////////////
   class ConversionStation::Inoutput : public PropertyObject {
   public:
-    PropertyNodeUnique<std::string> elementsNode_;
-
     Inoutput(const std::string subdetectorName);
     virtual ~Inoutput() {};
 
     void build();
-
-    std::vector<MaterialObject::Element*> elements;
-    MaterialObject::Type elementMaterialType;
+    const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
 
   private:
+    PropertyNodeUnique<std::string> elementsNode_;
+    MaterialObject::Type elementMaterialType_;
     std::string subdetectorName_;
+    std::vector<std::unique_ptr<MaterialObject::Element> > elements_;
   };
 
 
@@ -121,6 +120,7 @@ namespace material {
   public:
     NonConvertedMaterials(const std::string subdetectorName);
     virtual ~NonConvertedMaterials() {};
+
     void build();
     const std::vector<std::unique_ptr<MaterialObject::Element> >& elements() const { return elements_; }
 
