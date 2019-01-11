@@ -50,7 +50,7 @@ namespace material {
 	  MaterialObject::Element* inputElement = nullptr;
 	  if (myInput) {
 	    const std::vector<std::unique_ptr<MaterialObject::Element> >& myInputElements = myInput->elements();
-	    if (myInputElements.size() == 1) { inputElement = myInputElements.at(0).get(); }
+	    if (myInputElements.size() == 1) { inputElement = myInputElements.front().get(); }
 	  }
 
 	  if (inputElement && currElement) {
@@ -232,7 +232,7 @@ namespace material {
 	logERROR("Conversion with " + any2str(myInputElements.size()) + " elements in input, only 1 element is supported."); 
       }
       else {
-	if(myInputElements.at(0)->unit().compare("g") == 0) {
+	if(myInputElements.front()->unit().compare("g") == 0) {
 	  logWARNING("Converted element unit is 'g' in conversion rule.");
 	}
       }
