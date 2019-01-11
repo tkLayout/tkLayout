@@ -1,15 +1,9 @@
 // Flange service conversion
-// used to generate services at the FPIX flange 
+// used to generate services at the BPIX flange 
 
 Station {
   stationName flange_BPIX
   type flange
-
-  // Cooling pipes
-  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_6:1
-  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L2_7:1
-  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L3_4:1
-  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L4_4:1
   
   // E-links
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1
@@ -22,6 +16,12 @@ Station {
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_1chipmodules
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_2chipmodules
+  
+  // Cooling pipes
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L1_6:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L2_7:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L3_4:1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_L4_4:1
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV
