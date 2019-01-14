@@ -498,7 +498,7 @@ namespace insur {
       totalWeight += totalWeightInSubdetector;
     } // subdetector
 
-    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
+    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight, 1);
     myPage.addContent(grandTotal, false);
 
     //RootWContent& totalContent = myPage.addContent(grandTotal, false);
