@@ -218,9 +218,9 @@ OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
 OT616_200_IT404.cfg	   Diff with OT615:
                        Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
                          - TEDD:
-                           TEDD 1, inner rings: (+41um) +7 mm  +1.01-0.5                 # IT insertion
-                           TEDD 2, inner rings: +2 mm  +1.01-0.5                  # IT insertion
-                           TEDD 1 and 2, outer rings: -27 mm -0.09+0.5           # Leave space for BTL
+                           TEDD 1, inner rings: +7 mm                   # IT insertion
+                           TEDD 2, inner rings: +2 mm                   # IT insertion
+                           TEDD 1 and 2, outer rings: -27 mm            # Leave space for BTL
                            TEDD 2: -4 modules in Ring 7, -4 modules in Ring 14.
                            Adjusted intermediate radii (needs feedback from Mechanics)
                          - TB2S:
@@ -362,7 +362,7 @@ OT614_200_IT460.cfg                  OT Version 6.1.4
                                      Inner Tracker version 4.6.0: TBPX conversion station placed on top of TBPX.
                                      
 OT614_200_IT461.cfg                  OT Version 6.1.4
-                                     Inner Tracker version 4.6.1: TBPX conversion stations placed on services cylinders (Z positions from Yadira).                                                                       
+                                     Inner Tracker version 4.6.1: TBPX conversion stations placed on services cylinders (Z positions by Andre).                                                                       
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
                                                                                              
 
