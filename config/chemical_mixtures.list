@@ -192,7 +192,7 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
 # from Duccio, Pixel Phase 2 materials.
                  
-Pix_Caps                   6.33              SMDCapacitors:1
+Pix_Caps                   6.02              SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
 # So took the one from OT.
 

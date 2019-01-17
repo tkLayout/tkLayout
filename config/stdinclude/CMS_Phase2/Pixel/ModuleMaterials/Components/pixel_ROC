@@ -1,8 +1,9 @@
+// MATERIALS per ROC
+
 // Capacitors for one pixel chip
 // According to Murata web page (from Stella)
-
 Component {
-  componentName "IT Module: Capacitors (remove?)"  // NB: THIS NEEDS TO BE CONFIRMED!!!!
+  componentName "IT Module: Capacitors (remove?)"  // NB: THIS NEEDS TO BE CONFIRMED!!!! ASK STELLA, VALUE COULD BE TOO BIG.
   service false
   scaleOnSensor 0
   Element {
