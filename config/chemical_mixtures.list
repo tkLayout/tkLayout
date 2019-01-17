@@ -53,25 +53,30 @@ TPG	                       2.26	                   C:1
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
-CFRP	                     1.84	                   C:0.96            Epoxy:0.27
+CFRP	                     1.84	                   C:0.78            Epoxy:0.22
 # from Duccio, Composite materials, 14/01/2015
+# Density & compo ok??
+# NB: materials.xml: CFRP  1.69   C:0.84491305 H:0.042542086 O:0.11254487
 
-CFRP_OTST                  1.55	                   CFRP:1
-# density from Szymon, composition from 'CFRP'
+CFRP_OTST                  1.55	                   C:0.71            Epoxy:0.29
+# density from Szymon, composition from 'CFRP_ITST'
 
 HexWebHRH10_OTST           0.0496	                 Airex:1
 # density from Sczymon, composition from 'Airex'
 
-CFRP_EPX	                 1.43	                   C:0.96            Epoxy:0.27
-# from [1].
+CFRP_ITST	                 1.622                   C:0.71            Epoxy:0.29
+# From Andreas Jung, 2019/01/15 email: 60% volume C fibres (density 1.91 g/cm3) + 40% volume resin (density 1.19 g/cm3).
+
+CFRP_EPX	                 1.43	                   C:0.71            Epoxy:0.29
+# from [1], composition from 'CFRP_ITST'
 # check compo???
 
-CFRP_module	               1.43	                   C:0.96            Epoxy:0.27
-# from [1].
+CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
+# from [1], composition from 'CFRP_ITST'
 # check compo???
 
 HDI_module	               2.97	                   FR4:0.66             Cu:0.34
-# from [1].
+# from [1]
 # check compo??? proportion of FR4!! ~2/3 from Lea.
 
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
