@@ -452,7 +452,15 @@ OT614_200_IT611.cfg                  OT Version 6.1.4
                                      
 OT614_200_IT612.cfg                  OT Version 6.1.4                                     
                                      Based from Inner Tracker version 6.1.1.
-                                     bigDelta: 4 mm -> 2 mm, smallDelta: 2 mm -> 4 mm.                                                                                                                                    
+                                     bigDelta: 4 mm -> 2 mm, smallDelta: 2 mm -> 4 mm. 
+                                     
+OT614_200_IT613.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.1.2.
+                                     Stretched TEDD in Z (there will be no dedicated lumi device, so can go up to bulkhead).
+                                     * Disk 1: same Z.
+                                     * Disk 2: 1985.43 mm -> 2009.59 mm   
+                                     * Disk 3: 2250.83 mm -> 2307.69 mm       
+                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                               
                                      
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
                                                                                            
