@@ -206,7 +206,7 @@ namespace material {
     typedef std::map<const Endcap*, Boundary*> EndcapBoundaryMap;
 
     struct BoundaryComparator {
-      bool operator()(Boundary* const& one, Boundary* const& two) {
+      const bool operator()(Boundary* const& one, Boundary* const& two) const {
         //return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
         return ((one->maxZ() + one->maxR()) > (two->maxZ() + two->maxR()));
       }
