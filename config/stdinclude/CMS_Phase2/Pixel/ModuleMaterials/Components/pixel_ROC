@@ -3,7 +3,7 @@
 // Capacitors for one pixel chip
 // According to Murata web page (from Stella)
 Component {
-  componentName "IT Module: Capacitors (remove?)"  // NB: THIS NEEDS TO BE CONFIRMED!!!! ASK STELLA, VALUE COULD BE TOO BIG.
+  componentName "IT Module: ROC (Capacitors)"  // NB: THIS NEEDS TO BE CONFIRMED!!!! ASK STELLA, VALUE COULD BE TOO BIG.
   service false
   scaleOnSensor 0
   Element {
@@ -16,7 +16,7 @@ Component {
 
 
 Component {
-  componentName "IT Module: ROC"  // Source: [1]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
+  componentName "IT Module: ROC (Si)"  // Source: [1]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
   service false
   scaleOnSensor 0
   Element {
