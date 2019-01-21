@@ -1,7 +1,7 @@
 // Pixel module common components (no bumps, no cooling blocks, no connectivity)
 
 Component {
-  componentName "IT Module: Sensor (Active Si)" 
+  componentName "IT Module: Sensor (active Si)" 
   service false
   scaleOnSensor 0
   Element {
