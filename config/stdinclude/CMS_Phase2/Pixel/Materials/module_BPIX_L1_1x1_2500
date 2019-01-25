@@ -6,6 +6,6 @@ Materials BPIX_L1_1x1_2500 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_1x1
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Heavy  
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TBPX_1x1 
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TBPX_L1_1chipmodules
 }

@@ -9,6 +9,6 @@ Materials BPIX_L3_2x2_10000 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_BPIX_Cooling_Blocks_Light  
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TBPX_2x2  
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TBPX_L3
 }

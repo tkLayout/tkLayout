@@ -25,7 +25,7 @@ Component {
   }
   Element {
     elementName Cu
-    quantity 0.05
+    quantity 0.05        // TO DO: cross-check!! This seeems to be a lot!
     unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }

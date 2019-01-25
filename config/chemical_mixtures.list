@@ -50,6 +50,10 @@ TPG	                       2.26	                   C:1
 # from materials.xml
 # WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
 
+CF                         1.91                    C:1.0
+# High density CF. Density from [2].
+# check compo??
+
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
@@ -260,7 +264,6 @@ TEDD_PE	                 0.95	                    PE:1
 FPIX_PE	                 0.95	                    PE:1
 # different density from PE!!
 TEDD_Steel	             7.8	                 Steel:1
-CF	                     1.84	                  CFRP:1
 
 
 
@@ -268,6 +271,7 @@ CF	                     1.84	                  CFRP:1
 
 
 # [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
+# [2] Andrea Basti, "TBPX - weight evaluation".csv , 15/01/2019.
 
 
 
