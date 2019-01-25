@@ -57,7 +57,7 @@ CF                         1.91                    C:1.0
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
-CFRP	                     1.84	                   C:0.78            Epoxy:0.22
+#CFRP	                     1.84	                   C:0.78            Epoxy:0.22
 # from Duccio, Composite materials, 14/01/2015
 # Density & compo ok??
 # NB: materials.xml: CFRP  1.69   C:0.84491305 H:0.042542086 O:0.11254487
@@ -78,6 +78,8 @@ CFRP_EPX	                 1.43	                   C:0.71            Epoxy:0.29
 CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
 # from [1], composition from 'CFRP_ITST'
 # check compo???
+
+CFRP                       1.43                    CFRP_EPX:1
 
 HDI_module	               2.97	                   FR4:0.66             Cu:0.34
 # from [1]
