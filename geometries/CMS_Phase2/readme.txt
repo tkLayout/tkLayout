@@ -457,7 +457,7 @@ OT614_200_IT612.cfg                  OT Version 6.1.4
                                      
 OT614_200_IT613.cfg                  OT Version 6.1.4                                     
                                      Based from Inner Tracker version 6.1.2.
-                                     Stretched TEDD in Z (there will be no dedicated lumi device, so can go up to bulkhead).
+                                     Stretched TEPX in Z (there will be no dedicated lumi device, so can go up to bulkhead).
                                      * Disk 1: same Z.
                                      * Disk 2: 1985.43 mm -> 2009.59 mm   
                                      * Disk 3: 2250.83 mm -> 2307.69 mm       
