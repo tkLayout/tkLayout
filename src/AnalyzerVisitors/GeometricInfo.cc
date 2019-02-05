@@ -46,11 +46,6 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   endcapName->setContent(0, 0, endcapId + ",  Disc 1 :");
   endcapNames.push_back(endcapName);
 
-  std::map<int, double> minMap;
-  std::map<int, double> maxMap;
-  myMinMaps[endcapId] = minMap;
-  myMaxMaps[endcapId] = maxMap;
-
   RootWTable* endcapTable = new RootWTable();
   endcapTable->setContent(0, 0, "Ring :");
   endcapTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
@@ -60,9 +55,6 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
   endcapTable->setContent(5, 0, "r"+subStart+"max"+subEnd);
   endcapTable->setContent(6, 0, "phiOverlap");
   endcapTable->setContent(7, 0, "# mods");
-  endcapTable->setContent(8, 0, "minR Hybrids");
-  endcapTable->setContent(9, 0, "maxR Hybrids");
-  endcapTable->setContent(10, 0, "radial gap Rings (i-2) & (i)");
   endcapTables.push_back(endcapTable);
 }
 
@@ -162,38 +154,6 @@ void LayerDiskSummaryVisitor::visit(const EndcapModule& m) {
   endcapTables.at(nEndcaps-1)->setContent(3, nRings, m.center().Rho(), coordPrecision);
   endcapTables.at(nEndcaps-1)->setContent(4, nRings, m.minR()+m.length(), coordPrecision);
   endcapTables.at(nEndcaps-1)->setContent(5, nRings, m.maxR(), coordPrecision);
-
-  double fullHalfWidth = 0.;
-  double fullHalfLength = 0.;
-  double fullHalfWidth2 = 0.;
-  double fullHalfLength2 = 0.;
-  if (m.moduleType() == "ptPS") { 
-    fullHalfWidth = 60; 
-    fullHalfLength = 34.63 + 2.1; 
-    fullHalfWidth2 = 65; 
-    fullHalfLength2 = 29.63 + 2.1; 
-  }
-  else if (m.moduleType() == "pt2S") { 
-    fullHalfWidth = 62.5; 
-    fullHalfLength = (fabs(m.dsDistance() - 1.8) < 0.00001 ? 72.054 : 72.363); 
-    std::cout <<  "m.dsDistance()  = " << m.dsDistance() << " fullHalfLength = " << fullHalfLength << std::endl;
-  }
-  else { std::cout << "undetected module type = " << m.moduleType() << std::endl; }
-
-  const double minRWithHybrids = m.center().Rho() - fullHalfLength;
-  endcapTables.at(nEndcaps-1)->setContent(8, nRings, minRWithHybrids, coordPrecision);
-  myMinMaps[endcapId][nRings] = minRWithHybrids;
-  const double maxRWithHybrids1 = sqrt(pow((m.center().Rho() + fullHalfLength), 2.) + pow(fullHalfWidth, 2.));
-  const double maxRWithHybrids2 = sqrt(pow((m.center().Rho() + fullHalfLength2), 2.) + pow(fullHalfWidth2, 2.));
-  const double maxRWithHybrids = MAX(maxRWithHybrids1, maxRWithHybrids2);
-  endcapTables.at(nEndcaps-1)->setContent(9, nRings, maxRWithHybrids, coordPrecision);
-  myMaxMaps[endcapId][nRings] = maxRWithHybrids;
-
-  if ((nEndcaps == 1 && nRings >= 3) || (nEndcaps == 2 && nRings >= 3)) {
-    const double gap = minRWithHybrids - myMaxMaps.at(endcapId).at(nRings-2);
-    endcapTables.at(nEndcaps-1)->setContent(10, nRings, gap, coordPrecision);
-  }
-
 }
 
 void LayerDiskSummaryVisitor::postVisit() {
@@ -201,12 +161,6 @@ void LayerDiskSummaryVisitor::postVisit() {
   layerTable->setContent(5, nBarrelLayers+1, totalBarrelModules);
   diskTable->setContent(0, nDisks+1, "Total");
   diskTable->setContent(4, nDisks+1, totalEndcapModules*2);
-
-
-  //for (const auto& myTable : endcapTables) {
-  // const double radialGap = myTable->getContent(9, 
-  //}
-
 }
 
 
