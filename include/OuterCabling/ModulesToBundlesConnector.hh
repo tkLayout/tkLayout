@@ -45,6 +45,8 @@ private:
   // STAGERRING
   void staggerModules(std::map<int, OuterBundle*>& bundles);
 
+  void assignEndcapBundlesFanoutInputs(std::map<int, OuterBundle*>& bundles);
+
   // CHECKING
   void checkModulesToBundlesCabling(const std::map<int, OuterBundle*>& bundles) const;
 

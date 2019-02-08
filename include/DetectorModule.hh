@@ -377,6 +377,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   // OT CABLING
   void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }
   const OuterBundle* getBundle() const { return bundle_; }
+  void setEndcapBundleFanoutInput(const int inputIndex) { endcapBundleFanoutInput_ = inputIndex; }
+  const int getEndcapBundleFanoutInput() const { return endcapBundleFanoutInput_; }
   const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
   const int opticalChannelSectionPlotColor() const;
@@ -430,6 +432,7 @@ private:
 
   // OT CABLING MAP
   OuterBundle* bundle_ = nullptr;
+  int endcapBundleFanoutInput_ = 0;
   // IT CABLING MAP
   PowerChain* powerChain_ = nullptr;
   int phiRefInPowerChain_;

@@ -7393,7 +7393,7 @@ namespace insur {
 					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XY, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
@@ -7417,7 +7417,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYRotateY180, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7432,7 +7432,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XY, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7455,7 +7455,7 @@ namespace insur {
 						    anEndcap.myid().c_str()),
 					       vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYNegCanvasDisk->cd();
-	PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XYNegRotateY180, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(firstDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk.get());
 	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk.get());
@@ -7481,7 +7481,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNeg, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNeg, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -7496,7 +7496,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNegRotateY180, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -8743,7 +8743,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, MFC #/I, MFC type/C, MFB #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8817,7 +8817,7 @@ namespace insur {
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
     bundlesToEndcapModulesCsv << summaryText << std::endl;
 
-    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    bundlesToEndcapModulesCsv << "MFB #/I, # Modules per fanout branch index, Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D, Module Z (mm)/D, Fanout branch index/U" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8844,32 +8844,37 @@ namespace insur {
 	      std::vector<std::string> modulesInBundleInfo;
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
+		// Get which fanout input index the module belongs to.
+		const int fanoutInputIndex = module->getEndcapBundleFanoutInput();
+
 		// Module related info.
 		std::stringstream moduleInfo;
 		moduleInfo << module->myDetId() << ", "
 			   << module->uniRef().subdetectorName << ", "
 			   << module->uniRef().layer << ", "
 			   << module->moduleRing() << ", "
-			   << module->center().Phi() * 180. / M_PI;
+		  //<< module->center().Phi() * 180. / M_PI;
+			   << femod(module->center().Phi(), 2.*M_PI) * 180. / M_PI << ", "
+			   << module->center().Z() << ", "
+			   << fanoutInputIndex;
 		modulesInBundleInfo.push_back(moduleInfo.str());
-
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
+	
+	
+		// Count the number of modules per fanout input index.
+		pattern[fanoutInputIndex] += 1; 
 	      }
 
 	      // Checks pattern makes sense, and put it in a-b-c-d format.
 	      std::stringstream patternInfo;
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
+	      for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
+		auto found = pattern.find(fanoutInputIndex);
 		if (found != pattern.end()) {
-		  if (surfaceIndex != 1) patternInfo << "-";
+		  if (fanoutInputIndex != 1) patternInfo << "-";
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
+			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutInputIndex));
 	      }
 	      patternInfo << ", ";
   
@@ -8906,7 +8911,7 @@ namespace insur {
   */
   std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream summaryText;
-    summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
+    summaryText << "Fanouts: # Modules per branch (Irrespective of branches ordering)" << std::endl;
 
     std::map<std::multiset<int>, int> combinationsDistribution;
 
@@ -8931,10 +8936,10 @@ namespace insur {
 
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
+		// Get which MFB fanout input the module belongs to.
+		const int fanoutInputIndex = module->getEndcapBundleFanoutInput();
+		// Count the number of modules per MFB fanout input.
+		pattern[fanoutInputIndex] += 1; 
 	      }
 
 	      // Checks pattern makes sense, and create the corresponding combination.
@@ -8942,15 +8947,15 @@ namespace insur {
 	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
 	      // Duplicates are allowed: combination 1-2-3-3 can happen!
 	      std::multiset<int> combination;  
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
+	      for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
+		auto found = pattern.find(fanoutInputIndex);
 		if (found != pattern.end()) {
 		  const int numModulesPerDiskSurface = found->second;
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
+			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutInputIndex));
 	      }
 	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;
@@ -9068,7 +9073,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, MFB #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {

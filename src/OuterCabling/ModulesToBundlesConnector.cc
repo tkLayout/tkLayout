@@ -110,6 +110,9 @@ void ModulesToBundlesConnector::postVisit() {
   staggerModules(bundles_);
   staggerModules(negBundles_);
 
+  assignEndcapBundlesFanoutInputs(bundles_);
+  assignEndcapBundlesFanoutInputs(negBundles_);
+
   // CHECK
   checkModulesToBundlesCabling(bundles_);
   checkModulesToBundlesCabling(negBundles_);
@@ -429,6 +432,75 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
   }
 
 }
+
+
+
+
+void ModulesToBundlesConnector::assignEndcapBundlesFanoutInputs(std::map<int, OuterBundle*>& bundles) {
+
+  for (auto& b : bundles) {
+    const OuterBundle* myBundle = b.second;
+    // All this happens in Endcaps only
+    if (myBundle->subDetectorName() == outer_cabling_tedd1 || myBundle->subDetectorName() == outer_cabling_tedd2) {
+     
+      bool sortSmallAbsZDiskInPhi = false;
+      bool sortBigAbsZDiskInPhi = false;
+
+      const std::vector<Module*>& myModules = myBundle->modules();
+
+      const int& myPhiSectorRef = myBundle->phiPosition().phiSectorRef();    
+      if (myPhiSectorRef == 4) {  // remove magic number
+
+	std::map<int, bool> hasDiskSurfaceModuleInPhiPos;
+	std::map<int, bool> hasDiskSurfaceModuleInPhiNeg;
+	// initialize
+	for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
+	  hasDiskSurfaceModuleInPhiPos[fanoutInputIndex] = false;
+	  hasDiskSurfaceModuleInPhiNeg[fanoutInputIndex] = false;
+	}
+
+	for (const auto& module : myModules) {
+	  const int diskSurfaceIndex = module->diskSurface();
+	  const double modPhi = femod(module->center().Phi(), 2.*M_PI);
+
+	  // add check that phi != ~Pi
+	  if (modPhi < M_PI) { hasDiskSurfaceModuleInPhiPos[diskSurfaceIndex] = true; }
+	  else { hasDiskSurfaceModuleInPhiNeg[diskSurfaceIndex] = true; }
+	}
+
+
+	if ( (hasDiskSurfaceModuleInPhiPos.at(1) && hasDiskSurfaceModuleInPhiNeg.at(1))
+	     || (hasDiskSurfaceModuleInPhiPos.at(2) && hasDiskSurfaceModuleInPhiNeg.at(2))
+	     ) { sortSmallAbsZDiskInPhi = true; }
+	if ( (hasDiskSurfaceModuleInPhiPos.at(3) && hasDiskSurfaceModuleInPhiNeg.at(3))
+	     || (hasDiskSurfaceModuleInPhiPos.at(4) && hasDiskSurfaceModuleInPhiNeg.at(4))
+	     ) { sortBigAbsZDiskInPhi = true; }
+
+      }
+
+
+
+      for (const auto& module : myModules) {
+	const int diskSurfaceIndex = module->diskSurface();
+        const bool sortDiskInPhi = ( (diskSurfaceIndex == 1 || (diskSurfaceIndex == 2)) ? sortSmallAbsZDiskInPhi : sortBigAbsZDiskInPhi);
+
+	if (!sortDiskInPhi) {
+	  module->setEndcapBundleFanoutInput(diskSurfaceIndex);
+	}
+	else { 
+	  const double modPhi = femod(module->center().Phi(), 2.*M_PI);
+	  int endcapBundleFanoutInput = ( (modPhi < M_PI) ? 1 : 2);
+	  if (diskSurfaceIndex >= 3) endcapBundleFanoutInput += 2;
+	  module->setEndcapBundleFanoutInput(endcapBundleFanoutInput);
+	}
+      }
+
+  
+    }
+  }
+}
+
+
 
 
 /* Check modules-bundles connections.
