@@ -7417,7 +7417,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
+	      PlotDrawer<XYRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7432,7 +7432,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
+	      PlotDrawer<XY, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7481,7 +7481,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNeg, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
+	      PlotDrawer<XYNeg, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -7496,7 +7496,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNegRotateY180, TypeBundleFanoutInputTransparentColor> xyDiskDrawer;
+	      PlotDrawer<XYNegRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -8845,7 +8845,7 @@ namespace insur {
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Get which fanout input index the module belongs to.
-		const int fanoutInputIndex = module->getEndcapBundleFanoutInput();
+		const int fanoutBranchIndex = module->getEndcapFanoutBranch();
 
 		// Module related info.
 		std::stringstream moduleInfo;
@@ -8856,25 +8856,25 @@ namespace insur {
 		  //<< module->center().Phi() * 180. / M_PI;
 			   << femod(module->center().Phi(), 2.*M_PI) * 180. / M_PI << ", "
 			   << module->center().Z() << ", "
-			   << fanoutInputIndex;
+			   << fanoutBranchIndex;
 		modulesInBundleInfo.push_back(moduleInfo.str());
 	
 	
 		// Count the number of modules per fanout input index.
-		pattern[fanoutInputIndex] += 1; 
+		pattern[fanoutBranchIndex] += 1; 
 	      }
 
 	      // Checks pattern makes sense, and put it in a-b-c-d format.
 	      std::stringstream patternInfo;
-	      for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
-		auto found = pattern.find(fanoutInputIndex);
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= 4; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
 		if (found != pattern.end()) {
-		  if (fanoutInputIndex != 1) patternInfo << "-";
+		  if (fanoutBranchIndex != 1) patternInfo << "-";
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutInputIndex));
+			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutBranchIndex));
 	      }
 	      patternInfo << ", ";
   
@@ -8937,9 +8937,9 @@ namespace insur {
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Get which MFB fanout input the module belongs to.
-		const int fanoutInputIndex = module->getEndcapBundleFanoutInput();
+		const int fanoutBranchIndex = module->getEndcapFanoutBranch();
 		// Count the number of modules per MFB fanout input.
-		pattern[fanoutInputIndex] += 1; 
+		pattern[fanoutBranchIndex] += 1; 
 	      }
 
 	      // Checks pattern makes sense, and create the corresponding combination.
@@ -8947,15 +8947,15 @@ namespace insur {
 	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
 	      // Duplicates are allowed: combination 1-2-3-3 can happen!
 	      std::multiset<int> combination;  
-	      for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
-		auto found = pattern.find(fanoutInputIndex);
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= 4; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
 		if (found != pattern.end()) {
 		  const int numModulesPerDiskSurface = found->second;
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
 		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutInputIndex));
+			      + "does not connect to any module belonging to fanout branch " + any2str(fanoutBranchIndex));
 	      }
 	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;

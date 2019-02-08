@@ -110,8 +110,8 @@ void ModulesToBundlesConnector::postVisit() {
   staggerModules(bundles_);
   staggerModules(negBundles_);
 
-  assignEndcapBundlesFanoutInputs(bundles_);
-  assignEndcapBundlesFanoutInputs(negBundles_);
+  assignEndcapBundlesFanoutBranches(bundles_);
+  assignEndcapBundlesFanoutBranches(negBundles_);
 
   // CHECK
   checkModulesToBundlesCabling(bundles_);
@@ -436,7 +436,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 
 
 
-void ModulesToBundlesConnector::assignEndcapBundlesFanoutInputs(std::map<int, OuterBundle*>& bundles) {
+void ModulesToBundlesConnector::assignEndcapBundlesFanoutBranches(std::map<int, OuterBundle*>& bundles) {
 
   for (auto& b : bundles) {
     const OuterBundle* myBundle = b.second;
@@ -454,9 +454,9 @@ void ModulesToBundlesConnector::assignEndcapBundlesFanoutInputs(std::map<int, Ou
 	std::map<int, bool> hasDiskSurfaceModuleInPhiPos;
 	std::map<int, bool> hasDiskSurfaceModuleInPhiNeg;
 	// initialize
-	for (int fanoutInputIndex = 1; fanoutInputIndex <= 4; fanoutInputIndex++) {
-	  hasDiskSurfaceModuleInPhiPos[fanoutInputIndex] = false;
-	  hasDiskSurfaceModuleInPhiNeg[fanoutInputIndex] = false;
+	for (int fanoutBranchIndex = 1; fanoutBranchIndex <= 4; fanoutBranchIndex++) {
+	  hasDiskSurfaceModuleInPhiPos[fanoutBranchIndex] = false;
+	  hasDiskSurfaceModuleInPhiNeg[fanoutBranchIndex] = false;
 	}
 
 	for (const auto& module : myModules) {
@@ -485,13 +485,13 @@ void ModulesToBundlesConnector::assignEndcapBundlesFanoutInputs(std::map<int, Ou
         const bool sortDiskInPhi = ( (diskSurfaceIndex == 1 || (diskSurfaceIndex == 2)) ? sortSmallAbsZDiskInPhi : sortBigAbsZDiskInPhi);
 
 	if (!sortDiskInPhi) {
-	  module->setEndcapBundleFanoutInput(diskSurfaceIndex);
+	  module->setEndcapFanoutBranch(diskSurfaceIndex);
 	}
 	else { 
 	  const double modPhi = femod(module->center().Phi(), 2.*M_PI);
-	  int endcapBundleFanoutInput = ( (modPhi < M_PI) ? 1 : 2);
-	  if (diskSurfaceIndex >= 3) endcapBundleFanoutInput += 2;
-	  module->setEndcapBundleFanoutInput(endcapBundleFanoutInput);
+	  int endcapFanoutBranchIndex = ( (modPhi < M_PI) ? 1 : 2);
+	  if (diskSurfaceIndex >= 3) endcapFanoutBranchIndex += 2;
+	  module->setEndcapFanoutBranch(endcapFanoutBranchIndex);
 	}
       }
 

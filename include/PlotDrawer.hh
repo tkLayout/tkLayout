@@ -101,10 +101,10 @@ struct Type { // Module-maintained color
 };
 
 // OT CABLING
-struct TypeBundleFanoutInputTransparentColor { // Module-maintained Bundle fanout input color
+struct TypeFanoutBranchTransparentColor { // Module-maintained Bundle fanout input color
   double operator()(const Module& m) {
-    const bool isOddFanoutInputIndex = ((m.getEndcapBundleFanoutInput() % 2) == 1);
-    const bool isTransparent = ((m.isPositiveCablingSide() > 0) ? isOddFanoutInputIndex : !isOddFanoutInputIndex);
+    const bool isOddFanoutBranchIndex = ((m.getEndcapFanoutBranch() % 2) == 1);
+    const bool isTransparent = ((m.isPositiveCablingSide() > 0) ? isOddFanoutBranchIndex : !isOddFanoutBranchIndex);
     return Palette::color(m.bundlePlotColor(), isTransparent);
   }
 };
