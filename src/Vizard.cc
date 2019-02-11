@@ -8853,8 +8853,7 @@ namespace insur {
 			   << module->uniRef().subdetectorName << ", "
 			   << module->uniRef().layer << ", "
 			   << module->moduleRing() << ", "
-		  //<< module->center().Phi() * 180. / M_PI;
-			   << femod(module->center().Phi(), 2.*M_PI) * 180. / M_PI << ", "
+			   << module->center().Phi() * 180. / M_PI << ", "
 			   << module->center().Z() << ", "
 			   << fanoutBranchIndex;
 		modulesInBundleInfo.push_back(moduleInfo.str());
