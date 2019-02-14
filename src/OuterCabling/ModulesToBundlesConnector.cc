@@ -570,10 +570,10 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
 	  module->setEndcapFiberFanoutBranch(diskSurfaceIndex);
 	}
 	// Sort modules per dee:
-	// Small |Z| disk, (Y > 0) dee: fanout index = 1
-	// Small |Z| disk, (Y < 0) dee: fanout index = 2
-	// Big |Z| disk, (Y > 0) dee: fanout index = 3
-	// Big |Z| disk, (Y < 0) dee: fanout index = 4
+	// Small |Z| disk, (Y > 0) dee: fanout branch index = 1
+	// Small |Z| disk, (Y < 0) dee: fanout branch index = 2
+	// Big |Z| disk, (Y > 0) dee: fanout branch index = 3
+	// Big |Z| disk, (Y < 0) dee: fanout branch index = 4
 	else { 
 	  const double modPhi = femod(module->center().Phi(), 2.*M_PI);
 	  int endcapFiberFanoutBranchIndex = ( (modPhi < M_PI) ? 1 : 2);
