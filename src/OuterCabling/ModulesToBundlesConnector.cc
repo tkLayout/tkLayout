@@ -598,32 +598,35 @@ void ModulesToBundlesConnector::checkEndcapModulesToBundlesFanoutBranchesCabling
   for (auto& b : bundles) {
     // Work on a per MFB basis
     const OuterBundle* myBundle = b.second;
-    std::set<int> allBranchesIndexes;
+    // Endcaps only
+    if (myBundle->subDetectorName() == outer_cabling_tedd1 || myBundle->subDetectorName() == outer_cabling_tedd2) {
+      std::set<int> allBranchesIndexes;
 
-    // Loop on all the modules connected to the MFB, ancd check their fanout branch index.
-    const std::vector<Module*>& myModules = myBundle->modules();
-    for (const auto& module : myModules) {
-      const int endcapFiberFanoutBranchIndex = module->getEndcapFiberFanoutBranch();    
-      if ( endcapFiberFanoutBranchIndex <= 0 
-	   || endcapFiberFanoutBranchIndex > outer_cabling_maxNumFanoutBranchesPerEndcapBundle) {
-	logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
-		 + "OuterBundle "  + any2str(b.first)
-		 + ". Found a module connected to fanout index = " + any2str(endcapFiberFanoutBranchIndex) 
-		 + ", which is not supported."
-		 );
+      // Loop on all the modules connected to the MFB, ancd check their fanout branch index.
+      const std::vector<Module*>& myModules = myBundle->modules();
+      for (const auto& module : myModules) {
+	const int endcapFiberFanoutBranchIndex = module->getEndcapFiberFanoutBranch();    
+	if ( endcapFiberFanoutBranchIndex <= 0 
+	     || endcapFiberFanoutBranchIndex > outer_cabling_maxNumFanoutBranchesPerEndcapBundle) {
+	  logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
+		   + "OuterBundle "  + any2str(b.first)
+		   + ". Found a module connected to fanout index = " + any2str(endcapFiberFanoutBranchIndex) 
+		   + ", which is not supported."
+		   );
+	}
+	allBranchesIndexes.insert(endcapFiberFanoutBranchIndex);
       }
-      allBranchesIndexes.insert(endcapFiberFanoutBranchIndex);
-    }
 
-    // Check that, for each MFB, all fanout branches indexes are met at least once.
-    for (int branchIndex = 1; branchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; branchIndex++) {
-      if (allBranchesIndexes.find(branchIndex) == allBranchesIndexes.end()) {
-	logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
-		 + "OuterBundle "  + any2str(b.first)
-		 + ". Found 0 module with fanout branch index = " + any2str(branchIndex)
-		 );
+      // Check that, for each MFB, all fanout branches indexes are met at least once.
+      for (int branchIndex = 1; branchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; branchIndex++) {
+	if (allBranchesIndexes.find(branchIndex) == allBranchesIndexes.end()) {
+	  logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
+		   + "OuterBundle "  + any2str(b.first)
+		   + ". Found 0 module with fanout branch index = " + any2str(branchIndex)
+		   );
+	}
       }
-    }
 
+    }
   }
 }
