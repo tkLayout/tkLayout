@@ -375,15 +375,16 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryFullType() const;
 
   // OT CABLING
-  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }
+  const int isPositiveCablingSide() const;                    // Can be different from (Z) end. 
+                                                              // 'Positive cabling side': the module end up connected on a DTC on (Z+) end.
+  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }  // MFB
   const OuterBundle* getBundle() const { return bundle_; }
-  void setEndcapFanoutBranch(const int branchIndex) { endcapFanoutBranch_ = branchIndex; }
-  const int getEndcapFanoutBranch() const { return endcapFanoutBranch_; }
-  const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
+  void setEndcapFiberFanoutBranch(const int branchIndex) { endcapFiberFanoutBranch_ = branchIndex; } // Branch of the MFB fanout
+  const int getEndcapFiberFanoutBranch() const { return endcapFiberFanoutBranch_; }
   const int opticalChannelSectionPlotColor() const;
   const int powerChannelSectionPlotColor() const; 
-  const OuterDTC* getDTC() const;
+  const OuterDTC* getDTC() const;                             // DTC
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;
 
@@ -432,7 +433,7 @@ private:
 
   // OT CABLING MAP
   OuterBundle* bundle_ = nullptr;
-  int endcapFanoutBranch_ = 0;
+  int endcapFiberFanoutBranch_ = 0;
   // IT CABLING MAP
   PowerChain* powerChain_ = nullptr;
   int phiRefInPowerChain_;
