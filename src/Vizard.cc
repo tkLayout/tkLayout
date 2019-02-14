@@ -1509,10 +1509,11 @@ namespace insur {
       // Bundles to Modules: Aggregation Patterns in TEDD
       /*This is used for bundle assembly.
 	For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-	- 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-	- 4 modules from disk surface 2.
-	- 3 modules from disk surface 3.
-	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
+	- 3 modules from fanout branch index 1.
+	- 4 modules from fanout branch index 2.
+	- 3 modules from fanout branch index 3.
+	- 2 modules from fanout branch index 4.
+      */
       myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
