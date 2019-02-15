@@ -549,7 +549,7 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
 	      sortModulesInBigAbsZDiskPerDee = true; 
 	    }
 	    else { 
-	      logERROR(any2str("Unexpected number of disk surfaces per double-disk"));
+	      logERROR(any2str("Unexpected number of disk surfaces per double-disk")); 
 	    }
 	  } 
 	}
@@ -557,7 +557,7 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
       }
 
 
-      // STEP B: Assign the fanout branch index to the MFB's modules.
+      // STEP B: ASSIGN THE FANOUT BRANCH INDEX TO THE MFB'S MODULES.
       for (const auto& module : myModules) {
 	const int diskSurfaceIndex = module->diskSurface();
 
@@ -565,9 +565,30 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
 	const bool sortModulesInDiskPerDee = ( (diskSurfaceIndex == 1 || (diskSurfaceIndex == 2)) ? sortModulesInSmallAbsZDiskPerDee 
 					       : sortModulesInBigAbsZDiskPerDee);
 	// Sort modules per disk surface:
-	// fanout branch index = module's disk surface
+	// (+Z) end: fanout branch index = module's disk surface index.
+	// (-Z) end: fanout branch index = module's disk surface complementary index.
+	// The index itself does not matter anyway (only the grouping does).
+	// This indexing scheme, though, allows to show the cabling similitude on both (Z) ends:
+	// ((+Z) end, disk surface) <-> ((-Z) end, complementary disk surface) have the exact same cabling.
+	// Complementary disk surface: as defined in the code below.
 	if (!sortModulesInDiskPerDee) {
-	  module->setEndcapFiberFanoutBranch(diskSurfaceIndex);
+	  const int isPositiveCablingSide = module->isPositiveCablingSide();
+	  int endcapFiberFanoutBranchIndex = 0;
+	  // (+Z) end: fanout branch index = module's disk surface index.
+	  if (isPositiveCablingSide > 0) { 
+	    endcapFiberFanoutBranchIndex = diskSurfaceIndex;
+	    
+	  } 
+	  // (-Z) end: fanout branch index = module's disk surface complementary index.
+	  else {
+	    // This defines the complementary disk surface, to the disk surface with diskSurfaceIndex:
+	    if (diskSurfaceIndex == 1) { endcapFiberFanoutBranchIndex = 2; }
+	    else if (diskSurfaceIndex == 2) { endcapFiberFanoutBranchIndex = 1; }
+	    else if (diskSurfaceIndex == 3) { endcapFiberFanoutBranchIndex = 4; }
+	    else if (diskSurfaceIndex == 4) { endcapFiberFanoutBranchIndex = 3; }
+	    else { logERROR(any2str("Unexpected number of disk surfaces per double-disk")); }
+	  }
+	  module->setEndcapFiberFanoutBranch(endcapFiberFanoutBranchIndex);
 	}
 	// Sort modules per dee:
 	// Small |Z| disk, (Y > 0) dee: fanout branch index = 1

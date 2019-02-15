@@ -1538,6 +1538,10 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsNeg%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
 
       // BOTH SIDES, SUMMARY
       filesContent->addItem(spacer);
