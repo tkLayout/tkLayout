@@ -523,7 +523,7 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
 
 	  // STORE, PER DISK SURFACE, WHICH DEE MODULES ARE ON.
 	  if ( fabs(modPhiModuloPi) > outer_cabling_roundingTolerance 
-	       && fabs(modPhiModuloPi - M_PI) > outer_cabling_roundingTolerance
+	       && fabs(modPhiModuloPi - M_PI) > outer_cabling_roundingTolerance // module at (Y=0), if any, does not matter!
 	       ) {
 	    const int diskSurfaceIndex = module->diskSurface();
 	    const double modPhi = femod(module->center().Phi(), 2.*M_PI);      // modulo 2 PI
