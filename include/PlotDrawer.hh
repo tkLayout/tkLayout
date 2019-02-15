@@ -101,6 +101,14 @@ struct Type { // Module-maintained color
 };
 
 // OT CABLING
+struct TypeFanoutBranchTransparentColor { // Module-maintained Bundle fanout branch color
+  double operator()(const Module& m) {
+    const bool isOddFanoutBranchIndex = ((m.getEndcapFiberFanoutBranch() % 2) == 1);
+    const bool isTransparent = ((m.isPositiveCablingSide() > 0) ? isOddFanoutBranchIndex : !isOddFanoutBranchIndex);
+    return Palette::color(m.bundlePlotColor(), isTransparent);
+  }
+};
+
 struct TypeBundleColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     return Palette::color(m.bundlePlotColor());
