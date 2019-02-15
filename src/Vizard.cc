@@ -8876,8 +8876,8 @@ namespace insur {
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      patternInfo << ", ";
   
@@ -8957,8 +8957,8 @@ namespace insur {
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;
