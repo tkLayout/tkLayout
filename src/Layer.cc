@@ -1034,7 +1034,7 @@ void Layer::buildTilted() {
   first->store(propertyTree());
   first->myid(1); 
   const bool isFirstRodAtOuterRadius = (bigParity() > 0 ? true : false);
-  const std::vector<TiltedModuleSpecs> myFirstRodSensorsCenters = (bigParity() > 0 ? tmspecso : tmspecsi);
+  const std::vector<TiltedModuleSpecs> myFirstRodSensorsCenters = (isFirstRodAtOuterRadius ? tmspecso : tmspecsi);
   first->isOuterRadiusRod(isFirstRodAtOuterRadius); 
   first->build(rodTemplate, myFirstRodSensorsCenters, !isFirstRodAtOuterRadius);
   rods_.push_back(first);
@@ -1043,7 +1043,7 @@ void Layer::buildTilted() {
   second->store(propertyTree());
   second->myid(2);
   const bool isSecondRodAtOuterRadius = (bigParity() > 0 ? false : true);
-  const std::vector<TiltedModuleSpecs> mySecondRodSensorsCenters = (bigParity() > 0 ? tmspecsi : tmspecso);
+  const std::vector<TiltedModuleSpecs> mySecondRodSensorsCenters = (isSecondRodAtOuterRadius ? tmspecso : tmspecsi);
   second->isOuterRadiusRod(isSecondRodAtOuterRadius);  
   second->build(rodTemplate, mySecondRodSensorsCenters, !isSecondRodAtOuterRadius);
   const double rodCenterPhiShift = 2 * M_PI / numRods();
