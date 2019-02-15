@@ -1538,6 +1538,10 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsNeg%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
 
       // BOTH SIDES, SUMMARY
       filesContent->addItem(spacer);
@@ -8872,8 +8876,8 @@ namespace insur {
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      patternInfo << ", ";
   
@@ -8953,8 +8957,8 @@ namespace insur {
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;
