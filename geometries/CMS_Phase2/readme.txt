@@ -223,11 +223,12 @@ OT616_200_IT404.cfg	   Diff with OT615:
                            TEDD 2, inner rings: +2 mm (IT insertion) +0.51 mm (margin with dee edge).
                            TEDD 1 and 2, outer rings: -27 mm (BTL) +0.41 mm (margin with dee edge).
                            TEDD 2: -4 modules in Ring 7, -4 modules in Ring 14.
-                           Adjusted intermediate radii (needs feedback from Mechanics)
+                           Adjusted intermediate radii.
                          - TB2S:
                              L3: radius -27 mm (OT envelope shrink) +2 mm (smaller no-go zone between TB2S and BTL). numRods: -2 rods.
                          - TBPS:
                              L1: +2 mm in last 5 rings radii.
+                             All layers: flipped bigParity.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
