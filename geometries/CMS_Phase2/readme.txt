@@ -211,9 +211,10 @@ OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TE
                           - Decrease smallDelta, from 7.42 mm to 7.375 mm (ZmPS4.0 goes from 14.84mm to 14.75mm), in PS4.0 rings.
                           
 OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
-                           TBPS L1 small delta: 3.5625 mm -> 3.5475 mm
-                           TBPS L2 small delta: 3.47 mm -> 3.0475 mm
-                           TBPS L3 small delta: 3.47 mm -> 3.5844 mm
+                           L1 small delta: 3.5625 mm -> 3.5475 mm
+                           L2 small delta: 3.47 mm -> 3.0475 mm
+                           L3 small delta: 3.47 mm -> 3.5844 mm
+                           All layers: flipped bigParity.
                            
 OT616_200_IT404.cfg	   Diff with OT615:
                        Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
@@ -228,7 +229,6 @@ OT616_200_IT404.cfg	   Diff with OT615:
                              L3: radius -27 mm (OT envelope shrink) +2 mm (smaller no-go zone between TB2S and BTL). numRods: -2 rods.
                          - TBPS:
                              L1: +2 mm in last 5 rings radii.
-                             All layers: flipped bigParity.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
