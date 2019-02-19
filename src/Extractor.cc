@@ -629,8 +629,9 @@ namespace insur {
       int flatPartNumModules = lagg.getBarrelLayers()->at(layer - 1)->buildNumModulesFlat();
       double flatPartOneBeforeLastModuleMaxZ = 0;
       // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
-      double RadiusIn = 0;
-      double RadiusOut = 0;
+      double firstRodRadius = 0;   // first rod encountered (in phi)
+      double secondRodRadius = 0;  // second rod encountered (in phi)
+      // WARING: This assumes that there is a 2 rod - periodicity.
       // loop on module caps
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 	// only positive side, and modules with uniref phi == 1 or 2
@@ -676,8 +677,8 @@ namespace insur {
 	    if (flatPartNumModules >= 2 && modRing == (flatPartNumModules - 1)) { flatPartOneBeforeLastModuleMaxZ = MAX(flatPartOneBeforeLastModuleMaxZ, modcomplex.getZmax()); }
 	  }
 	  // both modRings 1 and 2 have to be taken into account because of small delta
-	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
-	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
+	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { firstRodRadius = firstRodRadius + iiter->getModule().center().Rho() / 2; }
+	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { secondRodRadius = secondRodRadius + iiter->getModule().center().Rho() / 2; }
 	}
       }
 
@@ -863,7 +864,7 @@ namespace insur {
 		  timingModuleCopyNumber += 1;
 		}
 	      }	// end of timing layer special case      
-	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
+	      pos.trans.dx = iiter->getModule().center().Rho() - firstRodRadius;
 	      pos.trans.dz = iiter->getModule().center().Z();
 
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
@@ -874,7 +875,7 @@ namespace insur {
 	      
 	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
-		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
+		pos.trans.dx = partner->getModule().center().Rho() - firstRodRadius;
 		pos.trans.dz = partner->getModule().center().Z();
 
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
@@ -895,7 +896,7 @@ namespace insur {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
+	      pos.trans.dx = iiter->getModule().center().Rho() - secondRodRadius;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -903,7 +904,7 @@ namespace insur {
 	      
 	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
-		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
+		pos.trans.dx = partner->getModule().center().Rho() - secondRodRadius;
 		pos.trans.dz = partner->getModule().center().Z();
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -1210,13 +1211,16 @@ namespace insur {
 		rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
 		rinf.rmin = modcomplex.getRmin();
 		rinf.zmin = modcomplex.getZmin();
-		rinf.rminatzmin = modcomplex.getRminatZmin();      
+		rinf.rmax = modcomplex.getRmax();
+		rinf.zmax = modcomplex.getZmax();		
+		rinf.rminatzmin = modcomplex.getRminatZmin();
+		rinf.rmaxatzmax = modcomplex.getRmaxatZmax();      
 		rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 
 		// same ring on negative-z side
 		rinf.name = ringname.str() + xml_minus;
 		rinf.isZPlus = 0;
-		rinf.z1 = - iiter->getModule().center().Z();
+		rinf.z1 = - iiter->getModule().center().Z(); // WARNING: this assumes symmetry through (XY) plane!
 		rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 	      }
 	    }
@@ -1232,33 +1236,42 @@ namespace insur {
 
 	  // ONLY MODULES WITH UNIREF PHI == 2 OF THE TILTED RINGS (TILTED LAYER)
 	  if (isTilted && (iiter->getModule().uniRef().phi == 2)) {
-	    std::map<int,BTiltedRingInfo>::iterator it;
-	    // fill the info of the z-positive ring with matching ring number
-	    it = rinfoplus.find(modRing);
-	    if (it != rinfoplus.end()) {
-	      it->second.fw_flipped = iiter->getModule().flipped();
-	      it->second.r2 = iiter->getModule().center().Rho();
-	      it->second.z2 = iiter->getModule().center().Z();
-	      it->second.startPhiAngle2 = iiter->getModule().center().Phi();
-	      it->second.rmax = modcomplex.getRmax();
-	      it->second.zmax = modcomplex.getZmax();
-	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
+	    // Fill the info of the z-positive ring with matching ring number
+	    const auto& foundPlusZTiltedRingInfo = rinfoplus.find(modRing);
+	    if (foundPlusZTiltedRingInfo != rinfoplus.end()) {
+	      BTiltedRingInfo& myInfo = foundPlusZTiltedRingInfo->second;
+	      myInfo.fw_flipped = iiter->getModule().flipped();
+	      myInfo.r2 = iiter->getModule().center().Rho();
+	      myInfo.z2 = iiter->getModule().center().Z();
+	      myInfo.startPhiAngle2 = iiter->getModule().center().Phi();
+	      // Update ring extrema
+	      myInfo.rmin = MIN(myInfo.rmin, modcomplex.getRmin());
+	      myInfo.rmax = MAX(myInfo.rmax, modcomplex.getRmax());
+	      myInfo.zmin = MIN(myInfo.zmin, modcomplex.getZmin());
+	      myInfo.zmax = MAX(myInfo.zmax, modcomplex.getZmax());
+	      myInfo.rminatzmin = MIN(myInfo.rminatzmin, modcomplex.getRminatZmin()); 
+	      myInfo.rmaxatzmax = MAX(myInfo.rmaxatzmax, modcomplex.getRmaxatZmax());
 	    }
-	    // fill the info of the z-negative ring with matching ring number
-	    it = rinfominus.find(modRing);
-	    if (it != rinfominus.end()) {
-	      it->second.fw_flipped = iiter->getModule().flipped();
-	      it->second.r2 = iiter->getModule().center().Rho();
-	      it->second.z2 = - iiter->getModule().center().Z();
-	      it->second.startPhiAngle2 = iiter->getModule().center().Phi();
-	      it->second.rmax = modcomplex.getRmax();
-	      it->second.zmax = modcomplex.getZmax();
-	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
+	    // Fill the info of the z-negative ring with matching ring number
+	    const auto& foundMinusZTiltedRingInfo = rinfominus.find(modRing);
+	    if (foundMinusZTiltedRingInfo != rinfominus.end()) {
+	      BTiltedRingInfo& myInfo = foundMinusZTiltedRingInfo->second;
+	      myInfo.fw_flipped = iiter->getModule().flipped();
+	      myInfo.r2 = iiter->getModule().center().Rho();
+	      myInfo.z2 = - iiter->getModule().center().Z(); // WARNING: this assumes symmetry through (XY) plane!
+	      myInfo.startPhiAngle2 = iiter->getModule().center().Phi();
+	      // Update ring extrema
+	      myInfo.rmin = MIN(myInfo.rmin, modcomplex.getRmin());
+	      myInfo.rmax = MAX(myInfo.rmax, modcomplex.getRmax());
+	      myInfo.zmin = MIN(myInfo.zmin, modcomplex.getZmin());
+	      myInfo.zmax = MAX(myInfo.zmax, modcomplex.getZmax());
+	      myInfo.rminatzmin = MIN(myInfo.rminatzmin, modcomplex.getRminatZmin()); 
+	      myInfo.rmaxatzmax = MAX(myInfo.rmaxatzmax, modcomplex.getRmaxatZmax());
 	    }
 	  }
 	}
       }
-      // material properties
+      // material propxerties
       if (count > 0) {
 	ril.rlength = rtotal / (double)count;
 	ril.ilength = itotal / (double)count;
@@ -1346,10 +1359,10 @@ namespace insur {
 	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	  pconverter << RadiusIn << "*mm";
+	  pconverter << firstRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << RadiusOut << "*mm";
+	  pconverter << secondRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
@@ -1380,10 +1393,10 @@ namespace insur {
 	  pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
 	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << RadiusIn << "*mm";
+	  pconverter << firstRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << RadiusOut << "*mm";
+	  pconverter << secondRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
@@ -1409,10 +1422,10 @@ namespace insur {
 	  pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
 	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << RadiusIn << "*mm";
+	  pconverter << firstRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << RadiusOut << "*mm";
+	  pconverter << secondRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
@@ -1439,7 +1452,7 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << RadiusIn << "*mm";
+	pconverter << firstRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
@@ -1460,7 +1473,7 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << RadiusOut << "*mm";
+	pconverter << secondRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
@@ -1554,7 +1567,7 @@ namespace insur {
 	      trspec.partselectors.push_back(rinfo.name);
 	      //trspec.moduletypes.push_back(minfo_zero);
 	      
-	      // backward part of the ring
+	      // Tilted ring: first part to be stored
 	      alg.name = xml_trackerring_algo;
 	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
@@ -1583,7 +1596,7 @@ namespace insur {
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
-	      // forward part of the ring
+	      // Tilted ring: second part to be stored
 	      alg.name =  xml_trackerring_algo;
 	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
@@ -1634,7 +1647,6 @@ namespace insur {
       pos.child_tag = trackerXmlTags.nspace + ":" + lname.str();
       p.push_back(pos);
       lspec.partselectors.push_back(lname.str());
-      //lspec.moduletypes.push_back("");
       lspec.moduletypes.push_back(minfo_zero);
 
       layer++;
