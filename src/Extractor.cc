@@ -891,28 +891,30 @@ namespace insur {
 	  }
 
 
-	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
+	  if (iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
-	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
-	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-	      pos.trans.dx = iiter->getModule().center().Rho() - secondRodRadius;
-	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
-	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
-	      p.push_back(pos);
-	      
-	      // This is a copy of the BModule on -Z side
-	      if (partner != oiter->end()) {
-		pos.trans.dx = partner->getModule().center().Rho() - secondRodRadius;
-		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+	      if (isPixelTracker) {
+		pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
+		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
+		pos.trans.dx = iiter->getModule().center().Rho() - secondRodRadius;
+		pos.trans.dz = iiter->getModule().center().Z();
+		if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
-		pos.copy = 2; 
 		p.push_back(pos);
-		pos.copy = 1;
+	      
+		// This is a copy of the BModule on -Z side
+		if (partner != oiter->end()) {
+		  pos.trans.dx = partner->getModule().center().Rho() - secondRodRadius;
+		  pos.trans.dz = partner->getModule().center().Z();
+		  if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
+		  else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
+		  pos.copy = 2; 
+		  p.push_back(pos);
+		  pos.copy = 1;
+		}
+		pos.rotref = "";
 	      }
-	      pos.rotref = "";
 	    }
 	  }
 
@@ -1354,15 +1356,22 @@ namespace insur {
 	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
 	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
 	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
+	  const double radiusIn = MIN(firstRodRadius, secondRodRadius);  // inner radius
+	  const double radiusOut = MAX(firstRodRadius, secondRodRadius); // outer radius
+	  // The algo (as implemeted in CMSSW) starts by placing the inner radius rod, no matter what!
+	  // So we need to find out whether that corresponds to the firstPhiRod or nextPhiRod.
+	  const bool isAlgoStartingWithFirstRod = (fabs(radiusIn - firstRodRadius) <  1E-07);
+	  // Then we can tell the algo which phi to start at (== which phi is at the inner radius).
+	  const double algoStartPhi = (isAlgoStartingWithFirstRod ? rodStartPhiAngle : rodNextPhiStartPhiAngle); 
 	  pconverter.str("");
-	  pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
+	  pconverter << algoStartPhi * 180. / M_PI << "*deg"; 
 	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	  pconverter << firstRodRadius << "*mm";
+	  pconverter << radiusIn << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << secondRodRadius << "*mm";
+	  pconverter << radiusOut << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
