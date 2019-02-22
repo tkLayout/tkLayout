@@ -1361,6 +1361,7 @@ namespace insur {
       srspec.moduletypes.push_back(minfo_zero);
 
 
+
       // rods in layer algorithm(s)
       // OUTER TRACKER
       if (!isPixelTracker) {
@@ -1418,6 +1419,10 @@ namespace insur {
 	  pconverter.str("");
 	  pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
 	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	  // WARNING: Set RadisuIn parameter to the radius of the firstPhiRod.
+	  // The algorithm will indeed start by placing (in phi) that firstPhiRod, at radius whatever is assigned to radisuIn.
+	  // RadiusIn is just a name, and does not imply that the radius is low !!!!
+	  // Look at PhiAltAlgo implementation.
 	  pconverter.str("");
 	  pconverter << firstPhiRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
