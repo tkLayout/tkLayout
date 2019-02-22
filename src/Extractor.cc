@@ -1359,8 +1359,6 @@ namespace insur {
       rspec.moduletypes.push_back(minfo_zero);
       srspec.partselectors.push_back(rodname.str());
       srspec.moduletypes.push_back(minfo_zero);
-        
-   
 
 
       // rods in layer algorithm(s)
