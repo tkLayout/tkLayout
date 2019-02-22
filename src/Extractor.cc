@@ -600,8 +600,18 @@ namespace insur {
     // LOOP ON LAYERS
     for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
       
-      // is the layer tilted ?
+      // is the layer tilted?
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
+
+      // is the layer skewed?
+      const bool& isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
+      if (isSkewed) {
+	logERROR(any2str("VERY IMPORTANT : BARREL LAYER ")
+		 + any2str(lagg.getBarrelLayers()->at(layer - 1)->myid())
+		 + any2str(" : IS SKEWED, WHICH IS NOT YET SUPPORTED IN XML EXPORT.")
+		 + any2str(" ASSUME ALL ITS LADDERS PHI AND R POSITIONS ARE WRONG IN THE XMLS.")
+		 );
+      }
 
       bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
@@ -629,8 +639,8 @@ namespace insur {
       int flatPartNumModules = lagg.getBarrelLayers()->at(layer - 1)->buildNumModulesFlat();
       double flatPartOneBeforeLastModuleMaxZ = 0;
       // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
-      double firstRodRadius = 0;   // first rod encountered (in phi)
-      double secondRodRadius = 0;  // second rod encountered (in phi)
+      double firstPhiRodRadius = 0;   // first rod encountered in phi by the visitor.
+      double nextPhiRodRadius = 0;  // next rod encountered in phi by the visitor.
       // WARING: This assumes that there is a 2 rod - periodicity.
       // loop on module caps
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -676,9 +686,16 @@ namespace insur {
 	    flatPartMaxR = MAX(flatPartMaxR, modcomplex.getRmax());
 	    if (flatPartNumModules >= 2 && modRing == (flatPartNumModules - 1)) { flatPartOneBeforeLastModuleMaxZ = MAX(flatPartOneBeforeLastModuleMaxZ, modcomplex.getZmax()); }
 	  }
-	  // both modRings 1 and 2 have to be taken into account because of small delta
-	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { firstRodRadius = firstRodRadius + iiter->getModule().center().Rho() / 2; }
-	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { secondRodRadius = secondRodRadius + iiter->getModule().center().Rho() / 2; }
+	  // WARNING: THIS ONLY LOOKS, ON A GIVEN LAYER, AT THE FIRST 2 MODULES. 
+	  // IT ASSUMES ALL OTHER PLACEMENTS ARE SIMILAR.
+	  // first rod encountered in phi
+	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { 
+	    firstPhiRodRadius = firstPhiRodRadius + iiter->getModule().center().Rho() / 2; 
+	  }
+	  // next rod encountered in phi
+	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { 
+	    nextPhiRodRadius = nextPhiRodRadius + iiter->getModule().center().Rho() / 2; 
+	  }
 	}
       }
 
@@ -707,7 +724,7 @@ namespace insur {
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
       std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
 
-      double rodStartPhiAngle, rodNextPhiStartPhiAngle;
+      double firstPhiRodMeanPhi, nextPhiRodMeanPhi;
 
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
@@ -785,7 +802,7 @@ namespace insur {
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {           
 
-	    rodStartPhiAngle = iiter->getModule().center().Phi();
+	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
             std::ostringstream ringname;
 	    ringname << xml_ring << modRing << lname.str();
@@ -864,7 +881,7 @@ namespace insur {
 		  timingModuleCopyNumber += 1;
 		}
 	      }	// end of timing layer special case      
-	      pos.trans.dx = iiter->getModule().center().Rho() - firstRodRadius;
+	      pos.trans.dx = iiter->getModule().center().Rho() - firstPhiRodRadius;
 	      pos.trans.dz = iiter->getModule().center().Z();
 
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
@@ -875,7 +892,7 @@ namespace insur {
 	      
 	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
-		pos.trans.dx = partner->getModule().center().Rho() - firstRodRadius;
+		pos.trans.dx = partner->getModule().center().Rho() - firstPhiRodRadius;
 		pos.trans.dz = partner->getModule().center().Z();
 
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
@@ -893,11 +910,11 @@ namespace insur {
 
 	  if (iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
-	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
+	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
-		pos.trans.dx = iiter->getModule().center().Rho() - secondRodRadius;
+		pos.trans.dx = iiter->getModule().center().Rho() - nextPhiRodRadius;
 		pos.trans.dz = iiter->getModule().center().Z();
 		if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -905,7 +922,7 @@ namespace insur {
 	      
 		// This is a copy of the BModule on -Z side
 		if (partner != oiter->end()) {
-		  pos.trans.dx = partner->getModule().center().Rho() - secondRodRadius;
+		  pos.trans.dx = partner->getModule().center().Rho() - nextPhiRodRadius;
 		  pos.trans.dz = partner->getModule().center().Z();
 		  if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		  else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -1246,7 +1263,7 @@ namespace insur {
 	      myInfo.r2 = iiter->getModule().center().Rho();
 	      myInfo.z2 = iiter->getModule().center().Z();
 	      myInfo.startPhiAngle2 = iiter->getModule().center().Phi();
-	      // Update ring extrema
+	      // Update tilted ring extrema
 	      myInfo.rmin = MIN(myInfo.rmin, modcomplex.getRmin());
 	      myInfo.rmax = MAX(myInfo.rmax, modcomplex.getRmax());
 	      myInfo.zmin = MIN(myInfo.zmin, modcomplex.getZmin());
@@ -1262,7 +1279,7 @@ namespace insur {
 	      myInfo.r2 = iiter->getModule().center().Rho();
 	      myInfo.z2 = - iiter->getModule().center().Z(); // WARNING: this assumes symmetry through (XY) plane!
 	      myInfo.startPhiAngle2 = iiter->getModule().center().Phi();
-	      // Update ring extrema
+	      // Update tilted ring extrema
 	      myInfo.rmin = MIN(myInfo.rmin, modcomplex.getRmin());
 	      myInfo.rmax = MAX(myInfo.rmax, modcomplex.getRmax());
 	      myInfo.zmin = MIN(myInfo.zmin, modcomplex.getZmin());
@@ -1273,7 +1290,7 @@ namespace insur {
 	  }
 	}
       }
-      // material propxerties
+      // material properties
       if (count > 0) {
 	ril.rlength = rtotal / (double)count;
 	ril.ilength = itotal / (double)count;
@@ -1343,8 +1360,9 @@ namespace insur {
       srspec.partselectors.push_back(rodname.str());
       srspec.moduletypes.push_back(minfo_zero);
         
+   
 
-      
+
       // rods in layer algorithm(s)
       // OUTER TRACKER
       if (!isPixelTracker) {
@@ -1356,13 +1374,14 @@ namespace insur {
 	  alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
 	  // It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
 	  // 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
-	  const double radiusIn = MIN(firstRodRadius, secondRodRadius);  // inner radius
-	  const double radiusOut = MAX(firstRodRadius, secondRodRadius); // outer radius
+	  // Get inner / outer ladders radii
+	  const double radiusIn = MIN(firstPhiRodRadius, nextPhiRodRadius);  // inner radius
+	  const double radiusOut = MAX(firstPhiRodRadius, nextPhiRodRadius); // outer radius
+	  // Is firstPhiRod placed at inner radius?
+	  const bool isFirstPhiRodAtInnerRadius = (fabs(firstPhiRodRadius - radiusIn) < xml_epsilon);
 	  // The algo (as implemeted in CMSSW) starts by placing the inner radius rod, no matter what!
-	  // So we need to find out whether that corresponds to the firstPhiRod or nextPhiRod.
-	  const bool isAlgoStartingWithFirstRod = (fabs(radiusIn - firstRodRadius) <  1E-07);
-	  // Then we can tell the algo which phi to start at (== which phi is at the inner radius).
-	  const double algoStartPhi = (isAlgoStartingWithFirstRod ? rodStartPhiAngle : rodNextPhiStartPhiAngle); 
+	  // So need to start placing rods from the inner rod mean phi.
+	  const double algoStartPhi = (isFirstPhiRodAtInnerRadius ? firstPhiRodMeanPhi : nextPhiRodMeanPhi); 
 	  pconverter.str("");
 	  pconverter << algoStartPhi * 180. / M_PI << "*deg"; 
 	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
@@ -1402,10 +1421,10 @@ namespace insur {
 	  pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
 	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << firstRodRadius << "*mm";
+	  pconverter << firstPhiRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << secondRodRadius << "*mm";
+	  pconverter << nextPhiRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
@@ -1431,10 +1450,10 @@ namespace insur {
 	  pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
 	  alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << firstRodRadius << "*mm";
+	  pconverter << firstPhiRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
 	  pconverter.str("");
-	  pconverter << secondRodRadius << "*mm";
+	  pconverter << nextPhiRodRadius << "*mm";
 	  alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
 	  pconverter.str("");
 	  alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
@@ -1457,11 +1476,11 @@ namespace insur {
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
+	pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << firstRodRadius << "*mm";
+	pconverter << firstPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
@@ -1478,11 +1497,11 @@ namespace insur {
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << rodNextPhiStartPhiAngle * 180. / M_PI << "*deg";
+	pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << secondRodRadius << "*mm";
+	pconverter << nextPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
