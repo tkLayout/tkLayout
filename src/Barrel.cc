@@ -33,6 +33,7 @@ void Barrel::build() {
       if (layerNode.count(i) > 0) layer->store(layerNode.at(i)); // TO DO: WARNING!! layer->placeRadiusHint is reassigned here!!
       layer->build();
       layer->rotateZ(barrelRotation());
+      if (rotateBarrelByHalfPi()) { layer->rotateZ(M_PI / 2.); }
       layer->rotateZ(layer->layerRotation());
       layers_.push_back(layer);
     }

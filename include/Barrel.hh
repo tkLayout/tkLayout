@@ -32,6 +32,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Property<bool  , Default>   outerRadiusFixed;
   Property<bool  , Default>   sameRods;
   Property<double, Default>   barrelRotation;
+  Property<bool  , Default>   rotateBarrelByHalfPi;
   Property<double, Default>   supportMarginOuter;
   Property<double, Default>   supportMarginInner;
 
@@ -46,6 +47,7 @@ public:
     outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
     sameRods(          "sameRods"          , parsedAndChecked(), false),
     barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
+    rotateBarrelByHalfPi("rotateBarrelByHalfPi", parsedOnly(), false),
     supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
     supportMarginInner("supportMarginInner", parsedOnly(), 2.),
     layerNode(         "Layer"             , parsedOnly()),
