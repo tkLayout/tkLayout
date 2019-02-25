@@ -193,6 +193,7 @@ void Layer::check() {
     if (radiusMode() != RadiusMode::FIXED) throw PathfulException("Skewed layer mode: the (average) radii of layers must be specified.");
     if (isTilted()) throw PathfulException("A layer was set to both skewed and tilted: this is not presently supported.");
     if (phiForbiddenRanges.state()) throw PathfulException("Skewed layer mode: phiForbiddenRange is not supported.");
+    if (rotateLayerByRodsDeltaPhiHalf.state()) throw PathfulException("Skewed layer mode: rotateLayerByRodsDeltaPhiHalf is not supported.");
     if (phiOverlap.state()) throw PathfulException("Skewed layer mode: phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Skewed layer mode: phiSegments should not be specified.");
   }
@@ -503,7 +504,11 @@ const bool Layer::placeAndStoreFirstRod(StraightRodPair* firstRod, const RodTemp
   if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
     const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
     firstRodCenterPhi = (forbiddenPhiUpperA + rodCenterPhiShift / 2.);
+    // NB : should not be rodCenterPhiShift / 2. (deltaPhi between consecutive rods) 
+    // but rod phi aperture (phi covered by a rod).
   }
+  // if requested in cfg, shift the layer by rodsDeltaPhi / 2
+  if (rotateLayerByRodsDeltaPhiHalf()) { firstRodCenterPhi += rodCenterPhiShift / 2.; }
   // skewed mode: the first rod has a specific shift in Phi.
   if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
 
@@ -1037,6 +1042,8 @@ void Layer::buildTilted() {
   const std::vector<TiltedModuleSpecs> myFirstRodSensorsCenters = (isFirstRodAtOuterRadius ? tmspecso : tmspecsi);
   first->isOuterRadiusRod(isFirstRodAtOuterRadius); 
   first->build(rodTemplate, myFirstRodSensorsCenters, !isFirstRodAtOuterRadius);
+  const double rodCenterPhiShift = 2 * M_PI / numRods();
+  if (rotateLayerByRodsDeltaPhiHalf()) { first->rotateZ(rodCenterPhiShift / 2.); }
   rods_.push_back(first);
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(subdetectorName());
@@ -1046,8 +1053,9 @@ void Layer::buildTilted() {
   const std::vector<TiltedModuleSpecs> mySecondRodSensorsCenters = (isSecondRodAtOuterRadius ? tmspecso : tmspecsi);
   second->isOuterRadiusRod(isSecondRodAtOuterRadius);  
   second->build(rodTemplate, mySecondRodSensorsCenters, !isSecondRodAtOuterRadius);
-  const double rodCenterPhiShift = 2 * M_PI / numRods();
-  second->rotateZ(rodCenterPhiShift);
+  
+  const double firstRodCenterPhi = first->Phi();
+  second->rotateZ(firstRodCenterPhi + rodCenterPhiShift);
   rods_.push_back(second);
 
   for (int i = 2; i < numRods(); i++) {
@@ -1055,7 +1063,7 @@ void Layer::buildTilted() {
     rod->myid(i+1);
     rod->rotateZ(rodCenterPhiShift*(i%2 ? i-1 : i));
     rods_.push_back(rod);
-    }
+  }
 
   // computing the layer's place radius as the average of all the modules' radii
   placeRadius_  = std::accumulate(tmspecsi.begin(), tmspecsi.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
