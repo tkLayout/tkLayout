@@ -194,7 +194,7 @@ void Layer::check() {
     if (radiusMode() != RadiusMode::FIXED) throw PathfulException("Skewed layer mode: the (average) radii of layers must be specified.");
     if (isTilted()) throw PathfulException("A layer was set to both skewed and tilted: this is not presently supported.");
     if (phiForbiddenRanges.state()) throw PathfulException("Skewed layer mode: phiForbiddenRange is not supported.");
-    if (rotateLayerByRodsDeltaPhiHalf.state()) throw PathfulException("Skewed layer mode: rotateLayerByRodsDeltaPhiHalf is not supported.");
+    if (rotateLayerByRodsDeltaPhiHalf()) throw PathfulException("Skewed layer mode: rotateLayerByRodsDeltaPhiHalf is not supported.");
     if (phiOverlap.state()) throw PathfulException("Skewed layer mode: phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Skewed layer mode: phiSegments should not be specified.");
   }
