@@ -159,6 +159,7 @@ void Layer::check() {
     if (numRods.state() && (phiOverlap.state() || phiSegments.state())) throw PathfulException("Flat layer : Only one between numRods  and (phiOverlap + phiSegments) can be specified.");
     if (!numRods.state() && !phiOverlap.state()) throw PathfulException("Flat layer : phiOverlap must be specified.");
     if (!numRods.state() && !phiSegments.state()) throw PathfulException("Flat layer : phiSegments must be specified.");
+    if (phiForbiddenRanges.state() && rotateLayerByRodsDeltaPhiHalf()) throw PathfulException("Flat layer : Only one between phiForbiddenRanges and rotateLayerByRodsDeltaPhiHalf must be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
   }
 
@@ -499,18 +500,27 @@ const bool Layer::placeAndStoreFirstRod(StraightRodPair* firstRod, const RodTemp
 					const double rodCenterPhiShift, const double installationMinusBigDeltaRodCenterPhiShift) {
 
   // COMPUTE PHI POSITION
+  // Starts at phi = 0 (Warning: full barrel can have a rotation, which will add up to these).
   double firstRodCenterPhi = 0.;
-  // phi forbidden range: forbid rod placement in phi, in a given phi range.
-  if (phiForbiddenRanges.state() && !isSkewedForInstallation()) {
+
+  // One (and only one) of the following special cases can be present.
+  // Special case A: 
+  // If requested in cfg, shift the layer by rodsDeltaPhi / 2
+  if (rotateLayerByRodsDeltaPhiHalf()) { firstRodCenterPhi = rodCenterPhiShift / 2.; }
+
+  // Special case B: phi forbidden range.
+  // Forbid rod placement in phi, in a given phi range. Starts placement at specified value.
+  else if (phiForbiddenRanges.state()) {
     const double forbiddenPhiUpperA = phiForbiddenRanges.at(1) * M_PI / 180.;
     firstRodCenterPhi = (forbiddenPhiUpperA + rodCenterPhiShift / 2.);
     // NB : should not be rodCenterPhiShift / 2. (deltaPhi between consecutive rods) 
     // but rod phi aperture (phi covered by a rod).
   }
-  // if requested in cfg, shift the layer by rodsDeltaPhi / 2
-  if (rotateLayerByRodsDeltaPhiHalf()) { firstRodCenterPhi += rodCenterPhiShift / 2.; }
-  // skewed mode: the first rod has a specific shift in Phi.
-  if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
+  
+  // Special case C: skewed mode.
+  // The first rod has a specific shift in Phi.
+  else if (isSkewedForInstallation()) { firstRodCenterPhi = installationMinusBigDeltaRodCenterPhiShift; }
+
 
   // PLACE AND STORE
   const bool isFirstRodAtPlusBigDelta = (!isSkewedForInstallation() ? (bigParity() > 0) : false);
