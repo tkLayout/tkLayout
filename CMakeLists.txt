@@ -59,6 +59,7 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include
                      ${PROJECT_SOURCE_DIR}/source/Tools/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${PROJECT_SOURCE_DIR}/source/Web/include
+                     ${PROJECT_SOURCE_DIR}/include
                      ${Boost_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
 
