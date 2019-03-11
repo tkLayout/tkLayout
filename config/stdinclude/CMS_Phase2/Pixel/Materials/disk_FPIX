@@ -144,7 +144,7 @@ Materials FPIX_disk {
       quantity 20.8             // 0.4*52 = 20.8 g
       unit g
       // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
-      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [1].
+      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [TEPX_2018_12_07_LC].
     }
   }
  
@@ -161,7 +161,7 @@ Materials FPIX_disk {
       quantity 169.6        // 0.4*424 = 169.6 g
       unit g
       // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
-      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [1].
+      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [TEPX_2018_12_07_LC].
     }
 
   }
@@ -184,11 +184,10 @@ Materials FPIX_disk {
       //quantity 1.2        // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
                             // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
                             // total thickness = 4 * 0.3 = 1.2 mm
-                            // Source: [1].
+                            // Source: [TEPX_2018_12_07_LC].
       //unit mm
     }   
   }
-
-  
   
 }
+

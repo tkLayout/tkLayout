@@ -16,7 +16,7 @@ Component {
 
 
 Component {
-  componentName "IT Module: ROC (Si)"  // Source: [1]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
+  componentName "IT Module: ROC (Si)"  // Source: [TEPX_2018_12_07_LC]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
   service false
   scaleOnSensor 0
   Element {
@@ -27,4 +27,4 @@ Component {
   }
 }
 
-// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
+

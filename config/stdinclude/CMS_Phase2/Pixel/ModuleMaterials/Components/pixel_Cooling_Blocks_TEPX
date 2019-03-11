@@ -1,5 +1,5 @@
 // TEPX Cooling blocks
-// Evth from [1], scaled per module.
+// Evth from [TEPX_2018_12_07_LC], scaled per module.
 // Also used for TFPX for now (better than nothing!), should be updated to a dedicated file for TFPX if different in TFPX.
 
 Component {
@@ -10,7 +10,7 @@ Component {
   Element {
     scaleOnSensor 0
     elementName TPG  
-    quantity 1.5       // 1.5 mm thickness per module. Source: [1]    // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [1] REALLY ACCURATE?
+    quantity 1.5       // 1.5 mm thickness per module. Source: [TEPX_2018_12_07_LC]    // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [TEPX_2018_12_07_LC] REALLY ACCURATE?
     // APPROXIMATION: Put a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
     unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 3
@@ -26,12 +26,10 @@ Component {
   Element {
     scaleOnSensor 0
     elementName AlN  
-    quantity 0.34       // 0.300 mm thickness per module. Source: [1]   // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [1] REALLY ACCURATE?
+    quantity 0.34       // 0.300 mm thickness per module. Source: [TEPX_2018_12_07_LC]   // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [TEPX_2018_12_07_LC] REALLY ACCURATE?
     // APPROXIMATION: Put a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
     unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 3
   }
 }  
 
-
-// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018

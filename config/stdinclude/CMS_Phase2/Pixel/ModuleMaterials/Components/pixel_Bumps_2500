@@ -8,7 +8,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Pix_Bumps
-    quantity 0.006                 // = averaged thickness. Volume of a sphere with diameter 30 um / 2500 um^2. Source [3].
+    quantity 0.006                 // = averaged thickness. Volume of a sphere with diameter 30 um / 2500 um^2. Source [IT_MODULE_2019_02_13_SO].
                                    // This value ends up being multiplied by Pix_Bumps density.
     unit mm                        // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 3

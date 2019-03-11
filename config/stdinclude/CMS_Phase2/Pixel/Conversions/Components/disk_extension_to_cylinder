@@ -6,7 +6,7 @@ NonConvertedMaterials {
         scaleOnSensor 0
         componentName "Supports Mechanics: CFK extension on service cylinder"               
         elementName CFRP_EPX     
-        quantity 108          // 27g per dee, hence 4*27 = 108g per double-disk. Source: [1].
+        quantity 108          // 27g per dee, hence 4*27 = 108g per double-disk. Source: [TEPX_2018_12_07_LC].
         unit g
                               // APPROXIMATION: mass spread along phi, while should be at specific phis.
    }

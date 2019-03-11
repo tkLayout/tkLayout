@@ -1,5 +1,5 @@
 // TEPX Mounting.
-// Evth from [1].
+// Evth from [TEPX_2018_12_07_LC].
 
 Component {
   componentName "IT Module: Mounting clamp"
@@ -7,7 +7,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName CFRP_module
-    quantity 0.2        // Source: [1]
+    quantity 0.2        // Source: [TEPX_2018_12_07_LC]
     unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1    
   }
@@ -19,7 +19,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName CFRP_module
-    quantity 0.08      // 4 screws, M1. Source: [1]
+    quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
     // APPROXIMATION: take same weights for all types of modules.
     unit g
     targetVolume 1     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
@@ -33,7 +33,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Brass
-    quantity 0.16       // 4 screws, M1 thread bushing. Source: [1]
+    quantity 0.16       // 4 screws, M1 thread bushing. Source: [TEPX_2018_12_07_LC]
                         // NB: This was on the disk slide, but divided by number of modules.
     // APPROXIMATION: take same weights for all types of modules.
     unit g
@@ -48,7 +48,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Airex
-    quantity 0.36      // Source: [1]
+    quantity 0.36      // Source: [TEPX_2018_12_07_LC]
     // APPROXIMATION: LOCATION
     unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1     
@@ -62,7 +62,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Epoxy
-    quantity 0.06     // Source: [1]
+    quantity 0.06     // Source: [TEPX_2018_12_07_LC]
     // APPROXIMATION: LOCATION
     unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 3
@@ -76,7 +76,7 @@ Component {
 // scaleOnSensor 0
 //  Element {
 //    elementName Epoxy
-//    quantity 0.34     // Source: [1] // WATCH OUT, LOOKS TOO BIG!!
+//    quantity 0.34     // Source: [TEPX_2018_12_07_LC] // WATCH OUT, LOOKS TOO BIG!!
 //    // APPROXIMATION: LOCATION
 //    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
 //    targetVolume 3
@@ -84,4 +84,3 @@ Component {
 //}
 
 
-// [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018

@@ -9,7 +9,7 @@ Steel	                     7.8	                    C:0.00089992039   Si:0.001598
  
 StainlessSteel             8.02                     Fe:0.6996          C:0.0004       Mn:0.01         Cr:0.19   Ni:0.1
 # from materials.xml
-# NB: Density from Lea and Stefanos in [1] is 7.8, which is probably a bit too low (stainless steel is more dense than steel).
+# NB: Density from Lea and Stefanos in [TEPX_2018_12_07_LC] is 7.8, which is probably a bit too low (stainless steel is more dense than steel).
  
 Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
 # Polyimide. from trackermaterial.xml (density 1.40 g/cm3 ?)                        
@@ -22,7 +22,7 @@ Glass                      2.33	                     Si:0.36611059    O:0.531732
 
 Airex                      0.08                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
 # from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml
-# density from [1].
+# density from [TEPX_2018_12_07_LC].
             
 Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
 # from materials.xml  (density 1.44 g/cm3 ?)
@@ -51,7 +51,7 @@ TPG	                       2.26	                   C:1
 # WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
 
 CF                         1.91                    C:1.0
-# High density CF. Density from [2].
+# High density CF. Density from [TBPX_2019_01_15_AB].
 # check compo??
 
 Epoxy	                     1.16                CH2OCN:1	 
@@ -72,17 +72,17 @@ CFRP_ITST	                 1.622                   C:0.71            Epoxy:0.29
 # From Andreas Jung, 2019/01/15 email: 60% volume C fibres (density 1.91 g/cm3) + 40% volume resin (density 1.19 g/cm3).
 
 CFRP_EPX	                 1.43	                   C:0.71            Epoxy:0.29
-# from [1], composition from 'CFRP_ITST'
+# from [TEPX_2018_12_07_LC], composition from 'CFRP_ITST'
 # check compo???
 
 CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
-# from [1], composition from 'CFRP_ITST'
+# from [TEPX_2018_12_07_LC], composition from 'CFRP_ITST'
 # check compo???
 
 CFRP                       1.43                    CFRP_EPX:1
 
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
-# from [1].
+# from [TEPX_2018_12_07_LC].
 # check compo??? proportion of FR4!! ~2/3 from Lea. Should also have connectors?????
 
 Polyethylene                0.89              C2H4:1
@@ -209,10 +209,10 @@ IT_HDI_Coverlay_Kapton                 1.42	             Kapton:1
 IT_HDI_Coverlay_glue                   1.19	             Acrylicglue:1
 IT_HDI_SMDCapacitors                   6.02	             SMDCapacitors:1
 IT-HDI-mix              4.5890476718      IT_HDI_photoimage_mask_layer_top:0.0257860327     IT_HDI_photoimage_mask_layer_bottom:0.0257860327    IT_HDI_Copper_layers:0.5857424442     IT_HDI_Polyimide_layers:0.0696222883      IT_HDI_Glue_for_lamination:0.0540235544    IT_HDI_Coverlay_Kapton:0.0335218425   IT_HDI_Coverlay_glue:0.0540235544    IT_HDI_SMDCapacitors:0.1514942507
-# Source: [4]
+# Source: [IT_MODULE_2019_02_07_MB]
 
 Pix_Bumps                  7.39              Ag:0.035        Sn:0.965 
-# from [3]
+# from [IT_MODULE_2019_02_13_SO]
                  
 Pix_Caps                   6.02              SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
