@@ -81,10 +81,6 @@ CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
 
 CFRP                       1.43                    CFRP_EPX:1
 
-HDI_module	               2.97	                   FR4:0.66             Cu:0.34
-# from [1]
-# check compo??? proportion of FR4!! ~2/3 from Lea.
-
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
 # from [1].
 # check compo??? proportion of FR4!! ~2/3 from Lea. Should also have connectors?????
@@ -196,6 +192,13 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 # from Duccio, Composite materials, 17/08/2015
 
 
+
+
+
+
+
+
+
 # DEFINING IT-HDI-mix:
 IT_HDI_photoimage_mask_layer_top       1.42	             Kapton:1
 IT_HDI_photoimage_mask_layer_bottom    1.42	             Kapton:1
@@ -208,17 +211,16 @@ IT_HDI_SMDCapacitors                   6.02	             SMDCapacitors:1
 IT-HDI-mix              4.5890476718      IT_HDI_photoimage_mask_layer_top:0.0257860327     IT_HDI_photoimage_mask_layer_bottom:0.0257860327    IT_HDI_Copper_layers:0.5857424442     IT_HDI_Polyimide_layers:0.0696222883      IT_HDI_Glue_for_lamination:0.0540235544    IT_HDI_Coverlay_Kapton:0.0335218425   IT_HDI_Coverlay_glue:0.0540235544    IT_HDI_SMDCapacitors:0.1514942507
 # Source: [4]
 
-
-
-
-
-
 Pix_Bumps                  7.39              Ag:0.035        Sn:0.965 
 # from [3]
                  
 Pix_Caps                   6.02              SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
 # So took the one from OT.
+
+
+
+
 
 Scint                      7.40              Lu:0.71         Si:0.07         O:0.18          Y:0.04        
 SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019

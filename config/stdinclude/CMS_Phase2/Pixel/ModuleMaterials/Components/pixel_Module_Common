@@ -7,47 +7,21 @@ Component {
   Element {
     elementName SenSi
     quantity 0.15       
-    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    unit mm                  // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 2
   }
 }
 
 
 Component {
-  componentName "IT Module: HDI" // NB: THIS NEEDS TO BE CONFIRMED!!!! 
+  componentName "IT Module: HDI" 
   service false
   scaleOnSensor 0
   Element {
-    elementName IT-HDI-mix
-    quantity 0.12
-    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1
+    elementName IT-HDI-mix  // COMPO NEEDS TO BE CHECKED AND UPDATED. Source: [4].
+    quantity 0.12           // Thickness from Malte Backhaus.
+    unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 1          // Approximation: All components (layers in HDI + SMD capacitors) all mixed up together into one homogeneous volume.
   } 
 
 }
-
-
-
-
-
-
-
-
-
-
-// NB: REPLACE THE HDI WITH THIS????
-//Component {
-//  componentName "IT Module: HDI" // NB: THIS NEEDS TO BE CONFIRMED!!!!
-//  service false
-//  scaleOnSensor 0
- 
-// Element {
-//    elementName HDI_module  /// ??????? compo to modify!!!
-//    quantity 0.13734     // Source: [1]
-//    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-//    targetVolume 1
-//  }
-//}
-
-
-
