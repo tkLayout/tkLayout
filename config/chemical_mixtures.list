@@ -196,12 +196,25 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 # from Duccio, Composite materials, 17/08/2015
 
 
+# DEFINING IT-HDI-mix:
+IT_HDI_photoimage_mask_layer_top       1.42	             Kapton:1
+IT_HDI_photoimage_mask_layer_bottom    1.42	             Kapton:1
+IT_HDI_Copper_layers                   8.96              Cu:1
+IT_HDI_Polyimide_layers                1.42	             Kapton:1
+IT_HDI_Glue_for_lamination             1.19	             Acrylicglue:1
+IT_HDI_Coverlay_Kapton                 1.42	             Kapton:1
+IT_HDI_Coverlay_glue                   1.19	             Acrylicglue:1
+IT_HDI_SMDCapacitors                   6.02	             SMDCapacitors:1
+IT-HDI-mix              4.5890476718      IT_HDI_photoimage_mask_layer_top:0.0257860327     IT_HDI_photoimage_mask_layer_bottom:0.0257860327    IT_HDI_Copper_layers:0.5857424442     IT_HDI_Polyimide_layers:0.0696222883      IT_HDI_Glue_for_lamination:0.0540235544    IT_HDI_Coverlay_Kapton:0.0335218425   IT_HDI_Coverlay_glue:0.0540235544    IT_HDI_SMDCapacitors:0.1514942507
+# Source: [4]
 
 
 
 
-Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
-# from Duccio, Pixel Phase 2 materials.
+
+
+Pix_Bumps                  7.39              Ag:0.035        Sn:0.965 
+# from [3]
                  
 Pix_Caps                   6.02              SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
@@ -267,13 +280,6 @@ FPIX_PE	                 0.95	                    PE:1
 # different density from PE!!
 TEDD_Steel	             7.8	                 Steel:1
 
-
-
-
-
-
-# [1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
-# [2] Andrea Basti, "TBPX - weight evaluation".csv , 15/01/2019.
 
 
 
