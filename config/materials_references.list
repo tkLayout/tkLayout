@@ -2,7 +2,26 @@ References list
 
 Inner Tracker
 
-[1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
-[2] Andrea Basti, "TBPX - weight evaluation".csv , 15/01/2019.
-[3] Stella Orfanelli, "Chips - bump bonds", 13/02/2019
+MODULE_COMMON
 [4] Malte Backhaus, HDI composition estimate, 07/02/2019. TO BE UPDATED.
+[3] Stella Orfanelli, "Chips - bump bonds", 13/02/2019.
+
+TBPX
+[2] Andrea Basti, "TBPX - weight evaluation".csv , 15/01/2019.
+
+TFPX
+
+TEPX
+[TEPX_1] https://indico.cern.ch/event/770283/contributions/3238440/attachments/1767622/2870720/TEPX-IT-Mechanics-Review_Dec-2018.pdf IT Mechanice review, 07/12/2018
+
+ITST & SERVICE CYLINDER
+[3] ITST design and manifacture, indico: 685933 & 682294.
+[4] Andreas Jung, 2019/01/15 email.
+[5] Purdue, Physics Particle Detector Support Structure, 2018/12/03.
+
+
+
+
+
+
+
