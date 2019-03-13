@@ -11,7 +11,7 @@ endif
 ifneq ($(strip $(BOOST_LIB)),)
 BOOSTLIBFLAGS=-L$(BOOST_LIB)
 endif
-BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
+BOOSTLIBFLAGS+=-DBOOST_SYSTEM_NO_DEPRECATED  -lboost_system -L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS+=-Iinclude/
@@ -23,10 +23,10 @@ TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
 
-COMPILERFLAGS+=-std=c++11
+COMPILERFLAGS+=-std=c++17
 COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Werror
-COMPILERFLAGS+=-fmax-errors=2
+#COMPILERFLAGS+=-fmax-errors=2
 #COMPILERFLAGS+=-Wextra
 #COMPILERFLAGS+=-pedantic
 COMPILERFLAGS+=-g
