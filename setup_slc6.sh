@@ -11,8 +11,6 @@ source /cvmfs/sft.cern.ch/lcg/releases/LCG_95/ROOT/6.16.00/x86_64-slc6-gcc62-opt
 # BOOST
 #export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/include/boost-1_50
 #export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/external/Boost/1.53.0_python2.7/x86_64-slc6-gcc48-opt/include/boost-1_53
-export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/releases/LCG_95/Boost/1.69.0/x86_64-slc6-gcc62-opt/include/boost
-
 #export BOOST_LIB=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/lib
 #export BOOST_SUFFIX=-gcc47-mt-1_50
 #export LD_LIBRARY_PATH=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/lib:$LD_LIBRARY_PATH
@@ -20,9 +18,10 @@ export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/releases/LCG_95/Boost/1.69.0/x86_64-
 #export BOOST_SUFFIX=-gcc48-mt-1_53
 #export LD_LIBRARY_PATH=/cvmfs/sft.cern.ch/lcg/external/Boost/1.53.0_python2.7/x86_64-slc6-gcc48-opt/lib:$LD_LIBRARY_PATH
 
+export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/releases/LCG_95/Boost/1.69.0/x86_64-slc6-gcc62-opt/include
 export BOOST_LIB=/cvmfs/sft.cern.ch/lcg/releases/LCG_95/Boost/1.69.0/x86_64-slc6-gcc62-opt/lib
 export BOOST_SUFFIX=
-export LD_LIBRARY_PATH=/cvmfs/sft.cern.ch/lcg/releases/LCG_95/Boost/1.69.0/x86_64-slc6-gcc62-opt/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BOOST_LIB:$LD_LIBRARY_PATH
 
 
 # DOXYGEN

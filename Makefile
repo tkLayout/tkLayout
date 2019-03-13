@@ -8,10 +8,11 @@ ROOTLIBFLAGS+=-lHistPainter
 ifneq ($(strip $(BOOST_INCLUDE)),)
 INCLUDEFLAGS=-I$(BOOST_INCLUDE)
 endif
-ifneq ($(strip $(BOOST_LIB)),)
-BOOSTLIBFLAGS=-L$(BOOST_LIB)
-endif
-BOOSTLIBFLAGS+=-DBOOST_SYSTEM_NO_DEPRECATED  -lboost_system -L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
+#ifneq ($(strip $(BOOST_LIB)),)
+#BOOSTLIBFLAGS=-L$(BOOST_LIB)
+#endif
+BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX) 
+#BOOSTLIBFLAGS+= -L$(BOOST_LIB) -lboost_system -lboost_filesystem -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS+=-Iinclude/
