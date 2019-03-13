@@ -160,10 +160,10 @@ ENDIF()
 # Include, source, dirs 
 #
 # Compiler flags
-#add_definitions( "-Wall -Wno-long-long -std=c++11 -pedantic" )
+#add_definitions( "-Wextra -pedantic -ggdb -pg -O3" )
 SET ( CMAKE_CXX_COMPILER "g++" )
 ADD_DEFINITIONS( "-Wl,--copy-dt-needed-entries" )
-SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprecated-declarations")
+SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -fmax-errors=2 -g")
 #SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
