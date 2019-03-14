@@ -26,7 +26,7 @@ DOXYDIR=doc/doxygen
 
 COMPILERFLAGS+=-std=c++17
 COMPILERFLAGS+=-Wall
-COMPILERFLAGS+=-Werror
+#COMPILERFLAGS+=-Werror
 #COMPILERFLAGS+=-fmax-errors=2
 #COMPILERFLAGS+=-Wextra
 #COMPILERFLAGS+=-pedantic

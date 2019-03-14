@@ -349,7 +349,7 @@ namespace insur {
       }
       else std::cout << graph_wrong << std::endl;
     }
-    catch (std::bad_alloc ba) {
+    catch (std::bad_alloc& ba) {
       std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
     }
   }
@@ -9742,7 +9742,7 @@ namespace insur {
 	}
       }
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
     }
 
