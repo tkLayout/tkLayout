@@ -19,7 +19,8 @@ PROJECT(tklayout)
 OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF )
 
 
-SET(CXX_STANDARD 17)
+# using cache lets users override with " cmake -DCXX_STANDARD=14 .. "
+SET(CXX_STANDARD 17 CACHE STRING "")
 
 # Output directories
 SET( EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin" CACHE PATH
@@ -42,15 +43,9 @@ link_libraries(${ROOT_LIBRARIES})
 #----------------------------------------------------------------------------
 # Include, source, dirs 
 #
-# Compiler flags
-#add_definitions( "-Wextra -pedantic -ggdb -pg -O3" )
-SET ( CMAKE_CXX_COMPILER "g++" )
-ADD_DEFINITIONS( "-Wl,--copy-dt-needed-entries" )
 
 
-set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
 
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}   -g -pedantic -Wall -Wno-reorder")
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
