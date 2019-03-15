@@ -574,6 +574,7 @@ namespace insur {
     crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
     //crProf->Rebin(10);
     crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
+    crProf->GetYaxis()->SetTitleOffset(1.3);
     crProf->SetFillColor(kGray + 2);
     crProf->SetLineColor(kBlue);
     crProf->Draw("hist");
@@ -583,6 +584,7 @@ namespace insur {
     ci = (TH1D*)a.getHistoGlobalI().Clone();
     ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
     ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
+    ciProf->GetYaxis()->SetTitleOffset(1.3);
     ciProf->SetFillColor(kGray + 2);
     ciProf->SetLineColor(kBlue);
     ciProf->Draw("hist");
@@ -959,6 +961,7 @@ namespace insur {
       rTrackingVolumeProf->SetFillColor(kGray + 2);
       rTrackingVolumeProf->SetLineColor(kBlue);
       rTrackingVolumeProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
+      rTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       rTrackingVolumeProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -970,6 +973,7 @@ namespace insur {
       iTrackingVolumeProf->SetFillColor(kGray + 2);
       iTrackingVolumeProf->SetLineColor(kBlue);
       iTrackingVolumeProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
+      iTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       iTrackingVolumeProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
@@ -3558,6 +3562,7 @@ namespace insur {
       crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       crProf->SetFillColor(kGray + 2);
       crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+      crProf->GetYaxis()->SetTitleOffset(1.3);
       crProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -3568,6 +3573,7 @@ namespace insur {
       ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       ciProf->SetFillColor(kGray + 2);
       ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->GetYaxis()->SetTitleOffset(1.3);
       ciProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
