@@ -74,6 +74,8 @@ namespace insur {
     // Each title centered and specified width
     gStyle->SetTitleX(0.5);
     gStyle->SetTitleW(1.);
+
+    gStyle->SetLegendFillColor(19); // clear grey
   }
 
   /**
