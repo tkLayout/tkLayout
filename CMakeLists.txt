@@ -19,8 +19,8 @@ PROJECT(tklayout)
 OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF )
 
 
-# using cache lets users override with " cmake -DCXX_STANDARD=14 .. "
-SET(CXX_STANDARD 17 CACHE STRING "")
+# using cache lets users override with " cmake -DCMAKE_CXX_STANDARD=14 .. "
+SET(CMAKE_CXX_STANDARD 17 CACHE STRING "")
 
 # Output directories
 SET( EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin" CACHE PATH
@@ -48,7 +48,12 @@ link_libraries(${ROOT_LIBRARIES})
 
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR}
-                     ${ROOT_INCLUDE_DIRS} )
+                     ${ROOT_INCLUDE_DIRS} 
+                     ${PROJECT_SOURCE_DIR}/include/
+                     ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors
+                     ${PROJECT_SOURCE_DIR}/include/InnerCabling
+                     ${PROJECT_SOURCE_DIR}/include/OuterCabling
+                     )
 
 FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc 
                        ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cc 
