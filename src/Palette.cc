@@ -67,7 +67,7 @@ Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
       paletteIndex = kOrange+3; // brown
       break;
     case 5 :
-      paletteIndex = kAzure+6; // clear blue
+      paletteIndex = kAzure+6; // very clear blue
       break;
     case 6 :
       paletteIndex = kYellow+4; // very dark green
@@ -85,7 +85,7 @@ Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
       paletteIndex = kRed+1; // dark red
       break;
     case 11 :
-      paletteIndex = kAzure+8; // blue azur
+      paletteIndex = kAzure-5; // blue azur
       break;
     default :
       std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
