@@ -2,9 +2,9 @@
 
 tkLayout requires:
 
-    ROOT version 5.34.09 (root and root-config should be in user's path)
-    BOOST version 1.50
-    gcc version 4.7
+    ROOT version 6.16.00 (root and root-config should be in user's path)
+    BOOST version 1.69.0
+    gcc version 8.2.0
 
 If you are on lxplus, you can just run a bash shell and then:
 

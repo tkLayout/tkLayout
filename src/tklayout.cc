@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
     if (!vm.count("base-name") && !vm.count("help") && !vm.count("version")) throw po::error("Missing geometry file"); 
 
-  } catch(po::error e) {
+  } catch(po::error& e) {
     std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
     std::cout << usage << std::endl << shown << trackopt << std::endl;
     return EXIT_FAILURE;
