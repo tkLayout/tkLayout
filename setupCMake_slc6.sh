@@ -3,7 +3,7 @@ RELEASE_LCG=/cvmfs/sft.cern.ch/lcg/releases/LCG_95
 VIEW_LCG=/cvmfs/sft.cern.ch/lcg/views/LCG_95
 
 # CMAKE
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.8.1/Linux-x86_64/bin/:$PATH
+export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.13.4/Linux-x86_64/bin/:$PATH
 
 
 # COMPILER
