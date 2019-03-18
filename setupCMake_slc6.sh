@@ -1,13 +1,14 @@
 ARCH=x86_64-slc6-gcc8
+CONTRIB=/cvmfs/sft.cern.ch/lcg/contrib
 RELEASE_LCG=/cvmfs/sft.cern.ch/lcg/releases/LCG_95
 VIEW_LCG=/cvmfs/sft.cern.ch/lcg/views/LCG_95
 
-# CMAKE
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.13.4/Linux-x86_64/bin/:$PATH
 
+# CMAKE
+export PATH=$CONTRIB/CMake/3.13.4/Linux-x86_64/bin/:$PATH
 
 # COMPILER
-source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8.2.0/$ARCH-opt/setup.sh
+source $CONTRIB/gcc/8.2.0/$ARCH-opt/setup.sh
 export CC=`which gcc`
 export CXX=`which g++`
 
