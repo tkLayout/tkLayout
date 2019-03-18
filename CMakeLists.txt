@@ -21,6 +21,9 @@ OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF )
 
 # using cache lets users override with " cmake -DCMAKE_CXX_STANDARD=14 .. "
 SET(CMAKE_CXX_STANDARD 17 CACHE STRING "")
+add_compile_options(-Wall -Werror -fmax-errors=2 -g)
+
+
 
 # Output directories
 SET( EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin" CACHE PATH
