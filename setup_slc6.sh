@@ -1,6 +1,9 @@
-export ARCH=x86_64-slc6-gcc8
-export CONTRIB=/cvmfs/sft.cern.ch/lcg/contrib
-export RELEASE_LCG=/cvmfs/sft.cern.ch/lcg/releases/LCG_95
+#!/bin/bash
+
+ARCH=x86_64-slc6-gcc8
+CONTRIB=/cvmfs/sft.cern.ch/lcg/contrib
+RELEASE_LCG=/cvmfs/sft.cern.ch/lcg/releases/LCG_95
+TK_DIRECTORY=$(dirname $BASH_SOURCE)
 
 
 # COMPILER
@@ -8,7 +11,7 @@ source $CONTRIB/gcc/8.2.0/$ARCH-opt/setup.sh
 
 # ROOT
 source $RELEASE_LCG/ROOT/6.16.00/$ARCH-dbg/bin/thisroot.sh
-source ROOT-env.sh
+source $TK_DIRECTORY/ROOT-env.sh
 
 # BOOST
 export BOOST_INCLUDE=$RELEASE_LCG/Boost/1.69.0/$ARCH-opt/include
