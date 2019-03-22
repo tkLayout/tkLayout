@@ -24,7 +24,7 @@ export DOXYGEN_PATH=$RELEASE_LCG/doxygen/1.8.11/$ARCH-opt/bin/
 export PATH=${DOXYGEN_PATH}:${PATH}
 
 # GRAPHVIZ
-export $RELEASE_LCG/graphviz/2.28.0/$ARCH-opt/graphviz-env.sh
+source $RELEASE_LCG/graphviz/2.28.0/$ARCH-opt/graphviz-env.sh
 
 # UPDATE PATH
 export PATH=`pwd`/bin:$PATH
