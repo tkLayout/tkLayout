@@ -207,14 +207,13 @@ IT_HDI_Polyimide_layers                1.42	             Kapton:1
 IT_HDI_Glue_for_lamination             1.19	             Acrylicglue:1
 IT_HDI_Coverlay_Kapton                 1.42	             Kapton:1
 IT_HDI_Coverlay_glue                   1.19	             Acrylicglue:1
-IT_HDI_SMDCapacitors                   6.02	             SMDCapacitors:1
-IT-HDI-mix              4.5890476718      IT_HDI_photoimage_mask_layer_top:0.0257860327     IT_HDI_photoimage_mask_layer_bottom:0.0257860327    IT_HDI_Copper_layers:0.5857424442     IT_HDI_Polyimide_layers:0.0696222883      IT_HDI_Glue_for_lamination:0.0540235544    IT_HDI_Coverlay_Kapton:0.0335218425   IT_HDI_Coverlay_glue:0.0540235544    IT_HDI_SMDCapacitors:0.1514942507
-# Source: [IT_MODULE_2019_02_07_MB]
+IT-HDI-mix              2.637443609      IT_HDI_photoimage_mask_layer_top:0.0404812133     IT_HDI_photoimage_mask_layer_bottom:0.0404812133    IT_HDI_Copper_layers:0.5874907349     IT_HDI_Polyimide_layers:0.1092992759      IT_HDI_Glue_for_lamination:0.0848109926    IT_HDI_Coverlay_Kapton:0.0526255773   IT_HDI_Coverlay_glue:0.0848109926
+# Source: [IT_MODULE_2019_03_21_MB]
 
 Pix_Bumps                  7.39              Ag:0.035        Sn:0.965 
 # from [IT_MODULE_2019_02_13_SO]
                  
-Pix_Caps                   6.02              SMDCapacitors:1
+Pix_Caps                   15.60             SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
 # So took the one from OT.
 
