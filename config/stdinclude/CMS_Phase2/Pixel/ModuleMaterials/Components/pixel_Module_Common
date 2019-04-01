@@ -18,10 +18,11 @@ Component {
   service false
   scaleOnSensor 0
   Element {
-    elementName IT-HDI-mix  // COMPO NEEDS TO BE CHECKED AND UPDATED. Source: [IT_MODULE_2019_02_07_MB].
+    elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
     quantity 0.133          // Thickness from Malte Backhaus.
     unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1          // Approximation: All components (layers in HDI + SMD capacitors) all mixed up together into one homogeneous volume.
+                            // APPROXIMATION: from Malte, surface of HDI is instead 1541 mm2, hence more than the active area surface (~1471 mm2). !!!!!!!!!!!!
+    targetVolume 1          // Approximation: All components (various layers in HDI) all mixed up together into one homogeneous volume.
   } 
 
 }
@@ -34,9 +35,10 @@ Component {
   Element {
     elementName Pix_Caps               
     quantity 0.0195                    // = 5 * 15.60 * 0.25 / 1000
-                                       // About 5 SMDCapacitors per module.
+                                       // About 5 SMDCapacitors per module.                                    
                                        // Assumes density is 15.60 g/cm3.
                                        // Assumes volume is 0.25 mm3 (model 402)
+                                       // NB: ~20 modules/ROC are also added, in pixel_ROC cfg file.
                                        // Source: [IT_MODULE_2019_03_21_MB]
     unit g
     targetVolume 1

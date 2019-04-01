@@ -7,10 +7,12 @@
 
 ### MODULE_COMMON:
 
-[IT_MODULE_2019_02_07_MB] https://espace.cern.ch/Tracker-Upgrade/_layouts/15/WopiFrame.aspx?sourcedoc=/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/MODULE_COMMON/HDI/HDI.odt&action=default  
-Malte Backhaus, HDI composition estimate, 07/02/2019. TO BE UPDATED.
-
-[IT_MODULE_2019_03_21_MB] https://indico.cern.ch/event/807408/contributions/3360409/attachments/1814613/2965261/20190319_-_MassOfModules.pdf + email
+[IT_MODULE_2019_03_21_MB] https://espace.cern.ch/Tracker-Upgrade/_layouts/15/WopiFrame.aspx?sourcedoc=/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/MODULE_COMMON/HDI/HDI.odt&action=default 
+and
+https://espace.cern.ch/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/MODULE_COMMON/HDI/20190319_-_MassOfModules.pdf 
+Malte Backhaus, Material estimation of IT modules, 06/03/2019.
+and
+https://espace.cern.ch/Tracker-Upgrade/_layouts/15/WopiFrame.aspx?sourcedoc=/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/MODULE_COMMON/HDI/HDI.ods&action=default 
 
 [IT_MODULE_2019_02_13_SO] https://espace.cern.ch/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/MODULE_COMMON/ROC/bumps_bonds.txt  
 Stella Orfanelli, "Chips - bump bonds", 13/02/2019.
