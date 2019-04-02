@@ -1,5 +1,7 @@
 // TEPX Mounting.
 // Evth from [TEPX_2018_12_07_LC].
+// Also used for TFPX!!! Should be updated for TFPX when info is available. But for now, this is better than nothing.
+
 
 Component {
   componentName "IT Module: Mounting clamp"
@@ -12,6 +14,7 @@ Component {
     targetVolume 1    
   }
 }
+
 
 Component {
   componentName "IT Module: Screws"  

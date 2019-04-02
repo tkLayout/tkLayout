@@ -23,6 +23,14 @@ C2H4                       0.89                       C:2                  H:4
 AlN	                       3.26	                     Al:1                  N:1
 # aluminium-nitride
 
+Si3N4                      3.183                     Si:3                  N:4
+# silicon nitride
+
+C8H8C4H6C3H3N              1.052                     C:15                  H:17                N:1
+# acrylonitrile butadiène styrène (ABS plastic).
+# Exact formula is (C8H8·C4H6·C3H3N)n. We can take n=1 because we are only interested in the relative mass ratios.
+# Density from [TFPX_2019_03_19_YP].
+
 
 # Unused:
 #BaF2                       4.89                     Ba:1                  F:2

@@ -1,7 +1,5 @@
-// Pixel endcap disks material
-// Large disks (220 modules)
-// 2.41 times bigger than small disk
-// 2500 um^2 pixels everywhere
+// TEPX double-disk materials.
+// Amounts of materials are PER DOUBLE-DISK.
 
 Materials FPIX_2_disk {
   type layer
@@ -137,7 +135,7 @@ Materials FPIX_2_disk {
 
   // Supports Mechanics: Airex foam insert
   Component {
-    componentName "Supports Mechanics: Dee Foam"
+    componentName "Supports Mechanics: Dee Airex foam"
     service false
     scaleOnSensor 0
  

@@ -1,6 +1,5 @@
-// Pixel endcap disks material
-// Small disks (108 modules)
-// 2500 um^2 pixels everywhere
+// TFPX double-disk materials.
+// Amounts of materials are PER DOUBLE-DISK.
 
 Materials FPIX_disk {
   type layer
@@ -135,7 +134,7 @@ Materials FPIX_disk {
   // Supports Mechanics: Airex foam insert
   // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
   Component {
-    componentName "Supports Mechanics: Dee Foam"
+    componentName "Supports Mechanics: Dee Airex foam"
     service false
     scaleOnSensor 0
  
@@ -148,44 +147,39 @@ Materials FPIX_disk {
     }
   }
  
- 
-  // Supports Mechanics: PCB panel
-  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
+  
+  // Supports Mechanics: Carbon foam panel
   Component {
-    componentName "Supports Mechanics: Dee PCB panel"
+    componentName "Supports Mechanics: Dee Carbon Foam panel"
     service false
     scaleOnSensor 0
  
     Element {
-      elementName PCB_panel_EPX
-      quantity 169.6        // 0.4*424 = 169.6 g
-      unit g
-      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
-      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [TEPX_2018_12_07_LC].
-    }
-
+      elementName Carbon_foam_FPX
+      quantity 166.704      // = 42.83 g (odd dee) * 2 (odd disk) + 40.522 g (even dee) * 2 (even disk).
+                            // Each dee has 2 panels (each panel weights ~21 g).
+                            // Source: [TFPX_2019_03_19_YP].                           
+      unit g                // APPROXIMATION: mass spread across a uniform disk cylinder.
+                            // Equivalent thickness is ~2.15 mm per panel (uniform disk with no hole).
+                            // Hence 4 * 2.15 ~ 8.6 mm thickness through double dee.
+    }   
   }
   
     
-  // Supports Mechanics: CFRP panel (also called CFK stiffener)
-  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
+  // Supports Mechanics: CFRP panel
   Component {
     componentName "Supports Mechanics: Dee CFRP panel"
     service false
     scaleOnSensor 0
  
     Element {
-      elementName CFRP_EPX
-      quantity 120          // 0.4*300 = 120 g
-      unit g
-      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
-      
-      // thickness approach would be as follows (but far more precise because of modules holes).                     
-      //quantity 1.2        // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
-                            // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
-                            // total thickness = 4 * 0.3 = 1.2 mm
-                            // Source: [TEPX_2018_12_07_LC].
-      //unit mm
+      elementName CFRP_FPX
+      quantity 194.112      // = 49.49 g (odd dee) * 2 (odd disk) + 47.566 g (even dee) * 2 (even disk).
+                            // Each dee has 2 panels (each panel weights ~24 g).
+                            // Source: [TFPX_2019_03_19_YP].                           
+      unit g                // APPROXIMATION: mass spread across a uniform disk cylinder.
+                            // Equivalent thickness is ~0.28 mm per panel (uniform disk with no hole).
+                            // Hence 4 * 0.28 ~ 1.12 mm thickness through double dee.
     }   
   }
   

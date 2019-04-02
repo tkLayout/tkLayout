@@ -29,6 +29,7 @@ Kevlar	                   1.42	                     C:0.71180785    N:0.11852895
 
 FR4                         1.85               Si:0.18077359           O:0.4056325        C:0.27804208      H:0.068442752       Br:0.067109079     
 # Fiber glass reinforced, from trackermaterial.xml (density 1.7 g/cm3 ?)
+# Yadira: density 1.91 in [TFPX_2019_03_19_YP]
 
 
 
@@ -81,12 +82,30 @@ CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
 
 CFRP                       1.43                    CFRP_EPX:1
 
+CFRP_FPX	                 2.198	                 C:0.71            Epoxy:0.29
+# Density from [TFPX_2019_03_19_YP].
+# Composition from 'CFRP_ITST'
+# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Carbon_foam_FPX	           0.249	                 C:1
+# Density from [TFPX_2019_03_19_YP].
+# Composition could not be found.
+# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
-# from [TEPX_2018_12_07_LC].
+# From [TEPX_2018_12_07_LC].
 # check compo??? proportion of FR4!! ~2/3 from Lea. Should also have connectors?????
 
-Polyethylene                0.89              C2H4:1
+Polyethylene               0.89              C2H4:1
 # from Duccio, Composite materials, 14/01/2015
+
+LCP                        1.633                  C:0.52     O:0.39     Si:0.08   H:0.01
+# Glass enforced.
+# Density from [TFPX_2019_03_19_YP].
+# Composition from pixbarmaterial.xml
+# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Parylene	                 1.30	                C8H8:1  
 # from Duccio, Composite materials, 14/01/2015    

@@ -28,6 +28,9 @@ Andrea Basti, "TBPX - weight evaluation".csv , 15/01/2019.
 
 ### TFPX:
 
+[TFPX_2019_03_19_YP] https://espace.cern.ch/Tracker-Upgrade/_layouts/15/WopiFrame.aspx?sourcedoc=/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/TFPX/29032019_CartridgeAssemblyMassEstimates.xlsx&action=default 
+Yadira Padilla, "TFPX Double Dee Mass Estimates - Cartridges", 19/03/2019.
+
 
 
 ### TEPX:
