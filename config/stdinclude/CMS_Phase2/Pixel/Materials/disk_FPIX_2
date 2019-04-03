@@ -144,7 +144,11 @@ Materials FPIX_2_disk {
       quantity 52             // 13g per dee, hence 4*13 = 52g per double-disk. Source: [TEPX_2018_12_07_LC].
       unit g
       // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
-      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [TEPX_2018_12_07_LC].
+      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. 
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
     }
   }
  
@@ -160,7 +164,11 @@ Materials FPIX_2_disk {
       quantity 424        // 106g per dee, hence 4*106 = 424g per double-disk. Source: [TEPX_2018_12_07_LC].
       unit g
       // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
-      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. Source: [TEPX_2018_12_07_LC].
+      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. 
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
     }
 
   }
@@ -179,11 +187,16 @@ Materials FPIX_2_disk {
       // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
       
       // thickness approach would be as follows (but far more precise because of modules holes).                     
-      //quantity 1.2        // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
-                            // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
-                            // total thickness = 4 * 0.3 = 1.2 mm
-                            // Source: [TEPX_2018_12_07_LC].
-      //unit mm
+      //quantity 1.2
+      //unit mm        
+      
+      // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
+      // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
+      // total thickness = 4 * 0.3 = 1.2 mm
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
     }   
   }
 
