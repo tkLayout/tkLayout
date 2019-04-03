@@ -47,9 +47,15 @@ WB-enc                    1.50          Siliconeglue:1
 Acrylicglue                1.16                C5O2H8:1
 # from Duccio, Composite materials, 14/01/2015
 
+
+
+
 TPG	                       2.26	                   C:1
 # from materials.xml
 # WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
+
+Graphite	                 2.266                   C:1
+# Similar to TPG.
 
 CF                         1.91                    C:1.0
 # High density CF. Density from [TBPX_2019_01_15_AB].
@@ -85,12 +91,10 @@ CFRP                       1.43                    CFRP_EPX:1
 CFRP_FPX	                 2.198	                 C:0.71            Epoxy:0.29
 # Density from [TFPX_2019_03_19_YP].
 # Composition from 'CFRP_ITST'
-# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Carbon_foam_FPX	           0.249	                 C:1
 # Density from [TFPX_2019_03_19_YP].
 # Composition could not be found.
-# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -105,7 +109,8 @@ LCP                        1.633                  C:0.52     O:0.39     Si:0.08 
 # Glass enforced.
 # Density from [TFPX_2019_03_19_YP].
 # Composition from pixbarmaterial.xml
-# IMPORTANT: YADIRA: UPDATE COMPO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 
 Parylene	                 1.30	                C8H8:1  
 # from Duccio, Composite materials, 14/01/2015    

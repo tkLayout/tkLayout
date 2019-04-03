@@ -1,5 +1,5 @@
 // TFPX double-disk materials.
-// Amounts of materials are PER DOUBLE-DISK.
+// Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 
 Materials FPIX_disk {
   type layer
@@ -129,28 +129,11 @@ Materials FPIX_disk {
       unit g/m
     }
   }
-
-
-  // Supports Mechanics: Airex foam insert
-  // TEMPORARY SCALED FROM EPX (SCALING FACTOR = 0.4), UPDATE THIS!!!
-  Component {
-    componentName "Supports Mechanics: Dee Airex foam"
-    service false
-    scaleOnSensor 0
- 
-    Element {
-      elementName Airex
-      quantity 20.8             // 0.4*52 = 20.8 g
-      unit g
-      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
-      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. Source: [TEPX_2018_12_07_LC].
-    }
-  }
  
   
   // Supports Mechanics: Carbon foam panel
   Component {
-    componentName "Supports Mechanics: Dee Carbon Foam panel"
+    componentName "Supports Mechanics: Dee Carbon foam panel"
     service false
     scaleOnSensor 0
  
