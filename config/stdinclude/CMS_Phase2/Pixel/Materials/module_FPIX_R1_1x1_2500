@@ -7,7 +7,6 @@ Materials FPIX_R1_1x1_2500 {
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TFPX
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Mounting_TEPX                 // NB: Use temporary Mounting from EPX info, this needs to be updated for FPX!!
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TFPX_R1
 }
 

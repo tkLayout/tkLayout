@@ -1,9 +1,9 @@
-// MATERIALS per ROC
+// Materials PER ROC
 
 
 // SMD resistors and capacitors.
 // This gathers all SMD components from HDI and RD53A.
-// 20 SMDCapacitors per ROC (in this file), 5 per module (in pixel_Module_common)
+// 20 SMDCapacitors per ROC (in this file) + 5 per module (in pixel_Module_common).
 Component {
   componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
   service false

@@ -1,17 +1,5 @@
-// Pixel module common components (no bumps, no cooling blocks, no connectivity)
-
-Component {
-  componentName "IT Module: Sensor (active Si)" 
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName SenSi
-    quantity 0.15       
-    unit mm                  // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 2
-  }
-}
-
+// MATERIALS COMMON TO ALL MODULES TYPES
+// This obviously does not include bumps, ROC, cooling blocks, conectivity (dedicated ModuleMaterials files).
 
 Component {
   componentName "IT Module: HDI" 
@@ -28,6 +16,10 @@ Component {
 }
 
 
+
+// SMD resistors and capacitors.
+// This gathers all SMD components from HDI and RD53A.
+// 20 SMDCapacitors per ROC (in pixel_ROC) + 5 per module (in this file).
 Component {
   componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
   service false
@@ -44,3 +36,83 @@ Component {
     targetVolume 1
   }
 }
+
+
+
+Component {
+  componentName "IT Module: Glue (HDI)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.03     // Source: [IT_MODULE_2019_03_21_MB]
+    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+                      // APPROXIMATION: Takes slightly bigger thickness, because only multiplied by active sensor area.
+    targetVolume 1
+  }
+}
+
+
+
+Component {
+  componentName "IT Module: Sensor (active Si)" 
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName SenSi
+    quantity 0.15       
+    unit mm                  // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 2
+  }
+}
+
+
+
+Component {
+  componentName "IT Module: Glue (Rails)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.03     // Source: [IT_MODULE_2019_03_21_MB]
+    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+                      // APPROXIMATION: takes slightly bigger thickness, because only multiplied by active sensor area.
+                      // APPROXIMATION: takes same weights for all types of modules.
+                      // Can be set in dedicated files later, but this is better than nothing.
+    targetVolume 3
+  }
+}
+
+
+
+Component {
+  componentName "IT Module: Screws"  
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName CFRP_module
+    quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
+                       // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
+                       // Can be set in dedicated files later, but this is better than nothing.
+    unit g
+    targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
+  }
+}
+
+
+
+Component {
+  componentName "IT Module: Thread bushing"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Brass
+    quantity 0.16      // 4 screws, M1 thread bushing. Source: [TEPX_2018_12_07_LC]
+                       // NB: This was on the disk slide, but divided by number of modules.
+                       // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
+                       // Can be set in dedicated files later, but this is better than nothing.
+    unit g
+    targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
+  }
+}
+

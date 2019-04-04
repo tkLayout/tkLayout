@@ -1,6 +1,5 @@
 // TEPX Mounting.
 // Evth from [TEPX_2018_12_07_LC].
-// Also used for TFPX!!! Should be updated for TFPX when info is available. But for now, this is better than nothing.
 
 
 Component {
@@ -16,34 +15,6 @@ Component {
 }
 
 
-Component {
-  componentName "IT Module: Screws"  
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName CFRP_module
-    quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
-    // APPROXIMATION: take same weights for all types of modules.
-    unit g
-    targetVolume 1     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
-  }
-}
-
-
-Component {
-  componentName "IT Module: Thread bushing"
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Brass
-    quantity 0.16       // 4 screws, M1 thread bushing. Source: [TEPX_2018_12_07_LC]
-                        // NB: This was on the disk slide, but divided by number of modules.
-    // APPROXIMATION: take same weights for all types of modules.
-    unit g
-    targetVolume 1     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
-  }
-}
-
 
 Component {
   componentName "IT Module: Airex spacer"
@@ -52,25 +23,12 @@ Component {
   Element {
     elementName Airex
     quantity 0.36      // Source: [TEPX_2018_12_07_LC]
-    // APPROXIMATION: LOCATION
+    
     unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 1     
+    targetVolume 1     // APPROXIMATION: LOCATION! THERE IS NO SUPPORTED VOLUME FOR THIS!!
   }
 }
 
-
-Component {
-  componentName "IT Module: Glue"
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Epoxy
-    quantity 0.06     // Source: [TEPX_2018_12_07_LC]
-    // APPROXIMATION: LOCATION
-    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 3
-  }
-}
 
 
 //Component {
