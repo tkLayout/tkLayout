@@ -90,7 +90,7 @@ Component {
   service false
   scaleOnSensor 0
   Element {
-    elementName CFRP_module
+    elementName StainlessSteel
     quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
                        // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
                        // Can be set in dedicated files later, but this is better than nothing.
