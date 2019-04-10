@@ -113,6 +113,7 @@ namespace material {
       int maxZ() const;
       int maxR() const;
       int lenght() const;
+      const double getVolume() const;
       Direction bearing() const;
       Section* nextSection() const;
       bool hasNextSection() const;

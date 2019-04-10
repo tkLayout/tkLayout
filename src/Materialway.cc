@@ -242,6 +242,10 @@ namespace material {
       return maxR() - minR();
     }
   }
+  const double Materialway::Section::getVolume() const {
+    const double volume = M_PI * (pow((double)maxR(), 2.) - pow((double)minR(), 2.)) * ((double)maxZ() - (double)minZ());
+    return volume;
+  }
   Materialway::Direction Materialway::Section::bearing() const {
     return bearing_;
   }
@@ -1599,31 +1603,24 @@ namespace material {
 
       void visit(const Disk& disk) {
         currDisk_ = &disk;
-        //const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
+
         if(disk.maxZwithHybrids() > 0) {
           firstRing = true;
-          int totalLength = 0;
+          double totalVolume = 0;
+	  //int totalLength = 0;
+ 
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            totalLength += currSection->maxR() - currSection->minR();
+            totalVolume += currSection->getVolume();
+	    //totalLength += currSection->maxR() - currSection->minR();
           }
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, double(currSection->maxR()-currSection->minR()) / totalLength);
+            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, 
+						   currSection->getVolume() / totalVolume);
+						   //double(currSection->maxR()-currSection->minR()) / totalLength);
           }          
           diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), unitsToPassLayerServ);
         }
 
-        /*
-        if(currDisk_->minZwithHybrids() > 0) {
-          //iterate for number of radial sectors (module in first ring of disk)
-          for (int i = 0; i < currDisk_->rings()[0].modules().size() / 2; ++i) {
-            for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-              currDisk_->materialObject().copyServicesTo(currSection->materialObject());
-              currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
-            }
-            diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
-          }
-        }
-        */
       }
 
       void visit(const Ring& ring) {
