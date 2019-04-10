@@ -358,45 +358,36 @@ namespace material {
 
   void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/) const {
     const Element* elementToDeploy = this;
-    bool valid = false;
-    if ((! onlyServices) || (onlyServices && (service() == true))) {
-      if((unit().compare("g") == 0) && (service() == true)) { 
-        logERROR(err_service1 + elementName() + err_service2);
-      } else {
-        valid = true;
+    // (materialType_ == STATION)
+    // (materialType_ == ROD)
+    // (materialType_ == MODULE)
+
+    if ( (!onlyServices) || (onlyServices && (service() == true))) {      
+     
+      for (const std::string& unitToDeploy : unitsToDeploy) {
+	if (unit().compare(unitToDeploy) == 0) {
+
+	  if (service() == true && (unit().compare("g/m") != 0) ) {
+	    logERROR(any2str("Definition of services (") 
+		     + any2str(elementName())
+		     + any2str(") in ") 
+		     + any2str(unit())
+		     + any2str(" is not supported. Please use g/m !!")
+		     );
+	  }
+	  else {
+	    if (unit().compare("g") == 0) {
+	      elementToDeploy = new Element(*this, gramsMultiplier);
+	    }
+
+	    outputObject.addElement(elementToDeploy);
+	    break;
+	  }
+	}
       }
-      // if (materialType_ == STATION) {
-      //   if(unit().compare("g") == 0) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == ROD) {
-      //   if((unit().compare("g") == 0) && (service() == true) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == MODULE) {
-      //   if (service() == true) {
-      //     valid = true;
-      //   }      
-      // }
-        
-      if(valid) {
-        for(const std::string& unitToDeploy : unitsToDeploy) {
-          if (unit().compare(unitToDeploy) == 0) {
-            if (((materialType_ == ROD) || (materialType_ == MODULE)) && (service()==true) && (unit().compare("mm") == 0)) {
-              logUniqueWARNING("Definition of services in \"mm\" is deprecated");
-            }
-            if (unit().compare("g") == 0) {
-              elementToDeploy = new Element(*this, gramsMultiplier);
-            }
-            outputObject.addElement(elementToDeploy);
-            break;
-          }
-        }
-      }
+      
+
+
     }
   }
 

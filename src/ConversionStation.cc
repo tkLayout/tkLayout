@@ -188,10 +188,17 @@ namespace material {
 
     // OUTPUT SERVICES 
     if (outputElement->service()) {
-      if (outputElement->unit().compare("g") != 0) {
+      if (outputElement->unit().compare("g/m") == 0) {
 	serviceOutput.addElement(outputElement);
       } 
-      else { logERROR(err_service1 + outputElement->elementName() + err_service2); } // services cannot be set in g!  
+      else { 
+	logERROR(any2str("Services (") 
+		 + any2str(outputElement->elementName())
+		 + any2str(") in ") 
+		 + any2str(outputElement->unit())
+		 + any2str(" is not supported. Please use g/m !!")
+		 );
+      }
 
       // OUTPUT LOCAL MATERIALS  
     } else {

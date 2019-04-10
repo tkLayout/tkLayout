@@ -24,8 +24,6 @@ namespace insur {
 using insur::MaterialProperties;
 
 namespace material {
-  static const std::string err_service1 = "Impossible to use 'g' as unit for service materials, element '";
-  static const std::string err_service2 = "' ignored.";
 
   class MaterialTab;
   class ConversionStation;
