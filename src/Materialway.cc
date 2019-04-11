@@ -242,8 +242,12 @@ namespace material {
       return maxR() - minR();
     }
   }
+  // NB: Very bad idea to have lengths in integers (even if all lengths are multiplied by 1000, ie precision is 1 um).
+  // Do what we can with present codebase...
   const double Materialway::Section::getVolume() const {
-    const double volume = M_PI * (pow((double)maxR(), 2.) - pow((double)minR(), 2.)) * ((double)maxZ() - (double)minZ());
+    const double crossSection =  M_PI * (pow((double)maxR(), 2.) - pow((double)minR(), 2.));
+    const double zLength = (double)maxZ() - (double)minZ();
+    const double volume = crossSection * zLength;
     return volume;
   }
   Materialway::Direction Materialway::Section::bearing() const {
@@ -1606,19 +1610,31 @@ namespace material {
 
         if(disk.maxZwithHybrids() > 0) {
           firstRing = true;
-          double totalVolume = 0;
-	  //int totalLength = 0;
- 
+
+	  // COMPUTE TOTAL VOLUME OF A DOUBLE-DISK
+          double totalVolume = 0; 
+	  // This loops on all the sections making up the double disk.
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
             totalVolume += currSection->getVolume();
-	    //totalLength += currSection->maxR() - currSection->minR();
           }
+
+	  // ASSIGN MATERIALS OF THE DOUBLE-DISK (DEFINED IN CFG) TO THE SECTIONS (DEFINED IN MARTINA'S CODE).
+	  // This loops on all the sections making up the double disk.
+	  // The full point here is that the sections have shapes already, but no material affected to them yet!!
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, 
-						   currSection->getVolume() / totalVolume);
-						   //double(currSection->maxR()-currSection->minR()) / totalLength);
-          }          
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), unitsToPassLayerServ);
+	    // Ratio of volume of the section divided by the total volume of the double-disk.
+	    // This is a fix to Martina's code!!
+	    // We want to use volume ratio, because we want to keep density uniform within the double-disk.
+	    const double massRatio = currSection->getVolume() / totalVolume;
+            disk.materialObject().deployMaterialTo(currSection->materialObject(), 
+						   unitsToPassLayer, 
+						   MaterialObject::SERVICES_AND_LOCALS, 
+						   massRatio);
+          }
+
+	  // ROUTE SERVICES FROM DOUBLE-DISK   
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), 
+									  unitsToPassLayerServ);
         }
 
       }
