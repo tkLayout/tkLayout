@@ -4,6 +4,7 @@
 Materials FPIX_disk {
   type layer
 
+
   // Cooling for the module
   // Average on disk
   Component {
@@ -21,6 +22,8 @@ Materials FPIX_disk {
       unit g
     }
   }
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 8 pipes per disk
   Component {
@@ -38,6 +41,7 @@ Materials FPIX_disk {
       unit g/m
     }
   }
+
 
   // Power for the module
   // Average on disk
@@ -62,6 +66,8 @@ Materials FPIX_disk {
       unit g
     }
   }
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk
   Component {
@@ -85,6 +91,7 @@ Materials FPIX_disk {
     }
   }
 
+
   // HV power lines
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
@@ -107,6 +114,8 @@ Materials FPIX_disk {
       unit g
     }
   }
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
