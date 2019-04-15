@@ -47,7 +47,7 @@ Materials FPIX_2_disk {
   // Average on disk
   // 28 power chains per disk
   // Component {
-  //  componentName "Cabling: Serial power chains"
+  //  componentName "Cabling: Serial power chains (on dees)"
   //  service false
   //  scaleOnSensor 0
   //  Element {
@@ -71,7 +71,7 @@ Materials FPIX_2_disk {
   // fake numbers for calculating conversion with a factor of 1000
   // 28 power chains per disk
   Component {
-    componentName "Cabling: Serial power chains"
+    componentName "Cabling: Serial power chains (routed)"
     service true
     scaleOnSensor 0
     Element {
@@ -96,7 +96,7 @@ Materials FPIX_2_disk {
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
   // Component {
-  //  componentName "Cabling: High voltage lines"
+  //  componentName "Cabling: High voltage lines (on dees)"
   //  service false
   //  scaleOnSensor 0
   //  Element {
@@ -121,7 +121,7 @@ Materials FPIX_2_disk {
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
-    componentName "Cabling: High voltage lines"
+    componentName "Cabling: High voltage lines (routed)"
     service true
     scaleOnSensor 0
     Element {
