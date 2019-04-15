@@ -36,7 +36,7 @@ Component {
 
 // 2 x Housing pipes (same for all 2x2 modules)
 Component {
-  componentName "IT Module: Cooling blocks (Carbon Foam housing pipe)"
+  componentName "IT Module: Cooling blocks (C Foam housing pipe)"
   service false
   Element {
     scaleOnSensor 0
