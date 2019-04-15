@@ -96,6 +96,9 @@ Carbon_foam_FPX	           0.249	                 C:1
 # Density from [TFPX_2019_03_19_YP].
 # Composition could not be found.
 
+Carbon_foam_BPX	           0.55 	                 C:1
+# Density from [TBPX_2019_01_15_AB].
+
 
 
 PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
