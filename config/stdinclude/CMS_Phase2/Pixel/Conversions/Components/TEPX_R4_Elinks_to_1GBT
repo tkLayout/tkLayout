@@ -1,12 +1,12 @@
 // TEXP Ring4: module with 4 chips
-// 5 modules/GBT
+// 5.5 modules/GBT
 
 Conversion {
   Input {
     // Two conductors
     Element {
       elementName Cu_Elinks_TEPX_R4
-      quantity 2.21                // = 5 * quantity / module
+      quantity 2.431               // = 5.5 * quantity / module
       unit g/m
     }
   }

@@ -6,7 +6,7 @@ Conversion {
     // Two conductors
     Element {
       elementName Cu_Elinks_TEPX_R1_4chipmodules
-      quantity 1.6575              // = 2.5 * quantity / module
+      quantity 2.21                // = 2.5 * quantity / module
       unit g/m
     }
   }
