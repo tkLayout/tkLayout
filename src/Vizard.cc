@@ -74,6 +74,8 @@ namespace insur {
     // Each title centered and specified width
     gStyle->SetTitleX(0.5);
     gStyle->SetTitleW(1.);
+
+    gStyle->SetLegendFillColor(19); // clear grey
   }
 
   /**
@@ -349,7 +351,7 @@ namespace insur {
       }
       else std::cout << graph_wrong << std::endl;
     }
-    catch (std::bad_alloc ba) {
+    catch (std::bad_alloc& ba) {
       std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
     }
   }
@@ -572,6 +574,7 @@ namespace insur {
     crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
     //crProf->Rebin(10);
     crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
+    crProf->GetYaxis()->SetTitleOffset(1.3);
     crProf->SetFillColor(kGray + 2);
     crProf->SetLineColor(kBlue);
     crProf->Draw("hist");
@@ -581,6 +584,7 @@ namespace insur {
     ci = (TH1D*)a.getHistoGlobalI().Clone();
     ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
     ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
+    ciProf->GetYaxis()->SetTitleOffset(1.3);
     ciProf->SetFillColor(kGray + 2);
     ciProf->SetLineColor(kBlue);
     ciProf->Draw("hist");
@@ -957,6 +961,7 @@ namespace insur {
       rTrackingVolumeProf->SetFillColor(kGray + 2);
       rTrackingVolumeProf->SetLineColor(kBlue);
       rTrackingVolumeProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
+      rTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       rTrackingVolumeProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -968,6 +973,7 @@ namespace insur {
       iTrackingVolumeProf->SetFillColor(kGray + 2);
       iTrackingVolumeProf->SetLineColor(kBlue);
       iTrackingVolumeProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
+      iTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       iTrackingVolumeProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
@@ -1509,10 +1515,11 @@ namespace insur {
       // Bundles to Modules: Aggregation Patterns in TEDD
       /*This is used for bundle assembly.
 	For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-	- 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-	- 4 modules from disk surface 2.
-	- 3 modules from disk surface 3.
-	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
+	- 3 modules from fanout branch index 1.
+	- 4 modules from fanout branch index 2.
+	- 3 modules from fanout branch index 3.
+	- 2 modules from fanout branch index 4.
+      */
       myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
@@ -1536,6 +1543,10 @@ namespace insur {
       // DTCs to modules
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsNeg%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
       // BOTH SIDES, SUMMARY
@@ -3551,6 +3562,7 @@ namespace insur {
       crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       crProf->SetFillColor(kGray + 2);
       crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+      crProf->GetYaxis()->SetTitleOffset(1.3);
       crProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -3561,6 +3573,7 @@ namespace insur {
       ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       ciProf->SetFillColor(kGray + 2);
       ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->GetYaxis()->SetTitleOffset(1.3);
       ciProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
@@ -7393,7 +7406,7 @@ namespace insur {
 					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
 					    vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XY, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(lastDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
 	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
@@ -7417,7 +7430,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7432,7 +7445,7 @@ namespace insur {
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XY, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -7455,7 +7468,7 @@ namespace insur {
 						    anEndcap.myid().c_str()),
 					       vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYNegCanvasDisk->cd();
-	PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XYNegRotateY180, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(firstDisk);
 	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk.get());
 	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk.get());
@@ -7481,7 +7494,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNeg, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNeg, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -7496,7 +7509,7 @@ namespace insur {
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNegRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
@@ -8743,7 +8756,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, MFC #/I, MFC type/C, MFB #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8803,13 +8816,13 @@ namespace insur {
 
   /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
      This also provides modules aggregation patterns. 
-     A pattern is, for a given bundle, the number of connected modules per disk surface.
-     The disk surfaces are sorted per increasing |Z|.
-     For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-     - 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-     - 4 modules from disk surface 2.
-     - 3 modules from disk surface 3.
-     - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
+     A pattern provides the number of modules connected to each MFB fanout branch.
+     The MFB fanout branches are sorted by increasing index.
+     For example, for a given MFB, the pattern 3-4-3-2 means that the MFB is connected to:
+     - 3 modules from fanout branch index 1.
+     - 4 modules from fanout branch index 2.
+     - 3 modules from fanout branch index 3.
+     - 2 modules from fanout branch index 4.
    */
   std::string Vizard::createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream bundlesToEndcapModulesCsv;
@@ -8817,7 +8830,7 @@ namespace insur {
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
     bundlesToEndcapModulesCsv << summaryText << std::endl;
 
-    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    bundlesToEndcapModulesCsv << "MFB #/I, # Modules per fanout branch index, Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D, Module Z (mm)/D, Fanout branch index/U" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8844,32 +8857,35 @@ namespace insur {
 	      std::vector<std::string> modulesInBundleInfo;
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
+		// Get which MFB fanout branch the module is connected to.
+		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
+
 		// Module related info.
 		std::stringstream moduleInfo;
 		moduleInfo << module->myDetId() << ", "
 			   << module->uniRef().subdetectorName << ", "
 			   << module->uniRef().layer << ", "
 			   << module->moduleRing() << ", "
-			   << module->center().Phi() * 180. / M_PI;
+			   << module->center().Phi() * 180. / M_PI << ", "
+			   << module->center().Z() << ", "
+			   << fanoutBranchIndex;
 		modulesInBundleInfo.push_back(moduleInfo.str());
-
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
+		
+		// Count the number of modules per fanout branch index.
+		pattern[fanoutBranchIndex] += 1; 
 	      }
 
-	      // Checks pattern makes sense, and put it in a-b-c-d format.
+	      // Checks whether pattern makes sense, and put it in a-b-c-d format.
 	      std::stringstream patternInfo;
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
 		if (found != pattern.end()) {
-		  if (surfaceIndex != 1) patternInfo << "-";
+		  if (fanoutBranchIndex != 1) patternInfo << "-";
 		  const int numModulesPerDiskSurface = found->second;
 		  patternInfo << numModulesPerDiskSurface;
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      patternInfo << ", ";
   
@@ -8897,16 +8913,16 @@ namespace insur {
 
 
   /* Provide a summary text file, with the distribution of modules aggregation patterns which are encountered in TEDD.
-     A pattern is, for a given bundle, the number of connected modules per disk surface.
-     Here, patterns are irrespective of the disk surface ordering.
+     A pattern is, for a given bundle, the number of connected modules per fanout branch.
+     Here, patterns are irrespective of the fanout branch ordering.
      For example, 1-2-3-4 or 3-4-1-2 are both considered to be combination 1-2-3-4.
      All this is because Electronics/Mechanics will need, in TEDD, custom aggregation patch cords, 
-     to group the fibers from each disk surface into one bundle.
+     to group the fibers from each fanout branch into one bundle.
      One need to know how many customs aggregation patch cords are needed!
   */
   std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream summaryText;
-    summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
+    summaryText << "Fanouts: # Modules per branch (Irrespective of branches ordering)" << std::endl;
 
     std::map<std::multiset<int>, int> combinationsDistribution;
 
@@ -8931,26 +8947,26 @@ namespace insur {
 
 	      const std::vector<Module*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
+		// Get which MFB fanout branch the module belongs to.
+		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
+		// Count the number of modules per MFB fanout branch.
+		pattern[fanoutBranchIndex] += 1; 
 	      }
 
 	      // Checks pattern makes sense, and create the corresponding combination.
-	      // A combination is the number of modules per disk surface, irrespective of the surface |Z| ordering.
+	      // A combination is the number of modules per fanout branch, irrespective of branches ordering.
 	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
 	      // Duplicates are allowed: combination 1-2-3-3 can happen!
 	      std::multiset<int> combination;  
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
 		if (found != pattern.end()) {
 		  const int numModulesPerDiskSurface = found->second;
 		  // Create combination
 		  combination.insert(numModulesPerDiskSurface);
 		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
 	      }
 	      // Count the occurences of each combination.
 	      combinationsDistribution[combination] += 1;
@@ -9068,7 +9084,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, MFB #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
@@ -9734,7 +9750,7 @@ namespace insur {
 	}
       }
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
     }
 

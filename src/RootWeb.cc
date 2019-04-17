@@ -1133,7 +1133,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName))
         boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
-    } catch (boost::filesystem::filesystem_error e) {
+    } catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }
@@ -1176,7 +1176,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(*it++, destinationFileName);
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }

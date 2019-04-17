@@ -211,20 +211,22 @@ OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TE
                           - Decrease smallDelta, from 7.42 mm to 7.375 mm (ZmPS4.0 goes from 14.84mm to 14.75mm), in PS4.0 rings.
                           
 OT615_200_IT404.cfg	   Diff with OT614 is in TBPS:
-                           TBPS L1 small delta: 3.5625 mm -> 3.5475 mm
-                           TBPS L2 small delta: 3.47 mm -> 3.0475 mm
-                           TBPS L3 small delta: 3.47 mm -> 3.5844 mm
+                           L1 small delta: 3.5625 mm -> 3.5475 mm
+                           L2 small delta: 3.47 mm -> 3.0475 mm
+                           L3 small delta: 3.47 mm -> 3.5844 mm
+                           All layers: flipped bigParity.
                            
 OT616_200_IT404.cfg	   Diff with OT615:
                        Reduced outermost radius to leave space for BTL. Increased innermost radius for IT insertion.
                          - TEDD:
-                           TEDD 1, inner rings: +7 mm                   # IT insertion
-                           TEDD 2, inner rings: +2 mm                   # IT insertion
-                           TEDD 1 and 2, outer rings: -27 mm            # Leave space for BTL
+                           bigDelta: 15.075 mm -> 15.755 mm (needed more disk separation).
+                           TEDD 1, inner rings: +7.041 mm (IT insertion) +0.51 mm (margin with dee edge).
+                           TEDD 2, inner rings: +2 mm (IT insertion) +0.51 mm (margin with dee edge).
+                           TEDD 1 and 2, outer rings: -27 mm (BTL) +0.41 mm (margin with dee edge).
                            TEDD 2: -4 modules in Ring 7, -4 modules in Ring 14.
-                           Adjusted intermediate radii (needs feedback from Mechanics)
+                           Adjusted intermediate radii.
                          - TB2S:
-                             L3: rods radii: -25 mm. numRods: -2 rods.      # Leave space for BTL
+                             L3: radius -27 mm (OT envelope shrink) +2 mm (smaller no-go zone between TB2S and BTL). numRods: -2 rods.
                          - TBPS:
                              L1: +2 mm in last 5 rings radii.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
@@ -452,7 +454,15 @@ OT614_200_IT611.cfg                  OT Version 6.1.4
                                      
 OT614_200_IT612.cfg                  OT Version 6.1.4                                     
                                      Based from Inner Tracker version 6.1.1.
-                                     bigDelta: 4 mm -> 2 mm, smallDelta: 2 mm -> 4 mm.                                                                                                                                    
+                                     bigDelta: 4 mm -> 2 mm, smallDelta: 2 mm -> 4 mm. 
+                                     
+OT614_200_IT613.cfg                  OT Version 6.1.4                                     
+                                     Based from Inner Tracker version 6.1.2.
+                                     Stretched TEPX in Z (there will be no dedicated lumi device, so can go up to bulkhead).
+                                     * Disk 1: same Z.
+                                     * Disk 2: 1985.43 mm -> 2009.59 mm   
+                                     * Disk 3: 2250.83 mm -> 2307.69 mm       
+                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                               
                                      
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
                                                                                            

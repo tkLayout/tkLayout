@@ -82,7 +82,6 @@ std::map<double, TProfile*> ptProfiles;
 
 void addProfile(TObject* anObject) {
   char buffer[1024];
-  char buffer2[1024];
 
   std::string aClassName = anObject->ClassName();
   if (aClassName=="TProfile") {
@@ -218,10 +217,6 @@ int main(int argc, char* argv[]) {
   // First profile -> get eta, rescale bins, ...
   TProfile* exampleProfile = itPtProfiles->second;
 
-  double maxEta = exampleProfile->GetXaxis()->GetXmax();
-  VDUMP(maxEta);
-  double minEta = exampleProfile->GetXaxis()->GetXmin();
-  VDUMP(minEta);
   double originalEtaStep = exampleProfile->GetXaxis()->GetBinWidth(1);
   VDUMP(originalEtaStep);
   int rebinScale = etaSlice / originalEtaStep;
