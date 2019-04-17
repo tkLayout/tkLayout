@@ -30,10 +30,9 @@ Station {
   // NB: conversions are not really needed here: 
   // materials are fakely put in negligible quantity before conversion, then a conversion factor 1->1000 is applied.
   // This could be placed in 'non-converted materials section' instead.
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Steel_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Ti_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/StainlessSteel_fake1000factor_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CO2_fake1000factor_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Cu_1:1000
-  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_CO2_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_HV_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000

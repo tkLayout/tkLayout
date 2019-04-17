@@ -1,18 +1,19 @@
+// 1:1 conversion of StainlessSteel
+
 Conversion {
   Input {
     Element {
-      elementName FPIX_CO2
+      elementName StainlessSteel 
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName CO2
-      quantity 1000
+      elementName StainlessSteel
+      quantity 1
       unit g/m
       service true
     }
   }
 }
-

@@ -1,14 +1,14 @@
 Conversion {
   Input {
     Element {
-      elementName FPIX_Ti
+      elementName StainlessSteel_fake1000factor
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Ti 
+      elementName StainlessSteel 
       quantity 1000
       unit g/m
       service true

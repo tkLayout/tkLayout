@@ -5,39 +5,47 @@ Materials FPIX_2_disk {
   type layer
 
 
-  // Cooling for the module
-  // Average on disk (scales on surface)
+  // Modules Cooling.
+  // Material LOCAL to the dees.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
   Component {
     componentName "Cooling: Pipes & Coolant (on dees)"
     service false
     scaleOnSensor 0
     Element {
-      elementName Ti
-      quantity 24.94
+      elementName StainlessSteel
+      quantity 113.8                  // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a disk volume!
       unit g
     }
     Element {
       elementName CO2
-      quantity 23.66
+      quantity 67.8
       unit g
     }
   }
   
   
-  // fake numbers for calculating conversion with a factor of 1000
-  // 16 pipes per disk
+  // Modules Cooling.
+  // 16 pipes (inlet or outlets) ROUTED: 4 for each dee.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
+  // NB: evth 'divided by 1000', so that the value routed along the dee is negligible (x 1000 conversion at the edge of the dee).
   Component {
     componentName "Cooling: Pipes & Coolant (routed)"
     service true
     scaleOnSensor 0
     Element {
-      elementName FPIX_Ti
-      quantity 0.0532
+      elementName StainlessSteel_fake1000factor
+      quantity 0.0847                 // = 8.02 g/cm^3 (SS density) /1000 (to g/mm^3) * 0.66 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
     Element {
-      elementName FPIX_CO2
-      quantity 0.052
+      elementName CO2_fake1000factor
+      quantity 0.050                  // = 1.0 g/cm^3 (CO2 density) /1000 (to g/mm^3) * 3.14 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
   }

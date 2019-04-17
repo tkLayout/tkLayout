@@ -290,18 +290,12 @@ Cu_Elinks_TEPX_R4	       8.96	                    Cu:1
 Cu_Elinks_TEPX_R5	       8.96	                    Cu:1
 TEDD_Cu	                 8.96                   	Cu:1
 FPIX_Cu	                 8.96	                    Cu:1
-FPIX_Ti	                 4.54                     Ti:1
-Ti_L1                    4.54	                    Ti:1
-Ti_L2	                   4.54	                    Ti:1
-Ti_L3	                   4.54	                    Ti:1
-Ti_L4	                   4.54	                    Ti:1
 
-CO2_L1	                 1.0	                   CO2:1
-CO2_L2	                 1.0	                   CO2:1
-CO2_L3	                 1.0	                   CO2:1
-CO2_L4	                 1.0	                   CO2:1
+StainlessSteel_fake1000factor	       8.02         StainlessSteel:1
+CO2_fake1000factor	                 1.0	                   CO2:1
+
 TEDD_CO2	               1.0	                   CO2:1
-FPIX_CO2	               1.0	                   CO2:1
+
 PE                       0.89           Polyethylene:1
 TEDD_PE	                 0.95	                    PE:1
 FPIX_PE	                 0.95	                    PE:1

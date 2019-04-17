@@ -1,11 +1,13 @@
-// BPIX ROD material
-// In rod service true means that exit from the rod
-//        service false means that stay in the rod (but in the service cylinder)
+// Amounts of materials are PER LADDER.
+// Hence, all quantities here are multiplied by the number of ladders in the layer (360° in phi).
+// WARNING: ALL THESE MATERIALS ARE LOCATED ON A CYLINDER SURROUNDING THE LAYER.
 
 Materials tilted_BPIX_rod_L3 {
   type rod
 
-  @include-std CMS_Phase2/Pixel/Materials/Components/Cooling_Titanium_L3
+  @include-std CMS_Phase2/Pixel/Materials/Components/L3_Ladder_Routed_Cooling // ROUTED COOLING ONLY. 
+                                                                              // The cooling located ON the ladder is in TBPX_cooling blocks file
+                                                                              // (so that it is not located around the layer, but under the module).
   @include-std CMS_Phase2/Pixel/Materials/Components/Power_1.6mm2
   @include-std CMS_Phase2/Pixel/Materials/Components/HV_Wires
 }
