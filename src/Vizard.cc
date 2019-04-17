@@ -453,7 +453,7 @@ namespace insur {
       double totalWeightInSubdetector = 0.;
       int rowCounter = 0;
       const bool boldCell = true;
-      const int weightPrecision = 1;
+      const int weightPrecision = 3;
 
       for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategory) {
 
