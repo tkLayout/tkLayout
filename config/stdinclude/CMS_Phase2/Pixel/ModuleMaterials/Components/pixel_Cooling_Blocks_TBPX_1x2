@@ -24,7 +24,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName CF
-    quantity 1.0566        // Along a rod: 23.5 mm (width) x 428 mm (length) x 0.5 mm (thickness) divided by 9 modules. Density used is 1.9 g/cm3. Source: [TBPX_2019_01_15_AB]
+    quantity 0.9           // Along a rod: (23.5 mm (width) x 400 mm (length under sensors) - 9 holes x 5 mm (hole width) x 30 mm (hole length)) x 0.5 mm (thickness) divided by 9 modules. Density used is 1.9 g/cm3. Source: [TBPX_2019_01_15_AB]
     unit g                  
     targetVolume 3         // APPROXIMATION: On modules volumes instead of ladders.
                            // There are hence small gaps in Z, but radial position is more reasonable (in betweens sensors, instead of outermost layer volume).
