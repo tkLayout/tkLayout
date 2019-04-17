@@ -38,6 +38,8 @@ Yadira Padilla, "TFPX Double Dee Mass Estimates - Cartridges", 19/03/2019.
 [TEPX_2018_12_07_LC] https://espace.cern.ch/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Inner_Tracker/TEPX/TEPX-IT-Mechanics-Review_Dec-2018.pdf  
 IT Mechanice review, 07/12/2018
 
+[TEPX_2019_04_12_LC] https://indico.cern.ch/event/809736/contributions/3384646/attachments/1829237/2995063/TEPX_update.pdf
+
 
 
 ### ITST:

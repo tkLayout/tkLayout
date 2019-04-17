@@ -54,8 +54,11 @@ TPG	                       2.26	                   C:1
 # from materials.xml
 # WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
 
-Graphite	                 2.266                   C:1
-# Similar to TPG.
+Graphite_FPX               2.266                   C:1
+# Similar to TPG. Source: [TFPX_2019_03_19_YP]
+
+Graphite_EPX	             1.65                    C:1
+# Source: [TEPX_2019_04_12_LC]
 
 CF                         1.91                    C:1.0
 # High density CF. Density from [TBPX_2019_01_15_AB].
