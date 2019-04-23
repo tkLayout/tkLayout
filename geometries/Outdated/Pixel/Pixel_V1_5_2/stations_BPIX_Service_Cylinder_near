@@ -6,7 +6,7 @@ Station {
   type second
   minZ 200
   maxZ 290
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 
 Station {
@@ -14,7 +14,7 @@ Station {
   type second
   minZ 300
   maxZ 390
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 
 Station {
@@ -22,7 +22,7 @@ Station {
   type second
   minZ 400
   maxZ 490
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 
 Station {
@@ -30,5 +30,5 @@ Station {
   type second
   minZ 500
   maxZ 590
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
