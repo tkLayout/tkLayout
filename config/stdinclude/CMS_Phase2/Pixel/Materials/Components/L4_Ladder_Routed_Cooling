@@ -1,6 +1,6 @@
 // ROUTED COOLING: cooling pipes from TBPX flange to increasing |Z|.
 
-// Layer 4: 14 cooling pipes ROUTED (inlets or outlets). Per (Z) end, 360° in phi.
+// Layer 4: 16 cooling pipes ROUTED (inlets or outlets). Per (Z) end, 360° in phi.
 // ID = 2.0 mm, OD = 2.2 mm.
 // NB: quantities are 'per ladder' (quantities end up multiplied by the number of ladders in the layer).
 // NB: evth 'divided by 1000', so that the value routed along the layer is negligible (x 1000 conversion at TBPX flange).
@@ -10,13 +10,13 @@ Component {
   scaleOnSensor 0
   Element {
     elementName StainlessSteel_fake1000factor
-    quantity 0.002646        // = 8.02 g/cm^3 (SS density) /1000 (to g/mm^3) * 0.66 mm^2 (SS cross-section) * 1000 (to g/m) * 14 (# pipes) / 28 (# ladders in L4) / 1000 (fake factor)
+    quantity 0.003025        // = 8.02 g/cm^3 (SS density) /1000 (to g/mm^3) * 0.66 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 28 (# ladders in L4) / 1000 (fake factor)
                              // Source: [IT_COOLING_2019_04_16]
     unit g/m
   }
   Element {
     elementName CO2_fake1000factor  
-    quantity 0.001571        // = 1.0 g/cm^3 (CO2 density) /1000 (to g/mm^3) * 3.14 mm^2 (SS cross-section) * 1000 (to g/m) * 14 (# pipes) / 28 (# ladders in L4) / 1000 (fake factor)
+    quantity 0.001794        // = 1.0 g/cm^3 (CO2 density) /1000 (to g/mm^3) * 3.14 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 28 (# ladders in L4) / 1000 (fake factor)
                              // Source: [IT_COOLING_2019_04_16]
     unit g/m
   }
