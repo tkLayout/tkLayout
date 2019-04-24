@@ -41,6 +41,14 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
       numDisks(    "numDisks"    , parsedAndChecked()),
       innerZ(      "minZ"        , parsedOnly()),
       outerZ(      "maxZ"        , parsedAndChecked()),
+      distanceFromEndcapsModulesMaxZtoRoutedMaterial("distanceFromEndcapsModulesMaxZtoRoutedMaterial", 
+						     parsedOnly(), 10.0), // Distance in Z
+                                                                          // between maxZwithHybrids() and minZ of cabling materials 
+                                                                          // which are routed FROM OTHER SUBDETECTORS.
+      distanceFromEndcapsModulesMaxRtoRoutedMaterial("distanceFromEndcapsModulesMaxRtoRoutedMaterial", 
+						     parsedOnly(), 16.0), // Radial distance 
+                                                                          // between maxRwithHybrids() and minR of cabling materials 
+                                                                          // which are routed FROM OTHER SUBDETECTORS.
       skipServices("skipServices", parsedOnly(), false) // broken, do not use
   {}
   void setup() {
@@ -85,6 +93,8 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   ReadonlyProperty<double, Computable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
   Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
+  Property<double,  Default> distanceFromEndcapsModulesMaxZtoRoutedMaterial;
+  Property<double,  Default> distanceFromEndcapsModulesMaxRtoRoutedMaterial;
   ReadonlyProperty<bool  , Default>    skipServices;
 };
 
