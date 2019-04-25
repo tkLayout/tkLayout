@@ -97,6 +97,7 @@ namespace material {
     public:
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
+      Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Position& position);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
       Section(const Section& other);
       virtual ~Section() {};
@@ -114,6 +115,7 @@ namespace material {
       int maxR() const;
       int lenght() const;
       const double getVolume() const;
+      const Position getPosition() const { return myPosition_; };
       Direction bearing() const;
       Section* nextSection() const;
       bool hasNextSection() const;
@@ -128,6 +130,7 @@ namespace material {
       bool debug_;
     private:
       int minZ_, minR_, maxZ_, maxR_;
+      Position myPosition_;
       Direction bearing_;
       Section* nextSection_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */

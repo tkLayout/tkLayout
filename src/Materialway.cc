@@ -121,10 +121,12 @@ namespace material {
     minR_(minR),
     maxZ_(maxZ),
     maxR_(maxR),
+    myPosition_(EXTERNAL),
     bearing_(bearing),
     nextSection_(nextSection),
     inactiveElement_(nullptr), 
-    materialObject_ (MaterialObject::SERVICE, "") {}
+    materialObject_ (MaterialObject::SERVICE, "") 
+  {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
     Section(minZ,
@@ -133,7 +135,20 @@ namespace material {
             maxR,
             bearing,
             nextSection,
-            false) {}
+            false) 
+  {}
+
+  Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Position& position) :
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nextSection,
+            false) 
+  {
+    myPosition_ = position;
+  }
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
     Section(minZ,
@@ -141,7 +156,8 @@ namespace material {
             maxZ,
             maxR,
             bearing,
-            nullptr) {}
+            nullptr) 
+  {}
 
   Materialway::Section::Section(const Section& other) :
     debug_(other.debug_),
@@ -923,30 +939,64 @@ namespace material {
 
           //built two main sections above the layer
 
+	  // EXTERNAL SECTION ON THE RIGHT OF THE DISK
           int sectionMinZ = attachPoint;
           int sectionMinR = discretize(disk.minRwithHybrids());
           int sectionMaxZ = sectionMinZ + sectionWidth;
           //int sectionMaxR = discretize(disk.maxRwithHybrids()) + diskSectionUpMargin;
           int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
 
+	  // DEE VOLUMES (1 disk = 2 dees)
+	  // TO DO: move this to tuneable disk properties.
+	  const int deeZThickness = sectionWidth;
+	  const int deeRadialDistanceToEdge = discretize(0.); // = 2 mm
+
+	  // small |Z| disk
+	  const int smallAbsZDiskMinZ = discretize(disk.smallAbsZDeeCenterZ()) - deeZThickness / 2.;
+	  const int smallAbsZDiskMaxZ = discretize(disk.smallAbsZDeeCenterZ()) + deeZThickness / 2.;
+          const int smallAbsZDiskMinR = discretize(disk.minRwithHybrids()) - deeRadialDistanceToEdge;
+	  const int smallAbsZDiskMaxR = discretize(disk.maxRwithHybrids()) + deeRadialDistanceToEdge;
+
+	  // big |Z| disk
+	  const int bigAbsZDiskMinZ = discretize(disk.bigAbsZDeeCenterZ()) - deeZThickness / 2.;
+	  const int bigAbsZDiskMaxZ = discretize(disk.bigAbsZDeeCenterZ()) + deeZThickness / 2.;
+          const int bigAbsZDiskMinR = smallAbsZDiskMinR;
+	  const int bigAbsZDiskMaxR = smallAbsZDiskMaxR;
+
+
+	  // FLANGE STATION OVER THE DISK
           int stationMinZ = sectionMinZ - (layerStationWidth / 2);
           int stationMinR = sectionMaxR + safetySpace;
           int stationMaxZ = sectionMinZ + (layerStationWidth / 2);
           int stationMaxR = sectionMaxR + safetySpace + layerStationLenght;
 
+	  Section* smallAbsZDisk = nullptr;
+	  Section* bigAbsZDisk = nullptr;
           if(flangeConversionStation != nullptr) {
             station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *flangeConversionStation, section);
             sectionsList_.push_back(station);
             stationListFirst_.push_back(station);
-            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
             diskRodSections_[currDisk_].setStation(station);
-          } else {
-            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section);
-            //startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL);
+
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, station, DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, station, DEE);
+          } 
+	  else {         
             diskRodSections_[currDisk_].setStation(section);
+
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, section, DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, section, DEE);
           }
+
           sectionsList_.push_back(startDisk);
+	  sectionsList_.push_back(smallAbsZDisk);
+	  sectionsList_.push_back(bigAbsZDisk);
+
           diskRodSections_[currDisk_].addSection(startDisk);
+	  diskRodSections_[currDisk_].addSection(smallAbsZDisk);
+	  diskRodSections_[currDisk_].addSection(bigAbsZDisk);
         
 
 	  //==========second level conversion station
@@ -1554,30 +1604,43 @@ namespace material {
           firstRing = true;
 
 	  // COMPUTE TOTAL VOLUME OF A DOUBLE-DISK
-          double totalVolume = 0; 
+	  double totalDeesVolume = 0; 
+          double totalExternalVolume = 0; 
 	  // This loops on all the sections making up the double disk.
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            totalVolume += currSection->getVolume();
-          }
+	    if (currSection->getPosition() == DEE) {
+	      totalDeesVolume += currSection->getVolume();
+	    }
+	    else if (currSection->getPosition() == EXTERNAL) {
+	      totalExternalVolume += currSection->getVolume();
+	    }
+	    else {
+	      logERROR("Double-Disk: created a section of unsupported position type.");
+	    }
+	  }
 
 	  // ASSIGN MATERIALS OF THE DOUBLE-DISK (DEFINED IN CFG) TO THE SECTIONS (DEFINED IN MARTINA'S CODE).
 	  // This loops on all the sections making up the double disk.
 	  // The full point here is that the sections have shapes already, but no material affected to them yet!!
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+	  for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
 	    // Ratio of volume of the section divided by the total volume of the double-disk.
 	    // This is a fix to Martina's code!!
 	    // We want to use volume ratio, because we want to keep density uniform within the double-disk.
+	    const double totalVolume = (currSection->getPosition() == DEE ? totalDeesVolume : totalExternalVolume);
+
 	    const double massRatio = currSection->getVolume() / totalVolume;
-            disk.materialObject().deployMaterialTo(currSection->materialObject(), 
+	    disk.materialObject().deployMaterialTo(currSection->materialObject(), 
 						   unitsToPassLayer, 
 						   MaterialObject::SERVICES_AND_LOCALS, 
-						   massRatio);
-          }
+						   massRatio,
+						   currSection->getPosition()
+						   );
+	  }
 
 	  // ROUTE SERVICES FROM DOUBLE-DISK   
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), 
+	  diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), 
 									  unitsToPassLayerServ);
-        }
+	}
 
       }
 

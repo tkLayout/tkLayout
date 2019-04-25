@@ -28,6 +28,8 @@ namespace material {
   class MaterialTab;
   class ConversionStation;
 
+  enum Position { COMMON, DEE, EXTERNAL };
+
   class MaterialObject : public PropertyObject {
   public:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
@@ -50,7 +52,10 @@ namespace material {
 
     virtual void build();
     
-    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, 
+			  double gramsMultiplier = 1.,
+			  Position requestedPosition = COMMON
+			  ) const;
     void addElement(const MaterialObject::Element* element);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
@@ -136,6 +141,7 @@ namespace material {
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
+      
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;
@@ -145,6 +151,7 @@ namespace material {
       Property<bool, Default> debugInactivate;
       Property<std::string, NoDefault> destination;
       Property<int, Default> targetVolume;
+      Property<Position, Default> position;
       PropertyNode<int> referenceSensorNode;
 
       Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName);
@@ -154,7 +161,7 @@ namespace material {
 
       virtual ~Element();
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Position requestedPosition = COMMON) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(const double length, const double surface) const;
@@ -186,7 +193,7 @@ namespace material {
       virtual ~Component();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Position requestedPosition = COMMON) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
@@ -208,7 +215,7 @@ namespace material {
       virtual ~Materials();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Position requestedPosition = COMMON) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
 

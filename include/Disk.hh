@@ -108,7 +108,14 @@ public:
   void rotateToNegativeZSide();
   void cutAtEta(double eta);
 
+  // TO DO: this is not an average, rename
   double averageZ() const { return averageZ_; }
+  // TO DO: ugly, should check whether rings are empty
+  const double deeHalfZSpacing() const { 
+    return (!rings_.at(0).isRingOn4Dees() ? bigDelta() : rings_.at(0).smallDelta());
+  }
+  const double smallAbsZDeeCenterZ() const { return (averageZ_ - deeHalfZSpacing()); }
+  const double bigAbsZDeeCenterZ() const { return (averageZ_ + deeHalfZSpacing()); }
   bool side() const { return averageZ_ > 0.; }
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 

@@ -24,6 +24,8 @@ namespace material {
       {LAYER, "layer"}
   };
 
+  define_enum_strings(Position) = { "common", "dee", "external" };
+
   MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
     subdetectorName_(subdetectorName),
       materialType_ (materialType),
@@ -115,13 +117,13 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
     for(const Element * currElement : serviceElements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
     }
     
     if (materials_ != nullptr) {
-      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
     }    
   }
 
@@ -208,9 +210,9 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
     }
   }
 
@@ -274,12 +276,12 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
     for(const Element* currElement : elements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
     }
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
     }
   }
 
@@ -302,13 +304,6 @@ namespace material {
   }
 
 
-  /*
-  const std::map<MaterialObject::Type, const std::string> MaterialObject::Element::unitString = {
-      {GRAMS, "g"},
-      {MILLIMETERS, "mm"},
-      {GRAMS_METER, "gm"}
-  };
-  */
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
@@ -324,11 +319,14 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
+    position ("position", parsedOnly(), Position::EXTERNAL),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
     subdetectorName_(subdetectorName),
     materialsTable_ (MaterialsTable::instance()),
     materialType_(newMaterialType) 
-  {};
+  {
+    if (position() == Position::COMMON) { logERROR("position COMMON can not be set to an element."); }
+};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : 
     Element(original.materialType_, original.subdetectorName()) 
@@ -356,38 +354,41 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
     const Element* elementToDeploy = this;
     // (materialType_ == STATION)
     // (materialType_ == ROD)
     // (materialType_ == MODULE)
 
-    if ( (!onlyServices) || (onlyServices && (service() == true))) {      
+    if (requestedPosition == COMMON || 
+	(requestedPosition == position())
+	) {
+
+      if ( (!onlyServices) || (onlyServices && (service() == true))) {      
      
-      for (const std::string& unitToDeploy : unitsToDeploy) {
-	if (unit().compare(unitToDeploy) == 0) {
+	for (const std::string& unitToDeploy : unitsToDeploy) {
+	  if (unit().compare(unitToDeploy) == 0) {
 
-	  if (service() == true && (unit().compare("g/m") != 0) ) {
-	    logERROR(any2str("Definition of services (") 
-		     + any2str(elementName())
-		     + any2str(") in ") 
-		     + any2str(unit())
-		     + any2str(" is not supported. Please use g/m !!")
-		     );
-	  }
-	  else {
-	    if (unit().compare("g") == 0) {
-	      elementToDeploy = new Element(*this, gramsMultiplier);
+	    if (service() == true && (unit().compare("g/m") != 0) ) {
+	      logERROR(any2str("Definition of services (") 
+		       + any2str(elementName())
+		       + any2str(") in ") 
+		       + any2str(unit())
+		       + any2str(" is not supported. Please use g/m !!")
+		       );
 	    }
+	    else {
+	      if (unit().compare("g") == 0) {
+		elementToDeploy = new Element(*this, gramsMultiplier);
+	      }
 
-	    outputObject.addElement(elementToDeploy);
-	    break;
+	      outputObject.addElement(elementToDeploy);
+	      break;
+	    }
 	  }
 	}
-      }
       
-
-
+      }
     }
   }
 
