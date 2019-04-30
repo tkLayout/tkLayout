@@ -113,7 +113,7 @@ public:
   const double deesCentersHalfZDistance() const {
     double deesCentersHalfZDistance = 0.;
     if (!rings_.empty()) {
-      const Ring* const firstRing = rings_.at(0);
+      const Ring& firstRing = rings_.at(0);
       const bool isRingOn4Dees = firstRing.isRingOn4Dees();
       deesCentersHalfZDistance = (isRingOn4Dees ? firstRing.smallDelta() : bigDelta());
     }

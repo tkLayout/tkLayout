@@ -121,7 +121,7 @@ namespace material {
     minR_(minR),
     maxZ_(maxZ),
     maxR_(maxR),
-    myPosition_(EXTERNAL),
+    myLocation_(Location::EXTERNAL),
     bearing_(bearing),
     nextSection_(nextSection),
     inactiveElement_(nullptr), 
@@ -138,7 +138,7 @@ namespace material {
             false) 
   {}
 
-  Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Position& position) :
+  Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Location& location) :
     Section(minZ,
             minR,
             maxZ,
@@ -147,7 +147,7 @@ namespace material {
             nextSection,
             false) 
   {
-    myPosition_ = position;
+    myLocation_ = location;
   }
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
@@ -978,16 +978,16 @@ namespace material {
             stationListFirst_.push_back(station);
             diskRodSections_[currDisk_].setStation(station);
 
-	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
-	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, station, DEE);
-	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, station, DEE);
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station, Location::EXTERNAL);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, station, Location::DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, station, Location::DEE);
           } 
 	  else {         
             diskRodSections_[currDisk_].setStation(section);
 
-	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section);
-	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, section, DEE);
-	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, section, DEE);
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section, Location::EXTERNAL);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, section, Location::DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, section, Location::DEE);
           }
 
           sectionsList_.push_back(startDisk);
@@ -1608,14 +1608,14 @@ namespace material {
           double totalExternalVolume = 0; 
 	  // This loops on all the sections making up the double disk.
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-	    if (currSection->getPosition() == DEE) {
+	    if (currSection->getLocation() == Location::DEE) {
 	      totalDeesVolume += currSection->getVolume();
 	    }
-	    else if (currSection->getPosition() == EXTERNAL) {
+	    else if (currSection->getLocation() == Location::EXTERNAL) {
 	      totalExternalVolume += currSection->getVolume();
 	    }
 	    else {
-	      logERROR("Double-Disk: created a section of unsupported position type.");
+	      logERROR("Double-Disk: created a section of unsupported location type.");
 	    }
 	  }
 
@@ -1626,15 +1626,17 @@ namespace material {
 	    // Ratio of volume of the section divided by the total volume of the double-disk.
 	    // This is a fix to Martina's code!!
 	    // We want to use volume ratio, because we want to keep density uniform within the double-disk.
-	    const double totalVolume = (currSection->getPosition() == DEE ? totalDeesVolume : totalExternalVolume);
+	    const double totalVolume = (currSection->getLocation() == Location::DEE ? totalDeesVolume : totalExternalVolume);
 
 	    const double massRatio = currSection->getVolume() / totalVolume;
 	    disk.materialObject().deployMaterialTo(currSection->materialObject(), 
 						   unitsToPassLayer, 
 						   MaterialObject::SERVICES_AND_LOCALS, 
 						   massRatio,
-						   currSection->getPosition()
+						   currSection->getLocation()
 						   );
+	    // disk.materialObject() is the materials info from cfg files (all double-disk).
+	    // currSection->materialObject() is the small section to which we want to assign a fraction of the materials.
 	  }
 
 	  // ROUTE SERVICES FROM DOUBLE-DISK   

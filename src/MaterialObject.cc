@@ -24,7 +24,7 @@ namespace material {
       {LAYER, "layer"}
   };
 
-  define_enum_strings(Position) = { "common", "dee", "external" };
+  define_enum_strings(Location) = { "all", "dee", "external" };
 
   MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
     subdetectorName_(subdetectorName),
@@ -117,13 +117,13 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
+  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element * currElement : serviceElements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     
     if (materials_ != nullptr) {
-      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
+      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }    
   }
 
@@ -210,9 +210,9 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
+  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -276,12 +276,12 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
+  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element* currElement : elements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedPosition);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -319,13 +319,13 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
-    position ("position", parsedOnly(), Position::EXTERNAL),
+    location ("location", parsedOnly(), Location::EXTERNAL),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
     subdetectorName_(subdetectorName),
     materialsTable_ (MaterialsTable::instance()),
     materialType_(newMaterialType) 
   {
-    if (position() == Position::COMMON) { logERROR("position COMMON can not be set to an element."); }
+    if (location() == Location::ALL) { logERROR("location ALL can not be set to an element."); }
 };
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : 
@@ -354,14 +354,18 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Position requestedPosition /*= COMMON*/) const {
+  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     const Element* elementToDeploy = this;
     // (materialType_ == STATION)
     // (materialType_ == ROD)
     // (materialType_ == MODULE)
 
-    if (requestedPosition == COMMON || 
-	(requestedPosition == position())
+    // KEY POINT.
+    // Only deploy materials to the section if:
+    // * no specific requestedLocation
+    // * there is a specific requestedLocation AND IT IS MATCHING THE MaterialObject::Element location.
+    if (requestedLocation == Location::ALL || 
+	(requestedLocation == location())
 	) {
 
       if ( (!onlyServices) || (onlyServices && (service() == true))) {      
