@@ -57,7 +57,7 @@ private:
   double computeNextRho(const int parity, const double zError, const double rSafetyMargin, const double lastZ, const double newZ, const double lastRho, const double oneBeforeLastRho);
   void buildTopDown(const ScanEndcapInfo& extremaDisksInfo);
 
-  double averageZ_ = 0;
+  double centerZ_ = 0;
 public:
   Property<int, NoDefault>    numRings;
   Property<double, NoDefault> zHalfLength;
@@ -108,15 +108,27 @@ public:
   void rotateToNegativeZSide();
   void cutAtEta(double eta);
 
-  // TO DO: this is not an average, rename
-  double averageZ() const { return averageZ_; }
-  // TO DO: ugly, should check whether rings are empty
-  const double deeHalfZSpacing() const { 
-    return (!rings_.at(0).isRingOn4Dees() ? bigDelta() : rings_.at(0).smallDelta());
+  // Distance in Z between the dees making up a double-disk.
+  // Assumption: double-disk design is common for all rings.
+  const double deesCentersHalfZDistance() const {
+    double deesCentersHalfZDistance = 0.;
+    if (!rings_.empty()) {
+      const Ring* const firstRing = rings_.at(0);
+      const bool isRingOn4Dees = firstRing.isRingOn4Dees();
+      deesCentersHalfZDistance = (isRingOn4Dees ? firstRing.smallDelta() : bigDelta());
+    }
+    else {
+      logERROR("Requested spacing between dees in double-disk, but the double-disk has no ring!");
+    }
+    return deesCentersHalfZDistance;
   }
-  const double smallAbsZDeeCenterZ() const { return (averageZ_ - deeHalfZSpacing()); }
-  const double bigAbsZDeeCenterZ() const { return (averageZ_ + deeHalfZSpacing()); }
-  bool side() const { return averageZ_ > 0.; }
+  // Z of the 2 dees located at lowest |Z| within the double-disk.
+  const double smallAbsZDeeCenterZ() const { return (centerZ_ - deesCentersHalfZDistance()); }
+  // Z of the 2 dees located at biggest |Z| within the double-disk.
+  const double bigAbsZDeeCenterZ() const { return (centerZ_ + deesCentersHalfZDistance()); }
+  // Z of the barycenter of the double-disk.
+  double centerZ() const { return centerZ_; }
+  bool side() const { return centerZ_ > 0.; }
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
