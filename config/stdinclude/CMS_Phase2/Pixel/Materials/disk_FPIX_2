@@ -10,7 +10,7 @@ Materials FPIX_2_disk {
   // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
   Component {
     componentName "Cooling: Pipes & Coolant (on dees)"
-    position dee
+    // location dee  // MB fully works but still need to fix overlaps
     service false
     scaleOnSensor 0
     Element {
@@ -33,7 +33,7 @@ Materials FPIX_2_disk {
   // NB: evth 'divided by 1000', so that the value routed along the dee is negligible (x 1000 conversion at the edge of the dee).
   Component {
     componentName "Cooling: Pipes & Coolant (routed)"
-    position dee
+    // location dee  // MB fully works but still need to fix overlaps
     service true
     scaleOnSensor 0
     Element {
@@ -155,7 +155,7 @@ Materials FPIX_2_disk {
   // Supports Mechanics: Airex foam insert
   Component {
     componentName "Supports Mechanics: Dee Airex foam"
-    position dee
+    // location dee  // MB fully works but still need to fix overlaps
     service false
     scaleOnSensor 0
  
@@ -176,7 +176,7 @@ Materials FPIX_2_disk {
   // Supports Mechanics: PCB panel
   Component {
     componentName "Supports Mechanics: Dee PCB panel"
-    position dee
+    // location dee  // MB fully works but still need to fix overlaps
     service false
     scaleOnSensor 0
  
@@ -198,7 +198,7 @@ Materials FPIX_2_disk {
   // Supports Mechanics: CFRP panel (also called CFK stiffener)
   Component {
     componentName "Supports Mechanics: Dee CFRP panel"
-    position dee
+    // location dee  // MB fully works but still need to fix overlaps
     service false
     scaleOnSensor 0
  
