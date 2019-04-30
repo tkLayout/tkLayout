@@ -40,7 +40,7 @@ Component {
   service false
   Element {
     scaleOnSensor 0
-    elementName Carbon_foam_BPX   // 2 housings, each is: 8 mm (width) x 411 mm (length) x 1.5 mm (thickness) divided by 9 modules. Density used is 0.5 g/cm3. Source: [TBPX_2019_01_15_AB]
+    elementName Carbon_foam_BPX   // 2 housings, each is: (8 mm (width) x 1.5 mm (thickness) - 0.5 x PI x 0.9^2) x 411 mm (length) divided by 9 modules. Density used is 0.5 g/cm3. Source: [TBPX_2019_01_15_AB]
     quantity 0.490
     unit g
     targetVolume 3                // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 housings!
