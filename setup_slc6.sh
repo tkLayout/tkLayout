@@ -25,4 +25,3 @@ export PATH=${DOXYGEN_PATH}:${PATH}
 
 # UPDATE PATH
 export PATH=`pwd`/bin:$PATH
-
