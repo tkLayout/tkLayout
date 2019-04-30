@@ -2577,6 +2577,11 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
 #endif
 
+      bool hasFoundOTST = false;
+      if (shapename.str() == "supportR1191Z1325") {
+	std::cout << "WARNING: Removed supportR1191Z1325, because OTST is already included independetly in CMMSW. Make sure supportR1191Z1325 is the OTST though!!" << std::endl;
+	hasFoundOTST = true;
+      }
 
       if ((iter->getZOffset() + iter->getZLength()) > 0 && shapename.str() != "supportR1191Z1325") {
 	// Hack to avoid the export of the OTST (supportR1191Z1325). TO DO: automatic export of the OTST.
@@ -2705,6 +2710,11 @@ namespace insur {
           logWARNING( msg.str() ); 
         }
       }
+
+      if (!isPixelTracker && !hasFoundOTST) {
+	std::cout << "WARNING: NO OTST was removed, hence there is probably an accidental OTST description in tracker.xml. This is not ok: there is already an independent OTST description in CMMSW!!" << std::endl;
+      } 
+
 
     }
     // DEBUG EXTREMA
