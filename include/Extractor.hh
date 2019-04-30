@@ -19,10 +19,15 @@
 #include <cmath>
 #include <limits.h>
 #include <sstream>
+#include "Units.hh"
 #include <Tracker.hh>
 #include <MaterialTable.hh>
 #include <MaterialBudget.hh>
 #include <MaterialObject.hh>
+
+#include "MaterialTab.hh"
+using namespace material;
+
 
 namespace insur {
   /**
@@ -35,6 +40,10 @@ namespace insur {
    */
   class Extractor {
     class LayerAggregator : public GeometryVisitor { // CUIDADO quick'n'dirty visitor-based adaptor to interface with legacy spaghetti code
+      // NB: What the hell is this design??
+      // What should be done: add moduleComplex directy in the geo core, allowing to get extrema info as soon as the geo is built, from the geo classes.
+      // Remove the geo bundles and directly access info from the existing classes!
+      // Full Extractor in general would need to be written in a clean way (would require ~1 month work though).
       std::vector<Layer*> barrelLayers_;
       std::vector<Disk*> endcapLayers_;
       std::vector<std::vector<ModuleCap> > layerCap_;
@@ -78,7 +87,7 @@ namespace insur {
   public:
     void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
   protected:
-    void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
+    void analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites);
     void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
     void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
@@ -122,11 +131,25 @@ namespace insur {
   // This should be moved to tk2CMSSW_strings.h at some point.
   static const std::string rot_sensor_tag = "SensorFlip";
 #endif
+ 
+
+  namespace ModuleComplexHelpers {
+    const double computeExpandedModWidth(const double moduleWidth, 
+					 const double serviceHybridWidth, 
+					 const double deadAreaExtraWidth,
+					 const double chipNegativeXExtraWidth,
+					 const double chipPositiveXExtraWidth);
+    const double computeExpandedModLength(const double moduleLength, 
+					  const double frontEndHybridWidth, 
+					  const double deadAreaExtraLength);
+  };
+
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
      ~ModuleComplex();
      void buildSubVolumes();
+     void checkSubVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
      void addLogicInfo   (std::vector<LogicalInfo>& vec);
      void addPositionInfo(std::vector<PosInfo>&     vec);
@@ -151,25 +174,7 @@ namespace insur {
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
-    private :
-      static const double kmm3Tocm3;
-      static const int HybridFBLR_0; // Front Back Left Right
-      static const int InnerSensor;
-      static const int OuterSensor;
-      static const int HybridFront;
-      static const int HybridBack;
-      static const int HybridLeft;
-      static const int HybridRight;
-      static const int HybridBetween;
-      static const int SupportPlate;
-      static const int HybridFB;
-      static const int HybridLR;
-      static const int HybridFBLR_3456; // Front Back Left Right (ailias of HybridFBLR_0)
-      static const int PixelModuleNull;
-      static const int PixelModuleHybrid;
-      static const int PixelModuleSensor;
-      static const int PixelModuleChip;    
-      
+    private :      
       class Volume {
         public :
           Volume(std::string name, const int type, std::string pname, 
@@ -183,7 +188,7 @@ namespace insur {
                                                           fx(posx),
                                                           fy(posy),
                                                           fz(posz),
-                                                          fdxyz(dx*dy*dz*kmm3Tocm3), // mm3 to cm3
+                                                          fdxyz(dx*dy*dz / Units::cm3), // mm3 to cm3
                                                           fdensity(-1.),
                                                           fmass(0.){}
 
@@ -211,7 +216,37 @@ namespace insur {
             else             std::cout << "   " << fname << " mass =" << fmass 
                                        <<" volume=" << fdxyz << " cm3, density=" << fdensity << " g/cm3" <<std::endl; 
           }
-        private :
+
+	void check() { 
+	  if (fmass < mat_negligible) {
+	    isValid_ = false;
+
+	    if (fdx > geom_zero && fdy > geom_zero && fdz > geom_zero) {
+	      logERROR(any2str("Module ") + any2str(fname) 
+		       + any2str(", subvolume ") + any2str(ftype)
+		       + any2str(" with shape dx = ") + any2str(fdx) + any2str(" dy = ") +  any2str(fdy) + any2str(" dz = ") +  any2str(fdz) 
+		       + any2str(" has a mass = ") + any2str(fmass) + any2str(" < ") + any2str(mat_negligible)
+		       );
+	      isValid_ = false;
+	    }
+	    return;
+	  }
+
+	  if ((fmass > mat_negligible) && (fdx < geom_zero || fdy < geom_zero || fdz < geom_zero)) {
+	    logERROR(any2str("Module ") + any2str(fname) 
+		     + any2str(", subvolume ") + any2str(ftype)
+		     + any2str(" with mass = ") + any2str(fmass)
+		     + any2str(" has shape dx = ") +  any2str(fdx) + any2str(" dy = ") +  any2str(fdy) + any2str(" dz = ") +  any2str(fdz)	    
+		     );
+	    isValid_ = false;
+	    return;
+	  }
+
+	  isValid_ = true;
+	}
+	const bool isValid() const { return isValid_; }	
+
+      private :
           std::string  fname;
           const int    ftype;
           std::string  fparentname;
@@ -221,6 +256,7 @@ namespace insur {
           double       fdensity;
           double       fmass;
           std::map<std::string, double> fmatlist;
+	  bool isValid_;
       };
 
       ModuleCap&           modulecap;
@@ -238,10 +274,15 @@ namespace insur {
       const double         hybridThickness;
       const double         supportPlateThickness;
       const double         chipThickness;
+      const double         deadAreaExtraLength;
+      const double         deadAreaExtraWidth;
+      const double         chipNegativeXExtraWidth;
+      const double         chipPositiveXExtraWidth;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;
+            double         deadAreaTotalVolume_mm3;
             double         moduleMassWithoutSensors_expected;
             double         rmin;
             double         rmax;

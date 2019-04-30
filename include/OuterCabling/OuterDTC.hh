@@ -26,11 +26,14 @@ public:
   const int slot() const { return slot_; }
   const bool isPositiveCablingSide() const { return isPositiveCablingSide_; }
 
+  const int getCMSSWId() const { return myCMSSWId_; } 
   const int plotColor() const { return plotColor_; }
 
 
 private:
-  const int computePlotColor(const int phiSectorRef, const Category& type, const int slot) const;
+  const int computeCMSSWId(const int oneCablingSideId, const bool isPositiveCablingSide) const;
+  const int computePlotColor(const int oneCablingSideId) const;
+  const int computeOneCablingSideId(const int phiSectorRef, const Category& type, const int slot) const;
 
   Container cable_;
 
@@ -42,6 +45,7 @@ private:
   int slot_;
   bool isPositiveCablingSide_;
 
+  int myCMSSWId_;
   int plotColor_;
 };
 

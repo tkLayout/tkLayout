@@ -1,7 +1,4 @@
-// ROD material
-// In rod service true means that exit from the rod
-//        service false means that stay in the rod (but in the service cylinder)
-
+   // WARNING: THIS FILE IS NOT CURRENTLY INCLUDED ANYWHERE!! 
 
    // Cooling for the module
   Component {
@@ -27,7 +24,7 @@
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Twisted pairs"
+    componentName "Cabling: Pipe thermistor twisted pairs"
     service false
     scaleOnSensor 0
     targetVolume 0
@@ -53,10 +50,10 @@
 
 
 
-  // Support Mechanics
+  // Supports Mechanics
   // Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics: TBPS (Module common)"
     service false
     scaleOnSensor 0
     targetVolume 8

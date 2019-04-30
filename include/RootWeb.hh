@@ -14,6 +14,7 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -77,15 +78,17 @@ protected:
 
 typedef std::map<pair<int,int>, string> rootWTableContent;
 typedef std::map<pair<int,int>, int> rootWTableContentColor;
+typedef std::map<pair<int,int>, bool> rootWTableContentBold;
 class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
   RootWTable();
-  void setContent(int row, int column, string content);
-  void setContent(int row, int column, int number);
-  void setContent(int row, int column, double number, int precision);
+  void setContent(int row, int column, string content, const bool isBold = false, const int color = kBlack);
+  void setContent(int row, int column, int number, const bool isBold = false, const int color = kBlack);
+  void setContent(int row, int column, double number, int precision, const bool isBold = false, const int color = kBlack);
   void setContent(const rootWTableContent& newContent) { tableContent_ = newContent; };
-  void setColor(int row, int column, int newColor);
+  void setColor(const int row,const  int column, const int newColor);
+  void setBold(const int row, const int column, const bool isBold);
   ostream& dump(ostream& output);
   pair<int, int> addContent(string content);
   pair<int, int> addContent(int number);
@@ -97,6 +100,7 @@ public:
 private:
   rootWTableContent tableContent_;
   rootWTableContentColor tableContentColor_;
+  rootWTableContentBold tableContentBold_;
   int serialRow_, serialCol_;
   int maxRow_, maxCol_;
 };
@@ -105,15 +109,11 @@ typedef string RootWImageSize;
 
 class RootWImage : public RootWItem {
 public:
-  ~RootWImage();
   RootWImage();
   // TODO: the methods with TCanvas* (pointer) should be made obsolete
-  RootWImage(TCanvas* myCanvas, int witdh, int height);
-  RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  RootWImage(TCanvas& myCanvas, int witdh, int height);
-  RootWImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  void setCanvas(TCanvas* myCanvas);
-  void setCanvas(TCanvas& myCanvas);
+  RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
+  RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  void setCanvas(std::unique_ptr<TCanvas> myCanvas);
   void setComment(string newComment);
   void setName(string newName);
   std::string getName();
@@ -127,7 +127,7 @@ public:
   bool addExtension(string newExt);
   void saveSummary(std::string baseName, TFile* myTargetFile);
 private:
-  TCanvas* myCanvas_;
+  std::unique_ptr<TCanvas> myCanvas_ = nullptr;
   int zoomedWidth_;
   int zoomedHeight_;
   string relativeHtmlDirectory_;
@@ -248,10 +248,8 @@ public:
   RootWInfo& addInfo(string description, string value);
   RootWTable& addTable();
   RootWImage& addImage();
-  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height);
-  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
-  RootWImage& addImage(TCanvas& myCanvas, int witdh, int height);
-  RootWImage& addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
+  RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   RootWTextFile& addTextFile();
   RootWTextFile& addTextFile(string newFileName);
   RootWTextFile& addTextFile(string newFileName, string newDescription);
@@ -284,7 +282,7 @@ private:
   string programSite_;
   string revision_;
   string targetDirectory_;
-  TFile* summaryFile_;
+  std::unique_ptr<TFile> summaryFile_;
   bool createSummaryFile_;
   string summaryFileName_;
 public:

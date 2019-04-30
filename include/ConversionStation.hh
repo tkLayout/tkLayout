@@ -24,12 +24,13 @@ namespace material {
   public:
     enum Type {ERROR, FLANGE, SECOND};
     
-    ConversionStation() :
-      MaterialObject(MaterialObject::Type::STATION),
+    ConversionStation(const std::string subdetectorName) :
+      MaterialObject(MaterialObject::Type::STATION, subdetectorName),
       stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
+      subdetectorName_(subdetectorName),
       stationType_ (ERROR),
       conversionsNode_ ("Conversion", parsedOnly())
     {};
@@ -48,6 +49,7 @@ namespace material {
     const double meanZ() const { return (minZ_() + maxZ_()) / 2.; }
 
   private:
+    std::string subdetectorName_;
     static const std::map<std::string, Type> typeString;
     Type stationType_;
     bool valid_;
@@ -78,9 +80,11 @@ namespace material {
     public:
       PropertyNodeUnique<std::string> elementsNode_;
 
-      Inoutput() :
+      Inoutput(const std::string subdetectorName) :
         elementsNode_ ("Element", parsedOnly()),
-        elementMaterialType(MaterialObject::Type::STATION) {};
+        elementMaterialType(MaterialObject::Type::STATION),
+	subdetectorName_(subdetectorName)
+      {};
 
         virtual ~Inoutput() {};
 
@@ -88,6 +92,9 @@ namespace material {
 
       std::vector<MaterialObject::Element*> elements;
       MaterialObject::Type elementMaterialType;
+
+    private:
+      std::string subdetectorName_;
     };
 
     class Conversion : public PropertyObject {
@@ -95,15 +102,20 @@ namespace material {
       PropertyNode<std::string> inputNode_;
       PropertyNode<std::string> outputNode_;
 
-      Conversion() :
+      Conversion(const std::string subdetectorName) :
         inputNode_ ("Input", parsedAndChecked()),
-        outputNode_ ("Output", parsedAndChecked()) {};
+        outputNode_ ("Output", parsedAndChecked()),
+	subdetectorName_(subdetectorName)
+      {};
       virtual ~Conversion() {};
 
       void build();
 
       Inoutput* input;
       Inoutput* outputs;
+
+    private:
+      std::string subdetectorName_;
     };
 
     std::vector<Conversion *> conversions;

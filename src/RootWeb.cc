@@ -108,8 +108,10 @@ ostream& RootWTable::dump(ostream& output) {
   for (int iRow = minRow; iRow<=maxRow; ++iRow) {
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
-      if ((iRow==minRow)&&(iRow==0)) myCellCode = "th";
+
+      if ((iRow==minRow) && (iRow==0)) myCellCode = "th";
       else myCellCode = "td";
+
       output << "<" << myCellCode;
       myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
       if (myColorIndex!=0) {
@@ -117,7 +119,19 @@ ostream& RootWTable::dump(ostream& output) {
 	      output << " style=\"color:" << myColorCode << ";\" " << std::endl;
       }
       output << ">";
+
+      // FINT OUT WHETHER THE CELL SHOULD BE BOLD
+      const std::pair<int, int> myCellPos = std::make_pair(iRow, iCol);
+      const auto& isBoldIt = tableContentBold_.find(myCellPos);
+      const bool isBoldCell = (isBoldIt != tableContentBold_.end() ? isBoldIt->second : false);
+      if (isBoldCell) output << "<strong>";
+
+      // ADD CONTENT
       output << myTableContent[make_pair(iRow, iCol)];
+
+      // BOLD CELL CASE
+      if (isBoldCell) output << "</strong>";
+
       output << "</" << myCellCode << ">" << " ";
     }
     output << "</tr>";
@@ -127,35 +141,44 @@ ostream& RootWTable::dump(ostream& output) {
   return output;
 }
 
-void RootWTable::setColor(int row, int column, int newColor) {
-  tableContentColor_[make_pair(row, column)] = newColor;
+void RootWTable::setColor(const int row, const int column, const int color) {
+  if (color != kBlack) {
+    tableContentColor_[make_pair(row, column)] = color;
+  }
 }
 
-void RootWTable::setContent(int row, int column, string content) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<content<<")"<<endl; // debug
+void RootWTable::setBold(const int row, const int column, const bool isBold) {
+  tableContentBold_[make_pair(row, column)] = isBold;
+}
+
+void RootWTable::setContent(int row, int column, string content, const bool isBold, const int color) {
   tableContent_[make_pair(row, column)] = content;
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, int number) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
+void RootWTable::setContent(int row, int column, int number, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
-void RootWTable::setContent(int row, int column, double number, int precision) {
-  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
+void RootWTable::setContent(int row, int column, double number, int precision, const bool isBold, const int color) {
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
   tableContent_[make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
+  setBold(row, column, isBold);
+  setColor(row, column, color);
 }
 
 pair<int, int> RootWTable::addContent(string myContent) {
@@ -189,7 +212,7 @@ pair<int, int> RootWTable::newLine() {
 
 RootWImage::RootWImage() {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   zoomedWidth_ = 0; zoomedHeight_ = 0;
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
@@ -199,10 +222,10 @@ RootWImage::RootWImage() {
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
   imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
+  myCanvas_ = nullptr;
+  setCanvas(std::move(myCanvas));
   setZoomedSize(witdh, height);
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
@@ -212,10 +235,10 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativehtmlDirectory) {
   imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
+  myCanvas_ = nullptr;
+  setCanvas(std::move(myCanvas));
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
   targetDirectory_ = "";
@@ -223,36 +246,6 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
-}
-
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
-  imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  relativeHtmlDirectory_ = "";
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
-  imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  setRelativeHtmlDirectory(relativehtmlDirectory);
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
-RootWImage::~RootWImage() {
-  if (myCanvas_) delete myCanvas_;
 }
 
 void RootWImage::setDefaultExtensions() {
@@ -273,29 +266,11 @@ std::string RootWImage::getName() {
   return name_ ;
 }
 
-void RootWImage::setCanvas(TCanvas* myCanvas) {
-  if (myCanvas_) delete myCanvas_;
-  myCanvas_ = (TCanvas*)myCanvas->DrawClone();
+void RootWImage::setCanvas(std::unique_ptr<TCanvas> myCanvas) {
+  myCanvas_.reset(myCanvas.release()); // KEY POINT: instead of using TCanvas::DrawClone(), just transfer TCanvas object ownership from Vizard to RootWeb!
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
-  TView* myView = myCanvas->GetView();
-  if (myView) {
-    TView* newView = myCanvas_->GetView();
-    if (newView) {
-      double min[3], max[3];
-      Int_t irep;
-      newView->SetView(myView->GetLongitude(),
-		       myView->GetLatitude(),
-		       myView->GetPsi(), irep);
-      myView->GetRange(min, max);
-      newView->SetRange(min, max);
-    }
-  }
-}
-
-void RootWImage::setCanvas(TCanvas& myCanvas) {
-  setCanvas(&myCanvas);
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {
@@ -416,7 +391,7 @@ bool RootWImage::addExtension(string myExtension) {
 void RootWImage::saveSummary(std::string baseName, TFile* myTargetFile) {
   if (!myCanvas_) return;
   baseName += name_;
-  saveSummaryLoop(myCanvas_, baseName, myTargetFile);
+  saveSummaryLoop(myCanvas_.get(), baseName, myTargetFile);
 }
 
 void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile) {
@@ -574,26 +549,14 @@ RootWImage& RootWContent::addImage() {
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
+  RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height);
   addItem(newImage);
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+  RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);
 }
@@ -1052,9 +1015,9 @@ bool RootWSite::makeSite(bool verbose) {
 
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
-    summaryFile_ = new TFile(Form("%s/%s",
+    summaryFile_.reset(new TFile(Form("%s/%s",
 				  targetDirectory_.c_str(),
-				  summaryFileName_.c_str()), "RECREATE");
+				      summaryFileName_.c_str()), "RECREATE"));
   } else summaryFile_ = nullptr;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
@@ -1078,7 +1041,7 @@ bool RootWSite::makeSite(bool verbose) {
 }
 
 TFile* RootWSite::getSummaryFile() {
-  return summaryFile_;
+  return summaryFile_.get();
 }
 
 void RootWSite::setSummaryFile(bool doSummary) {
@@ -1170,7 +1133,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName))
         boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
-    } catch (boost::filesystem::filesystem_error e) {
+    } catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }
@@ -1213,7 +1176,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(*it++, destinationFileName);
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }

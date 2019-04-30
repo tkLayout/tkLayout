@@ -1,0 +1,14 @@
+
+Materials FPIX2_R3_2x2_2500 {
+  type module
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_2x2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TEPX_R3
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
+}
+

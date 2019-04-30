@@ -1,50 +1,50 @@
 // Pixel module common components (no bumps, no cooling blocks, no connectivity)
 
 Component {
-  componentName "Pixel sensor" 
+  componentName "IT Module: Sensor" 
   service false
   scaleOnSensor 0
   Element {
     elementName SenSi
-    quantity 0.15
-    unit mm
+    quantity 0.15       
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 2
   }
 }
 
 Component {
-  componentName "Pixel hybrid"
+  componentName "IT Module: Hybrid"
   service false
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.15
-    unit mm
+    quantity 0.15       
+    unit mm               // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
   Element {
-    elementName PS-FEH-mix
+    elementName PS-FEH-mix  /// ???????
     quantity 0.15
-    unit mm
+    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
   Element {
     elementName Cu
     quantity 0.05
-    unit mm
+    unit mm              // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
 }
 
 Component {
-  componentName "Pixel Support plate"
+  componentName "IT Module: Support plate"
   service false
   scaleOnSensor 0
   // Support
   Element {
     elementName CF
     quantity 0.2
-    unit mm
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 1
   }
 }

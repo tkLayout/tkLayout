@@ -1277,11 +1277,14 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
  */
 void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
                                       bool byMaterial) {
+
+  /*
   map<std::string, map<std::pair<int, int>, bool> > typeTaken;
   map<std::string, map<std::pair<int, int>, bool> > typeWritten;
 
   string tempString;
   ostringstream tempSS;
+  */
 
   std::vector<std::vector<ModuleCap> >::iterator layerIt;
   //std::vector<std::vector<ModuleCap> >::iterator layerGuard;
@@ -1292,6 +1295,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
   Module* myModule;
   //  unsigned int nLocalMasses;
 
+  /*
   std::map<std::string, double>::const_iterator localmassesBegin;
   std::map<std::string, double>::const_iterator localmassesEnd;
 
@@ -1301,6 +1305,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   double localMaterial;
   string materialTag;
+  
 
   // loop over layers
   for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) {
@@ -1321,11 +1326,11 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
             Visitor(std::map<std::string, SummaryTable>& result_) : result(result_) {}
             void visit(const BarrelModule& m) {
-              string s = m.subdetectorName() + " (L" + any2str(m.layer()) + ")";
+              string s = "Ring " + any2str(m.ring());
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
             void visit(const EndcapModule& m) {
-              string s = m.subdetectorName() + " (D" + any2str(m.disk()) + ")";
+	      string s = "Ring " + any2str(m.ring());
               result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
             }
           };
@@ -1353,18 +1358,19 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
       }
     }
   }
-
+  
   // Alphabetically sort materials
   std::sort(materialTagV.begin(), materialTagV.end());
 
   // Prepare the columns of the tables
-  for (map<string, SummaryTable>::iterator it=result.begin();
-       it!=result.end(); ++it) {
+  for (map<string, SummaryTable>::iterator it=result.begin(); it!=result.end(); ++it) {
     for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
       it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
     }
     it->second.setCell(materialTagV.size()+1, 0, "Total");
   }
+
+  */
 
   // Now fill the table
   // loop over layers
@@ -1380,9 +1386,10 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
         typeWeight[tmak.posTag]+=myModuleCap->getLocalMass();
         tagWeight[tmak.sensorGeoTag]+=myModuleCap->getLocalMass();
       }
+      /*
       if (myModule->posRef().phi == 1) {
         // If we did not write this module type yet
-        pair<int, int> myIndex = make_pair(myModule->tableRef().row/*+myModule->getDisk()*/, myModule->tableRef().col);
+        pair<int, int> myIndex = make_pair(myModule->tableRef().row/, myModule->tableRef().col);
         tempString = myModule->subdetectorName();
         if (!typeWritten[tempString][myIndex]) {
           typeWritten[tempString][myIndex]=true;
@@ -1435,7 +1442,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
                 << "I found a module with no reference to the container name." << endl;
           }
         }
-      }
+	}*/
     }
   }
 }
@@ -1462,6 +1469,7 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   v.inspectTracker(mb);
   billOfMaterials_ = v.outputTable;
 }
+
 
 // protected
 /**

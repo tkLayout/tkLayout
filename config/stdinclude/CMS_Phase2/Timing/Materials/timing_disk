@@ -91,10 +91,10 @@ Materials disk {
     }
   }
 
-  // Support Mechanics
+  // Supports Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics"
     service false
     scaleOnSensor 0
     Element {

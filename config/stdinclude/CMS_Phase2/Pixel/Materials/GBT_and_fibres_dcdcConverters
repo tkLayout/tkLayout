@@ -6,7 +6,7 @@
   //componentName "GBT"
   Element {
 //quantity is OT version 1.146(*75%)
-    componentName "GBT+DCDC"
+    componentName "Cabling: GBT + DCDC converter"
     service false
     elementName CFRP
     quantity 0.8595  
@@ -14,7 +14,7 @@
   }
   Element {
 //SEH glue, quantity is OT version 0.089(*75%)
-    componentName "GBT+DCDC"
+    componentName "Cabling: GBT + DCDC converter"
     service false
     elementName Epoxy
     quantity 0.06675  
@@ -22,7 +22,7 @@
   }
   Element {
 //SEH copper, quantity is OT version 2.379(*50%)
-    componentName "GBT+DCDC"
+    componentName "Cabling: GBT + DCDC converter"
     service false
     elementName Cu
     quantity 1.435
@@ -30,7 +30,7 @@
   }
   Element {
 //SEH board and components, OT number is 5.743
-    componentName "GBT+DCDC"
+    componentName "Cabling: GBT + DCDC converter"
     service false
     elementName 2S-SEH-mix
     quantity 4.391
@@ -42,21 +42,21 @@
 // 2 Optical fibers
 //Component {
   Element {
-    componentName "Optical Fibers"
+    componentName "Cabling: Optical fibers"
     service true
     elementName PE
     quantity 1.139
     unit g/m 
   }
   Element {
-    componentName "Optical Fibers"
+    componentName "Cabling: Optical fibers"
     service true
     elementName Glass
     quantity 0.06
     unit g/m
   }
   Element {
-    componentName "Optical Fibers"
+    componentName "Cabling: Optical fibers"
     service true
     elementName Acrylate
     quantity 0.07
@@ -70,7 +70,7 @@
 // 1 pair of Al/Cu 0.09/0.10
 //Component {
   Element {
-    componentName "DC power wires"
+    componentName "Cabling: DCDC converter power wires"
     service true
     elementName Cu
     quantity 0.16
@@ -78,7 +78,7 @@
   }
   // Two wires/1
   Element {
-    componentName "DC power wires"
+    componentName "Cabling: DCDC converter power wires"
     service true
     elementName PE
     quantity 0.88
@@ -86,7 +86,7 @@
   }
   // Two wires/1 0.1 mm^2
   Element {
-    componentName "DC power wires"
+    componentName "Cabling: DCDC converter power wires"
     service true
     elementName Al
     quantity 0.46

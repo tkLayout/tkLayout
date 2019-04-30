@@ -1,7 +1,7 @@
 // 0.6 mm^2 power wires
 // Serial power: the power lines do not accumulate
 Component {
-  componentName "Power wires"
+  componentName "Cabling: Serial power chains"
   service true
   scaleOnSensor 0
   // Two wires

@@ -13,7 +13,7 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
   myid(powerChainId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
   ringNumber_ = inner_cabling_functions::computeRingNumber(ringQuarterIndex);
-  isRingInnerEnd_ = inner_cabling_functions::isRingInnerEnd(ringQuarterIndex);
+  isSmallerAbsZRingSide_ = inner_cabling_functions::isSmallerAbsZRingSide(ringQuarterIndex);
 
   powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
 

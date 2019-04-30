@@ -1,0 +1,16 @@
+// Layer 4: module with 1 chip
+// 56 modules/GBT !!!!!!! Warning: Obviously wrong, was put as temp material for tilted IT.
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TBPX_L4_1chipmodules
+      quantity 6.188         // = 56 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include GBT_and_fibres  // = 1 GBT
+  }
+}

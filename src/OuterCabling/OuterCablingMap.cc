@@ -119,28 +119,43 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 
     // PS10G
     if (cableType == Category::PS10G) {
-      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
-      if ((subDetectorName == outer_cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      // BARREL LAYER 1 FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && !myBundle->isTiltedPart()) 
+	   || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1)
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3)	   
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 1;
       }
-      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
-      if ((subDetectorName == outer_cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)) {
+      // BARREL LAYER 1 TILTED PART + ENDCAPS DISKS 2B, 4
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && myBundle->isTiltedPart()) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GB)
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 2;
+      }
+      // BARREL FULL LAYER 2 + ENDCAPS DISK 2A
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
+		) {
+	slot = 3;
       }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) {
-	slot = 3;
-      }
-
-      else if ((subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 4;
       }
 
       // STAGGERING
-      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	// TBPS
 	if (subDetectorName == outer_cabling_tbps) {
 	  // TILTED PART
@@ -209,7 +224,9 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	}
       }
 
-      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+		) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
 	if (subDetectorName == outer_cabling_tb2s) {
 	  int& myPhiSectorCounter = Layer6PhiSectorsCounter[phiSectorRef];
@@ -220,18 +237,27 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+		) {
 	slot = 6;
       }
     }
   
     if (slot == 0) {
-      std::cout << "bundleType = "  << bundleType << " cableType = " << cableType <<  " subDetectorName  =" << subDetectorName << " layerDiskNumber = " << layerDiskNumber << " isPositiveCablingSide = " << isPositiveCablingSide << std::endl;
-      logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
+      logERROR(any2str("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.")
+	       + " bundleType = " + any2str(bundleType) 
+	       + ", cableType = " + any2str(cableType) 
+	       + ", subDetectorName  =" + any2str(subDetectorName) 
+	       + ", layerDiskNumber = " + any2str(layerDiskNumber) 
+	       + ", isPositiveCablingSide = " + any2str(isPositiveCablingSide)
+	       );
     }
 
 
@@ -300,13 +326,18 @@ void OuterCablingMap::checkBundlesToCablesCabling(const std::map<const int, std:
   for (const auto& c : cables) {
     const OuterCable* myCable = c.second.get();
 
-    // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
+    // CHECK THE CABLES TYPES, PHI SLICES REF AND SLOTS.
+    const Category& type = myCable->type();
     const int phiSectorRef = myCable->phiSectorRef();
-    if (phiSectorRef <= -1) {
+    const int slot = myCable->slot();
+    if (type == Category::UNDEFINED
+	|| phiSectorRef <= -1 || phiSectorRef >= outer_cabling_numNonants
+	|| (slot <= 0) || (slot >= (outer_cabling_maxNumDTCsPerNonantPerZEnd / 2 + 1))
+	) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
-	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(myCable->type())
+	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(type)
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
-	       + ", slot = " + any2str(myCable->slot())
+	       + ", slot = " + any2str(slot)
 	       );
     }
 

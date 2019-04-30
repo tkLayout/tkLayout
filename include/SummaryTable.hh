@@ -31,7 +31,7 @@ public:
   bool hasCell(int row, int column) const { return summaryTable.count(std::make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
   bool hasSummaryCell() const { return summaryCellPosition_ > std::make_pair(0, 0); }
 
-  std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; }
+  std::map<std::pair<int, int>, std::string> getContent() const { return summaryTable; }
 
   void clear() { summaryTable.clear(); }
 private:

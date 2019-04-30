@@ -1,15 +1,27 @@
-source /cvmfs/sft.cern.ch/lcg/app/releases/ROOT/5.34.09/x86_64-slc6-gcc47-dbg/root/bin/thisroot.sh
+#!/bin/bash
 
-source /cvmfs/sft.cern.ch/lcg/external/gcc/4.7.2/x86_64-slc6-gcc47-opt/setup.sh
+ARCH=x86_64-slc6-gcc8
+CONTRIB=/cvmfs/sft.cern.ch/lcg/contrib
+RELEASE_LCG=/cvmfs/sft.cern.ch/lcg/releases/LCG_95
+TK_DIRECTORY=$(dirname $BASH_SOURCE)
 
-export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/include/boost-1_50
-export BOOST_LIB=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/lib
-export BOOST_SUFFIX=-gcc47-mt-1_50
-export LD_LIBRARY_PATH=/cvmfs/sft.cern.ch/lcg/external/Boost/1.50.0_python2.7/x86_64-slc6-gcc47-opt/lib:$LD_LIBRARY_PATH
 
-export DOXYGEN_PATH=/cvmfs/sft.cern.ch/lcg/external/doxygen/1.8.2/x86_64-slc6-gcc47-opt/bin
-if [ -d $DOXYGEN_PATH ] ; then
-  export PATH=${DOXYGEN_PATH}:${PATH}
-fi
+# COMPILER
+source $CONTRIB/gcc/8.2.0/$ARCH-opt/setup.sh
 
+# ROOT
+source $RELEASE_LCG/ROOT/6.16.00/$ARCH-dbg/bin/thisroot.sh
+source $TK_DIRECTORY/ROOT-env.sh
+
+# BOOST
+export BOOST_INCLUDE=$RELEASE_LCG/Boost/1.69.0/$ARCH-opt/include
+export BOOST_LIB=$RELEASE_LCG/Boost/1.69.0/$ARCH-opt/lib
+export BOOST_SUFFIX=
+export LD_LIBRARY_PATH=$BOOST_LIB:$LD_LIBRARY_PATH
+
+# DOXYGEN
+export DOXYGEN_PATH=$RELEASE_LCG/doxygen/1.8.11/$ARCH-opt/bin/
+export PATH=${DOXYGEN_PATH}:${PATH}
+
+# UPDATE PATH
 export PATH=`pwd`/bin:$PATH

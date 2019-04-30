@@ -1,0 +1,11 @@
+Component {
+  componentName "IT Module: Inactive silicon around sensor" 
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.013767936     // Mass calculated for a 0.5 mm extra dead area width & length, on a 16.4 mm x 22 mm sensor.
+    unit g              
+    targetVolume 4
+  }
+}

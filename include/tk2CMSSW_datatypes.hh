@@ -79,12 +79,16 @@ namespace insur {
      * @param density The overall density of the composite material (in g/cm3)
      * @param method The type of mixture: by weight, by volume or by atomic proportion
      * @param elements A list of elements in the compound, key = name of the element, value = massic fraction of the whole
+     * @param fileName The name of the file in which the composite description ends up being printed (used for referring to that description)
      */
     struct Composite {
         std::string name;
         double density;
         CompType method;
         std::map<std::string, double> elements;
+
+        std::string fileName;
+        const std::string fullName() const { return fileName + ":" + name; }
 
         // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
         // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
@@ -210,35 +214,47 @@ namespace insur {
     /**
      * @struct ERingInfo
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
-     * @param name The logical part name that identifies the ring
-     * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw Is it the forward ring of the disk ?
-     * @param isZPlus Is the ring (and disk) in the positive-z side ?
-     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
-     * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
-     * @param modules The number of modules within the ring
-     * @param mthk Thickness of one of the ring's modules (hybrids included)
-     * @param rmin The minimum radius of the ring, as measured from the z-axis 
-     * @param rmid The radius of the module mean point, as measured from the z-axis
-     * @param rmax The maximum radius of the ring, as measured from the z-axis
+     * @param name The logical part name that identifies the ring.
+     * @param childname The logical part name that identifies the modules contained in the ring.
+     * @param isDiskAtPlusZEnd Is the ring (and disk) in the Tracker positive (Z) end ?
+     * @param numModules The number of modules within the ring.
+     * @param moduleThickness Thickness of one of the ring's modules (hybrids included).
+     * @param radiusMin The minimum radius of the ring, as measured from the (Z) axis.
+     * @param radiusMid The radius of the module mean point, as measured from the (Z) axis.
+     * @param radiusMax The maximum radius of the ring, as measured from the (Z) axis.
+     * @param zMin Min Z ever reached by any point of a module belonging to the ring.
+     * @param smallAbsZSurfaceZMax MaxZ of the half of the modules which are located at the smallest |Z|.
+     * @param zMid ring's placement Z.
+     * @param bigAbsZSurfaceZMin MinZ of the half of the modules which are located at the biggest |Z|.
+     * @param zMax Max Z ever reached by any point of a module belonging to the ring.
+     * @param isRingOn4Dees Are the ring modules spread over 4 dees?
+     * surface i is randomly one half of the ring modules (Either the modules located at smaller |Z|, either the modules located at bigger |Z|).
+     * @param surfaceiZMid ZMid of modules belonging to surface i. Assumption: same for all modules.
+     * @param surfaceiStartPhi Start Phi Angle of modules belonging to surface i.
+     * @param surfaceiIsFlipped Are the modules belonging to surface i flipped?
      */
     struct ERingInfo {
         std::string name;
         std::string childname;
-        bool fw;
-        bool isZPlus;
-        bool fw_flipped;
-        int modules;
-        double mthk;
-        double rmin;
-        double rmid;
-        double rmax;
-        double zmin;
-        double zmax;
-        double zfw;
-        double startPhiAnglefw;  // in RAD
-        double zbw;
-        double startPhiAnglebw;  // in RAD
+        bool isDiskAtPlusZEnd;
+        int numModules;
+        double moduleThickness;
+        double radiusMin;
+        double radiusMid;
+        double radiusMax;
+        double zMin;
+        double smallAbsZSurfaceZMax;
+        double zMid;
+        double bigAbsZSurfaceZMin;
+        double zMax;
+        bool isRingOn4Dees;
+        
+        double surface1ZMid;
+        double surface1StartPhi;  // in RAD       
+        bool surface1IsFlipped;
+        double surface2ZMid;
+        double surface2StartPhi;  // in RAD
+        bool surface2IsFlipped;
     };
     /**
      * @struct BTiltedRingInfo

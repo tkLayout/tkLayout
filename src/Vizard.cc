@@ -14,6 +14,9 @@
 
 #include "MainConfigHandler.hh"
 
+
+//#include "MaterialTab.hh"
+
 namespace insur {
   // public
   /**
@@ -67,6 +70,12 @@ namespace insur {
     Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, vis_temperature_levels);
     for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
     gStyle->SetPalette(vis_temperature_levels, myPalette);
+
+    // Each title centered and specified width
+    gStyle->SetTitleX(0.5);
+    gStyle->SetTitleW(1.);
+
+    gStyle->SetLegendFillColor(19); // clear grey
   }
 
   /**
@@ -95,10 +104,10 @@ namespace insur {
    */
   void Vizard::buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified) {
 /*    int c = 0;
-    TGeoVolume* vol=NULL;
-    TGeoTranslation* trans=NULL;
-    TGeoCombiTrans* trafo=NULL;
-    Layer* current=NULL;
+    TGeoVolume* vol=nullptr;
+    TGeoTranslation* trans=nullptr;
+    TGeoCombiTrans* trafo=nullptr;
+    Layer* current=nullptr;
     std::vector<Module*> templates;
     // barrels
     if (simplified) {
@@ -342,7 +351,7 @@ namespace insur {
       }
       else std::cout << graph_wrong << std::endl;
     }
-    catch (std::bad_alloc ba) {
+    catch (std::bad_alloc& ba) {
       std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
     }
   }
@@ -367,8 +376,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    histogramSummary(a, materialBudget, debugServices, site, "outer");
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site) {
+    histogramSummary(a, materialBudget, site, "outer");
   }
 
   /**
@@ -380,8 +389,9 @@ namespace insur {
    */
 
   // TODO: if weightGrid is actually unused, then remove it
-  void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
-    RootWContent* myContent;
+  void Vizard::weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+
+    //RootWContent* myContent;
 
     // Initialize the page with the material budget
     std::string pageTitle="Weights";
@@ -390,10 +400,14 @@ namespace insur {
     RootWPage& myPage = site.addPage(pageTitle);
     myPage.setAddress(pageAddress);
 
-    // weight plot
-    myContent = new RootWContent("Overview plot", true);
-    myPage.addContent(myContent);
 
+    const WeightsPerSubdetector& weightsPerSubdetector = computeDetailedWeights(materialBudget, myPage);
+
+    // weight plot
+    //myContent = new RootWContent("Overview plot", true);
+    //myPage.addContent(myContent);
+
+    /*
     std::map<std::string, SummaryTable>* summaryTables;
 
     // Write the summary for barrel first and endcap second
@@ -404,7 +418,7 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first, false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (chemical elements)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
@@ -418,23 +432,92 @@ namespace insur {
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
         // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first + " - components", false);
+        RootWContent& myContent = myPage.addContent(it->first + " - modules only (components)", false);
         RootWTable& myTable = myContent.addTable();
         myTable.setContent(it->second.getContent());
       }
     }
+    */
+
+
+    // TOTAL WEIGHT
+    //const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
+
+    double totalWeight = 0.;
+
+    for (const auto& subdetectorIt : weightsPerSubdetector) {
+      const std::string subdetectorName = subdetectorIt.first;
+      RootWContent& myContent = myPage.addContent(subdetectorName, true);
+      RootWTable& myTable = myContent.addTable();
+
+      const WeightsPerMechanicalCategory& weightsPerMechanicalCategory = subdetectorIt.second;
+
+      double totalWeightInSubdetector = 0.;
+      int rowCounter = 0;
+      const bool boldCell = true;
+      const int weightPrecision = 1;
+
+      for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategory) {
+
+	const std::string mechanicalCategory = mechanicalCategoryIt.first;
+
+	const WeightsPerComponent& weightsPerComponent = mechanicalCategoryIt.second;
+
+	double totalWeightInMechanicalCategory = 0.;
+
+	myTable.setContent(rowCounter, 0, mechanicalCategory, boldCell);
+	myTable.setContent(rowCounter, 1, "mass (kg)", boldCell);
+	rowCounter++;
+ 
+	for (const auto& componentIt : weightsPerComponent) {
+	  const std::string componentName = componentIt.first;
+	  const double mass = componentIt.second;
+	  std::ostringstream massStream;
+	  const double massInKg = mass / 1000.;  // kg
+	  totalWeightInMechanicalCategory += massInKg;
+
+	  myTable.setContent(rowCounter, 0, componentName);
+	  myTable.setContent(rowCounter, 1, massInKg, weightPrecision);
+	  rowCounter++;
+	} // component
+
+	const int mechanicalCategoryTotalColor = kBlue;
+
+	myTable.setContent(rowCounter, 0, "TOTAL " + mechanicalCategory, !boldCell, mechanicalCategoryTotalColor);
+	myTable.setContent(rowCounter, 1, totalWeightInMechanicalCategory, weightPrecision, !boldCell, mechanicalCategoryTotalColor);
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	myTable.setContent(rowCounter, 0, " ");
+	myTable.setContent(rowCounter, 1, " ");
+	rowCounter++;
+	totalWeightInSubdetector += totalWeightInMechanicalCategory;	
+      } // mechanical category
+      
+      myTable.setContent(rowCounter, 0, "TOTAL " + subdetectorName, boldCell);
+      myTable.setContent(rowCounter, 1, totalWeightInSubdetector, weightPrecision, boldCell);
+      totalWeight += totalWeightInSubdetector;
+    } // subdetector
+
+    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
+    myPage.addContent(grandTotal, false);
+
+    //RootWContent& totalContent = myPage.addContent(grandTotal, false);
+    //RootWTable& totalTable = totalContent.addTable();
+    //totalTable.setContent(0, 0, totalWeight);
   }
 
 
 
-  /**
-   * This function draws some of the histograms that were filled during material budget analysis
+/**
+ * This function draws some of the histograms that were filled during material budget analysis
    * with the rootweb library
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, RootWSite& site, std::string name) {
     materialBudgets_.push_back(&materialBudget);
     
     // Initialize the page with the material budget
@@ -443,7 +526,6 @@ namespace insur {
     RootWContent* myContentDetails;
     RootWTable* myTable;
     RootWImage* myImage;
-    TCanvas* myCanvas;
     TVirtualPad* myPad;
     std::string pageTitle="Material";
     if (name!="") pageTitle+=" (" +name+")";
@@ -471,16 +553,16 @@ namespace insur {
     std::map<int, std::vector<double> > averages;
 
     // Book histograms
-    TH1D *cr = NULL, *ci = NULL;
-    TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+    TH1D *cr = nullptr, *ci = nullptr;
+    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr;
 #ifdef MATERIAL_SHADOW
-    TH2D *ir = NULL, *ii = NULL;
+    TH2D *ir = nullptr, *ii = nullptr;
 #endif
-    TH2D *mapRad = NULL, *mapInt = NULL;
+    TH2D *mapRad = nullptr, *mapInt = nullptr;
     TProfile *crProf, *ciProf;
 
     // 1D OVERVIEW (FULL VOLUME)
-    myCanvas = new TCanvas(name_overviewMaterial.c_str());
+    std::unique_ptr<TCanvas> myCanvas(new TCanvas(name_overviewMaterial.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -492,7 +574,9 @@ namespace insur {
     crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
     //crProf->Rebin(10);
     crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
+    crProf->GetYaxis()->SetTitleOffset(1.3);
     crProf->SetFillColor(kGray + 2);
+    crProf->SetLineColor(kBlue);
     crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
@@ -500,11 +584,13 @@ namespace insur {
     ci = (TH1D*)a.getHistoGlobalI().Clone();
     ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
     ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
+    ciProf->GetYaxis()->SetTitleOffset(1.3);
     ciProf->SetFillColor(kGray + 2);
+    ciProf->SetLineColor(kBlue);
     ciProf->Draw("hist");
 
     // Put the full volume materials plots to the site
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in full volume");
     myImage->setName("matOverviewFull");
     myTable = new RootWTable();
@@ -564,7 +650,7 @@ namespace insur {
     myContent = new RootWContent("Categories details (Full volume)", false);
     myPage->addContent(myContent);
     // Work area re-init
-    myCanvas = new TCanvas(name_categoriesMaterial.c_str());
+    myCanvas.reset(new TCanvas(name_categoriesMaterial.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -616,7 +702,7 @@ namespace insur {
     //myCanvas->Modified();
 
     // Write asl category plots to web page
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Detailed");
     myImage->setName("matCategoriesFull");
     myTable = new RootWTable();
@@ -656,7 +742,7 @@ namespace insur {
 
     TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    myCanvas = new TCanvas(("componentsRI"+name).c_str());
+    myCanvas.reset(new TCanvas(("componentsRI"+name).c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -704,7 +790,7 @@ namespace insur {
 
     myContent->addItem(myTable);
 
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in full volume as a function of &eta; (excluding beam pipe and including services, supports and module material (split by component)");
     myImage->setName("matComponentsFull");
     myContent->addItem(myImage);
@@ -726,7 +812,7 @@ namespace insur {
 
     TLegend* servicesCompLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    myCanvas = new TCanvas(("ServicesComponentsRI"+name).c_str());
+    myCanvas.reset(new TCanvas(("ServicesComponentsRI"+name).c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -771,7 +857,7 @@ namespace insur {
     servicesCompLegend->Draw();
 
     myContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in services");
     myImage->setName("matServicesComponentsFull");
     myContent->addItem(myImage);
@@ -793,7 +879,7 @@ namespace insur {
 
     TLegend* compLegendTrackingVolume = new TLegend(0.1,0.6,0.35,0.9);
 
-    myCanvas = new TCanvas(("componentsTrackingVolumeRI"+name).c_str());
+    myCanvas.reset(new TCanvas(("componentsTrackingVolumeRI"+name).c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -847,7 +933,7 @@ namespace insur {
 
     myContentDetails->addItem(myTable);
 
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
     myImage->setName("matComponentsTrackingVolume");
     myContentDetails->addItem(myImage);
@@ -856,12 +942,12 @@ namespace insur {
 
 
     // 1D OVERVIEW (TRACKING VOLUME)
-    TH1D *rTrackingVolume = NULL, *iTrackingVolume = NULL;
-    TProfile *rTrackingVolumeProf = NULL, *iTrackingVolumeProf = NULL;
+    TH1D *rTrackingVolume = nullptr, *iTrackingVolume = nullptr;
+    TProfile *rTrackingVolumeProf = nullptr, *iTrackingVolumeProf = nullptr;
     myContent = new RootWContent("1D Overview (Tracking volume)", false);
     myPage->addContent(myContent);
     // Work area re-init
-    myCanvas = new TCanvas(name_overviewMaterialTrackingVolume.c_str());
+    myCanvas.reset(new TCanvas(name_overviewMaterialTrackingVolume.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -873,7 +959,9 @@ namespace insur {
       rTrackingVolume = (TH1D*)rCompTrackingVolumeStack->GetStack()->Last()->Clone();
       rTrackingVolumeProf = newProfile(rTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
       rTrackingVolumeProf->SetFillColor(kGray + 2);
+      rTrackingVolumeProf->SetLineColor(kBlue);
       rTrackingVolumeProf->SetTitle("Radiation Length within Tracking Volume; #eta; x/X_{0}");
+      rTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       rTrackingVolumeProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -883,11 +971,13 @@ namespace insur {
       iTrackingVolume = (TH1D*)iCompTrackingVolumeStack->GetStack()->Last()->Clone();
       iTrackingVolumeProf = newProfile(iTrackingVolume, 0., a.getEtaMaxMaterial(), materialNBins);
       iTrackingVolumeProf->SetFillColor(kGray + 2);
+      iTrackingVolumeProf->SetLineColor(kBlue);
       iTrackingVolumeProf->SetTitle("Interaction Length within Tracking Volume; #eta; #lambda/#lambda_{0}");
+      iTrackingVolumeProf->GetYaxis()->SetTitleOffset(1.3);
       iTrackingVolumeProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in tracking volume");
     myImage->setName("matOverviewTrackingVolume");
     myTable = new RootWTable();
@@ -919,7 +1009,7 @@ namespace insur {
 
     TLegend* servicesTrackingVolumeLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    myCanvas = new TCanvas(("ServicesDetailsTrackingVolumeRI"+name).c_str());
+    myCanvas.reset(new TCanvas(("ServicesDetailsTrackingVolumeRI"+name).c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -975,7 +1065,7 @@ namespace insur {
     servicesTrackingVolumeLegend->Draw();
 
     myContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in services");
     myImage->setName("matServicesDetailsTrackingVolume");
     myContent->addItem(myImage);
@@ -983,7 +1073,7 @@ namespace insur {
 
 
     // Work area re-init
-    myCanvas = new TCanvas(name_countourMaterial.c_str());
+    myCanvas.reset(new TCanvas(name_countourMaterial.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -998,7 +1088,7 @@ namespace insur {
     // radiation length in isolines
     ir = (TH2D*)a.getHistoIsoR().Clone();
     ir->SetNameTitle("isor", "Radiation Length Contours");
-    ir->SetContour(temperature_levels, NULL);
+    ir->SetContour(temperature_levels, nullptr);
     ir->SetXTitle("z");
     ir->SetYTitle("r");
     ir->Draw("COLZ");
@@ -1007,40 +1097,42 @@ namespace insur {
     // interaction length in isolines
     ii = (TH2D*)a.getHistoIsoI().Clone();
     ii->SetNameTitle("isoi", "Interaction Length Contours");
-    ii->SetContour(temperature_levels, NULL);
+    ii->SetContour(temperature_levels, nullptr);
     ii->SetXTitle("z");
     ii->SetYTitle("r");
     ii->Draw("COLZ");
     // Write isoline plots to web page
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material 2D distributions");
     myImage->setName("matShadow");
     myContent->addItem(myImage);
 #endif // MATERIAL_SHADOW
 
     // Radiation length plot
-    myCanvas = new TCanvas(name_mapMaterialRadiation.c_str());
+    myCanvas.reset(new TCanvas(name_mapMaterialRadiation.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
-    mapRad->SetContour(vis_temperature_levels, NULL);
+    mapRad->SetContour(vis_temperature_levels, nullptr);
     mapRad->GetZaxis()->SetLabelSize(0.02);  // palette font size
     //myCanvas->SetLogz();
+    mapRad->SetStats(0);
     mapRad->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation length material map");
     myImage->setName("matMapR");
     myContent->addItem(myImage);
 
     // Interaction length plot
-    myCanvas = new TCanvas(name_mapMaterialInteraction.c_str());
+    myCanvas.reset(new TCanvas(name_mapMaterialInteraction.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
-    mapInt->SetContour(vis_temperature_levels, NULL);
+    mapInt->SetContour(vis_temperature_levels, nullptr);
     mapInt->GetZaxis()->SetLabelSize(0.02); // palette font size
+    mapInt->SetStats(0);
     mapInt->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Interaction length material map");
     myImage->setName("matMapI");
     myContent->addItem(myImage);
@@ -1050,7 +1142,7 @@ namespace insur {
     myPage->addContent(myContent);
 
     // Number of hits
-    myCanvas = new TCanvas(name_hadronsHitsNumber.c_str());
+    myCanvas.reset(new TCanvas(name_hadronsHitsNumber.c_str()));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -1068,8 +1160,8 @@ namespace insur {
     hadronAverageHitsGraph->Draw("same lp");
 
     // Number of hits
-    std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
-    std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
+    std::vector<TGraph>& hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
+    std::vector<double>& hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
@@ -1089,15 +1181,16 @@ namespace insur {
     for (unsigned int i=0;
          i<hadronGoodTracksFraction.size();
          ++i) {
-      TGraph& myGraph = hadronGoodTracksFraction.at(i);
-      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph.GetN() << " points" << std::endl;
+      TGraph* myGraph = &hadronGoodTracksFraction.at(i);
+      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph->GetN() << " points" << std::endl;
       //double xx, yy;
-      //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
+      //myGraph->GetPoint(myGraph->GetN()-1, xx, yy);
       //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = Analyzer::average(myGraph, geom_range_eta_regions);
-      closeGraph(myGraph);
-      myGraph.SetFillColor(Palette::color(i+1));
-      myGraph.Draw("same F");
+      averages[i] = Analyzer::average(*myGraph, geom_range_eta_regions);
+      closeGraph(*myGraph);
+      myGraph->SetFillColor(Palette::color(i+1));
+      myGraph->SetBit(1);
+      myGraph->Draw("same F");
       tempSS.str("");
       if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
         if (hadronNeededHitsFraction.at(i)==Analyzer::OneHitRequired)
@@ -1106,12 +1199,12 @@ namespace insur {
           tempSS << int(hadronNeededHitsFraction.at(i)*100)
             << "%% hits required";
         fractionTitles[i]=tempSS.str();
-        myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
+        myLegend->AddEntry(myGraph, fractionTitles[i].c_str(), "F");
       }
     }
     ranger->Draw("sameaxis");
     myLegend->Draw();
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hits occupancy & track efficiency for hadrons");
     myImage->setName("hadHitsTracks");
     myContent->addItem(myImage);
@@ -1159,10 +1252,6 @@ namespace insur {
     //} else {
     //  delete materialSummaryTable;
     //}
-
-    if (debugServices) {
-        drawInactiveSurfacesSummary(materialBudget, *myPage);
-    }
 
   }
 
@@ -1288,13 +1377,13 @@ namespace insur {
       RootWImage* myImage;
 
       // Modules to Bundles
-      TCanvas *RZBundleCanvas = nullptr;
-      TCanvas *XYBundleNegCanvas = nullptr;
-      TCanvas *XYBundleCanvas = nullptr;   
-      std::vector<TCanvas*> XYPosBundlesDisks;
-      std::vector<TCanvas*> XYPosBundlesDiskSurfaces;
-      std::vector<TCanvas*> XYNegBundlesDisks;
-      std::vector<TCanvas*> XYNegBundlesDiskSurfaces;
+      std::unique_ptr<TCanvas> RZBundleCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYBundleNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYBundleCanvas = nullptr;   
+      std::vector<std::unique_ptr<TCanvas> > XYPosBundlesDisks;
+      std::vector<std::unique_ptr<TCanvas> > XYPosBundlesDiskSurfaces;
+      std::vector<std::unique_ptr<TCanvas> > XYNegBundlesDisks;
+      std::vector<std::unique_ptr<TCanvas> > XYNegBundlesDiskSurfaces;
    
       myContent = new RootWContent("Modules to Bundles");
       myPage->addContent(myContent);
@@ -1303,17 +1392,19 @@ namespace insur {
 					    XYPosBundlesDisks, XYPosBundlesDiskSurfaces, XYNegBundlesDisks, XYNegBundlesDiskSurfaces);
 
       if (RZBundleCanvas) {
-	myImage = new RootWImage(RZBundleCanvas, RZBundleCanvas->GetWindowWidth(), RZBundleCanvas->GetWindowHeight() );
+	const int windowWidth = RZBundleCanvas->GetWindowWidth();
+	const int windowHeight = RZBundleCanvas->GetWindowHeight();
+	myImage = new RootWImage(std::move(RZBundleCanvas), windowWidth, windowHeight);
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to Bundles. Different colors = different bundles.");
 	myContent->addItem(myImage);
       }
       if (XYBundleNegCanvas) {
-	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYBundleNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYBundleCanvas) {
-	myImage = new RootWImage(XYBundleCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYBundleCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
@@ -1323,15 +1414,17 @@ namespace insur {
       RootWTable* positiveSideName = new RootWTable();
       positiveSideName->setContent(0, 0, "Positive cabling side:");
       myContent->addItem(positiveSideName);
-      for (const auto& XYPosDisk : XYPosBundlesDisks) {
-	  myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYPosDisk->GetTitle());
-	  myContent->addItem(myImage);
+      for (auto& XYPosDisk : XYPosBundlesDisks) {
+	const std::string comment = XYPosDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYPosDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
+	myContent->addItem(myImage);
       }
-      for (const auto& XYPosSurface : XYPosBundlesDiskSurfaces) {
-	  myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYPosSurface->GetTitle());
-	  myContent->addItem(myImage);
+      for (auto& XYPosSurface : XYPosBundlesDiskSurfaces) {
+	const std::string comment = XYPosSurface->GetTitle();
+	myImage = new RootWImage(std::move(XYPosSurface), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
+	myContent->addItem(myImage);
       }
       // NEGATIVE CABLING SIDE
       myContent = new RootWContent("");
@@ -1339,25 +1432,27 @@ namespace insur {
       RootWTable* negativeSideName = new RootWTable();
       negativeSideName->setContent(0, 0, "Negative cabling side:");
       myContent->addItem(negativeSideName);
-      for (const auto& XYNegDisk : XYNegBundlesDisks) {
-	  myImage = new RootWImage(XYNegDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYNegDisk->GetTitle());
-	  myContent->addItem(myImage);
+      for (auto& XYNegDisk : XYNegBundlesDisks) {
+	const std::string comment = XYNegDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYNegDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
+	myContent->addItem(myImage);
       }
-      for (const auto& XYNegSurface : XYNegBundlesDiskSurfaces) {
-	  myImage = new RootWImage(XYNegSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYNegSurface->GetTitle());
-	  myContent->addItem(myImage);
+      for (auto& XYNegSurface : XYNegBundlesDiskSurfaces) {
+	const std::string comment = XYNegSurface->GetTitle();
+	myImage = new RootWImage(std::move(XYNegSurface), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
+	myContent->addItem(myImage);
       }
 
 
       // Modules to DTCs
-      TCanvas *RZDTCCanvas = nullptr;
-      TCanvas *XYDTCNegCanvas = nullptr;
-      TCanvas *XYDTCNegFlatCanvas = nullptr;
-      TCanvas *XYDTCCanvas = nullptr; 
-      TCanvas *XYDTCFlatCanvas = nullptr; 
-      std::vector<TCanvas*> XYDTCCanvasesDisk;
+      std::unique_ptr<TCanvas> RZDTCCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYDTCNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYDTCNegFlatCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYDTCCanvas = nullptr; 
+      std::unique_ptr<TCanvas> XYDTCFlatCanvas = nullptr; 
+      std::vector<std::unique_ptr<TCanvas> > XYDTCCanvasesDisk;
        
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
@@ -1365,34 +1460,37 @@ namespace insur {
       createOuterCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCNegCanvas, XYDTCNegFlatCanvas, XYDTCCanvas, XYDTCFlatCanvas, XYDTCCanvasesDisk);
 
       if (RZDTCCanvas) {
-	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
+	const int windowWidth = RZDTCCanvas->GetWindowWidth();
+	const int windowHeight = RZDTCCanvas->GetWindowHeight();
+	myImage = new RootWImage(std::move(RZDTCCanvas), windowWidth,  windowHeight);
 	myImage->setComment("(RZ) View : Tracker modules colored by their connections to DTCs. 1 color = 1 DTC.");
 	myContent->addItem(myImage);
       }
       if (XYDTCNegCanvas) {
-	myImage = new RootWImage(XYDTCNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYDTCNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCNegFlatCanvas) {
-	myImage = new RootWImage(XYDTCNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYDTCNegFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCCanvas) {
-	myImage = new RootWImage(XYDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYDTCCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYDTCFlatCanvas) {
-	myImage = new RootWImage(XYDTCFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYDTCFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
-	  myImage = new RootWImage(XYDTCCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  myImage->setComment(XYDTCCanvasDisk->GetTitle());
-	  myContent->addItem(myImage);
+      for (auto& XYDTCCanvasDisk : XYDTCCanvasesDisk ) {
+	const std::string comment = XYDTCCanvasDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYDTCCanvasDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
+	myContent->addItem(myImage);
       }
       
       
@@ -1417,12 +1515,17 @@ namespace insur {
       // Bundles to Modules: Aggregation Patterns in TEDD
       /*This is used for bundle assembly.
 	For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-	- 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-	- 4 modules from disk surface 2.
-	- 3 modules from disk surface 3.
-	- 2 modules from disk surface 4 (the disk surface with biggest |Z|).*/
+	- 3 modules from fanout branch index 1.
+	- 4 modules from fanout branch index 2.
+	- 3 modules from fanout branch index 3.
+	- 2 modules from fanout branch index 4.
+      */
       myTextFile = new RootWTextFile(Form("AggregationPatternsPos%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
       myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+      // Power cables distribution
+      myTextFile = new RootWTextFile(Form("PowerCablesDistributionPos%s.csv", name.c_str()), "Power cables distribution");
+      myTextFile->addText(createPowerCablesDistributionCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
 
       // NEGATIVE CABLING SIDE
@@ -1441,13 +1544,27 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("DTCsToModulesNeg%s.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createDTCsToModulesCsv(myCablingMap, isPositiveCablingSide));
       filesContent->addItem(myTextFile);
+      // Bundles to Modules: Aggregation Patterns in TEDD
+      myTextFile = new RootWTextFile(Form("AggregationPatternsNeg%s.csv", name.c_str()), "Bundles to Modules: Aggregation Patterns in TEDD");
+      myTextFile->addText(createBundlesToEndcapModulesCsv(myCablingMap, isPositiveCablingSide));
+      filesContent->addItem(myTextFile);
+
+      // BOTH SIDES, SUMMARY
+      filesContent->addItem(spacer);
+      RootWTable* bothSidesName = new RootWTable();
+      bothSidesName->setContent(0, 0, "Both cabling sides, summary:");
+      filesContent->addItem(bothSidesName);
+      // CMSSW MODULES DETIDS TO DTC IDS
+      myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMMSW: Modules DetIds to DTCs Ids");
+      myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker));
+      filesContent->addItem(myTextFile);
 
 
       // Cabling efficiency
       RootWContent* efficiencyContent = new RootWContent("Cabling efficiency (one side)", true);
       myPage->addContent(efficiencyContent);
       // Links
-      myInfo = new RootWInfo("Total number of fiber links (one side)");
+      myInfo = new RootWInfo("Total number of modules (one side)");
       int numLinks = tracker.modules().size() / 2;
       myInfo->setValue(numLinks);
       efficiencyContent->addItem(myInfo);
@@ -1458,7 +1575,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Bundles efficiency
       myInfo = new RootWInfo("Fiber bundles efficiency (%)");
-      double bundleEfficiency = numLinks / (numBundles * 12.);
+      double bundleEfficiency = numLinks / (double)(numBundles * outer_cabling_maxNumModulesPerBundle);
       myInfo->setValue(bundleEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Cables
@@ -1468,7 +1585,7 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
       // Cables efficiency
       myInfo = new RootWInfo("Fiber cables efficiency (%)");
-      double cableEfficiency = numBundles / (numCables * 6.);
+      double cableEfficiency = numBundles / (double)(numCables * outer_cabling_maxNumBundlesPerCable);
       myInfo->setValue(cableEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
       // Overall efficiency
@@ -1482,7 +1599,7 @@ namespace insur {
       RootWContent* dtcMapContent = new RootWContent("DTCs per track", false);
       myPage->addContent(dtcMapContent);
       
-      TCanvas* hitMapDTCCanvas = new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      std::unique_ptr<TCanvas> hitMapDTCCanvas(new TCanvas("hitmapDTCcanvas", "Hit Map DTC", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
       hitMapDTCCanvas->cd();
       hitMapDTCCanvas->SetFillColor(color_plot_background);
       hitMapDTCCanvas->SetBorderMode(0);
@@ -1490,17 +1607,17 @@ namespace insur {
       analyzer.getMapPhiEtaDTC().Draw("colz");
       analyzer.getMapPhiEtaDTC().SetStats(0);
       hitMapDTCCanvas->Modified();
-      myImage = new RootWImage(hitMapDTCCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(hitMapDTCCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Number of distinct DTCs per track");
       dtcMapContent->addItem(myImage);
 
 
       // Modules to Services Channels (optical)
-      TCanvas *XYChannelOpticalNegCanvas = nullptr;
-      TCanvas *XYChannelOpticalNegFlatCanvas = nullptr;
-      TCanvas *XYChannelOpticalCanvas = nullptr; 
-      TCanvas *XYChannelOpticalFlatCanvas = nullptr; 
-      std::vector<TCanvas*> XYChannelOpticalCanvasesDisk;
+      std::unique_ptr<TCanvas> XYChannelOpticalNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYChannelOpticalNegFlatCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYChannelOpticalCanvas = nullptr; 
+      std::unique_ptr<TCanvas> XYChannelOpticalFlatCanvas = nullptr; 
+      std::vector<std::unique_ptr<TCanvas> > XYChannelOpticalCanvasesDisk;
        
       myContent = new RootWContent("Modules to Services Channels (optical)");
       myPage->addContent(myContent);
@@ -1508,39 +1625,40 @@ namespace insur {
       createOuterCablingPlotsServicesChannelsOptical(tracker, myCablingMap, XYChannelOpticalNegCanvas, XYChannelOpticalNegFlatCanvas, XYChannelOpticalCanvas, XYChannelOpticalFlatCanvas, XYChannelOpticalCanvasesDisk);
 
       if (XYChannelOpticalNegCanvas) {
-	myImage = new RootWImage(XYChannelOpticalNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelOpticalNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYChannelOpticalNegFlatCanvas) {
-	myImage = new RootWImage(XYChannelOpticalNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelOpticalNegFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYChannelOpticalCanvas) {
-	myImage = new RootWImage(XYChannelOpticalCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelOpticalCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYChannelOpticalFlatCanvas) {
-	myImage = new RootWImage(XYChannelOpticalFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelOpticalFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYChannelOpticalCanvasDisk : XYChannelOpticalCanvasesDisk ) {
-	myImage = new RootWImage(XYChannelOpticalCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYChannelOpticalCanvasDisk->GetTitle());
+      for (auto& XYChannelOpticalCanvasDisk : XYChannelOpticalCanvasesDisk ) {
+	const std::string comment = XYChannelOpticalCanvasDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYChannelOpticalCanvasDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
 
 
       // Modules to Services Channels (powering)
-      TCanvas *XYChannelPowerNegCanvas = nullptr;
-      TCanvas *XYChannelPowerNegFlatCanvas = nullptr;
-      TCanvas *XYChannelPowerCanvas = nullptr; 
-      TCanvas *XYChannelPowerFlatCanvas = nullptr; 
-      std::vector<TCanvas*> XYChannelPowerCanvasesDisk;
-      std::vector<TCanvas*> XYNegChannelPowerCanvasesDisk;
+      std::unique_ptr<TCanvas> XYChannelPowerNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYChannelPowerNegFlatCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYChannelPowerCanvas = nullptr; 
+      std::unique_ptr<TCanvas> XYChannelPowerFlatCanvas = nullptr; 
+      std::vector<std::unique_ptr<TCanvas> > XYChannelPowerCanvasesDisk;
+      std::vector<std::unique_ptr<TCanvas> > XYNegChannelPowerCanvasesDisk;
        
       myContent = new RootWContent("Modules to Services Channels (powering)");
       myPage->addContent(myContent);
@@ -1550,18 +1668,19 @@ namespace insur {
       // POSITIVE CABLING SIDE
       myContent->addItem(positiveSideName);
       if (XYChannelPowerCanvas) {
-	myImage = new RootWImage(XYChannelPowerCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelPowerCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYChannelPowerFlatCanvas) {
-	myImage = new RootWImage(XYChannelPowerFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelPowerFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Positive cabling side. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYChannelPowerCanvasDisk : XYChannelPowerCanvasesDisk ) {
-	myImage = new RootWImage(XYChannelPowerCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYChannelPowerCanvasDisk->GetTitle());
+      for (auto& XYChannelPowerCanvasDisk : XYChannelPowerCanvasesDisk ) {
+	const std::string comment = XYChannelPowerCanvasDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYChannelPowerCanvasDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
      
@@ -1570,18 +1689,19 @@ namespace insur {
       // NEGATIVE CABLING SIDE
       myContent->addItem(negativeSideName);
       if (XYChannelPowerNegCanvas) {
-	myImage = new RootWImage(XYChannelPowerNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelPowerNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel. Negative cabling side. (CMS +Z points towards the depth of the screen)");
 	myContent->addItem(myImage);
       }
       if (XYChannelPowerNegFlatCanvas) {
-	myImage = new RootWImage(XYChannelPowerNegFlatCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYChannelPowerNegFlatCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : Tracker barrel, untilted modules. Negative cabling side. (CMS +Z points towards the depth of the screen)");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYNegChannelPowerCanvasDisk : XYNegChannelPowerCanvasesDisk ) {
-	myImage = new RootWImage(XYNegChannelPowerCanvasDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYNegChannelPowerCanvasDisk->GetTitle());
+      for (auto& XYNegChannelPowerCanvasDisk : XYNegChannelPowerCanvasesDisk ) {
+	const std::string comment = XYNegChannelPowerCanvasDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYNegChannelPowerCanvasDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
 
@@ -1665,11 +1785,11 @@ namespace insur {
 
 
       // MODULES TO POWER CHAINS
-      std::vector<TCanvas*> ZPhiPowerChainLayerPlots;
-      TCanvas *XYPowerChainNegCanvas = nullptr;
-      TCanvas *XYPowerChainCentralCanvas = nullptr;
-      TCanvas *XYPowerChainCanvas = nullptr;
-      std::vector<TCanvas*> XYPosPowerChainsDiskSurfaces;
+      std::vector<std::unique_ptr<TCanvas> > ZPhiPowerChainLayerPlots;
+      std::unique_ptr<TCanvas> XYPowerChainNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYPowerChainCentralCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYPowerChainCanvas = nullptr;
+      std::vector<std::unique_ptr<TCanvas> > XYPosPowerChainsDiskSurfaces;
    
       myContent = new RootWContent("Modules to Serial Power Chains");
       myPage->addContent(myContent);  
@@ -1681,23 +1801,24 @@ namespace insur {
 
       // bpix
       myContent->addItem(barrelName);
-      for (const auto& ZPhiPlot : ZPhiPowerChainLayerPlots) {
-	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(ZPhiPlot->GetTitle());
+      for (auto& ZPhiPlot : ZPhiPowerChainLayerPlots) {
+	const std::string comment = ZPhiPlot->GetTitle();
+	myImage = new RootWImage(std::move(ZPhiPlot), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
       if (XYPowerChainNegCanvas) {
-	myImage = new RootWImage(XYPowerChainNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYPowerChainNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYPowerChainCentralCanvas) {
-	myImage = new RootWImage(XYPowerChainCentralCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYPowerChainCentralCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, sensors at Z = 0 only. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYPowerChainCanvas) {
-	myImage = new RootWImage(XYPowerChainCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYPowerChainCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
@@ -1705,16 +1826,17 @@ namespace insur {
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
-      for (const auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
-	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYPosSurface->GetTitle());
+      for (auto& XYPosSurface : XYPosPowerChainsDiskSurfaces) {
+	const std::string comment = XYPosSurface->GetTitle();
+	myImage = new RootWImage(std::move(XYPosSurface), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
  
 
       // MODULES TO GBTS
-      std::vector<TCanvas*> ZPhiGBTLayerPlots;
-      std::vector<TCanvas*> XYPosGBTsDiskSurfaces;
+      std::vector<std::unique_ptr<TCanvas> > ZPhiGBTLayerPlots;
+      std::vector<std::unique_ptr<TCanvas> > XYPosGBTsDiskSurfaces;
    
       myContent = new RootWContent("Modules to LP GBTs");
       myPage->addContent(myContent);
@@ -1724,26 +1846,28 @@ namespace insur {
 				  XYPosGBTsDiskSurfaces);
       // bpix
       myContent->addItem(barrelName);
-      for (const auto& ZPhiPlot : ZPhiGBTLayerPlots) {
-	myImage = new RootWImage(ZPhiPlot, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(ZPhiPlot->GetTitle());
+      for (auto& ZPhiPlot : ZPhiGBTLayerPlots) {
+	const std::string comment = ZPhiPlot->GetTitle();
+	myImage = new RootWImage(std::move(ZPhiPlot), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
       // fpix and epix, (+z) end
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
-      for (const auto& XYPosSurface : XYPosGBTsDiskSurfaces) {
-	myImage = new RootWImage(XYPosSurface, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYPosSurface->GetTitle());
+      for (auto& XYPosSurface : XYPosGBTsDiskSurfaces) {
+	const std::string comment = XYPosSurface->GetTitle();
+	myImage = new RootWImage(std::move(XYPosSurface), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
 
 
       // MODULES TO BUNDLES
-      TCanvas *XYBundleNegCanvas = nullptr;
-      TCanvas *XYBundlePosCanvas = nullptr;   
-      std::vector<TCanvas*> XYPosBundlesDisks;
+      std::unique_ptr<TCanvas> XYBundleNegCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYBundlePosCanvas = nullptr;   
+      std::vector<std::unique_ptr<TCanvas> > XYPosBundlesDisks;
    
       myContent = new RootWContent("Modules to Fiber Bundles");
       myPage->addContent(myContent);  
@@ -1754,12 +1878,12 @@ namespace insur {
       // bpix
       myContent->addItem(barrelName);
       if (XYBundleNegCanvas) {
-	myImage = new RootWImage(XYBundleNegCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYBundleNegCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (-Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
       if (XYBundlePosCanvas) {
-	myImage = new RootWImage(XYBundlePosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYBundlePosCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you)");
 	myContent->addItem(myImage);
       }
@@ -1767,17 +1891,18 @@ namespace insur {
       myContent = new RootWContent("");
       myPage->addContent(myContent);
       myContent->addItem(forwardName);
-      for (const auto& XYPosDisk : XYPosBundlesDisks) {
-	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYPosDisk->GetTitle());
+      for (auto& XYPosDisk : XYPosBundlesDisks) {
+	const std::string comment = XYPosDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYPosDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
 
 
       // MODULES TO DTCs
-      TCanvas *RZDTCCanvas = nullptr;
-      TCanvas *XYDTCPosCanvas = nullptr;   
-      std::vector<TCanvas*> XYPosDTCsDisks;
+      std::unique_ptr<TCanvas> RZDTCCanvas = nullptr;
+      std::unique_ptr<TCanvas> XYDTCPosCanvas = nullptr;   
+      std::vector<std::unique_ptr<TCanvas> > XYPosDTCsDisks;
        
       myContent = new RootWContent("Modules to DTCs");
       myPage->addContent(myContent);
@@ -1785,18 +1910,21 @@ namespace insur {
       createInnerCablingPlotsDTCs(tracker, RZDTCCanvas, XYDTCPosCanvas, XYPosDTCsDisks);
 
       if (RZDTCCanvas) {
-	myImage = new RootWImage(RZDTCCanvas, RZDTCCanvas->GetWindowWidth(), RZDTCCanvas->GetWindowHeight() );
+	const int windowWidth = RZDTCCanvas->GetWindowWidth();
+	const int windowHeight = RZDTCCanvas->GetWindowHeight();
+	myImage = new RootWImage(std::move(RZDTCCanvas), windowWidth, windowHeight);
 	myImage->setComment("(RZ) View : Inner Tracker modules colored by their connections to DTCs. 1 color <=> 1 DTC.");
 	myContent->addItem(myImage);
       }
       if (XYDTCPosCanvas) {
-	myImage = new RootWImage(XYDTCPosCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(XYDTCPosCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setComment("(XY) Section : BPIX, (+Z) end. (CMS +Z points towards you). 1 color <=> 1 DTC.");
 	myContent->addItem(myImage);
       }
-      for (const auto& XYPosDisk : XYPosDTCsDisks) {
-	myImage = new RootWImage(XYPosDisk, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	myImage->setComment(XYPosDisk->GetTitle());
+      for (auto& XYPosDisk : XYPosDTCsDisks) {
+	const std::string comment = XYPosDisk->GetTitle();
+	myImage = new RootWImage(std::move(XYPosDisk), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage->setComment(comment);
 	myContent->addItem(myImage);
       }
 
@@ -2606,140 +2734,137 @@ namespace insur {
 	myTable->setContent(3, 1, " ");
 	myTable->setContent(4, 1, " ");
 
-	gStyle->SetTitleX(0.54);
-	gStyle->SetTitleW(1);
 	gStyle->SetOptStat("emr");
 	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoXBarCanvas;
-	  resoXBarCanvas.SetFillColor(color_plot_background);
-	  resoXBarCanvas.Divide(2,2);
+	  std::unique_ptr<TCanvas> resoXBarCanvas(new TCanvas());
+	  resoXBarCanvas->SetFillColor(color_plot_background);
+	  resoXBarCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad = resoXBarCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad = resoXBarCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad = resoXBarCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalXBarrelDistribution[tag].Integral();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalXBarrelDistribution[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(3);
+	  myPad = resoXBarCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalXBarrelDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalXBarrelDistribution[tag].Integral();
 	  incidentAngleLocalXBarrelDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalXBarrelDistribution[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(4);
+	  myPad = resoXBarCanvas->GetPad(4);
 	  myPad->cd();
 	  trackPhiBarrelDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackPhiBarrelDistribution[tag].Integral();
 	  trackPhiBarrelDistribution[tag].Scale(normC, "width");
 	  trackPhiBarrelDistribution[tag].Draw();
-	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(std::move(resoXBarCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoYBarCanvas;
-	  resoYBarCanvas.SetFillColor(color_plot_background);
-	  resoYBarCanvas.Divide(2,2);
+	  std::unique_ptr<TCanvas> resoYBarCanvas(new TCanvas());
+	  resoYBarCanvas->SetFillColor(color_plot_background);
+	  resoYBarCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad = resoYBarCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad = resoYBarCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad = resoYBarCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalYBarrelDistribution[tag].Integral();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalYBarrelDistribution[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(3);
+	  myPad = resoYBarCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalYBarrelDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalYBarrelDistribution[tag].Integral();
 	  incidentAngleLocalYBarrelDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalYBarrelDistribution[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(4);
+	  myPad = resoYBarCanvas->GetPad(4);
 	  myPad->cd();
 	  trackEtaBarrelDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackEtaBarrelDistribution[tag].Integral();
 	  trackEtaBarrelDistribution[tag].Scale(normC, "width");
 	  trackEtaBarrelDistribution[tag].Draw();
-	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(std::move(resoYBarCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoXEndCanvas;
-	  resoXEndCanvas.SetFillColor(color_plot_background);
-	  resoXEndCanvas.Divide(2,2);
+	  std::unique_ptr<TCanvas> resoXEndCanvas(new TCanvas());
+	  resoXEndCanvas->SetFillColor(color_plot_background);
+	  resoXEndCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad = resoXEndCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad = resoXEndCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad = resoXEndCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalXEndcapsDistribution[tag].Integral();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(3);
+	  myPad = resoXEndCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalXEndcapsDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalXEndcapsDistribution[tag].Integral();
 	  incidentAngleLocalXEndcapsDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalXEndcapsDistribution[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(4);
+	  myPad = resoXEndCanvas->GetPad(4);
 	  myPad->cd();
 	  trackPhiEndcapsDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackPhiEndcapsDistribution[tag].Integral();
 	  trackPhiEndcapsDistribution[tag].Scale(normC, "width");
 	  trackPhiEndcapsDistribution[tag].Draw();
-	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(std::move(resoXEndCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	}
 	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoYEndCanvas;
-	  resoYEndCanvas.SetFillColor(color_plot_background);
-	  resoYEndCanvas.Divide(2,2);
+	  std::unique_ptr<TCanvas> resoYEndCanvas(new TCanvas());
+	  resoYEndCanvas->SetFillColor(color_plot_background);
+	  resoYEndCanvas->Divide(2,2);
 	  TVirtualPad* myPad;
-	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad = resoYEndCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad = resoYEndCanvas->GetPad(1);
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad = resoYEndCanvas->GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
 	  const double normA = 1. / parametrizedResolutionLocalYEndcapsDistribution[tag].Integral();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].Scale(normA, "width");
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(3);
+	  myPad = resoYEndCanvas->GetPad(3);
 	  myPad->cd();
 	  incidentAngleLocalYEndcapsDistribution[tag].SetStats(1);
 	  const double normB = 1. / incidentAngleLocalYEndcapsDistribution[tag].Integral();
 	  incidentAngleLocalYEndcapsDistribution[tag].Scale(normB, "width");
 	  incidentAngleLocalYEndcapsDistribution[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(4);
+	  myPad = resoYEndCanvas->GetPad(4);
 	  myPad->cd();
 	  trackEtaEndcapsDistribution[tag].SetStats(1);
 	  const double normC = 1. / trackEtaEndcapsDistribution[tag].Integral();
 	  trackEtaEndcapsDistribution[tag].Scale(normC, "width");
 	  trackEtaEndcapsDistribution[tag].Draw();
-	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(std::move(resoYEndCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	}
       }
     } // debugResolution
-    gStyle->SetOptStat(0);
 
 
     //********************************//
@@ -2748,12 +2873,12 @@ namespace insur {
     //*                              *//
     //********************************//
     RootWImage* myImage;
-    TCanvas *summaryCanvas = NULL;
-    TCanvas *RZCanvas = NULL;
-    TCanvas *RZCanvasBarrel = NULL;
-    TCanvas *XYCanvas = NULL;
-    std::vector<TCanvas*> XYCanvasesEC;
-    TCanvas *myCanvas = NULL;
+    std::unique_ptr<TCanvas> summaryCanvas = nullptr;
+    std::unique_ptr<TCanvas> RZCanvas = nullptr;
+    std::unique_ptr<TCanvas> RZCanvasBarrel = nullptr;
+    std::unique_ptr<TCanvas> XYCanvas = nullptr;
+    std::vector<std::unique_ptr<TCanvas>> XYCanvasesEC;
+    std::unique_ptr<TCanvas> myCanvas = nullptr;
     createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasesEC);
     if (isPixelTracker) {
       logINFO("PIXEL HACK for beam pipe");
@@ -2762,7 +2887,7 @@ namespace insur {
       beampipe->SetPoint(1, 2915/2., 45/2.);
       beampipe->SetPoint(2, 3804/2., 56.6/2.);
       beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
-      for (auto XYCanvasEC : XYCanvasesEC) {
+      for (auto& XYCanvasEC : XYCanvasesEC) {
 	XYCanvasEC->cd();
 	drawCircle(22.5, true, 18); // "grey18"
       }
@@ -2787,60 +2912,63 @@ namespace insur {
     myPage->addContent(myContent);
 
     if (summaryCanvas) {
-      myImage = new RootWImage(summaryCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(summaryCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta.");
       myContent->addItem(myImage);
     }
-
+ 
     if (RZCanvas) {
-      myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
+      const int windowWidth = RZCanvas->GetWindowWidth();
+      const int windowHeight = RZCanvas->GetWindowHeight();
+      myImage = new RootWImage(std::move(RZCanvas), windowWidth, windowHeight);
       myImage->setComment("RZ positions of the modules.");
       myContent->addItem(myImage);
     }
     if ((RZCanvasBarrel) && isPixelTracker) {
-      myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(RZCanvasBarrel), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("RZ positions of the barrel modules.");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
-      myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(XYCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("XY Section of the tracker barrel.");
       myContent->addItem(myImage);
     }
-    for (auto XYCanvasEC : XYCanvasesEC ) {
-      myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment(XYCanvasEC->GetTitle());
+    for (auto& XYCanvasEC : XYCanvasesEC ) {
+      const std::string comment = XYCanvasEC->GetTitle();
+      myImage = new RootWImage(std::move(XYCanvasEC), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment(comment);
       myContent->addItem(myImage);
     }
 
     // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfiles(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myCanvas.reset(new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    drawEtaProfiles(*myCanvas.get(), analyzer);
+    myImage = new RootWImage(std::move(myCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit modules across eta.");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfilesSensors(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myCanvas.reset(new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    drawEtaProfilesSensors(*myCanvas.get(), analyzer);
+    myImage = new RootWImage(std::move(myCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage across eta.");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfilesStubs(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myCanvas.reset(new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    drawEtaProfilesStubs(*myCanvas.get(), analyzer);
+    myImage = new RootWImage(std::move(myCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    if (myCanvas) drawTracksDistributionPerNumberOfStubs(*myCanvas, analyzer, isPixelTracker);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myCanvas.reset(new TCanvas("EtaProfileNumberOfStubsRatios", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    if (myCanvas) drawTracksDistributionPerNumberOfStubs(*myCanvas.get(), analyzer, isPixelTracker);
+    myImage = new RootWImage(std::move(myCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Stub coverage across eta.");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfilesLayers(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myCanvas.reset(new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    drawEtaProfilesLayers(*myCanvas.get(), analyzer);
+    myImage = new RootWImage(std::move(myCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Layer coverage across eta.");
     myContent->addItem(myImage);
 
@@ -2853,7 +2981,7 @@ namespace insur {
       totalEtaProfileLayersPixel_ = &analyzer.getTotalEtaProfileLayers();
     }
 
-    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    std::unique_ptr<TCanvas> hitMapCanvas(new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     hitMapCanvas->cd();
     //gStyle->SetPalette(1);
     hitMapCanvas->SetFillColor(color_plot_background);
@@ -2862,7 +2990,7 @@ namespace insur {
     analyzer.getMapPhiEta().Draw("colz");
     analyzer.getMapPhiEta().SetStats(0);
     hitMapCanvas->Modified();
-    myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(hitMapCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
@@ -3052,7 +3180,7 @@ namespace insur {
     for (auto& layerIt : coveragePerLayer) {
       const std::string layerName = layerIt.first;
 
-      TCanvas* myCanvas = new TCanvas(Form("LayerCoverage%s%s", layerName.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      std::unique_ptr<TCanvas> myCanvas(new TCanvas(Form("LayerCoverage%s%s", layerName.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_std_canvas_sizeX, vis_min_canvas_sizeY));
       myCanvas->cd();
 
       // Distribution of tracks with at least 1 hit / stub.
@@ -3129,7 +3257,7 @@ namespace insur {
 	zoomedLegend->Draw();
       }
 
-      RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage* myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       const std::string title = (type.find("stub") != std::string::npos ? "stub" : type);
       myImage->setComment("Layer coverage in eta for " + title + "s.");
       myContent->addItem(myImage);
@@ -3137,7 +3265,7 @@ namespace insur {
 
     // IT only: add tables with detailed 3-hit stubs counts, per ring transition.
     if (is3HitsStubStudy && !stubWith3HitsCountPerDiskAndRing.empty()) {
-      for (const auto& diskIt : stubWith3HitsCountPerDiskAndRing) {
+      for (auto& diskIt : stubWith3HitsCountPerDiskAndRing) {
 	RootWTable* stubWith3HitsCountTable = new RootWTable();
 	const std::string diskName = diskIt.first;
 	const std::map<int, double>& stubWith3HitsCountPerRing = diskIt.second;
@@ -3145,7 +3273,7 @@ namespace insur {
 	stubWith3HitsCountTable->setContent(1, 0, "Ring transition (Ring i & i+1):");
 	stubWith3HitsCountTable->setContent(2, 0, "Fraction of tracks (‰)");
 
-	for (const auto& ringTransitionIt : stubWith3HitsCountPerRing) {
+	for (auto& ringTransitionIt : stubWith3HitsCountPerRing) {
 	  const int ringTransition = ringTransitionIt.first;
 	  const double stubWith3HitsCount = ringTransitionIt.second;
 	  stubWith3HitsCountTable->setContent(1, ringTransition, ringTransition);
@@ -3193,8 +3321,8 @@ namespace insur {
 
   static int nLayoutCanvases = 0;
   
-  TCanvas* Vizard::drawFullLayoutRZ() {
-    TCanvas* result = nullptr;
+  std::unique_ptr<TCanvas> Vizard::drawFullLayoutRZ() {
+    std::unique_ptr<TCanvas> result = nullptr;
     PlotDrawer<YZ, Type> yzDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -3204,16 +3332,16 @@ namespace insur {
 
     int rzCanvasX = vis_max_canvas_sizeX;
     int rzCanvasY = vis_min_canvas_sizeY;
-    result = new TCanvas(Form("FullRZCanvas%d", nLayoutCanvases++), "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
+    result.reset(new TCanvas(Form("FullRZCanvas%d", nLayoutCanvases++), "RZView Canvas (full layout)", rzCanvasX, rzCanvasY ));
     result->cd();
-    yzDrawer.drawFrame<SummaryFrameStyle>(*result);
-    yzDrawer.drawModules<ContourStyle>(*result);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*result.get());
+    yzDrawer.drawModules<ContourStyle>(*result.get());
 
     return result;
   }
 
-  TCanvas* Vizard::drawFullLayoutServicesRZ() {
-    TCanvas* result = drawFullLayoutRZ();
+  std::unique_ptr<TCanvas> Vizard::drawFullLayoutServicesRZ() {
+    std::unique_ptr<TCanvas> result = drawFullLayoutRZ();
     result->cd();
     for (auto& matBud : materialBudgets_ ) {
       std::vector<InactiveElement> allServices = matBud->getAllServices();
@@ -3237,8 +3365,8 @@ namespace insur {
   }
 
   
-  TCanvas* Vizard::drawFullLayoutBarrelXY() {
-    TCanvas* result = nullptr;
+  std::unique_ptr<TCanvas> Vizard::drawFullLayoutBarrelXY() {
+    std::unique_ptr<TCanvas> result = nullptr;
     PlotDrawer<XY, Type> xyDrawer;
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -3248,10 +3376,10 @@ namespace insur {
 
     int xyCanvasX = vis_min_canvas_sizeX;
     int xyCanvasY = vis_min_canvas_sizeY;
-    result = new TCanvas("FullXYCanvas", "XYView Canvas (full layout)", xyCanvasX, xyCanvasY );
+    result.reset(new TCanvas("FullXYCanvas", "XYView Canvas (full layout)", xyCanvasX, xyCanvasY ));
     result->cd();
-    xyDrawer.drawFrame<SummaryFrameStyle>(*result);
-    xyDrawer.drawModules<ContourStyle>(*result);
+    xyDrawer.drawFrame<SummaryFrameStyle>(*result.get());
+    xyDrawer.drawModules<ContourStyle>(*result.get());
 
     return result;
   }
@@ -3330,7 +3458,7 @@ namespace insur {
 
     TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
-    TCanvas* myCanvas = new TCanvas("FullLayoutMaterialComponentsTrackingVolumeRI");
+    std::unique_ptr<TCanvas> myCanvas(new TCanvas("FullLayoutMaterialComponentsTrackingVolumeRI"));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     TVirtualPad* myPad = myCanvas->GetPad(0);
@@ -3361,7 +3489,7 @@ namespace insur {
     compLegend->Draw();
 
     materialComponentsContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
     myImage->setName("fullLayoutMatComponentsTrackingVolume");
     materialComponentsContent->addItem(myImage);
@@ -3389,7 +3517,7 @@ namespace insur {
     THStack* iCompCategoryTrackingVolumeStack = new THStack("icompcategorytrackingvolumestack", "Interaction Length by Category in tracking volume");
     THStack* dummy = new THStack("dummy", "dummy");
 
-    myCanvas = new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI");
+    myCanvas.reset(new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI"));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -3412,16 +3540,16 @@ namespace insur {
     compLegend->Draw();
 
     materialCategoriesContent->addItem(myTable);
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by category in total tracking volume");
     myImage->setName("fullLayoutMatCategoriesTrackingVolume");
     materialCategoriesContent->addItem(myImage);
    
     // 1D OVERVIEW (TRACKING VOLUME)
-    TH1D *cr = NULL, *ci = NULL;
+    TH1D *cr = nullptr, *ci = nullptr;
     TProfile *crProf, *ciProf;
     // Work area re-init
-    myCanvas = new TCanvas("FullLayoutMaterialOverviewTrackingVolumeRI");
+    myCanvas.reset(new TCanvas("FullLayoutMaterialOverviewTrackingVolumeRI"));
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = myCanvas->GetPad(0);
@@ -3434,6 +3562,7 @@ namespace insur {
       crProf = newProfile(cr, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       crProf->SetFillColor(kGray + 2);
       crProf->SetTitle("Radiation Length within Full Tracking Volume; #eta; x/X_{0}");
+      crProf->GetYaxis()->SetTitleOffset(1.3);
       crProf->Draw("hist");
     }
     myPad = myCanvas->GetPad(2);
@@ -3444,10 +3573,11 @@ namespace insur {
       ciProf = newProfile(ci, 0., analyzer.getEtaMaxMaterial(), materialNBins);
       ciProf->SetFillColor(kGray + 2);
       ciProf->SetTitle("Interaction Length within Full Tracking Volume; #eta; #lambda/#lambda_{0}");
+      ciProf->GetYaxis()->SetTitleOffset(1.3);
       ciProf->Draw("hist");
     }
     // Write global tracking volume plots to web pag
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in total tracking volume");
     myImage->setName("fullLayoutMatOverviewTrackingVolume");
     myTable = new RootWTable();
@@ -3483,26 +3613,32 @@ namespace insur {
     //********************************//
 
     // Detector full layout
-    TCanvas* aLayout = drawFullLayoutRZ();
-    TCanvas* aLayoutServices = drawFullLayoutServicesRZ();
-    TCanvas* aLayoutXY = drawFullLayoutBarrelXY();
+    std::unique_ptr<TCanvas> aLayout = drawFullLayoutRZ();
+    std::unique_ptr<TCanvas> aLayoutServices = drawFullLayoutServicesRZ();
+    std::unique_ptr<TCanvas> aLayoutXY = drawFullLayoutBarrelXY();
     if (aLayout||aLayoutXY) {
       fullLayoutContent = new RootWContent("Full layout Geometry", true);
       myPage->addContent(fullLayoutContent);
       if (aLayout) {
-	RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
+	const int windowWidth = aLayout->GetWindowWidth();
+	const int windowHeight = aLayout->GetWindowHeight();
+	RootWImage* anImage = new RootWImage(std::move(aLayout), windowWidth, windowHeight);
 	anImage->setComment("RZ position of the modules (full layout)");
 	anImage->setName("fullLayout");
 	fullLayoutContent->addItem(anImage);
       }
       if (aLayoutXY) {
-	RootWImage* anImage = new RootWImage(aLayoutXY, aLayoutXY->GetWindowWidth(), aLayoutXY->GetWindowHeight() );
+	const int windowWidth = aLayoutXY->GetWindowWidth();
+	const int windowHeight = aLayoutXY->GetWindowHeight();
+	RootWImage* anImage = new RootWImage(std::move(aLayoutXY), windowWidth, windowHeight);
 	anImage->setComment("XY position of the barrel modules (full layout)");
 	anImage->setName("fullLayoutBarrelXY");
 	fullLayoutContent->addItem(anImage);
       }
       if (aLayoutServices) {
-	RootWImage* anImage = new RootWImage(aLayoutServices, aLayoutServices->GetWindowWidth(), aLayoutServices->GetWindowHeight() );
+	const int windowWidth = aLayoutServices->GetWindowWidth();
+	const int windowHeight = aLayoutServices->GetWindowHeight();
+	RootWImage* anImage = new RootWImage(std::move(aLayoutServices), windowWidth, windowHeight);
 	anImage->setComment("RZ position of the modules (full layout with services)");
 	anImage->setName("fullLayout");
 	fullLayoutContent->addItem(anImage);
@@ -3511,6 +3647,8 @@ namespace insur {
 
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
+    RootWContent* materialsTablesContent = new RootWContent("Materials tables");
+    myPage->addContent(materialsTablesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
     configFilesContent = new RootWContent("Configuration files", false);
@@ -3519,41 +3657,54 @@ namespace insur {
     THStack* totalEtaStack = new THStack();
     if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
-    TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    std::unique_ptr<TCanvas> totalEtaProfileFull(new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY));
     totalEtaProfileFull->cd();
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetStats(0.);
     totalEtaStack->GetStack()->Last()->Draw();
     // add profile for types here...#####
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
     totalEtaStack->GetStack()->Last()->Draw("same");
-    RootWImage* myImage = new RootWImage(totalEtaProfileFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    RootWImage* myImage = new RootWImage(std::move(totalEtaProfileFull), vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImage->setComment("Full hit coverage across eta");
     if (fullLayoutContent) fullLayoutContent->addItem(myImage);
 
     // Number of layers count
-    THStack* totalLayersEtaStack = new THStack();
-    if (totalEtaProfileLayers_) {
-      totalLayersEtaStack->Add(totalEtaProfileLayers_->ProjectionX());
-      totalEtaProfileLayers_->SetMarkerColor(Palette::color(1));
-    }
-    if (totalEtaProfileLayersPixel_) {
-      totalLayersEtaStack->Add(totalEtaProfileLayersPixel_->ProjectionX());
-      totalEtaProfileLayersPixel_->SetMarkerColor(Palette::color(2));
-    }
-    TCanvas* totalEtaProfileLayersFull = new TCanvas("totalEtaProfileLayersFull", "Full eta profile (Layers)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    std::unique_ptr<TCanvas> totalEtaProfileLayersFull(new TCanvas("totalEtaProfileLayersFull", "Full eta profile (Layers)", vis_std_canvas_sizeX, vis_std_canvas_sizeY));
     totalEtaProfileLayersFull->cd();
+    THStack* totalLayersEtaStack = new THStack();
+    TH1D* totalLayersCountOuter = (totalEtaProfileLayers_ ? (TH1D*)totalEtaProfileLayers_->ProjectionX()->Clone() : nullptr);
+    if (totalLayersCountOuter) {
+      totalLayersCountOuter->SetBit(1);
+      totalLayersEtaStack->Add(totalLayersCountOuter);
+      totalLayersCountOuter->SetMarkerStyle(8);
+      totalLayersCountOuter->SetMarkerSize(1);
+      totalLayersCountOuter->SetMarkerColor(Palette::color(1));
+      totalLayersCountOuter->SetStats(0);
+    }
+    TH1D* totalLayersCountInner = (totalEtaProfileLayersPixel_ ? (TH1D*)totalEtaProfileLayersPixel_->ProjectionX()->Clone() : nullptr);
+    if (totalLayersCountInner) {   
+      totalLayersCountInner->SetBit(1);
+      totalLayersEtaStack->Add(totalLayersCountInner);
+      totalLayersCountInner->SetMarkerStyle(8);
+      totalLayersCountInner->SetMarkerSize(1);
+      totalLayersCountInner->SetMarkerColor(Palette::color(2));
+      totalLayersCountInner->SetStats(0);
+    }
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetStats(0);
     totalLayersEtaStack->GetStack()->Last()->Draw();
     // Per detector here
-    if (totalEtaProfileLayers_) totalEtaProfileLayers_->Draw("same");
-    if (totalEtaProfileLayersPixel_) totalEtaProfileLayersPixel_->Draw("same");
+    if (totalLayersCountOuter) totalLayersCountOuter->Draw("same");
+    if (totalLayersCountInner) totalLayersCountInner->Draw("same");
     totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
-    RootWImage* myImageLayers = new RootWImage(totalEtaProfileLayersFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    RootWImage* myImageLayers = new RootWImage(std::move(totalEtaProfileLayersFull), vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
     if (fullLayoutContent) fullLayoutContent->addItem(myImageLayers);
     
@@ -3618,6 +3769,30 @@ namespace insur {
     myGv->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myGv);
 
+
+    //********************************//
+    //*                              *//
+    //*  Materials tables            *//
+    //*                              *//
+    //********************************//
+ 
+    // Chemical elements
+    RootWTextFile* chemicalElementsFile = new RootWTextFile("chemical_elements.csv", "Chemical elements");
+    chemicalElementsFile->addText(createChemicalElementsCsv());
+    materialsTablesContent->addItem(chemicalElementsFile);
+
+    // Chemical compounds
+    bool hasChemicalFormula = true;
+    RootWTextFile* chemicalCompoundsFile = new RootWTextFile("chemical_compounds.csv", "Chemical compounds");
+    chemicalCompoundsFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalCompoundsFile);
+
+    // Chemical mixtures
+    hasChemicalFormula = false;
+    RootWTextFile* chemicalMixturesFile = new RootWTextFile("chemical_mixtures.csv", "Chemical mixtures");
+    chemicalMixturesFile->addText(createChemicalMixturesCsv(hasChemicalFormula));
+    materialsTablesContent->addItem(chemicalMixturesFile);
+
     return true;
   }
 
@@ -3636,8 +3811,8 @@ namespace insur {
     // (also todo: handle this properly: with a not-hardcoded model)
     myContent = new RootWContent("Distributions and models");
     myPage->addContent(myContent);
-    TCanvas* bandWidthCanvas = new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    TCanvas* moduleHitCanvas = new TCanvas("ModuleHitC", "Module hit countC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    std::unique_ptr<TCanvas> bandWidthCanvas(new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    std::unique_ptr<TCanvas> moduleHitCanvas(new TCanvas("ModuleHitC", "Module hit countC", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     bandWidthCanvas->SetLogy(1);
     moduleHitCanvas->SetLogy(1);
 
@@ -3650,14 +3825,14 @@ namespace insur {
     myLegend->AddEntry(&bandwidthDistribution, "Unsparsified", "l");
     myLegend->AddEntry(&bandwidthDistributionSparsified, "Sparsified", "l");
     myLegend->Draw();
-    RootWImage* myImage = new RootWImage(bandWidthCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage* myImage = new RootWImage(std::move(bandWidthCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Module bandwidth distribution in the sparsified and unsparsified model");
     myContent->addItem(myImage);
 
     moduleHitCanvas->cd();
     TH1D& chanHitDistribution = analyzer.getChanHitDistribution();
     chanHitDistribution.Draw();
-    myImage = new RootWImage(moduleHitCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(moduleHitCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Distribution of number of hits per bunch crossing (each sensor is counted separately)");
     myContent->addItem(myImage);
 
@@ -3721,8 +3896,8 @@ namespace insur {
 
     myContent = &myPage->addContent("Trigger bandwidth and frequency maps", true);
 
-    TCanvas triggerDataBandwidthCanvas;
-    TCanvas triggerFrequencyPerEventCanvas;
+    std::unique_ptr<TCanvas> triggerDataBandwidthCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> triggerFrequencyPerEventCanvas(new TCanvas());
 
     PlotDrawer<YZ, Type, Max> yzbwDrawer(0, 0); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
     PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
@@ -3730,17 +3905,17 @@ namespace insur {
     yzbwDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yztfDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
-    yzbwDrawer.drawFrame<HistogramFrameStyle>(triggerDataBandwidthCanvas);
-    yztfDrawer.drawFrame<HistogramFrameStyle>(triggerFrequencyPerEventCanvas);
+    yzbwDrawer.drawFrame<HistogramFrameStyle>(*triggerDataBandwidthCanvas.get());
+    yztfDrawer.drawFrame<HistogramFrameStyle>(*triggerFrequencyPerEventCanvas.get());
 
-    yzbwDrawer.drawModules<ContourStyle>(triggerDataBandwidthCanvas);
-    yztfDrawer.drawModules<ContourStyle>(triggerFrequencyPerEventCanvas);
+    yzbwDrawer.drawModules<ContourStyle>(*triggerDataBandwidthCanvas.get());
+    yztfDrawer.drawModules<ContourStyle>(*triggerFrequencyPerEventCanvas.get());
 
-    RootWImage& triggerDataBandwidthImage = myContent->addImage(triggerDataBandwidthCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& triggerDataBandwidthImage = myContent->addImage(std::move(triggerDataBandwidthCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     triggerDataBandwidthImage.setComment("Map of the bandwidth for trigger data in Gbps");
     triggerDataBandwidthImage.setName("triggerDataBandwidthMap");
 
-    RootWImage& triggerFrequencyPerEventImage = myContent->addImage(triggerFrequencyPerEventCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& triggerFrequencyPerEventImage = myContent->addImage(std::move(triggerFrequencyPerEventCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     triggerFrequencyPerEventImage.setComment("Map of the trigger frequency per event (a.k.a. stubs per event)");
     triggerFrequencyPerEventImage.setName("triggerFrequencyPerEventMap");
 
@@ -3759,14 +3934,14 @@ namespace insur {
         myContent = &myPage->addContent(std::string("Stub rate plots (") + layer.first + ")", false);
         currCntName = layer.first;
       }
-      TCanvas graphCanvas;
-      graphCanvas.cd();
+      std::unique_ptr<TCanvas> graphCanvas(new TCanvas());
+      graphCanvas->cd();
       totalHisto->SetLineColor(1);
       totalHisto->SetMinimum(trueHisto->GetMinimum()*.9 < 0.1 ? 0 : trueHisto->GetMinimum()*.9);
       totalHisto->Draw();
       trueHisto->SetLineColor(2);
       trueHisto->Draw("SAME");
-      RootWImage& graphImage = myContent->addImage(graphCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& graphImage = myContent->addImage(std::move(graphCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       graphImage.setComment("Stub rate for layer " + any2str(layer.second) + " (MHz/cm^2)");
       graphImage.setName("stubRate" + layer.first + any2str(layer.second));
 
@@ -3800,14 +3975,14 @@ namespace insur {
     
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
     RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
-    TCanvas sharedConnCanvas;
-    sharedConnCanvas.cd();
+    std::unique_ptr<TCanvas> sharedConnCanvas(new TCanvas());
+    sharedConnCanvas->cd();
     TH2I& sharedConnMap = analyzer.getProcessorCommonConnectionMap();
     sharedConnMap.GetXaxis()->LabelsOption("v");
     sharedConnMap.GetXaxis()->SetLabelSize(0.03);
     sharedConnMap.GetYaxis()->SetLabelSize(0.03);
     sharedConnMap.Draw("colz");
-    RootWImage& sharedConnImage = sharedConnContent.addImage(sharedConnCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& sharedConnImage = sharedConnContent.addImage(std::move(sharedConnCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     sharedConnImage.setComment("Map of the shared processor connections (on the diagonal unshared connections are reported)");
     sharedConnImage.setName("sharedConnMap");
 
@@ -3825,9 +4000,9 @@ namespace insur {
 
     RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
 
-    TCanvas moduleConnectionEtaCanvas;
-    TCanvas moduleConnectionPhiCanvas;
-    TCanvas moduleConnectionEndcapPhiCanvas;
+    std::unique_ptr<TCanvas> moduleConnectionEtaCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> moduleConnectionPhiCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> moduleConnectionEndcapPhiCanvas(new TCanvas());
 
     struct EtaConnections {
       const ModuleConnectionMap& mm_;
@@ -3848,62 +4023,64 @@ namespace insur {
     xyDrawer.addModules<CheckType<BARREL>>(tracker.modules().begin(), tracker.modules().end());
     xyecDrawer.addModules<CheckType<ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
 
-    yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
-    xyDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionPhiCanvas);
+    yzDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEtaCanvas.get());
+    xyDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionPhiCanvas.get());
     std::pair<Circle, Circle> petal = analyzer.getSampleTriggerPetal();
-    TArc a1(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
-    TArc a2(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
-    a1.SetFillStyle(0);
-    a2.SetFillStyle(0);
-    moduleConnectionPhiCanvas.cd();
-    a1.Draw("only");
-    a2.Draw("only");
+    TArc* a1 = new TArc(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
+    TArc* a2 = new TArc(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
+    a1->SetFillStyle(0);
+    a2->SetFillStyle(0);
+    moduleConnectionPhiCanvas->cd();
+    a1->Draw("only");
+    a2->Draw("only");
 
-    xyecDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEndcapPhiCanvas);
-    moduleConnectionEndcapPhiCanvas.cd();
-    a1.Draw("only");
-    a2.Draw("only");
+    xyecDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEndcapPhiCanvas.get());
+    moduleConnectionEndcapPhiCanvas->cd();
+    a1->Draw("only");
+    a2->Draw("only");
+    a1->SetBit(1);
+    a2->SetBit(1);
 
-    yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
-    xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);
-    xyecDrawer.drawModules<ContourStyle>(moduleConnectionEndcapPhiCanvas);
+    yzDrawer.drawModules<ContourStyle>(*moduleConnectionEtaCanvas.get());
+    xyDrawer.drawModules<ContourStyle>(*moduleConnectionPhiCanvas.get());
+    xyecDrawer.drawModules<ContourStyle>(*moduleConnectionEndcapPhiCanvas.get());
 
 
 
     /*
-       moduleConnectionEtaCanvas.SetFillColor(color_plot_background);
-       moduleConnectionPhiCanvas.SetFillColor(color_plot_background);
-    //moduleConnectionEndcapPhiCanvas.SetFillColor(color_plot_background);
+       moduleConnectionEtaCanvas->SetFillColor(color_plot_background);
+       moduleConnectionPhiCanvas->SetFillColor(color_plot_background);
+    //moduleConnectionEndcapPhiCanvas->SetFillColor(color_plot_background);
 
-    moduleConnectionEtaCanvas.cd();
+    moduleConnectionEtaCanvas->cd();
     moduleConnectionEtaMap.Draw("colz");
     */
-    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& moduleConnectionEtaImage = myContent.addImage(std::move(moduleConnectionEtaCanvas), vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
     /*
-       moduleConnectionPhiCanvas.cd();
+       moduleConnectionPhiCanvas->cd();
        moduleConnectionPhiMap.Draw("colz");
        */
-    RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& moduleConnectionPhiImage = myContent.addImage(std::move(moduleConnectionPhiCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
     moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
 
-    // moduleConnectionEndcapPhiCanvas.cd();
+    // moduleConnectionEndcapPhiCanvas->cd();
     // moduleConnectionEndcapPhiMap.Draw("colz");
 
-    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(std::move(moduleConnectionEndcapPhiCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
     moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
 
     //    myContent = myPage->addContent("Module Connections distribution", true);
 
-    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    moduleConnectionsCanvas.cd();
+    std::unique_ptr<TCanvas> moduleConnectionsCanvas(new TCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
+    moduleConnectionsCanvas->cd();
     TH1I& moduleConnectionsDistribution = analyzer.getModuleConnectionsDistribution();
     moduleConnectionsDistribution.SetFillColor(Palette::color(2));
     moduleConnectionsDistribution.Draw();
-    RootWImage& myImage = myContent.addImage(moduleConnectionsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& myImage = myContent.addImage(std::move(moduleConnectionsCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage.setComment("Module connections distribution");
 
     return true;
@@ -3953,14 +4130,14 @@ namespace insur {
           scenarioStr = "noMS";
         }
 
-        TCanvas linearMomentumCanvas;
-        TCanvas momentumCanvas;
-        TCanvas distanceCanvas;
-        TCanvas angleCanvas;
-        TCanvas ctgThetaCanvas;
-        TCanvas etaCanvas;
-        TCanvas z0Canvas;
-        TCanvas pCanvas;
+        std::unique_ptr<TCanvas> linearMomentumCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> momentumCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> distanceCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> angleCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> ctgThetaCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> etaCanvas(new TCanvas());
+        std::unique_ptr<TCanvas> z0Canvas(new TCanvas());
+        std::unique_ptr<TCanvas> pCanvas(new TCanvas());
 
         int myColor=0;
         int nRebin = 2;
@@ -3968,14 +4145,14 @@ namespace insur {
         double markerSize = 1.;
         double lineWidth = 2.;
 
-        linearMomentumCanvas.SetGrid(1,1);
-        momentumCanvas.SetGrid(1,1);
-        distanceCanvas.SetGrid(1,1);
-        angleCanvas.SetGrid(1,1);
-        ctgThetaCanvas.SetGrid(1,1);
-        etaCanvas.SetGrid(1,1);
-        z0Canvas.SetGrid(1,1);
-        pCanvas.SetGrid(1,1);
+        linearMomentumCanvas->SetGrid(1,1);
+        momentumCanvas->SetGrid(1,1);
+        distanceCanvas->SetGrid(1,1);
+        angleCanvas->SetGrid(1,1);
+        ctgThetaCanvas->SetGrid(1,1);
+        etaCanvas->SetGrid(1,1);
+        z0Canvas->SetGrid(1,1);
+        pCanvas->SetGrid(1,1);
         std::string plotOption = "";
         std::map<int, TGraph>::iterator g_iter, g_guard;
         // momentum canvas loop
@@ -3993,20 +4170,20 @@ namespace insur {
             momentumProfile.SetMinimum(vis_min_dPtOverPt);//4E-3*100);
             momentumProfile.SetMaximum(vis_max_dPtOverPt);//.5*100*verticalScale);
           }
-          linearMomentumCanvas.SetLogy(0);
-          momentumCanvas.SetLogy(1);
+          linearMomentumCanvas->SetLogy(0);
+          momentumCanvas->SetLogy(1);
           momentumProfile.SetLineColor(momentumColor(myColor));
           momentumProfile.SetMarkerColor(momentumColor(myColor));
           momentumProfile.SetLineWidth(lineWidth);
           myColor++;
           momentumProfile.SetMarkerStyle(markerStyle);
           momentumProfile.SetMarkerSize(markerSize);
-          momentumCanvas.SetFillColor(color_plot_background);
-          linearMomentumCanvas.SetFillColor(color_plot_background);
+          momentumCanvas->SetFillColor(color_plot_background);
+          linearMomentumCanvas->SetFillColor(color_plot_background);
           if (momentumGraph.GetN()>0) {
-            momentumCanvas.cd();
+            momentumCanvas->cd();
             momentumProfile.Draw(plotOption.c_str());
-            linearMomentumCanvas.cd();
+            linearMomentumCanvas->cd();
             momentumProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4025,16 +4202,16 @@ namespace insur {
             distanceProfile.SetMinimum(vis_min_dD0);//4*1e-4);
             distanceProfile.SetMaximum(vis_max_dD0);//4E2*1e-4*verticalScale);
           }
-          distanceCanvas.SetLogy();
+          distanceCanvas->SetLogy();
           distanceProfile.SetLineColor(momentumColor(myColor));
           distanceProfile.SetMarkerColor(momentumColor(myColor));
           distanceProfile.SetLineWidth(lineWidth);
           myColor++;
           distanceProfile.SetMarkerStyle(markerStyle);
           distanceProfile.SetMarkerSize(markerSize);
-          distanceCanvas.SetFillColor(color_plot_background);
+          distanceCanvas->SetFillColor(color_plot_background);
           if (distanceGraph.GetN()>0) {
-            distanceCanvas.cd();
+            distanceCanvas->cd();
             distanceProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4053,16 +4230,16 @@ namespace insur {
             angleProfile.SetMinimum(vis_min_dPhi);//1E-5);
             angleProfile.SetMaximum(vis_max_dPhi);//0.01*verticalScale);
           }
-          angleCanvas.SetLogy();
+          angleCanvas->SetLogy();
           angleProfile.SetLineColor(momentumColor(myColor));
           angleProfile.SetMarkerColor(momentumColor(myColor));
           angleProfile.SetLineWidth(lineWidth);
           myColor++;
           angleProfile.SetMarkerStyle(markerStyle);
           angleProfile.SetMarkerSize(markerSize);
-          angleCanvas.SetFillColor(color_plot_background);
+          angleCanvas->SetFillColor(color_plot_background);
           if (angleGraph.GetN() > 0) {
-            angleCanvas.cd();
+            angleCanvas->cd();
             angleProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4078,25 +4255,25 @@ namespace insur {
 	  etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
           ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-          ctgThetaCanvas.SetLogy();
+          ctgThetaCanvas->SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
           etaProfile.SetMinimum(vis_min_dCtgTheta);
           etaProfile.SetMaximum(vis_max_dCtgTheta);
-          etaCanvas.SetLogy();
+          etaCanvas->SetLogy();
           etaProfile.SetLineColor(momentumColor(myColor));
           etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
-          ctgThetaCanvas.SetFillColor(color_plot_background);
+          ctgThetaCanvas->SetFillColor(color_plot_background);
           etaProfile.SetMarkerStyle(markerStyle);
           etaProfile.SetMarkerSize(markerSize);
-          etaCanvas.SetFillColor(color_plot_background);
+          etaCanvas->SetFillColor(color_plot_background);
           if (ctgThetaGraph.GetN() > 0) {
-            ctgThetaCanvas.cd();
+            ctgThetaCanvas->cd();
             ctgThetaProfile.Draw(plotOption.c_str());
-            etaCanvas.cd();
+            etaCanvas->cd();
             etaProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -4110,15 +4287,15 @@ namespace insur {
           TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
           z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
-          z0Canvas.SetLogy();
+          z0Canvas->SetLogy();
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
-          z0Canvas.SetFillColor(color_plot_background);
+          z0Canvas->SetFillColor(color_plot_background);
           if (z0Graph.GetN() > 0) {
-            z0Canvas.cd();
+            z0Canvas->cd();
             z0Profile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
@@ -4137,41 +4314,41 @@ namespace insur {
             pProfile.SetMinimum(vis_min_dPtOverPt);//4E-3*100);
             pProfile.SetMaximum(vis_max_dPtOverPt);//.11*100*verticalScale);
           }
-          pCanvas.SetLogy();
+          pCanvas->SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
-          pCanvas.SetFillColor(color_plot_background);
+          pCanvas->SetFillColor(color_plot_background);
           if (pGraph.GetN() > 0) {
-            pCanvas.cd();
+            pCanvas->cd();
             pProfile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
         }
-        RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& linearMomentumImage = myContent->addImage(std::move(linearMomentumCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
         linearMomentumImage.setName(Form("linptres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& momentumImage = myContent->addImage(momentumCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& momentumImage = myContent->addImage(std::move(momentumCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         momentumImage.setComment("Transverse momentum resolution vs. eta");
         momentumImage.setName(Form("ptres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& distanceImage = myContent->addImage(distanceCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& distanceImage = myContent->addImage(std::move(distanceCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         distanceImage.setComment("Distance of closest approach resolution vs. eta");
         distanceImage.setName(Form("dxyres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& angleImage = myContent->addImage(angleCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& angleImage = myContent->addImage(std::move(angleCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         angleImage.setComment("Angle resolution vs. eta");
         angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& ctgThetaImage = myContent->addImage(std::move(ctgThetaCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage.setComment("CtgTheta resolution vs. eta");
         ctgThetaImage.setName(Form("cotThetares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& etaImage = myContent->addImage(etaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& etaImage = myContent->addImage(std::move(etaCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         etaImage.setComment("Eta resolution vs. eta");
         etaImage.setName(Form("etares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-	RootWImage& z0Image = myContent->addImage(z0Canvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	RootWImage& z0Image = myContent->addImage(std::move(z0Canvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         z0Image.setComment("z0 resolution vs. eta");
         z0Image.setName(Form("dzres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& pImage = myContent->addImage(pCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& pImage = myContent->addImage(std::move(pCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         pImage.setComment("Momentum resolution vs. eta");
         pImage.setName(Form("pres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
       }
@@ -4362,17 +4539,17 @@ namespace insur {
             scenarioStr = "noMS_Pt";
           }
 
-          TCanvas linMomCanvas_Pt;
-          TCanvas logMomCanvas_Pt;
-          TCanvas d0Canvas_Pt;
-          TCanvas phiCanvas_Pt;
-          TCanvas ctgThetaCanvas_Pt;
-          TCanvas etaCanvas_Pt;
-          TCanvas z0Canvas_Pt;
-          TCanvas pCanvas_Pt;
-          TCanvas lCanvas_Pt;
-          TCanvas betaCanvas_Pt;
-          TCanvas omegaCanvas_Pt;
+          std::unique_ptr<TCanvas> linMomCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> logMomCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> d0Canvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> phiCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> ctgThetaCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> etaCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> z0Canvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> pCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> lCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> betaCanvas_Pt(new TCanvas());
+          std::unique_ptr<TCanvas> omegaCanvas_Pt(new TCanvas());
 
           // Default attributes
           int myColor            = 0;
@@ -4382,17 +4559,17 @@ namespace insur {
           double lineWidth       = 2.;
           std::string plotOption = "";
 
-          linMomCanvas_Pt.SetGrid(1,1);
-          logMomCanvas_Pt.SetGrid(1,1);
-          d0Canvas_Pt.SetGrid(1,1);
-          phiCanvas_Pt.SetGrid(1,1);
-          ctgThetaCanvas_Pt.SetGrid(1,1);
-          etaCanvas_Pt.SetGrid(1,1);
-          z0Canvas_Pt.SetGrid(1,1);
-          pCanvas_Pt.SetGrid(1,1);
-          lCanvas_Pt.SetGrid(1,1);
-          betaCanvas_Pt.SetGrid(1,1);
-          omegaCanvas_Pt.SetGrid(1,1);
+          linMomCanvas_Pt->SetGrid(1,1);
+          logMomCanvas_Pt->SetGrid(1,1);
+          d0Canvas_Pt->SetGrid(1,1);
+          phiCanvas_Pt->SetGrid(1,1);
+          ctgThetaCanvas_Pt->SetGrid(1,1);
+          etaCanvas_Pt->SetGrid(1,1);
+          z0Canvas_Pt->SetGrid(1,1);
+          pCanvas_Pt->SetGrid(1,1);
+          lCanvas_Pt->SetGrid(1,1);
+          betaCanvas_Pt->SetGrid(1,1);
+          omegaCanvas_Pt->SetGrid(1,1);
 
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -4412,10 +4589,10 @@ namespace insur {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
             }
-            linMomCanvas_Pt.SetLogy(0);
-            logMomCanvas_Pt.SetLogy(1);
-            linMomCanvas_Pt.SetFillColor(color_plot_background);
-            logMomCanvas_Pt.SetFillColor(color_plot_background);
+            linMomCanvas_Pt->SetLogy(0);
+            logMomCanvas_Pt->SetLogy(1);
+            linMomCanvas_Pt->SetFillColor(color_plot_background);
+            logMomCanvas_Pt->SetFillColor(color_plot_background);
 
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
@@ -4425,9 +4602,9 @@ namespace insur {
             momentumProfile.SetMarkerSize(markerSize);
 
             if (momentumGraph.GetN()>0) {
-              linMomCanvas_Pt.cd();
+              linMomCanvas_Pt->cd();
               momentumProfile.Draw(plotOption.c_str());
-              logMomCanvas_Pt.cd();
+              logMomCanvas_Pt->cd();
               momentumProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4447,8 +4624,8 @@ namespace insur {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
             }
-            pCanvas_Pt.SetLogy();
-            pCanvas_Pt.SetFillColor(color_plot_background);
+            pCanvas_Pt->SetLogy();
+            pCanvas_Pt->SetFillColor(color_plot_background);
 
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
@@ -4458,7 +4635,7 @@ namespace insur {
             pProfile.SetMarkerSize(markerSize);
 
             if (pGraph.GetN() > 0) {
-              pCanvas_Pt.cd();
+              pCanvas_Pt->cd();
               pProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4478,8 +4655,8 @@ namespace insur {
               distanceProfile.SetMinimum(vis_min_dD0);
               distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
             }
-            d0Canvas_Pt.SetLogy();
-            d0Canvas_Pt.SetFillColor(color_plot_background);
+            d0Canvas_Pt->SetLogy();
+            d0Canvas_Pt->SetFillColor(color_plot_background);
 
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
@@ -4489,7 +4666,7 @@ namespace insur {
             distanceProfile.SetMarkerSize(markerSize);
 
             if (distanceGraph.GetN()>0) {
-              d0Canvas_Pt.cd();
+              d0Canvas_Pt->cd();
               distanceProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4509,8 +4686,8 @@ namespace insur {
               angleProfile.SetMinimum(vis_min_dPhi);
               angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
             }
-            phiCanvas_Pt.SetLogy();
-            phiCanvas_Pt.SetFillColor(color_plot_background);
+            phiCanvas_Pt->SetLogy();
+            phiCanvas_Pt->SetFillColor(color_plot_background);
 
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
@@ -4520,7 +4697,7 @@ namespace insur {
             angleProfile.SetMarkerSize(markerSize);
 
             if (angleGraph.GetN() > 0) {
-              phiCanvas_Pt.cd();
+              phiCanvas_Pt->cd();
               angleProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4537,12 +4714,12 @@ namespace insur {
 
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-            ctgThetaCanvas_Pt.SetLogy();
-            ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
+            ctgThetaCanvas_Pt->SetLogy();
+            ctgThetaCanvas_Pt->SetFillColor(color_plot_background);
             etaProfile.SetMinimum(vis_min_dCtgTheta);
             etaProfile.SetMaximum(vis_max_dCtgTheta);
-            etaCanvas_Pt.SetLogy();
-            etaCanvas_Pt.SetFillColor(color_plot_background);
+            etaCanvas_Pt->SetLogy();
+            etaCanvas_Pt->SetFillColor(color_plot_background);
 
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4557,9 +4734,9 @@ namespace insur {
             etaProfile.SetMarkerSize(markerSize);
 
             if (ctgThetaGraph.GetN() > 0) {
-              ctgThetaCanvas_Pt.cd();
+              ctgThetaCanvas_Pt->cd();
               ctgThetaProfile.Draw(plotOption.c_str());
-              etaCanvas_Pt.cd();
+              etaCanvas_Pt->cd();
               etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4574,8 +4751,8 @@ namespace insur {
 
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
-            z0Canvas_Pt.SetLogy();
-            z0Canvas_Pt.SetFillColor(color_plot_background);
+            z0Canvas_Pt->SetLogy();
+            z0Canvas_Pt->SetFillColor(color_plot_background);
 
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
@@ -4583,10 +4760,10 @@ namespace insur {
             myColor++;
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
-            z0Canvas_Pt.SetFillColor(color_plot_background);
+            z0Canvas_Pt->SetFillColor(color_plot_background);
 
             if (z0Graph.GetN() > 0) {
-              z0Canvas_Pt.cd();
+              z0Canvas_Pt->cd();
               z0Profile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4602,8 +4779,8 @@ namespace insur {
 
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
-            lCanvas_Pt.SetLogy();
-            lCanvas_Pt.SetFillColor(color_plot_background);
+            lCanvas_Pt->SetLogy();
+            lCanvas_Pt->SetFillColor(color_plot_background);
 
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
@@ -4611,10 +4788,10 @@ namespace insur {
             myColor++;
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
-            lCanvas_Pt.SetFillColor(color_plot_background);
+            lCanvas_Pt->SetFillColor(color_plot_background);
 
             if (LGraph.GetN() > 0) {
-              lCanvas_Pt.cd();
+              lCanvas_Pt->cd();
               lProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4630,8 +4807,8 @@ namespace insur {
 
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
-            betaCanvas_Pt.SetLogy(0);
-            betaCanvas_Pt.SetFillColor(color_plot_background);
+            betaCanvas_Pt->SetLogy(0);
+            betaCanvas_Pt->SetFillColor(color_plot_background);
 
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4639,10 +4816,10 @@ namespace insur {
             myColor++;
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
-            betaCanvas_Pt.SetFillColor(color_plot_background);
+            betaCanvas_Pt->SetFillColor(color_plot_background);
 
             if (BetaGraph.GetN() > 0) {
-              betaCanvas_Pt.cd();
+              betaCanvas_Pt->cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4658,8 +4835,8 @@ namespace insur {
 
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
-            omegaCanvas_Pt.SetLogy(0);
-            omegaCanvas_Pt.SetFillColor(color_plot_background);
+            omegaCanvas_Pt->SetLogy(0);
+            omegaCanvas_Pt->SetFillColor(color_plot_background);
 
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4667,56 +4844,56 @@ namespace insur {
             myColor++;
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
-            omegaCanvas_Pt.SetFillColor(color_plot_background);
+            omegaCanvas_Pt->SetFillColor(color_plot_background);
 
             if (OmegaGraph.GetN() > 0) {
-              omegaCanvas_Pt.cd();
+              omegaCanvas_Pt->cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
 
-          RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& linMomImage_Pt = myContent->addImage(std::move(linMomCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const Pt across "+etaLetter);
           linMomImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& logMomImage_Pt = myContent->addImage(logMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& logMomImage_Pt = myContent->addImage(std::move(logMomCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           logMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
           logMomImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& pImage_Pt = myContent->addImage(pCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& pImage_Pt = myContent->addImage(std::move(pCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           pImage_Pt.setComment("Momentum resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           pImage_Pt.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& d0Image_Pt = myContent->addImage(d0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& d0Image_Pt = myContent->addImage(std::move(d0Canvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           d0Image_Pt.setComment("d0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           d0Image_Pt.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& z0Image_Pt = myContent->addImage(std::move(z0Canvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           z0Image_Pt.setComment("z0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& lImage_Pt = myContent->addImage(lCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& lImage_Pt = myContent->addImage(std::move(lCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           lImage_Pt.setComment("L resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           lImage_Pt.setName(Form("lres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& betaImage_Pt = myContent->addImage(betaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& betaImage_Pt = myContent->addImage(std::move(betaCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           betaImage_Pt.setComment("Relative influence of #sigma_{d0} (max for #beta=#pi/2) and #sigma_{z0} (max for #beta=0) - const Pt across "+etaLetter);
           betaImage_Pt.setName(Form("beta_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& omegaImage_Pt = myContent->addImage(omegaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& omegaImage_Pt = myContent->addImage(std::move(omegaCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           omegaImage_Pt.setComment("Pixel aspect ratio optimzation (for fixed pixel area). #Omega=#pi/2 means you need longer pixels - const Pt across "+etaLetter);
           omegaImage_Pt.setName(Form("omega_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& phiImage_Pt = myContent->addImage(std::move(phiCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_Pt.setComment("Angle resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           phiImage_Pt.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& ctgThetaImage_Pt = myContent->addImage(std::move(ctgThetaCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& etaImage_Pt = myContent->addImage(etaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& etaImage_Pt = myContent->addImage(std::move(etaCanvas_Pt), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           etaImage_Pt.setComment(etaLetter+" resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           etaImage_Pt.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
@@ -4743,17 +4920,17 @@ namespace insur {
             scenarioStr = "noMS_P";
           }
 
-          TCanvas linMomCanvas_P;
-          TCanvas logMomCanvas_P;
-          TCanvas d0Canvas_P;
-          TCanvas phiCanvas_P;
-          TCanvas ctgThetaCanvas_P;
-          TCanvas etaCanvas_P;
-          TCanvas z0Canvas_P;
-          TCanvas pCanvas_P;
-          TCanvas lCanvas_P;
-          TCanvas betaCanvas_P;
-          TCanvas omegaCanvas_P;
+          std::unique_ptr<TCanvas> linMomCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> logMomCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> d0Canvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> phiCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> ctgThetaCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> etaCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> z0Canvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> pCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> lCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> betaCanvas_P(new TCanvas());
+          std::unique_ptr<TCanvas> omegaCanvas_P(new TCanvas());
 
           // Default attributes
           int myColor            = 0;
@@ -4763,17 +4940,17 @@ namespace insur {
           double lineWidth       = 2.;
           std::string plotOption = "";
 
-          linMomCanvas_P.SetGrid(1,1);
-          logMomCanvas_P.SetGrid(1,1);
-          d0Canvas_P.SetGrid(1,1);
-          phiCanvas_P.SetGrid(1,1);
-          ctgThetaCanvas_P.SetGrid(1,1);
-          etaCanvas_P.SetGrid(1,1);
-          z0Canvas_P.SetGrid(1,1);
-          pCanvas_P.SetGrid(1,1);
-          lCanvas_P.SetGrid(1,1);
-          betaCanvas_P.SetGrid(1,1);
-          omegaCanvas_P.SetGrid(1,1);
+          linMomCanvas_P->SetGrid(1,1);
+          logMomCanvas_P->SetGrid(1,1);
+          d0Canvas_P->SetGrid(1,1);
+          phiCanvas_P->SetGrid(1,1);
+          ctgThetaCanvas_P->SetGrid(1,1);
+          etaCanvas_P->SetGrid(1,1);
+          z0Canvas_P->SetGrid(1,1);
+          pCanvas_P->SetGrid(1,1);
+          lCanvas_P->SetGrid(1,1);
+          betaCanvas_P->SetGrid(1,1);
+          omegaCanvas_P->SetGrid(1,1);
 
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -4793,10 +4970,10 @@ namespace insur {
               momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
             }
-            linMomCanvas_P.SetLogy(0);
-            logMomCanvas_P.SetLogy(1);
-            linMomCanvas_P.SetFillColor(color_plot_background);
-            logMomCanvas_P.SetFillColor(color_plot_background);
+            linMomCanvas_P->SetLogy(0);
+            logMomCanvas_P->SetLogy(1);
+            linMomCanvas_P->SetFillColor(color_plot_background);
+            logMomCanvas_P->SetFillColor(color_plot_background);
 
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
@@ -4806,9 +4983,9 @@ namespace insur {
             momentumProfile.SetMarkerSize(markerSize);
 
             if (momentumGraph.GetN()>0) {
-              linMomCanvas_P.cd();
+              linMomCanvas_P->cd();
               momentumProfile.Draw(plotOption.c_str());
-              logMomCanvas_P.cd();
+              logMomCanvas_P->cd();
               momentumProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4828,8 +5005,8 @@ namespace insur {
               pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
               pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
             }
-            pCanvas_P.SetLogy();
-            pCanvas_P.SetFillColor(color_plot_background);
+            pCanvas_P->SetLogy();
+            pCanvas_P->SetFillColor(color_plot_background);
 
             pProfile.SetLineColor(momentumColor(myColor));
             pProfile.SetMarkerColor(momentumColor(myColor));
@@ -4839,7 +5016,7 @@ namespace insur {
             pProfile.SetMarkerSize(markerSize);
 
             if (pGraph.GetN() > 0) {
-              pCanvas_P.cd();
+              pCanvas_P->cd();
               pProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4859,8 +5036,8 @@ namespace insur {
                 distanceProfile.SetMinimum(vis_min_dD0);
                 distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
             }
-            d0Canvas_P.SetLogy();
-            d0Canvas_P.SetFillColor(color_plot_background);
+            d0Canvas_P->SetLogy();
+            d0Canvas_P->SetFillColor(color_plot_background);
 
             distanceProfile.SetLineColor(momentumColor(myColor));
             distanceProfile.SetMarkerColor(momentumColor(myColor));
@@ -4870,7 +5047,7 @@ namespace insur {
             distanceProfile.SetMarkerSize(markerSize);
 
             if (distanceGraph.GetN()>0) {
-              d0Canvas_P.cd();
+              d0Canvas_P->cd();
               distanceProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4890,8 +5067,8 @@ namespace insur {
               angleProfile.SetMinimum(vis_min_dPhi);
               angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
             }
-            phiCanvas_P.SetLogy();
-            phiCanvas_P.SetFillColor(color_plot_background);
+            phiCanvas_P->SetLogy();
+            phiCanvas_P->SetFillColor(color_plot_background);
 
             angleProfile.SetLineColor(momentumColor(myColor));
             angleProfile.SetMarkerColor(momentumColor(myColor));
@@ -4901,7 +5078,7 @@ namespace insur {
             angleProfile.SetMarkerSize(markerSize);
 
             if (angleGraph.GetN() > 0) {
-              phiCanvas_P.cd();
+              phiCanvas_P->cd();
               angleProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4918,12 +5095,12 @@ namespace insur {
 
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
-            ctgThetaCanvas_P.SetLogy();
-            ctgThetaCanvas_P.SetFillColor(color_plot_background);
+            ctgThetaCanvas_P->SetLogy();
+            ctgThetaCanvas_P->SetFillColor(color_plot_background);
             etaProfile.SetMinimum(vis_min_dCtgTheta);
             etaProfile.SetMaximum(vis_max_dCtgTheta);
-            etaCanvas_P.SetLogy();
-            etaCanvas_P.SetFillColor(color_plot_background);
+            etaCanvas_P->SetLogy();
+            etaCanvas_P->SetFillColor(color_plot_background);
 
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
@@ -4938,9 +5115,9 @@ namespace insur {
             etaProfile.SetMarkerSize(markerSize);
 
             if (ctgThetaGraph.GetN() > 0) {
-              ctgThetaCanvas_P.cd();
+              ctgThetaCanvas_P->cd();
               ctgThetaProfile.Draw(plotOption.c_str());
-              etaCanvas_P.cd();
+              etaCanvas_P->cd();
               etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
@@ -4955,8 +5132,8 @@ namespace insur {
 
             z0Profile.SetMinimum(vis_min_dZ0);
             z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
-            z0Canvas_P.SetLogy();
-            z0Canvas_P.SetFillColor(color_plot_background);
+            z0Canvas_P->SetLogy();
+            z0Canvas_P->SetFillColor(color_plot_background);
 
             z0Profile.SetLineColor(momentumColor(myColor));
             z0Profile.SetMarkerColor(momentumColor(myColor));
@@ -4964,10 +5141,10 @@ namespace insur {
             myColor++;
             z0Profile.SetMarkerStyle(markerStyle);
             z0Profile.SetMarkerSize(markerSize);
-            z0Canvas_P.SetFillColor(color_plot_background);
+            z0Canvas_P->SetFillColor(color_plot_background);
 
             if (z0Graph.GetN() > 0) {
-              z0Canvas_P.cd();
+              z0Canvas_P->cd();
               z0Profile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -4985,8 +5162,8 @@ namespace insur {
 
             lProfile.SetMinimum(vis_min_dL);
             lProfile.SetMaximum(vis_max_dL);//*verticalScale);
-            lCanvas_P.SetLogy();
-            lCanvas_P.SetFillColor(color_plot_background);
+            lCanvas_P->SetLogy();
+            lCanvas_P->SetFillColor(color_plot_background);
 
             lProfile.SetLineColor(momentumColor(myColor));
             lProfile.SetMarkerColor(momentumColor(myColor));
@@ -4994,10 +5171,10 @@ namespace insur {
             myColor++;
             lProfile.SetMarkerStyle(markerStyle);
             lProfile.SetMarkerSize(markerSize);
-            lCanvas_P.SetFillColor(color_plot_background);
+            lCanvas_P->SetFillColor(color_plot_background);
 
             if (LGraph.GetN() > 0) {
-              lCanvas_P.cd();
+              lCanvas_P->cd();
               lProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5013,8 +5190,8 @@ namespace insur {
 
             betaProfile.SetMinimum(vis_min_beta);
             betaProfile.SetMaximum(vis_max_beta);
-            betaCanvas_P.SetLogy(0);
-            betaCanvas_P.SetFillColor(color_plot_background);
+            betaCanvas_P->SetLogy(0);
+            betaCanvas_P->SetFillColor(color_plot_background);
 
             betaProfile.SetLineColor(momentumColor(myColor));
             betaProfile.SetMarkerColor(momentumColor(myColor));
@@ -5022,10 +5199,10 @@ namespace insur {
             myColor++;
             betaProfile.SetMarkerStyle(markerStyle);
             betaProfile.SetMarkerSize(markerSize);
-            betaCanvas_P.SetFillColor(color_plot_background);
+            betaCanvas_P->SetFillColor(color_plot_background);
 
             if (BetaGraph.GetN() > 0) {
-              betaCanvas_P.cd();
+              betaCanvas_P->cd();
               betaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
@@ -5041,8 +5218,8 @@ namespace insur {
 
             omegaProfile.SetMinimum(vis_min_omega);
             omegaProfile.SetMaximum(vis_max_omega);
-            omegaCanvas_P.SetLogy(0);
-            omegaCanvas_P.SetFillColor(color_plot_background);
+            omegaCanvas_P->SetLogy(0);
+            omegaCanvas_P->SetFillColor(color_plot_background);
 
             omegaProfile.SetLineColor(momentumColor(myColor));
             omegaProfile.SetMarkerColor(momentumColor(myColor));
@@ -5050,56 +5227,56 @@ namespace insur {
             myColor++;
             omegaProfile.SetMarkerStyle(markerStyle);
             omegaProfile.SetMarkerSize(markerSize);
-            omegaCanvas_P.SetFillColor(color_plot_background);
+            omegaCanvas_P->SetFillColor(color_plot_background);
 
             if (OmegaGraph.GetN() > 0) {
-              omegaCanvas_P.cd();
+              omegaCanvas_P->cd();
               omegaProfile.Draw(plotOption.c_str());
               plotOption = "p same";
             }
           }
 
-          RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& linMomImage_P = myContent->addImage(std::move(linMomCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const P across "+etaLetter);
           linMomImage_P.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& logMomImage_P = myContent->addImage(logMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& logMomImage_P = myContent->addImage(std::move(logMomCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           logMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const P across "+etaLetter);
           logMomImage_P.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& pImage_P = myContent->addImage(pCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& pImage_P = myContent->addImage(std::move(pCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           pImage_P.setComment("Momentum resolution vs. "+etaLetter+" - const P across "+etaLetter);
           pImage_P.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& d0Image_P = myContent->addImage(d0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& d0Image_P = myContent->addImage(std::move(d0Canvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           d0Image_P.setComment("d0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
           d0Image_P.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& z0Image_P = myContent->addImage(std::move(z0Canvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           z0Image_P.setComment("z0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
           z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& lImage_P = myContent->addImage(lCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& lImage_P = myContent->addImage(std::move(lCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           lImage_P.setComment("L resolution vs. "+etaLetter+" - const P across "+etaLetter);
           lImage_P.setName(Form("lres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& betaImage_P = myContent->addImage(betaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& betaImage_P = myContent->addImage(std::move(betaCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           betaImage_P.setComment("Relative influence of #sigma_{d0} (max for #beta=#pi/2) and #sigma_{z0} (max for #beta=0) - const P across "+etaLetter);
           betaImage_P.setName(Form("beta_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& omegaImage_P = myContent->addImage(omegaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& omegaImage_P = myContent->addImage(std::move(omegaCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           omegaImage_P.setComment("Pixel aspect ratio optimzation (for fixed pixel area). #Omega=#pi/2 means you need longer pixels - const P across "+etaLetter);
           omegaImage_P.setName(Form("omega_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& phiImage_P = myContent->addImage(std::move(phiCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_P.setComment("Angle resolution vs. "+etaLetter+" - const P across "+etaLetter);
           phiImage_P.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& ctgThetaImage_P = myContent->addImage(std::move(ctgThetaCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
           ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-          RootWImage& etaImage_P = myContent->addImage(etaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          RootWImage& etaImage_P = myContent->addImage(std::move(etaCanvas_P), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           etaImage_P.setComment(etaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
           etaImage_P.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
@@ -5367,15 +5544,14 @@ namespace insur {
     myInfoPt.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability -> In-Out approach
-    TCanvas canvasPtBkgContInOut("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPtBkgContInOut.SetGrid(1,1);
-    canvasPtBkgContInOut.SetLogy(0);
-    canvasPtBkgContInOut.SetFillColor(color_plot_background);
-    canvasPtBkgContInOut.SetObjectStat(false);
+    std::unique_ptr<TCanvas> canvasPtBkgContInOut(new TCanvas("canvasPtBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+    canvasPtBkgContInOut->SetGrid(1,1);
+    canvasPtBkgContInOut->SetLogy(0);
+    canvasPtBkgContInOut->SetFillColor(color_plot_background);
+    canvasPtBkgContInOut->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     int iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPtInOut = new TLegend(0.11,0.66,0.36,0.89,"p_{T} options (InOut+IP, full TRK):");
     legendPtInOut->SetTextSize(0.025);
 
@@ -5398,20 +5574,19 @@ namespace insur {
     }
     legendPtInOut->Draw("SAME");
 
-    RootWImage& myImagePtBkgContInOut = myContentPlotsPt.addImage(canvasPtBkgContInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& myImagePtBkgContInOut = myContentPlotsPt.addImage(std::move(canvasPtBkgContInOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImagePtBkgContInOut.setComment("In-Out approach for pT: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
     myImagePtBkgContInOut.setName("bkg_pt_pContam_inout");
 
     // b) Bkg contamination probability -> OutIn approach
-    TCanvas canvasPtBkgContOutIn("canvasPtBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPtBkgContOutIn.SetGrid(1,1);
-    canvasPtBkgContOutIn.SetLogy(0);
-    canvasPtBkgContOutIn.SetFillColor(color_plot_background);
-    canvasPtBkgContOutIn.SetObjectStat(false);
+    std::unique_ptr<TCanvas> canvasPtBkgContOutIn(new TCanvas("canvasPtBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+    canvasPtBkgContOutIn->SetGrid(1,1);
+    canvasPtBkgContOutIn->SetLogy(0);
+    canvasPtBkgContOutIn->SetFillColor(color_plot_background);
+    canvasPtBkgContOutIn->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPtOutIn = new TLegend(0.11,0.66,0.36,0.89,"p_{T} options (OutIn, full TRK):");
     legendPtOutIn->SetTextSize(0.025);
 
@@ -5434,7 +5609,7 @@ namespace insur {
     }
     legendPtOutIn->Draw("SAME");
 
-    RootWImage& myImagePtBkgContOutIn = myContentPlotsPt.addImage(canvasPtBkgContOutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& myImagePtBkgContOutIn = myContentPlotsPt.addImage(std::move(canvasPtBkgContOutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImagePtBkgContOutIn.setComment("Out-In approach for pT: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
     myImagePtBkgContOutIn.setName("bkg_pt_pContam_outin");
 
@@ -5451,11 +5626,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtD0InOut(std::string("canvasPtD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtD0InOut.SetGrid(1,1);
-      canvasPtD0InOut.SetLogy(0);
-      canvasPtD0InOut.SetFillColor(color_plot_background);
-      canvasPtD0InOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtD0InOut(new TCanvas(std::string("canvasPtD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtD0InOut->SetGrid(1,1);
+      canvasPtD0InOut->SetLogy(0);
+      canvasPtD0InOut->SetFillColor(color_plot_background);
+      canvasPtD0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5479,7 +5654,7 @@ namespace insur {
       legendPtInOut->SetEntryLabel("p_{T} options (InOut+IP, full TRK):");
       legendPtInOut->Draw("SAME");
 
-      RootWImage& myImagePtD0InOut = myContentPlotsPtD0InOut.addImage(canvasPtD0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtD0InOut = myContentPlotsPtD0InOut.addImage(std::move(canvasPtD0InOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtD0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in in-out approach.").c_str());
       myImagePtD0InOut.setName(std::string("bkg_pt_d0_inout_"+name).c_str());
     }
@@ -5494,11 +5669,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtZ0InOut(std::string("canvasPtZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtZ0InOut.SetGrid(1,1);
-      canvasPtZ0InOut.SetLogy(0);
-      canvasPtZ0InOut.SetFillColor(color_plot_background);
-      canvasPtZ0InOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtZ0InOut(new TCanvas(std::string("canvasPtZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtZ0InOut->SetGrid(1,1);
+      canvasPtZ0InOut->SetLogy(0);
+      canvasPtZ0InOut->SetFillColor(color_plot_background);
+      canvasPtZ0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5519,7 +5694,7 @@ namespace insur {
       }
       legendPtInOut->Draw("SAME");
 
-      RootWImage& myImagePtZ0InOut = myContentPlotsPtZ0InOut.addImage(canvasPtZ0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtZ0InOut = myContentPlotsPtZ0InOut.addImage(std::move(canvasPtZ0InOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtZ0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in in-out approach.").c_str());
       myImagePtZ0InOut.setName(std::string("bkg_pt_z0_inout_"+name).c_str());
     }
@@ -5534,11 +5709,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtProbContamInOut(std::string("canvasPtProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtProbContamInOut.SetGrid(1,1);
-      canvasPtProbContamInOut.SetLogy(0);
-      canvasPtProbContamInOut.SetFillColor(color_plot_background);
-      canvasPtProbContamInOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtProbContamInOut(new TCanvas(std::string("canvasPtProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtProbContamInOut->SetGrid(1,1);
+      canvasPtProbContamInOut->SetLogy(0);
+      canvasPtProbContamInOut->SetFillColor(color_plot_background);
+      canvasPtProbContamInOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5561,7 +5736,7 @@ namespace insur {
       legendPtInOut->SetX2(0.36);
       legendPtInOut->Draw("SAME");
 
-      RootWImage& myImagePtProbContamInOut = myContentPlotsPtProbContamInOut.addImage(canvasPtProbContamInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtProbContamInOut = myContentPlotsPtProbContamInOut.addImage(std::move(canvasPtProbContamInOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtProbContamInOut.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in in-out approach.").c_str());
       myImagePtProbContamInOut.setName(std::string("bkg_pt_pContam_inout_"+name).c_str());
     }
@@ -5579,11 +5754,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtD0OutIn(std::string("canvasPtD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtD0OutIn.SetGrid(1,1);
-      canvasPtD0OutIn.SetLogy(0);
-      canvasPtD0OutIn.SetFillColor(color_plot_background);
-      canvasPtD0OutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtD0OutIn(new TCanvas(std::string("canvasPtD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtD0OutIn->SetGrid(1,1);
+      canvasPtD0OutIn->SetLogy(0);
+      canvasPtD0OutIn->SetFillColor(color_plot_background);
+      canvasPtD0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5607,7 +5782,7 @@ namespace insur {
       legendPtOutIn->SetEntryLabel("p_{T} options (OutIn, full TRK):");
       legendPtOutIn->Draw("SAME");
 
-      RootWImage& myImagePtD0OutIn = myContentPlotsPtD0OutIn.addImage(canvasPtD0OutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtD0OutIn = myContentPlotsPtD0OutIn.addImage(std::move(canvasPtD0OutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtD0OutIn.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in out-in approach.").c_str());
       myImagePtD0OutIn.setName(std::string("bkg_pt_d0_outin_"+name).c_str());
     }
@@ -5622,11 +5797,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtZ0OutIn(std::string("canvasPtZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtZ0OutIn.SetGrid(1,1);
-      canvasPtZ0OutIn.SetLogy(0);
-      canvasPtZ0OutIn.SetFillColor(color_plot_background);
-      canvasPtZ0OutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtZ0OutIn(new TCanvas(std::string("canvasPtZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtZ0OutIn->SetGrid(1,1);
+      canvasPtZ0OutIn->SetLogy(0);
+      canvasPtZ0OutIn->SetFillColor(color_plot_background);
+      canvasPtZ0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5647,7 +5822,7 @@ namespace insur {
       }
       legendPtOutIn->Draw("SAME");
 
-      RootWImage& myImagePtZ0OutIn = myContentPlotsPtZ0OutIn.addImage(canvasPtZ0OutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtZ0OutIn = myContentPlotsPtZ0OutIn.addImage(std::move(canvasPtZ0OutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtZ0OutIn.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in out-in approach.").c_str());
       myImagePtZ0OutIn.setName(std::string("bkg_pt_z0_outin_"+name).c_str());
     }
@@ -5662,11 +5837,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPtProbContamOutIn(std::string("canvasPtProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPtProbContamOutIn.SetGrid(1,1);
-      canvasPtProbContamOutIn.SetLogy(0);
-      canvasPtProbContamOutIn.SetFillColor(color_plot_background);
-      canvasPtProbContamOutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPtProbContamOutIn(new TCanvas(std::string("canvasPtProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPtProbContamOutIn->SetGrid(1,1);
+      canvasPtProbContamOutIn->SetLogy(0);
+      canvasPtProbContamOutIn->SetFillColor(color_plot_background);
+      canvasPtProbContamOutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5689,7 +5864,7 @@ namespace insur {
       legendPtOutIn->SetX2(0.36);
       legendPtOutIn->Draw("SAME");
 
-      RootWImage& myImagePtProbContamOutIn = myContentPlotsPtProbContamOutIn.addImage(canvasPtProbContamOutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePtProbContamOutIn = myContentPlotsPtProbContamOutIn.addImage(std::move(canvasPtProbContamOutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePtProbContamOutIn.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in out-in approach.").c_str());
       myImagePtProbContamOutIn.setName(std::string("bkg_pt_pContam_outin_"+name).c_str());
     }
@@ -5703,15 +5878,14 @@ namespace insur {
     myInfoP.setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
 
     // a) Bkg contamination probability - In-Out approach
-    TCanvas canvasPBkgContInOut("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPBkgContInOut.SetGrid(1,1);
-    canvasPBkgContInOut.SetLogy(0);
-    canvasPBkgContInOut.SetFillColor(color_plot_background);
-    canvasPBkgContInOut.SetObjectStat(false);
+    std::unique_ptr<TCanvas> canvasPBkgContInOut(new TCanvas("canvasPBkgContInOut","",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+    canvasPBkgContInOut->SetGrid(1,1);
+    canvasPBkgContInOut->SetLogy(0);
+    canvasPBkgContInOut->SetFillColor(color_plot_background);
+    canvasPBkgContInOut->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPInOut = new TLegend(0.11,0.66,0.36,0.89,"p options (InOut+IP, full TRK):");
     legendPInOut->SetTextSize(0.025);
 
@@ -5734,20 +5908,19 @@ namespace insur {
     }
     legendPInOut->Draw("SAME");
 
-    RootWImage& myImagePBkgContInOut = myContentPlotsP.addImage(canvasPBkgContInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& myImagePBkgContInOut = myContentPlotsP.addImage(std::move(canvasPBkgContInOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImagePBkgContInOut.setComment("In-Out approach for p: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
     myImagePBkgContInOut.setName("bkg_p_pContam_inout");
 
     // b) Bkg contamination probability - Out-In approach
-    TCanvas canvasPBkgContOutIn("canvasPBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-    canvasPBkgContOutIn.SetGrid(1,1);
-    canvasPBkgContOutIn.SetLogy(0);
-    canvasPBkgContOutIn.SetFillColor(color_plot_background);
-    canvasPBkgContOutIn.SetObjectStat(false);
+    std::unique_ptr<TCanvas> canvasPBkgContOutIn(new TCanvas("canvasPBkgContOutIn","",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+    canvasPBkgContOutIn->SetGrid(1,1);
+    canvasPBkgContOutIn->SetLogy(0);
+    canvasPBkgContOutIn->SetFillColor(color_plot_background);
+    canvasPBkgContOutIn->SetObjectStat(false);
 
     // For each momentum/transverse momentum compute
     iMomentum = 0;
-    gStyle->SetTitleW(0.9);
     TLegend* legendPOutIn = new TLegend(0.11,0.66,0.36,0.89,"p options (OutIn, full TRK):");
     legendPOutIn->SetTextSize(0.025);
 
@@ -5770,7 +5943,7 @@ namespace insur {
     }
     legendPOutIn->Draw("SAME");
 
-    RootWImage& myImagePBkgContOutIn = myContentPlotsP.addImage(canvasPBkgContOutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& myImagePBkgContOutIn = myContentPlotsP.addImage(std::move(canvasPBkgContOutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImagePBkgContOutIn.setComment("Out-In approach for p: Bkg contamination prob. in 95% area of 2D error ellipse accumulated across N layers");
     myImagePBkgContOutIn.setName("bkg_p_pContam_outin");
 
@@ -5787,11 +5960,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPD0InOut(std::string("canvasPD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPD0InOut.SetGrid(1,1);
-      canvasPD0InOut.SetLogy(0);
-      canvasPD0InOut.SetFillColor(color_plot_background);
-      canvasPD0InOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPD0InOut(new TCanvas(std::string("canvasPD0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPD0InOut->SetGrid(1,1);
+      canvasPD0InOut->SetLogy(0);
+      canvasPD0InOut->SetFillColor(color_plot_background);
+      canvasPD0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5815,7 +5988,7 @@ namespace insur {
       legendPInOut->SetEntryLabel("p options (InOut+IP, full TRK):");
       legendPInOut->Draw("SAME");
 
-      RootWImage& myImagePD0InOut = myContentPlotsPD0InOut.addImage(canvasPD0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePD0InOut = myContentPlotsPD0InOut.addImage(std::move(canvasPD0InOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePD0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in in-out approach.").c_str());
       myImagePD0InOut.setName(std::string("bkg_p_d0_inout_"+name).c_str());
     }
@@ -5830,11 +6003,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPZ0InOut(std::string("canvasPZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPZ0InOut.SetGrid(1,1);
-      canvasPZ0InOut.SetLogy(0);
-      canvasPZ0InOut.SetFillColor(color_plot_background);
-      canvasPZ0InOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPZ0InOut(new TCanvas(std::string("canvasPZ0InOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPZ0InOut->SetGrid(1,1);
+      canvasPZ0InOut->SetLogy(0);
+      canvasPZ0InOut->SetFillColor(color_plot_background);
+      canvasPZ0InOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5857,7 +6030,7 @@ namespace insur {
       legendPInOut->SetX2(0.89);
       legendPInOut->Draw("SAME");
 
-      RootWImage& myImagePZ0InOut = myContentPlotsPZ0InOut.addImage(canvasPZ0InOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePZ0InOut = myContentPlotsPZ0InOut.addImage(std::move(canvasPZ0InOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePZ0InOut.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in in-out approach.").c_str());
       myImagePZ0InOut.setName(std::string("bkg_p_z0_inout_"+name).c_str());
     }
@@ -5872,11 +6045,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPProbContamInOut(std::string("canvasPProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPProbContamInOut.SetGrid(1,1);
-      canvasPProbContamInOut.SetLogy(0);
-      canvasPProbContamInOut.SetFillColor(color_plot_background);
-      canvasPProbContamInOut.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPProbContamInOut(new TCanvas(std::string("canvasPProbContamInOut"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPProbContamInOut->SetGrid(1,1);
+      canvasPProbContamInOut->SetLogy(0);
+      canvasPProbContamInOut->SetFillColor(color_plot_background);
+      canvasPProbContamInOut->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5899,7 +6072,7 @@ namespace insur {
       legendPInOut->SetX2(0.36);
       legendPInOut->Draw("SAME");
 
-      RootWImage& myImagePProbContamInOut = myContentPlotsPProbContamInOut.addImage(canvasPProbContamInOut, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePProbContamInOut = myContentPlotsPProbContamInOut.addImage(std::move(canvasPProbContamInOut), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePProbContamInOut.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in in-out approach.").c_str());
       myImagePProbContamInOut.setName(std::string("bkg_p_pContam_inout_"+name).c_str());
     }
@@ -5916,11 +6089,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPD0OutIn(std::string("canvasPD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPD0OutIn.SetGrid(1,1);
-      canvasPD0OutIn.SetLogy(0);
-      canvasPD0OutIn.SetFillColor(color_plot_background);
-      canvasPD0OutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPD0OutIn(new TCanvas(std::string("canvasPD0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPD0OutIn->SetGrid(1,1);
+      canvasPD0OutIn->SetLogy(0);
+      canvasPD0OutIn->SetFillColor(color_plot_background);
+      canvasPD0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5944,7 +6117,7 @@ namespace insur {
       legendPOutIn->SetEntryLabel("p options (OutIn+IP, full TRK):");
       legendPOutIn->Draw("SAME");
 
-      RootWImage& myImagePD0OutIn = myContentPlotsPD0OutIn.addImage(canvasPD0OutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePD0OutIn = myContentPlotsPD0OutIn.addImage(std::move(canvasPD0OutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePD0OutIn.setComment(std::string("Detector: "+name+" - an extrapolated sigma in R-Phi from previous layers/discs in out-in approach.").c_str());
       myImagePD0OutIn.setName(std::string("bkg_p_d0_outin_"+name).c_str());
     }
@@ -5959,11 +6132,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPZ0OutIn(std::string("canvasPZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPZ0OutIn.SetGrid(1,1);
-      canvasPZ0OutIn.SetLogy(0);
-      canvasPZ0OutIn.SetFillColor(color_plot_background);
-      canvasPZ0OutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPZ0OutIn(new TCanvas(std::string("canvasPZ0OutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPZ0OutIn->SetGrid(1,1);
+      canvasPZ0OutIn->SetLogy(0);
+      canvasPZ0OutIn->SetFillColor(color_plot_background);
+      canvasPZ0OutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -5986,7 +6159,7 @@ namespace insur {
       legendPOutIn->SetX2(0.89);
       legendPOutIn->Draw("SAME");
 
-      RootWImage& myImagePZ0OutIn = myContentPlotsPZ0OutIn.addImage(canvasPZ0OutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePZ0OutIn = myContentPlotsPZ0OutIn.addImage(std::move(canvasPZ0OutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePZ0OutIn.setComment(std::string("Detector: "+name+" - an extrapolated sigma in Z from previous layers/discs in out-in approach.").c_str());
       myImagePZ0OutIn.setName(std::string("bkg_p_z0_outin_"+name).c_str());
     }
@@ -6001,11 +6174,11 @@ namespace insur {
 
       int         iMomentum = 0;
 
-      TCanvas canvasPProbContamOutIn(std::string("canvasPProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY);
-      canvasPProbContamOutIn.SetGrid(1,1);
-      canvasPProbContamOutIn.SetLogy(0);
-      canvasPProbContamOutIn.SetFillColor(color_plot_background);
-      canvasPProbContamOutIn.SetObjectStat(false);
+      std::unique_ptr<TCanvas> canvasPProbContamOutIn(new TCanvas(std::string("canvasPProbContamOutIn"+name).c_str(),"",vis_std_canvas_sizeY,vis_min_canvas_sizeY));
+      canvasPProbContamOutIn->SetGrid(1,1);
+      canvasPProbContamOutIn->SetLogy(0);
+      canvasPProbContamOutIn->SetFillColor(color_plot_background);
+      canvasPProbContamOutIn->SetObjectStat(false);
 
       for (const auto& pIter : mainConfig.getMomenta()) {
 
@@ -6028,7 +6201,7 @@ namespace insur {
       legendPOutIn->SetX2(0.36);
       legendPOutIn->Draw("SAME");
 
-      RootWImage& myImagePProbContamOutIn = myContentPlotsPProbContamOutIn.addImage(canvasPProbContamOutIn, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& myImagePProbContamOutIn = myContentPlotsPProbContamOutIn.addImage(std::move(canvasPProbContamOutIn), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       myImagePProbContamOutIn.setComment(std::string("Detector: "+name+" - bkg contamination prob. as error ellipse extrap. from previous layers/discs in out-in approach.").c_str());
       myImagePProbContamOutIn.setName(std::string("bkg_p_pContam_outin_"+name).c_str());
     }
@@ -6079,8 +6252,8 @@ namespace insur {
 
       // Create the contents
       RootWContent& myContent = myPage.addContent("Overall trigger");
-      TCanvas pointsCanvas;
-      pointsCanvas.SetGrid(1,1);
+      std::unique_ptr<TCanvas> pointsCanvas(new TCanvas());
+      pointsCanvas->SetGrid(1,1);
       plotOption = "E1"; // or "E6"
 
       // Strings according to the content
@@ -6117,9 +6290,9 @@ namespace insur {
         npointsProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         npointsProfile.SetMarkerStyle(8);
-        pointsCanvas.SetFillColor(color_plot_background);
+        pointsCanvas->SetFillColor(color_plot_background);
 
-        pointsCanvas.cd();
+        pointsCanvas->cd();
         // std::cerr << "About to draw plot " << myPt << std::endl; // debug
         npointsProfile.Draw(plotOption.c_str());
         //plotOption = "E6 same";
@@ -6127,23 +6300,21 @@ namespace insur {
         //plotOption = "same";
       }
       tempSS << " GeV";
-      
-      RootWImage& npointsImage = myContent.addImage(pointsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+
+      std::unique_ptr<TCanvas> pointsLogCanvas((TCanvas*)pointsCanvas->DrawClone());
+      pointsLogCanvas->SetLogy();
+           
+      RootWImage& npointsImage = myContent.addImage(std::move(pointsCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       npointsImage.setComment(tempSS.str().c_str());
       npointsImage.setName("ntrigpoints");
 
-      // std::cerr << "now to log scale..." << std::endl; // debug
-
-      pointsCanvas.SetLogy();
-      RootWImage& npointsLogImage = myContent.addImage(pointsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& npointsLogImage = myContent.addImage(std::move(pointsLogCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       npointsLogImage.setComment(tempSS.str().c_str());
       npointsLogImage.setName("ntrigpointsLog");
 
-      // std::cerr << "done..." << std::endl; // debug
-
-      TCanvas fractionCanvas;
-      fractionCanvas.SetGrid(1,1);
+      std::unique_ptr<TCanvas> fractionCanvas(new TCanvas());
+      fractionCanvas->SetGrid(1,1);
       plotOption = "E1";
 
       // Strings according to the content
@@ -6181,9 +6352,9 @@ namespace insur {
         fractionProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         fractionProfile.SetMarkerStyle(8);
-        fractionCanvas.SetFillColor(color_plot_background);
+        fractionCanvas->SetFillColor(color_plot_background);
 
-        fractionCanvas.cd();
+        fractionCanvas->cd();
         // std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
         fractionProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
@@ -6195,18 +6366,21 @@ namespace insur {
       }
       tempSS << " GeV";
 
-      RootWImage& fractionImage = myContent.addImage(fractionCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      std::unique_ptr<TCanvas> fractionLogCanvas((TCanvas*)fractionCanvas->DrawClone());
+      fractionLogCanvas->SetLogy();
+
+      RootWImage& fractionImage = myContent.addImage(std::move(fractionCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       fractionImage.setComment(tempSS.str().c_str());
       fractionImage.setName("fractiontrigpoints");
-      fractionCanvas.SetLogy();
-      RootWImage& fractionLogImage = myContent.addImage(fractionCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      
+      RootWImage& fractionLogImage = myContent.addImage(std::move(fractionLogCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       fractionLogImage.setComment(tempSS.str().c_str());
       fractionLogImage.setName("fractiontrigpointsLog");
 
 
-      TCanvas purityCanvas;
-      purityCanvas.SetGrid(1,1);
+      std::unique_ptr<TCanvas> purityCanvas(new TCanvas());
+      purityCanvas->SetGrid(1,1);
       plotOption = "E1";
 
       // Strings according to the content
@@ -6244,9 +6418,9 @@ namespace insur {
         purityProfile.SetFillColor(Palette::color(myColor));
         myColor++;
         purityProfile.SetMarkerStyle(8);
-        purityCanvas.SetFillColor(color_plot_background);
+        purityCanvas->SetFillColor(color_plot_background);
 
-        purityCanvas.cd();
+        purityCanvas->cd();
         // std::cerr << "About to draw purity plot " << myPt << std::endl; // debug
         purityProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
@@ -6258,11 +6432,14 @@ namespace insur {
       }
       tempSS << " GeV";
 
-      RootWImage& purityImage = myContent.addImage(purityCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      std::unique_ptr<TCanvas> purityLogCanvas((TCanvas*)purityCanvas->DrawClone());
+      purityLogCanvas->SetLogy();
+
+      RootWImage& purityImage = myContent.addImage(std::move(purityCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       purityImage.setComment(tempSS.str().c_str());
       purityImage.setName("puritytrigpoints");
-      purityCanvas.SetLogy();
-      RootWImage& purityLogImage = myContent.addImage(purityCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      
+      RootWImage& purityLogImage = myContent.addImage(std::move(purityLogCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS << " (log scale)";
       purityLogImage.setComment(tempSS.str().c_str());
       purityLogImage.setName("puritytrigpointsLog");
@@ -6277,7 +6454,7 @@ namespace insur {
     //*   Trigger efficiency maps    *//
     //*                              *//
     //********************************//
-    mapBag myMapBag = a.getMapBag();
+    mapBag& myMapBag = a.getMapBag();
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
     double maxPt = -1;
     // Check if the maps exist at all
@@ -6290,12 +6467,12 @@ namespace insur {
            it != efficiencyMaps.end(); ++it) {
 
         // One canvas per map
-        TCanvas myCanvas;
+        std::unique_ptr<TCanvas> myCanvas(new TCanvas());
         double myPt = it->first;
         if (myPt>maxPt) maxPt=myPt;
         TH2D& myMap = it->second;
-        myCanvas.SetFillColor(color_plot_background);
-        myCanvas.cd();
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
 
         // Actually plot the map
         myMap.SetMinimum(0);
@@ -6307,7 +6484,7 @@ namespace insur {
         myMap.Draw("colz");
 
         // Create the image object
-        RootWImage& myImage = myContent.addImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& myImage = myContent.addImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         tempSS.str(""); tempSS << "Trigger efficiency map for pT = " << myPt << " GeV/c"; tempString = tempSS.str();
         myImage.setComment(tempString.c_str());
         tempSS.str(""); tempSS << "TriggerEfficiency_" << myPt; tempString = tempSS.str();
@@ -6327,8 +6504,8 @@ namespace insur {
     if (!profiles.empty()) {
       RootWContent& myContent = myPage.addContent("Stub efficiency coverage", false);
       for (const auto& lmel : profiles) {
-        TCanvas* myCanvas = new TCanvas(Form("StubEfficiencyCoverageCanvas%s", lmel.first.c_str()), "Stub efficiency eta coverage", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-        //myCanvas.SetFillColor(color_plot_background);
+        std::unique_ptr<TCanvas> myCanvas(new TCanvas(Form("StubEfficiencyCoverageCanvas%s", lmel.first.c_str()), "Stub efficiency eta coverage", vis_std_canvas_sizeX, vis_min_canvas_sizeY));
+        //myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
         std::vector<std::string> momenta;
         int myColor = 1;
@@ -6345,7 +6522,7 @@ namespace insur {
           drawOpts = "same";
           break;
         }
-        RootWImage* myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage* myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         myImage->setComment("Stub efficiency coverage in eta for pT = " + join(momenta, ","));
         myContent.addItem(myImage);
       }
@@ -6368,11 +6545,11 @@ namespace insur {
            it != thresholdMaps.end(); ++it) {
 
         // One canvas per map
-        TCanvas myCanvas;
+        std::unique_ptr<TCanvas> myCanvas(new TCanvas());
         double myEfficiency = it->first;
         TH2D& myMap = it->second;
-        myCanvas.SetFillColor(color_plot_background);
-        myCanvas.cd();
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
 
         // Actually plot the map
         myMap.SetMinimum(0);
@@ -6381,7 +6558,7 @@ namespace insur {
         myMap.Draw("colz");
 
         // Create the image object
-        RootWImage& myImage = myContent.addImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& myImage = myContent.addImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         tempSS.str(""); tempSS << "Trigger threshold map for eff = " << myEfficiency * 100 << " %";
         tempString = tempSS.str();
         myImage.setComment(tempString.c_str());
@@ -6407,65 +6584,65 @@ namespace insur {
     RootWContent& myContent = myPage.addContent("Module configuration maps", false);
 
     // One canvas per map
-    TCanvas thickCanvas;
-    TCanvas windowCanvas;
-    TCanvas suggestedSpacingCanvas;
-    TCanvas suggestedSpacingAWCanvas;
-    TCanvas nominalCutCanvas;
-    thickCanvas.SetFillColor(color_plot_background);
-    windowCanvas.SetFillColor(color_plot_background);
-    suggestedSpacingCanvas.SetFillColor(color_plot_background);
-    suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
-    nominalCutCanvas.SetFillColor(color_plot_background);
+    std::unique_ptr<TCanvas> thickCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> windowCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> suggestedSpacingCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> suggestedSpacingAWCanvas(new TCanvas());
+    std::unique_ptr<TCanvas> nominalCutCanvas(new TCanvas());
+    thickCanvas->SetFillColor(color_plot_background);
+    windowCanvas->SetFillColor(color_plot_background);
+    suggestedSpacingCanvas->SetFillColor(color_plot_background);
+    suggestedSpacingAWCanvas->SetFillColor(color_plot_background);
+    nominalCutCanvas->SetFillColor(color_plot_background);
 
     struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } };
     PlotDrawer<YZ, Spacing> thicknessDrawer;
     thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
-    thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
+    thicknessDrawer.drawFrame<HistogramFrameStyle>(*thickCanvas.get());
+    thicknessDrawer.drawModules<ContourStyle>(*thickCanvas.get());
 
     struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
     PlotDrawer<YZ, TriggerWindow> windowDrawer;
     windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
-    windowDrawer.drawModules<ContourStyle>(windowCanvas);
+    windowDrawer.drawFrame<HistogramFrameStyle>(*windowCanvas.get());
+    windowDrawer.drawModules<ContourStyle>(*windowCanvas.get());
 
 
     // Actually plot the maps
-    //thickCanvas.cd();
+    //thickCanvas->cd();
     //thicknessMap.Draw("colz");
-    //windowCanvas.cd();
+    //windowCanvas->cd();
     //windowMap.Draw("colz");
     if (extended) {
-      suggestedSpacingCanvas.cd();
+      suggestedSpacingCanvas->cd();
       suggestedSpacingMap.Draw("colz");
-      suggestedSpacingAWCanvas.cd();
+      suggestedSpacingAWCanvas->cd();
       suggestedSpacingMapAW.Draw("colz");
-      nominalCutCanvas.cd();
+      nominalCutCanvas->cd();
       //struct PtCut { double operator()(const Module& m) { return PtErrorAdapter(m).getPtCut(); } };
       //PlotDrawer<YZ, PtCut> cutDrawer;
       //cutDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-      //cutDrawer.drawFrame<HistogramFrameStyle>(nominalCutCanvas);
-      //cutDrawer.drawModules<ContourStyle>(nominalCutCanvas);
-      nominalCutCanvas.SetLogz();
+      //cutDrawer.drawFrame<HistogramFrameStyle>(*nominalCutCanvas.get());
+      //cutDrawer.drawModules<ContourStyle>(*nominalCutCanvas.get());
+      nominalCutCanvas->SetLogz();
       nominalCutMap.Draw("colz");
     }
 
     // Create the image objects
-    RootWImage& thicknessImage = myContent.addImage(thickCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& thicknessImage = myContent.addImage(std::move(thickCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     thicknessImage.setComment("Map of sensor distances");
     thicknessImage.setName("ThicknessMap");
-    RootWImage& windowImage = myContent.addImage(windowCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    RootWImage& windowImage = myContent.addImage(std::move(windowCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     windowImage.setComment("Map of selection windows");
     windowImage.setName("WindowMap");
     if (extended) {
-      RootWImage& suggestedSpacingImage = myContent.addImage(suggestedSpacingCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& suggestedSpacingImage = myContent.addImage(std::move(suggestedSpacingCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       suggestedSpacingImage.setComment("Map of selection suggestedSpacings [default window]");
       suggestedSpacingImage.setName("SuggestedSpacingMap");
-      RootWImage& suggestedSpacingAWImage = myContent.addImage(suggestedSpacingAWCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& suggestedSpacingAWImage = myContent.addImage(std::move(suggestedSpacingAWCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       suggestedSpacingAWImage.setComment("Map of selection suggestedSpacings [selected windows]");
       suggestedSpacingAWImage.setName("SuggestedSpacingMapAW");
-      RootWImage& nominalCutImage = myContent.addImage(nominalCutCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& nominalCutImage = myContent.addImage(std::move(nominalCutCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       nominalCutImage.setComment("Map of nominal pT cut");
       nominalCutImage.setName("NominalCutMap");
     }
@@ -6497,58 +6674,62 @@ namespace insur {
 
       int nBins = profileNames.size();
 
-      TH1D myFrame("myFrame", "", nBins, 0, nBins);
-      myFrame.SetYTitle("Optimal distance range [mm]");
-      myFrame.SetMinimum(0);
-      myFrame.SetMaximum(6);
-      TAxis* xAxis = myFrame.GetXaxis();
+      TH1D* myFrame = new TH1D("myFrame", "", nBins, 0, nBins);
+      myFrame->SetYTitle("Optimal distance range [mm]");
+      myFrame->SetMinimum(0);
+      myFrame->SetMaximum(6);
+      TAxis* xAxis = myFrame->GetXaxis();
 
-      TGraphErrors rangeGraphBad;
-      TGraphErrors rangeGraph;
+      TGraphErrors* rangeGraphBad = new TGraphErrors();
+      TGraphErrors* rangeGraph = new TGraphErrors();
       int rangeGraphPoints;
 
       std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
       TGraphErrors& availableSpacings = spacingTuningGraphs[-1];
 
-
       for (unsigned int i=0; i<profileNames.size(); ++i) {
-        double min = a.getTriggerRangeLowLimit(profileNames[i]);
-        double max = a.getTriggerRangeHighLimit(profileNames[i]);
-        tempString = profileNames[i];
-        tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
-        xAxis->SetBinLabel(i+1, tempString.c_str());
-        if (min<max) {
-          rangeGraphPoints=rangeGraph.GetN();
-          rangeGraph.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-          rangeGraph.SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
-        } else {
-          rangeGraphPoints=rangeGraphBad.GetN();
-          rangeGraphBad.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-          rangeGraphBad.SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
-        }
+	double min = a.getTriggerRangeLowLimit(profileNames[i]);
+	double max = a.getTriggerRangeHighLimit(profileNames[i]);
+	tempString = profileNames[i];
+	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	xAxis->SetBinLabel(i+1, tempString.c_str());
+	if (min<max) {
+	  rangeGraphPoints=rangeGraph->GetN();
+	  rangeGraph->SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraph->SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
+	} else {
+	  rangeGraphPoints=rangeGraph->GetN();
+	  rangeGraphBad->SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraphBad->SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
+	}
       }
 
-
-      TCanvas rangeCanvas;
-      rangeCanvas.SetFillColor(color_plot_background);
-      rangeCanvas.SetGrid(0,1);
-      myFrame.Draw();
-      rangeGraph.SetFillColor(Palette::color(1));
-      rangeGraph.Draw("same 2");
-      rangeGraphBad.SetFillColor(Palette::color(2));
-      rangeGraphBad.Draw("same 2");
+      std::unique_ptr<TCanvas> rangeCanvas(new TCanvas());
+      rangeCanvas->cd();
+      rangeCanvas->SetFillColor(color_plot_background);
+      rangeCanvas->SetGrid(0,1);
+      myFrame->SetBit(1); // rangeCanvas takes ownership of it
+      myFrame->Draw();
+      rangeGraph->SetFillColor(Palette::color(1));
+      rangeGraph->SetBit(1);  // rangeCanvas takes ownership of it
+      rangeGraph->Draw("same 2");
+      rangeGraphBad->SetFillColor(Palette::color(2));
+      rangeGraphBad->SetBit(1);  // rangeCanvas takes ownership of it
+      rangeGraphBad->Draw("same 2");
       availableSpacings.SetMarkerStyle(0);
+      availableSpacings.SetBit(0);
       availableSpacings.Draw("p same");
 
-      RootWImage& RangeImage = spacingSummaryContent.addImage(rangeCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& RangeImage = spacingSummaryContent.addImage(std::move(rangeCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS.str(""); tempSS << "Sensor distance range tuning";
       RangeImage.setComment(tempSS.str());
       tempSS.str(""); tempSS << "TriggerRangeTuning";
       RangeImage.setName(tempSS.str());
 
-      TCanvas tuningCanvas;
-      tuningCanvas.SetFillColor(color_plot_background);
-      tuningCanvas.SetGrid(0,1);
+      std::unique_ptr<TCanvas> tuningCanvas(new TCanvas());
+      tuningCanvas->cd();
+      tuningCanvas->SetFillColor(color_plot_background);
+      tuningCanvas->SetGrid(0,1);
       //std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
       std::map<int, TGraphErrors>& spacingTuningGraphsBad = a.getSpacingTuningGraphsBad();
       TH1D& spacingTuningFrame = a.getSpacingTuningFrame();
@@ -6576,28 +6757,28 @@ namespace insur {
         tuningGraph.Draw("same 2");
       }
 
-      RootWImage& tuningImage = spacingSummaryContent.addImage(tuningCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& tuningImage = spacingSummaryContent.addImage(std::move(tuningCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       tempSS.str(""); tempSS << "Sensor distance range tuning for different windows";
       tuningImage.setComment(tempSS.str());
       tempSS.str(""); tempSS << "TriggerRangeTuningWindows";
       tuningImage.setName(tempSS.str());
 
       TH1D& spacingDistribution = a.getHistoOptimalSpacing(false);
-      TCanvas spacingCanvas;
-      spacingCanvas.SetFillColor(color_plot_background);
-      spacingCanvas.cd();
+      std::unique_ptr<TCanvas> spacingCanvas(new TCanvas());
+      spacingCanvas->SetFillColor(color_plot_background);
+      spacingCanvas->cd();
       spacingDistribution.SetFillColor(Palette::color(1));
       spacingDistribution.Draw();
-      RootWImage& spacingImage = spacingSummaryContent.addImage(spacingCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& spacingImage = spacingSummaryContent.addImage(std::move(spacingCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       spacingImage.setComment("Distribution of minimal spacing for low pT rejection @ standard window");
       spacingImage.setName("SpacingDistribution");
       TH1D& spacingDistributionAW = a.getHistoOptimalSpacing(true);
-      TCanvas spacingCanvasAW;
-      spacingCanvasAW.SetFillColor(color_plot_background);
-      spacingCanvasAW.cd();
+      std::unique_ptr<TCanvas> spacingCanvasAW(new TCanvas());
+      spacingCanvasAW->SetFillColor(color_plot_background);
+      spacingCanvasAW->cd();
       spacingDistributionAW.SetFillColor(Palette::color(1));
       spacingDistributionAW.Draw();
-      RootWImage& spacingImageAW = spacingSummaryContent.addImage(spacingCanvasAW, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      RootWImage& spacingImageAW = spacingSummaryContent.addImage(std::move(spacingCanvasAW), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       spacingImageAW.setComment("Distribution of minimal spacing for low pT rejection @ selected window");
       spacingImageAW.setName("SpacingDistributionAW");
 
@@ -6616,9 +6797,9 @@ namespace insur {
         std::map<double, TProfile>& tuningProfiles = aProfileBag.getNamedProfiles(*itName);
 
         int myColor = 1;
-        TCanvas tuningCanvas;
-        tuningCanvas.SetFillColor(color_plot_background);
-        tuningCanvas.cd();
+        std::unique_ptr<TCanvas> tuningCanvas(new TCanvas());
+        tuningCanvas->SetFillColor(color_plot_background);
+        tuningCanvas->cd();
 
         std::string plotOption = "E1";
         for (std::map<double, TProfile>::iterator itProfile = tuningProfiles.begin() ; itProfile!= tuningProfiles.end(); ++itProfile) {
@@ -6636,7 +6817,7 @@ namespace insur {
           plotOption = "same E1";
         }
 
-        RootWImage& tuningImage = spacingDetailedContent.addImage(tuningCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& tuningImage = spacingDetailedContent.addImage(std::move(tuningCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         tempString = (*itName);
         tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
         tempSS.str(""); tempSS << "Sensor distance tuning for " << tempString.c_str();
@@ -6673,9 +6854,9 @@ namespace insur {
         std::map<double, TProfile>& turnonProfiles = aProfileBag.getNamedProfiles(*itName);
 
         int myColor = 1;
-        TCanvas turnonCanvas;
-        turnonCanvas.SetFillColor(color_plot_background);
-        turnonCanvas.cd();
+        std::unique_ptr<TCanvas> turnonCanvas(new TCanvas());
+        turnonCanvas->SetFillColor(color_plot_background);
+        turnonCanvas->cd();
 
         std::string plotOption = "E1";
         tempSS.str("");
@@ -6697,7 +6878,7 @@ namespace insur {
 
         tempString = (*itName);
         tempString = tempString.substr(profileBag::TurnOnCurveName.size(), tempString.size()-profileBag::TurnOnCurveName.size());
-        RootWImage& turnonImage = turnOnDetailedContent.addImage(turnonCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& turnonImage = turnOnDetailedContent.addImage(std::move(turnonCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         tempSS.str(""); tempSS << "Sensor turnon curve for " << tempString.c_str() << " with windows of " << windowList;
         turnonImage.setComment(tempSS.str());
         tempSS.str(""); tempSS << "TriggerTurnon" << tempString.c_str();
@@ -7055,14 +7236,14 @@ namespace insur {
   // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
   // @return a pointer to the new TCanvas
   void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer,
-                                   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
-                                   TCanvas *&XYCanvasEC) {
+                                   std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas,
+                                   std::unique_ptr<TCanvas> &XYCanvasEC) {
     Int_t irep;
     TVirtualPad* myPad;
 
-    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    YZCanvas.reset(new TCanvas("YZCanvas", "YZView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
+    XYCanvasEC.reset(new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
 
     // YZView
     if (analyzer.getGeomLiteYZ()) {
@@ -7107,41 +7288,41 @@ namespace insur {
 
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
-                                        std::vector<TCanvas*> &XYCanvasesEC) {
+                                        std::unique_ptr<TCanvas> &RZCanvas, std::unique_ptr<TCanvas> &RZCanvasBarrel, std::unique_ptr<TCanvas> &XYCanvas,
+                                        std::vector<std::unique_ptr<TCanvas> > &XYCanvasesEC) {
 
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas",  insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
+    RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas",  insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModules(tracker);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
 
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
-    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RZCanvasBarrel.reset(new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     RZCanvasBarrel->cd();
     PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
     yzDrawerBarrel.addModulesType(tracker, BARREL);
-    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
-    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
+    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel.get());
+    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel.get());
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker, BARREL);
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
 
     for (auto& anEndcap : tracker.endcaps() ) {
-      TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
+      std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
 					Form("XY projection of Endcap %s", anEndcap.myid().c_str()),
-					vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						      vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
       XYCanvasEC->cd();
       PlotDrawer<XY, Type> xyEndcapDrawer;
       xyEndcapDrawer.addModules(anEndcap);
-      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-      XYCanvasesEC.push_back(XYCanvasEC);
+      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC.get());
+      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC.get());
+      XYCanvasesEC.push_back(std::move(XYCanvasEC));
     }
 
     // And now one per disk surface
@@ -7154,17 +7335,17 @@ namespace insur {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
 	    const std::vector<const Module*>& surfaceModules = found->second;
-	    TCanvas* XYCanvasEC = new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
+	    std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
 					      Form("XY section of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	    XYCanvasEC->cd();
 	    PlotDrawer<XY, Type> xyEndcapDrawer;
 
 	    xyEndcapDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-	    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
-	    xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC);
-	    XYCanvasesEC.push_back(XYCanvasEC);
+	    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC.get());
+	    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC.get());
+	    xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC.get());
+	    XYCanvasesEC.push_back(std::move(XYCanvasEC));
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
 	}
@@ -7180,33 +7361,40 @@ namespace insur {
    * Bundle cabling plots.
    */
   void Vizard::createOuterCablingPlotsBundles(const Tracker& tracker,
-					      TCanvas *&RZCanvas, TCanvas *&XYCanvas, TCanvas *&XYNegCanvas,
-					      std::vector<TCanvas*> &XYPosBundlesDisks, std::vector<TCanvas*> &XYPosBundlesDiskSurfaces,
-					      std::vector<TCanvas*> &XYNegBundlesDisks, std::vector<TCanvas*> &XYNegBundlesDiskSurfaces) {
+					      std::unique_ptr<TCanvas> &RZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYNegCanvas,
+					      std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDiskSurfaces,
+					      std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDiskSurfaces) {
     
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
+    const std::set<Module*>& trackerModules = tracker.modules();
+    RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
-    yzDrawer.addModules(tracker);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    // TBPS flat part: only draw 2 consecutives MFBs in phi, otherwise confusing drawing effect happens on bundle coloring.
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+	return ( (!m.getBundle()->isBarrelPSFlatPart()) 
+		 || (m.getBundle()->isBarrelPSFlatPart() && (m.getBundle()->phiPosition().phiSegmentRef() == 0 
+							     || m.getBundle()->phiPosition().phiSegmentRef() == 1)) 
+		 ); 
+      } );
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
    
     // NEGATIVE CABLING SIDE. BARREL.
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeBundleColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeBundleColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE.
@@ -7214,16 +7402,16 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+	std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					    Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards you)", anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYCanvasDisk->cd();
-	PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XY, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(lastDisk);
-	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
 	drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
-	XYPosBundlesDisks.push_back(XYCanvasDisk);
+	XYPosBundlesDisks.push_back(std::move(XYCanvasDisk));
       }
     }
 
@@ -7238,31 +7426,31 @@ namespace insur {
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    if ((surfaceIndex % 2) == 1) {
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180BundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180BundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XYRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      const bool isRotatedY180 = true;
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
-	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosBundlesDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	    // (+Z) towards you
 	    else {
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
-	      PlotDrawer<XY, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XY, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
-	      XYPosBundlesDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosBundlesDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
@@ -7275,18 +7463,18 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& firstDisk = anEndcap.disks().front();
-	TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+	std::unique_ptr<TCanvas> XYNegCanvasDisk(new TCanvas(Form("XYNegBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					       Form("(XY) Projection : Endcap %s, any Disk. (CMS +Z points towards the depth of the screen)", 
 						    anEndcap.myid().c_str()),
-					       vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					       vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYNegCanvasDisk->cd();
-	PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	PlotDrawer<XYNegRotateY180, TypeBundleTransparentColor> xyDiskDrawer;
 	xyDiskDrawer.addModules(firstDisk);
-	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
-	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk.get());
+	xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk.get());
 	const bool isRotatedY180 = true;
 	drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
-	XYNegBundlesDisks.push_back(XYNegCanvasDisk);
+	XYNegBundlesDisks.push_back(std::move(XYNegCanvasDisk));
       }
     }
 
@@ -7301,33 +7489,33 @@ namespace insur {
 	    // (+Z) towards you
 	    if ((surfaceIndex % 2) == 1) {
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYNegSurfaceDisk(new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
-						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNeg, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNeg, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
-	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
+	      XYNegBundlesDiskSurfaces.push_back(std::move(XYNegSurfaceDisk));
 	    }
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    else {
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYNegSurfaceDisk = new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYNegSurfaceDisk(new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
-						      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
-	      PlotDrawer<XYNegRotateY180, TypeBundleColor> xyDiskDrawer;
+	      PlotDrawer<XYNegRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
 	      const bool isRotatedY180 = true;
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
-	      XYNegBundlesDiskSurfaces.push_back(XYNegSurfaceDisk);
+	      XYNegBundlesDiskSurfaces.push_back(std::move(XYNegSurfaceDisk));
 	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
@@ -7342,69 +7530,69 @@ namespace insur {
    * DTC cabling plots.
    */
   void Vizard::createOuterCablingPlotsDTCs(Tracker& tracker,
-					   TCanvas *&RZCanvas, 
-					   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-					   std::vector<TCanvas*> &XYCanvasesDisk) {
+					   std::unique_ptr<TCanvas> &RZCanvas, 
+					   std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYNegFlatCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYFlatCanvas, 
+					   std::vector<std::unique_ptr<TCanvas> > &XYCanvasesDisk) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
+    RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
 	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
       } );
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
 
     // NEGATIVE CABLING SIDE. BARREL.
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeDTCColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
-    XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNeg, TypeDTCColor> xyNegFlatBarrelDrawer;
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
-    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
-    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
+    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
+    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL.
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
-    XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelFlatDrawer;
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
-    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
-    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
+    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
+    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     
     // ENDCAPS DISK.
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosDTCEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosDTCEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeDTCColor> xyDiskDrawer;
 	  xyDiskDrawer.addModules(aDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
+	  XYCanvasesDisk.push_back(std::move(XYCanvasDisk));
 	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	}
       }
@@ -7416,8 +7604,8 @@ namespace insur {
    * Optical cables channels assignments plots.
    */
   void Vizard::createOuterCablingPlotsServicesChannelsOptical(Tracker& tracker, const OuterCablingMap* myCablingMap,
-							   TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-							   std::vector<TCanvas*> &XYCanvasesDisk) {
+							   std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYNegFlatCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYFlatCanvas, 
+							   std::vector<std::unique_ptr<TCanvas> > &XYCanvasesDisk) {
     bool isPowerCabling = false;
     bool isPositiveCablingSide = true;
     TLegend* channelsLegendPos = new TLegend(0.905,0.3,1.0,0.8);
@@ -7427,42 +7615,42 @@ namespace insur {
     computeServicesChannelsLegend(channelsLegendNeg, myCablingMap, isPositiveCablingSide, isPowerCabling);
 
     // NEGATIVE CABLING SIDE. BARREL.
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeOpticalChannelColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same"); 
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
-    XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNeg, TypeOpticalChannelColor> xyNegFlatBarrelDrawer;
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
-    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
-    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
+    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
+    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeOpticalChannelColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
-    XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypeOpticalChannelColor> xyBarrelFlatDrawer;
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
-    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
-    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
+    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
+    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
@@ -7470,15 +7658,15 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       for (auto& aDisk : anEndcap.disks() ) {
 	if (aDisk.side()) {
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosOpticalChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosOpticalChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypeOpticalChannelColor> xyDiskDrawer;
 	  xyDiskDrawer.addModules(aDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
+	  XYCanvasesDisk.push_back(std::move(XYCanvasDisk));
 	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
@@ -7491,8 +7679,8 @@ namespace insur {
    * Power cables channels assignments plots.
    */
   void Vizard::createOuterCablingPlotsServicesChannelsPower(Tracker& tracker, const OuterCablingMap* myCablingMap,
-							    TCanvas *&XYNegCanvas, TCanvas *&XYNegFlatCanvas, TCanvas *&XYCanvas, TCanvas *&XYFlatCanvas, 
-							    std::vector<TCanvas*> &XYCanvasesDisk, std::vector<TCanvas*> &XYNegCanvasesDisk) {
+							    std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYNegFlatCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYFlatCanvas, 
+							    std::vector<std::unique_ptr<TCanvas> > &XYCanvasesDisk, std::vector<std::unique_ptr<TCanvas> > &XYNegCanvasesDisk) {
     bool isPowerCabling = true;
 
     bool isPositiveCablingSide = true;
@@ -7504,44 +7692,44 @@ namespace insur {
 
     // NEGATIVE CABLING SIDE. BARREL.
     bool isRotatedY180 = true;
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNegRotateY180, TypePowerChannelColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // NEGATIVE CABLING SIDE. BARREL FLAT PART.
     isRotatedY180 = true;
-    XYNegFlatCanvas = new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNegRotateY180, TypePowerChannelColor> xyNegFlatBarrelDrawer;
     xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
-    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas);
-    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas);
+    xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
+    xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
     channelsLegendNeg->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL.
     isRotatedY180 = false;
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypePowerChannelColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
 
     // POSITIVE CABLING SIDE. BARREL FLAT PART.
-    XYFlatCanvas = new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypePowerChannelColor> xyBarrelFlatDrawer;
     xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
-    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas);
-    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas);
+    xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
+    xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
     channelsLegendPos->Draw("same");
     
@@ -7550,30 +7738,30 @@ namespace insur {
 	// POSITIVE CABLING SIDE. ENDCAPS DISK.
 	if (aDisk.side()) {
 	  isRotatedY180 = false;
-	  TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards you)", anEndcap.myid().c_str(), aDisk.myid()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	  XYCanvasDisk->cd();
 	  PlotDrawer<XY, TypePowerChannelColor> xyDiskDrawer;
 	  xyDiskDrawer.addModules(aDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
-	  XYCanvasesDisk.push_back(XYCanvasDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
+	  XYCanvasesDisk.push_back(std::move(XYCanvasDisk));
 	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendPos->Draw("same");
 	}
 	// NEGATIVE CABLING SIDE. ENDCAPS DISK.
 	else {
 	  isRotatedY180 = true;
-	  TCanvas* XYNegCanvasDisk = new TCanvas(Form("XYNegPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
+	  std::unique_ptr<TCanvas> XYNegCanvasDisk(new TCanvas(Form("XYNegPowerChannelsEndcap_%sDisk_%d", anEndcap.myid().c_str(), aDisk.myid()),
 					      Form("(XY) Projection : Endcap %s Disk %d. (CMS +Z points towards the depth of the screen)", anEndcap.myid().c_str(), aDisk.myid()),
-					      vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	  XYNegCanvasDisk->cd();
 	  PlotDrawer<XYNegRotateY180, TypePowerChannelColor> xyDiskDrawer;
 	  xyDiskDrawer.addModules(aDisk);
-	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk);
-	  xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk);
-	  XYNegCanvasesDisk.push_back(XYNegCanvasDisk);
+	  xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvasDisk.get());
+	  xyDiskDrawer.drawModules<ContourStyle>(*XYNegCanvasDisk.get());
+	  XYNegCanvasesDisk.push_back(std::move(XYNegCanvasDisk));
 	  drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
 	  channelsLegendNeg->Draw("same");
 	}
@@ -7586,14 +7774,16 @@ namespace insur {
    */
   RootWTable* Vizard::opticalServicesChannels(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
     std::map<int, std::vector<int> > cablesPerChannel;
-    std::map<int, int> psBundlesPerChannel;
-    std::map<int, int> ssBundlesPerChannel;
+    std::map<int, int> tbpsBundlesPerChannel;
+    std::map<int, int> tbssBundlesPerChannel;
+    std::map<int, int> teddpsBundlesPerChannel;
+    std::map<int, int> teddssBundlesPerChannel;
 
     // Fill services channels maps.
-    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    analyzeOpticalServicesChannels(myCablingMap, cablesPerChannel, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
     // Create table.
-    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+    RootWTable* channelsTable = createOpticalServicesChannelTable(cablesPerChannel, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
     return channelsTable;
   }
@@ -7601,66 +7791,107 @@ namespace insur {
 
   /* Get the requested Services Channels info from the cabling map.
    */
-  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzeOpticalServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, std::vector<int> > &cablesPerChannel, 
+					      std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					      const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
+    // MFCs
     const std::map<const int, std::unique_ptr<OuterCable> >& cables = (isPositiveCablingSide ? 
 								       myCablingMap->getCables() 
 								       : myCablingMap->getNegCables());
-
+    // loop on all MFCs
     for (const auto& myCableIt : cables) {
       const OuterCable* myCable = myCableIt.second.get();
       const ChannelSection* mySection = myCable->opticalChannelSection();
       const ChannelSlot& myChannelSlot = mySection->channelSlot();
 
-      // If necessary, can select the Services Channels corresponding to the requested channelSlot.
+      // If a specific slot is requested, select that slot only!
+      if ( requestedSlot == ChannelSlot::UNKNOWN 
+	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
+	   ) {
+	// Channel number
+	const int channelNumber = mySection->channelNumber();
+
+	// MFC
+	const int cableId = myCableIt.first;
+	cablesPerChannel[channelNumber].push_back(cableId);
+      }
+    }
+
+    // MFBs
+    const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? myCablingMap->getBundles() : myCablingMap->getNegBundles());
+    // loop on all MFBs
+    for (const auto& myBundle : bundles) {
+      const ChannelSection* mySection = myBundle.second->opticalChannelSection();
+      const ChannelSlot& myChannelSlot = mySection->channelSlot();
+
+      // If a specific slot is requested, select that slot only!
       if ( requestedSlot == ChannelSlot::UNKNOWN 
 	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
 	   ) {
 
+	// Channel number
 	const int channelNumber = mySection->channelNumber();
-
-	const int cableId = myCableIt.first;
-	cablesPerChannel[channelNumber].push_back(cableId);
-
-	const Category cableType = myCable->type();      
-	const int numBundles = myCable->numBundles();
-
-	if (cableType == Category::PS10G || cableType == Category::PS5G) psBundlesPerChannel[channelNumber] += numBundles;
-	else if (cableType == Category::SS) ssBundlesPerChannel[channelNumber] += numBundles;
-	else { std::cout << "analyzeServicesChannels : Undetected cable type" << std::endl; }
+	const std::string subDetectorName = myBundle.second->subDetectorName();
+	const Category bundleType = myBundle.second->type();   
+	// TBPS   
+	if (subDetectorName == outer_cabling_tbps) tbpsBundlesPerChannel[channelNumber] += 1;
+	// TB2S
+	else if (subDetectorName == outer_cabling_tb2s) tbssBundlesPerChannel[channelNumber] += 1;
+	// TEDD
+	else {
+	  if (bundleType == Category::PS10G 
+	      || bundleType == Category::PS10GA 
+	      || bundleType == Category::PS10GB 
+	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
+	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
+	  else { logERROR("analyzeServicesChannels : subdetector " + any2str(subDetectorName) 
+			  + " has undetected bundle type" + any2str(bundleType)); }
+	}
       }
     }
+
   }
 
 
   /* Create the table with Services Channel information.
    */
-  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  RootWTable* Vizard::createOpticalServicesChannelTable(const std::map<int, std::vector<int> > &cablesPerChannel, 
+							std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+							const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     RootWTable* channelsTable = new RootWTable();
 
     // Header table
     channelsTable->setContent(0, 1, any2str(requestedSlot));
     channelsTable->setContent(0, 2, "# MFC");
-    channelsTable->setContent(0, 3, "# MFB PS");
-    channelsTable->setContent(0, 4, "# MFB 2S");
-    channelsTable->setContent(0, 5, "# MFB Total");
+    channelsTable->setContent(0, 3, "# MFB TBPS");
+    channelsTable->setContent(0, 4, "# MFB TB2S");
+    channelsTable->setContent(0, 5, "# MFB TEDD PS");
+    channelsTable->setContent(0, 6, "# MFB TEDD 2S");
+    channelsTable->setContent(0, 7, "# MFB Total");
 
     int totalCables = 0;
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
+    int totalTbpsBundles = 0;
+    int totalTbssBundles = 0;
+    int totalTeddpsBundles = 0;
+    int totalTeddssBundles = 0;
     int totalBundles = 0;
 
     // Fill table
     for (int i = 1; i <= 12; i++) {
       const int channelNumber = (isPositiveCablingSide ? i : -i);
       int numCablesPerChannel = (cablesPerChannel.count(channelNumber) != 0 ? cablesPerChannel.at(channelNumber).size() : 0);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+      int numTbpsBundlesPerChannel = (tbpsBundlesPerChannel.count(channelNumber) != 0 ? tbpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTbssBundlesPerChannel = (tbssBundlesPerChannel.count(channelNumber) != 0 ? tbssBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddpsBundlesPerChannel = (teddpsBundlesPerChannel.count(channelNumber) != 0 ? teddpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddssBundlesPerChannel = (teddssBundlesPerChannel.count(channelNumber) != 0 ? teddssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;     
 
       // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      const int pp1 = channelNumber 
+	+ (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) 
+	   : -(fabs(channelNumber) <= 6 ? 2 : 5) );
       std::stringstream pp1Name;
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
@@ -7674,20 +7905,27 @@ namespace insur {
       channelsTable->setContent(i, 1, channelName.str());
 
       channelsTable->setContent(i, 2, numCablesPerChannel);
-      channelsTable->setContent(i, 3, numPsBundlesPerChannel);
-      channelsTable->setContent(i, 4, numSsBundlesPerChannel);
-      channelsTable->setContent(i, 5, numBundlesPerChannel);
+      channelsTable->setContent(i, 3, numTbpsBundlesPerChannel);
+      channelsTable->setContent(i, 4, numTbssBundlesPerChannel);
+      channelsTable->setContent(i, 5, numTeddpsBundlesPerChannel);
+      channelsTable->setContent(i, 6, numTeddssBundlesPerChannel);
+      channelsTable->setContent(i, 7, numBundlesPerChannel);
 
+      // Gather totals
       totalCables += numCablesPerChannel;
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
+      totalTbpsBundles += numTbpsBundlesPerChannel;
+      totalTbssBundles += numTbssBundlesPerChannel;
+      totalTeddpsBundles += numTeddpsBundlesPerChannel;
+      totalTeddssBundles += numTeddssBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
     channelsTable->setContent(13, 1, "Total");
     channelsTable->setContent(13, 2, totalCables);
-    channelsTable->setContent(13, 3, totalPsBundles);
-    channelsTable->setContent(13, 4, totalSsBundles);
-    channelsTable->setContent(13, 5, totalBundles);
+    channelsTable->setContent(13, 3, totalTbpsBundles);
+    channelsTable->setContent(13, 4, totalTbssBundles);
+    channelsTable->setContent(13, 5, totalTeddpsBundles);
+    channelsTable->setContent(13, 6, totalTeddssBundles);
+    channelsTable->setContent(13, 7, totalBundles);
 
     return channelsTable;
   }
@@ -7700,14 +7938,16 @@ namespace insur {
     RootWTable* channelsTable = new RootWTable();
 
     for (const auto& requestedSlot : slots) {
-      std::map<int, int> psBundlesPerChannel;
-      std::map<int, int> ssBundlesPerChannel;
+      std::map<int, int> tbpsBundlesPerChannel;
+      std::map<int, int> tbssBundlesPerChannel;
+      std::map<int, int> teddpsBundlesPerChannel;
+      std::map<int, int> teddssBundlesPerChannel;
 
       // Fill powerServices channels maps.
-      analyzePowerServicesChannels(myCablingMap, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+      analyzePowerServicesChannels(myCablingMap, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
 
       // Create table.
-      createPowerServicesChannelTable(channelsTable, psBundlesPerChannel, ssBundlesPerChannel, isPositiveCablingSide, requestedSlot);
+      createPowerServicesChannelTable(channelsTable, tbpsBundlesPerChannel, tbssBundlesPerChannel, teddpsBundlesPerChannel, teddssBundlesPerChannel, isPositiveCablingSide, requestedSlot); 
     }
 
     return channelsTable;
@@ -7716,8 +7956,11 @@ namespace insur {
 
   /* Get the requested PowerServices Channels info from the cabling map.
    */
-  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, std::map<int, int> &psBundlesPerChannel, std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::analyzePowerServicesChannels(const OuterCablingMap* myCablingMap, 
+					    std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					    const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
+    // Power cables = MFBs scheme
     const std::map<const int, std::unique_ptr<OuterBundle> >& bundles = (isPositiveCablingSide ? 
 									 myCablingMap->getBundles() 
 									 : myCablingMap->getNegBundles());
@@ -7732,16 +7975,26 @@ namespace insur {
 	   || (requestedSlot != ChannelSlot::UNKNOWN && myChannelSlot == requestedSlot)
 	   ) {
 
+	// Channel number
 	const int channelNumber = mySection->channelNumber();
 
-	const Category bundleType = myBundle->type();      
+	const std::string subDetectorName = myBundle->subDetectorName();
+	const Category bundleType = myBundle->type();    
 
-	if (bundleType == Category::PS10G 
-	    || bundleType == Category::PS10GA 
-	    || bundleType == Category::PS10GB 
-	    || bundleType == Category::PS5G) psBundlesPerChannel[channelNumber] += 1;
-	else if (bundleType == Category::SS) ssBundlesPerChannel[channelNumber] += 1;
-	else { std::cout << "analyzePowerServicesChannels : Undetected bundle type" << std::endl; }
+	// TBPS
+	if (subDetectorName == outer_cabling_tbps) { tbpsBundlesPerChannel[channelNumber] += 1; }
+	// TB2S
+	else if (subDetectorName == outer_cabling_tb2s) { tbssBundlesPerChannel[channelNumber] += 1; }
+	// TEDD
+	else {
+	  if (bundleType == Category::PS10G 
+	      || bundleType == Category::PS10GA 
+	      || bundleType == Category::PS10GB 
+	      || bundleType == Category::PS5G) { teddpsBundlesPerChannel[channelNumber] += 1; }
+	  else if (bundleType == Category::SS) { teddssBundlesPerChannel[channelNumber] += 1; }
+	  else { logERROR("analyzePowerServicesChannels : subdetector " + any2str(subDetectorName) 
+			  + " has undetected bundle type" + any2str(bundleType)); }
+	}
       }
     }
   }
@@ -7749,30 +8002,40 @@ namespace insur {
 
   /* Create the table with PowerServices Channel information.
    */
-  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, const std::map<int, int> &psBundlesPerChannel, const std::map<int, int> &ssBundlesPerChannel, const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
+  void Vizard::createPowerServicesChannelTable(RootWTable* channelsTable, 
+					       std::map<int, int> &tbpsBundlesPerChannel, std::map<int, int> &tbssBundlesPerChannel, std::map<int, int> &teddpsBundlesPerChannel, std::map<int, int> &teddssBundlesPerChannel,
+					       const bool isPositiveCablingSide, const ChannelSlot requestedSlot) {
 
     const int maxCol = channelsTable->maxCol();
     const int startCol = (maxCol == 0 ? 0 : maxCol + 1);
 
     // Header table
     channelsTable->setContent(0, startCol + 1, any2str(requestedSlot));
-    channelsTable->setContent(0, startCol + 2, "# PWR PS");
-    channelsTable->setContent(0, startCol + 3, "# PWR 2S");
-    channelsTable->setContent(0, startCol + 4, "# PWR Total");
-
-    int totalPsBundles = 0;
-    int totalSsBundles = 0;
+    channelsTable->setContent(0, startCol + 2, "# PWR TBPS");
+    channelsTable->setContent(0, startCol + 3, "# PWR TB2S");
+    channelsTable->setContent(0, startCol + 4, "# PWR TEDD PS");
+    channelsTable->setContent(0, startCol + 5, "# PWR TEDD 2S");
+    channelsTable->setContent(0, startCol + 6, "# PWR Total");
+    
+    int totalTbpsBundles = 0;
+    int totalTbssBundles = 0;
+    int totalTeddpsBundles = 0;
+    int totalTeddssBundles = 0;
     int totalBundles = 0;
 
     // Fill table
     for (int i = 1; i <= 12; i++) {
       const int channelNumber = (isPositiveCablingSide ? i : -i);
-      int numPsBundlesPerChannel = (psBundlesPerChannel.count(channelNumber) != 0 ? psBundlesPerChannel.at(channelNumber) : 0);
-      int numSsBundlesPerChannel = (ssBundlesPerChannel.count(channelNumber) != 0 ? ssBundlesPerChannel.at(channelNumber) : 0);
-      int numBundlesPerChannel = numPsBundlesPerChannel + numSsBundlesPerChannel;
+      int numTbpsBundlesPerChannel = (tbpsBundlesPerChannel.count(channelNumber) != 0 ? tbpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTbssBundlesPerChannel = (tbssBundlesPerChannel.count(channelNumber) != 0 ? tbssBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddpsBundlesPerChannel = (teddpsBundlesPerChannel.count(channelNumber) != 0 ? teddpsBundlesPerChannel.at(channelNumber) : 0);
+      int numTeddssBundlesPerChannel = (teddssBundlesPerChannel.count(channelNumber) != 0 ? teddssBundlesPerChannel.at(channelNumber) : 0);
+      int numBundlesPerChannel = numTbpsBundlesPerChannel + numTbssBundlesPerChannel + numTeddpsBundlesPerChannel + numTeddssBundlesPerChannel;
 
       // PP1 name
-      const int pp1 = channelNumber + (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) : -(fabs(channelNumber) <= 6 ? 2 : 5) );
+      const int pp1 = channelNumber 
+	+ (channelNumber >= 0 ? (fabs(channelNumber) <= 6 ? 2 : 5) 
+	   : -(fabs(channelNumber) <= 6 ? 2 : 5) );
       std::stringstream pp1Name;
       std::string sign = (pp1 >= 0 ? "+" : "");
       pp1Name << "PP1" << sign << pp1;
@@ -7785,18 +8048,24 @@ namespace insur {
       if (requestedSlot != ChannelSlot::UNKNOWN) channelName << " " << any2str(requestedSlot);
       channelsTable->setContent(i, startCol + 1, channelName.str());
 
-      channelsTable->setContent(i, startCol + 2, numPsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 3, numSsBundlesPerChannel);
-      channelsTable->setContent(i, startCol + 4, numBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 2, numTbpsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 3, numTbssBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 4, numTeddpsBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 5, numTeddssBundlesPerChannel);
+      channelsTable->setContent(i, startCol + 6, numBundlesPerChannel);
 
-      totalPsBundles += numPsBundlesPerChannel;
-      totalSsBundles += numSsBundlesPerChannel;
+      totalTbpsBundles += numTbpsBundlesPerChannel;
+      totalTbssBundles += numTbssBundlesPerChannel;
+      totalTeddpsBundles += numTeddpsBundlesPerChannel;
+      totalTeddssBundles += numTeddssBundlesPerChannel;
       totalBundles += numBundlesPerChannel;
     }
     channelsTable->setContent(13, startCol + 1, "Total");
-    channelsTable->setContent(13, startCol + 2, totalPsBundles);
-    channelsTable->setContent(13, startCol + 3, totalSsBundles);
-    channelsTable->setContent(13, startCol + 4, totalBundles);
+    channelsTable->setContent(13, startCol + 2, totalTbpsBundles);
+    channelsTable->setContent(13, startCol + 3, totalTbssBundles);
+    channelsTable->setContent(13, startCol + 4, totalTeddpsBundles);
+    channelsTable->setContent(13, startCol + 5, totalTeddssBundles);
+    channelsTable->setContent(13, startCol + 6, totalBundles);
   }
 
 
@@ -7806,9 +8075,9 @@ namespace insur {
    * Power chains plots
    */
   void Vizard::createInnerCablingPlotsPowerChains(const Tracker& tracker,
-						  std::vector<TCanvas*> &ZPhiLayerPlots,
-						  TCanvas *&XYNegCanvas, TCanvas *&XYCentralCanvas, TCanvas *&XYCanvas,
-						  std::vector<TCanvas*> &XYPosPowerChainsDiskSurfaces) {
+						  std::vector<std::unique_ptr<TCanvas> > &ZPhiLayerPlots,
+						  std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYCentralCanvas, std::unique_ptr<TCanvas> &XYCanvas,
+						  std::vector<std::unique_ptr<TCanvas> > &XYPosPowerChainsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double forwardViewPort = maxRadii.second;
@@ -7821,8 +8090,8 @@ namespace insur {
     const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
-      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_positiveXSide", layerNumber),
-					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      std::unique_ptr<TCanvas> ZPhiCanvasPos(new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_positiveXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
       PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerPos;
       zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -7831,12 +8100,12 @@ namespace insur {
 		  && m.isPositiveXSide()
 		  ); 
 	} );
-      zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
-      zphiBarrelDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
-      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      zphiBarrelDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
+      zphiBarrelDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
+      ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
-      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_negativeXSide", layerNumber),
-					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiPowerChainBarrelLayer%d_negativeXSide", layerNumber),
+					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerNeg;
       zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -7845,39 +8114,39 @@ namespace insur {
 		  && !m.isPositiveXSide()
 		  ); 
 	} );
-      zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
-      zphiBarrelDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
-      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+      zphiBarrelDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
+      zphiBarrelDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
+      ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
        
     // NEGATIVE CABLING SIDE. BARREL (XY).
     bool isRotatedY180 = false;
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypePowerChainTransparentColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE. BARREL CENTRAL MODULES (XY).
     isRotatedY180 = false;
-    XYCentralCanvas = new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCentralCanvas.reset(new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCentralCanvas->cd();
     PlotDrawer<XY, TypePowerChainTransparentColor> xyCentralBarrelDrawer;
     xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
-    xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas);
-    xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas);
+    xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas.get());
+    xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE. BARREL (XY).
     isRotatedY180 = false;
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypePowerChainTransparentColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // ENDCAPS DISK SURFACE.
@@ -7892,31 +8161,31 @@ namespace insur {
 	    if ((surfaceIndex % 2) == 1) {
 	      isRotatedY180 = true;;
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XYRotateY180, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosPowerChainsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	    // (+Z) towards you
 	    else {
 	      isRotatedY180 = false;
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
-	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	      XYPosPowerChainsDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosPowerChainsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
@@ -7931,8 +8200,8 @@ namespace insur {
    * GBT plots.
    */
   void Vizard::createInnerCablingPlotsGBTs(const Tracker& tracker,
-					   std::vector<TCanvas*> &ZPhiLayerPlots,
-					   std::vector<TCanvas*> &XYPosGBTsDiskSurfaces) {
+					   std::vector<std::unique_ptr<TCanvas> > &ZPhiLayerPlots,
+					   std::vector<std::unique_ptr<TCanvas> > &XYPosGBTsDiskSurfaces) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double forwardViewPort = maxRadii.second;
@@ -7944,8 +8213,8 @@ namespace insur {
     const int numLayers = tracker.barrels().at(0).layers().size(); // TO DO : ugly
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
-      TCanvas* ZPhiCanvasPos = new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      std::unique_ptr<TCanvas> ZPhiCanvasPos(new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
@@ -7956,8 +8225,8 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
-      zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos);
-      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos);
+      zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
+      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
       zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -7967,11 +8236,11 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
-      zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos);
-      ZPhiLayerPlots.push_back(ZPhiCanvasPos);
+      zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos.get());
+      ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
-      TCanvas* ZPhiCanvasNeg = new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+      std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
@@ -7982,8 +8251,8 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
-      zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg);
-      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg);
+      zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
+      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
       zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -7993,8 +8262,8 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
-      zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg);
-      ZPhiLayerPlots.push_back(ZPhiCanvasNeg);
+      zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg.get());
+      ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
 
 
@@ -8011,9 +8280,9 @@ namespace insur {
 	    if ((surfaceIndex % 2) == 1) {
 	      bool isRotatedY180 = true;;
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosRotateY180GBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180GBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      // Filled modules
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
@@ -8022,8 +8291,8 @@ namespace insur {
 			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 			   );
 		} );
-	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
@@ -8031,17 +8300,17 @@ namespace insur {
 			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 			   );
 		} );
-	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	    // (+Z) towards you
 	    else {
 	      bool isRotatedY180 = false;
 	      const std::vector<const Module*>& surfaceModules = found->second;
-	      TCanvas* XYSurfaceDisk = new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
+	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      // Filled modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
@@ -8050,8 +8319,8 @@ namespace insur {
 			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
 			   );
 		} );
-	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk);
-	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk);
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
@@ -8059,9 +8328,9 @@ namespace insur {
 			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
 			   );
 		} );
-	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk);
+	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	      XYPosGBTsDiskSurfaces.push_back(XYSurfaceDisk);
+	      XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
@@ -8076,8 +8345,8 @@ namespace insur {
    * Bundles plots.
    */
   void Vizard::createInnerCablingPlotsBundles(const Tracker& tracker,
-					      TCanvas *&XYNegCanvas, TCanvas *&XYPosCanvas,
-					      std::vector<TCanvas*> &XYPosBundlesDisks) {
+					      std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYPosCanvas,
+					      std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDisks) {
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double forwardViewPort = maxRadii.second;
@@ -8088,22 +8357,22 @@ namespace insur {
        
     // NEGATIVE CABLING SIDE. BARREL.
     bool isRotatedY180 = false;
-    XYNegCanvas = new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeInnerBundleTransparentColor> xyNegBarrelDrawer;
     xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
-    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas);
-    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas);
+    xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
+    xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE. BARREL.
     isRotatedY180 = false;
-    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas.reset(new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYPosCanvas->cd();
     PlotDrawer<XY, TypeInnerBundleTransparentColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE.
@@ -8112,17 +8381,17 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+	std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosBundleEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					    Form("(XY) Projection : %s, any Disk. (CMS +Z points towards you). 1 color <=> 1 Fibre Bundle.", 
 						 anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	XYCanvasDisk->cd();
 	PlotDrawer<XY, TypeInnerBundleTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	xyDiskDrawer.addModules(lastDisk);
-	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
 	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	XYPosBundlesDisks.push_back(XYCanvasDisk);
+	XYPosBundlesDisks.push_back(std::move(XYCanvasDisk));
       }
     }
 
@@ -8133,17 +8402,17 @@ namespace insur {
    * DTC plots.
    */
   void Vizard::createInnerCablingPlotsDTCs(const Tracker& tracker,
-					   TCanvas *&RZCanvas,
-					   TCanvas *&XYPosCanvas,
-					   std::vector<TCanvas*> &XYPosDTCsDisks) {
+					   std::unique_ptr<TCanvas> &RZCanvas,
+					   std::unique_ptr<TCanvas> &XYPosCanvas,
+					   std::vector<std::unique_ptr<TCanvas> > &XYPosDTCsDisks) {
 
     const std::set<Module*>& trackerModules = tracker.modules();
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY);
+    RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeInnerDTCTransparentColor> yzDrawer;
     yzDrawer.addModules(tracker);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
 
     const std::pair<double, double> maxRadii = computeInnerCablingPlotsMaxRadii(tracker);
     const double forwardViewPort = maxRadii.second;
@@ -8154,12 +8423,12 @@ namespace insur {
 
     // POSITIVE CABLING SIDE. BARREL.
     bool isRotatedY180 = false;
-    XYPosCanvas = new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
+    XYPosCanvas.reset(new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYPosCanvas->cd();
     PlotDrawer<XY, TypeInnerDTCTransparentColor> xyBarrelDrawer;
     xyBarrelDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas.get());
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
 
     // POSITIVE CABLING SIDE.
@@ -8168,17 +8437,17 @@ namespace insur {
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();
-	TCanvas* XYCanvasDisk = new TCanvas(Form("XYPosDTCEndcap_%sAnyDisk", anEndcap.myid().c_str()),
+	std::unique_ptr<TCanvas> XYCanvasDisk(new TCanvas(Form("XYPosDTCEndcap_%sAnyDisk", anEndcap.myid().c_str()),
 					    Form("(XY) Projection : %s, one Disk. (CMS +Z points towards you). 1 color <=> 1 DTC.", 
 						 anEndcap.myid().c_str()),
-					    vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+					    vis_min_canvas_sizeX, vis_min_canvas_sizeY));
 	XYCanvasDisk->cd();
 	PlotDrawer<XY, TypeInnerDTCTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
 	xyDiskDrawer.addModules(lastDisk);
-	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk);
-	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk);
+	xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasDisk.get());
+	xyDiskDrawer.drawModules<ContourStyle>(*XYCanvasDisk.get());
 	drawFrameOfReference(isRotatedY180, forwardScalingFactor);
-	XYPosDTCsDisks.push_back(XYCanvasDisk);
+	XYPosDTCsDisks.push_back(std::move(XYCanvasDisk));
       }
     }
   }
@@ -8273,7 +8542,7 @@ namespace insur {
 
   // Helper function to convert a histogram into a TProfile
   TProfile* Vizard::newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins /* = 0 */) {
-    if (sourceHistogram == NULL) return NULL;
+    if (!sourceHistogram) return nullptr;
     int nBins = sourceHistogram->GetNbinsX();
     if (desiredNBins != 0 && desiredNBins < nBins) nBins = desiredNBins;
     TProfile* resultProfile = new TProfile(Form("%s_profile",sourceHistogram->GetName()),
@@ -8401,6 +8670,77 @@ namespace insur {
   }
 
 
+  std::string Vizard::createChemicalElementsCsv() {
+
+    std::stringstream myCsv;
+    myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Atomic Number /I, Standard Atomic Weight (u) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    /*
+    double density = myTable.density("CO2");
+    double rl = myTable.radiationLength("CO2");
+    double il = myTable.interactionLength("CO2");
+    std::cout << "CO2" << " density = " << density << " rl = " << rl << " il = " << il << std::endl;
+    */
+    const ChemicalElementMap& allChemicalElements = myTable.getAllChemicalElements();
+
+    for (const auto& elemIt : allChemicalElements) {
+      const std::string elementName = elemIt.first;
+      const ChemicalElement& elem = elemIt.second;
+      myCsv << elementName << ","
+	    << (elem.getDensity() * 1000.) << ","
+	    << elem.getAtomicNumber() << ","
+	    << elem.getAtomicWeight() << ","
+	    << elem.getRadiationLength() << ","
+	    << elem.getInteractionLength() 
+	    << std::endl;
+      //myCsv << std::endl;
+    }
+
+    return myCsv.str();
+  }
+
+
+  std::string Vizard::createChemicalMixturesCsv(const bool hasChemicalFormula) {
+
+    std::stringstream myCsv;
+    if (hasChemicalFormula) myCsv << "Compound Name /C, Density (g/cm^3) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
+    else { myCsv << "Mixture Name /C,  Substance name /C, Substance mass fraction /D, Mixture Density (g/cm^3) /D, Mixture Radiation length (g/cm^2) /D, Mixture Interaction length (g/cm^2) /D" << std::endl; }
+
+    const MaterialsTable& myTable = MaterialsTable::instance();
+    const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      const std::string mixtureName = mixIt.first;
+      const ChemicalMixture& mix = mixIt.second;
+
+      if (mix.hasChemicalFormula() == hasChemicalFormula) {
+	myCsv << mixtureName << ",";
+	if (!hasChemicalFormula) myCsv << "," << ",";	      
+	myCsv << (mix.getDensity() * 1000.) << ","     // g/ cm3
+	      << mix.getRadiationLength() << ","
+	      << mix.getInteractionLength() 
+	      << std::endl;
+
+	if (!hasChemicalFormula) {
+	  const MassComposition& fractions = mix.getMassComposition();
+	  for (const auto& fractionIt : fractions) {
+	    myCsv << ","
+		  << fractionIt.first << ","
+		  << fractionIt.second
+		  << std::endl;
+	  }
+	  myCsv << std::endl;
+	  myCsv << std::endl;
+	}
+	
+      }
+    }
+
+    return myCsv.str();
+  }
+
+
   /* Create csv file (Outer Tracker), navigating from Module hierarchy level to DTC hierarchy level.
    */
   std::string Vizard::createModulesToDTCsCsv(const Tracker& tracker, const bool isPositiveCablingSide) {
@@ -8416,7 +8756,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, Cable #/I, Cable type/C, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, MFC #/I, MFC type/C, MFB #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8425,18 +8765,19 @@ namespace insur {
       const OuterDTC* myDTC = dtcIt.second.get();
       if (myDTC) {
 	std::stringstream DTCInfo;
-	DTCInfo << myDTC->name() << ","
-		<< myDTC->phiSectorRef() << ","
-		<< any2str(myDTC->type()) << ","
-		<< myDTC->slot() << ","
+	DTCInfo << myDTC->name() << ", "
+		<< myDTC->getCMSSWId() << ", "
+		<< myDTC->phiSectorRef() << ", "
+		<< any2str(myDTC->type()) << ", "
+		<< myDTC->slot() << ", "
 		<< std::fixed << std::setprecision(6)
 		<< myDTC->phiSectorWidth() * 180. / M_PI << ", ";
 
 	const std::vector<OuterCable*>& myCables = myDTC->cable();
 	for (const auto& cable : myCables) {
 	  std::stringstream cableInfo;
-	  cableInfo << cable->myid() << ","
-		    << any2str(cable->type()) << ",";
+	  cableInfo << cable->myid() << ", "
+		    << any2str(cable->type()) << ", ";
 	  const ChannelSection* myOpticalSection = cable->opticalChannelSection();
 	  const int opticalChannelNumber = myOpticalSection->channelNumber();
 	  const ChannelSlot& opticalChannelSlot = myOpticalSection->channelSlot();
@@ -8444,11 +8785,11 @@ namespace insur {
 	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
 	  for (const auto& bundle : myBundles) {
 	    std::stringstream bundleInfo;
-	    bundleInfo << bundle->myid() << ","
+	    bundleInfo << bundle->myid() << ", "
 		       << opticalChannelNumber << " " 
-		       << any2str(opticalChannelSlot) << ","
+		       << any2str(opticalChannelSlot) << ", "
 		       << bundle->powerChannelSection()->channelNumber() << " " 
-		       << any2str(bundle->powerChannelSection()->channelSlot()) << ",";
+		       << any2str(bundle->powerChannelSection()->channelSlot()) << ", ";
 
 	    const std::vector<Module*>& myModules = bundle->modules();
 	    for (const auto& module : myModules) {
@@ -8473,6 +8814,261 @@ namespace insur {
   }
 
 
+  /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
+     This also provides modules aggregation patterns. 
+     A pattern provides the number of modules connected to each MFB fanout branch.
+     The MFB fanout branches are sorted by increasing index.
+     For example, for a given MFB, the pattern 3-4-3-2 means that the MFB is connected to:
+     - 3 modules from fanout branch index 1.
+     - 4 modules from fanout branch index 2.
+     - 3 modules from fanout branch index 3.
+     - 2 modules from fanout branch index 4.
+   */
+  std::string Vizard::createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
+    std::stringstream bundlesToEndcapModulesCsv;
+
+    const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
+    bundlesToEndcapModulesCsv << summaryText << std::endl;
+
+    bundlesToEndcapModulesCsv << "MFB #/I, # Modules per fanout branch index, Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D, Module Z (mm)/D, Fanout branch index/U" << std::endl;
+
+    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
+										   myCablingMap->getDTCs() 
+										   : myCablingMap->getNegDTCs());
+    for (const auto& dtcIt : myDTCs) {
+      const OuterDTC* myDTC = dtcIt.second.get();
+      if (myDTC) {
+
+	const std::vector<OuterCable*>& myCables = myDTC->cable();
+	for (const auto& cable : myCables) {
+
+	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
+	  for (const auto& bundle : myBundles) {
+
+	    std::string subDetectorName = bundle->subDetectorName();
+	    // Only in TEDD.
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
+	      // Bundle related info.
+	      std::stringstream bundleInfo;
+	      bundleInfo << bundle->myid() << ",";
+
+	      // Create pattern related to the bundle.
+	      std::map<int, int> pattern;
+	      std::vector<std::string> modulesInBundleInfo;
+	      const std::vector<Module*>& myModules = bundle->modules();
+	      for (const auto& module : myModules) {
+		// Get which MFB fanout branch the module is connected to.
+		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
+
+		// Module related info.
+		std::stringstream moduleInfo;
+		moduleInfo << module->myDetId() << ", "
+			   << module->uniRef().subdetectorName << ", "
+			   << module->uniRef().layer << ", "
+			   << module->moduleRing() << ", "
+			   << module->center().Phi() * 180. / M_PI << ", "
+			   << module->center().Z() << ", "
+			   << fanoutBranchIndex;
+		modulesInBundleInfo.push_back(moduleInfo.str());
+		
+		// Count the number of modules per fanout branch index.
+		pattern[fanoutBranchIndex] += 1; 
+	      }
+
+	      // Checks whether pattern makes sense, and put it in a-b-c-d format.
+	      std::stringstream patternInfo;
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
+		if (found != pattern.end()) {
+		  if (fanoutBranchIndex != 1) patternInfo << "-";
+		  const int numModulesPerDiskSurface = found->second;
+		  patternInfo << numModulesPerDiskSurface;
+		}
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
+	      }
+	      patternInfo << ", ";
+  
+	      // Print info in csv file: bundle info + pattern info + associated modules info.
+	      bundlesToEndcapModulesCsv << bundleInfo.str() << patternInfo.str();
+	      const int numModulesInBundle = modulesInBundleInfo.size();
+	      for (int i = 0; i < numModulesInBundle; i++) {
+		// Set empty the first 2 columns, since they are the same for all modules belonging to a given bundle.
+		if (i != 0) bundlesToEndcapModulesCsv << ", " << ", ";
+		// List info from all modules belonging to the same bundle.
+		bundlesToEndcapModulesCsv << modulesInBundleInfo.at(i) << std::endl;
+	      }
+	      if (myModules.size() == 0) bundlesToEndcapModulesCsv << std::endl;
+	    }
+	  }
+	  if (myBundles.size() == 0) bundlesToEndcapModulesCsv << std::endl;
+	}
+	if (myCables.size() == 0) bundlesToEndcapModulesCsv << std::endl;
+      }
+    }
+    if (myDTCs.size() == 0) bundlesToEndcapModulesCsv << std::endl;
+
+    return bundlesToEndcapModulesCsv.str();
+  }
+
+
+  /* Provide a summary text file, with the distribution of modules aggregation patterns which are encountered in TEDD.
+     A pattern is, for a given bundle, the number of connected modules per fanout branch.
+     Here, patterns are irrespective of the fanout branch ordering.
+     For example, 1-2-3-4 or 3-4-1-2 are both considered to be combination 1-2-3-4.
+     All this is because Electronics/Mechanics will need, in TEDD, custom aggregation patch cords, 
+     to group the fibers from each fanout branch into one bundle.
+     One need to know how many customs aggregation patch cords are needed!
+  */
+  std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
+    std::stringstream summaryText;
+    summaryText << "Fanouts: # Modules per branch (Irrespective of branches ordering)" << std::endl;
+
+    std::map<std::multiset<int>, int> combinationsDistribution;
+
+    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
+										   myCablingMap->getDTCs() 
+										   : myCablingMap->getNegDTCs());
+    for (const auto& dtcIt : myDTCs) {
+      const OuterDTC* myDTC = dtcIt.second.get();
+      if (myDTC) {
+
+	const std::vector<OuterCable*>& myCables = myDTC->cable();
+	for (const auto& cable : myCables) {
+
+	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
+	  for (const auto& bundle : myBundles) {
+
+	    std::string subDetectorName = bundle->subDetectorName();
+	    // Only in TEDD.
+	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
+	      // Create pattern related to the bundle.
+	      std::map<int, int> pattern;
+
+	      const std::vector<Module*>& myModules = bundle->modules();
+	      for (const auto& module : myModules) {
+		// Get which MFB fanout branch the module belongs to.
+		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
+		// Count the number of modules per MFB fanout branch.
+		pattern[fanoutBranchIndex] += 1; 
+	      }
+
+	      // Checks pattern makes sense, and create the corresponding combination.
+	      // A combination is the number of modules per fanout branch, irrespective of branches ordering.
+	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
+	      // Duplicates are allowed: combination 1-2-3-3 can happen!
+	      std::multiset<int> combination;  
+	      for (int fanoutBranchIndex = 1; fanoutBranchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; fanoutBranchIndex++) {
+		auto found = pattern.find(fanoutBranchIndex);
+		if (found != pattern.end()) {
+		  const int numModulesPerDiskSurface = found->second;
+		  // Create combination
+		  combination.insert(numModulesPerDiskSurface);
+		}
+		else { logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
+				+ "has 0 module belonging to fanout branch " + any2str(fanoutBranchIndex)); }
+	      }
+	      // Count the occurences of each combination.
+	      combinationsDistribution[combination] += 1;
+	    }
+	  }	 
+	}
+      }
+    }
+
+    // Print the different encountered combinations, and their occurences.
+    for (const auto& comb : combinationsDistribution) {
+      summaryText << "Combination";
+      std::multiset<int> combination = comb.first;
+      for (const auto& numModules : combination) {
+	summaryText << " " << numModules;
+      }
+      summaryText << " appears " << comb.second << " times." << std::endl;
+    } 
+    summaryText << std::endl;
+
+    return summaryText.str();
+  }
+
+
+  /**
+   * Create Power Cables distribution csv file.
+   * This provides a count of power cables based on their connections (how many modules per cable, of which type).
+   */
+  std::string Vizard::createPowerCablesDistributionCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
+    std::stringstream powerCablesDistributionCsv;
+    powerCablesDistributionCsv << " , # Modules per power cable /U, # Power Cables /U" << std::endl;
+
+    std::map<int, int> countBundlesPerPS10GConnections;
+    std::map<int, int> countBundlesPerPS5GConnections;
+    std::map<int, int> countBundlesPerSSConnections;
+
+    // IN THE OT CABLING MAP, 1 OPTICAL BUNDLE <=> 1 POWER CABLE!!!!
+    const std::map<const int, std::unique_ptr<OuterBundle> >& myBundles = (isPositiveCablingSide ? 
+									   myCablingMap->getBundles() 
+									   : myCablingMap->getNegBundles());
+    // Fill counters
+    for (const auto& myBundleIt : myBundles) {
+      const OuterBundle* myBundle = myBundleIt.second.get();
+
+      const Category& bundleType = myBundle->type();      
+      const int numModulesPerBundle = myBundle->numModules();	  
+
+      // PS 10G
+      if (bundleType == Category::PS10G || bundleType == Category::PS10GA || bundleType == Category::PS10GB) {
+	countBundlesPerPS10GConnections[numModulesPerBundle] += 1;
+      }
+      // PS 5G
+      else if (bundleType == Category::PS5G) { 
+	countBundlesPerPS5GConnections[numModulesPerBundle] += 1;
+      }
+      // 2S
+      else if (bundleType == Category::SS) {
+	countBundlesPerSSConnections[numModulesPerBundle] += 1;
+      }
+      else { 
+	logERROR("Unknown bundle type: " + any2str(bundleType));
+      }
+    }
+
+    int totalNumBundles = 0;
+    // Print info
+    // PS 10G
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerPS10GConnections) {
+      powerCablesDistributionCsv << any2str(Category::PS10G) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+    // PS 5G
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerPS5GConnections) {
+      powerCablesDistributionCsv << any2str(Category::PS5G) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+    // 2S
+    powerCablesDistributionCsv << std::endl;
+    for (const auto& countBundlesIt : countBundlesPerSSConnections) {
+      powerCablesDistributionCsv << any2str(Category::SS) << ", " << countBundlesIt.first << ", " << countBundlesIt.second << std::endl;
+      totalNumBundles += countBundlesIt.second; 
+    }
+
+    powerCablesDistributionCsv << std::endl;
+    powerCablesDistributionCsv << " , Total, " << totalNumBundles << std::endl;
+
+    return powerCablesDistributionCsv.str();
+  }
+
+
+  /* Create csv file (Outer Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
+   */
+  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker) {
+    CMSSWOuterTrackerCablingMapVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
+  }
+
+
   /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.
    */
   std::string Vizard::createInnerTrackerModulesToDTCsCsv(const Tracker& tracker) {
@@ -8488,7 +9084,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, Bundle #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, MFB #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
@@ -8542,180 +9138,9 @@ namespace insur {
   }
 
 
-  /* Create csv file, navigating, in TEDD, from Bundle hierarchy level to Module hierarchy level.
-     This also provides modules aggregation patterns. 
-     A pattern is, for a given bundle, the number of connected modules per disk surface.
-     The disk surfaces are sorted per increasing |Z|.
-     For example, for a given buddle, the pattern 3-4-3-2 means that the bundle is connected to:
-     - 3 modules from disk surface 1 (the disk surface with lowest |Z|).
-     - 4 modules from disk surface 2.
-     - 3 modules from disk surface 3.
-     - 2 modules from disk surface 4 (the disk surface with biggest |Z|).
+  /*
+   * Draw circle of a given radius, fill, and color.
    */
-  std::string Vizard::createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
-    std::stringstream bundlesToEndcapModulesCsv;
-
-    const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
-    bundlesToEndcapModulesCsv << summaryText << std::endl;
-
-    bundlesToEndcapModulesCsv << "Bundle #/I, # Modules per Disk Surface (Sorted by increasing |Z|), Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D" << std::endl;
-
-    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
-										   myCablingMap->getDTCs() 
-										   : myCablingMap->getNegDTCs());
-    for (const auto& dtcIt : myDTCs) {
-      const OuterDTC* myDTC = dtcIt.second.get();
-      if (myDTC) {
-
-	const std::vector<OuterCable*>& myCables = myDTC->cable();
-	for (const auto& cable : myCables) {
-
-	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
-	  for (const auto& bundle : myBundles) {
-
-	    std::string subDetectorName = bundle->subDetectorName();
-	    // Only in TEDD.
-	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
-	      // Bundle related info.
-	      std::stringstream bundleInfo;
-	      bundleInfo << bundle->myid() << ",";
-
-	      // Create pattern related to the bundle.
-	      std::map<int, int> pattern;
-	      std::vector<std::string> modulesInBundleInfo;
-	      const std::vector<Module*>& myModules = bundle->modules();
-	      for (const auto& module : myModules) {
-		// Module related info.
-		std::stringstream moduleInfo;
-		moduleInfo << module->myDetId() << ", "
-			   << module->uniRef().subdetectorName << ", "
-			   << module->uniRef().layer << ", "
-			   << module->moduleRing() << ", "
-			   << module->center().Phi() * 180. / M_PI;
-		modulesInBundleInfo.push_back(moduleInfo.str());
-
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
-	      }
-
-	      // Checks pattern makes sense, and put it in a-b-c-d format.
-	      std::stringstream patternInfo;
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
-		if (found != pattern.end()) {
-		  if (surfaceIndex != 1) patternInfo << "-";
-		  const int numModulesPerDiskSurface = found->second;
-		  patternInfo << numModulesPerDiskSurface;
-		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
-	      }
-	      patternInfo << ", ";
-  
-	      // Print info in csv file: bundle info + pattern info + associated modules info.
-	      bundlesToEndcapModulesCsv << bundleInfo.str() << patternInfo.str();
-	      const int numModulesInBundle = modulesInBundleInfo.size();
-	      for (int i = 0; i < numModulesInBundle; i++) {
-		// Set empty the first 2 columns, since they are the same for all modules belonging to a given bundle.
-		if (i != 0) bundlesToEndcapModulesCsv << ", " << ", ";
-		// List info from all modules belonging to the same bundle.
-		bundlesToEndcapModulesCsv << modulesInBundleInfo.at(i) << std::endl;
-	      }
-	      if (myModules.size() == 0) bundlesToEndcapModulesCsv << std::endl;
-	    }
-	  }
-	  if (myBundles.size() == 0) bundlesToEndcapModulesCsv << std::endl;
-	}
-	if (myCables.size() == 0) bundlesToEndcapModulesCsv << std::endl;
-      }
-    }
-    if (myDTCs.size() == 0) bundlesToEndcapModulesCsv << std::endl;
-
-    return bundlesToEndcapModulesCsv.str();
-  }
-
-
-  /* Provide a summary text file, with the distribution of modules aggregation patterns which are encountered in TEDD.
-     A pattern is, for a given bundle, the number of connected modules per disk surface.
-     Here, patterns are irrespective of the disk surface ordering.
-     For example, 1-2-3-4 or 3-4-1-2 are both considered to be combination 1-2-3-4.
-     All this is because Electronics/Mechanics will need, in TEDD, custom aggregation patch cords, 
-     to group the fibers from each disk surface into one bundle.
-     One need to know how many customs aggregation patch cords are needed!
-  */
-  std::string Vizard::countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
-    std::stringstream summaryText;
-    summaryText << "# Modules per disk surface (Irrespective of surface ordering)" << std::endl;
-
-    std::map<std::multiset<int>, int> combinationsDistribution;
-
-    const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
-										   myCablingMap->getDTCs() 
-										   : myCablingMap->getNegDTCs());
-    for (const auto& dtcIt : myDTCs) {
-      const OuterDTC* myDTC = dtcIt.second.get();
-      if (myDTC) {
-
-	const std::vector<OuterCable*>& myCables = myDTC->cable();
-	for (const auto& cable : myCables) {
-
-	  const std::vector<OuterBundle*>& myBundles = cable->bundles();
-	  for (const auto& bundle : myBundles) {
-
-	    std::string subDetectorName = bundle->subDetectorName();
-	    // Only in TEDD.
-	    if (subDetectorName == outer_cabling_tedd1 || subDetectorName == outer_cabling_tedd2) {
-	      // Create pattern related to the bundle.
-	      std::map<int, int> pattern;
-
-	      const std::vector<Module*>& myModules = bundle->modules();
-	      for (const auto& module : myModules) {
-		// Get which disk surface the module belongs to.
-		const int surfaceIndex = module->diskSurface();
-		// Count the number of modules per disk surface.
-		pattern[surfaceIndex] += 1; 
-	      }
-
-	      // Checks pattern makes sense, and create the corresponding combination.
-	      // A combination is the number of modules per disk surface, irrespective of the surface |Z| ordering.
-	      // One wants 1-2-3-4 and 3-4-1-2 to end up in the same combination: 1-2-3-4.
-	      // Duplicates are allowed: combination 1-2-3-3 can happen!
-	      std::multiset<int> combination;  
-	      for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
-		auto found = pattern.find(surfaceIndex);
-		if (found != pattern.end()) {
-		  const int numModulesPerDiskSurface = found->second;
-		  // Create combination
-		  combination.insert(numModulesPerDiskSurface);
-		}
-		else logERROR("In TEDD, bundle " + any2str(bundle->myid()) 
-			      + "does not connect to any module belonging to disk surface" + any2str(surfaceIndex));
-	      }
-	      // Count the occurences of each combination.
-	      combinationsDistribution[combination] += 1;
-	    }
-	  }	 
-	}
-      }
-    }
-
-    // Print the different encountered combinations, and their occurences.
-    for (const auto& comb : combinationsDistribution) {
-      summaryText << "Combination";
-      std::multiset<int> combination = comb.first;
-      for (const auto& numModules : combination) {
-	summaryText << " " << numModules;
-      }
-      summaryText << " appears " << comb.second << " times." << std::endl;
-    } 
-    summaryText << std::endl;
-
-    return summaryText.str();
-  }
-
-
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
     TEllipse* myEllipse = new TEllipse(0,0,radius);
     if (full) {
@@ -8970,40 +9395,95 @@ namespace insur {
   }
 
 
-  void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
+  WeightsPerSubdetector Vizard::computeDetailedWeights(MaterialBudget& materialBudget, RootWPage& myPage) {
     Tracker& myTracker = materialBudget.getTracker();
+    //const bool isIT = myTracker.isPixelTracker();
     std::string myTrackerName = myTracker.myid();
-    std::vector<InactiveElement> allServices = materialBudget.getAllServices();
+    RootWContent& myContent = myPage.addContent("All volumes details");
+ 
 
-    RootWContent& myContent = myPage.addContent("Service details");
-
-    // Counting services with an ad-hoc index
-    int serviceId = 0;
-    double z1, z2, r1, r2, length, il, rl;
-    double mass;
-    std::stringstream myStringStream;
-
-    // Graphic representation of the services in the rz plane
+    // Graphic representation of the materials volumes in the (RZ) plane
     double maxR = myTracker.maxR()*1.2;
     double maxZ = myTracker.maxZ()*1.2;
-    TCanvas* servicesCanvas = new TCanvas("servicesCanvas", "servicesCanvas"); // TODO Factory for canvases?!
-    servicesCanvas->cd();
-    TH2D* aServicesFrame = new TH2D("aServicesFrame", ";z [mm];r [mm]", 200, -maxZ, maxZ, 100, 0, maxR);
-    maxZ=0; maxR=0;
-    aServicesFrame->Draw();
-    TBox* myBox;
-    TText* myText;
+    std::unique_ptr<TCanvas> allVolumesCanvas(new TCanvas("allVolumesCanvas", "allVolumesCanvas")); // TODO Factory for canvases?!
+    allVolumesCanvas->cd();
+    TH2D* allVolumesPlot = new TH2D("allVolumesPlot", ";z [mm];r [mm]", 200, -maxZ, maxZ, 100, 0, maxR);
+    allVolumesPlot->Draw();
+  
 
-    myStringStream << "serviceID/I,elementID/I,z1/D,z2/D,r1/D,r2/D,Element/C,mass/D,mass_per_length/D,rl/D,il/D,local/I" << std::endl;
+    std::stringstream allVolumesStream;
+    allVolumesStream << "volume_ID/I,sim_category/C,z1 (mm)/D,z2 (mm)/D,r1 (mm)/D,r2 (mm)/D,volume_RL/D,volume_IL/D,elementID/I,subdetector/C,mechanical_category/C,Component/C,Element/C,mass (g)/D,mass_per_length (g/mm)/D" << std::endl;
 
-    for (auto& iter : allServices) {
-      z1 = iter.getZOffset();
-      z2 = iter.getZOffset()+iter.getZLength();
-      r1 = iter.getInnerRadius();
-      r2 = iter.getInnerRadius()+iter.getRWidth();
-      length = iter.getLength();
-      rl = iter.getRadiationLength();
-      il = iter.getInteractionLength();
+    std::stringstream modulesStream;
+    modulesStream << "subdetector/C,layer_or_disk/I,ring/I,sim_category/C,volume_RL/D,volume_IL/D, mechanical_category/C,Component/C,Element/C,mass (g)/D" << std::endl;
+
+
+    WeightsPerSubdetector totalWeights;
+    //std::vector<MaterialProperties*> totalMaterials;
+    //Vector<unique_ptr<Base> >.  vec.emplace_back(new Derived())
+
+    std::vector<int> allColors;
+    allColors.push_back(kOrange);
+    allColors.push_back(kCyan);
+    allColors.push_back(kRed);
+    allColors.push_back(kGreen);
+    allColors.push_back(kAzure + 1);
+    int colorIndex = 0;
+    std::map<std::string, int> subdetectorColors;
+
+    // SERVICES
+    bool isModule = false;
+    std::vector<InactiveElement> allServices = materialBudget.getAllServices(); 
+   
+    // Counting services with an ad-hoc index
+    int serviceId = 0;
+    maxZ = 0.; maxR = 0.;
+    for (auto& serviceIt : allServices) {
+      double z1 = serviceIt.getZOffset();
+      double z2 = serviceIt.getZOffset()+serviceIt.getZLength();
+      double r1 = serviceIt.getInnerRadius();
+      double r2 = serviceIt.getInnerRadius()+serviceIt.getRWidth();
+      double serviceLength = serviceIt.getLength();
+      double rl = serviceIt.getRadiationLength();
+      double il = serviceIt.getInteractionLength();
+
+      // Update the maxZ and maxR with respect to the inactive surfaces
+      if (fabs(z1)>maxZ) maxZ=fabs(z1);
+      if (fabs(z2)>maxZ) maxZ=fabs(z2);
+      if (fabs(r1)>maxR) maxR=fabs(r1);
+      if (fabs(r2)>maxR) maxR=fabs(r2);
+  
+     
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = serviceIt.getLocalElementsDetails();
+      plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, serviceId, serviceLength
+				  );
+    
+      serviceId++;
+    }
+
+
+    // MODULE CAPS
+    isModule = true;
+    const std::vector<std::vector<ModuleCap> >& barrelModules = materialBudget.getBarrelModuleCaps();
+    const std::vector<std::vector<ModuleCap> >& endcapModules = materialBudget.getEndcapModuleCaps(); 
+    std::vector<ModuleCap> allModules;
+    for (const auto& barrelIt : barrelModules) allModules.insert(allModules.end(), barrelIt.begin(),  barrelIt.end());
+    for (const auto& endcapIt : endcapModules) allModules.insert(allModules.end(), endcapIt.begin(),  endcapIt.end());
+
+    std::set<std::tuple<std::string, int, int> > allModuleMaterialsRefs;
+
+    for (auto& moduleIt : allModules) {
+      const Module* detectorModule = &(moduleIt.getModule());
+      double z1 = detectorModule->minZ();
+      double z2 = detectorModule->maxZ();
+      double r1 = detectorModule->minR();
+      double r2 = detectorModule->maxR();
+      //length = iter.getLength();
+      double rl = moduleIt.getRadiationLength();
+      double il = moduleIt.getInteractionLength();
 
       // Update the maxZ and maxR with respect to the inactive surfaces
       if (fabs(z1)>maxZ) maxZ=fabs(z1);
@@ -9011,57 +9491,230 @@ namespace insur {
       if (fabs(r1)>maxR) maxR=fabs(r1);
       if (fabs(r2)>maxR) maxR=fabs(r2);
 
-      bool isEmpty = true;
+      // Find out whether the module info will be printed in the modules dedicated csv file.
+      // Indeed, only one module per subdetector + layer + ring is printed.
+      bool printModulesCsv = false;
+      if (detectorModule != nullptr) {
+	const std::string subdetectorName = detectorModule->uniRef().subdetectorName;
+	const int layerOrDiskIndex = detectorModule->uniRef().layer;
+	const int ringIndex = detectorModule->uniRef().ring;
 
-      const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+	const std::tuple<std::string, int, int> moduleMaterialsRef = std::make_tuple(subdetectorName, layerOrDiskIndex, ringIndex);
+	if (allModuleMaterialsRefs.find(moduleMaterialsRef) == allModuleMaterialsRefs.end()) {
+	  printModulesCsv = true;
+	  allModuleMaterialsRefs.insert(moduleMaterialsRef);
+	}
+      }
 
-      int elementId=0;
-      for (auto& massIt : localMasses) {
-	mass = massIt.second;
-	if (mass!=0) isEmpty=false;
-	myStringStream << serviceId << ","
-                       << elementId++ << ","
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = moduleIt.getLocalElementsDetails();
+      plotAndPrintVolumeMaterials(totalWeights, allVolumesStream, modulesStream, 
+				  allMasses, z1, z2, r1, r2, rl, il,
+				  subdetectorColors, allColors, colorIndex,
+				  isModule, 0, 0., detectorModule, printModulesCsv
+				  );
+    }
+
+
+    // ADD PLOT AND CSV FILE TO WEBSITE
+    allVolumesPlot->GetXaxis()->SetRangeUser(-maxZ, maxZ);
+    allVolumesPlot->GetYaxis()->SetRangeUser(0, maxR);
+
+    RootWImage& servicesImage = myContent.addImage(std::move(allVolumesCanvas), vis_max_canvas_sizeX, vis_min_canvas_sizeY);
+    servicesImage.setComment("All material volumes, (RZ) view.");
+    servicesImage.setName("AllMaterialVolumesRZ");
+
+    RootWTextFile* allVolumesFile = new RootWTextFile(Form("allVolumesMaterials_%s.csv", myTrackerName.c_str()), "All volumes weights");
+    allVolumesFile->addText(allVolumesStream.str());
+    myContent.addItem(allVolumesFile);
+
+    RootWTextFile* modulesFile = new RootWTextFile(Form("modulesMaterials_%s.csv", myTrackerName.c_str()), "Modules weights");
+    modulesFile->addText(modulesStream.str());
+    myContent.addItem(modulesFile);
+
+
+    return totalWeights;
+  }
+
+
+
+
+  void Vizard::plotAndPrintVolumeMaterials(WeightsPerSubdetector& totalWeights, std::stringstream& allVolumesStream, std::stringstream& modulesStream, 
+					   const std::map<LocalElement, double, ElementNameCompare>& allMasses, 
+					   const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
+					   std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+					   const bool isModule, const int serviceId, const double serviceLength, 
+					   const Module* detectorModule, const bool printModulesCsv) {
+
+    bool isEmpty = true;
+    int elementId = 0;
+    std::set<std::string> volumeSubdetectorNames;
+    const uint32_t detId = ( (isModule && detectorModule != nullptr) ? detectorModule->myDetId() : 0);
+    const int layerOrDiskIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().layer : 0);
+    const int ringIndex = ( (isModule && detectorModule != nullptr) ? detectorModule->uniRef().ring : 0);
+    double moduleMass = 0.;
+
+    // LOOP ON ALL LOCAL ELEMENTS
+    for (const auto& massIt : allMasses) {
+
+      const LocalElement& myElement = massIt.first;
+
+      const std::string subdetectorName = myElement.subdetectorName();
+      volumeSubdetectorNames.insert(subdetectorName);
+
+      const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
+      std::string tableMechanicalCategory = any2str(mechanicalCategory);
+      if (mechanicalCategory == MechanicalCategory::COOLING || mechanicalCategory == MechanicalCategory::SUPPORT) tableMechanicalCategory = "SUPPORTS & COOLING";
+
+      const std::string componentName = myElement.componentName();
+      const std::string elementName = myElement.elementName();
+
+      const double mass = massIt.second;
+	    
+      if (mass > 0.) isEmpty = false;
+
+
+      // ALL VOLUMES: COMPUTE WEIGHTS TOTALS
+      totalWeights[subdetectorName][tableMechanicalCategory][componentName] += mass;
+	
+
+      // ALL VOLUMES: DETAILED CSV OUTPUT
+      allVolumesStream << (isModule ? detId : serviceId) << ","
+		       << (isModule ? "Module" : "Service") << ","
 		       << z1 << ","
 		       << z2 << ","
 		       << r1 << ","
 		       << r2 << ","
-		       << massIt.first << ","
-		       << mass << ","
-		       << mass/length << ","
-                       << rl << ","
-                       << il << ","
-                       << "1" << std::endl;
+		       << rl << ","
+		       << il << ","
+		       << elementId++ << ","
+		       << subdetectorName << ","
+		       << any2str(mechanicalCategory) << ","
+		       << componentName << ","	       
+		       << elementName << ","
+		       << mass;
+      if (!isModule) allVolumesStream << "," << (mass / serviceLength);
+      allVolumesStream << std::endl;
+
+
+      if (printModulesCsv) {
+	// MODULE VOLUMES: DETAILED CSV OUTPUT
+	modulesStream << subdetectorName << ","
+		      << layerOrDiskIndex << ","
+		      << ringIndex << ","
+		      << "Module" << ","
+		      << rl << ","
+		      << il << ","
+		      << any2str(mechanicalCategory) << ","
+		      << componentName << ","	       
+		      << elementName << ","
+		      << mass
+		      << std::endl;
+	moduleMass += mass;
       }
-
-      myBox = new TBox(z1, r1, z2, r2);
-      myBox->SetLineColor(kBlack);
-      myBox->SetFillStyle(3003);
-      if (isEmpty) myBox->SetFillColor(kRed);
-      else myBox->SetFillColor(kGray);
-      myBox->Draw("l");
-
-      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
-      myText->SetTextAlign(22);
-      myText->SetTextSize(2e-2);
-      if (isEmpty) myText->SetTextColor(kRed);
-      else myText->SetTextColor(kBlack);
-      myText->Draw();
-
-      serviceId++;
+    }
+    allVolumesStream << std::endl;
+    if (printModulesCsv) {
+      modulesStream <<  "," << "," << "," << "," << "," << "," << "," << "," << "Total " << "," << moduleMass << std::endl;
+      modulesStream << std::endl;
     }
 
-    aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
-    aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
 
-    RootWImage& servicesImage = myContent.addImage(servicesCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
-    servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
-    servicesImage.setName("InactiveSurfacesPosition");
+    // ALL VOLUMES: PLOT
+    if (volumeSubdetectorNames.size() > 4) { 
+      std::cout << "!!! More than 4 subdetectors assigned to a materials volume." << std::endl; 
+    }
+      
+    else if (volumeSubdetectorNames.size() == 0) { plotVolumeBox("", subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2); }
 
-    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
-    myTextFile->addText(myStringStream.str());
-    myContent.addItem(myTextFile);
+    else {
+      double plotR1 = r1;
+      double plotR2 = r2;
+      for (const auto& subdetectorName : volumeSubdetectorNames) {  
+
+	if (isModule && detectorModule != nullptr) {
+	  if (detectorModule->isTilted() 
+	      && detectorModule->subdet() == ModuleSubdetector::BARREL
+	      ) {
+	    const double rhoAtMinZ = (z1 > 0. ? r2 : r1); 
+	    const double rhoAtMaxZ = (z1 > 0. ? r1 : r2);
+	    const bool isFilled = false;
+	    plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, rhoAtMinZ, rhoAtMaxZ, isFilled);
+	  }
+	  else plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, r1, r2);
+	}
+
+	else {
+	  plotVolumeBox(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty, z1, z2, plotR1, plotR2);
+	  if (!isModule) {
+	    plotR1 += 2;
+	    plotR2 += 2;
+	  }
+	}
+      }
+    }
+    
 
   }
+
+  void Vizard::plotVolumeBox(const std::string subdetectorName, 
+			     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+			     const bool isEmpty, 
+			     const double z1, const double z2, const double r1, const double r2, const bool isFilled) {
+
+    const int color = computeSubdetectorColor(subdetectorName, subdetectorColors, allColors, colorIndex, isEmpty);
+   
+    if (isFilled) {
+      TBox* myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(color);
+      myBox->SetFillStyle(3003);
+      myBox->SetFillColor(color);
+      myBox->Draw("l");
+    }
+    else {
+      TLine* myLine = new TLine(z1, r1, z2, r2);
+      myLine->SetLineColor(color);
+      myLine->Draw("l");
+    }
+  }
+
+
+
+  const int Vizard::computeSubdetectorColor(const std::string subdetectorName,
+					    std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
+					    const bool isEmpty) {
+    int color;
+
+    if (!isEmpty) {
+      if (subdetectorName == "") color = kGray;
+      else {
+	const auto& found = subdetectorColors.find(subdetectorName);
+	if (found != subdetectorColors.end()) {
+	  color = found->second;
+	}
+	else {
+	  const int numColors = allColors.size();
+	  if (colorIndex < numColors) {
+	    color = allColors.at(colorIndex);
+	    colorIndex++;
+	    subdetectorColors.insert(std::make_pair(subdetectorName, color));
+	  }
+	  else { logERROR("Not enough colors are defined with respect to the total number of subdetectors"); }
+	}
+	//if (subdetectorName == "TBPS" || subdetectorName == "PXB") color = kAzure + 1;
+	//else if (subdetectorName == "TB2S") color = kCyan;
+	//else if (subdetectorName == "TEDD_1" || subdetectorName == "FPIX_1") color = kRed;
+	// else if (subdetectorName == "TEDD_2" || subdetectorName == "FPIX_2") color = kOrange;
+	//else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
+	//else color = kMagenta;
+      }
+    }
+    else { color = kBlack; }
+
+    return color;
+  }
+
+
+
 
 
   // Create an extra tab for XML files linking
@@ -9097,7 +9750,7 @@ namespace insur {
 	}
       }
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
     }
 
