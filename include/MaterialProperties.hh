@@ -38,7 +38,7 @@ namespace insur {
   static const std::string mechanical_cooling = "Cooling";
   static const std::string mechanical_support = "Supports Mechanics:";
 
-  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT, COOLING };
+  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT_AND_COOLING };
 
   class LocalElement {
   public:
@@ -60,8 +60,8 @@ namespace insur {
     MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
       if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
       else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
-      else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::COOLING;
-      else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT;
+      else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
+      else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
       else return MechanicalCategory::UNKNOWN;
     }
 
@@ -80,6 +80,20 @@ namespace insur {
 	else {
 	  if (localA.componentName() != localB.componentName()) return (localA.componentName() < localB.componentName());
 	  else return (localA.elementName() < localB.elementName());
+	}
+      }
+    }
+    // NB: No need of operator==
+    // (a == b)  <=>  ( !(a<b) && !(b<a) )
+  };
+
+  struct ComponentNameCompare {
+    bool operator() (const LocalElement& localA, const LocalElement& localB) const {
+      if (localA.subdetectorName() != localB.subdetectorName()) return (localA.subdetectorName() < localB.subdetectorName());
+      else {
+	if (localA.mechanicalCategory() != localB.mechanicalCategory()) return (localA.mechanicalCategory() < localB.mechanicalCategory());
+	else {
+	  return (localA.componentName() < localB.componentName());
 	}
       }
     }
@@ -128,7 +142,10 @@ namespace insur {
         double getLocalMass(std::string tag); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
 
+      // weights
       const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
+      // RI
+      const std::map<LocalElement, RILength, ComponentNameCompare>& getComponentsRI() const { return componentsRI_; }
 
         void addLocalMass(const std::string subdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
         void addLocalMass(const std::string subdetectorName, const std::string tag, double ms);
@@ -145,7 +162,7 @@ namespace insur {
         double getRadiationLength();
         double getInteractionLength();
         RILength getMaterialLengths();
-        const std::map<std::string, RILength>& getComponentsRI() const;
+       
         // output calculations
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);
@@ -168,11 +185,11 @@ namespace insur {
 
         // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalElementDetails:
       std::map<LocalElement, double, ElementNameCompare> localMassesDetails_;
+      std::map<LocalElement, RILength, ComponentNameCompare> componentsRI_;  // component-by-component radiation and interaction lengths
 
         std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >
 
-        std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)
         double total_mass, local_mass, r_length, i_length;
         // internal help

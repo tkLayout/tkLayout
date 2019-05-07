@@ -37,6 +37,7 @@ namespace insur {
     virtual ~InactiveElement() {}
     virtual double getSurface() const;
     bool isVertical() const;
+    const double tiltAngle() const;
     void setVertical(bool vertical);
     bool isFinal();
     void setFinal(bool final);

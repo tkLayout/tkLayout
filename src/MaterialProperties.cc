@@ -178,9 +178,7 @@ namespace insur {
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
     double MaterialProperties::getRadiationLength() { return r_length; }
-    
-
-    const std::map<std::string, RILength>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
+  
 
     /**
      * Get the intraction length of the inactive element.
@@ -235,6 +233,8 @@ namespace insur {
     return mechanicalModuleWeight;
   }
 
+
+  // TO DO: THIS IS NOT USED, REMOVE!
     /**
      * Calculate the overall radiation length of the inactive element from the material table and the material vectors,
      * if they have at least one element in them, and an offset value.
@@ -249,15 +249,16 @@ namespace insur {
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
                     r_length += it->second / (materials.getMaterial(it->first).rlength * getSurface() / 100.0);
                 }
-                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                /*for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
+                        componentsRI_[getSuperName(cit->first)].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
                     }
-                }
+		    }*/
             }
         }
     }
     
+  // TO DO: THIS IS NOT USED, REMOVE!
     /**
      * Calculate the overall interaction length of the inactive element from the material table and the material vectors,
      * if they have at least one element in them, and an offset value.
@@ -273,11 +274,11 @@ namespace insur {
                     i_length += it->second / (materials.getMaterial(it->first).ilength * getSurface() / 100.0);
                 }
                     
-                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                /*for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
+                        componentsRI_[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
                     }
-                }
+                }*/
             }
         }
     }
@@ -294,10 +295,12 @@ namespace insur {
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
                     r_length += it->second / (materialsTable.getRadiationLength(it->first) * getSurface() / 100.0);
                 }
-                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
-                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialsTable.getRadiationLength(mit->first) * getSurface() / 100.0);
-                    }
+                for (const auto& myElementIt : localMassesDetails_) {
+		  const LocalElement& myElement = myElementIt.first;
+		  const double myElementMass = myElementIt.second;
+		  const std::string& myElementName = myElement.elementName();
+		  const double myElementRadiationLength = materialsTable.getRadiationLength(myElementName);
+		  componentsRI_[myElement].radiation += myElementMass / (myElementRadiationLength * getSurface() / 100.0);
                 }
             }
         }
@@ -310,17 +313,18 @@ namespace insur {
         if (getSurface() > 0) {
             i_length = offset;
             if (msl_set) {
-                // local mass loop
-                for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
-                    i_length += it->second / (materialsTable.getInteractionLength(it->first) * getSurface() / 100.0);
-                }
-                    
-                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
-                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialsTable.getInteractionLength(mit->first) * getSurface() / 100.0);
-                    }
-                }
-            }
+	      // local mass loop
+	      for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+		i_length += it->second / (materialsTable.getInteractionLength(it->first) * getSurface() / 100.0);
+	      }
+	      for (const auto& myElementIt : localMassesDetails_) {
+		const LocalElement& myElement = myElementIt.first;
+		const double myElementMass = myElementIt.second;
+		const std::string& myElementName = myElement.elementName();
+		const double myElementInteractionLength = materialsTable.getInteractionLength(myElementName);
+		componentsRI_[myElement].interaction += myElementMass / (myElementInteractionLength * getSurface() / 100.0);
+	      }                 
+	    }
         }
     }
 
@@ -375,4 +379,9 @@ namespace insur {
     }
 
 define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
+}
+
+
+namespace insur {
+  define_enum_strings(MechanicalCategory) = { "Unknown", "Module", "Cabling", "Supports & Cooling" };
 }
