@@ -545,195 +545,33 @@ namespace insur {
     std::string name_hadTrackRanger = std::string("hadTrackRanger") + name ;
 
 
-    // Overview
-    myContent = new RootWContent("Overview (Full volume)");
-    myPage->addContent(myContent);
-
     ostringstream label;
     std::map<int, std::vector<double> > averages;
 
     // Book histograms
-    TH1D *cr = nullptr, *ci = nullptr;
-    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr;
 #ifdef MATERIAL_SHADOW
     TH2D *ir = nullptr, *ii = nullptr;
 #endif
     TH2D *mapRad = nullptr, *mapInt = nullptr;
-    TProfile *crProf, *ciProf;
-
-    // 1D OVERVIEW (FULL VOLUME)
-    std::unique_ptr<TCanvas> myCanvas(new TCanvas(name_overviewMaterial.c_str()));
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    // Full volume rlength
-    cr = (TH1D*)a.getHistoGlobalR().Clone();
-    crProf = newProfile(cr, 0., a.getEtaMaxMaterial(), materialNBins);
-    //crProf->Rebin(10);
-    crProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
-    crProf->GetYaxis()->SetTitleOffset(1.3);
-    crProf->SetFillColor(kGray + 2);
-    crProf->SetLineColor(kBlue);
-    crProf->Draw("hist");
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    // Full volume ilength
-    ci = (TH1D*)a.getHistoGlobalI().Clone();
-    ciProf = newProfile(ci, 0., a.getEtaMaxMaterial(), materialNBins);
-    ciProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
-    ciProf->GetYaxis()->SetTitleOffset(1.3);
-    ciProf->SetFillColor(kGray + 2);
-    ciProf->SetLineColor(kBlue);
-    ciProf->Draw("hist");
-
-    // Put the full volume materials plots to the site
-    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Material in full volume");
-    myImage->setName("matOverviewFull");
-    myTable = new RootWTable();
-    std::ostringstream aStringStream;
-    aStringStream.str("");
-    aStringStream << "Average radiation length in full volume (eta = [0, ";
-    aStringStream << std::dec << std::fixed
-                << std::setprecision(1) << a.getEtaMaxMaterial();
-    aStringStream << "])";
-    myTable->setContent(1, 1, aStringStream.str().c_str());
-    aStringStream.str("");
-    aStringStream << "Average interaction length in full volume (eta = [0, ";
-    aStringStream << std::dec << std::fixed
-      << std::setprecision(1) << a.getEtaMaxMaterial();
-    aStringStream << "])";
-    myTable->setContent(2, 1, aStringStream.str().c_str());
-    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
-    myContent->addItem(myTable);
-    myContent->addItem(myImage);
-
-    // Bill of materials ##########3
-    RootWTextFile* myTextFile = new RootWTextFile(Form("materials_%s.csv", name.c_str()), "Bill of materials");
-    myTextFile->addText(a.getBillOfMaterials());
-    myContent->addItem(myTextFile);
-
-    // Material summary table
-    RootWTable* materialSummaryTable = new RootWTable();
-      {
-        double averageValue;
-        materialSummaryTable->setContent(0,0,"Material");
-        materialSummaryTable->setContent(1,0,"Rad. length");
-        materialSummaryTable->setContent(2,0,"Int. length");
-        materialSummaryTable->setContent(3,0,"Photon conversion");
-        for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
-          // Column: the cut name
-          materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
-
-          // First row: the radiation length
-          averageValue = averageHistogramValues(*cr, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
-          materialSummaryTable->setContent(1,j, averageValue ,4);
-
-          // Third row: the photon conversion probability
-          averageValue *= -7./9.;
-          averageValue = 1 - exp(averageValue);
-          materialSummaryTable->setContent(3,j, averageValue ,4);
-
-          // Second row: the interaction length
-          averageValue = averageHistogramValues(*ci, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
-          materialSummaryTable->setContent(2,j, averageValue ,4);
-        }
-      }
 
 
-
-    // CATEGORIES DETAILS (FULL VOLUME)
-    myContent = new RootWContent("Categories details (Full volume)", false);
-    myPage->addContent(myContent);
-    // Work area re-init
-    myCanvas.reset(new TCanvas(name_categoriesMaterial.c_str()));
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    // radiation length in tracking volume by active, serving or passive
-    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
-    TProfile* surProf = newProfile((TH1D*)a.getHistoSupportsAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    sur = surProf->ProjectionX();
-    sur->SetLineColor(kOrange + 4);
-    sur->SetFillColor(kOrange + 4);
-    rcontainer->Add(sur);
-    TProfile* serProf = newProfile((TH1D*)a.getHistoServicesAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    ser = serProf->ProjectionX();
-    ser->SetLineColor(kBlue);
-    ser->SetFillColor(kBlue);
-    rcontainer->Add(ser);
-    TProfile* acrProf = newProfile((TH1D*)a.getHistoModulesAllR().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    acr = acrProf->ProjectionX();
-    acr->SetLineColor(kRed);
-    acr->SetFillColor(kRed);
-    rcontainer->Add(acr);
-    rcontainer->Draw("hist");
-    //rcontainer->GetXaxis()->SetTitle("#eta"); 
-    //myCanvas->Modified();
-
-    // interaction length in tracking volume by active, serving or passive
-    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    TProfile* suiProf = newProfile((TH1D*)a.getHistoSupportsAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    sui = suiProf->ProjectionX();
-    sui->SetLineColor(kOrange + 2);
-    sui->SetFillColor(kOrange + 2);
-    icontainer->Add(sui);
-    TProfile* seiProf = newProfile((TH1D*)a.getHistoServicesAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    sei = seiProf->ProjectionX();
-    sei->SetLineColor(kAzure - 2);
-    sei->SetFillColor(kAzure - 2);
-    icontainer->Add(sei);
-    TProfile* aciProf = newProfile((TH1D*)a.getHistoModulesAllI().Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
-    aci = aciProf->ProjectionX();
-    aci->SetLineColor(kRed - 3);
-    aci->SetFillColor(kRed - 3);
-    icontainer->Add(aci);
-    icontainer->Draw("hist");
-    //icontainer->GetXaxis()->SetTitle("#eta"); 
-    //myCanvas->Modified();
-
-    // Write asl category plots to web page
-    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Detailed");
-    myImage->setName("matCategoriesFull");
-    myTable = new RootWTable();
-    // Average values by active, service and passive
     char titleString[256];
-    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
-    myTable->setContent(0, 0, titleString);
-    myTable->setContent(1, 0, "modules");
-    myTable->setContent(2, 0, "services");
-    myTable->setContent(3, 0, "supports");
-    myTable->setContent(0, 1, "Radiation length");
-    myTable->setContent(0, 2, "Interaction length");
-    myTable->setContent(1, 1, averageHistogramValues(*acr, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 1, averageHistogramValues(*ser, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 1, averageHistogramValues(*sur, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(1, 2, averageHistogramValues(*aci, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*sei, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 2, averageHistogramValues(*sui, a.getEtaMaxMaterial()), 5);
-    myContent->addItem(myTable);
-    myContent->addItem(myImage);
-
-
     TProfile* prof;
     TH1D* histo;
+    std::unique_ptr<TCanvas> myCanvas;
+    const std::string allSubdetectors = "All subdetectors";
 
 
 
     // MECHANICAL CATEGORY DETAILS (FULL VOLUME)
     const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPlotsInFullVolume = a.getRIPlotsInFullVolume();
 
-    // Loop on all mechanical categories
+    // Prepare sums on all mechanical categories
+    std::map<std::string, std::map<std::string, std::pair<TH1D*, TH1D*> > > radiationAndInteractionLengthPlotsInAllMechanicalCategories;
+
+
+
+    // LOOP ON ALL MECHANICAL CATEGORIES
     for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsInFullVolume) {
       const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
       const std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > >& radiationAndInteractionLengthPlotsPerSubdetector = mechanicalCategoryIt.second;
@@ -746,7 +584,7 @@ namespace insur {
       std::map<std::string, std::pair<THStack*, THStack*> > radiationAndInteractionLengthPlotsInAllSubdetectors;
 
 
-      // Loop on all subdetectors
+      // LOOP ON ALL SUBDETECTORS
       for (const auto& subdetectorIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	const std::string& subdetectorName = subdetectorIt.first;
 	std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > radiationAndInteractionLengthPlots = subdetectorIt.second;
@@ -757,7 +595,7 @@ namespace insur {
 	const std::string canvasTitle = mechanicalCategory + ": MB in " + subdetectorName + " (Full volume)";
 	myCanvas.reset(new TCanvas(canvasTitle.c_str()));
 	myCanvas->SetFillColor(color_plot_background);
-	myCanvas->Divide(2, 1);
+	myCanvas->Divide(3, 1);
 	myPad = myCanvas->GetPad(0);
 	myPad->SetFillColor(color_pad_background);
 
@@ -769,8 +607,8 @@ namespace insur {
 	THStack* interactionLengthStack = new THStack(interactionLengthPlotTitle.c_str(), interactionLengthPlotTitle.c_str());
 
 	//TLegend* myLegend = new TLegend(0.1,0.6,0.35,0.9);
-	TLegend* myLegend = new TLegend(0.1,0.6,0.9,0.9);
-	myLegend->SetTextSize(0.015);
+	TLegend* myLegend = new TLegend(0.1,0.1,0.9,0.9);
+	myLegend->SetTextSize(0.025);
 
 	myTable = new RootWTable();
 	sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
@@ -808,7 +646,7 @@ namespace insur {
 	  compIndex++;
 	}
 	radiationLengthStack->Draw("hist");
-	myLegend->Draw();
+	radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].first = (TH1D*)radiationLengthStack->GetStack()->Last();
 
 	// INTERACTION LENGTH
 	myPad = myCanvas->GetPad(2);
@@ -834,15 +672,23 @@ namespace insur {
 	  compIndex++;
 	}
 	interactionLengthStack->Draw("hist");
+	radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].second = (TH1D*)interactionLengthStack->GetStack()->Last();
+
+	myPad = myCanvas->GetPad(3);
+	myPad->cd();
 	myLegend->Draw();
 
 
-	myContent = new RootWContent(subdetectorName.c_str(), false);
+	myContent = new RootWContent("");
 	myPage->addContent(myContent);
+
+	RootWTable* subdetectorNameTitle = new RootWTable();
+	subdetectorNameTitle->setContent(0, 0, subdetectorName.c_str());
+	myContent->addItem(subdetectorNameTitle);
 
 	myContent->addItem(myTable);
 
-	myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setName(canvasTitle.c_str());
 	myImage->setComment(canvasTitle.c_str());  
 	myContent->addItem(myImage);
@@ -852,12 +698,12 @@ namespace insur {
 
 
 
-      // Sum of all subdetectors
+      // SUM OF ALL SUBDETECTORS
 
       const std::string canvasTitle = mechanicalCategory + ": MB in all subdetectors (Full volume)";
       myCanvas.reset(new TCanvas(canvasTitle.c_str()));
       myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2, 1);
+      myCanvas->Divide(3, 1);
       myPad = myCanvas->GetPad(0);
       myPad->SetFillColor(color_pad_background);
 
@@ -866,15 +712,14 @@ namespace insur {
       const std::string interactionLengthInAllSubdetectorsPlotTitle = mechanicalCategory + ": Interaction Length in all subdetectors (Full volume)";
       THStack* interactionLengthInAllSubdetectorsStack = new THStack(interactionLengthInAllSubdetectorsPlotTitle.c_str(), interactionLengthInAllSubdetectorsPlotTitle.c_str());
 
-      TLegend* allSubdetectorsLegend = new TLegend(0.1,0.6,0.9,0.9);
-      allSubdetectorsLegend->SetTextSize(0.015);
+      TLegend* allSubdetectorsLegend = new TLegend(0.1,0.1,0.9,0.9);
+      allSubdetectorsLegend->SetTextSize(0.025);
 
       RootWTable* allSubdetectorsTable = new RootWTable();
       sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
       allSubdetectorsTable->setContent(0, 0, titleString);
       allSubdetectorsTable->setContent(0, 1, "Radiation length");
       allSubdetectorsTable->setContent(0, 2, "Interaction length");
-
 
       // RADIATION LENGTH
       myPad = myCanvas->GetPad(1);
@@ -883,7 +728,7 @@ namespace insur {
       for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	const std::string componentName = componentIt.first;
 	// TO DO: understand cast TH1D into TProfile
-	prof = newProfile((TH1D*)componentIt.second.first->GetStack()->Last()->Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+	prof = newProfile((TH1D*)componentIt.second.first->GetStack()->Last(), 0., a.getEtaMaxMaterial(), materialNBins);
 	// then back to TH1D: whyyyyyyyyyyyyyyy not just take TH1D at the first place?
 	histo = prof->ProjectionX();   
 	histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
@@ -901,7 +746,7 @@ namespace insur {
 	allSubdetectorsComponentIndex++;
       }
       radiationLengthInAllSubdetectorsStack->Draw("hist");
-      allSubdetectorsLegend->Draw();
+      radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].first = (TH1D*)radiationLengthInAllSubdetectorsStack->GetStack()->Last();
 
       // INTERACTION LENGTH
       myPad = myCanvas->GetPad(2);
@@ -909,7 +754,7 @@ namespace insur {
       allSubdetectorsComponentIndex = 1;
       for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	const std::string componentName = componentIt.first;
-	prof = newProfile((TH1D*)componentIt.second.second->GetStack()->Last()->Clone(), 0., a.getEtaMaxMaterial(), materialNBins);
+	prof = newProfile((TH1D*)componentIt.second.second->GetStack()->Last(), 0., a.getEtaMaxMaterial(), materialNBins);
 	histo = prof->ProjectionX();   
 	histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
@@ -922,16 +767,23 @@ namespace insur {
 	allSubdetectorsComponentIndex++;
       }
       interactionLengthInAllSubdetectorsStack->Draw("hist");
+      radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].second = (TH1D*)interactionLengthInAllSubdetectorsStack->GetStack()->Last();
+
+      myPad = myCanvas->GetPad(3);
+      myPad->cd();
       allSubdetectorsLegend->Draw();
 
 
-      const std::string allSubdetectors = "allSubdetectors";
-      myContent = new RootWContent(allSubdetectors.c_str(), false);
+      myContent = new RootWContent("");
       myPage->addContent(myContent);
+
+      RootWTable* subdetectorNameTitle = new RootWTable();
+      subdetectorNameTitle->setContent(0, 0, allSubdetectors.c_str());
+      myContent->addItem(subdetectorNameTitle);
 
       myContent->addItem(allSubdetectorsTable);
 
-      myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setName(canvasTitle.c_str());
       myImage->setComment(canvasTitle.c_str());  
       myContent->addItem(myImage);
@@ -945,6 +797,119 @@ namespace insur {
 
 
 
+    // TOTAL PER MECHANICAL CATEGORY (FULL VOLUME)
+    const std::string contentTitle = "Total per category (Full volume)";
+    myContent = new RootWContent(contentTitle.c_str(), false);
+    myPage->addContent(myContent);
+
+    std::pair<TH1D*, TH1D*> radiationAndInteractionLengthGrandTotal;
+
+
+    // LOOP ON ALL SUBDETECTORS
+    for (const auto& subdetectorIt : radiationAndInteractionLengthPlotsInAllMechanicalCategories) {
+      const std::string& subdetectorName = subdetectorIt.first;
+      const std::map<std::string, std::pair<TH1D*, TH1D*> >& radiationAndInteractionLengthPlotsPerSubdetector = subdetectorIt.second;
+
+
+      const std::string canvasTitle = "Total per category: MB in " + subdetectorName + " (Full volume)";
+      myCanvas.reset(new TCanvas(canvasTitle.c_str()));
+      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->Divide(3, 1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(color_pad_background);
+
+  
+      const std::string radiationLengthPlotTitle = "Total per category: Radiation Length in " + subdetectorName + " (Full volume)";
+      THStack* radiationLengthStack = new THStack(radiationLengthPlotTitle.c_str(), radiationLengthPlotTitle.c_str());
+
+      const std::string interactionLengthPlotTitle = "Total per category: Interaction Length in " + subdetectorName + " (Full volume)";
+      THStack* interactionLengthStack = new THStack(interactionLengthPlotTitle.c_str(), interactionLengthPlotTitle.c_str());
+
+      TLegend* myLegend = new TLegend(0.1,0.1,0.9,0.9);
+      myLegend->SetTextSize(0.025);
+
+      myTable = new RootWTable();
+      sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+      myTable->setContent(0, 0, titleString);
+      myTable->setContent(0, 1, "Radiation length");
+      myTable->setContent(0, 2, "Interaction length");
+
+      // RADIATION LENGTH
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      int compIndex = 1;
+
+
+      // LOOP ON ALL MECHANICAL CATEGORIES
+      for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
+	const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
+	// TO DO: understand cast TH1D into TProfile
+	prof = newProfile((TH1D*)mechanicalCategoryIt.second.first, 0., a.getEtaMaxMaterial(), materialNBins);
+	// then back to TH1D: whyyyyyyyyyyyyyyy not just take TH1D at the first place?
+	histo = prof->ProjectionX();   
+	histo->SetLineColor(Palette::color(compIndex));
+	histo->SetFillColor(Palette::color(compIndex));
+	histo->SetTitle(mechanicalCategory.c_str());
+
+	radiationLengthStack->Add(histo);
+
+	myLegend->AddEntry(histo, mechanicalCategory.c_str());
+
+	const double averageRadiationLengthOverEta = averageHistogramValues(*histo, a.getEtaMaxMaterial());
+	myTable->setContent(compIndex, 0, mechanicalCategory);
+	myTable->setContent(compIndex, 1, averageRadiationLengthOverEta, 5);
+
+	compIndex++;
+      }
+      radiationLengthStack->Draw("hist");
+      if (subdetectorName == allSubdetectors) {
+	radiationAndInteractionLengthGrandTotal.first = (TH1D*)radiationLengthStack->GetStack()->Last();
+      }
+
+      // INTERACTION LENGTH
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();	
+      compIndex = 1;
+      for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
+	const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
+	prof = newProfile((TH1D*)mechanicalCategoryIt.second.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	histo = prof->ProjectionX();   
+	histo->SetLineColor(Palette::color(compIndex));
+	histo->SetFillColor(Palette::color(compIndex));
+	histo->SetTitle(mechanicalCategory.c_str());
+
+	interactionLengthStack->Add(histo);
+
+	const double averageInteractionLengthOverEta = averageHistogramValues(*histo, a.getEtaMaxMaterial());
+	myTable->setContent(compIndex, 2, averageInteractionLengthOverEta, 5);
+	compIndex++;
+      }
+      interactionLengthStack->Draw("hist");
+      if (subdetectorName == allSubdetectors) {
+	radiationAndInteractionLengthGrandTotal.second = (TH1D*)interactionLengthStack->GetStack()->Last();
+      }
+
+      myPad = myCanvas->GetPad(3);
+      myPad->cd();
+      myLegend->Draw();
+
+
+      myContent = new RootWContent("");
+      myPage->addContent(myContent);
+
+      RootWTable* subdetectorNameTitle = new RootWTable();
+      subdetectorNameTitle->setContent(0, 0, subdetectorName.c_str());
+      myContent->addItem(subdetectorNameTitle);
+
+      myContent->addItem(myTable);
+
+      myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setName(canvasTitle.c_str());
+      myImage->setComment(canvasTitle.c_str());  
+      myContent->addItem(myImage);
+
+
+    } // loop on all subdetectors
 
 
 
@@ -952,6 +917,60 @@ namespace insur {
 
 
 
+    // TOTAL (FULL VOLUME)
+    RootWContent* grandTotalContent = new RootWContent("Total (Full volume)");
+    myPage->addContent(grandTotalContent);
+
+    const std::string canvasTitle = "Total MB (Full volume)";
+    //std::unique_ptr<TCanvas> myCanvas(new TCanvas(name_overviewMaterial.c_str()));
+    myCanvas.reset(new TCanvas(canvasTitle.c_str()));
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+
+    myTable = new RootWTable();
+    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
+    myTable->setContent(0, 1, "Radiation length");
+    myTable->setContent(0, 2, "Interaction length");
+
+
+    // RADIATION LENGTH
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+
+    TH1D* radiationLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.first;
+    TProfile* radiationLengthGrandTotalProf = newProfile((TH1D*)radiationLengthGrandTotalHist, 0., a.getEtaMaxMaterial(), materialNBins);
+    radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
+    radiationLengthGrandTotalProf->GetYaxis()->SetTitleOffset(1.3);
+    radiationLengthGrandTotalProf->SetFillColor(kGray + 2);
+    radiationLengthGrandTotalProf->SetLineColor(kBlue);
+    radiationLengthGrandTotalProf->Draw("hist");
+
+    const double averageRadiationLengthOverEta = averageHistogramValues(*radiationLengthGrandTotalHist, a.getEtaMaxMaterial());
+    myTable->setContent(1, 1, averageRadiationLengthOverEta, 5);
+
+    // INTERACTION LENGTH    
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+
+    TH1D* interactionLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.second;
+    TProfile* interactionLengthGrandTotalProf = newProfile((TH1D*)interactionLengthGrandTotalHist, 0., a.getEtaMaxMaterial(), materialNBins);
+    interactionLengthGrandTotalProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}");
+    interactionLengthGrandTotalProf->GetYaxis()->SetTitleOffset(1.3);
+    interactionLengthGrandTotalProf->SetFillColor(kGray + 2);
+    interactionLengthGrandTotalProf->SetLineColor(kBlue);
+    interactionLengthGrandTotalProf->Draw("hist");
+
+    const double averageInteractionLengthOverEta = averageHistogramValues(*interactionLengthGrandTotalHist, a.getEtaMaxMaterial());
+    myTable->setContent(1, 2, averageInteractionLengthOverEta, 5);
+    grandTotalContent->addItem(myTable);
+
+    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setName(canvasTitle.c_str());
+    myImage->setComment(canvasTitle.c_str());  
+    grandTotalContent->addItem(myImage);
 
 
 
@@ -959,7 +978,30 @@ namespace insur {
 
 
 
+    // Material summary table
+    RootWTable* materialSummaryTable = new RootWTable();
+    double averageValue;
+    materialSummaryTable->setContent(0,0,"Material");
+    materialSummaryTable->setContent(1,0,"Rad. length");
+    materialSummaryTable->setContent(2,0,"Int. length");
+    materialSummaryTable->setContent(3,0,"Photon conversion");
+    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+      // Column: the cut name
+      materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
 
+      // First row: the radiation length
+      averageValue = averageHistogramValues(*radiationLengthGrandTotalHist, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      materialSummaryTable->setContent(1,j, averageValue ,4);
+
+      // Third row: the photon conversion probability
+      averageValue *= -7./9.;
+      averageValue = 1 - exp(averageValue);
+      materialSummaryTable->setContent(3,j, averageValue ,4);
+
+      // Second row: the interaction length
+      averageValue = averageHistogramValues(*interactionLengthGrandTotalHist, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      materialSummaryTable->setContent(2,j, averageValue ,4);
+    }
 
 
 
