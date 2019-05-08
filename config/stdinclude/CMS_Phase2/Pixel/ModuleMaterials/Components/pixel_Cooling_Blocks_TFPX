@@ -4,7 +4,7 @@
 
 
 Component {
-  componentName "IT Module: Cooling blocks (Graphite plate)"
+  componentName "Cooling: Cooling blocks (Graphite plate)"
   service false
   
   // TPG cold plates
@@ -20,7 +20,7 @@ Component {
 
 
 Component {
-  componentName "IT Module: Cooling blocks (Si3N4 plate)"
+  componentName "Cooling: Cooling blocks (Si3N4 plate)"
   service false
     
   // Silicon Nitride cooling plates
