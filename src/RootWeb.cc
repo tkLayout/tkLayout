@@ -62,7 +62,8 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
 //*******************************************//
 // RootWTable                                //
 //*******************************************//
-RootWTable::RootWTable() {
+RootWTable::RootWTable(bool isPlacedBelow /*= false*/) {
+  isPlacedBelow_ = isPlacedBelow;
   serialRow_ = 0;
   serialCol_ = 0;
   maxRow_ = 0;
@@ -640,6 +641,7 @@ ostream& RootWContent::dump(ostream& output) {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
     }
+    if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\">&nbsp;</div>"; }
     myItem->dump(output);
   }
   output << "<div class=\"clearer\">&nbsp;</div>";

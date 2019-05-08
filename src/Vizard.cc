@@ -561,10 +561,13 @@ namespace insur {
     std::unique_ptr<TCanvas> myCanvas;
     const std::string allSubdetectors = "All subdetectors";
 
+    std::map<std::string, RootWContent*> categoryDetailsContents;
 
 
     // MECHANICAL CATEGORY DETAILS (FULL VOLUME)
     const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPlotsInFullVolume = a.getRIPlotsInFullVolume();
+
+    //if (name == "outer") {
 
     // Prepare sums on all mechanical categories
     std::map<std::string, std::map<std::string, std::pair<TH1D*, TH1D*> > > radiationAndInteractionLengthPlotsInAllMechanicalCategories;
@@ -577,8 +580,7 @@ namespace insur {
       const std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > >& radiationAndInteractionLengthPlotsPerSubdetector = mechanicalCategoryIt.second;
 
       const std::string contentTitle = "Category details: " + mechanicalCategory + " (Full volume)";
-      myContent = new RootWContent(contentTitle.c_str(), false);
-      myPage->addContent(myContent);
+      categoryDetailsContents[mechanicalCategory] = new RootWContent(contentTitle.c_str(), false);
 
       // Prepare stacks on all subdetectors
       std::map<std::string, std::pair<THStack*, THStack*> > radiationAndInteractionLengthPlotsInAllSubdetectors;
@@ -679,19 +681,16 @@ namespace insur {
 	myLegend->Draw();
 
 
-	myContent = new RootWContent("");
-	myPage->addContent(myContent);
-
-	RootWTable* subdetectorNameTitle = new RootWTable();
+	RootWTable* subdetectorNameTitle = new RootWTable(true);
 	subdetectorNameTitle->setContent(0, 0, subdetectorName.c_str());
-	myContent->addItem(subdetectorNameTitle);
+	categoryDetailsContents[mechanicalCategory]->addItem(subdetectorNameTitle);
 
-	myContent->addItem(myTable);
+	categoryDetailsContents[mechanicalCategory]->addItem(myTable);
 
 	myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setName(canvasTitle.c_str());
 	myImage->setComment(canvasTitle.c_str());  
-	myContent->addItem(myImage);
+	categoryDetailsContents[mechanicalCategory]->addItem(myImage);
 
 
       } // loop on all subdetectors
@@ -773,20 +772,17 @@ namespace insur {
       myPad->cd();
       allSubdetectorsLegend->Draw();
 
-
-      myContent = new RootWContent("");
-      myPage->addContent(myContent);
-
-      RootWTable* subdetectorNameTitle = new RootWTable();
+ 
+      RootWTable* subdetectorNameTitle = new RootWTable(true);
       subdetectorNameTitle->setContent(0, 0, allSubdetectors.c_str());
-      myContent->addItem(subdetectorNameTitle);
+      categoryDetailsContents[mechanicalCategory]->addItem(subdetectorNameTitle);
 
-      myContent->addItem(allSubdetectorsTable);
+      categoryDetailsContents[mechanicalCategory]->addItem(allSubdetectorsTable);
 
       myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setName(canvasTitle.c_str());
       myImage->setComment(canvasTitle.c_str());  
-      myContent->addItem(myImage);
+      categoryDetailsContents[mechanicalCategory]->addItem(myImage);
 
     } // loop on all mechanical categories
 
@@ -799,9 +795,8 @@ namespace insur {
 
     // TOTAL PER MECHANICAL CATEGORY (FULL VOLUME)
     const std::string contentTitle = "Total per category (Full volume)";
-    myContent = new RootWContent(contentTitle.c_str(), false);
-    myPage->addContent(myContent);
-
+    RootWContent* totalPerCategoryContent = new RootWContent(contentTitle.c_str(), false);
+    
     std::pair<TH1D*, TH1D*> radiationAndInteractionLengthGrandTotal;
 
 
@@ -894,19 +889,17 @@ namespace insur {
       myLegend->Draw();
 
 
-      myContent = new RootWContent("");
-      myPage->addContent(myContent);
 
-      RootWTable* subdetectorNameTitle = new RootWTable();
+      RootWTable* subdetectorNameTitle = new RootWTable(true);
       subdetectorNameTitle->setContent(0, 0, subdetectorName.c_str());
-      myContent->addItem(subdetectorNameTitle);
+      totalPerCategoryContent->addItem(subdetectorNameTitle);
 
-      myContent->addItem(myTable);
+      totalPerCategoryContent->addItem(myTable);
 
       myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setName(canvasTitle.c_str());
       myImage->setComment(canvasTitle.c_str());  
-      myContent->addItem(myImage);
+      totalPerCategoryContent->addItem(myImage);
 
 
     } // loop on all subdetectors
@@ -918,8 +911,7 @@ namespace insur {
 
 
     // TOTAL (FULL VOLUME)
-    RootWContent* grandTotalContent = new RootWContent("Total (Full volume)");
-    myPage->addContent(grandTotalContent);
+    RootWContent* grandTotalContent = new RootWContent("Total (Full volume)", true);
 
     const std::string canvasTitle = "Total MB (Full volume)";
     //std::unique_ptr<TCanvas> myCanvas(new TCanvas(name_overviewMaterial.c_str()));
@@ -973,6 +965,16 @@ namespace insur {
     grandTotalContent->addItem(myImage);
 
 
+
+
+    // PAGE CONTENTS ORDERING
+    myPage->addContent(grandTotalContent);
+
+    myPage->addContent(totalPerCategoryContent);
+
+    for (const auto& mechanicalCategoryIt : categoryDetailsContents) {
+      myPage->addContent(mechanicalCategoryIt.second);
+    }
 
 
 
