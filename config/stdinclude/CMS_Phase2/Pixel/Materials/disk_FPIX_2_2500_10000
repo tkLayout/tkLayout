@@ -173,9 +173,9 @@ Materials FPIX_2_disk_2500_10000 {
   }
  
  
-  // Supports Mechanics: PCB panel
+  // Cabling: PCB panel
   Component {
-    componentName "Supports Mechanics: Dee PCB panel"
+    componentName "Cabling: Dee PCB panel"
     service false
     scaleOnSensor 0
  

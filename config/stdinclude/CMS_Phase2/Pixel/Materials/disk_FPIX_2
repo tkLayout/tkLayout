@@ -173,9 +173,9 @@ Materials FPIX_2_disk {
   }
  
  
-  // Supports Mechanics: PCB panel
+  // Cabling: PCB panel
   Component {
-    componentName "Supports Mechanics: Dee PCB panel"
+    componentName "Cabling: Dee PCB panel"
     // location dee  // MB fully works but still need to fix overlaps
     service false
     scaleOnSensor 0
