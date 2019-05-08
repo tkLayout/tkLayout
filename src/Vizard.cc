@@ -3489,7 +3489,7 @@ namespace insur {
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
 
-    compLegend = new TLegend(0.1,0.9,0.1,0.9);
+    compLegend = new TLegend(0.1,0.1,0.9,0.9);
     compLegend->SetTextSize(0.025);
 
     std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
