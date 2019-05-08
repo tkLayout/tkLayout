@@ -561,7 +561,7 @@ namespace insur {
 
     RootWTable* materialSummaryTable;
 
-    const std::string allSubdetectors = (name == "outer" ? "All OT subdetectors:" : "All IT subdetectors:");
+    const std::string allSubdetectors = (name == "outer" ? "All OT subdetectors" : "All IT subdetectors");
 
 
 
@@ -603,7 +603,7 @@ namespace insur {
 
 	// LOOP ON ALL SUBDETECTORS
 	for (const auto& subdetectorIt : radiationAndInteractionLengthPlotsPerSubdetector) {
-	  const std::string subdetectorName = subdetectorIt.first + ":";
+	  const std::string& subdetectorName = subdetectorIt.first;
 	  std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > radiationAndInteractionLengthPlots = subdetectorIt.second;
 	  const std::map<std::string, TH1D*>& radiationLengthPlots = radiationAndInteractionLengthPlots.first;
 	  const std::map<std::string, TH1D*>& interactionLengthPlots = radiationAndInteractionLengthPlots.second;
@@ -696,6 +696,7 @@ namespace insur {
 	  myLegend->Draw();
 
 
+
 	  RootWTable* subdetectorNameTitle = new RootWTable(true);
 	  subdetectorNameTitle->setContent(0, 0, subdetectorName.c_str());
 	  categoryDetailsContents[mechanicalCategory]->addItem(subdetectorNameTitle);
@@ -786,6 +787,7 @@ namespace insur {
 	myPad = myCanvas->GetPad(3);
 	myPad->cd();
 	allSubdetectorsLegend->Draw();
+
 
  
 	RootWTable* subdetectorNameTitle = new RootWTable(true);
@@ -902,7 +904,6 @@ namespace insur {
 	myPad = myCanvas->GetPad(3);
 	myPad->cd();
 	myLegend->Draw();
-
 
 
 	RootWTable* subdetectorNameTitle = new RootWTable(true);
@@ -3424,11 +3425,12 @@ namespace insur {
     THStack* rCompTotalTrackingVolumeStack = new THStack("rcomptotaltrackingvolumestack", "Radiation Length by Component in tracking volume");
     THStack* iCompTotalTrackingVolumeStack = new THStack("icomptotaltrackingvolumestack", "Interaction Length by Component in tracking volume");
 
-    TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
+    TLegend* compLegend = new TLegend(0.1,0.1,0.9,0.9);
+    compLegend->SetTextSize(0.025);
 
     std::unique_ptr<TCanvas> myCanvas(new TCanvas("FullLayoutMaterialComponentsTrackingVolumeRI"));
     myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
+    myCanvas->Divide(3, 1);
     TVirtualPad* myPad = myCanvas->GetPad(0);
     myPad->SetFillColor(color_pad_background);
 
@@ -3450,8 +3452,7 @@ namespace insur {
       }
     }
     rCompTotalTrackingVolumeStack->Draw("hist");
-    compLegend->Draw();
-
+ 
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     isRadiation = false;
@@ -3470,10 +3471,13 @@ namespace insur {
       }
     }
     iCompTotalTrackingVolumeStack->Draw("hist");
+
+    myPad = myCanvas->GetPad(3);
+    myPad->cd();
     compLegend->Draw();
 
     materialComponentsContent->addItem(myTable);
-    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by component type in total tracking volume");
     myImage->setName("fullLayoutMatComponentsTrackingVolume");
     materialComponentsContent->addItem(myImage);
@@ -3484,7 +3488,9 @@ namespace insur {
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
-    compLegend = new TLegend(0.1,0.6,0.35,0.9);
+
+    compLegend = new TLegend(0.1,0.9,0.1,0.9);
+    compLegend->SetTextSize(0.025);
 
     std::vector<std::pair<std::string, TH1D*>> histoPerCategoryR, histoPerCategoryI;
     if (rCompBeamPipeStack->GetHists()) histoPerCategoryR.push_back(std::make_pair("Beam pipe", (TH1D*)rCompBeamPipeStack->GetStack()->Last()));
@@ -3503,7 +3509,7 @@ namespace insur {
 
     myCanvas.reset(new TCanvas("FullLayoutMaterialCategoriesTrackingVolumeRI"));
     myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
+    myCanvas->Divide(3, 1);
     myPad = myCanvas->GetPad(0);
     myPad->SetFillColor(color_pad_background);
 
@@ -3513,7 +3519,6 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryR, myTable, index, dummy, rCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     rCompCategoryTrackingVolumeStack->Draw("hist");
-    compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
     myPad->cd();
@@ -3521,10 +3526,13 @@ namespace insur {
     index = 1;
     stackHistos(histoPerCategoryI, myTable, index, dummy, iCompCategoryTrackingVolumeStack, compLegend, isRadiation);
     iCompCategoryTrackingVolumeStack->Draw("hist");
+
+    myPad = myCanvas->GetPad(3);
+    myPad->cd();
     compLegend->Draw();
 
     materialCategoriesContent->addItem(myTable);
-    myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in eta by category in total tracking volume");
     myImage->setName("fullLayoutMatCategoriesTrackingVolume");
     materialCategoriesContent->addItem(myImage);
@@ -3560,6 +3568,7 @@ namespace insur {
       ciProf->GetYaxis()->SetTitleOffset(1.3);
       ciProf->Draw("hist");
     }
+
     // Write global tracking volume plots to web pag
     myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material in total tracking volume");

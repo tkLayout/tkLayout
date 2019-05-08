@@ -641,7 +641,7 @@ ostream& RootWContent::dump(ostream& output) {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
     }
-    if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\">&nbsp;</div>"; }
+    if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\"> <br> <br> &nbsp;</div>"; }
     myItem->dump(output);
   }
   output << "<div class=\"clearer\">&nbsp;</div>";
