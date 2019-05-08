@@ -1,0 +1,36 @@
+// TFPX Cooling blocks
+// Evth from [TFPX_2019_03_19_YP].
+// Info is set as thickness, so that mass directly scales with the module surface.
+
+
+Component {
+  componentName "IT Module: Cooling blocks (Graphite plate)"
+  service false
+  
+  // TPG cold plates
+  Element {
+    scaleOnSensor 0
+    elementName Graphite_FPX 
+    quantity 0.11      // ~0.11 mm thickness per module. This might be needed in final design, so take conservative assumption. Source: [TFPX_2019_03_19_YP].
+                       // APPROXIMATION: Put a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
+    unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 3
+  }
+}
+
+
+Component {
+  componentName "IT Module: Cooling blocks (Si3N4 plate)"
+  service false
+    
+  // Silicon Nitride cooling plates
+  Element {
+    scaleOnSensor 0
+    elementName Si3N4  
+    quantity 0.2198     // ~0.22 mm thickness per module. Source: [TFPX_2019_03_19_YP].
+                        // APPROXIMATION: Thickness in this file is a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 3
+  }
+}  
+

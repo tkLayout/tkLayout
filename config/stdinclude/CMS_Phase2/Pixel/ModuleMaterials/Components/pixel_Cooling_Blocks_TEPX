@@ -1,0 +1,36 @@
+// TEPX Cooling blocks
+// Evth from [TEPX_2018_12_07_LC], scaled per module.
+// Info is set as thickness, so that mass directly scales with the module surface.
+
+
+Component {
+  componentName "IT Module: Cooling blocks (Graphite plate)"
+  service false
+  
+  // TPG cold plates
+  Element {
+    scaleOnSensor 0
+    elementName Graphite_EPX 
+    quantity 1.5       // 1.5 mm thickness per module. Source: [TEPX_2018_12_07_LC].    // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [TEPX_2018_12_07_LC] REALLY ACCURATE?
+                       // APPROXIMATION: Put a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
+    unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 3
+  }
+}
+
+
+Component {
+  componentName "IT Module: Cooling blocks (AlN plate)"
+  service false
+    
+  // AlN cooling plates
+  Element {
+    scaleOnSensor 0
+    elementName AlN  
+    quantity 0.34       // 0.300 mm thickness per module. Source: [TEPX_2018_12_07_LC].   // WATCH OUT, LOOKS QUITE BIG, IS SOURCE [TEPX_2018_12_07_LC] REALLY ACCURATE?
+                        // APPROXIMATION: Put a bit more than real thickness, as only multiplied by sensor surface instead of full cooling surface.
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 3
+  }
+}  
+

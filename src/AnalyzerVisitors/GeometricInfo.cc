@@ -61,11 +61,11 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
 void LayerDiskSummaryVisitor::visit(const Disk& d) {
   nRings = 0;
   nRingsTotal = d.numRings() - d.numEmptyRings();
-  if (d.averageZ() < 0.) return;
+  if (d.centerZ() < 0.) return;
   ++nDisks;
   totalEndcapModules += d.totalModules();
   diskTable->setContent(1, nDisks, d.myid());
-  diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
+  diskTable->setContent(2, nDisks, d.centerZ(), coordPrecision);
   diskTable->setContent(4, nDisks, d.totalModules());
 
   RootWTable* diskName = new RootWTable();

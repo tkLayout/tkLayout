@@ -24,11 +24,13 @@ namespace insur {
 using insur::MaterialProperties;
 
 namespace material {
-  static const std::string err_service1 = "Impossible to use 'g' as unit for service materials, element '";
-  static const std::string err_service2 = "' ignored.";
 
   class MaterialTab;
   class ConversionStation;
+
+  // Location of the materials from cfg files
+  enum Location { ALL, DEE, EXTERNAL };
+  // EXTERNAL means outside the double-disk / layer.
 
   class MaterialObject : public PropertyObject {
   public:
@@ -52,7 +54,10 @@ namespace material {
 
     virtual void build();
     
-    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, 
+			  double gramsMultiplier = 1.,
+			  Location requestedLocation = Location::ALL
+			  ) const;
     void addElement(const MaterialObject::Element* element);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
@@ -138,6 +143,7 @@ namespace material {
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
+      
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;
@@ -147,6 +153,7 @@ namespace material {
       Property<bool, Default> debugInactivate;
       Property<std::string, NoDefault> destination;
       Property<int, Default> targetVolume;
+      Property<Location, Default> location;
       PropertyNode<int> referenceSensorNode;
 
       Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName);
@@ -156,7 +163,7 @@ namespace material {
 
       virtual ~Element();
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(const double length, const double surface) const;
@@ -188,7 +195,7 @@ namespace material {
       virtual ~Component();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
@@ -210,7 +217,7 @@ namespace material {
       virtual ~Materials();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
