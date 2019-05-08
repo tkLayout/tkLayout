@@ -4,7 +4,7 @@
 
 // 2 x Al-N rails (same for all 1x1 modules)
 Component {
-  componentName "IT Module: Cooling blocks (AlN rails)"
+  componentName "Cooling: Cooling blocks (AlN rails)"
   service false
   scaleOnSensor 0
   Element {
@@ -19,7 +19,7 @@ Component {
 
 // High conductivity CF plate (same for all 1x1 modules)
 Component {
-  componentName "IT Module: Cooling blocks (CF plate)"
+  componentName "Cooling: Cooling blocks (CF plate)"
   service false
   scaleOnSensor 0
   Element {
@@ -36,7 +36,7 @@ Component {
 
 // 2 x Housing pipes (same for all 1x1 modules)
 Component {
-  componentName "IT Module: Cooling blocks (C Foam housing pipe)"
+  componentName "Cooling: Cooling blocks (C Foam housing pipe)"
   service false
   Element {
     scaleOnSensor 0
