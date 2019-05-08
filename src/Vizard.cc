@@ -561,7 +561,7 @@ namespace insur {
 
     RootWTable* materialSummaryTable;
 
-    const std::string allSubdetectors = "All subdetectors";
+    const std::string allSubdetectors = (name == "outer" ? "All OT subdetectors:" : "All IT subdetectors:");
 
 
 
@@ -603,7 +603,7 @@ namespace insur {
 
 	// LOOP ON ALL SUBDETECTORS
 	for (const auto& subdetectorIt : radiationAndInteractionLengthPlotsPerSubdetector) {
-	  const std::string& subdetectorName = subdetectorIt.first;
+	  const std::string subdetectorName = subdetectorIt.first + ":";
 	  std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > radiationAndInteractionLengthPlots = subdetectorIt.second;
 	  const std::map<std::string, TH1D*>& radiationLengthPlots = radiationAndInteractionLengthPlots.first;
 	  const std::map<std::string, TH1D*>& interactionLengthPlots = radiationAndInteractionLengthPlots.second;
@@ -953,7 +953,6 @@ namespace insur {
 	TProfile* radiationLengthGrandTotalProf = newProfile((TH1D*)radiationLengthGrandTotalHist, 0., a.getEtaMaxMaterial(), materialNBins);
 	if (volumeIt == 1) { radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}"); }
 	else { radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Tracking Volume; #eta; x/X_{0}"); }
-	radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}");
 	radiationLengthGrandTotalProf->GetYaxis()->SetTitleOffset(1.3);
 	radiationLengthGrandTotalProf->SetFillColor(kGray + 2);
 	radiationLengthGrandTotalProf->SetLineColor(kBlue);
@@ -3371,7 +3370,7 @@ namespace insur {
   }
 
 
-  void Vizard::stackHistos(std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
+  void Vizard::stackHistos(const std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation) {
     TProfile* prof;
     TH1D* histo;
     for (const auto& it : histoMap) {
@@ -3395,11 +3394,13 @@ namespace insur {
     RootWPage& myPage = site.addPage("Material (total)");
     
     // Define web-page sections
-    RootWContent* materialCategoriesContent = new RootWContent("Full layout Material : Categories details (tracking volume)", true);
-    myPage.addContent(materialCategoriesContent);
-    RootWContent* materialOverviewContent   = new RootWContent("Full layout Material : 1d overview (tracking volume)", false);
+    RootWContent* materialOverviewContent   = new RootWContent("Full Tracker Materials : Total (tracking volume)", true);
     myPage.addContent(materialOverviewContent);
-    RootWContent* materialComponentsContent = new RootWContent("Full layout Material : Components details (tracking volume)", false);
+
+    RootWContent* materialCategoriesContent = new RootWContent("Full Tracker Materials : Total per category (tracking volume)", true);
+    myPage.addContent(materialCategoriesContent);
+    
+    RootWContent* materialComponentsContent = new RootWContent("Full Tracker Materials : Details (tracking volume)", false);
     myPage.addContent(materialComponentsContent);
 
     // COMPONENTS DETAILS (TRACKING VOLUME)
@@ -3437,10 +3438,17 @@ namespace insur {
     int index = 1;
     stackHistos(analyzer.getHistoBeamPipeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompBeamPipeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoPixelIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelIntersticeStack, compLegend, isRadiation);
-    //stackHistos(analyzer.getHistoPixelTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
+    for (const auto& mechanicalCategoryIt : analyzer.getRIPlotsInPixelTrackingVolume()) {
+      for (const auto& subdetectorIt : mechanicalCategoryIt.second) {
+	stackHistos(subdetectorIt.second.first, myTable, index, rCompTotalTrackingVolumeStack, rCompPixelTrackingVolumeStack, compLegend, isRadiation);
+      }
+    }
     stackHistos(analyzer.getHistoIntersticeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoOuterTrackingVolumeR(), myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
+    for (const auto& mechanicalCategoryIt : analyzer.getRIPlotsInOuterTrackingVolume()) {
+      for (const auto& subdetectorIt : mechanicalCategoryIt.second) {
+	stackHistos(subdetectorIt.second.first, myTable, index, rCompTotalTrackingVolumeStack, rCompOuterTrackingVolumeStack, compLegend, isRadiation);
+      }
+    }
     rCompTotalTrackingVolumeStack->Draw("hist");
     compLegend->Draw();
 
@@ -3450,9 +3458,17 @@ namespace insur {
     index = 1;
     stackHistos(analyzer.getHistoBeamPipeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompBeamPipeStack, compLegend, isRadiation);
     stackHistos(analyzer.getHistoPixelIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoPixelTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompPixelTrackingVolumeStack, compLegend, isRadiation);
+    for (const auto& mechanicalCategoryIt : analyzer.getRIPlotsInPixelTrackingVolume()) {
+      for (const auto& subdetectorIt : mechanicalCategoryIt.second) {
+	stackHistos(subdetectorIt.second.second, myTable, index, iCompTotalTrackingVolumeStack, iCompPixelTrackingVolumeStack, compLegend, isRadiation);
+      }
+    }
     stackHistos(analyzer.getHistoIntersticeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompIntersticeStack, compLegend, isRadiation);
-    stackHistos(analyzer.getHistoOuterTrackingVolumeI(), myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
+    for (const auto& mechanicalCategoryIt : analyzer.getRIPlotsInOuterTrackingVolume()) {
+      for (const auto& subdetectorIt : mechanicalCategoryIt.second) {
+	stackHistos(subdetectorIt.second.second, myTable, index, iCompTotalTrackingVolumeStack, iCompOuterTrackingVolumeStack, compLegend, isRadiation);
+      }
+    }
     iCompTotalTrackingVolumeStack->Draw("hist");
     compLegend->Draw();
 

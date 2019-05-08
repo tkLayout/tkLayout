@@ -107,13 +107,13 @@ namespace insur {
     // Pixel interstice (between Beam pipe and Pixel tracking volumes)
     std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
     std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
-    // Pixel tracking volume
+    // Pixel tracking volume: NOT USED ANYMORE
     std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
     std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
     // Interstice (betweenPixel and Outer tracking volumes)
     std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
     std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
-    // Outer tracking volume
+    // Outer tracking volume: NOT USED ANYMORE
     std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
     std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
     // SERVICES DETAILS (in Pixel and Outer tracking volumes only)
