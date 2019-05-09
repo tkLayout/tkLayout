@@ -106,9 +106,22 @@ namespace insur {
 	    if ((elements.find(elem.first) == elements.end())  // not found in the composite ?
 	        || (fabs(elements.at(elem.first) - elem.second) > xml_composite_ratio_tolerance)) { // not same massic ratio ?
 	      return false;
+	    }
 	  }
-	}
-	return true;
+
+	  for (const auto& mechanicalCategoryIt : otherComp.normalizedRIRatioPerMechanicalCategory) {  // for a given category :
+	    if (normalizedRIRatioPerMechanicalCategory.find(mechanicalCategoryIt.first) == normalizedRIRatioPerMechanicalCategory.end())  { 
+	      return false; 
+	    }// not found in the composite ?
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).first - mechanicalCategoryIt.second.first) > xml_composite_ratio_tolerance) { // not same massic radiation length ratio ?
+	      return false;
+	    }
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).second - mechanicalCategoryIt.second.second) > xml_composite_ratio_tolerance) { // not same massic interaction length ratio ?
+	      return false;
+	    }
+	  }
+
+	  return true;
       }
     };
     /**
