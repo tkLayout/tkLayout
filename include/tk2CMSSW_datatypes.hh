@@ -11,6 +11,7 @@
 #include <map>
 #include <math.h> 
 #include <tk2CMSSW_strings.hh>
+#include "MaterialProperties.hh"
 
 namespace insur {
     /**

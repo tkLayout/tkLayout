@@ -3804,7 +3804,7 @@ namespace insur {
         elem.second /= m;
       }
 
-      comp.normalizedRIRatioPerMechanicalCategory = myVolume.getNormalizedRIRatioPerMechanicalCategory();
+      comp.normalizedRIRatioPerMechanicalCategory = myVolume->getNormalizedRIRatioPerMechanicalCategory();
       
       vec.push_back(comp);
     }

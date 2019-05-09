@@ -632,6 +632,35 @@ namespace insur {
       // Add the composite which has just been printed, to the list of printed composites.
       printedComposites_.push_back(comp);
       mapCompoToPrintedCompo_.insert(std::make_pair(fullName, comp.fullName())); // Maps the composite to itself, since it is a printed composite !
+
+
+      //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
+      //std::cout << "tracker:SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
+
+      std::cout << comp.fullName() << "           0.000";
+      const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = comp.normalizedRIRatioPerMechanicalCategory;
+
+      for (int categoryIt = 1; categoryIt <=3; categoryIt++) {
+	MechanicalCategory mechanicalCategory;
+	if (categoryIt == 1) { mechanicalCategory = MechanicalCategory::MODULE; }
+	else if (categoryIt == 2) { mechanicalCategory = MechanicalCategory::CABLING; }
+	else if (categoryIt == 3) { mechanicalCategory = MechanicalCategory::SUPPORT_AND_COOLING; }
+
+	const auto& found = myNormalizedRIRatioPerMechanicalCategory.find(mechanicalCategory);
+	if (found != myNormalizedRIRatioPerMechanicalCategory.end()) {
+	  const double myNormalizedRadiationLength = found->second.first;
+	  std::cout << " " << myNormalizedRadiationLength;
+	}
+	else {
+	  std::cout << " 0.000";
+	}
+
+	if (categoryIt == 3) std::cout << std::endl;
+      }
+
+
+
+
     }
   }
     

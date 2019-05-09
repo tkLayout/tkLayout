@@ -212,6 +212,7 @@ namespace insur {
 	void   addMaterial(const std::string elementName, const std::string componentName, const double mass) { 
 	  fmatlist[elementName] += mass;
 
+	  const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
 	  const MechanicalCategory mechanicalCategory = computeMechanicalCategory(componentName);
 	  const double myElementRadiationLength = materialsTable.getRadiationLength(elementName);
 	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].first += mass / myElementRadiationLength;
@@ -219,7 +220,7 @@ namespace insur {
 	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].second += mass / myElementInteractionLength;
 	}
 
-	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() const { 
+	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() { 
 	  normalizeRIRatio();
 	  return normalizedRIRatioPerMechanicalCategory_; 
 	}
@@ -305,6 +306,7 @@ namespace insur {
           double       fdensity;
           double       fmass;
           std::map<std::string, double> fmatlist;
+	  std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory_;
 	  bool isValid_;
       };
 

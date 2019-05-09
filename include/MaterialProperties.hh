@@ -147,7 +147,7 @@ namespace insur {
       // RI
       const std::map<LocalElement, RILength, ComponentNameCompare>& getComponentsRI() const { return componentsRI_; }
       // RI ratio per mechanical category (normalized)
-      const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() const { 
+      const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() { 
 	normalizeRIRatio();
 	return normalizedRIRatioPerMechanicalCategory_; 
       }
