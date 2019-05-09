@@ -146,6 +146,11 @@ namespace insur {
       const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
       // RI
       const std::map<LocalElement, RILength, ComponentNameCompare>& getComponentsRI() const { return componentsRI_; }
+      // RI ratio per mechanical category (normalized)
+      const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() const { 
+	normalizeRIRatio();
+	return normalizedRIRatioPerMechanicalCategory_; 
+      }
 
         void addLocalMass(const std::string subdetectorName, const std::string tag, const std::string comp, double ms, int minZ = -777);
         void addLocalMass(const std::string subdetectorName, const std::string tag, double ms);
@@ -177,6 +182,8 @@ namespace insur {
         void print();
 
     protected:
+      void normalizeRIRatio();
+
         // init flags and tracking
         bool msl_set, trck;
         // geometry-dependent parameters
@@ -186,6 +193,7 @@ namespace insur {
         // THIS SHOULD REPLACE localmasses, localmassesComp, and so on. All desired info is accessed from LocalElementDetails:
       std::map<LocalElement, double, ElementNameCompare> localMassesDetails_;
       std::map<LocalElement, RILength, ComponentNameCompare> componentsRI_;  // component-by-component radiation and interaction lengths
+      std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory_;
 
         std::map<std::string, double> localmassesComp;
         std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >

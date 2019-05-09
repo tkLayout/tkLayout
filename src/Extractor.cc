@@ -2786,6 +2786,9 @@ namespace insur {
     for (auto& elem : comp.elements) {
       elem.second /= m;
     }
+
+    comp.normalizedRIRatioPerMechanicalCategory = mp.getNormalizedRIRatioPerMechanicalCategory();
+
     return comp;
   }
 

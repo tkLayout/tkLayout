@@ -301,6 +301,9 @@ namespace insur {
 		  const std::string& myElementName = myElement.elementName();
 		  const double myElementRadiationLength = materialsTable.getRadiationLength(myElementName);
 		  componentsRI_[myElement].radiation += myElementMass / (myElementRadiationLength * getSurface() / 100.0);
+
+		  const MechanicalCategory& myMechanicalCategory = myElement.mechanicalCategory();
+		  normalizedRIRatioPerMechanicalCategory_[myMechanicalCategory].first += myElementMass / myElementRadiationLength;
                 }
             }
         }
@@ -323,6 +326,9 @@ namespace insur {
 		const std::string& myElementName = myElement.elementName();
 		const double myElementInteractionLength = materialsTable.getInteractionLength(myElementName);
 		componentsRI_[myElement].interaction += myElementMass / (myElementInteractionLength * getSurface() / 100.0);
+
+		const MechanicalCategory& myMechanicalCategory = myElement.mechanicalCategory();
+		normalizedRIRatioPerMechanicalCategory_[myMechanicalCategory].second += myElementMass / myElementInteractionLength;
 	      }                 
 	    }
         }
@@ -377,6 +383,37 @@ namespace insur {
         std::getline(ss, split.second, '_');
         return split.first;
     }
+
+
+  void MaterialProperties::normalizeRIRatio() {
+    double nonNormalizedRadiationLengthSum = 0.;
+    double nonNormalizedInteractionLengthSum = 0.;
+
+    // Get the sum of the RI contributions per mechanical category
+    for (const auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
+      const std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+      const double nonNormalizedRadiationLength = nonNormalizedRI.first;
+      const double nonNormalizedInteractionLength = nonNormalizedRI.second;
+
+      nonNormalizedRadiationLengthSum += nonNormalizedRadiationLength;
+      nonNormalizedInteractionLengthSum += nonNormalizedInteractionLength;
+    }
+
+    // Normalize
+    for (auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
+      std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+      double& nonNormalizedRadiationLength = nonNormalizedRI.first;
+      double& nonNormalizedInteractionLength = nonNormalizedRI.second;
+
+      nonNormalizedRadiationLength /= nonNormalizedRadiationLengthSum;
+      nonNormalizedInteractionLength /= nonNormalizedInteractionLengthSum;
+    }
+
+  }
+
+
+
+
 
 define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
 }

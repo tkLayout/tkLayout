@@ -87,6 +87,8 @@ namespace insur {
         CompType method;
         std::map<std::string, double> elements;
 
+      std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory;
+
         std::string fileName;
         const std::string fullName() const { return fileName + ":" + name; }
 
