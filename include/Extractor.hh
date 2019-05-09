@@ -208,7 +208,22 @@ namespace insur {
             return fdensity;
           }
           const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
-          void   addMaterial( std::string tag, double val ) { fmatlist[tag] += val; }
+
+	void   addMaterial(const std::string elementName, const std::string componentName, const double mass) { 
+	  fmatlist[elementName] += mass;
+
+	  const MechanicalCategory mechanicalCategory = computeMechanicalCategory(componentName);
+	  const double myElementRadiationLength = materialsTable.getRadiationLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].first += mass / myElementRadiationLength;
+	  const double myElementInteractionLength = materialsTable.getInteractionLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].second += mass / myElementInteractionLength;
+	}
+
+	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() const { 
+	  normalizeRIRatio();
+	  return normalizedRIRatioPerMechanicalCategory_; 
+	}
+
           void   addMass( double dm ) { fmass += dm; }
           double getMass() const { return fmass; }
           void print() const { 
@@ -247,6 +262,40 @@ namespace insur {
 	const bool isValid() const { return isValid_; }	
 
       private :
+	MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
+	  if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
+	  else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
+	  else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
+	  else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
+	  else return MechanicalCategory::UNKNOWN;
+	}
+
+	void normalizeRIRatio() {
+	  double nonNormalizedRadiationLengthSum = 0.;
+	  double nonNormalizedInteractionLengthSum = 0.;
+
+	  // Get the sum of the RI contributions per mechanical category
+	  for (const auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
+	    const std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+	    const double nonNormalizedRadiationLength = nonNormalizedRI.first;
+	    const double nonNormalizedInteractionLength = nonNormalizedRI.second;
+
+	    nonNormalizedRadiationLengthSum += nonNormalizedRadiationLength;
+	    nonNormalizedInteractionLengthSum += nonNormalizedInteractionLength;
+	  }
+
+	  // Normalize
+	  for (auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
+	    std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+	    double& nonNormalizedRadiationLength = nonNormalizedRI.first;
+	    double& nonNormalizedInteractionLength = nonNormalizedRI.second;
+
+	    nonNormalizedRadiationLength /= nonNormalizedRadiationLengthSum;
+	    nonNormalizedInteractionLength /= nonNormalizedInteractionLengthSum;
+	  }
+	}
+
+
           std::string  fname;
           const int    ftype;
           std::string  fparentname;
