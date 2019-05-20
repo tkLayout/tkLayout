@@ -399,6 +399,7 @@ namespace insur {
 	if (!isPixelTracker) {
 	  for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i), stream);
 	}
+
 	// Composite materials
         for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, trackerXmlTags);
         stream << xml_material_section_close;
@@ -635,7 +636,7 @@ namespace insur {
 
 
       //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
-      //std::cout << "tracker:SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
+      //std::cout << "tracker:tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
 
       std::cout << comp.fullName() << "           0.000";
       const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = comp.normalizedRIRatioPerMechanicalCategory;
@@ -655,7 +656,10 @@ namespace insur {
 	  std::cout << " 0.000";
 	}
 
-	if (categoryIt == 3) std::cout << std::endl;
+	if (categoryIt == 3) {
+	  std::cout << std::endl;
+	  //std::cout << " 0.000" << std::endl;
+	}
       }
 
 
