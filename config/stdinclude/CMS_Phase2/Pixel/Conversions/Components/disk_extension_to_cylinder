@@ -1,10 +1,10 @@
-// External CFK stiffener & extension
+// External CFK stiffener & extension on service cylinder.
 // quantity for one double-disk
 NonConvertedMaterials {
    Element {
         service false
         scaleOnSensor 0
-        componentName "Supports Mechanics: CFK extension on service cylinder"               
+        componentName "Supports Mechanics: Disk CFK extension"               
         elementName CFRP_EPX     
         quantity 108          // 27g per dee, hence 4*27 = 108g per double-disk. Source: [TEPX_2018_12_07_LC].
         unit g
