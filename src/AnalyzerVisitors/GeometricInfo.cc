@@ -527,7 +527,7 @@ ModulesToDTCsVisitor::ModulesToDTCsVisitor(bool isPositiveCablingSide) {
 }
 
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, MFB #/I, OPT Services Channel/I, PWR Services Channel/I, MFC #/I, MFC type/C, DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, MFB/I, OPT_Services_Channel/I, PWR_Services_Channel/I, MFC/I, MFC_type/C, DTC_name/C, DTC_CMSSW_Id/i, DTC_Phi_Sector_Ref/I, type_/C, DTC_Slot/I, DTC_Phi_Sector_Width_deg/D" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -620,7 +620,7 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/i,Module_Section/C,Module_Layer/I,Module_Ring/I,Module_phi_deg/D,N_Chips_Per_Module/I,N_Channels_Per_Module/I,Is_LongBarrel/O,Power_Chain/I,Power_Chain_Type/C,N_ELinks_Per_Module/I,LpGBT/C,MFB/I,DTC/I,IsPlusZEnd/O,IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT/C, MFB/I, DTC/I, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
