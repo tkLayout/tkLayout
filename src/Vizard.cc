@@ -8756,7 +8756,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC_name/C, DTC_CMSSW_Id/i, DTC_Phi_Sector_Ref/I, type_/C, DTC_Slot/I, DTC_Phi_Sector_Width_deg/D, MFC/I, MFC_type/C, MFB/I, OPT_Services_Channel/I, PWR_Services_Channel/I, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC_name/C, DTC_CMSSW_Id/i, DTC_Phi_Sector_Ref/I, type/C, DTC_Slot/I, DTC_Phi_Sector_Width_deg/D, MFC/I, MFC_type/C, MFB/I, OPT_Services_Channel/I, PWR_Services_Channel/I, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
