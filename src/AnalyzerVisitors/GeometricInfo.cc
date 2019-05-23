@@ -620,7 +620,7 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/U:Module_Section/C:Module_Layer/I:Module_Ring/I:Module_phi_deg/D:Is_LongBarrel/O:Power_Chain/I:Power_Chain_Type/C:N_ELinks_Per_Module/I:LpGBT/C:MFB/I:DTC/I:IsPlusZEnd/O:IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i:Module_Section/C:Module_Layer/I:Module_Ring/I:Module_phi_deg/D:Is_LongBarrel/O:Power_Chain/I:Power_Chain_Type/C:N_ELinks_Per_Module/I:LpGBT/C:MFB/I:DTC/I:IsPlusZEnd/O:IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
