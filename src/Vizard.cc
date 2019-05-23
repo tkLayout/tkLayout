@@ -8830,7 +8830,7 @@ namespace insur {
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
     bundlesToEndcapModulesCsv << summaryText << std::endl;
 
-    bundlesToEndcapModulesCsv << "MFB/I, N_Modules_per_fanout_branch_index, Module_DetId/i, Module_Section/C, Module_Disk/I, Module_Ring/I, Module_phi_deg/D, Module_Z_mm/D, Fanout_branch_index/i" << std::endl;
+    bundlesToEndcapModulesCsv << "MFB/I, N_Modules_per_fanout_branch_index/I, Module_DetId/i, Module_Section/C, Module_Disk/I, Module_Ring/I, Module_phi_deg/D, Module_Z_mm/D, Fanout_branch_index/i" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
