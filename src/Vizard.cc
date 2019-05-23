@@ -8644,7 +8644,7 @@ namespace insur {
 
   std::string Vizard::createModulesDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -8657,7 +8657,7 @@ namespace insur {
 
   std::string Vizard::createSensorsDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_deg/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_deg/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -8756,7 +8756,7 @@ namespace insur {
   std::string Vizard::createDTCsToModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
 
     std::stringstream modulesToDTCsCsv;
-    modulesToDTCsCsv << "DTC name/C, DTC CMSSW Id/U, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D, MFC #/I, MFC type/C, MFB #/I, OPT Services Channel/I, PWR Services Channel/I, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    modulesToDTCsCsv << "DTC_name/C, DTC_CMSSW_Id/i, DTC_Phi_Sector_Ref/I, type/C, DTC_Slot/I, DTC_Phi_Sector_Width_deg/D, MFC/I, MFC_type/C, MFB/I, OPT_Services_Channel/I, PWR_Services_Channel/I, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8830,7 +8830,7 @@ namespace insur {
     const std::string& summaryText = countBundlesToEndcapModulesCombinations(myCablingMap, isPositiveCablingSide);
     bundlesToEndcapModulesCsv << summaryText << std::endl;
 
-    bundlesToEndcapModulesCsv << "MFB #/I, # Modules per fanout branch index, Module DetId/U, Module Section/C, Module Disk/I, Module Ring/I, Module phi_deg/D, Module Z (mm)/D, Fanout branch index/U" << std::endl;
+    bundlesToEndcapModulesCsv << "MFB/I, N_Modules_per_fanout_branch_index/I, Module_DetId/i, Module_Section/C, Module_Disk/I, Module_Ring/I, Module_phi_deg/D, Module_Z_mm/D, Fanout_branch_index/i" << std::endl;
 
     const std::map<const std::string, std::unique_ptr<const OuterDTC> >& myDTCs = (isPositiveCablingSide ? 
 										   myCablingMap->getDTCs() 
@@ -8997,7 +8997,7 @@ namespace insur {
    */
   std::string Vizard::createPowerCablesDistributionCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide) {
     std::stringstream powerCablesDistributionCsv;
-    powerCablesDistributionCsv << " , # Modules per power cable /U, # Power Cables /U" << std::endl;
+    powerCablesDistributionCsv << " , N_Modules_per_power_cable/i, N_Power_Cables/i" << std::endl;
 
     std::map<int, int> countBundlesPerPS10GConnections;
     std::map<int, int> countBundlesPerPS5GConnections;
@@ -9084,7 +9084,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "(+Z) End ?/Boolean, (+X) Side?/Boolean, DTC #/I, MFB #/I, LP GBT #/C, # ELinks Per Module/I, Power Chain #/I, Power Chain Type/C, Long Barrel ?/Boolean, Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D" << std::endl;
+    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC/I, MFB/I, LpGBT/C, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
