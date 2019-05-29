@@ -1,4 +1,4 @@
-// 2x2 chips pixel module (25um x 100um)
+// 2x2 chips pixel module (50um x 50um)
 // Chip size 16.8 x 21.6
 moduleType pixel_2x2_50x50_wide  // pixel modules should always have a type starting with keyword 'pixel_'
 
@@ -29,4 +29,4 @@ Sensor 1 {
   powerPerChannel 0.0 // mW
 }
 
-plotColor 10  // orange
+plotColor 3  // yellow
