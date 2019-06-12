@@ -639,9 +639,10 @@ namespace insur {
 	  int compIndex = 1;
 	  for (const auto& componentIt : radiationLengthPlots) {
 	    const std::string componentName = componentIt.first;
-	    // TO DO: understand cast TH1D into TProfile
+	    // Re-binning of the TH1D: converted to TProfile, then back to TH1D.
+	    // Kept the old code, but there should be a more elegant way to do it.
+	    // THIS SHOULD ONLY BE DONE ONCE (otherwise, waste of time AND loss of the errors info!!).
 	    prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
-	    // then back to TH1D: whyyyyyyyyyyyyyyy not just take TH1D at the first place?
 	    histo = prof->ProjectionX();   
 	    histo->SetLineColor(Palette::color(compIndex));
 	    histo->SetFillColor(Palette::color(compIndex));
@@ -661,7 +662,7 @@ namespace insur {
 	    myTable->setContent(compIndex, 1, averageRadiationLengthOverEta, 5);
 
 	    compIndex++;
-	  }
+	  }	  
 	  radiationLengthStack->Draw("hist");
 	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].first = (TH1D*)radiationLengthStack->GetStack()->Last();
 
@@ -671,6 +672,9 @@ namespace insur {
 	  compIndex = 1;
 	  for (const auto& componentIt : interactionLengthPlots) {
 	    const std::string componentName = componentIt.first;
+	    // Re-binning of the TH1D: converted to TProfile, then back to TH1D.
+	    // Kept the old code, but there should be a more elegant way to do it.
+	    // THIS SHOULD ONLY BE DONE ONCE (otherwise, waste of time AND loss of the errors info!!).
 	    prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
 	    histo = prof->ProjectionX();   
 	    histo->SetLineColor(Palette::color(compIndex));
@@ -742,10 +746,7 @@ namespace insur {
 	int allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  // TO DO: understand cast TH1D into TProfile
-	  prof = newProfile((TH1D*)componentIt.second.first->GetStack()->Last(), 0., a.getEtaMaxMaterial(), materialNBins);
-	  // then back to TH1D: whyyyyyyyyyyyyyyy not just take TH1D at the first place?
-	  histo = prof->ProjectionX();   
+	  histo = (TH1D*)(componentIt.second.first->GetStack()->Last());   
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -769,8 +770,7 @@ namespace insur {
 	allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  prof = newProfile((TH1D*)componentIt.second.second->GetStack()->Last(), 0., a.getEtaMaxMaterial(), materialNBins);
-	  histo = prof->ProjectionX();   
+	  histo = (TH1D*)(componentIt.second.second->GetStack()->Last());
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -855,10 +855,7 @@ namespace insur {
 	// LOOP ON ALL MECHANICAL CATEGORIES
 	for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	  const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
-	  // TO DO: understand cast TH1D into TProfile
-	  prof = newProfile((TH1D*)mechanicalCategoryIt.second.first, 0., a.getEtaMaxMaterial(), materialNBins);
-	  // then back to TH1D: whyyyyyyyyyyyyyyy not just take TH1D at the first place?
-	  histo = prof->ProjectionX();   
+	  histo = mechanicalCategoryIt.second.first; 
 	  histo->SetLineColor(Palette::color(compIndex));
 	  histo->SetFillColor(Palette::color(compIndex));
 	  histo->SetTitle(mechanicalCategory.c_str());
@@ -884,8 +881,7 @@ namespace insur {
 	compIndex = 1;
 	for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	  const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
-	  prof = newProfile((TH1D*)mechanicalCategoryIt.second.second, 0., a.getEtaMaxMaterial(), materialNBins);
-	  histo = prof->ProjectionX();   
+	  histo = mechanicalCategoryIt.second.second;
 	  histo->SetLineColor(Palette::color(compIndex));
 	  histo->SetFillColor(Palette::color(compIndex));
 	  histo->SetTitle(mechanicalCategory.c_str());
@@ -951,13 +947,12 @@ namespace insur {
 
       TH1D* radiationLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.first;
       if (radiationLengthGrandTotalHist) {
-	TProfile* radiationLengthGrandTotalProf = newProfile((TH1D*)radiationLengthGrandTotalHist, 0., a.getEtaMaxMaterial(), materialNBins);
-	if (volumeIt == 1) { radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}"); }
-	else { radiationLengthGrandTotalProf->SetTitle("Radiation Length Over Tracking Volume; #eta; x/X_{0}"); }
-	radiationLengthGrandTotalProf->GetYaxis()->SetTitleOffset(1.3);
-	radiationLengthGrandTotalProf->SetFillColor(kGray + 2);
-	radiationLengthGrandTotalProf->SetLineColor(kBlue);
-	radiationLengthGrandTotalProf->Draw("hist");
+	if (volumeIt == 1) { radiationLengthGrandTotalHist->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}"); }
+	else { radiationLengthGrandTotalHist->SetTitle("Radiation Length Over Tracking Volume; #eta; x/X_{0}"); }
+	radiationLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
+	radiationLengthGrandTotalHist->SetFillColor(kGray + 2);
+	radiationLengthGrandTotalHist->SetLineColor(kBlue);
+	radiationLengthGrandTotalHist->Draw();
 
 	const double averageRadiationLengthOverEta = averageHistogramValues(*radiationLengthGrandTotalHist, a.getEtaMaxMaterial());
 	myTable->setContent(1, 1, averageRadiationLengthOverEta, 5);
@@ -969,13 +964,12 @@ namespace insur {
 
       TH1D* interactionLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.second;
       if (interactionLengthGrandTotalHist) {
-	TProfile* interactionLengthGrandTotalProf = newProfile((TH1D*)interactionLengthGrandTotalHist, 0., a.getEtaMaxMaterial(), materialNBins);
-	if (volumeIt == 1) { interactionLengthGrandTotalProf->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}"); }
-	else { interactionLengthGrandTotalProf->SetTitle("Interaction Length Over Tracking Volume; #eta; #lambda/#lambda_{0}"); }
-	interactionLengthGrandTotalProf->GetYaxis()->SetTitleOffset(1.3);
-	interactionLengthGrandTotalProf->SetFillColor(kGray + 2);
-	interactionLengthGrandTotalProf->SetLineColor(kBlue);
-	interactionLengthGrandTotalProf->Draw("hist");
+	if (volumeIt == 1) { interactionLengthGrandTotalHist->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}"); }
+	else { interactionLengthGrandTotalHist->SetTitle("Interaction Length Over Tracking Volume; #eta; #lambda/#lambda_{0}"); }
+	interactionLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
+	interactionLengthGrandTotalHist->SetFillColor(kGray + 2);
+	interactionLengthGrandTotalHist->SetLineColor(kBlue);
+	interactionLengthGrandTotalHist->Draw();
 
 	const double averageInteractionLengthOverEta = averageHistogramValues(*interactionLengthGrandTotalHist, a.getEtaMaxMaterial());
 	myTable->setContent(1, 2, averageInteractionLengthOverEta, 5);
