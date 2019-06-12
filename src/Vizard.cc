@@ -616,7 +616,6 @@ namespace insur {
 	  const std::string interactionLengthPlotTitle = mechanicalCategory + ": Interaction Length in " + subdetectorName + volume;
 	  THStack* interactionLengthStack = new THStack(interactionLengthPlotTitle.c_str(), interactionLengthPlotTitle.c_str());
 
-	  //TLegend* myLegend = new TLegend(0.1,0.6,0.35,0.9);
 	  TLegend* myLegend = new TLegend(0.1,0.1,0.9,0.9);
 	  myLegend->SetTextSize(0.025);
 
@@ -657,7 +656,7 @@ namespace insur {
 	    compIndex++;
 	  }	  
 	  radiationLengthStack->Draw("hist");
-	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].first = (TH1D*)radiationLengthStack->GetStack()->Last();
+	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].first = (TH1D*)(radiationLengthStack->GetStack()->Last())->Clone();
 
 	  // INTERACTION LENGTH
 	  myPad = myCanvas->GetPad(2);
@@ -686,7 +685,7 @@ namespace insur {
 	    compIndex++;
 	  }
 	  interactionLengthStack->Draw("hist");
-	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].second = (TH1D*)interactionLengthStack->GetStack()->Last();
+	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].second = (TH1D*)(interactionLengthStack->GetStack()->Last())->Clone();
 
 	  myPad = myCanvas->GetPad(3);
 	  myPad->cd();
@@ -739,7 +738,7 @@ namespace insur {
 	int allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  TH1D* histo = (TH1D*)(componentIt.second.first->GetStack()->Last());   
+	  TH1D* histo = (TH1D*)(componentIt.second.first->GetStack()->Last())->Clone();   
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -755,7 +754,7 @@ namespace insur {
 	  allSubdetectorsComponentIndex++;
 	}
 	radiationLengthInAllSubdetectorsStack->Draw("hist");
-	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].first = (TH1D*)radiationLengthInAllSubdetectorsStack->GetStack()->Last();
+	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].first = (TH1D*)(radiationLengthInAllSubdetectorsStack->GetStack()->Last())->Clone();
 
 	// INTERACTION LENGTH
 	myPad = myCanvas->GetPad(2);
@@ -763,7 +762,7 @@ namespace insur {
 	allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  TH1D* histo = (TH1D*)(componentIt.second.second->GetStack()->Last());
+	  TH1D* histo = (TH1D*)(componentIt.second.second->GetStack()->Last())->Clone();
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -775,7 +774,7 @@ namespace insur {
 	  allSubdetectorsComponentIndex++;
 	}
 	interactionLengthInAllSubdetectorsStack->Draw("hist");
-	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].second = (TH1D*)interactionLengthInAllSubdetectorsStack->GetStack()->Last();
+	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].second = (TH1D*)(interactionLengthInAllSubdetectorsStack->GetStack()->Last())->Clone();
 
 	myPad = myCanvas->GetPad(3);
 	myPad->cd();
@@ -865,7 +864,7 @@ namespace insur {
 	}
 	radiationLengthStack->Draw("hist");
 	if (subdetectorName == allSubdetectors) {
-	  radiationAndInteractionLengthGrandTotal.first = (TH1D*)radiationLengthStack->GetStack()->Last();
+	  radiationAndInteractionLengthGrandTotal.first = (TH1D*)(radiationLengthStack->GetStack()->Last())->Clone();
 	}
 
 	// INTERACTION LENGTH
@@ -887,7 +886,7 @@ namespace insur {
 	}
 	interactionLengthStack->Draw("hist");
 	if (subdetectorName == allSubdetectors) {
-	  radiationAndInteractionLengthGrandTotal.second = (TH1D*)interactionLengthStack->GetStack()->Last();
+	  radiationAndInteractionLengthGrandTotal.second = (TH1D*)(interactionLengthStack->GetStack()->Last())->Clone();
 	}
 
 	myPad = myCanvas->GetPad(3);
