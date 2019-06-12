@@ -546,17 +546,10 @@ namespace insur {
 
     ostringstream label;
     std::map<int, std::vector<double> > averages;
-
-    // Book histograms
-#ifdef MATERIAL_SHADOW
-    TH2D *ir = nullptr, *ii = nullptr;
-#endif
     TH2D *mapRad = nullptr, *mapInt = nullptr;
 
 
     char titleString[256];
-    TProfile* prof;
-    TH1D* histo;
     std::unique_ptr<TCanvas> myCanvas;
 
     RootWTable* materialSummaryTable;
@@ -642,8 +635,8 @@ namespace insur {
 	    // Re-binning of the TH1D: converted to TProfile, then back to TH1D.
 	    // Kept the old code, but there should be a more elegant way to do it.
 	    // THIS SHOULD ONLY BE DONE ONCE (otherwise, waste of time AND loss of the errors info!!).
-	    prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
-	    histo = prof->ProjectionX();   
+	    TProfile* prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	    TH1D* histo = prof->ProjectionX();   
 	    histo->SetLineColor(Palette::color(compIndex));
 	    histo->SetFillColor(Palette::color(compIndex));
 	    histo->SetTitle(componentName.c_str());
@@ -675,8 +668,8 @@ namespace insur {
 	    // Re-binning of the TH1D: converted to TProfile, then back to TH1D.
 	    // Kept the old code, but there should be a more elegant way to do it.
 	    // THIS SHOULD ONLY BE DONE ONCE (otherwise, waste of time AND loss of the errors info!!).
-	    prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
-	    histo = prof->ProjectionX();   
+	    TProfile* prof = newProfile((TH1D*)componentIt.second, 0., a.getEtaMaxMaterial(), materialNBins);
+	    TH1D* histo = prof->ProjectionX();   
 	    histo->SetLineColor(Palette::color(compIndex));
 	    histo->SetFillColor(Palette::color(compIndex));
 	    histo->SetTitle(componentName.c_str());
@@ -746,7 +739,7 @@ namespace insur {
 	int allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  histo = (TH1D*)(componentIt.second.first->GetStack()->Last());   
+	  TH1D* histo = (TH1D*)(componentIt.second.first->GetStack()->Last());   
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -770,7 +763,7 @@ namespace insur {
 	allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
 	  const std::string componentName = componentIt.first;
-	  histo = (TH1D*)(componentIt.second.second->GetStack()->Last());
+	  TH1D* histo = (TH1D*)(componentIt.second.second->GetStack()->Last());
 	  histo->SetLineColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetFillColor(Palette::color(allSubdetectorsComponentIndex));
 	  histo->SetTitle(componentName.c_str());
@@ -855,7 +848,7 @@ namespace insur {
 	// LOOP ON ALL MECHANICAL CATEGORIES
 	for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	  const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
-	  histo = mechanicalCategoryIt.second.first; 
+	  TH1D* histo = mechanicalCategoryIt.second.first; 
 	  histo->SetLineColor(Palette::color(compIndex));
 	  histo->SetFillColor(Palette::color(compIndex));
 	  histo->SetTitle(mechanicalCategory.c_str());
@@ -881,7 +874,7 @@ namespace insur {
 	compIndex = 1;
 	for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	  const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
-	  histo = mechanicalCategoryIt.second.second;
+	  TH1D* histo = mechanicalCategoryIt.second.second;
 	  histo->SetLineColor(Palette::color(compIndex));
 	  histo->SetFillColor(Palette::color(compIndex));
 	  histo->SetTitle(mechanicalCategory.c_str());
@@ -952,7 +945,7 @@ namespace insur {
 	radiationLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
 	radiationLengthGrandTotalHist->SetFillColor(kGray + 2);
 	radiationLengthGrandTotalHist->SetLineColor(kBlue);
-	radiationLengthGrandTotalHist->Draw();
+	radiationLengthGrandTotalHist->Draw("hist");
 
 	const double averageRadiationLengthOverEta = averageHistogramValues(*radiationLengthGrandTotalHist, a.getEtaMaxMaterial());
 	myTable->setContent(1, 1, averageRadiationLengthOverEta, 5);
@@ -969,7 +962,7 @@ namespace insur {
 	interactionLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
 	interactionLengthGrandTotalHist->SetFillColor(kGray + 2);
 	interactionLengthGrandTotalHist->SetLineColor(kBlue);
-	interactionLengthGrandTotalHist->Draw();
+	interactionLengthGrandTotalHist->Draw("hist");
 
 	const double averageInteractionLengthOverEta = averageHistogramValues(*interactionLengthGrandTotalHist, a.getEtaMaxMaterial());
 	myTable->setContent(1, 2, averageInteractionLengthOverEta, 5);
@@ -1046,6 +1039,7 @@ namespace insur {
     myPage->addContent(myContent);
 
 #ifdef MATERIAL_SHADOW
+    TH2D *ir = nullptr, *ii = nullptr;
     // radiation length in isolines
     ir = (TH2D*)a.getHistoIsoR().Clone();
     ir->SetNameTitle("isor", "Radiation Length Contours");
