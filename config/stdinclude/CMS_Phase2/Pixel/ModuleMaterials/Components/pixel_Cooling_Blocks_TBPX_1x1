@@ -56,8 +56,8 @@ Component {
   scaleOnSensor 0
   Element {
     elementName StainlessSteel
-    quantity 0.20       // 2 half cooling pipes. 
-                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 9 modules. Density used is 8.02 g/cm3. 
+    quantity 0.10       // 2 half cooling pipes. 
+                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 18 modules. Density used is 8.02 g/cm3. 
                         // Source: [IT_COOLING_2019_04_16]
     unit g             
     targetVolume 3      // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 half pipes!!!!!!!!!!
@@ -66,8 +66,8 @@ Component {
   }
   Element {
     elementName CO2
-    quantity 0.10       // 2 half cooling pipes. 
-                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 9 modules. Density used is 1.0 g/cm3. 
+    quantity 0.05       // 2 half cooling pipes. 
+                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 18 modules. Density used is 1.0 g/cm3. 
                         // Source: [IT_COOLING_2019_04_16]
     unit g             
     targetVolume 3      // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 half pipes!!!!!!!!!!
