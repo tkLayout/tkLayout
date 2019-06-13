@@ -3,8 +3,11 @@
 
 ## INNER TRACKER:
 
-[IT_COOLING_2019_04_16] https://indico.cern.ch/event/809736/contributions/3388865/attachments/1829225/2998011/Weights.pdf 
-Andrea Basti, "Cooling overview", 2018/10/08
+[IT_COOLING_2019_04_16] Andrea Basti, "Cooling overview", 2018/10/08
+and
+https://indico.cern.ch/event/809736/contributions/3388865/attachments/1829225/3001004/Weights.pdf
+
+
 
 ### MODULE_COMMON:
 
