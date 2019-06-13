@@ -550,7 +550,6 @@ namespace insur {
 
 
     char titleString[256];
-    std::unique_ptr<TCanvas> myCanvas;
 
     RootWTable* materialSummaryTable;
 
@@ -603,10 +602,10 @@ namespace insur {
 
 
 	  const std::string canvasTitle = mechanicalCategory + ": MB in " + subdetectorName + volume;
-	  myCanvas.reset(new TCanvas(canvasTitle.c_str()));
-	  myCanvas->SetFillColor(color_plot_background);
-	  myCanvas->Divide(3, 1);
-	  myPad = myCanvas->GetPad(0);
+	  std::unique_ptr<TCanvas> categoryDetailsPerSubdetectorCanvas = std::make_unique<TCanvas>(canvasTitle.c_str());
+	  categoryDetailsPerSubdetectorCanvas->SetFillColor(color_plot_background);
+	  categoryDetailsPerSubdetectorCanvas->Divide(3, 1);
+	  myPad = categoryDetailsPerSubdetectorCanvas->GetPad(0);
 	  myPad->SetFillColor(color_pad_background);
 
   
@@ -626,7 +625,7 @@ namespace insur {
 	  myTable->setContent(0, 2, "Interaction length");
 
 	  // RADIATION LENGTH
-	  myPad = myCanvas->GetPad(1);
+	  myPad = categoryDetailsPerSubdetectorCanvas->GetPad(1);
 	  myPad->cd();
 	  int compIndex = 1;
 	  for (const auto& componentIt : radiationLengthPlots) {
@@ -659,7 +658,7 @@ namespace insur {
 	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].first = (TH1D*)(radiationLengthStack->GetStack()->Last())->Clone();
 
 	  // INTERACTION LENGTH
-	  myPad = myCanvas->GetPad(2);
+	  myPad = categoryDetailsPerSubdetectorCanvas->GetPad(2);
 	  myPad->cd();	
 	  compIndex = 1;
 	  for (const auto& componentIt : interactionLengthPlots) {
@@ -687,7 +686,7 @@ namespace insur {
 	  interactionLengthStack->Draw("hist");
 	  radiationAndInteractionLengthPlotsInAllMechanicalCategories[subdetectorName][mechanicalCategory].second = (TH1D*)(interactionLengthStack->GetStack()->Last())->Clone();
 
-	  myPad = myCanvas->GetPad(3);
+	  myPad = categoryDetailsPerSubdetectorCanvas->GetPad(3);
 	  myPad->cd();
 	  myLegend->Draw();
 
@@ -699,7 +698,7 @@ namespace insur {
 
 	  categoryDetailsContents[mechanicalCategory]->addItem(myTable);
 
-	  myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	  myImage = new RootWImage(std::move(categoryDetailsPerSubdetectorCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	  myImage->setName(canvasTitle.c_str());
 	  myImage->setComment(canvasTitle.c_str());  
 	  categoryDetailsContents[mechanicalCategory]->addItem(myImage);
@@ -712,10 +711,10 @@ namespace insur {
 	// SUM OF ALL SUBDETECTORS
 
 	const std::string canvasTitle = mechanicalCategory + ": MB in all subdetectors" + volume;
-	myCanvas.reset(new TCanvas(canvasTitle.c_str()));
-	myCanvas->SetFillColor(color_plot_background);
-	myCanvas->Divide(3, 1);
-	myPad = myCanvas->GetPad(0);
+	std::unique_ptr<TCanvas> categoryDetailsInAllSubdetectorsCanvas = std::make_unique<TCanvas>(canvasTitle.c_str());
+	categoryDetailsInAllSubdetectorsCanvas->SetFillColor(color_plot_background);
+	categoryDetailsInAllSubdetectorsCanvas->Divide(3, 1);
+	myPad = categoryDetailsInAllSubdetectorsCanvas->GetPad(0);
 	myPad->SetFillColor(color_pad_background);
 
 	const std::string radiationLengthInAllSubdetectorsPlotTitle = mechanicalCategory + ": Radiation Length in all subdetectors" + volume;
@@ -733,7 +732,7 @@ namespace insur {
 	allSubdetectorsTable->setContent(0, 2, "Interaction length");
 
 	// RADIATION LENGTH
-	myPad = myCanvas->GetPad(1);
+	myPad = categoryDetailsInAllSubdetectorsCanvas->GetPad(1);
 	myPad->cd();
 	int allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
@@ -757,7 +756,7 @@ namespace insur {
 	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].first = (TH1D*)(radiationLengthInAllSubdetectorsStack->GetStack()->Last())->Clone();
 
 	// INTERACTION LENGTH
-	myPad = myCanvas->GetPad(2);
+	myPad = categoryDetailsInAllSubdetectorsCanvas->GetPad(2);
 	myPad->cd();	
 	allSubdetectorsComponentIndex = 1;
 	for (const auto& componentIt : radiationAndInteractionLengthPlotsInAllSubdetectors) {
@@ -776,7 +775,7 @@ namespace insur {
 	interactionLengthInAllSubdetectorsStack->Draw("hist");
 	radiationAndInteractionLengthPlotsInAllMechanicalCategories[allSubdetectors][mechanicalCategory].second = (TH1D*)(interactionLengthInAllSubdetectorsStack->GetStack()->Last())->Clone();
 
-	myPad = myCanvas->GetPad(3);
+	myPad = categoryDetailsInAllSubdetectorsCanvas->GetPad(3);
 	myPad->cd();
 	allSubdetectorsLegend->Draw();
 
@@ -788,7 +787,7 @@ namespace insur {
 
 	categoryDetailsContents[mechanicalCategory]->addItem(allSubdetectorsTable);
 
-	myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(categoryDetailsInAllSubdetectorsCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setName(canvasTitle.c_str());
 	myImage->setComment(canvasTitle.c_str());  
 	categoryDetailsContents[mechanicalCategory]->addItem(myImage);
@@ -802,7 +801,7 @@ namespace insur {
 
 
 
-      // TOTAL PER MECHANICAL CATEGORY (FULL VOLUME)
+      // TOTAL PER MECHANICAL CATEGORY
       const std::string contentTitle = "Total per category" + volume;
       RootWContent* totalPerCategoryContent = new RootWContent(contentTitle.c_str(), false);
     
@@ -816,10 +815,10 @@ namespace insur {
 
 
 	const std::string canvasTitle = "Total per category: MB in " + subdetectorName + volume;
-	myCanvas.reset(new TCanvas(canvasTitle.c_str()));
-	myCanvas->SetFillColor(color_plot_background);
-	myCanvas->Divide(3, 1);
-	myPad = myCanvas->GetPad(0);
+	std::unique_ptr<TCanvas> totalPerCategoryPerSubdetectorCanvas = std::make_unique<TCanvas>(canvasTitle.c_str());
+	totalPerCategoryPerSubdetectorCanvas->SetFillColor(color_plot_background);
+	totalPerCategoryPerSubdetectorCanvas->Divide(3, 1);
+	myPad = totalPerCategoryPerSubdetectorCanvas->GetPad(0);
 	myPad->SetFillColor(color_pad_background);
 
   
@@ -839,7 +838,7 @@ namespace insur {
 	myTable->setContent(0, 2, "Interaction length");
 
 	// RADIATION LENGTH
-	myPad = myCanvas->GetPad(1);
+	myPad = totalPerCategoryPerSubdetectorCanvas->GetPad(1);
 	myPad->cd();
 	int compIndex = 1;
 
@@ -868,7 +867,7 @@ namespace insur {
 	}
 
 	// INTERACTION LENGTH
-	myPad = myCanvas->GetPad(2);
+	myPad = totalPerCategoryPerSubdetectorCanvas->GetPad(2);
 	myPad->cd();	
 	compIndex = 1;
 	for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlotsPerSubdetector) {
@@ -889,7 +888,7 @@ namespace insur {
 	  radiationAndInteractionLengthGrandTotal.second = (TH1D*)(interactionLengthStack->GetStack()->Last())->Clone();
 	}
 
-	myPad = myCanvas->GetPad(3);
+	myPad = totalPerCategoryPerSubdetectorCanvas->GetPad(3);
 	myPad->cd();
 	myLegend->Draw();
 
@@ -900,7 +899,7 @@ namespace insur {
 
 	totalPerCategoryContent->addItem(myTable);
 
-	myImage = new RootWImage(std::move(myCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+	myImage = new RootWImage(std::move(totalPerCategoryPerSubdetectorCanvas), 3*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	myImage->setName(canvasTitle.c_str());
 	myImage->setComment(canvasTitle.c_str());  
 	totalPerCategoryContent->addItem(myImage);
@@ -914,16 +913,15 @@ namespace insur {
 
 
 
-      // TOTAL (FULL VOLUME)
+      // GRAND TOTAL
       const std::string grandTotalContentTitle = "Total" + volume;
       RootWContent* grandTotalContent = new RootWContent(grandTotalContentTitle.c_str(), true);
 
       const std::string canvasTitle = "Total MB" + volume;
-      //std::unique_ptr<TCanvas> myCanvas(new TCanvas(name_overviewMaterial.c_str()));
-      myCanvas.reset(new TCanvas(canvasTitle.c_str()));
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2, 1);
-      myPad = myCanvas->GetPad(0);
+      std::unique_ptr<TCanvas> totalCanvas = std::make_unique<TCanvas>(canvasTitle.c_str());
+      totalCanvas->SetFillColor(color_plot_background);
+      totalCanvas->Divide(2, 1);
+      myPad = totalCanvas->GetPad(0);
       myPad->SetFillColor(color_pad_background);
 
       myTable = new RootWTable();
@@ -934,7 +932,7 @@ namespace insur {
 
 
       // RADIATION LENGTH
-      myPad = myCanvas->GetPad(1);
+      myPad = totalCanvas->GetPad(1);
       myPad->cd();
 
       TH1D* radiationLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.first;
@@ -951,7 +949,7 @@ namespace insur {
       }
 
       // INTERACTION LENGTH    
-      myPad = myCanvas->GetPad(2);
+      myPad = totalCanvas->GetPad(2);
       myPad->cd();
 
       TH1D* interactionLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.second;
@@ -969,7 +967,7 @@ namespace insur {
 
       grandTotalContent->addItem(myTable);
 
-      myImage = new RootWImage(std::move(myCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage = new RootWImage(std::move(totalCanvas), 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setName(canvasTitle.c_str());
       myImage->setComment(canvasTitle.c_str());  
       grandTotalContent->addItem(myImage);
@@ -1024,6 +1022,7 @@ namespace insur {
 
 
 
+    std::unique_ptr<TCanvas> myCanvas;
 
     // Work area re-init
     myCanvas.reset(new TCanvas(name_countourMaterial.c_str()));
