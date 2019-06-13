@@ -3,7 +3,7 @@
 
 
 Component {
-  componentName "Supports Mechanics: Mounting clamp"
+  componentName "Supports Mechanics: Module Mounting clamp"
   service false
   scaleOnSensor 0
   Element {
@@ -17,7 +17,7 @@ Component {
 
 
 Component {
-  componentName "Supports Mechanics: Airex spacer"
+  componentName "Supports Mechanics: Module Airex spacer"
   service false
   scaleOnSensor 0
   Element {
