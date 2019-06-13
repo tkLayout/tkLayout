@@ -163,7 +163,7 @@ void Tracker::addLayerDiskNumbers() {
 	layerNumber++; 
       }
 
-      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->averageZ()) < fabs(d2->averageZ()); });
+      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->centerZ()) < fabs(d2->centerZ()); });
       int positiveZDiskNumber = 1;
       int negativeZDiskNumber = 1;
       for (auto& d : trackerDisks_) {

@@ -455,7 +455,7 @@ namespace insur {
       double totalWeightInSubdetector = 0.;
       int rowCounter = 0;
       const bool boldCell = true;
-      const int weightPrecision = 1;
+      const int weightPrecision = 3;
 
       for (const auto& mechanicalCategoryIt : weightsPerMechanicalCategory) {
 
@@ -500,7 +500,7 @@ namespace insur {
       totalWeight += totalWeightInSubdetector;
     } // subdetector
 
-    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight);
+    const std::string grandTotal = "GRAND TOTAL (kg): " + any2str(totalWeight, 1);
     myPage.addContent(grandTotal, false);
 
     //RootWContent& totalContent = myPage.addContent(grandTotal, false);

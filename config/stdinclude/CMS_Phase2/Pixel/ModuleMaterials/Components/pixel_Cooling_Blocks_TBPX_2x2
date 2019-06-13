@@ -1,0 +1,79 @@
+// BPIX Cooling blocks
+// module with 4 chips
+
+
+// 3 x Al-N rails (same for all 2x2 modules)
+Component {
+  componentName "Cooling: Cooling blocks (AlN rails)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName AlN
+    quantity 0.56       // 3 rails, each is 6.5 mm (width) x 44 mm (length) x 0.2 mm (thickness). Density used is 3.26 g/cm3. Source: [TBPX_2019_01_15_AB]. 
+    unit g             
+    targetVolume 3      // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 3 rails!
+                        // This is a strong approximation: allow support in the code?
+  }
+}
+
+
+// High conductivity CF plate (same for all 2x2 modules)
+Component {
+  componentName "Cooling: Cooling blocks (CF plate)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName CF
+    quantity 1.3           // Along a rod: (41 mm (width) x 400 mm (length under sensors) - 18 holes x 8 mm (hole width) x 30 mm (hole length)) x 0.5 mm (thickness) divided by 9 modules. Density used is 1.9 g/cm3. Source: [TBPX_2019_01_15_AB]
+    unit g                  
+    targetVolume 3         // APPROXIMATION: On modules volumes instead of ladders.
+                           // There are hence small gaps in Z, but radial position is more reasonable (in betweens sensors, instead of outermost layer volume).
+                           // Mass distribution is different in reality: THERE SHOULD BE HOLES!!
+                           // This is a strong approximation: allow support in the code?
+  }
+}
+
+
+// 2 x Housing pipes (same for all 2x2 modules)
+Component {
+  componentName "Cooling: Cooling blocks (C Foam housing pipe)"
+  service false
+  Element {
+    scaleOnSensor 0
+    elementName Carbon_foam_BPX   // 2 housings, each is: (8 mm (width) x 1.5 mm (thickness) - 0.5 x PI x 0.9^2) x 411 mm (length) divided by 9 modules. Density used is 0.5 g/cm3. Source: [TBPX_2019_01_15_AB]
+    quantity 0.490
+    unit g
+    targetVolume 3                // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 housings!
+                                  // This is a strong approximation: allow support in the code?
+  }
+}
+
+
+// 2 x Half cooling pipes
+Component {
+  componentName "Cooling: Pipes & Coolant (on ladders)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName StainlessSteel
+    quantity 0.20       // 2 half cooling pipes. 
+                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 9 modules. Density used is 8.02 g/cm3. 
+                        // Source: [IT_COOLING_2019_04_16]
+    unit g             
+    targetVolume 3      // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 half pipes!!!!!!!!!!
+                        // This is a strong approximation: allow support in the code?
+                        // + Section going along width of module at Z=0 not there.
+  }
+  Element {
+    elementName CO2
+    quantity 0.10       // 2 half cooling pipes. 
+                        // 1 cooling pipe is ID = 1.6 mm, OD = 1.8mm, length 400 mm (under active sensors) divided by 9 modules. Density used is 1.0 g/cm3. 
+                        // Source: [IT_COOLING_2019_04_16]
+    unit g             
+    targetVolume 3      // APPROXIMATION: mass spread across a uniform parallelepiped, while these are 2 half pipes!!!!!!!!!!
+                        // This is a strong approximation: allow support in the code?
+                        // + Section going along width of module at Z=0 not there.
+  }  
+}
+
+

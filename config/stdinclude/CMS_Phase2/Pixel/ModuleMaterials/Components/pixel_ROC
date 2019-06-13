@@ -1,0 +1,37 @@
+// Materials PER ROC
+
+
+// SMD resistors and capacitors.
+// This gathers all SMD components from HDI and RD53A.
+// 20 SMDCapacitors per ROC (in this file) + 5 per module (in pixel_Module_common).
+Component {
+  componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Pix_Caps               
+    quantity 0.078                     // = 20 * 15.60 * 0.25 / 1000
+                                       // About 20 SMDCapacitors per ROC, no SMDResisotr.
+                                       // Assumes density is 15.60 g/cm3.
+                                       // Assumes volume is 0.25 mm3 (model 402)
+                                       // NB: ~5 modules/module are also added, in pixel_Module_common cfg file.
+                                       // Source: [IT_MODULE_2019_03_21_MB]
+    unit g
+    targetVolume 1
+  }
+}
+
+
+Component {
+  componentName "IT Module: ROC (Si)"  // Source: [TEPX_2018_12_07_LC]  0.57g for 4 ROCs, hence ~0.1425 g per ROC
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.1425       
+    unit g             
+    targetVolume 3
+  }
+}
+
+

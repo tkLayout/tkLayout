@@ -447,7 +447,7 @@ OT614_200_IT611.cfg                  OT Version 6.1.4
                                      Based from Inner Tracker version 6.1.0.
                                      TEPX: 2x2 modules in Ring 1 and Ring 2.
                                      Materials: adapted correspondingly.
-                                     NB: numModules / GBT still follow IT404 cabling map, will need slight update (+4 modules in R4).
+                                     NB: IT cabling still follows IT404 cabling map, will need slight update (+4 modules in R4).
                                      WARNING: Rings radii to be tuned!! 
                                      Rmin set to 62.9 mm, is that fine? Rmax < 254.52 mm, is that the constrainst?  
                                      What is the Rmax constrainst on TFPX???  
