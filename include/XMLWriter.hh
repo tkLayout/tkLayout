@@ -37,7 +37,7 @@ namespace insur {
   public:
     void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
     void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
-    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
+    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::fstream& mechanicalCategoriesRL, std::fstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
@@ -46,7 +46,7 @@ namespace insur {
     const std::string& getSimpleHeader() const { return simpleHeader_; }
   protected:
     void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
-    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags);
+    void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, bool isPixelTracker, XmlTags& trackerXmlTags);
     void rotationSection(std::map<std::string,Rotation>& r, std::string label, std::ostringstream& stream);
     void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool isPixelTracker, bool wt = false);
@@ -54,7 +54,7 @@ namespace insur {
     void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
     void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
     void elementaryMaterial(Element& elem, std::ostringstream& stream);
-    void compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags);
+    void compositeMaterial(Composite& comp, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, XmlTags& trackerXmlTags);
     void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
     void trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream);

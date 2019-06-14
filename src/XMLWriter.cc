@@ -94,7 +94,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate,  bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
+  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::fstream& mechanicalCategoriesRL, std::fstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
     std::vector<Element>& e = d.elements;
     std::vector<Composite>& c = d.composites;
     std::vector<LogicalInfo>& l = d.logic;
@@ -107,9 +107,11 @@ namespace insur {
     buffer << xml_preamble;
     buffer << getSimpleHeader();
     buffer << xml_definition;
+    std::ostringstream mechanicalCategoriesRLStream;
+    std::ostringstream mechanicalCategoriesILStream;
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
+      materialSection(xml_newtrackerfile, e, c, buffer, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, isPixelTracker, trackerXmlTags);
       rotationSection(r, xml_newtrackerfile, buffer);
       logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
       solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
@@ -117,7 +119,7 @@ namespace insur {
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, isPixelTracker, trackerXmlTags);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
       logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
       solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
@@ -125,6 +127,8 @@ namespace insur {
     }
     buffer << xml_defclose;
     out << buffer.str();
+    mechanicalCategoriesRL << mechanicalCategoriesRLStream.str();
+    mechanicalCategoriesIL << mechanicalCategoriesILStream.str();
   }
     
     /**
@@ -393,7 +397,7 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags) {
+  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, bool isPixelTracker, XmlTags& trackerXmlTags) {
         stream << xml_material_section_open << name << xml_general_inter;
 	// Elementary materials (only in tracker.xml)
 	if (!isPixelTracker) {
@@ -401,7 +405,7 @@ namespace insur {
 	}
 
 	// Composite materials
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, trackerXmlTags);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -575,7 +579,7 @@ namespace insur {
      * @param es A reference to a list of elementary material names and their fractions in the composite mixture, stored in instances of <i>std::pair</i>
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags) {
+  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, XmlTags& trackerXmlTags) {
     std::string& name = comp.name;
     const std::string fileName = trackerXmlTags.nspace;
     std::string fullName = fileName + ":" + name;
@@ -638,7 +642,8 @@ namespace insur {
       //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
       //std::cout << "tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
 
-      std::cout << comp.name << "           0.000";
+      mechanicalCategoriesRLStream << comp.name << "           0.000";
+      mechanicalCategoriesILStream << comp.name << "           0.000";
       const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = comp.normalizedRIRatioPerMechanicalCategory;
 
       for (int categoryIt = 1; categoryIt <=3; categoryIt++) {
@@ -647,17 +652,22 @@ namespace insur {
 	else if (categoryIt == 2) { mechanicalCategory = MechanicalCategory::CABLING; }
 	else if (categoryIt == 3) { mechanicalCategory = MechanicalCategory::SUPPORT_AND_COOLING; }
 
+
 	const auto& found = myNormalizedRIRatioPerMechanicalCategory.find(mechanicalCategory);
 	if (found != myNormalizedRIRatioPerMechanicalCategory.end()) {
 	  const double myNormalizedRadiationLength = found->second.first;
-	  std::cout << " " << myNormalizedRadiationLength;
+	  mechanicalCategoriesRLStream << " " << myNormalizedRadiationLength;
+	  const double myNormalizedInteractionLength = found->second.second;
+	  mechanicalCategoriesILStream << " " << myNormalizedInteractionLength;
 	}
 	else {
-	  std::cout << " 0.000";
+	  mechanicalCategoriesRLStream << " 0.000";
+	  mechanicalCategoriesILStream << " 0.000";
 	}
 
 	if (categoryIt == 3) {
-	  std::cout << std::endl;
+	  mechanicalCategoriesRLStream << std::endl;
+	  mechanicalCategoriesILStream << std::endl;
 	}
       }
 
