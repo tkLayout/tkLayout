@@ -174,6 +174,8 @@ namespace insur {
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     TProfile* totalEtaProfileLayers_ = 0, *totalEtaProfileLayersPixel_ = 0;
     std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
+    std::pair<TH1D*, TH1D*> radiationAndInteractionLengthInOuterTrackingVolumeGrandTotal_;
+    std::pair<TH1D*, TH1D*> radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_;
     bool geometry_created;
     std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
@@ -308,8 +310,9 @@ namespace insur {
     TProfile* newProfile(TH1D* sourceHistogram, double xlow, double xup, int desiredNBins = 0);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     TProfile& newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
-    void stackHistos(std::vector<std::pair<std::string, TH1D*>>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
-    void stackHistos(const std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, THStack*& myStack, TLegend*& legend, bool& isRadiation);
+    
+    void stackHistos(const std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, TLegend*& legend, bool& isRadiation);
+    void addHisto(const std::string name, TH1D* histo, RootWTable*& myTable, int& index, THStack*& totalStack, TLegend*& legend, bool& isRadiation);
 
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
