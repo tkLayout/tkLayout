@@ -941,154 +941,34 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     //      active volumes, barrel
     std::map<std::string, RILength> sumComponentsRI;
     tmp = analyzeModules(mb.getBarrelModuleCaps(), track, sumComponentsRI);
-    ractivebarrel.Fill(eta, tmp.radiation);
-    iactivebarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
 
     //      active volumes, endcap
     tmp = analyzeModules(mb.getEndcapModuleCaps(), track, sumComponentsRI);
-    ractiveendcap.Fill(eta, tmp.radiation);
-    iactiveendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
 
-    for (std::map<std::string, RILength>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
-      if (rComponents[it->first]==NULL) { 
-        rComponents[it->first] = new TH1D();
-        rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      rComponents[it->first]->Fill(eta, it->second.radiation);
-      if (iComponents[it->first]==NULL) {
-        iComponents[it->first] = new TH1D();
-        iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      iComponents[it->first]->Fill(eta, it->second.interaction);
-    }
-
-
-    if (rComponents["Services"]==NULL) { 
-      rComponents["Services"] = new TH1D();
-      rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Services"]==NULL) { 
-      iComponents["Services"] = new TH1D();
-      iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (rComponents["Supports"]==NULL) { 
-      rComponents["Supports"] = new TH1D();
-      rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Supports"]==NULL) { 
-      iComponents["Supports"] = new TH1D();
-      iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
 
     std::map<std::string, RILength> sumServicesComponentsRI;
 
     //      services, barrel
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), track, sumServicesComponentsRI, MaterialProperties::no_cat);
-    rserfbarrel.Fill(eta, tmp.radiation);
-    iserfbarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
+    
     //      services, endcap
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), track, sumServicesComponentsRI, MaterialProperties::no_cat);
-    rserfendcap.Fill(eta, tmp.radiation);
-    iserfendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
-
-
-    /*for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
-      if (rComponents[it->first]==NULL) { 
-      rComponents[it->first] = new TH1D();
-      rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      rComponents[it->first]->Fill(eta, it->second.radiation);
-      if (iComponents[it->first]==NULL) {
-      iComponents[it->first] = new TH1D();
-      iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      iComponents[it->first]->Fill(eta, it->second.interaction);
-      }*/
-
-
 
     //      supports, barrel
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::b_sup);
-    rlazybarrel.Fill(eta, tmp.radiation);
-    ilazybarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+   
     //      supports, endcap
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::e_sup);
-    rlazyendcap.Fill(eta, tmp.radiation);
-    ilazyendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      supports, tubes
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::o_sup);
-    rlazytube.Fill(eta, tmp.radiation);
-    ilazytube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+
     //      supports, barrel tubes
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::t_sup);
-    rlazybtube.Fill(eta, tmp.radiation);
-    ilazybtube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      supports, user defined
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::u_sup);
-    rlazyuserdef.Fill(eta, tmp.radiation);
-    ilazyuserdef.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      pixels, if they exist
     std::map<std::string, RILength> ignoredPixelSumComponentsRI;
     std::map<std::string, RILength> ignoredPixelSumServicesComponentsRI;
@@ -2420,65 +2300,6 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
  * material budget, so they are ready for a new round of analysis.
  */
 void Analyzer::clearMaterialBudgetHistograms() {
-  // single category
-  ractivebarrel.Reset();
-  ractivebarrel.SetNameTitle("ractivebarrels", "Barrel Modules Radiation Length");
-  ractiveendcap.Reset();
-  ractiveendcap.SetNameTitle("ractiveendcap", "Endcap Modules Radiation Length");
-  rserfbarrel.Reset();
-  rserfbarrel.SetNameTitle("rserfbarrel", "Barrel Services Radiation Length");
-  rserfendcap.Reset();
-  rserfendcap.SetNameTitle("rserfendcap", "Endcap Services Radiation Length");
-  rlazybarrel.Reset();
-  rlazybarrel.SetNameTitle("rlazybarrel", "Barrel Supports Radiation Length");
-  rlazyendcap.Reset();
-  rlazyendcap.SetNameTitle("rlazyendcap", "Endcap Supports Radiation Length");
-  rlazytube.Reset();
-  rlazytube.SetNameTitle("rlazytube", "Support Tubes Radiation Length");
-  rlazyuserdef.Reset();
-  rlazyuserdef.SetNameTitle("rlazyuserdef", "Userdefined Supports Radiation Length");
-  iactivebarrel.Reset();
-  iactivebarrel.SetNameTitle("iactivebarrel", "Barrel Modules Interaction Length");
-  iactiveendcap.Reset();
-  iactiveendcap.SetNameTitle("iactiveendcap", "Endcap Modules Interaction Length");
-  iserfbarrel.Reset();
-  iserfbarrel.SetNameTitle("iserfbarrel", "Barrel Services Interaction Length");
-  iserfendcap.Reset();
-  iserfendcap.SetNameTitle("iserfendcap", "Endcap Services Interaction Length");
-  ilazybarrel.Reset();
-  ilazybarrel.SetNameTitle("ilazybarrel", "Barrel Supports Interaction Length");
-  ilazyendcap.Reset();
-  ilazyendcap.SetNameTitle("ilazyendcap", "Endcap Supports Interaction Length");
-  ilazytube.Reset();
-  ilazytube.SetNameTitle("ilazytube", "Support Tubes Interaction Length");
-  ilazyuserdef.Reset();
-  ilazyuserdef.SetNameTitle("ilazyuserdef", "Userdefined Supports Interaction Length");
-  // composite
-  rbarrelall.Reset();
-  rbarrelall.SetNameTitle("rbarrelall", "Barrel Radiation Length");
-  rendcapall.Reset();
-  rendcapall.SetNameTitle("rendcapall", "Endcap Radiation Length");
-  ractiveall.Reset();
-  ractiveall.SetNameTitle("ractiveall", "Modules Radiation Length");
-  rserfall.Reset();
-  rserfall.SetNameTitle("rserfall", "Services Radiation Length");
-  rlazyall.Reset();
-  rlazyall.SetNameTitle("rlazyall", "Supports Radiation Length");
-  ibarrelall.Reset();
-  ibarrelall.SetNameTitle("ibarrelall", "Barrel Interaction Length");
-  iendcapall.Reset();
-  iendcapall.SetNameTitle("iendcapall", "Endcap Interaction Length");
-  iactiveall.Reset();
-  iactiveall.SetNameTitle("iactiveall", "Modules Interaction Length");
-  iserfall.Reset();
-  iserfall.SetNameTitle("iserfall", "Services Interaction Length");
-  ilazyall.Reset();
-  ilazyall.SetNameTitle("ilazyall", "Supports Interaction Length");
-  // global
-  rglobal.Reset();
-  rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
-  iglobal.Reset();
-  iglobal.SetNameTitle("iglobal", "Overall Interaction Length");
   // isolines
   isor.Reset();
   isor.SetNameTitle("isor", "Radiation Length Contours");
@@ -2809,37 +2630,6 @@ void Analyzer::clearCells() {
  * @param max the maximal eta value that should be plotted
  */
 void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
-  // single category
-  ractivebarrel.SetBins(bins, min, max);
-  ractiveendcap.SetBins(bins, min, max);
-  rserfbarrel.SetBins(bins, min, max);
-  rserfendcap.SetBins(bins, min, max);
-  rlazybarrel.SetBins(bins, min, max);
-  rlazyendcap.SetBins(bins, min, max);
-  rlazytube.SetBins(bins, min, max);
-  rlazyuserdef.SetBins(bins, min, max);
-  iactivebarrel.SetBins(bins, min, max);
-  iactiveendcap.SetBins(bins, min, max);
-  iserfbarrel.SetBins(bins, min, max);
-  iserfendcap.SetBins(bins, min, max);
-  ilazybarrel.SetBins(bins, min, max);
-  ilazyendcap.SetBins(bins, min, max);
-  ilazytube.SetBins(bins, min, max);
-  ilazyuserdef.SetBins(bins, min, max);
-  // composite
-  rbarrelall.SetBins(bins, min, max);
-  rendcapall.SetBins(bins, min, max);
-  ractiveall.SetBins(bins, min, max);
-  rserfall.SetBins(bins, min, max);
-  rlazyall.SetBins(bins, min, max);
-  ibarrelall.SetBins(bins, min, max);
-  iendcapall.SetBins(bins, min, max);
-  iactiveall.SetBins(bins, min, max);
-  iserfall.SetBins(bins, min, max);
-  ilazyall.SetBins(bins, min, max);
-  // global
-  rglobal.SetBins(bins, min, max);
-  iglobal.SetBins(bins, min, max);
   // isolines
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);

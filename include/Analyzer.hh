@@ -100,84 +100,31 @@ namespace insur {
   public:
     Analyzer();
     virtual ~Analyzer() {}  
-    // TRACKING VOLUMES PLOTS
+
+    // TO DO: obviously need a typedef here!!
+    // FULL VOLUME
+    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInFullVolume() const { 
+      return radiationAndInteractionLengthPlotsInFullVolume_;
+    }
+
+    // TRACKING VOLUME
     // Beam pipe
     std::map<std::string, TH1D*>& getHistoBeamPipeR() { return rComponentsBeamPipe; }
     std::map<std::string, TH1D*>& getHistoBeamPipeI() { return iComponentsBeamPipe; }
     // Pixel interstice (between Beam pipe and Pixel tracking volumes)
     std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
     std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
-    // Pixel tracking volume: NOT USED ANYMORE
-    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
-    // Interstice (betweenPixel and Outer tracking volumes)
-    std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
-    std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
-    // Outer tracking volume: NOT USED ANYMORE
-    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
-    // SERVICES DETAILS (in Pixel and Outer tracking volumes only)
-    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeR() { return rComponentsServicesDetailsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeI() { return iComponentsServicesDetailsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeR() { return rComponentsServicesDetailsOuterTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeI() { return iComponentsServicesDetailsOuterTrackingVolume; }
-
-    // TO DO: obviously need a typedef here!!
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInFullVolume() const { 
-      return radiationAndInteractionLengthPlotsInFullVolume_;
-    }
+    // Pixel tracking volume (between first and last IT active hits)  
     const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInPixelTrackingVolume() const { 
       return radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
     }
+    // Interstice (betweenPixel and Outer tracking volumes)
+    std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
+    std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
+    // Outer tracking volume (between first and last OT active hits)   
     const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInOuterTrackingVolume() const { 
       return radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
     }
-
-
-    // unused !!!???
-    TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
-    TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
-    TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
-    TH1D& getHistoModulesEndcapsI() { return iactiveendcap; }
-    TH1D& getHistoServicesBarrelsR() { return rserfbarrel; }
-    TH1D& getHistoServicesBarrelsI() { return iserfbarrel; }
-    TH1D& getHistoServicesEndcapsR() { return rserfendcap; }
-    TH1D& getHistoServicesEndcapsI() { return iserfendcap; }
-    TH1D& getHistoSupportsBarrelsR() { return rlazybarrel; }
-    TH1D& getHistoSupportsBarrelsI() { return ilazybarrel; }
-    TH1D& getHistoSupportsEndcapsR() { return rlazyendcap; }
-    TH1D& getHistoSupportsEndcapsI() { return ilazyendcap; }
-    TH1D& getHistoSupportsBarrelTubesR() { return rlazybtube; }
-    TH1D& getHistoSupportsBarrelTubesI() { return ilazybtube; }
-    TH1D& getHistoSupportsTubesR() { return rlazytube; }
-    TH1D& getHistoSupportsTubesI() { return ilazytube; }
-    TH1D& getHistoSupportsUserDefinedR() { return rlazyuserdef; }
-    TH1D& getHistoSupportsUserDefinedI() { return ilazyuserdef; }
-    TH1D& getHistoBarrelsAllR() { return rbarrelall; }
-    TH1D& getHistoBarrelsAllI() { return ibarrelall; }
-    TH1D& getHistoEndcapsAllR() { return rendcapall; }
-    TH1D& getHistoEndcapsAllI() { return iendcapall; }
-
-    // used, 1d overview
-    TH1D& getHistoGlobalR() { return rglobal; } 
-    TH1D& getHistoGlobalI() { return iglobal; }
-
-    // used, categories
-    TH1D& getHistoModulesAllR() { return ractiveall; }
-    TH1D& getHistoModulesAllI() { return iactiveall; }
-    TH1D& getHistoServicesAllR() { return rserfall; }
-    TH1D& getHistoServicesAllI() { return iserfall; }
-    TH1D& getHistoSupportsAllR() { return rlazyall; }
-    TH1D& getHistoSupportsAllI() { return ilazyall; }
-
-    // used, components
-    std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
-    std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
-
-    // used, services details
-    std::map<std::string, TH1D*>& getHistoServicesDetailsR() { return rComponentsServicesDetails; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsI() { return iComponentsServicesDetails; }
-
  
 
     TH2D& getHistoIsoR() { return isor; }
@@ -358,27 +305,17 @@ namespace insur {
      */
     struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
     std::vector<std::vector<Cell> > cells;
-    TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazybtube, rlazytube, rlazyuserdef;
-    TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
-    TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
-    TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
-    std::map<std::string, TH1D*> rComponentsServicesDetails, iComponentsServicesDetails;
-    TH1D rglobal, iglobal;
-
-    std::map<std::string, TH1D*> rComponents, iComponents;
-    std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
-    std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
-    std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
-    std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
-    std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
-    std::map<std::string, TH1D*> rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume;
-    std::map<std::string, TH1D*> rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume;
 
     // TO DO: obviously need a typedef here!!
+    // FULL VOLUME
     std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInFullVolume_;
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
 
+    // TRACKING VOLUME
+    std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
+    std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
+    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
+    std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
+    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
 
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
