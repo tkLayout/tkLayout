@@ -3447,7 +3447,7 @@ namespace insur {
     isRadiation = true;
     index = 1;
 
-    THStack* rCompLocationTrackingVolumeStack = new THStack("rcomplocationtrackingvolumestack", "Radiation Length by Location in tracking volume");
+    THStack* rCompLocationTrackingVolumeStack = new THStack("rcomplocationtrackingvolumestack", "Radiation Length by location in tracking volume");
     addHisto("Beam pipe", rCompBeamPipe, myTable, index, rCompLocationTrackingVolumeStack, compLegend, isRadiation);
     addHisto("Services and Supports under Pixel Tracking Volume", rCompPixelInterstice, myTable, index, rCompLocationTrackingVolumeStack, compLegend, isRadiation);
     addHisto("Pixel Tracking Volume", (TH1D*)radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_.first->Clone(), myTable, index, rCompLocationTrackingVolumeStack, compLegend, isRadiation);
@@ -3461,7 +3461,7 @@ namespace insur {
     isRadiation = false;
     index = 1;
 
-    THStack* iCompLocationTrackingVolumeStack = new THStack("icomplocationtrackingvolumestack", "Interaction Length by Location in tracking volume");
+    THStack* iCompLocationTrackingVolumeStack = new THStack("icomplocationtrackingvolumestack", "Interaction Length by location in tracking volume");
     addHisto("Beam pipe", iCompBeamPipe, myTable, index, iCompLocationTrackingVolumeStack, compLegend, isRadiation);
     addHisto("Services and Supports under Pixel Tracking Volume", iCompPixelInterstice, myTable, index, iCompLocationTrackingVolumeStack, compLegend, isRadiation);
     addHisto("Pixel Tracking Volume", (TH1D*)radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_.second->Clone(), myTable, index, iCompLocationTrackingVolumeStack, compLegend, isRadiation);
