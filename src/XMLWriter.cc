@@ -636,9 +636,9 @@ namespace insur {
 
 
       //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
-      //std::cout << "tracker:tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
+      //std::cout << "tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
 
-      std::cout << comp.fullName() << "           0.000";
+      std::cout << comp.name << "           0.000";
       const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = comp.normalizedRIRatioPerMechanicalCategory;
 
       for (int categoryIt = 1; categoryIt <=3; categoryIt++) {
@@ -658,7 +658,6 @@ namespace insur {
 
 	if (categoryIt == 3) {
 	  std::cout << std::endl;
-	  //std::cout << " 0.000" << std::endl;
 	}
       }
 

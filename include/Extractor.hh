@@ -207,9 +207,9 @@ namespace insur {
             if ( fdensity < 0. ) fdensity = fmass/fdxyz;
             return fdensity;
           }
-          const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
+	  const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
 
-	void   addMaterial(const std::string elementName, const std::string componentName, const double mass) { 
+	void addMaterial(const std::string elementName, const std::string componentName, const double mass) { 
 	  fmatlist[elementName] += mass;
 
 	  const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
