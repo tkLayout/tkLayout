@@ -68,6 +68,12 @@ namespace insur {
 
   typedef std::map<int, TProfile> CoveragePerNumberOfHits;
 
+  using MaterialsPlotsPerComponent = std::map<std::string, TH1D*>;
+  using RIPlotsPerComponent = std::pair<MaterialsPlotsPerComponent, MaterialsPlotsPerComponent>;
+  using RIPlotsPerComponentAndPerSubdetector = std::map<std::string, RIPlotsPerComponent>;
+  using RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory = std::map<MechanicalCategory, RIPlotsPerComponentAndPerSubdetector>; 
+
+
   class LayerNameVisitor : public ConstGeometryVisitor {
     string id_;
   public:
@@ -101,9 +107,8 @@ namespace insur {
     Analyzer();
     virtual ~Analyzer() {}  
 
-    // TO DO: obviously need a typedef here!!
     // FULL VOLUME
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInFullVolume() const { 
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInFullVolume() const { 
       return radiationAndInteractionLengthPlotsInFullVolume_;
     }
 
@@ -115,14 +120,14 @@ namespace insur {
     std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
     std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
     // Pixel tracking volume (between first and last IT active hits)  
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInPixelTrackingVolume() const { 
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInPixelTrackingVolume() const { 
       return radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
     }
     // Interstice (betweenPixel and Outer tracking volumes)
     std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
     std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
     // Outer tracking volume (between first and last OT active hits)   
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& getRIPlotsInOuterTrackingVolume() const { 
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInOuterTrackingVolume() const { 
       return radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
     }
  
@@ -308,14 +313,14 @@ namespace insur {
 
     // TO DO: obviously need a typedef here!!
     // FULL VOLUME
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInFullVolume_;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInFullVolume_;
 
     // TRACKING VOLUME
     std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
     std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
     std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
 
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;

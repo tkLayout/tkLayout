@@ -3735,7 +3735,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
    * Then Analyzer::fillRIComponentsHistos is directly used.
    */
-void Analyzer::fillRIPlotsPerMechanicalCategoryAndSubdetector(std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector,
+void Analyzer::fillRIPlotsPerMechanicalCategoryAndSubdetector(RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector,
 							      const std::unique_ptr<Hit>& hit,
 							      const double eta, const double theta, const int nTracks, const double etaMax) const {
     
