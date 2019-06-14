@@ -311,7 +311,6 @@ namespace insur {
     struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
     std::vector<std::vector<Cell> > cells;
 
-    // TO DO: obviously need a typedef here!!
     // FULL VOLUME
     RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInFullVolume_;
 
