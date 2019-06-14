@@ -173,7 +173,7 @@ namespace insur {
   private:
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     TProfile* totalEtaProfileLayers_ = 0, *totalEtaProfileLayersPixel_ = 0;
-    std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > > radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
     std::pair<TH1D*, TH1D*> radiationAndInteractionLengthInOuterTrackingVolumeGrandTotal_;
     std::pair<TH1D*, TH1D*> radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_;
     bool geometry_created;

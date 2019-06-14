@@ -558,20 +558,20 @@ namespace insur {
 
 
     
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPlotsInFullVolume = a.getRIPlotsInFullVolume();
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlotsInFullVolume = a.getRIPlotsInFullVolume();
     
     const bool isOuterTracker = (name == "outer");
     if (isOuterTracker) {
       radiationAndInteractionLengthPlotsInPixelTrackingVolume_ = a.getRIPlotsInPixelTrackingVolume();
     }
-    const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPlotsInTrackingVolume = (name == "outer" ? a.getRIPlotsInOuterTrackingVolume() : radiationAndInteractionLengthPlotsInPixelTrackingVolume_);
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlotsInTrackingVolume = (name == "outer" ? a.getRIPlotsInOuterTrackingVolume() : radiationAndInteractionLengthPlotsInPixelTrackingVolume_);
 
 
 
     for (int volumeIt = 1; volumeIt <=2; volumeIt++) {
 
       const std::string volume = (volumeIt == 1 ? " (Full volume)" : " (Tracking volume)");
-      const std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPlots = (volumeIt == 1 ? radiationAndInteractionLengthPlotsInFullVolume : radiationAndInteractionLengthPlotsInTrackingVolume);
+      const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlots = (volumeIt == 1 ? radiationAndInteractionLengthPlotsInFullVolume : radiationAndInteractionLengthPlotsInTrackingVolume);
 
       std::map<std::string, RootWContent*> categoryDetailsContents;
 
@@ -584,7 +584,7 @@ namespace insur {
       // LOOP ON ALL MECHANICAL CATEGORIES
       for (const auto& mechanicalCategoryIt : radiationAndInteractionLengthPlots) {
 	const std::string& mechanicalCategory = any2str(mechanicalCategoryIt.first);
-	const std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > >& radiationAndInteractionLengthPlotsPerSubdetector = mechanicalCategoryIt.second;
+	const RIPlotsPerComponentAndPerSubdetector& radiationAndInteractionLengthPlotsPerSubdetector = mechanicalCategoryIt.second;
 
 	const std::string contentTitle = "Category details: " + mechanicalCategory + volume;
 	categoryDetailsContents[mechanicalCategory] = new RootWContent(contentTitle.c_str(), false);
@@ -596,9 +596,9 @@ namespace insur {
 	// LOOP ON ALL SUBDETECTORS
 	for (const auto& subdetectorIt : radiationAndInteractionLengthPlotsPerSubdetector) {
 	  const std::string& subdetectorName = subdetectorIt.first;
-	  std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > radiationAndInteractionLengthPlots = subdetectorIt.second;
-	  const std::map<std::string, TH1D*>& radiationLengthPlots = radiationAndInteractionLengthPlots.first;
-	  const std::map<std::string, TH1D*>& interactionLengthPlots = radiationAndInteractionLengthPlots.second;
+	  const RIPlotsPerComponent& radiationAndInteractionLengthPlots = subdetectorIt.second;
+	  const MaterialsPlotsPerComponent& radiationLengthPlots = radiationAndInteractionLengthPlots.first;
+	  const MaterialsPlotsPerComponent& interactionLengthPlots = radiationAndInteractionLengthPlots.second;
 
 
 	  const std::string canvasTitle = mechanicalCategory + ": MB in " + subdetectorName + volume;
