@@ -94,7 +94,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::fstream& mechanicalCategoriesRL, std::fstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
+  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
     std::vector<Element>& e = d.elements;
     std::vector<Composite>& c = d.composites;
     std::vector<LogicalInfo>& l = d.logic;

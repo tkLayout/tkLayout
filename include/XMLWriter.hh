@@ -37,7 +37,7 @@ namespace insur {
   public:
     void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
     void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
-    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::fstream& mechanicalCategoriesRL, std::fstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
+    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
