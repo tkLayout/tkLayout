@@ -268,6 +268,8 @@ namespace insur {
       for (const auto& fractionIt : fractions) {
 	comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
       }
+
+      comp.isMixture = true;
       allComposites.push_back(comp);
     }
 

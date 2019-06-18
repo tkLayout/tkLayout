@@ -107,11 +107,10 @@ namespace insur {
     buffer << xml_preamble;
     buffer << getSimpleHeader();
     buffer << xml_definition;
-    std::ostringstream mechanicalCategoriesRLStream;
-    std::ostringstream mechanicalCategoriesILStream;
+
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, isPixelTracker, trackerXmlTags);
+      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, xml_newtrackerfile, buffer);
       logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
       solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
@@ -119,7 +118,7 @@ namespace insur {
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, isPixelTracker, trackerXmlTags);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
       logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
       solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
@@ -127,7 +126,14 @@ namespace insur {
     }
     buffer << xml_defclose;
     out << buffer.str();
+
+    std::ostringstream mechanicalCategoriesRLStream;
+    if (!isPixelTracker) writeMechanicalCategoriesFilesHeaders(mechanicalCategoriesRLStream);
+    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesRLStream, true, isPixelTracker);
     mechanicalCategoriesRL << mechanicalCategoriesRLStream.str();
+    std::ostringstream mechanicalCategoriesILStream;
+    if (!isPixelTracker) writeMechanicalCategoriesFilesHeaders(mechanicalCategoriesILStream);
+    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesILStream, false, isPixelTracker);
     mechanicalCategoriesIL << mechanicalCategoriesILStream.str();
   }
     
@@ -385,6 +391,7 @@ namespace insur {
             while (std::getline(in, line)) out << line << std::endl;
         }
     }
+
     
     //protected
     /**
@@ -397,15 +404,16 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, bool isPixelTracker, XmlTags& trackerXmlTags) {
+  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags) {
         stream << xml_material_section_open << name << xml_general_inter;
+
 	// Elementary materials (only in tracker.xml)
 	if (!isPixelTracker) {
 	  for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i), stream);
 	}
 
 	// Composite materials
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, mechanicalCategoriesRLStream, mechanicalCategoriesILStream, trackerXmlTags);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i), stream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -579,7 +587,7 @@ namespace insur {
      * @param es A reference to a list of elementary material names and their fractions in the composite mixture, stored in instances of <i>std::pair</i>
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, std::ostringstream& mechanicalCategoriesRLStream, std::ostringstream& mechanicalCategoriesILStream, XmlTags& trackerXmlTags) {
+  void XMLWriter::compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags) {
     std::string& name = comp.name;
     const std::string fileName = trackerXmlTags.nspace;
     std::string fullName = fileName + ":" + name;
@@ -593,7 +601,11 @@ namespace insur {
 
     // Case where a composite with same materials is already printed
     if (foundComposite != printedComposites_.end()) {
-      mapCompoToPrintedCompo_.insert(std::make_pair(fullName, foundComposite->fullName())); // Just map the name of the composite 
+
+      // Composite comp will not be printed
+      comp.isPrinted = false;
+
+      mapCompoToPrintedCompo_.insert(std::make_pair(fullName, foundComposite->fullName())); // Instead, just map the name of the composite comp
                                                                                             // to the name of the one which is already printed.
 
       if (fileName == xml_fileident && fullName != foundComposite->fullName() && fullName.find("composite") == std::string::npos) {
@@ -609,6 +621,8 @@ namespace insur {
     }
     // Case where the materials composition is not already printed : hence, print it !
     else {
+      comp.isPrinted = true; 
+
       stream << xml_composite_material_open << name << xml_composite_material_first_inter;
       stream << density << xml_composite_material_second_inter ;
       switch (method) {
@@ -637,45 +651,9 @@ namespace insur {
       // Add the composite which has just been printed, to the list of printed composites.
       printedComposites_.push_back(comp);
       mapCompoToPrintedCompo_.insert(std::make_pair(fullName, comp.fullName())); // Maps the composite to itself, since it is a printed composite !
-
-
-      //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
-      //std::cout << "tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
-
-      mechanicalCategoriesRLStream << comp.name << "           0.000";
-      mechanicalCategoriesILStream << comp.name << "           0.000";
-      const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = comp.normalizedRIRatioPerMechanicalCategory;
-
-      for (int categoryIt = 1; categoryIt <=3; categoryIt++) {
-	MechanicalCategory mechanicalCategory;
-	if (categoryIt == 1) { mechanicalCategory = MechanicalCategory::MODULE; }
-	else if (categoryIt == 2) { mechanicalCategory = MechanicalCategory::CABLING; }
-	else if (categoryIt == 3) { mechanicalCategory = MechanicalCategory::SUPPORT_AND_COOLING; }
-
-
-	const auto& found = myNormalizedRIRatioPerMechanicalCategory.find(mechanicalCategory);
-	if (found != myNormalizedRIRatioPerMechanicalCategory.end()) {
-	  const double myNormalizedRadiationLength = found->second.first;
-	  mechanicalCategoriesRLStream << " " << myNormalizedRadiationLength;
-	  const double myNormalizedInteractionLength = found->second.second;
-	  mechanicalCategoriesILStream << " " << myNormalizedInteractionLength;
-	}
-	else {
-	  mechanicalCategoriesRLStream << " 0.000";
-	  mechanicalCategoriesILStream << " 0.000";
-	}
-
-	if (categoryIt == 3) {
-	  mechanicalCategoriesRLStream << std::endl;
-	  mechanicalCategoriesILStream << std::endl;
-	}
-      }
-
-
-
-
     }
   }
+
     
     /**
      * This formatter writes an XML entry describing a logical volume to the stream that serves as a buffer for the
@@ -962,7 +940,73 @@ namespace insur {
   }
 
     
-    //private
+  //private
+  void XMLWriter::writeMechanicalCategoriesFilesHeaders(std::ostringstream& mechanicalCategoriesStream) {
+    // Mechanical categories files
+    //std::cout << "# ACTIVE MODULE CABLING COOLING_AND_SUPPORT" << std::endl;
+    
+    mechanicalCategoriesStream << xml_mechanicalCategoriesComment << xml_mechanicalCategoriesSmallSpacer << xml_mechanicalCategoriesHeader << std::endl;
+
+    mechanicalCategoriesStream << xml_mechanicalCategoriesComment << xml_mechanicalCategoriesSmallSpacer << xml_mechanicalCategoriesMaterialName
+			       << xml_mechanicalCategoriesBigSpacer << xml_mechanicalCategoriesBigSpacer << xml_mechanicalCategoriesActiveSensor;
+    printedCompositesMechanicalCategories_ = { MechanicalCategory::MODULE, MechanicalCategory::CABLING, MechanicalCategory::SUPPORT_AND_COOLING };
+    for (const auto& printedMechanicalCategory : printedCompositesMechanicalCategories_) {
+      mechanicalCategoriesStream << xml_mechanicalCategoriesBigSpacer << any2str(printedMechanicalCategory);
+    }
+    mechanicalCategoriesStream << std::endl;
+  }
+
+
+  void XMLWriter::writeMechanicalCategoriesFiles(const std::vector<Element>& allChemicalElements, const std::vector<Composite>& allChemicalMixturesAndComposites, std::ostringstream& mechanicalCategoriesStream, const bool isRL, const bool isPixelTracker) {
+        
+    // Elementary materials (only once)
+    if (!isPixelTracker) {
+      for (const auto& myChemicalElement: allChemicalElements) {
+	const std::string myName = myChemicalElement.tag;
+	if (myName == xml_sensor_silicon) {
+	  //std::cout << "tkLayout_SenSi" << "           " << "1.000 0.000 0.000 0.000" << std::endl;
+	  mechanicalCategoriesStream << xml_tkLayout_material << myName << xml_mechanicalCategoriesBigSpacer << xml_mechanicalCategoriesOne;
+
+	  const int numPrintedCompositesMechanicalCategories = printedCompositesMechanicalCategories_.size();
+	  for (int i = 1; i <= numPrintedCompositesMechanicalCategories; i++) {
+	    mechanicalCategoriesStream << xml_mechanicalCategoriesSmallSpacer << xml_mechanicalCategoriesZero;
+	  }
+	  mechanicalCategoriesStream << std::endl;
+	}
+      }
+    }
+
+    // Composite materials
+    for (const auto& myChemicalComposite: allChemicalMixturesAndComposites) {
+      if (!myChemicalComposite.isMixture && myChemicalComposite.isPrinted) {
+
+	mechanicalCategoriesStream << myChemicalComposite.name << xml_mechanicalCategoriesBigSpacer << xml_mechanicalCategoriesZero;
+
+	const std::map<MechanicalCategory, std::pair<double, double> >& myNormalizedRIRatioPerMechanicalCategory = myChemicalComposite.normalizedRIRatioPerMechanicalCategory;
+
+	for (const auto& printedMechanicalCategory : printedCompositesMechanicalCategories_) {
+
+	  const auto& found = myNormalizedRIRatioPerMechanicalCategory.find(printedMechanicalCategory);
+	  if (found != myNormalizedRIRatioPerMechanicalCategory.end()) {
+	    const double myNormalizedRadiationLength = found->second.first;
+	    const double myNormalizedInteractionLength = found->second.second;
+	    mechanicalCategoriesStream << xml_mechanicalCategoriesSmallSpacer
+				       << (isRL ? myNormalizedRadiationLength : myNormalizedInteractionLength);
+	  }
+	  else {
+	    mechanicalCategoriesStream << xml_mechanicalCategoriesSmallSpacer << xml_mechanicalCategoriesZero;
+	  }
+
+	  if (printedMechanicalCategory == printedCompositesMechanicalCategories_.back()) {
+	    mechanicalCategoriesStream << std::endl;
+	  }
+	}
+      }
+    }
+  
+  }
+
+
     /**
      * This function builds the topological path for every active surface from a collection of <i>SpecParInfo</i> instances.
      * @param specs The collection of topology information bundles

@@ -81,9 +81,9 @@ namespace insur {
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
             std::ifstream trackerVolumeTemplate((xmlDirectoryPath + "/" + xml_trackervolumefile).c_str());
 	    std::ofstream mechanicalCategoriesRL;
-	    mechanicalCategoriesRL.open((xmlOutputPath + "mechanicalCategoriesRL.txt").c_str(), std::ofstream::app);
+	    mechanicalCategoriesRL.open((xmlOutputPath + xml_mechanicalCategoriesRLfile).c_str(), std::ofstream::app);
 	    std::ofstream mechanicalCategoriesIL;
-	    mechanicalCategoriesIL.open((xmlOutputPath + "mechanicalCategoriesIL.txt").c_str(), std::ofstream::app);
+	    mechanicalCategoriesIL.open((xmlOutputPath + xml_mechanicalCategoriesILfile).c_str(), std::ofstream::app);
             wr.tracker(data, outstream, trackerVolumeTemplate, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();

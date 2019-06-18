@@ -88,10 +88,13 @@ namespace insur {
         CompType method;
         std::map<std::string, double> elements;
 
-      std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory;
-
         std::string fileName;
         const std::string fullName() const { return fileName + ":" + name; }
+
+        bool isMixture = false;
+        bool isPrinted = false;
+        std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory;
+
 
         // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
         // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
