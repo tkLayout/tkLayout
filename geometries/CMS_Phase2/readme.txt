@@ -462,9 +462,16 @@ OT614_200_IT613.cfg                  OT Version 6.1.4
                                      * Disk 1: same Z.
                                      * Disk 2: 1985.43 mm -> 2009.59 mm   
                                      * Disk 3: 2250.83 mm -> 2307.69 mm       
-                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                               
-                                     
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
+                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                                            
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+
+
+============   ZEBRA STUDIES   ============                 
+OT616_200_IT620.cfg                  OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.3.
+                                     Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
+                                     Layouts fully with 25x100 or 50x50 were studied, but not one that would include a mix of the 2!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                  
                                                                                            
 
 ============   TIMING BARREL LAYER STUDIES   =============
