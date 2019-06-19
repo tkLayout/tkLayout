@@ -794,7 +794,8 @@ namespace insur {
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
       std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
 
-      double firstPhiRodMeanPhi, nextPhiRodMeanPhi;
+      double firstPhiRodMeanPhi, nextPhiRodMeanPhi, s_angle, e_angle;
+      
 
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
@@ -807,6 +808,12 @@ namespace insur {
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
+      
+
+      /* cout<<"Testing angles\n";
+
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+      cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}*/
 
 
       // LOOP ON MODULE CAPS 
@@ -831,11 +838,19 @@ namespace insur {
 	      }
 	    }
 	  }
+	  // if (iiter->getModule().uniRef().phi == 3) {thirdRodPhi=iiter->getModule().center().Phi();}
 	}
         
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
-	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	if (iiter->getModule().uniRef().side > 0) {//&& (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {  //Modified if condition.
 
+	  if(iiter->getModule().uniRef().phi==(lagg.getBarrelLayers()->at(layer - 1)->numRods())-1){
+	    s_angle=iiter->getModule().center().Phi();
+	  }
+	  if(iiter->getModule().uniRef().phi==(lagg.getBarrelLayers()->at(layer - 1)->numRods())/2+3){
+	    e_angle=iiter->getModule().center().Phi();
+	  }
+	 
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
     
@@ -870,7 +885,7 @@ namespace insur {
 	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
-	  if (iiter->getModule().uniRef().phi == 1) {           
+	  if (iiter->getModule().uniRef().phi == 3) {           
 
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
@@ -1551,15 +1566,18 @@ namespace insur {
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
+	pconverter << (firstPhiRodMeanPhi * 180. / M_PI) << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
+
+	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	pconverter.str("");
 	pconverter << firstPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
@@ -1573,15 +1591,18 @@ namespace insur {
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
+	pconverter << (firstPhiRodMeanPhi * 180. / M_PI)-180 << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
+
+	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	pconverter.str("");
 	pconverter << firstPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
@@ -1589,21 +1610,25 @@ namespace insur {
 	a.push_back(alg);
 	alg.parameters.clear();
 
+
 	//first rod of unflipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
+	pconverter <<nextPhiRodMeanPhi * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
+
+	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	pconverter.str("");
 	pconverter << nextPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
@@ -1617,15 +1642,18 @@ namespace insur {
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
+	pconverter << (nextPhiRodMeanPhi * 180. / M_PI)-180 << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
+
+	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
+	pconverter.str("");
 	pconverter << nextPhiRodRadius << "*mm";
 	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
