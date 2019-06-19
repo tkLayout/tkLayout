@@ -2220,8 +2220,8 @@ namespace insur {
     std::ostringstream anRphiResolutionTrigger;
     std::ostringstream aYResolutionTrigger;
     std::ostringstream aPitchPair;
-    std::ostringstream aStripLength;
-    std::ostringstream aSegment;
+    std::ostringstream stripLengthStream;
+    std::ostringstream numSegmentsStream;
     std::ostringstream anNstrips;
     std::ostringstream aNumberMod;
     std::ostringstream aNumberSens;
@@ -2249,8 +2249,8 @@ namespace insur {
     static const int channelRow = 8;
     static const int nstripsRow = 9;
     static const int segmentsRow = 10;
-    static const int striplengthRow = 11;
-    static const int pitchpairsRow = 12;
+    static const int pitchpairsRow = 11;
+    static const int striplengthRow = 12;
     static const int rphiResolutionRow = 13;
     static const int rphiResolutionRmseRow = 14;
     static const int yResolutionRow = 15;
@@ -2283,7 +2283,7 @@ namespace insur {
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max) ("+muLetter+"m)");
-    moduleTable->setContent(striplengthRow, 0, "Strip length (mm)");
+    moduleTable->setContent(striplengthRow, 0, "Strip length ("+muLetter+"m)");
     moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
     moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
     moduleTable->setContent(numbermodsRow, 0, "N. mod");
@@ -2424,7 +2424,7 @@ namespace insur {
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
         aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
 
-      // Pitches
+      // Pitch
       aPitchPair.str("");
       loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
       hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
@@ -2436,31 +2436,32 @@ namespace insur {
           << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
       }
 
-      // Strip Lengths and segmentation
-      aStripLength.str("");
-      aSegment.str("");
-      // One number only if all the same
-      if ((*tagMapIt).second->minSegments() == (*tagMapIt).second->maxSegments()) {
-        // Strip length
-        aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-          << (*tagMapIt).second->length()/(*tagMapIt).second->minSegments();  // CUIDADO!!!! what happens with single sided modules????
-        // Segments
-        aSegment << std::dec << (*tagMapIt).second->minSegments()
-          << "x" << (*tagMapIt).second->outerSensor().numROCX();
-      } else { // They are different
-        for (int iFace=0; iFace<(*tagMapIt).second->numSensors(); ++iFace) {
-          // Strip length
-          aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-            << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate();
-          // Segments
-          aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate()
-            << "x" << (*tagMapIt).second->sensors().at(iFace).numROCX();
-          if (iFace<(*tagMapIt).second->numSensors() - 1) {
-            aStripLength << ", ";
-            aSegment << ", ";
-          }
-        }
+
+      // Strip Length   
+      stripLengthStream.str("");
+      int stripLengthKeep = 0;
+      for (const auto& sensorIt : aModule->sensors()) {
+	const int stripLength = (int)(sensorIt.stripLength() / Units::um); // mm -> um
+	if (stripLength != stripLengthKeep) {
+	  if (stripLengthKeep != 0) { stripLengthStream << ", "; }
+	  stripLengthStream << stripLength;
+	}
+	stripLengthKeep	= stripLength;
       }
+
+
+      // numSegments x num ROC(s) in X
+      numSegmentsStream.str("");
+      int numSegmentsKeep = 0;
+      for (const auto& sensorIt : aModule->sensors()) {
+	const int numSegments = sensorIt.numSegmentsEstimate();
+	if (numSegments != numSegmentsKeep) {
+	  if (numSegmentsKeep != 0) { numSegmentsStream << ", "; }
+	  numSegmentsStream << numSegments << "x" << sensorIt.numROCX();
+	}
+	numSegmentsKeep = numSegments;
+      }
+
 
       // Nstrips
       anNstrips.str("");
@@ -2535,8 +2536,8 @@ namespace insur {
       moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
       moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
       moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
-      moduleTable->setContent(striplengthRow, iType, aStripLength.str());
-      moduleTable->setContent(segmentsRow, iType, aSegment.str());
+      moduleTable->setContent(striplengthRow, iType, stripLengthStream.str());
+      moduleTable->setContent(segmentsRow, iType, numSegmentsStream.str());
       moduleTable->setContent(nstripsRow, iType, anNstrips.str());
       moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
       moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
