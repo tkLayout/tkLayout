@@ -144,6 +144,7 @@ namespace insur {
 					  const double deadAreaExtraLength);
   };
 
+
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
@@ -207,8 +208,37 @@ namespace insur {
             if ( fdensity < 0. ) fdensity = fmass/fdxyz;
             return fdensity;
           }
-          const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
-          void   addMaterial( std::string tag, double val ) { fmatlist[tag] += val; }
+	  const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
+
+	/* Add a material to the module's volume.
+	 */
+	void addMaterial(const std::string elementName, const std::string componentName, const double mass) {
+	  // ADD THE ELEMENT'S MASS TO THE VOLUME'S MATERIALS
+	  fmatlist[elementName] += mass;
+
+	  // ADD THE ELEMENT'S CONTRIBUTIONS TO THE RL (OR IL) RATIOS PER MECHANICAL CATEGORY.
+	  const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
+	  const MechanicalCategory& mechanicalCategory = insur::computeMechanicalCategory(componentName);
+	  
+	  // RADIATION LENGTH
+	  const double myElementRadiationLength = materialsTable.getRadiationLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].first += mass / myElementRadiationLength;
+	  // INTERACTION LENGTH
+	  const double myElementInteractionLength = materialsTable.getInteractionLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].second += mass / myElementInteractionLength;
+
+	  // NB: normalizedRIRatioPerMechanicalCategory_ is not yet normalized here (other elements can be added).
+	  // It will be normalized only when getNormalizedRIRatioPerMechanicalCategory() is called.
+	}
+
+	/* Return the mechanical categories' normalized contributions to RI.
+	 */
+	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() {
+	  // Normalize first.
+	  normalizeRIRatio(normalizedRIRatioPerMechanicalCategory_);
+	  return normalizedRIRatioPerMechanicalCategory_; 
+	}
+
           void   addMass( double dm ) { fmass += dm; }
           double getMass() const { return fmass; }
           void print() const { 
@@ -256,8 +286,10 @@ namespace insur {
           double       fdensity;
           double       fmass;
           std::map<std::string, double> fmatlist;
+	  std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory_;
 	  bool isValid_;
       };
+
 
       ModuleCap&           modulecap;
       Module&              module;

@@ -121,8 +121,8 @@ namespace insur {
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    * @return the total crossed material amount
    */
-  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track) {
-    Material totalMaterial;
+  RILength Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track) {
+    RILength totalMaterial;
     //      active volumes, barrel
     totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), track);
     //      active volumes, endcap
@@ -199,7 +199,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * M_PI * 2.0;
-    Material tmp;
+    RILength tmp;
     Track track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta)); 
@@ -224,7 +224,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
-    Material material;
+    RILength material;
     material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
     material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(material);
@@ -530,7 +530,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
-    Material material;
+    RILength material;
     material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
     material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(material);
@@ -932,166 +932,46 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * M_PI * 2.0;
-    Material tmp;
+    RILength tmp;
     Track track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta)); // TODO: switch to exp() here
     track.setThetaPhiPt(theta,phi,1*Units::TeV);
     track.setOrigin(getLuminousRegionInMatBudgetAnalysis());
     //      active volumes, barrel
-    std::map<std::string, Material> sumComponentsRI;
+    std::map<std::string, RILength> sumComponentsRI;
     tmp = analyzeModules(mb.getBarrelModuleCaps(), track, sumComponentsRI);
-    ractivebarrel.Fill(eta, tmp.radiation);
-    iactivebarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
 
     //      active volumes, endcap
     tmp = analyzeModules(mb.getEndcapModuleCaps(), track, sumComponentsRI);
-    ractiveendcap.Fill(eta, tmp.radiation);
-    iactiveendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-
-    for (std::map<std::string, Material>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
-      if (rComponents[it->first]==NULL) { 
-        rComponents[it->first] = new TH1D();
-        rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      rComponents[it->first]->Fill(eta, it->second.radiation);
-      if (iComponents[it->first]==NULL) {
-        iComponents[it->first] = new TH1D();
-        iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      iComponents[it->first]->Fill(eta, it->second.interaction);
-    }
 
 
-    if (rComponents["Services"]==NULL) { 
-      rComponents["Services"] = new TH1D();
-      rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Services"]==NULL) { 
-      iComponents["Services"] = new TH1D();
-      iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (rComponents["Supports"]==NULL) { 
-      rComponents["Supports"] = new TH1D();
-      rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Supports"]==NULL) { 
-      iComponents["Supports"] = new TH1D();
-      iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-
-    std::map<std::string, Material> sumServicesComponentsRI;
+    std::map<std::string, RILength> sumServicesComponentsRI;
 
     //      services, barrel
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), track, sumServicesComponentsRI, MaterialProperties::no_cat);
-    rserfbarrel.Fill(eta, tmp.radiation);
-    iserfbarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
+    
     //      services, endcap
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), track, sumServicesComponentsRI, MaterialProperties::no_cat);
-    rserfendcap.Fill(eta, tmp.radiation);
-    iserfendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
-
-
-    /*for (std::map<std::string, Material>::iterator it = sumServicesComponentsRI.begin(); it != sumServicesComponentsRI.end(); ++it) {
-      if (rComponents[it->first]==NULL) { 
-      rComponents[it->first] = new TH1D();
-      rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      rComponents[it->first]->Fill(eta, it->second.radiation);
-      if (iComponents[it->first]==NULL) {
-      iComponents[it->first] = new TH1D();
-      iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-      }
-      iComponents[it->first]->Fill(eta, it->second.interaction);
-      }*/
-
-
 
     //      supports, barrel
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::b_sup);
-    rlazybarrel.Fill(eta, tmp.radiation);
-    ilazybarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+   
     //      supports, endcap
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::e_sup);
-    rlazyendcap.Fill(eta, tmp.radiation);
-    ilazyendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      supports, tubes
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::o_sup);
-    rlazytube.Fill(eta, tmp.radiation);
-    ilazytube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+
     //      supports, barrel tubes
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::t_sup);
-    rlazybtube.Fill(eta, tmp.radiation);
-    ilazybtube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      supports, user defined
     tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), track, sumServicesComponentsRI, MaterialProperties::u_sup);
-    rlazyuserdef.Fill(eta, tmp.radiation);
-    ilazyuserdef.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
+    
     //      pixels, if they exist
-    std::map<std::string, Material> ignoredPixelSumComponentsRI;
-    std::map<std::string, Material> ignoredPixelSumServicesComponentsRI;
+    std::map<std::string, RILength> ignoredPixelSumComponentsRI;
+    std::map<std::string, RILength> ignoredPixelSumServicesComponentsRI;
     if (pm != nullptr) {
       analyzeModules(pm->getBarrelModuleCaps(), track, ignoredPixelSumComponentsRI, true);
       analyzeModules(pm->getEndcapModuleCaps(), track, ignoredPixelSumComponentsRI, true);
@@ -1108,7 +988,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
-    Material material;
+    RILength material;
     material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
     material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
     hit->setCorrectedMaterial(material);
@@ -1184,9 +1064,11 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       // EXTRA PLOTS: SERVICES DETAILS (FULL VOLUMES)
       for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
         auto& hit = *itHit;
-	if (!hit->isPixel() && hit->isService()) {
-	  fillRIServicesDetailsHistos(rComponentsServicesDetails, iComponentsServicesDetails,
-				      hit, eta, theta, nTracks, etaMax);
+	const bool conditionOnHit = (!hit->isPixel() && !hit->isIP() && !hit->isBeamPipe());
+	if (conditionOnHit) {
+	  fillRIPlotsPerMechanicalCategoryAndSubdetector(radiationAndInteractionLengthPlotsInFullVolume_,
+							 hit,
+							 eta, theta, nTracks, etaMax);
 	}
       }
 
@@ -1483,13 +1365,13 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
+RILength Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                   Track& track,
-                                  std::map<std::string, Material>& sumComponentsRI,
+                                  std::map<std::string, RILength>& sumComponentsRI,
                                   bool isPixel) {
   std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
   std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
-  Material res, tmp;
+  RILength res, tmp;
   res.radiation= 0.0;
   res.interaction = 0.0;
   while (iter != guard) {
@@ -1518,13 +1400,13 @@ void printPosRefString(std::ostream& os, const Module& m, const string& delim = 
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
+RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
                                      Track& track,
-                                     std::map<std::string, Material>& sumComponentsRI,
+                                     std::map<std::string, RILength>& sumComponentsRI,
                                      bool isPixel) {
   std::vector<ModuleCap>::iterator iter = layer.begin();
   std::vector<ModuleCap>::iterator guard = layer.end();
-  Material res, tmp;
+  RILength res, tmp;
   XYZVector origin, direction;
   origin    = track.getOrigin();
   direction = track.getDirection();
@@ -1550,7 +1432,7 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
 
           Module& m = iter->getModule();
-          double tiltAngle = m.tiltAngle();
+          const double tiltAngle = m.tiltAngle();
           // 2D material maps
           fillMapRT(r, track.getTheta(), tmp);
           // radiation and interaction length scaling for barrels
@@ -1566,13 +1448,21 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
 
           double tmpr = 0., tmpi = 0.;
 
-          std::map<std::string, Material> moduleComponentsRI = iter->getComponentsRI();
-          for (std::map<std::string, Material>::iterator cit = moduleComponentsRI.begin(); cit != moduleComponentsRI.end(); ++cit) {
-            sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().subdet() == BARREL ? sin(track.getTheta() + tiltAngle) : cos(track.getTheta() + tiltAngle - M_PI/2));
-            //if (cit->first == "SupportMechanics") std::cout << eta << " " << distance << " " << cit->second.radiation / sin(theta + tiltAngle) << " " << cit->second.radiation << std::endl;
-            tmpr += sumComponentsRI[cit->first].radiation;
-            sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().subdet() == BARREL ? sin(track.getTheta() + tiltAngle) : cos(track.getTheta() + tiltAngle - M_PI/2));
-            tmpi += sumComponentsRI[cit->first].interaction;
+	  const double theta = track.getTheta();
+
+	  const std::map<LocalElement, RILength, ComponentNameCompare>& modulesComponentsRI = iter->getComponentsRI();
+          for (const auto& moduleVolumeIt : modulesComponentsRI) {
+	    const LocalElement& myElement = moduleVolumeIt.first;
+	    const std::string componentName = myElement.componentName();
+	    const RILength& uncorrectedMat = moduleVolumeIt.second;
+	    const RILength& correctedMat = computeCorrectedMat(uncorrectedMat, theta, tiltAngle);
+
+	    sumComponentsRI[componentName].radiation += correctedMat.radiation;
+	    sumComponentsRI[componentName].interaction += correctedMat.interaction;
+
+	    // TO DO: what the hell is this duplicated work? also, the sum might not even be ok.
+            tmpr += sumComponentsRI.at(componentName).radiation; 
+            tmpi += sumComponentsRI.at(componentName).interaction;
           }
           // 2D plot and eta plot results
           if (!isPixel) fillCell(r, track.getEta(), track.getTheta(), tmp);
@@ -1607,12 +1497,12 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
+RILength Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
                                    // TODO: add z0 here and in the hit finder for inactive surfaces
                                    Track& t, bool isPixel) {
   std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
   std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
-  Material res, tmp;
+  RILength res, tmp;
   res.radiation= 0.0;
   res.interaction = 0.0;
   while (iter != guard) {
@@ -1630,7 +1520,7 @@ int Analyzer::findHitsModules(Tracker& tracker, Track& t) {
   origin    = t.getOrigin();
   direction = t.getDirection();
 
-  Material emptyMaterial;
+  RILength emptyMaterial;
   emptyMaterial.radiation = 0.0;
   emptyMaterial.interaction = 0.0;
 
@@ -1671,10 +1561,10 @@ int Analyzer::findHitsModules(Tracker& tracker, Track& t) {
  * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
  */
-Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, bool isPixel) {
+RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, bool isPixel) {
   std::vector<ModuleCap>::iterator iter = layer.begin();
   std::vector<ModuleCap>::iterator guard = layer.end();
-  Material res, tmp;
+  RILength res, tmp;
   XYZVector origin, direction;
   origin    = t.getOrigin();
   direction = t.getDirection();
@@ -1729,8 +1619,8 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
  * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
  */
 
-Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
-                                           std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat, bool isPixel) {
+RILength Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
+                                           std::map<std::string, RILength>& sumServicesComponentsRI, MaterialProperties::Category cat, bool isPixel) {
 
   /*
   for (InactiveElement& currElem : elements) {
@@ -1742,7 +1632,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
   
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
-  Material res, corr;
+  RILength res, corr;
   std::pair<double, double> tmp;
 
   while ((iter != guard)) {
@@ -1777,7 +1667,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           res += corr;
           if (!isPixel) {
 
-            Material thisLength;
+            RILength thisLength;
             thisLength.radiation = corr.radiation;
             thisLength.interaction = corr.interaction;
             fillCell(rPos, track.getEta(), track.getTheta(), thisLength);
@@ -1796,7 +1686,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
           corr.interaction = iter->getInteractionLength() / sin(track.getTheta());
           res += corr;
           if (!isPixel) {
-            Material thisLength;
+            RILength thisLength;
             thisLength.radiation = corr.radiation;
             thisLength.interaction =  corr.interaction;
             fillCell(rPos, track.getEta(), track.getTheta(), thisLength);
@@ -1859,17 +1749,17 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
  * @param isPixel Are we inside the Inner Tracker?
  * @return The scaled and summed up crossed material amount
  */
-  Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, Track& t, bool isPixel) {
+  RILength Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, Track& t, bool isPixel) {
     const XYZVector& trackOrig = t.getOrigin();
     XYZVector trackDir;
     trackDir = t.getDirection();
 
-    Material total;
+    RILength total;
  
     // Loop on inactive elements
     for (auto& elem : elements) {
       XYZVector hitPos;
-      Material hitMaterial;
+      RILength hitMaterial;
 
       // Checks whether track hits the inactive element.
       // If yes, return true with passed hit position vector & material. 
@@ -2410,65 +2300,6 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
  * material budget, so they are ready for a new round of analysis.
  */
 void Analyzer::clearMaterialBudgetHistograms() {
-  // single category
-  ractivebarrel.Reset();
-  ractivebarrel.SetNameTitle("ractivebarrels", "Barrel Modules Radiation Length");
-  ractiveendcap.Reset();
-  ractiveendcap.SetNameTitle("ractiveendcap", "Endcap Modules Radiation Length");
-  rserfbarrel.Reset();
-  rserfbarrel.SetNameTitle("rserfbarrel", "Barrel Services Radiation Length");
-  rserfendcap.Reset();
-  rserfendcap.SetNameTitle("rserfendcap", "Endcap Services Radiation Length");
-  rlazybarrel.Reset();
-  rlazybarrel.SetNameTitle("rlazybarrel", "Barrel Supports Radiation Length");
-  rlazyendcap.Reset();
-  rlazyendcap.SetNameTitle("rlazyendcap", "Endcap Supports Radiation Length");
-  rlazytube.Reset();
-  rlazytube.SetNameTitle("rlazytube", "Support Tubes Radiation Length");
-  rlazyuserdef.Reset();
-  rlazyuserdef.SetNameTitle("rlazyuserdef", "Userdefined Supports Radiation Length");
-  iactivebarrel.Reset();
-  iactivebarrel.SetNameTitle("iactivebarrel", "Barrel Modules Interaction Length");
-  iactiveendcap.Reset();
-  iactiveendcap.SetNameTitle("iactiveendcap", "Endcap Modules Interaction Length");
-  iserfbarrel.Reset();
-  iserfbarrel.SetNameTitle("iserfbarrel", "Barrel Services Interaction Length");
-  iserfendcap.Reset();
-  iserfendcap.SetNameTitle("iserfendcap", "Endcap Services Interaction Length");
-  ilazybarrel.Reset();
-  ilazybarrel.SetNameTitle("ilazybarrel", "Barrel Supports Interaction Length");
-  ilazyendcap.Reset();
-  ilazyendcap.SetNameTitle("ilazyendcap", "Endcap Supports Interaction Length");
-  ilazytube.Reset();
-  ilazytube.SetNameTitle("ilazytube", "Support Tubes Interaction Length");
-  ilazyuserdef.Reset();
-  ilazyuserdef.SetNameTitle("ilazyuserdef", "Userdefined Supports Interaction Length");
-  // composite
-  rbarrelall.Reset();
-  rbarrelall.SetNameTitle("rbarrelall", "Barrel Radiation Length");
-  rendcapall.Reset();
-  rendcapall.SetNameTitle("rendcapall", "Endcap Radiation Length");
-  ractiveall.Reset();
-  ractiveall.SetNameTitle("ractiveall", "Modules Radiation Length");
-  rserfall.Reset();
-  rserfall.SetNameTitle("rserfall", "Services Radiation Length");
-  rlazyall.Reset();
-  rlazyall.SetNameTitle("rlazyall", "Supports Radiation Length");
-  ibarrelall.Reset();
-  ibarrelall.SetNameTitle("ibarrelall", "Barrel Interaction Length");
-  iendcapall.Reset();
-  iendcapall.SetNameTitle("iendcapall", "Endcap Interaction Length");
-  iactiveall.Reset();
-  iactiveall.SetNameTitle("iactiveall", "Modules Interaction Length");
-  iserfall.Reset();
-  iserfall.SetNameTitle("iserfall", "Services Interaction Length");
-  ilazyall.Reset();
-  ilazyall.SetNameTitle("ilazyall", "Supports Interaction Length");
-  // global
-  rglobal.Reset();
-  rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
-  iglobal.Reset();
-  iglobal.SetNameTitle("iglobal", "Overall Interaction Length");
   // isolines
   isor.Reset();
   isor.SetNameTitle("isor", "Radiation Length Contours");
@@ -2799,37 +2630,6 @@ void Analyzer::clearCells() {
  * @param max the maximal eta value that should be plotted
  */
 void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
-  // single category
-  ractivebarrel.SetBins(bins, min, max);
-  ractiveendcap.SetBins(bins, min, max);
-  rserfbarrel.SetBins(bins, min, max);
-  rserfendcap.SetBins(bins, min, max);
-  rlazybarrel.SetBins(bins, min, max);
-  rlazyendcap.SetBins(bins, min, max);
-  rlazytube.SetBins(bins, min, max);
-  rlazyuserdef.SetBins(bins, min, max);
-  iactivebarrel.SetBins(bins, min, max);
-  iactiveendcap.SetBins(bins, min, max);
-  iserfbarrel.SetBins(bins, min, max);
-  iserfendcap.SetBins(bins, min, max);
-  ilazybarrel.SetBins(bins, min, max);
-  ilazyendcap.SetBins(bins, min, max);
-  ilazytube.SetBins(bins, min, max);
-  ilazyuserdef.SetBins(bins, min, max);
-  // composite
-  rbarrelall.SetBins(bins, min, max);
-  rendcapall.SetBins(bins, min, max);
-  ractiveall.SetBins(bins, min, max);
-  rserfall.SetBins(bins, min, max);
-  rlazyall.SetBins(bins, min, max);
-  ibarrelall.SetBins(bins, min, max);
-  iendcapall.SetBins(bins, min, max);
-  iactiveall.SetBins(bins, min, max);
-  iserfall.SetBins(bins, min, max);
-  ilazyall.SetBins(bins, min, max);
-  // global
-  rglobal.SetBins(bins, min, max);
-  iglobal.SetBins(bins, min, max);
   // isolines
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
@@ -2886,7 +2686,7 @@ void Analyzer::setCellBoundaries(int bins, double minr, double maxr, double mine
  * @param rl The local radiation length
  * @param il The local interaction length
  */
-void Analyzer::fillMapRT(const double& r, const double& theta, const Material& mat) {
+void Analyzer::fillMapRT(const double& r, const double& theta, const RILength& mat) {
   double z = r /tan(theta);
   if (mat.radiation>0){
     mapRadiation.Fill(z,r,mat.radiation);
@@ -2905,7 +2705,7 @@ void Analyzer::fillMapRT(const double& r, const double& theta, const Material& m
  * @param rl The local radiation length
  * @param il The local interaction length
  */
-void Analyzer::fillMapRZ(const double& r, const double& z, const Material& mat) {
+void Analyzer::fillMapRZ(const double& r, const double& z, const RILength& mat) {
   if (mat.radiation>0){
     mapRadiation.Fill(z,r,mat.radiation);
     mapRadiationCount.Fill(z,r);
@@ -2961,7 +2761,7 @@ TH2D& Analyzer::getHistoMapInteraction() {
  * @param rl The local radiation length
  * @param il The local interaction length
  */
-void Analyzer::fillCell(double r, double eta, double theta, Material mat) {
+void Analyzer::fillCell(double r, double eta, double theta, RILength mat) {
   double rl = mat.radiation;
   double il = mat.interaction;
   int rindex, etaindex;
@@ -3856,7 +3656,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
   /* Compute Tracking Volume Material Budget plots.
    */
-  void Analyzer::computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI) {
+  void Analyzer::computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, RILength>& innerTrackerModulesComponentsRI, const std::map<std::string, RILength>& outerTrackerModulesComponentsRI) {
     const double eta = track.getEta();
     const double theta = track.getTheta();
     const double etaMax = getEtaMaxMaterial();
@@ -3866,7 +3666,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
       auto& hit = *itHit;
       if (hit->isTotalTrackingVolume() && hit->isBeamPipe()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
+	const RILength& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsBeamPipe, iComponentsBeamPipe,
 			       beam_pipe, 
 			       correctedMat, eta, 
@@ -3877,7 +3677,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       // MATERIAL BUDGET UNDER INNER TRACKER TRACKING VOLUME
       // Material not belonging to the Beam Pipe, and located before an active hit on the Inner Tracker.
       if (hit->isPixelIntersticeVolume() && !hit->isBeamPipe()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
+	const RILength& correctedMat = hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsPixelInterstice, iComponentsPixelInterstice, 
 			       services_under_pixel_tracking_volume, 
 			       correctedMat, eta, 
@@ -3889,41 +3689,20 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     // MATERIAL BUDGET WITHIN INNER TRACKER TRACKING VOLUME: A + B + C
     // Material (IT or OT) located between first and last active hit on the Inner Tracker.
 
-    // A: modules
-    for (const auto& it : innerTrackerModulesComponentsRI) {
-      std::string componentName = it.first;
-      const Material& correctedMat = it.second;
-      fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-			     componentName,
-			     correctedMat, eta, 
-			     nTracks, etaMax);
-    }
-
     for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
       auto& hit = *itHit;
-      // B: services
-      if (hit->isPixelTrackingVolume() && hit->isService()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
-	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-			       services_in_pixel_tracking_volume, 
-			       correctedMat, eta, 
-			       nTracks, etaMax);
-      }
+      if (hit->isPixelTrackingVolume()) {
 
-      // C: supports
-      if (hit->isPixelTrackingVolume() && hit->isSupport()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
-	fillRIComponentsHistos(rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume,
-			       supports_in_pixel_tracking_volume, 
-			       correctedMat, eta, 
-			       nTracks, etaMax);
+	fillRIPlotsPerMechanicalCategoryAndSubdetector(radiationAndInteractionLengthPlotsInPixelTrackingVolume_,
+						       hit,
+						       eta, theta, nTracks, etaMax);
       }
 
 
       // MATERIAL BUDGET BETWEEN INNER TRACKER AND OUTER TRACKER TRACKING VOLUMES
       // Material (IT or OT) located between last active hit on the Inner Tracker and first active hit on the Outer Tracker.
       if (hit->isIntersticeVolume()) {
-	const Material& correctedMat =  hit->getCorrectedMaterial();
+	const RILength& correctedMat =  hit->getCorrectedMaterial();
 	fillRIComponentsHistos(rComponentsInterstice, iComponentsInterstice,
 			       services_and_supports_in_interstice,
 			       correctedMat, eta, 
@@ -3935,54 +3714,15 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     // MATERIAL BUDGET WITHIN OUTER TRACKER TRACKING VOLUME: D + E + F
     // Material (IT or OT) located between first and last active hit on the Outer Tracker.
 
-    // D: modules
-    for (const auto& it : outerTrackerModulesComponentsRI) {
-      std::string componentName = it.first;
-      const Material& correctedMat = it.second;
-      fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-			     componentName,
-			     correctedMat, eta, 
-			     nTracks, etaMax);
-    }
-
     for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
       auto& hit = *itHit;
-      // E: services
-      if (hit->isOuterTrackingVolume() && hit->isService()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
-	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-			       services_in_outer_tracking_volume,
-			       correctedMat, eta, 
-			       nTracks, etaMax);
+      if (hit->isOuterTrackingVolume()) {
+
+	fillRIPlotsPerMechanicalCategoryAndSubdetector(radiationAndInteractionLengthPlotsInOuterTrackingVolume_,
+						       hit,
+						       eta, theta, nTracks, etaMax);
       }
 
-      // F: supports
-      if (hit->isOuterTrackingVolume() && hit->isSupport()) {
-	const Material& correctedMat = hit->getCorrectedMaterial();
-	fillRIComponentsHistos(rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume,
-			       supports_in_outer_tracking_volume,
-			       correctedMat, eta, 
-			       nTracks, etaMax);
-      }
-    }
-
-
-    // EXTRA PLOTS: SERVICES DETAILS (TRACKING VOLUMES)
-    for (std::vector<std::unique_ptr<Hit>>::const_iterator itHit=track.getBeginHits(); itHit!=track.getEndHits(); itHit++) {
-      auto& hit = *itHit;
-      // DETAILS OF SERVICES WITHIN INNER TRACKER TRACKING VOLUME
-      if (hit->isPixelTrackingVolume() && hit->isService()) {
-
-	fillRIServicesDetailsHistos(rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume,
-				    hit, eta, theta, nTracks, etaMax);
-      }	  
-
-      // DETAILS OF SERVICES WITHIN OUTER TRACKER TRACKING VOLUME
-      if (hit->isOuterTrackingVolume() && hit->isService()) {
-
-	fillRIServicesDetailsHistos(rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume,
-				    hit, eta, theta, nTracks, etaMax);
-      }	 
     }
 
 
@@ -3995,33 +3735,55 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * One needs to correct the MB, ie take into account the angle of the track crossing the volumes.
    * Then Analyzer::fillRIComponentsHistos is directly used.
    */
-  void Analyzer::fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const {
+void Analyzer::fillRIPlotsPerMechanicalCategoryAndSubdetector(RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector,
+							      const std::unique_ptr<Hit>& hit,
+							      const double eta, const double theta, const int nTracks, const double etaMax) const {
+    
+  const DetectorModule* hitModule = hit->getHitModule();
+  const InactiveElement* hitInactive = hit->getHitPassiveElement();
 
-    const InactiveElement* inactive = hitOnService->getHitPassiveElement();
-    if (inactive != nullptr) {
-      std::map<std::string, Material> servicesComponentsRI = inactive->getComponentsRI();
-
-      for (const auto& it : servicesComponentsRI) {
-
-	const std::string componentName = it.first;
-	const Material& uncorrectedMat = it.second;
-	const Material& correctedMat = computeCorrectedMat(uncorrectedMat, theta, inactive->isVertical());	    
-
-	fillRIComponentsHistos(rServicesDetails, iServicesDetails,
-			       componentName,
-			       correctedMat, eta, 
-			       nTracks, etaMax);
-      }
-    }
-    else logERROR("Analyzer::fillRIServicesDetailsHistos : Tries to access MB from a nullptr! ");
+  if (hitInactive == nullptr && hitModule == nullptr) {
+    logERROR("Analyzer::fillRIServicesDetailsHistos : Hit neither on module nor on inactive element!! ");
   }
+
+  else {
+    const std::map<LocalElement, RILength, ComponentNameCompare>& allComponentsRI = (hitInactive != nullptr ? hitInactive->getComponentsRI()
+										     : hitModule->getConstModuleCap()->getComponentsRI()
+										     );
+
+    const double tiltAngle = (hitInactive != nullptr ? hitInactive->tiltAngle()
+			      : hitModule->tiltAngle()
+			      );
+
+    for (const auto& volumeElementsIt : allComponentsRI) {
+
+      const LocalElement& myElement = volumeElementsIt.first;
+      const std::string& componentName = myElement.componentName();
+	  
+      const MechanicalCategory& mechanicalCategory = myElement.mechanicalCategory();
+      const std::string& subdetectorName = myElement.subdetectorName();
+
+      const RILength& uncorrectedMat = volumeElementsIt.second;
+      const RILength& correctedMat = computeCorrectedMat(uncorrectedMat, theta, tiltAngle);	    
+
+      fillRIComponentsHistos(radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector[mechanicalCategory][subdetectorName].first, 
+			     radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector[mechanicalCategory][subdetectorName].second,
+			     componentName,
+			     correctedMat, eta, 
+			     nTracks, etaMax);
+    }      
+      
+  }
+
+
+}
 
 
 
   /* Fill histograms with corrected Material Budget: left pad for Radiation Length, right pad for Interaction Length.
    * The MB is split by component category.
    */
-  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const {
+  void Analyzer::fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const RILength& correctedMat, const double eta, const int nTracks, const double etaMax) const {
 
     // RADIATION LENGTH HISTOGRAM
     auto& rComponentsHisto = rComponentsHistos[componentName];
@@ -4051,10 +3813,12 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
   /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
    */
-  const Material Analyzer::computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const {
-    Material correctedMat;
-    correctedMat.radiation = uncorrectedMat.radiation / (isInactiveVolumeVertical ? cos(theta) : sin(theta));  
-    correctedMat.interaction = uncorrectedMat.interaction / (isInactiveVolumeVertical ? cos(theta) : sin(theta));
+  const RILength Analyzer::computeCorrectedMat(const RILength& uncorrectedMat, const double theta, const double tiltAngle) const {
+    RILength correctedMat;
+    if ((theta + tiltAngle) < insur::geom_zero) { logERROR ("Unexpected case: theta + tiltAngle < 0. Check that evth downstream is behaving properly."); }
+    const double correctionFactor = 1. / fabs(sin(theta + tiltAngle));
+    correctedMat.radiation = uncorrectedMat.radiation * correctionFactor;
+    correctedMat.interaction = uncorrectedMat.interaction * correctionFactor;
     return correctedMat;
   }
 

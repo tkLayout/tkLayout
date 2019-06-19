@@ -21,6 +21,7 @@ namespace insur {
     static const double xml_innerTrackerEndcapsMinZ = 227.;    // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
     static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
     static const std::string xml_trackerOutermostRadius = "122.15*cm"; // Outermost tracker volume boundary
+
     /**
      * XML tags and attributes
      */
@@ -137,6 +138,19 @@ namespace insur {
     static const std::string xml_spec_par_parameter_first = "<Parameter name=\"";
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
+
+    /**
+     * Mechanical categories files utilities
+     */
+    static const std::string xml_mechanicalCategoriesComment = "#";
+    static const std::string xml_mechanicalCategoriesHeader = "Phase 2 Tracker materials: 4 mechanical categories.";
+    static const std::string xml_mechanicalCategoriesSmallSpacer = " ";
+    static const std::string xml_mechanicalCategoriesBigSpacer = "           ";
+    static const std::string xml_mechanicalCategoriesMaterialName = "Material";
+    static const std::string xml_mechanicalCategoriesActiveSensor = "Active";
+    static const std::string xml_mechanicalCategoriesZero = "0.000";
+    static const std::string xml_mechanicalCategoriesOne = "1.000";
+
     /**
      * Input and output filenames
      */
@@ -156,7 +170,10 @@ namespace insur {
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
     static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
     //static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
+    static const std::string xml_mechanicalCategoriesRLfile = "mechanicalCategoriesRL.txt";
+    static const std::string xml_mechanicalCategoriesILfile = "mechanicalCategoriesIL.txt";
     static const std::string xml_tmppath = "tmp";
+
     /**
      * Naming conventions and variable names
      */
@@ -274,6 +291,7 @@ namespace insur {
     static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
     static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
+
     /**
      * CMSSW constants
      */
