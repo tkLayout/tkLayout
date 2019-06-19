@@ -129,6 +129,76 @@ namespace insur {
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
+  // Z270 : Rotation of 270° around CMS_Z axis.
+    rot.name = "Z270";
+    rot.thetax = 90.0;
+    rot.phix = 261.598931;
+    rot.thetay = 90.0;
+    rot.phiy = 351.598931;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+  // Z106 : Rotation of 106° around CMS_Z axis.
+    rot.name = "Z106";
+    rot.thetax = 90.0;
+    rot.phix = 106.019;
+    rot.thetay = 90.0;
+    rot.phiy = 196.019;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+  // Z97 : Rotation of 97° around CMS_Z axis.
+    rot.name = "Z97";
+    rot.thetax = 90.0;
+    rot.phix = 97.621122;
+    rot.thetay = 90.0;
+    rot.phiy = 187.621122;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+  // Z8 : Rotation of 8° around CMS_Z axis.
+    rot.name = "Z8";
+    rot.thetax = 90.0;
+    rot.phix = 81.598931;
+    rot.thetay = 90.0;
+    rot.phiy = 171.598931;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+  // Z82 : Rotation of 8° around CMS_Z axis.
+    rot.name = "Z82";
+    rot.thetax = 90.0;
+    rot.phix = 81.625717;
+    rot.thetay = 90.0;
+    rot.phiy = 171.625717;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+  // Z16 : Rotation of 16° around CMS_Z axis.
+    rot.name = "Z16";
+    rot.thetax = 90.0;
+    rot.phix = 73.493587;
+    rot.thetay = 90.0;
+    rot.phiy = 163.493587;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+  // Z162 : Rotation of 16° around CMS_Z axis.
+    rot.name = "Z162";
+    rot.thetax = 90.0;
+    rot.phix = 73.204777;
+    rot.thetay = 90.0;
+    rot.phiy = 163.204777;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
     rot.name = rot_sensor_tag;
@@ -1474,6 +1544,8 @@ namespace insur {
 
       // INNER TRACKER
       else {
+
+	//first rod of flipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
@@ -1495,6 +1567,51 @@ namespace insur {
 	a.push_back(alg);
 	alg.parameters.clear();
 
+	//Second rod of flipped
+	alg.name = xml_angular_algo;
+	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	pconverter.str("");
+	pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
+	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << firstPhiRodRadius << "*mm";
+	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(vectorParam(0., 0., 0.));
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	a.push_back(alg);
+	alg.parameters.clear();
+
+	//first rod of unflipped
+	alg.name = xml_angular_algo;
+	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
+	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	pconverter.str("");
+	pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
+	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << nextPhiRodRadius << "*mm";
+	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(vectorParam(0., 0., 0.));
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	a.push_back(alg);
+	alg.parameters.clear();
+	
+	//second rod of unflipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
