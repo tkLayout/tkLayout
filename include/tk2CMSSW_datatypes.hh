@@ -97,7 +97,8 @@ namespace insur {
 
 
         // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
-        // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
+        // 2 components are said equal if they have same total density, same mixture method, 
+        // exactly same composing elements, and exactly same mechanical categories contributions.
         // No matter the name of the component !
         bool operator==(const Composite& otherComp) const {
 	  if ((fabs(density - otherComp.density) > xml_composite_density_tolerance)  // not same density ?
@@ -112,18 +113,23 @@ namespace insur {
 	    }
 	  }
 
+	  // Check mechanical categories contributions.
 	  for (const auto& mechanicalCategoryIt : otherComp.normalizedRIRatioPerMechanicalCategory) {  // for a given category :
-	    if (normalizedRIRatioPerMechanicalCategory.find(mechanicalCategoryIt.first) == normalizedRIRatioPerMechanicalCategory.end())  { 
+	    // mechanical category does not even exist for the other composite ?
+	    if (normalizedRIRatioPerMechanicalCategory.find(mechanicalCategoryIt.first) == normalizedRIRatioPerMechanicalCategory.end())  { 	      
 	      return false; 
-	    }// not found in the composite ?
-	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).first - mechanicalCategoryIt.second.first) > xml_composite_ratio_tolerance) { // not same massic radiation length ratio ?
+	    }
+	    // not same massic radiation length ratio?
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).first - mechanicalCategoryIt.second.first) > xml_composite_ratio_tolerance) { 	      
 	      return false;
 	    }
-	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).second - mechanicalCategoryIt.second.second) > xml_composite_ratio_tolerance) { // not same massic interaction length ratio ?
+	    // not same massic interaction length ratio?
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).second - mechanicalCategoryIt.second.second) > xml_composite_ratio_tolerance) {	      
 	      return false;
 	    }
 	  }
 
+	  // Passed all tests, hence the 2 composites are considered equivalent.
 	  return true;
       }
     };

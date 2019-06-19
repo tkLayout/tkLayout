@@ -3815,8 +3815,7 @@ void Analyzer::fillRIPlotsPerMechanicalCategoryAndSubdetector(RIPlotsPerComponen
    */
   const RILength Analyzer::computeCorrectedMat(const RILength& uncorrectedMat, const double theta, const double tiltAngle) const {
     RILength correctedMat;
-    // TO DO: comparison with 0., use epsilon
-    if (sin(theta + tiltAngle) < 0.) { logERROR ("Unexpected case: theta + tiltAngle < 0. Check that evth downstream is behaving properly."); }
+    if ((theta + tiltAngle) < insur::geom_zero) { logERROR ("Unexpected case: theta + tiltAngle < 0. Check that evth downstream is behaving properly."); }
     const double correctionFactor = 1. / fabs(sin(theta + tiltAngle));
     correctedMat.radiation = uncorrectedMat.radiation * correctionFactor;
     correctedMat.interaction = uncorrectedMat.interaction * correctionFactor;

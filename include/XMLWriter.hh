@@ -44,6 +44,7 @@ namespace insur {
     void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void setSimpleHeader(const std::string& header) { simpleHeader_ = header; }
     const std::string& getSimpleHeader() const { return simpleHeader_; }
+
   protected:
     void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
     void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags);
@@ -77,8 +78,6 @@ namespace insur {
     void writeMechanicalCategoriesFilesHeaders(std::ostringstream& mechanicalCategoriesStream);
     void writeMechanicalCategoriesFiles(const std::vector<Element>& allChemicalElements, const std::vector<Composite>& allChemicalMixturesAndComposites, std::ostringstream& mechanicalCategoriesStream, const bool isRL, const bool isPixelTracker);
     std::vector<MechanicalCategory> printedCompositesMechanicalCategories_;
-
-
 
     std::vector<Composite> printedComposites_; // List of composites whose materials are printed in the XMLs.
     std::map<std::string, std::string> mapCompoToPrintedCompo_; // This maps each existing composite to a composite which has same materials. 

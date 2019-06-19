@@ -33,12 +33,55 @@ typedef RILength Material;
 
 namespace insur {
 
+  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT_AND_COOLING };
+
   static const std::string mechanical_module = "Module:";
   static const std::string mechanical_cabling = "Cabling:";
   static const std::string mechanical_cooling = "Cooling";
   static const std::string mechanical_support = "Supports Mechanics:";
 
-  enum MechanicalCategory { UNKNOWN, MODULE, CABLING, SUPPORT_AND_COOLING };
+  static const MechanicalCategory computeMechanicalCategory(const std::string componentName) {
+    if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
+    else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
+    else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
+    else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
+    else return MechanicalCategory::UNKNOWN;
+  }
+
+  /* Normalize the mechanical categories' contributions to RL and IL.
+   */
+  static void normalizeRIRatio(std::map<MechanicalCategory, std::pair<double, double> >& normalizedRIRatioPerMechanicalCategory) {
+    double nonNormalizedRadiationLengthSum = 0.;
+    double nonNormalizedInteractionLengthSum = 0.;
+
+    // GET THE SUM OF THE MECHANICAL CATEGORIES' RI CONTRIBUTIONS
+    for (const auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory) {
+      const std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+
+      // Sum of contributions to RL
+      const double nonNormalizedRadiationLength = nonNormalizedRI.first;
+      nonNormalizedRadiationLengthSum += nonNormalizedRadiationLength;
+
+      // Sum of contributions to IL
+      const double nonNormalizedInteractionLength = nonNormalizedRI.second;
+      nonNormalizedInteractionLengthSum += nonNormalizedInteractionLength;
+    }
+
+    // NORMALIZE
+    for (auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory) {
+      std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
+
+      // Normalize each RL contribution
+      double& nonNormalizedRadiationLength = nonNormalizedRI.first;
+      nonNormalizedRadiationLength /= nonNormalizedRadiationLengthSum;
+
+      // Normalize each IL contribution
+      double& nonNormalizedInteractionLength = nonNormalizedRI.second;	    
+      nonNormalizedInteractionLength /= nonNormalizedInteractionLengthSum;
+    }
+  }
+
+
 
   class LocalElement {
   public:
@@ -57,14 +100,6 @@ namespace insur {
 
  
   protected:
-    MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
-      if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
-      else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
-      else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
-      else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
-      else return MechanicalCategory::UNKNOWN;
-    }
-
     std::string subdetectorName_;
     MechanicalCategory category_;
     std::string componentName_;
@@ -146,9 +181,10 @@ namespace insur {
       const std::map<LocalElement, double, ElementNameCompare> getLocalElementsDetails() const { return localMassesDetails_; }
       // RI
       const std::map<LocalElement, RILength, ComponentNameCompare>& getComponentsRI() const { return componentsRI_; }
-      // RI ratio per mechanical category (normalized)
-      const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() { 
-	normalizeRIRatio();
+      // Return the mechanical categories' normalized contributions to RI.
+      const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() {
+	// Normalize first.
+	insur::normalizeRIRatio(normalizedRIRatioPerMechanicalCategory_);
 	return normalizedRIRatioPerMechanicalCategory_; 
       }
 
@@ -182,8 +218,6 @@ namespace insur {
         void print();
 
     protected:
-      void normalizeRIRatio();
-
         // init flags and tracking
         bool msl_set, trck;
         // geometry-dependent parameters

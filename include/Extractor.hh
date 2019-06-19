@@ -144,6 +144,7 @@ namespace insur {
 					  const double deadAreaExtraLength);
   };
 
+
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
@@ -209,19 +210,32 @@ namespace insur {
           }
 	  const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
 
-	void addMaterial(const std::string elementName, const std::string componentName, const double mass) { 
+	/* Add a material to the module's volume.
+	 */
+	void addMaterial(const std::string elementName, const std::string componentName, const double mass) {
+	  // ADD THE ELEMENT'S MASS TO THE VOLUME'S MATERIALS
 	  fmatlist[elementName] += mass;
 
+	  // ADD THE ELEMENT'S CONTRIBUTIONS TO THE RL (OR IL) RATIOS PER MECHANICAL CATEGORY.
 	  const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
-	  const MechanicalCategory mechanicalCategory = computeMechanicalCategory(componentName);
+	  const MechanicalCategory& mechanicalCategory = insur::computeMechanicalCategory(componentName);
+	  
+	  // RADIATION LENGTH
 	  const double myElementRadiationLength = materialsTable.getRadiationLength(elementName);
 	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].first += mass / myElementRadiationLength;
+	  // INTERACTION LENGTH
 	  const double myElementInteractionLength = materialsTable.getInteractionLength(elementName);
 	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].second += mass / myElementInteractionLength;
+
+	  // NB: normalizedRIRatioPerMechanicalCategory_ is not yet normalized here (other elements can be added).
+	  // It will be normalized only when getNormalizedRIRatioPerMechanicalCategory() is called.
 	}
 
-	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() { 
-	  normalizeRIRatio();
+	/* Return the mechanical categories' normalized contributions to RI.
+	 */
+	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() {
+	  // Normalize first.
+	  normalizeRIRatio(normalizedRIRatioPerMechanicalCategory_);
 	  return normalizedRIRatioPerMechanicalCategory_; 
 	}
 
@@ -263,40 +277,6 @@ namespace insur {
 	const bool isValid() const { return isValid_; }	
 
       private :
-	MechanicalCategory computeMechanicalCategory(const std::string componentName) const {
-	  if (componentName.find(mechanical_module) != std::string::npos) return MechanicalCategory::MODULE;
-	  else if (componentName.find(mechanical_cabling) != std::string::npos) return MechanicalCategory::CABLING;
-	  else if (componentName.find(mechanical_support) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
-	  else if (componentName.find(mechanical_cooling) != std::string::npos) return MechanicalCategory::SUPPORT_AND_COOLING;
-	  else return MechanicalCategory::UNKNOWN;
-	}
-
-	void normalizeRIRatio() {
-	  double nonNormalizedRadiationLengthSum = 0.;
-	  double nonNormalizedInteractionLengthSum = 0.;
-
-	  // Get the sum of the RI contributions per mechanical category
-	  for (const auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
-	    const std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
-	    const double nonNormalizedRadiationLength = nonNormalizedRI.first;
-	    const double nonNormalizedInteractionLength = nonNormalizedRI.second;
-
-	    nonNormalizedRadiationLengthSum += nonNormalizedRadiationLength;
-	    nonNormalizedInteractionLengthSum += nonNormalizedInteractionLength;
-	  }
-
-	  // Normalize
-	  for (auto& mechanicalCategoryIt : normalizedRIRatioPerMechanicalCategory_) {
-	    std::pair<double, double>& nonNormalizedRI = mechanicalCategoryIt.second;
-	    double& nonNormalizedRadiationLength = nonNormalizedRI.first;
-	    double& nonNormalizedInteractionLength = nonNormalizedRI.second;
-
-	    nonNormalizedRadiationLength /= nonNormalizedRadiationLengthSum;
-	    nonNormalizedInteractionLength /= nonNormalizedInteractionLengthSum;
-	  }
-	}
-
-
           std::string  fname;
           const int    ftype;
           std::string  fparentname;
@@ -309,6 +289,7 @@ namespace insur {
 	  std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory_;
 	  bool isValid_;
       };
+
 
       ModuleCap&           modulecap;
       Module&              module;
