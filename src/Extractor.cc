@@ -842,7 +842,7 @@ namespace insur {
 	}
         
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
-	if (iiter->getModule().uniRef().side > 0) {//&& (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {  //Modified if condition.
+	if (iiter->getModule().uniRef().side > 0) {//&& (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {  //Modified if condition- Not only for uniRef==1 or 2.
 
 	  if(iiter->getModule().uniRef().phi==(lagg.getBarrelLayers()->at(layer - 1)->numRods())-1){
 	    s_angle=iiter->getModule().center().Phi();
@@ -1570,7 +1570,6 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
-
 	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << firstPhiRodRadius << "*mm";
@@ -1580,7 +1579,7 @@ namespace insur {
 	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	alg.parameters.push_back(numericParam(xml_startcopyno, "3"));
 	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	a.push_back(alg);
 	alg.parameters.clear();
@@ -1595,7 +1594,6 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
-
 	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << firstPhiRodRadius << "*mm";
@@ -1605,8 +1603,10 @@ namespace insur {
 	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)+3;
+	alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_incrcopyno,"2"));
 	a.push_back(alg);
 	alg.parameters.clear();
 
@@ -1621,7 +1621,6 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
-
 	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << nextPhiRodRadius << "*mm";
@@ -1646,7 +1645,6 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << (s_angle-e_angle) * 180. / M_PI << "*deg";
-
 	alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
 	pconverter.str("");
 	pconverter << nextPhiRodRadius << "*mm";
@@ -1656,8 +1654,10 @@ namespace insur {
 	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)+2;
+	alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	pconverter.str("");
+				 alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	a.push_back(alg);
 	alg.parameters.clear();
       }
