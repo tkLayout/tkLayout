@@ -550,35 +550,41 @@ namespace insur {
 
 
     char titleString[256];
-
     RootWTable* materialSummaryTable;
 
-    const std::string allSubdetectors = (name == "outer" ? "All OT subdetectors" : "All IT subdetectors");
 
 
-
-    
+    // MATERIALS PLOTS: get all info!
+    // FULL VOLUME
     const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlotsInFullVolume = a.getRIPlotsInFullVolume();
     
+    // TRACKING VOLUME
+    // The IT tracking volume MB was computed at 'OT time', hence needs to be stored.
     const bool isOuterTracker = (name == "outer");
     if (isOuterTracker) {
       radiationAndInteractionLengthPlotsInPixelTrackingVolume_ = a.getRIPlotsInPixelTrackingVolume();
     }
-    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlotsInTrackingVolume = (name == "outer" ? a.getRIPlotsInOuterTrackingVolume() : radiationAndInteractionLengthPlotsInPixelTrackingVolume_);
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlotsInTrackingVolume = (isOuterTracker ? a.getRIPlotsInOuterTrackingVolume() : radiationAndInteractionLengthPlotsInPixelTrackingVolume_);
 
 
 
-    for (int volumeIt = 1; volumeIt <=2; volumeIt++) {
 
-      const std::string volume = (volumeIt == 1 ? " (Full volume)" : " (Tracking volume)");
-      const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlots = (volumeIt == 1 ? radiationAndInteractionLengthPlotsInFullVolume : radiationAndInteractionLengthPlotsInTrackingVolume);
+    // SAME CODE IS USED TWICE: FOR FULL VOLUME, THEN TRACKING VOLUME.
+    for (std::string volume : {" (Full volume)", " (Tracking volume)"}) {
+      const bool isFullVolume = (volume == " (Full volume)");
+      const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& radiationAndInteractionLengthPlots = (isFullVolume ? radiationAndInteractionLengthPlotsInFullVolume : radiationAndInteractionLengthPlotsInTrackingVolume);
+
+      const std::string allSubdetectors = (name == "outer" ? "All OT subdetectors" : "All IT subdetectors");
+
+
+
+      /**
+       * A) MECHANICAL CATEGORY DETAILS
+       */
 
       std::map<std::string, RootWContent*> categoryDetailsContents;
-
-      // MECHANICAL CATEGORY DETAILS
       // Prepare sums on all mechanical categories
       std::map<std::string, std::map<std::string, std::pair<TH1D*, TH1D*> > > radiationAndInteractionLengthPlotsInAllMechanicalCategories;
-
 
 
       // LOOP ON ALL MECHANICAL CATEGORIES
@@ -797,11 +803,9 @@ namespace insur {
 
 
 
-
-
-
-
-      // TOTAL PER MECHANICAL CATEGORY
+      /**
+       * (B) TOTAL PER MECHANICAL CATEGORY
+       */
       const std::string contentTitle = "Total per category" + volume;
       RootWContent* totalPerCategoryContent = new RootWContent(contentTitle.c_str(), false);
     
@@ -910,10 +914,9 @@ namespace insur {
 
 
 
-
-
-
-      // GRAND TOTAL
+      /**
+       * (C) GRAND TOTAL
+       */
       const std::string grandTotalContentTitle = "Total" + volume;
       RootWContent* grandTotalContent = new RootWContent(grandTotalContentTitle.c_str(), true);
 
@@ -937,7 +940,7 @@ namespace insur {
 
       TH1D* radiationLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.first;
       if (radiationLengthGrandTotalHist) {
-	if (volumeIt == 1) { radiationLengthGrandTotalHist->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}"); }
+	if (isFullVolume) { radiationLengthGrandTotalHist->SetTitle("Radiation Length Over Full Tracker Volume; #eta; x/X_{0}"); }
 	else { radiationLengthGrandTotalHist->SetTitle("Radiation Length Over Tracking Volume; #eta; x/X_{0}"); }
 	radiationLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
 	radiationLengthGrandTotalHist->SetFillColor(kGray + 2);
@@ -954,7 +957,7 @@ namespace insur {
 
       TH1D* interactionLengthGrandTotalHist = radiationAndInteractionLengthGrandTotal.second;
       if (interactionLengthGrandTotalHist) {
-	if (volumeIt == 1) { interactionLengthGrandTotalHist->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}"); }
+	if (isFullVolume) { interactionLengthGrandTotalHist->SetTitle("Interaction Length Over Full Tracker Volume; #eta; #lambda/#lambda_{0}"); }
 	else { interactionLengthGrandTotalHist->SetTitle("Interaction Length Over Tracking Volume; #eta; #lambda/#lambda_{0}"); }
 	interactionLengthGrandTotalHist->GetYaxis()->SetTitleOffset(1.3);
 	interactionLengthGrandTotalHist->SetFillColor(kGray + 2);
@@ -973,7 +976,7 @@ namespace insur {
       grandTotalContent->addItem(myImage);
 
       // Store Tracking Volume grand totals
-      if (volumeIt == 2) {
+      if (!isFullVolume) {
 	if (isOuterTracker) { radiationAndInteractionLengthInOuterTrackingVolumeGrandTotal_ = radiationAndInteractionLengthGrandTotal; }
 	else { radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_ = radiationAndInteractionLengthGrandTotal; }
       }
@@ -981,7 +984,7 @@ namespace insur {
 
 
 
-      if (volumeIt == 1) {
+      if (isFullVolume) {
 	// Material summary table
 	materialSummaryTable = new RootWTable();
 	double averageValue;
@@ -1007,9 +1010,6 @@ namespace insur {
 	  materialSummaryTable->setContent(2,j, averageValue ,4);
 	}
       }
-
-
-
 
 
       // PAGE CONTENTS ORDERING
