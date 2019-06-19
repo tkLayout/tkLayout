@@ -110,9 +110,13 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
                            // This is becasue it makes the powering of the GBTs much easier.
   }
 
-  const int numELinks = numELinksPerModule * numModules;
+  const double maxNumModulesPerGBTExact = static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule;
+  const int maxNumModulesPerGBTInPowerChain = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
+					       round(maxNumModulesPerGBTExact) 
+					       : std::floor(maxNumModulesPerGBTExact)
+					       );
 
-  const double numGBTsExact = static_cast<double>(numELinks) / inner_cabling_maxNumELinksPerGBT;
+  const double numGBTsExact = static_cast<double>(numModules) / maxNumModulesPerGBTInPowerChain;
   const int numGBTs = (fabs(numGBTsExact - round(numGBTsExact)) < inner_cabling_roundingTolerance ? 
 		       round(numGBTsExact) 
 		       : std::ceil(numGBTsExact)
@@ -122,11 +126,6 @@ const std::pair<int, int> InnerCablingMap::computeMaxNumModulesPerGBTInPowerChai
 			     + any2str(" modules, but found numGBTs == ") +  any2str(numGBTs) + any2str(", that's not enough!!")
 			     );
 
-  const double maxNumModulesPerGBTExact = static_cast<double>(numModules) / numGBTs;
-  const int maxNumModulesPerGBTInPowerChain = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
-					       round(maxNumModulesPerGBTExact) 
-					       : std::ceil(maxNumModulesPerGBTExact)
-					       );
   // TO DO: MINOR ISSUE OF TAKING THE ceil IS THAT it doesnt handle optimally the (RARE) case where we have 3 + 2 + 2
   // Since it will lead to following repartition: 3 + 3 + 1
   // One could take the floor, and then look at the number of remaining modules in power chain.
