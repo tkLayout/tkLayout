@@ -29,7 +29,11 @@ static const int inner_cabling_numELinksPerModuleForwardRing2 = 2;
 static const int inner_cabling_numELinksPerModuleForwardRing3 = 2;
 static const int inner_cabling_numELinksPerModuleForwardRing4 = 1;
 
-static const int inner_cabling_numELinksPerModuleEndcap = 1;
+static const int inner_cabling_numELinksPerModuleEndcapRing1 = 3;
+static const int inner_cabling_numELinksPerModuleEndcapRing2 = 2;
+static const int inner_cabling_numELinksPerModuleEndcapRing3 = 1;
+static const int inner_cabling_numELinksPerModuleEndcapRing4 = 1;
+static const int inner_cabling_numELinksPerModuleEndcapRing5 = 1;
 
 
 // MAX NUMBER OF POWER CHAINS PER FIBER BUNDLE, in TBPX

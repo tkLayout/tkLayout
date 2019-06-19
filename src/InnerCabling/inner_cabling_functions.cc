@@ -176,7 +176,17 @@ namespace inner_cabling_functions {
     }
     // tepx
     else if (subDetectorName == inner_cabling_tepx) {
-      numELinksPerModule = inner_cabling_numELinksPerModuleEndcap;
+      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing1;
+      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing2;
+      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing3;
+      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing4;
+      else if (layerOrRingNumber == 5) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing5;
+      else { 
+	logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
+		 + any2str(" in ") + any2str(inner_cabling_tepx)
+		 + any2str(". This is not supported.")
+		 );
+      }
     }
     // other
     else { 
