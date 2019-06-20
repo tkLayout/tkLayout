@@ -2,12 +2,13 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isBarrelLong, const int ringQuarterIndex) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
+  isBarrelLong_(isBarrelLong),
   ringQuarterIndex_(ringQuarterIndex)
 {
   myid(powerChainId);

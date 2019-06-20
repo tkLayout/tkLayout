@@ -139,7 +139,7 @@ const std::pair<int, int> InnerCablingMap::computeGBTPhiIndex(const bool isBarre
 
   const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
 
-  if (maxNumModulesPerGBTInPowerChain == 0) logERROR(any2str("Found maxNumModulesPerGBTInPowerChain == 0."));
+  if (fabs(numModulesPerGBTExact) < inner_cabling_roundingTolerance) logERROR(any2str("Found numModulesPerGBTExact ~ 0."));
 
   const double myGBTIndexExact = moduleRef / numModulesPerGBTExact;
   int myGBTIndex = (fabs(myGBTIndexExact - round(myGBTIndexExact)) < inner_cabling_roundingTolerance ? 
