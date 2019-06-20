@@ -9,7 +9,7 @@
 
 // DESIGN
 // Maximum number of modules per serial power chain
-static const int inner_cabling_maxNumModulesPerPowerChain = 10;
+static const int inner_cabling_maxNumModulesPerPowerChain = 12;
 // Maximum number of ELinks per GBT
 static const int inner_cabling_maxNumELinksPerGBT = 7;
 // Maximum number of GBTs per bundle
