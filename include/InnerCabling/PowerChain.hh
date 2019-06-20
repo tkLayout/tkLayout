@@ -22,7 +22,7 @@ class PowerChain : public PropertyObject, public Buildable, public Identifiable<
   typedef std::vector<Module*> Container; 
 
 public:
-  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isBarrelLong, const int ringQuarterIndex);
+  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int ringQuarterIndex);
 
   // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
@@ -50,8 +50,8 @@ public:
 
   const PowerChainType powerChainType() const { return powerChainType_; }
 
-  const bool isBarrelLong() const {
-    if (isBarrel()) return isBarrelLong_;
+  const bool isLongBarrel() const {
+    if (isBarrel()) return isLongBarrel_;
     else return false;
   }
 
@@ -73,7 +73,7 @@ private:
   std::string subDetectorName_;
   int layerDiskNumber_;
   int phiRef_;
-  bool isBarrelLong_;
+  bool isLongBarrel_;
   int ringQuarterIndex_;
   
   bool isBarrel_;

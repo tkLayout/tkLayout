@@ -55,7 +55,7 @@ public:
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
   const bool isPositiveXSide() const { return myPowerChain_->isPositiveXSide(); }
   const bool isBarrel() const { return myPowerChain_->isBarrel(); }
-  const bool isBarrelLong() const { return myPowerChain_->isBarrelLong(); }
+  const bool isLongBarrel() const { return myPowerChain_->isLongBarrel(); }
   const std::string subDetectorName() const { return myPowerChain_->subDetectorName(); }
   const int layerDiskNumber() const { return myPowerChain_->layerDiskNumber(); }
   const int ringNumber() const { return myPowerChain_->ringNumber(); }

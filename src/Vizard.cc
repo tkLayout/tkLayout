@@ -9049,7 +9049,7 @@ namespace insur {
 	      std::stringstream powerChainInfo;
 	      powerChainInfo << myPowerChain->myid() << ","
 			     << any2str(myPowerChain->powerChainType()) << ","
-			     << any2str(myPowerChain->isBarrelLong()) << ",";
+			     << any2str(myPowerChain->isLongBarrel()) << ",";
 
 	      const std::vector<Module*>& myModules = myGBT->modules();
 	      for (const auto& module : myModules) {

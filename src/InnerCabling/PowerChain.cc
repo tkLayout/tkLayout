@@ -2,13 +2,13 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isBarrelLong, const int ringQuarterIndex) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int ringQuarterIndex) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
-  isBarrelLong_(isBarrelLong),
+  isLongBarrel_(isLongBarrel),
   ringQuarterIndex_(ringQuarterIndex)
 {
   myid(powerChainId);
@@ -36,7 +36,7 @@ void PowerChain::addModule(Module* m) {
 
 
 /*
- * Compute wheter a power chain is 4 Ampere or 8 Ampere.
+ * Compute whether a power chain is 4 Ampere or 8 Ampere.
  * NB: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
  */
 const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {

@@ -69,7 +69,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
 
     const int powerChainId = myPowerChain->myid();
-    const bool isBarrelLong = myPowerChain->isBarrelLong();
+    const bool isLongBarrel = myPowerChain->isLongBarrel();
     
 
     // Loops on all modules of the power chain
@@ -79,7 +79,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
       m->setNumELinks(numELinksPerModule);
 
       // COLLECT MODULE INFORMATION NEEDED TO BUILD GBT
-      const int ringRef = (isBarrelLong ? m->uniRef().ring - 1 : m->uniRef().ring - 2);
+      const int ringRef = (isLongBarrel ? m->uniRef().ring - 1 : m->uniRef().ring - 2);
       const int phiRefInPowerChain = m->getPhiRefInPowerChain();
       
       const std::pair<int, int> myGBTIndexes = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, numModulesPerGBTExact, numGBTsInPowerChain);

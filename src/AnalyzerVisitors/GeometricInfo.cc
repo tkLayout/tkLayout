@@ -653,7 +653,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 	       << m.totalChannels() << ", ";
 
     std::stringstream powerChainInfo;
-    powerChainInfo << any2str(myPowerChain->isBarrelLong()) << ","
+    powerChainInfo << any2str(myPowerChain->isLongBarrel()) << ","
 		   << myPowerChain->myid() << ","
 		   << any2str(myPowerChain->powerChainType()) << ",";
 
