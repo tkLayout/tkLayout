@@ -113,7 +113,7 @@ namespace inner_cabling_functions {
 
 
   /*
-   * A given IT ring is divided by (X) side AND per dee side: hence notion of ring quarter.
+   * A given IT ring is divided by (X) side AND per (Z) side: hence notion of ring quarter.
    * Each ring quarter is identified by a unique index.
    */
   const int computeRingQuarterIndex(const int ringNumber, const bool isSmallerAbsZRingSide) {
