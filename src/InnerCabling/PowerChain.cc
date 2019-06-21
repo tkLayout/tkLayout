@@ -9,7 +9,9 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
   isLongBarrel_(isLongBarrel),
-  halfRingIndex_(halfRingIndex)
+  halfRingIndex_(halfRingIndex),
+  isAtSmallerAbsZDeeInDoubleDisk_(isAtSmallerAbsZDeeInDoubleDisk),
+  isAtSmallerAbsZSideInDee_(isAtSmallerAbsZSideInDee)
 {
   myid(powerChainId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);

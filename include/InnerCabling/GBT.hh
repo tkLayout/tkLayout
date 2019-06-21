@@ -61,6 +61,8 @@ public:
   const int ringNumber() const { return myPowerChain_->ringNumber(); }
   const bool isSmallerAbsZHalfRing() const { return myPowerChain_->isSmallerAbsZHalfRing(); }
   const int halfRingIndex() const { return myPowerChain_->halfRingIndex(); }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return myPowerChain_->isAtSmallerAbsZDeeInDoubleDisk(); }
+  const bool isAtSmallerAbsZSideInDee() const { return myPowerChain_->isAtSmallerAbsZSideInDee(); }
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 

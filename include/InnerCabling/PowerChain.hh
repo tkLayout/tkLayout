@@ -22,7 +22,7 @@ class PowerChain : public PropertyObject, public Buildable, public Identifiable<
   typedef std::vector<Module*> Container; 
 
 public:
-  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex);
+  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee);
 
   // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
@@ -43,6 +43,8 @@ public:
   const int layerDiskNumber() const { return layerDiskNumber_; }
   const int phiRef() const { return phiRef_; }
   const int halfRingIndex() const { return halfRingIndex_; }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return isAtSmallerAbsZDeeInDoubleDisk_; }
+  const bool isAtSmallerAbsZSideInDee() const { return isAtSmallerAbsZSideInDee_; }
 
   const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
@@ -75,6 +77,8 @@ private:
   int phiRef_;
   bool isLongBarrel_;
   int halfRingIndex_;
+  bool isAtSmallerAbsZDeeInDoubleDisk_;
+  bool isAtSmallerAbsZSideInDee_;
   
   bool isBarrel_;
   int ringNumber_;

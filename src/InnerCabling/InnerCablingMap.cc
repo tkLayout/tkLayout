@@ -225,16 +225,16 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, std::unique_ptr
     
     const int layerDiskNumber = myGBT->layerDiskNumber();
     const int powerChainPhiRef = myGBT->powerChainPhiRef();
-    const int ringNumber = myGBT->ringNumber();
+    const bool isAtSmallerAbsZDeeInDoubleDisk = myGBT->isAtSmallerAbsZDeeInDoubleDisk();
         
-    const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, ringNumber);
+    const int myBundleIndex = computeBundleIndex(subDetectorName, layerDiskNumber, powerChainPhiRef, isAtSmallerAbsZDeeInDoubleDisk);
 
     const bool isPositiveZEnd = myGBT->isPositiveZEnd();
     const bool isPositiveXSide = myGBT->isPositiveXSide();
     const int myBundleId = computeBundleId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);
 
     // BUILD BUNDLES AND STORE THEM
-    createAndStoreBundles(myGBT, bundles, myBundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);    
+    createAndStoreBundles(myGBT, bundles, myBundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, isAtSmallerAbsZDeeInDoubleDisk, myBundleIndex);    
   }
 
   // CHECK BUNDLES
@@ -245,7 +245,7 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, std::unique_ptr
 /*
  * Compute the index used to identify uniquely a Fiber Bundle.
  */
-const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const int ringNumber) const {
+const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isAtSmallerAbsZDeeInDoubleDisk) const {
   int myBundleIndex = 0;
 
   if (subDetectorName == inner_cabling_tbpx) {
@@ -265,7 +265,7 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
 		     );
   }
   else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) {
-    myBundleIndex = (femod(ringNumber, 2) == 1 ? 0 : 1);
+    myBundleIndex = (!isAtSmallerAbsZDeeInDoubleDisk);
   }
   else logERROR("Unsupported detector name.");
 
