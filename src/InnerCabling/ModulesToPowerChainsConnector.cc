@@ -76,7 +76,7 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const double modCenterX = m.center().X();
   const bool isPositiveXSide = computeXSide(modCenterX);
 
-  const bool isSmallerAbsZRingSide = m.isSmallerAbsZModuleInRing();
+  const bool isSmallerAbsZRingHalf = m.isSmallerAbsZModuleInRing();
   
   const double modPhi = m.center().Phi();
   const std::pair<int, int> phiRefs = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
@@ -84,7 +84,7 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const int modulePhiRefInPowerChain = phiRefs.second;
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 
-  const int halfRingIndex = inner_cabling_functions::computeHalfRingIndex(ringNumber_, isSmallerAbsZRingSide);
+  const int halfRingIndex = inner_cabling_functions::computeHalfRingIndex(ringNumber_, isSmallerAbsZRingHalf);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
   buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, false, halfRingIndex);

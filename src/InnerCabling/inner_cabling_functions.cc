@@ -116,9 +116,9 @@ namespace inner_cabling_functions {
    * This identifies the ring number (associated to a given radius) + the (Z) side of the ring on which the module is located.
    * The '(Z) side of a ring' identifies whether a module is at the low |Z| or at the high |Z| within the ring.
    */
-  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZRingSide) {
-    const int isSmallerAbsZRingSideIndex = (!isSmallerAbsZRingSide);
-    const int halfRingIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZRingSideIndex);
+  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZRingHalf) {
+    const int isSmallerAbsZRingHalfIndex = (!isSmallerAbsZRingHalf);
+    const int halfRingIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZRingHalfIndex);
     return halfRingIndex;
   }
 
@@ -136,9 +136,9 @@ namespace inner_cabling_functions {
   /*
    * Retrieve, from the index, whether one is on one ring (Z) side or the other.
    */
-  const bool isSmallerAbsZRingSide(const int halfRingIndex) {
-    const bool isSmallerAbsZRingSide = (halfRingIndex % 2 ? false : true);
-    return isSmallerAbsZRingSide;
+  const bool isSmallerAbsZRingHalf(const int halfRingIndex) {
+    const bool isSmallerAbsZRingHalf = (halfRingIndex % 2 ? false : true);
+    return isSmallerAbsZRingHalf;
   }
 
 

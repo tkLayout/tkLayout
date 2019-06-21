@@ -46,7 +46,7 @@ public:
 
   const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
-  const bool isSmallerAbsZRingSide() const { return isSmallerAbsZRingSide_; }
+  const bool isSmallerAbsZRingHalf() const { return isSmallerAbsZRingHalf_; }
 
   const PowerChainType powerChainType() const { return powerChainType_; }
 
@@ -78,7 +78,7 @@ private:
   
   bool isBarrel_;
   int ringNumber_;
-  bool isSmallerAbsZRingSide_;
+  bool isSmallerAbsZRingHalf_;
 
   PowerChainType powerChainType_;
 
