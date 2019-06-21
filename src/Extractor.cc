@@ -674,14 +674,14 @@ namespace insur {
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
 
       // is the layer skewed?
-      const bool& isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
+      /*  const bool& isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
       if (isSkewed) {
 	logERROR(any2str("VERY IMPORTANT : BARREL LAYER ")
 		 + any2str(lagg.getBarrelLayers()->at(layer - 1)->myid())
 		 + any2str(" : IS SKEWED, WHICH IS NOT YET SUPPORTED IN XML EXPORT.")
 		 + any2str(" ASSUME ALL ITS LADDERS PHI AND R POSITIONS ARE WRONG IN THE XMLS.")
 		 );
-      }
+		 }*/
 
       bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
@@ -817,6 +817,7 @@ namespace insur {
 
 
       // LOOP ON MODULE CAPS 
+      int c1=0;
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 
 	if (hasPhiForbiddenRanges) {
@@ -1020,7 +1021,39 @@ namespace insur {
 	    }
 	  }
 
+	  bool isSkewed=false; std::string skew_angle;
+	  
+	    double skewAngle = iiter->getModule().skewAngle() * 180. / M_PI;
+	    if(skewAngle!=0) isSkewed=true;
 
+	     if(layer==1) skew_angle= "Z16";
+	  else if (layer==2) skew_angle= "Z162";
+	  else if (layer==3) skew_angle="Z82";
+	  else if(layer==4) skew_angle="Z8";
+
+	    if (isSkewed && ++c1==2) {
+	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
+	      if (isPixelTracker) {
+		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
+		pos.child_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
+		pos.trans.dx = iiter->getModule().center().Rho() - nextPhiRodRadius;
+		pos.trans.dz = iiter->getModule().center().Z();
+		pos.rotref = trackerXmlTags.nspace + ":" + skew_angle; }
+		p.push_back(pos);
+	      
+		// This is a copy of the BModule on -Z side
+		if (partner != oiter->end()) {
+		  pos.trans.dx = partner->getModule().center().Rho() - nextPhiRodRadius;
+		  pos.trans.dz = partner->getModule().center().Z();
+		  pos.rotref = trackerXmlTags.nspace + ":" + skew_angle; 
+		  pos.copy = 2; 
+		  p.push_back(pos);
+		  pos.copy = 1;
+		}
+		pos.rotref = "";
+	    }
+	
+      
 	  if (iiter->getModule().uniRef().phi == 1) {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
