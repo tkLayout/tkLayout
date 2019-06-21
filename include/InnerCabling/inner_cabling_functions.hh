@@ -20,9 +20,9 @@ namespace inner_cabling_functions {
   const bool isBarrel(const std::string subDetectorName);
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide);
   const int computeSubDetectorIndex(const std::string subDetectorName);
-  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZRingHalf);
+  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZHalfRing);
   const int computeRingNumber(const int halfRingIndex);
-  const bool isSmallerAbsZRingHalf(const int halfRingIndex);
+  const bool isSmallerAbsZHalfRing(const int halfRingIndex);
 
   // compute number of ELinks per module
   const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber);

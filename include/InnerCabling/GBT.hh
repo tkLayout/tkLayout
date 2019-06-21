@@ -59,7 +59,7 @@ public:
   const std::string subDetectorName() const { return myPowerChain_->subDetectorName(); }
   const int layerDiskNumber() const { return myPowerChain_->layerDiskNumber(); }
   const int ringNumber() const { return myPowerChain_->ringNumber(); }
-  const bool isSmallerAbsZRingHalf() const { return myPowerChain_->isSmallerAbsZRingHalf(); }
+  const bool isSmallerAbsZHalfRing() const { return myPowerChain_->isSmallerAbsZHalfRing(); }
   const int halfRingIndex() const { return myPowerChain_->halfRingIndex(); }
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
