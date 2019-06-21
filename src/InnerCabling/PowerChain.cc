@@ -2,23 +2,23 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int ringQuarterIndex) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
   isLongBarrel_(isLongBarrel),
-  ringQuarterIndex_(ringQuarterIndex)
+  halfRingIndex_(halfRingIndex)
 {
   myid(powerChainId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
-  ringNumber_ = inner_cabling_functions::computeRingNumber(ringQuarterIndex);
-  isSmallerAbsZRingSide_ = inner_cabling_functions::isSmallerAbsZRingSide(ringQuarterIndex);
+  ringNumber_ = inner_cabling_functions::computeRingNumber(halfRingIndex);
+  isSmallerAbsZRingSide_ = inner_cabling_functions::isSmallerAbsZRingSide(halfRingIndex);
 
   powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
 
-  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, phiRef, ringQuarterIndex);
+  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, phiRef, halfRingIndex);
 
   // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
   buildHvLine(powerChainId);
@@ -59,7 +59,7 @@ const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, cons
  * Compute power chain color on website.
  * Power chains next to each other in space, must be of different colors.
  */
-const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const {
+const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int halfRingIndex) const {
   int plotColor = 0;
 
   const int plotPhi = femod(phiRef, 2);
@@ -69,7 +69,7 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
     plotColor = plotZEnd * 2 + plotPhi + 6;
   }
   else {
-    const int plotRingQuarter = femod(ringQuarterIndex, 6);
+    const int plotRingQuarter = femod(halfRingIndex, 6);
     plotColor = plotRingQuarter * 2 + plotPhi + 1;
   }
 

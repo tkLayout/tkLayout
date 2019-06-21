@@ -113,13 +113,13 @@ namespace inner_cabling_functions {
 
 
   /*
-   * A given IT ring is divided by (X) side AND per (Z) side: hence notion of ring quarter.
-   * Each ring quarter is identified by a unique index.
+   * This identifies the ring number (associated to a given radius) + the (Z) side of the ring on which the module is located.
+   * The '(Z) side of a ring' identifies whether a module is at the low |Z| or at the high |Z| within the ring.
    */
-  const int computeRingQuarterIndex(const int ringNumber, const bool isSmallerAbsZRingSide) {
+  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZRingSide) {
     const int isSmallerAbsZRingSideIndex = (!isSmallerAbsZRingSide);
-    const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZRingSideIndex);
-    return ringQuarterIndex;
+    const int halfRingIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZRingSideIndex);
+    return halfRingIndex;
   }
 
 
@@ -127,8 +127,8 @@ namespace inner_cabling_functions {
    * Retrieve the ring index from the ring quarter idex.
    * This is possible because a ring quarter is a part of a ring.
    */
-  const int computeRingNumber(const int ringQuarterIndex) {
-    const int ringNumber = 1 + ringQuarterIndex / 2;
+  const int computeRingNumber(const int halfRingIndex) {
+    const int ringNumber = 1 + halfRingIndex / 2;
     return ringNumber;
   }
 
@@ -136,8 +136,8 @@ namespace inner_cabling_functions {
   /*
    * Retrieve, from the index, whether one is on one ring (Z) side or the other.
    */
-  const bool isSmallerAbsZRingSide(const int ringQuarterIndex) {
-    const bool isSmallerAbsZRingSide = (ringQuarterIndex % 2 ? false : true);
+  const bool isSmallerAbsZRingSide(const int halfRingIndex) {
+    const bool isSmallerAbsZRingSide = (halfRingIndex % 2 ? false : true);
     return isSmallerAbsZRingSide;
   }
 

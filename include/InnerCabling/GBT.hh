@@ -60,7 +60,7 @@ public:
   const int layerDiskNumber() const { return myPowerChain_->layerDiskNumber(); }
   const int ringNumber() const { return myPowerChain_->ringNumber(); }
   const bool isSmallerAbsZRingSide() const { return myPowerChain_->isSmallerAbsZRingSide(); }
-  const int ringQuarterIndex() const { return myPowerChain_->ringQuarterIndex(); }
+  const int halfRingIndex() const { return myPowerChain_->halfRingIndex(); }
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 

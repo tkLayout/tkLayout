@@ -84,10 +84,10 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const int modulePhiRefInPowerChain = phiRefs.second;
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 
-  const int ringQuarterIndex = inner_cabling_functions::computeRingQuarterIndex(ringNumber_, isSmallerAbsZRingSide);
+  const int halfRingIndex = inner_cabling_functions::computeHalfRingIndex(ringNumber_, isSmallerAbsZRingSide);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
-  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, false, ringQuarterIndex);
+  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, false, halfRingIndex);
 }
 
 
@@ -181,15 +181,15 @@ const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhi
  * Then, the bundle is created, and stored in the bundles_ or negPowerChains_ containers.
  * Lastly, each module is connected to its bundle, and vice-versa.
  */
-void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int ringQuarterIndex) {
+void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex) {
   // COMPUTE POWER CHAIN ID
-  const int powerChainId = computePowerChainId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, ringQuarterIndex);
+  const int powerChainId = computePowerChainId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, halfRingIndex);
 
   // CREATE POWER CHAIN IF NECESSARY
   PowerChain* powerChain = nullptr;
   auto found = powerChains.find(powerChainId);
   if (found == powerChains.end()) {
-    powerChain = createAndStorePowerChain(powerChains, powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, ringQuarterIndex);
+    powerChain = createAndStorePowerChain(powerChains, powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex);
   }
   else {
     powerChain = found->second;
@@ -202,12 +202,12 @@ void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<
 
 /* Compute the Id associated to each bundle.
  */
-const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) const {
+const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int halfRingIndex) const {
 
   const int innerTrackerQuarterIndex = inner_cabling_functions::computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
   const int subdetectorIndex = inner_cabling_functions::computeSubDetectorIndex(subDetectorName);
 
-  const int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + ringQuarterIndex * 10 + phiRef;
+  const int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + halfRingIndex * 10 + phiRef;
   return powerChainId;
 }
 
@@ -215,9 +215,9 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
 /*  Create a powerChain, if it does not exist yet.
  *  Store it in the powerChains_ container.
  */
-PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int ringQuarterIndex) {
+PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex) {
 
-  PowerChain* powerChain = new PowerChain(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, ringQuarterIndex);
+  PowerChain* powerChain = new PowerChain(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex);
 
   powerChains.insert(std::make_pair(powerChainId, powerChain));
  
