@@ -234,7 +234,7 @@ void InnerCablingMap::connectGBTsToBundles(std::map<std::string, std::unique_ptr
     const int myBundleId = computeBundleId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);
 
     // BUILD BUNDLES AND STORE THEM
-    createAndStoreBundles(myGBT, bundles, myBundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, isAtSmallerAbsZDeeInDoubleDisk, myBundleIndex);    
+    createAndStoreBundles(myGBT, bundles, myBundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex);    
   }
 
   // CHECK BUNDLES

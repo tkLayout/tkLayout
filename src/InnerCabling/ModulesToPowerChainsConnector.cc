@@ -218,7 +218,7 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
 /*  Create a powerChain, if it does not exist yet.
  *  Store it in the powerChains_ container.
  */
-PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZSideInDee) {
+PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee) {
 
   PowerChain* powerChain = new PowerChain(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee);
 

@@ -2,7 +2,7 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
