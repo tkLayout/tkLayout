@@ -199,6 +199,29 @@ namespace insur {
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
 
+  // Z99 : Rotation of 99° around CMS_Z axis.
+    rot.name = "Z99";
+    rot.thetax = 90.0;
+    rot.phix = 99.086957;
+    rot.thetay = 90.0;
+    rot.phiy = 189.086957;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+
+
+  // Z162 : Rotation of 96° around CMS_Z axis.
+    rot.name = "Z96";
+    rot.thetax = 90.0;
+    rot.phix = 96.412078;
+    rot.thetay = 90.0;
+    rot.phiy = 186.412078;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
     rot.name = rot_sensor_tag;
@@ -817,7 +840,7 @@ namespace insur {
 
 
       // LOOP ON MODULE CAPS 
-      int c1=0;
+      int cf=0, cuf=0;
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 
 	if (hasPhiForbiddenRanges) {
@@ -1021,10 +1044,45 @@ namespace insur {
 	    }
 	  }
 
+
+	  //for flipped rods adjacent to skewed
+	  std::string skew_angle;
+
+	     if(layer==1) skew_angle= "Z106";
+	  else if (layer==2) skew_angle= "Z97";
+	  else if (layer==3) skew_angle="Z99";
+	  else if(layer==4) skew_angle="Z96";
+
+	     if (iiter->getModule().uniRef().phi==1 && ++cf==2) {
+	       cout<<"entered wherever i wanted to enter."<<endl;
+	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
+	      if (isPixelTracker) {
+		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
+		pos.child_tag = trackerXmlTags.nspace + ":" + rodname.str();
+		pos.trans.dx =iiter->getModule().center().Rho()*cos(iiter->getModule().center().Phi());
+		pos.trans.dy =iiter->getModule().center().Rho()*sin(iiter->getModule().center().Phi());
+		pos.trans.dz = 0;
+		pos.rotref = trackerXmlTags.nspace + ":" + skew_angle;
+		pos.copy= 1;}
+		p.push_back(pos);
+	      
+		// This is a copy of the BModule on -Z side
+		if (partner != oiter->end()) {
+		  pos.trans.dx = 0-partner->getModule().center().Rho()*cos(partner->getModule().center().Phi());
+		  pos.trans.dy =0- partner->getModule().center().Rho()*sin(partner->getModule().center().Phi());
+		  pos.trans.dz=0;
+		  pos.rotref = trackerXmlTags.nspace + ":" + skew_angle; 
+		  pos.copy =  (lagg.getBarrelLayers()->at(layer - 1)->numRods())/2+1; 
+		  p.push_back(pos);
+		  pos.copy =1;
+		}
+		pos.rotref = "";
+	    }
+	
 	 
 	  //For skewed unflipped rods
 
-	  bool isSkewed=false; std::string skew_angle;
+	     bool isSkewed=false;
 	  
 	    double skewAngle = iiter->getModule().skewAngle() * 180. / M_PI;
 	    if(skewAngle!=0) isSkewed=true;
@@ -1034,7 +1092,7 @@ namespace insur {
 	  else if (layer==3) skew_angle="Z82";
 	  else if(layer==4) skew_angle="Z8";
 
-	    if (isSkewed && ++c1==2) {
+	    if (isSkewed && ++cuf==2) {
 	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
