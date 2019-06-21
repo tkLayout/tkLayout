@@ -810,7 +810,7 @@ namespace insur {
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
       
 
-      /* cout<<"Testing angles\n";
+      /*cout<<"Testing angles\n";
 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
       cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}*/
@@ -1021,6 +1021,9 @@ namespace insur {
 	    }
 	  }
 
+	 
+	  //For skewed unflipped rods
+
 	  bool isSkewed=false; std::string skew_angle;
 	  
 	    double skewAngle = iiter->getModule().skewAngle() * 180. / M_PI;
@@ -1036,19 +1039,22 @@ namespace insur {
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
-		pos.trans.dx = iiter->getModule().center().Rho() - nextPhiRodRadius;
-		pos.trans.dz = iiter->getModule().center().Z();
-		pos.rotref = trackerXmlTags.nspace + ":" + skew_angle; }
+		pos.trans.dx =iiter->getModule().center().Rho()*cos(iiter->getModule().center().Phi());
+		pos.trans.dy =iiter->getModule().center().Rho()*sin(iiter->getModule().center().Phi());
+		pos.trans.dz = 0;
+		pos.rotref = trackerXmlTags.nspace + ":" + skew_angle;
+		pos.copy= (lagg.getBarrelLayers()->at(layer - 1)->numRods())/2;}
 		p.push_back(pos);
 	      
 		// This is a copy of the BModule on -Z side
 		if (partner != oiter->end()) {
-		  pos.trans.dx = partner->getModule().center().Rho() - nextPhiRodRadius;
-		  pos.trans.dz = partner->getModule().center().Z();
+		  pos.trans.dx = 0-partner->getModule().center().Rho()*cos(partner->getModule().center().Phi());
+		  pos.trans.dy =0- partner->getModule().center().Rho()*sin(partner->getModule().center().Phi());
+		  pos.trans.dz=0;
 		  pos.rotref = trackerXmlTags.nspace + ":" + skew_angle; 
-		  pos.copy = 2; 
+		  pos.copy =  lagg.getBarrelLayers()->at(layer - 1)->numRods(); 
 		  p.push_back(pos);
-		  pos.copy = 1;
+		  pos.copy =1;
 		}
 		pos.rotref = "";
 	    }
