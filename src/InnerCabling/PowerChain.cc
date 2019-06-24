@@ -18,8 +18,6 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
   ringNumber_ = inner_cabling_functions::computeRingNumber(halfRingIndex);
   isSmallerAbsZHalfRing_ = inner_cabling_functions::isSmallerAbsZHalfRing(halfRingIndex);
 
-  powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
-
   plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, phiRef, halfRingIndex);
 
   // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
@@ -38,22 +36,27 @@ void PowerChain::addModule(Module* m) {
 
 
 /*
- * Compute whether a power chain is 4 Ampere or 8 Ampere.
- * NB: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
+ * Returns whether a power chain has 4 Ampere or 8 Ampere.
+ * NB 1: Assumed all modules conected to the same power chain are of the same type.
+ * NB 2: THIS DEPENDS ON THE MODULE TYPE: IT ONLY MAKES SENSE TO CALL THIS AFTER THE MODULES HAVE BEEN ASSIGNED TO THE POWER CHAIN.
  */
-const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
-  PowerChainType powerChainType = PowerChainType::IUNDEFINED;
-  if (isBarrel) {
-    if (layerDiskNumber <= 2) powerChainType = PowerChainType::I4A;
-    else powerChainType = PowerChainType::I8A;
+const PowerChainType PowerChain::powerChainType() const {
+  if (modules().size() == 0) {
+    logERROR("Tried to call PowerChain::powerChainType() on a power chain connected to 0 module.");
+    return PowerChainType::IUNDEFINED;
   }
-
   else {
-    if (ringNumber <= 2) powerChainType = PowerChainType::I4A;
-    else powerChainType = PowerChainType::I8A;
+    const int numROCsPerModule = modules().front()->outerSensor().totalROCs();
+    if (numROCsPerModule == 2) return PowerChainType::I4A;
+    else if (numROCsPerModule == 4) return PowerChainType::I8A;
+    else {
+      logERROR(any2str("Found ")
+	       + any2str(numROCsPerModule)
+	       + any2str(" ROCs per module, which is not supported. If this is intended, tune PowerChain::powerChainType().")
+	       );
+      return PowerChainType::IUNDEFINED;
+    }
   }
-
-  return powerChainType;
 }
 
 

@@ -50,8 +50,6 @@ public:
   const int ringNumber() const { return ringNumber_; }
   const bool isSmallerAbsZHalfRing() const { return isSmallerAbsZHalfRing_; }
 
-  const PowerChainType powerChainType() const { return powerChainType_; }
-
   const bool isLongBarrel() const {
     if (isBarrel()) return isLongBarrel_;
     else return false;
@@ -59,8 +57,9 @@ public:
 
   const int plotColor() const { return plotColor_; }
 
+  const PowerChainType powerChainType() const;  // Returns whether a power chain has 4 Ampere or 8 Ampere.
+
 private:
-  const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const;
   const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int halfRingIndex) const;
 
   void buildHvLine(const int powerChainId);
@@ -83,8 +82,6 @@ private:
   bool isBarrel_;
   int ringNumber_;
   bool isSmallerAbsZHalfRing_;
-
-  PowerChainType powerChainType_;
 
   int plotColor_;
 };
