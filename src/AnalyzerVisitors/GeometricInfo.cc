@@ -683,3 +683,25 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     else output_ << moduleInfo.str() << powerChainInfo.str() << std::endl;
   }
 }
+
+
+    //************************************//
+    //*               Visitor             //
+    //*     CMSSWInnerTrackerCablingMap   //
+    //*                                   //
+    //************************************//
+void CMSSWInnerTrackerCablingMapVisitor::preVisit() {
+  output_ << "Module DetId/U, DTC Id/U" << std::endl;
+}
+
+void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
+  std::stringstream moduleInfo;
+  moduleInfo << m.myDetId() << ", ";
+  const InnerDTC* myDTC = m.getInnerDTC();
+  if (myDTC) {
+    std::stringstream DTCInfo;
+    DTCInfo << myDTC->myid();	 
+    output_ << moduleInfo.str() << DTCInfo.str() << std::endl;
+  }
+  else output_ << moduleInfo.str() << std::endl;
+}

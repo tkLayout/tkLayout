@@ -81,6 +81,10 @@ namespace inner_cabling_functions {
 
   /*
    * Split IT per (Z) end and (X) side: hence per quarter.
+   * 1: (+X) side, (+Z) end
+   * 2: (-X) side, (+Z) end
+   * 3: (+X) side, (-Z) end
+   * 4: (-X) side, (-Z) end
    */
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide) {
     int innerTrackerQuarterIndex = 0;
