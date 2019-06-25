@@ -1514,7 +1514,7 @@ namespace insur {
       bothSidesName->setContent(0, 0, "Both cabling sides, summary:");
       filesContent->addItem(bothSidesName);
       // CMSSW MODULES DETIDS TO DTC IDS
-      myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMMSW: Modules DetIds to DTCs Ids");
+      myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMSSW: Modules DetIds to DTCs Ids");
       myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker));
       filesContent->addItem(myTextFile);
 
@@ -1901,6 +1901,10 @@ namespace insur {
       // DTCs to modules
       myTextFile = new RootWTextFile(Form("%sTrackerDTCsToModules.csv", name.c_str()), "DTCs to modules");
       myTextFile->addText(createInnerTrackerDTCsToModulesCsv(myInnerCablingMap));
+      filesContent->addItem(myTextFile);
+      // CMSSW modules DetIds to DTC Ids
+      myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMSSW: Modules DetIds to DTCs Ids");
+      myTextFile->addText(createCMSSWInnerTrackerCablingMapCsv(tracker));
       filesContent->addItem(myTextFile);
 
 
@@ -9049,7 +9053,7 @@ namespace insur {
 	      std::stringstream powerChainInfo;
 	      powerChainInfo << myPowerChain->myid() << ","
 			     << any2str(myPowerChain->powerChainType()) << ","
-			     << any2str(myPowerChain->isBarrelLong()) << ",";
+			     << any2str(myPowerChain->isLongBarrel()) << ",";
 
 	      const std::vector<Module*>& myModules = myGBT->modules();
 	      for (const auto& module : myModules) {
@@ -9075,6 +9079,16 @@ namespace insur {
     if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
 
     return dtcsToModulesCsv.str();
+  }
+
+
+  /* Create csv file (Inner Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
+   */
+  std::string Vizard::createCMSSWInnerTrackerCablingMapCsv(const Tracker& tracker) {
+    CMSSWInnerTrackerCablingMapVisitor v;
+    v.preVisit();
+    tracker.accept(v);
+    return v.output();
   }
 
 

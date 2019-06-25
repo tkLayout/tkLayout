@@ -588,6 +588,8 @@ public:
   void setIsSmallerAbsZModuleInRing(const bool isSmallerAbsZModuleInRing) { isSmallerAbsZModuleInRing_ = isSmallerAbsZModuleInRing; }
   const bool isSmallerAbsZModuleInRing() const override { return isSmallerAbsZModuleInRing_; }
   const int diskSurface() const override { return endcapDiskSurface(); }
+  const bool isAtSmallerAbsZSideInDee() const { return (femod(diskSurface(), 2) == 1); }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return (diskSurface() <= 2); }
 
   EndcapModule(Decorated* decorated, const std::string subdetectorName) :
     DetectorModule(decorated, subdetectorName)
