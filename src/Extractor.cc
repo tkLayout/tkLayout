@@ -135,7 +135,7 @@ namespace insur {
     rot.phix = 261.598931;
     rot.thetay = 90.0;
     rot.phiy = 351.598931;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -145,7 +145,7 @@ namespace insur {
     rot.phix = 106.019;
     rot.thetay = 90.0;
     rot.phiy = 196.019;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -155,7 +155,7 @@ namespace insur {
     rot.phix = 97.621122;
     rot.thetay = 90.0;
     rot.phiy = 187.621122;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -165,7 +165,7 @@ namespace insur {
     rot.phix = 81.598931;
     rot.thetay = 90.0;
     rot.phiy = 171.598931;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
   // Z82 : Rotation of 8° around CMS_Z axis.
@@ -174,7 +174,7 @@ namespace insur {
     rot.phix = 81.625717;
     rot.thetay = 90.0;
     rot.phiy = 171.625717;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -184,7 +184,7 @@ namespace insur {
     rot.phix = 73.493587;
     rot.thetay = 90.0;
     rot.phiy = 163.493587;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -194,7 +194,7 @@ namespace insur {
     rot.phix = 73.204777;
     rot.thetay = 90.0;
     rot.phiy = 163.204777;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -205,7 +205,7 @@ namespace insur {
     rot.phix = 99.086957;
     rot.thetay = 90.0;
     rot.phiy = 189.086957;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -217,7 +217,7 @@ namespace insur {
     rot.phix = 96.412078;
     rot.thetay = 90.0;
     rot.phiy = 186.412078;
-    rot.thetaz = 180.0;
+    rot.thetaz = 0.0;
     rot.phiz = 0.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
@@ -833,10 +833,10 @@ namespace insur {
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
       
 
-      /*cout<<"Testing angles\n";
+      cout<<"Testing angles\n";
 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
-      cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}*/
+      cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}
 
 
       // LOOP ON MODULE CAPS 
@@ -909,6 +909,11 @@ namespace insur {
 	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
+	  if (iiter->getModule().uniRef().phi == 2) {           
+
+	    nextPhiRodMeanPhi = iiter->getModule().center().Phi();
+	  }
+
 	  if (iiter->getModule().uniRef().phi == 3) {           
 
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
@@ -1024,6 +1029,7 @@ namespace insur {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
 		pos.trans.dx = iiter->getModule().center().Rho() - nextPhiRodRadius;
+		pos.trans.dy=0;
 		pos.trans.dz = iiter->getModule().center().Z();
 		if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -1032,6 +1038,7 @@ namespace insur {
 		// This is a copy of the BModule on -Z side
 		if (partner != oiter->end()) {
 		  pos.trans.dx = partner->getModule().center().Rho() - nextPhiRodRadius;
+		  pos.trans.dy=0;
 		  pos.trans.dz = partner->getModule().center().Z();
 		  if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 		  else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -1054,7 +1061,7 @@ namespace insur {
 	  else if(layer==4) skew_angle="Z96";
 
 	     if (iiter->getModule().uniRef().phi==1 && ++cf==2) {
-	       cout<<"entered wherever i wanted to enter."<<endl;
+
 	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
@@ -1093,7 +1100,7 @@ namespace insur {
 	  else if(layer==4) skew_angle="Z8";
 
 	    if (isSkewed && ++cuf==2) {
-	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
+	      // nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
