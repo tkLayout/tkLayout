@@ -2055,9 +2055,10 @@ namespace insur {
       efficiencyContent->addItem(myInfo);
 
 
-      RootWContent* numberOfChipsPerDTCContent = new RootWContent("Number of chips per DTC", true);
+      // NUMBER OF CHIPS PER DTC
+      RootWContent* numberOfChipsPerDTCContent = new RootWContent("Number of chips per DTC", false);
       myPage->addContent(numberOfChipsPerDTCContent);
-      const std::string numberOfChipsPerDTCCanvasTitle = "Number of chips per DTC.";
+      const std::string numberOfChipsPerDTCCanvasTitle = "Number of chips per DTC";
       std::unique_ptr<TCanvas> numberOfChipsPerDTCCanvas = std::make_unique<TCanvas>(numberOfChipsPerDTCCanvasTitle.c_str(), 
 										     numberOfChipsPerDTCCanvasTitle.c_str(), 
 										     vis_std_canvas_sizeX, 
@@ -2070,9 +2071,6 @@ namespace insur {
       RootWImage* numberOfChipsPerDTCImage = new RootWImage(std::move(numberOfChipsPerDTCCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
       numberOfChipsPerDTCImage->setComment("Distribution of the number of chips per DTC Id.");
       numberOfChipsPerDTCContent->addItem(numberOfChipsPerDTCImage);
-
-
-
     } // end of isPixelTracker
     return true;
   }
@@ -9111,15 +9109,16 @@ namespace insur {
   }
 
 
- /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
+  /* Create plot: number of chips per DTC.
    */
   TH1I* Vizard::createInnerTrackerNumberOfChipsPerDTCPlot(const InnerCablingMap* myInnerCablingMap) {
-
-    //std::map<int, int> numberOfChipsPerDTC;
-    const std::string numberOfChipsPerDTCCanvasTitle = "Distribution of the number of chips per DTC.";
-    TH1I* numberOfChipsPerDTC = new TH1I(numberOfChipsPerDTCCanvasTitle.c_str(), 
-					 numberOfChipsPerDTCCanvasTitle.c_str(), 
+  
+    const std::string numberOfChipsPerDTCTitle = "Number of chips per DTC";
+    TH1I* numberOfChipsPerDTC = new TH1I(numberOfChipsPerDTCTitle.c_str(), 
+					 numberOfChipsPerDTCTitle.c_str(), 
 					 40, 10, 50);
+    numberOfChipsPerDTC->GetXaxis()->SetTitle("DTC Id");
+    numberOfChipsPerDTC->GetYaxis()->SetTitle("Number of chips per DTC");
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
