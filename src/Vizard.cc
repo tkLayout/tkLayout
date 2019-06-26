@@ -2054,6 +2054,25 @@ namespace insur {
       myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
 
+
+      RootWContent* numberOfChipsPerDTCContent = new RootWContent("Number of chips per DTC", true);
+      myPage->addContent(numberOfChipsPerDTCContent);
+      const std::string numberOfChipsPerDTCCanvasTitle = "Number of chips per DTC.";
+      std::unique_ptr<TCanvas> numberOfChipsPerDTCCanvas = std::make_unique<TCanvas>(numberOfChipsPerDTCCanvasTitle.c_str(), 
+										     numberOfChipsPerDTCCanvasTitle.c_str(), 
+										     vis_std_canvas_sizeX, 
+										     vis_min_canvas_sizeY);
+      numberOfChipsPerDTCCanvas->SetFillColor(color_plot_background);
+      numberOfChipsPerDTCCanvas->cd();
+      TH1I* numberOfChipsPerDTCDistribution = createInnerTrackerNumberOfChipsPerDTCPlot(myInnerCablingMap);
+      numberOfChipsPerDTCDistribution->SetStats(0);
+      numberOfChipsPerDTCDistribution->Draw("HIST");
+      RootWImage* numberOfChipsPerDTCImage = new RootWImage(std::move(numberOfChipsPerDTCCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      numberOfChipsPerDTCImage->setComment("Distribution of the number of chips per DTC Id.");
+      numberOfChipsPerDTCContent->addItem(numberOfChipsPerDTCImage);
+
+
+
     } // end of isPixelTracker
     return true;
   }
@@ -9089,6 +9108,45 @@ namespace insur {
     v.preVisit();
     tracker.accept(v);
     return v.output();
+  }
+
+
+ /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
+   */
+  TH1I* Vizard::createInnerTrackerNumberOfChipsPerDTCPlot(const InnerCablingMap* myInnerCablingMap) {
+
+    //std::map<int, int> numberOfChipsPerDTC;
+    const std::string numberOfChipsPerDTCCanvasTitle = "Distribution of the number of chips per DTC.";
+    TH1I* numberOfChipsPerDTC = new TH1I(numberOfChipsPerDTCCanvasTitle.c_str(), 
+					 numberOfChipsPerDTCCanvasTitle.c_str(), 
+					 40, 10, 50);
+
+    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
+    for (const auto& itDTC : myDTCs) {
+      InnerDTC* myDTC = itDTC.second.get();
+      if (myDTC) {
+
+	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
+	for (const auto& myBundle : myBundles) {
+	  
+	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
+	  for (const auto& myGBT : myGBTs) {
+
+	    const PowerChain* myPowerChain = myGBT->getPowerChain();
+	    if (myPowerChain) {
+
+	      const std::vector<Module*>& myModules = myGBT->modules();
+	      for (const auto& module : myModules) {
+	       
+		numberOfChipsPerDTC->Fill(myDTC->myid(), module->outerSensor().totalROCs());
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    return numberOfChipsPerDTC;
   }
 
 
