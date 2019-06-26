@@ -833,10 +833,10 @@ namespace insur {
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
       
 
-      cout<<"Testing angles\n";
+      /* cout<<"Testing angles\n";
 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
-      cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}
+      cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}*/
 
 
       // LOOP ON MODULE CAPS 
