@@ -2054,6 +2054,23 @@ namespace insur {
       myInfo->setValue(dtcEfficiency * 100, 0);
       efficiencyContent->addItem(myInfo);
 
+
+      // NUMBER OF CHIPS PER DTC
+      std::unique_ptr<RootWContent> numberOfChipsPerDTCContent = std::make_unique<RootWContent>("Number of chips per DTC", false);
+      const std::string numberOfChipsPerDTCCanvasTitle = "Number of chips per DTC";
+      std::unique_ptr<TCanvas> numberOfChipsPerDTCCanvas = std::make_unique<TCanvas>(numberOfChipsPerDTCCanvasTitle.c_str(), 
+										     numberOfChipsPerDTCCanvasTitle.c_str(), 
+										     vis_std_canvas_sizeX, 
+										     vis_min_canvas_sizeY);
+      numberOfChipsPerDTCCanvas->SetFillColor(color_plot_background);
+      numberOfChipsPerDTCCanvas->cd();
+      std::unique_ptr<TH1I> numberOfChipsPerDTCDistribution = createInnerTrackerNumberOfChipsPerDTCPlot(myInnerCablingMap);
+      numberOfChipsPerDTCDistribution->SetStats(0);
+      numberOfChipsPerDTCDistribution->DrawClone("HIST");
+      std::unique_ptr<RootWImage> numberOfChipsPerDTCImage = std::make_unique<RootWImage>(std::move(numberOfChipsPerDTCCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      numberOfChipsPerDTCImage->setComment("Number of chips per DTC Id.");
+      numberOfChipsPerDTCContent->addItem(std::move(numberOfChipsPerDTCImage));
+      myPage->addContent(std::move(numberOfChipsPerDTCContent));
     } // end of isPixelTracker
     return true;
   }
@@ -9089,6 +9106,46 @@ namespace insur {
     v.preVisit();
     tracker.accept(v);
     return v.output();
+  }
+
+
+  /* Create plot: number of chips per DTC.
+   */
+  std::unique_ptr<TH1I> Vizard::createInnerTrackerNumberOfChipsPerDTCPlot(const InnerCablingMap* myInnerCablingMap) {
+  
+    const std::string numberOfChipsPerDTCTitle = "Number of chips per DTC";
+    std::unique_ptr<TH1I> numberOfChipsPerDTC = std::make_unique<TH1I>(numberOfChipsPerDTCTitle.c_str(), 
+					 numberOfChipsPerDTCTitle.c_str(), 
+					 40, 10, 50);
+    numberOfChipsPerDTC->GetXaxis()->SetTitle("DTC Id");
+    numberOfChipsPerDTC->GetYaxis()->SetTitle("Number of chips per DTC");
+
+    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
+    for (const auto& itDTC : myDTCs) {
+      InnerDTC* myDTC = itDTC.second.get();
+      if (myDTC) {
+
+	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
+	for (const auto& myBundle : myBundles) {
+	  
+	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
+	  for (const auto& myGBT : myGBTs) {
+
+	    const PowerChain* myPowerChain = myGBT->getPowerChain();
+	    if (myPowerChain) {
+
+	      const std::vector<Module*>& myModules = myGBT->modules();
+	      for (const auto& module : myModules) {
+	       
+		numberOfChipsPerDTC->Fill(myDTC->myid(), module->outerSensor().totalROCs());
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    return numberOfChipsPerDTC;
   }
 
 
