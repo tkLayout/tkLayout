@@ -493,6 +493,10 @@ void RootWContent::addItem(RootWItem* newItem) {
   }
 }
 
+void RootWContent::addItem(std::unique_ptr<RootWItem> newItem) {
+  addItem(newItem.release());
+}
+
 void RootWContent::setTitle(string newTitle) {
   title_ = newTitle;
 }
@@ -712,6 +716,10 @@ void RootWPage::addContent(RootWContent* newContent) {
   if (newContent) {
     contentList_.push_back(newContent);
   }
+}
+
+void RootWPage::addContent(std::unique_ptr<RootWContent> newContent) {
+  addContent(newContent.release());
 }
 
 RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {

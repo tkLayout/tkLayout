@@ -2056,8 +2056,7 @@ namespace insur {
 
 
       // NUMBER OF CHIPS PER DTC
-      RootWContent* numberOfChipsPerDTCContent = new RootWContent("Number of chips per DTC", false);
-      myPage->addContent(numberOfChipsPerDTCContent);
+      std::unique_ptr<RootWContent> numberOfChipsPerDTCContent = std::make_unique<RootWContent>("Number of chips per DTC", false);
       const std::string numberOfChipsPerDTCCanvasTitle = "Number of chips per DTC";
       std::unique_ptr<TCanvas> numberOfChipsPerDTCCanvas = std::make_unique<TCanvas>(numberOfChipsPerDTCCanvasTitle.c_str(), 
 										     numberOfChipsPerDTCCanvasTitle.c_str(), 
@@ -2065,12 +2064,13 @@ namespace insur {
 										     vis_min_canvas_sizeY);
       numberOfChipsPerDTCCanvas->SetFillColor(color_plot_background);
       numberOfChipsPerDTCCanvas->cd();
-      TH1I* numberOfChipsPerDTCDistribution = createInnerTrackerNumberOfChipsPerDTCPlot(myInnerCablingMap);
+      std::unique_ptr<TH1I> numberOfChipsPerDTCDistribution = createInnerTrackerNumberOfChipsPerDTCPlot(myInnerCablingMap);
       numberOfChipsPerDTCDistribution->SetStats(0);
-      numberOfChipsPerDTCDistribution->Draw("HIST");
-      RootWImage* numberOfChipsPerDTCImage = new RootWImage(std::move(numberOfChipsPerDTCCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-      numberOfChipsPerDTCImage->setComment("Distribution of the number of chips per DTC Id.");
-      numberOfChipsPerDTCContent->addItem(numberOfChipsPerDTCImage);
+      numberOfChipsPerDTCDistribution->DrawClone("HIST");
+      std::unique_ptr<RootWImage> numberOfChipsPerDTCImage = std::make_unique<RootWImage>(std::move(numberOfChipsPerDTCCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+      numberOfChipsPerDTCImage->setComment("Number of chips per DTC Id.");
+      numberOfChipsPerDTCContent->addItem(std::move(numberOfChipsPerDTCImage));
+      myPage->addContent(std::move(numberOfChipsPerDTCContent));
     } // end of isPixelTracker
     return true;
   }
@@ -9111,10 +9111,10 @@ namespace insur {
 
   /* Create plot: number of chips per DTC.
    */
-  TH1I* Vizard::createInnerTrackerNumberOfChipsPerDTCPlot(const InnerCablingMap* myInnerCablingMap) {
+  std::unique_ptr<TH1I> Vizard::createInnerTrackerNumberOfChipsPerDTCPlot(const InnerCablingMap* myInnerCablingMap) {
   
     const std::string numberOfChipsPerDTCTitle = "Number of chips per DTC";
-    TH1I* numberOfChipsPerDTC = new TH1I(numberOfChipsPerDTCTitle.c_str(), 
+    std::unique_ptr<TH1I> numberOfChipsPerDTC = std::make_unique<TH1I>(numberOfChipsPerDTCTitle.c_str(), 
 					 numberOfChipsPerDTCTitle.c_str(), 
 					 40, 10, 50);
     numberOfChipsPerDTC->GetXaxis()->SetTitle("DTC Id");

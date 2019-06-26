@@ -243,6 +243,7 @@ public:
   void addParagraph(string parText) ;
   void setTitle(string newTitle) ;
   void addItem(RootWItem* newItem);
+  void addItem(std::unique_ptr<RootWItem> newItem);
   ostream& dump(ostream& output);
   RootWText& addText();
   RootWText& addText(string newText);
@@ -336,6 +337,7 @@ public:
   ostream& dump(ostream& output);
   void addContent(RootWContent* newContent);
   RootWContent& addContent(string title, bool visible=true);
+  void addContent(std::unique_ptr<RootWContent> newContent);
   void setAlert(double alert);
   double getAlert();
   void setRelevance(int newRelevance);
