@@ -863,11 +863,12 @@ namespace insur {
 	    }
 	  }
 	  // if (iiter->getModule().uniRef().phi == 3) {thirdRodPhi=iiter->getModule().center().Phi();}
+	
 	}
-        
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
-	if (iiter->getModule().uniRef().side > 0) {//&& (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {  //Modified if condition- Not only for uniRef==1 or 2.
-
+	  if (iiter->getModule().uniRef().side > 0)// && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2))  {//Modified if condition- Not only for uniRef==1 or 2.
+	    {
+	    
 	  if(iiter->getModule().uniRef().phi==(lagg.getBarrelLayers()->at(layer - 1)->numRods())-1){
 	    s_angle=iiter->getModule().center().Phi();
 	  }
@@ -909,14 +910,19 @@ namespace insur {
 	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
-	  if (iiter->getModule().uniRef().phi == 2) {           
+	   if (iiter->getModule().uniRef().phi == 2) {           
 
 	    nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	  }
-
 	  if (iiter->getModule().uniRef().phi == 3) {           
 
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
+	  }
+	    
+
+	  if (iiter->getModule().uniRef().phi == 1) {           
+
+	    // firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
             std::ostringstream ringname;
 	    ringname << xml_ring << modRing << lname.str();
@@ -996,7 +1002,9 @@ namespace insur {
 		}
 	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - firstPhiRodRadius;
+	      pos.trans.dy=0;
 	      pos.trans.dz = iiter->getModule().center().Z();
+	  
 
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -1007,6 +1015,7 @@ namespace insur {
 	      // This is a copy of the BModule on -Z side
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - firstPhiRodRadius;
+		pos.trans.dy=0;
 		pos.trans.dz = partner->getModule().center().Z();
 
 		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
@@ -1170,6 +1179,7 @@ namespace insur {
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 	      pos.trans.dx = 0.0;
+	      pos.trans.dy=0;
 	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
 	      p.push_back(pos);
 
@@ -1256,6 +1266,7 @@ namespace insur {
 		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		}
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+		pos.trans.dy=0; // translation of active wafer
 		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
 		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
@@ -1664,7 +1675,7 @@ namespace insur {
       // INNER TRACKER
       else {
 
-	//first rod of flipped
+	//first block of flipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
@@ -1688,7 +1699,7 @@ namespace insur {
 	a.push_back(alg);
 	alg.parameters.clear();
 
-	//Second rod of flipped
+	//Second block of flipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
@@ -1715,7 +1726,7 @@ namespace insur {
 	alg.parameters.clear();
 
 
-	//first rod of unflipped
+	//first block of unflipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
@@ -1733,13 +1744,13 @@ namespace insur {
 	alg.parameters.push_back(vectorParam(0., 0., 0.));
 	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2)/2-1;
 	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	pconverter.str("");
+ 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	a.push_back(alg);
 	alg.parameters.clear();
 	
-	//second rod of unflipped
+	//second block of unflipped
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
 	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
