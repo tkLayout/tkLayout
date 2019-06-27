@@ -833,7 +833,7 @@ namespace insur {
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
       
 
-      /* cout<<"Testing angles\n";
+      /*cout<<"Testing angles\n";
 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
       cout<<iiter->getModule().uniRef().phi<<" "<<iiter->getModule().center().Phi()  * 180. / M_PI <<endl;}*/
@@ -1069,9 +1069,9 @@ namespace insur {
 	  else if (layer==3) skew_angle="Z99";
 	  else if(layer==4) skew_angle="Z96";
 
-	     if (iiter->getModule().uniRef().phi==1 && ++cf==2) {
+	     if (isPixelTracker && iiter->getModule().uniRef().phi==1 && ++cf==2) {
 
-	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
+	       //nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + rodname.str();
@@ -1093,7 +1093,7 @@ namespace insur {
 		  pos.copy =1;
 		}
 		pos.rotref = "";
-	    }
+	     }
 	
 	 
 	  //For skewed unflipped rods
@@ -1108,7 +1108,7 @@ namespace insur {
 	  else if (layer==3) skew_angle="Z82";
 	  else if(layer==4) skew_angle="Z8";
 
-	    if (isSkewed && ++cuf==2) {
+	    if (isPixelTracker && isSkewed && ++cuf==2) {
 	      // nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
