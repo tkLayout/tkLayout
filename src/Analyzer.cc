@@ -3811,12 +3811,26 @@ void Analyzer::fillRIPlotsPerMechanicalCategoryAndSubdetector(RIPlotsPerComponen
 
 
 
-  /* Calculate corrected MB , ie the MB which takes into account the angle of the track crossing the volumes.
+  /* Calculate corrected MB, ie the MB which takes into account the angle of the track crossing the volumes.
    */
   const RILength Analyzer::computeCorrectedMat(const RILength& uncorrectedMat, const double theta, const double tiltAngle) const {
+    
+    // Check that theta is in [0 Pi]
+    if ((theta < -insur::geom_zero) || (theta - M_PI) > insur::geom_zero) { 
+      logERROR ("Found theta outside [0 Pi]. Assume all corrected MB is wrong!");
+      return RILength();
+    }
+    // Avoid division by 0 ...
+    if ((theta + tiltAngle) < insur::geom_zero) { 
+      logERROR ("Unsupported case: theta + tiltAngle ~ 0. Assume all corrected MB is wrong!"); 
+      return RILength();
+    }
+    // When theta is in [Pi/2 Pi], tiltAngle must be oriented negative.
+    const double orientedTiltAngle = (theta <= M_PI / 2. ? tiltAngle : -tiltAngle);
+
+    // Can finally compute the corrected mat.
     RILength correctedMat;
-    if ((theta + tiltAngle) < insur::geom_zero) { logERROR ("Unexpected case: theta + tiltAngle < 0. Check that evth downstream is behaving properly."); }
-    const double correctionFactor = 1. / fabs(sin(theta + tiltAngle));
+    const double correctionFactor = 1. / fabs(sin(theta + orientedTiltAngle));
     correctedMat.radiation = uncorrectedMat.radiation * correctionFactor;
     correctedMat.interaction = uncorrectedMat.interaction * correctionFactor;
     return correctedMat;
