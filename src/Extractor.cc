@@ -24,25 +24,6 @@ namespace insur {
    * @param mb A reference to the material budget that is to be analysed; used as input
    * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
    */
-  Rotation Extractor::rotation(double angle)
-  {
-    Rotation rot;
-    
-
-    rot.name = "Z"+to_string(angle);
-    rot.thetax = 90.0;
-    if(abs(angle)>90)
-      rot.phix = angle;
-    else 
-      rot.phix=90+angle;
-    rot.thetay = 90.0;
-    rot.phiy =90+rot.phix;
-    rot.thetaz = 0.0;
-    rot.phiz = 0.0;
-    return(rot);
-  } 
-
-
   void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt) {
 
     std::cout << "Starting analysis..." << std::endl;
@@ -745,7 +726,7 @@ namespace insur {
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
       std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
 
-      double firstPhiRodMeanPhi, nextPhiRodMeanPhi;      
+      double firstPhiRodMeanPhi, nextPhiRodMeanPhi;
 
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
@@ -781,10 +762,10 @@ namespace insur {
 		phiForbiddenRanges.insert(std::make_pair(i, iiter->getModule().center().Phi()));
 	      }
 	    }
-	  }	 
+	  }
 	}
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
-	  if (iiter->getModule().uniRef().side > 0) && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	if (iiter->getModule().uniRef().side > 0) && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
@@ -820,7 +801,7 @@ namespace insur {
 	  
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
-	   if (iiter->getModule().uniRef().phi == 1) {             
+	  if (iiter->getModule().uniRef().phi == 1) {
 
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
@@ -902,7 +883,7 @@ namespace insur {
 		}
 	      }	// end of timing layer special case      
 	      pos.trans.dx = iiter->getModule().center().Rho() - firstPhiRodRadius;
-	      pos.trans.dz = iiter->getModule().center().Z();	  
+	      pos.trans.dz = iiter->getModule().center().Z();
 
 	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
 	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
@@ -955,7 +936,7 @@ namespace insur {
 	    }
 	  }
 
-  
+
 	  if (iiter->getModule().uniRef().phi == 1) {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
@@ -1513,7 +1494,7 @@ namespace insur {
 	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	a.push_back(alg);
-	alg.parameters.clear();	
+	alg.parameters.clear();
 
 	alg.name = xml_angular_algo;
 	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
