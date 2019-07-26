@@ -764,6 +764,60 @@ namespace insur {
 	    }
 	  }
 	}
+
+	// SKEWED INSTALLATION MODE: COLLECT INFO
+	double unskewedLaddersAtMinusXSideCenterMinPhi = std::numeric_limits<double>::max();
+	double unskewedLaddersAtMinusXSideCenterMaxPhi = 0.;	
+	double skewedLadderAtMinusXSideCenterRadius = 0.;
+	double skewedLadderAtMinusXSideCenterPhi = 0.;
+	double skewedLadderAtMinusXSideSkewAngle = 0.;
+
+	double unskewedLaddersAtPlusXSideCenterMinPhi = std::numeric_limits<double>::max();
+	double unskewedLaddersAtPlusXSideCenterMaxPhi = 0.;	
+	double skewedLadderAtPlusXSideCenterRadius = 0.;
+	double skewedLadderAtPlusXSideCenterPhi = 0.;
+	double skewedLadderAtPlusXSideSkewAngle = 0.;
+
+	// no point looking at different rings: assumption that all modules are the same along a ladder
+	if (iiter->getModule().uniRef().side > 0 && iiter->getModule().uniRef().ring == 1) {
+	  const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
+
+	  // (-X) side
+	  if (!isAtPositiveXSide) { 
+	    // Non-skewed ladders
+	    if (!iiter->getModule().isSkewed()) {
+	      unskewedLaddersAtMinusXSideCenterMinPhi = insur::moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCenterMinPhi);
+	      unskewedLaddersAtMinusXSideCenterMaxPhi = insur::moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCenterMaxPhi);
+	    }
+	    // Skewed ladder
+	    else {
+	      skewedLadderAtMinusXSideCenterRadius = iiter->getModule().center().Rho();
+	      skewedLadderAtMinusXSideCenterPhi = iiter->getModule().center().Phi();
+	      skewedLadderAtMinusXSideSkewAngle = iiter->getModule().skewAngle();
+	    }
+	  }
+
+	  // (+X) side
+	  else {
+	    // Non-skewed ladders
+	    if (!iiter->getModule().isSkewed()) {
+	      unskewedLaddersAtPlusXSideCenterMinPhi = insur::moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCenterMinPhi);
+	      unskewedLaddersAtPlusXSideCenterMaxPhi = insur::moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCenterMaxPhi);
+	    }
+	    // Skewed ladder
+	    else {
+	      skewedLadderAtPlusXSideCenterRadius = iiter->getModule().center().Rho();
+	      skewedLadderAtPlusXSideCenterPhi = iiter->getModule().center().Phi();
+	      skewedLadderAtPlusXSideSkewAngle = iiter->getModule().skewAngle();
+	    }
+	  }
+
+	  std::cout << "iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << std::endl;
+	  std::cout << " iiter->getModule().center().Phi()  = " << iiter->getModule().center().Phi() * 180. / M_PI  << std::endl;
+	  std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << std::endl;
+	  std::cout << "iiter->getModule().isSkewed() = " << iiter->getModule().isSkewed() << std::endl;
+	}
+
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
@@ -1474,48 +1528,69 @@ namespace insur {
       }
 
       // INNER TRACKER
-      else {
-	alg.name = xml_angular_algo;
-	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
-	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	pconverter.str("");
-	pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
-	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << firstPhiRodRadius << "*mm";
-	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
-	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	a.push_back(alg);
-	alg.parameters.clear();
+      else { 
+	if (!isSkewedInstalationMode()) { // hereeeee
+	  alg.name = xml_angular_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	  pconverter << firstPhiRodRadius << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(vectorParam(0., 0., 0.));
+	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	  alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
 
-	alg.name = xml_angular_algo;
-	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
-	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	pconverter.str("");
-	pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
-	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << nextPhiRodRadius << "*mm";
-	alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	pconverter.str("");
-	alg.parameters.push_back(vectorParam(0., 0., 0.));
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
-	alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
- 	pconverter.str("");
-	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	a.push_back(alg);
-	alg.parameters.clear();
+	  alg.name = xml_angular_algo;
+	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	  pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
+	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	  pconverter.str("");
+	  pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
+	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	  pconverter << nextPhiRodRadius << "*mm";
+	  alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(vectorParam(0., 0., 0.));
+	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	  alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	  pconverter.str("");
+	  alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+	}
+
+	else {
+	  //UNskwed
+	  // (-X) side
+	  // FIRSTpHI
+	  // NEXTpHI
+
+	  // (+X) side
+	  // firstphi
+	  //nextphi
+
+
+	  // just use the variables which have just been defined
+	}
+
+
+	// THEN ALSO ADD A POSPART WITH SKEWED LADDERS
+
+
       }
 
       // reset
@@ -2766,16 +2841,16 @@ namespace insur {
 					      const std::string rotationName,
 					      const double rotationAngle) const {
 
-    if (rotations.find(rotationName) == rotations.end()) {
+    if (storedRotations.find(rotationName) == storedRotations.end()) {
       Rotation rot;
       rot.name = rotationName; //"Z" + to_string(angle);
       rot.thetax = 90.;
-      rot.phix = angle;
+      rot.phix = rotationAngle;
       rot.thetay = 90.;
       rot.phiy = rot.phix + 90.;
       rot.thetaz = 0.;
       rot.phiz = 0.;
-      rotations.insert(std::make_pair<const std::string,Rotation>(rotationName, rot));
+      storedRotations.insert(std::pair<std::string, Rotation>(rotationName, rot));
     }
   } 
 

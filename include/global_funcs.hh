@@ -147,6 +147,18 @@ inline bool moduloComp(const ArgType& phi1, const ArgType& phi2, const ArgType& 
 }
 
 template<typename ArgType> 
+inline bool moduloMin(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  return (moduloComp(phi1, phi2, basemodPhi1) ? phi1 : phi2);
+}
+
+template<typename ArgType> 
+inline bool moduloMax(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
+  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  return (moduloComp(phi1, phi2, basemodPhi1) ? phi2 : phi1);
+}
+
+template<typename ArgType> 
 inline ArgType moduloDiff(const ArgType& phi1, const ArgType& phi2, const ArgType& base) {
   static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
   ArgType modPhi1 = femod(phi1, base);
