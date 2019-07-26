@@ -765,7 +765,7 @@ namespace insur {
 	  }
 	}
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
-	if (iiter->getModule().uniRef().side > 0) && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
