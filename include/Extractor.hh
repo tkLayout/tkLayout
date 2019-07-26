@@ -86,7 +86,6 @@ namespace insur {
     };
   public:
     void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
-    Rotation rotation(double angle);
   protected:
     void analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites);
     void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
@@ -109,6 +108,9 @@ namespace insur {
                          std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
   private:
     void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
+    void addRotationAroundLocalYAxis(std::map<std::string,Rotation>& storedRotations, 
+				     const std::string rotationName,
+				     const double rotationAngle) const;
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
