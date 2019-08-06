@@ -606,14 +606,10 @@ namespace insur {
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
 
       // is the layer skewed?
-      /*  const bool& isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
-      if (isSkewed) {
-	logERROR(any2str("VERY IMPORTANT : BARREL LAYER ")
-		 + any2str(lagg.getBarrelLayers()->at(layer - 1)->myid())
-		 + any2str(" : IS SKEWED, WHICH IS NOT YET SUPPORTED IN XML EXPORT.")
-		 + any2str(" ASSUME ALL ITS LADDERS PHI AND R POSITIONS ARE WRONG IN THE XMLS.")
-		 );
-		 }*/
+      const bool isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
+
+      // check that the layer is not both tilted and skewed
+      if (isTilted && isSkewed) { logERROR("Layer is both tilted and skewed: this is not supported."); }
 
       bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
@@ -647,7 +643,10 @@ namespace insur {
       // loop on module caps
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 	// only positive side, and modules with uniref phi == 1 or 2
-	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	if (iiter->getModule().uniRef().side > 0 
+	    && 
+	    (isSkewed || (!isSkewed && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)))
+	    ) {
 	  int modRing = iiter->getModule().uniRef().ring;
 	  // layer name
 	  std::ostringstream lname;
@@ -688,15 +687,17 @@ namespace insur {
 	    flatPartMaxR = MAX(flatPartMaxR, modcomplex.getRmax());
 	    if (flatPartNumModules >= 2 && modRing == (flatPartNumModules - 1)) { flatPartOneBeforeLastModuleMaxZ = MAX(flatPartOneBeforeLastModuleMaxZ, modcomplex.getZmax()); }
 	  }
-	  // WARNING: THIS ONLY LOOKS, ON A GIVEN LAYER, AT THE FIRST 2 MODULES. 
-	  // IT ASSUMES ALL OTHER PLACEMENTS ARE SIMILAR.
-	  // first rod encountered in phi
-	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { 
-	    firstPhiRodRadius = firstPhiRodRadius + iiter->getModule().center().Rho() / 2; 
-	  }
-	  // next rod encountered in phi
-	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { 
-	    nextPhiRodRadius = nextPhiRodRadius + iiter->getModule().center().Rho() / 2; 
+	  if (!isSkewed) {
+	    // WARNING: THIS ONLY LOOKS, ON A GIVEN LAYER, AT THE FIRST 2 MODULES. 
+	    // IT ASSUMES ALL OTHER PLACEMENTS ARE SIMILAR.
+	    // first rod encountered in phi
+	    if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { 
+	      firstPhiRodRadius = firstPhiRodRadius + iiter->getModule().center().Rho() / 2; 
+	    }
+	    // next rod encountered in phi
+	    if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { 
+	      nextPhiRodRadius = nextPhiRodRadius + iiter->getModule().center().Rho() / 2; 
+	    }
 	  }
 	}
       }
@@ -766,28 +767,46 @@ namespace insur {
 	}
 
 	// SKEWED INSTALLATION MODE: COLLECT INFO
-	double unskewedLaddersAtMinusXSideCenterMinPhi = std::numeric_limits<double>::max();
-	double unskewedLaddersAtMinusXSideCenterMaxPhi = 0.;	
+	// (-X) side
+	// Non-skewed ladders
+	double unskewedLaddersCentersMinRho = std::numeric_limits<double>::max();
+	double unskewedLaddersCentersMaxRho = 0.;
+	
+
+	double unskewedLaddersAtMinusXSideCentersMinPhi = std::numeric_limits<double>::max();
+	double unskewedLaddersAtMinusXSideCentersMaxPhi = 0.;
+	int countUnskewedLaddersAtMinusXSide = 0;
+
+	// Skewed ladder
 	double skewedLadderAtMinusXSideCenterRadius = 0.;
 	double skewedLadderAtMinusXSideCenterPhi = 0.;
 	double skewedLadderAtMinusXSideSkewAngle = 0.;
 
-	double unskewedLaddersAtPlusXSideCenterMinPhi = std::numeric_limits<double>::max();
-	double unskewedLaddersAtPlusXSideCenterMaxPhi = 0.;	
+	// (+X) side
+	// Non-skewed ladders
+	double unskewedLaddersAtPlusXSideCentersMinPhi = std::numeric_limits<double>::max();
+	double unskewedLaddersAtPlusXSideCentersMaxPhi = 0.;
+	int countUnskewedLaddersAtPlusXSide = 0;
+
+	// Skewed ladder
 	double skewedLadderAtPlusXSideCenterRadius = 0.;
 	double skewedLadderAtPlusXSideCenterPhi = 0.;
 	double skewedLadderAtPlusXSideSkewAngle = 0.;
 
 	// no point looking at different rings: assumption that all modules are the same along a ladder
-	if (iiter->getModule().uniRef().side > 0 && iiter->getModule().uniRef().ring == 1) {
+	if (iiter->getModule().uniRef().ring == 1) {
 	  const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
 
 	  // (-X) side
 	  if (!isAtPositiveXSide) { 
 	    // Non-skewed ladders
 	    if (!iiter->getModule().isSkewed()) {
-	      unskewedLaddersAtMinusXSideCenterMinPhi = insur::moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCenterMinPhi);
-	      unskewedLaddersAtMinusXSideCenterMaxPhi = insur::moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCenterMaxPhi);
+	      unskewedLaddersAtMinusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMinPhi, 2.*M_PI);
+	      unskewedLaddersAtMinusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI);
+	      countUnskewedLaddersAtMinusXSide++;
+
+	      unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
+	      unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
 	    }
 	    // Skewed ladder
 	    else {
@@ -801,8 +820,12 @@ namespace insur {
 	  else {
 	    // Non-skewed ladders
 	    if (!iiter->getModule().isSkewed()) {
-	      unskewedLaddersAtPlusXSideCenterMinPhi = insur::moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCenterMinPhi);
-	      unskewedLaddersAtPlusXSideCenterMaxPhi = insur::moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCenterMaxPhi);
+	      unskewedLaddersAtPlusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMinPhi, 2.*M_PI);
+	      unskewedLaddersAtPlusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI);
+	      countUnskewedLaddersAtPlusXSide++;
+
+	      unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
+	      unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
 	    }
 	    // Skewed ladder
 	    else {
@@ -1528,67 +1551,199 @@ namespace insur {
       }
 
       // INNER TRACKER
-      else { 
-	if (!isSkewedInstalationMode()) { // hereeeee
-	  alg.name = xml_angular_algo;
-	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	  pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
-	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	  pconverter.str("");
-	  pconverter << firstPhiRodMeanPhi * 180. / M_PI << "*deg";
-	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	  pconverter << firstPhiRodRadius << "*mm";
-	  alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(vectorParam(0., 0., 0.));
-	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
-	  alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	  alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	  a.push_back(alg);
-	  alg.parameters.clear();
+      else {
 
-	  alg.name = xml_angular_algo;
-	  alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-	  pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
-	  alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	  pconverter.str("");
-	  pconverter << nextPhiRodMeanPhi * 180. / M_PI << "*deg";
-	  alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	  pconverter << nextPhiRodRadius << "*mm";
-	  alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(vectorParam(0., 0., 0.));
-	  pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
-	  alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	  pconverter.str("");
-	  alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	  alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	  a.push_back(alg);
-	  alg.parameters.clear();
+	// COMMON ALGORITHM PARAMETERS
+	const std::string nameSpace = trackerXmlTags.nspace;
+	const std::string parentName = lname.str();
+	const XYZVector center = XYZVector(0., 0., 0.);
+	const int copyNumberIncrement = 2;
+
+
+	// NON-SKEWED LAYER
+	if (!isSkewedInstalationMode()) {
+	  
+	  // COMMON ALGORITHM PARAMETERS
+	  const double rangeAngle = 360.;	  
+	  const int numberLadders = lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;	 
+
+	  // FIRST PHI LADDERS ALGORITHM
+	  const std::string firstPhiLadderName = rodname.str();
+	  const double firstPhiLadderCenterPhi = firstPhiRodMeanPhi;
+	  const double firstPhiLadderRadius = firstPhiRodRadius;
+	  const int firstPhiLadderStartCopyNumber = 1;
+
+	  createAndStoreDDTrackerAngularAlgorithmBlock(a,
+						       nameSpace, 
+						       parentName,
+						       firstPhiLadderName,
+						       firstPhiLadderCenterPhi,
+						       rangeAngle,
+						       firstPhiLadderRadius,
+						       center,
+						       numberLadders,
+						       firstPhiLadderStartCopyNumber,
+						       copyNumberIncrement);
+
+	  // NEXT PHI LADDERS ALGORITHM
+	  const std::string nextPhiLadderName = rodNextPhiName.str();
+	  const double nextPhiLadderCenterPhi = nextPhiRodMeanPhi;
+	  const double nextPhiLadderRadius = nextPhiRodRadius;
+	  const int nextPhiLadderStartCopyNumber = 2;
+
+	  createAndStoreDDTrackerAngularAlgorithmBlock(a,
+						       nameSpace, 
+						       parentName,
+						       nextPhiLadderName,
+						       nextPhiLadderCenterPhi,						    
+						       rangeAngle,
+						       nextPhiLadderRadius,
+						       center,
+						       numberLadders,
+						       nextPhiLadderStartCopyNumber,
+						       copyNumberIncrement);
 	}
 
+	// SKEWED LAYER
+	// ALGO BLOCKS TO PLACE UNSKEWED LADDERS
 	else {
-	  //UNskwed
+
 	  // (-X) side
-	  // FIRSTpHI
-	  // NEXTpHI
+	  if (countUnskewedLaddersAtMinusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
+	  else {
+
+	    // COMMON ALGORITHM PARAMETERS
+	    const double rangeAngleAtMinusXSide = unskewedLaddersAtMinusXSideCentersMaxPhi - unskewedLaddersAtMinusXSideCentersMinPhi;
+
+	    // FLIPPED LADDERS BLOCK
+	    const std::string flippedLadderName = rodname.str();	  
+	    const double flippedLadderRadius = unskewedLaddersCentersMinRho;
+	    const double flippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi; // WARNING: THIS ASSUMES
+	    // that the non-skewed ladder placed at min phi is placed at inner radius and flipped!!!
+	    const int countFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.) + 1;
+	    const int flippedLadderStartCopyNumber = 1;
+
+	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
+							 nameSpace, 
+							 parentName,
+							 flippedLadderName,
+							 flippedLadderCenterPhi,
+							 rangeAngleAtMinusXSide,
+							 flippedLadderRadius,
+							 center,
+							 countFlippedLaddersAtMinusXSide,
+							 flippedLadderStartCopyNumber,
+							 copyNumberIncrement);	  
+
+	    // UNFLIPPED LADDERS BLOCK
+	    const std::string unFlippedLadderName = rodNextPhiName.str();	  
+	    const double unFlippedLadderRadius = unskewedLaddersCentersMaxRho;
+	    const double deltaPhiAtMinusXSide = rangeAngleAtMinusXSide / (countUnskewedLaddersAtMinusXSide - 1);
+	    const double unFlippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi + deltaPhiAtMinusXSide;
+	    const int countUnFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.);
+	    const int unFlippedLadderStartCopyNumber = 2;
+
+	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
+							 nameSpace, 
+							 parentName,
+							 unFlippedLadderName,
+							 unFlippedLadderCenterPhi,
+							 rangeAngleAtMinusXSide,
+							 unFlippedLadderRadius,
+							 center,
+							 countUnFlippedLaddersAtMinusXSide,
+							 unFlippedLadderStartCopyNumber,
+							 copyNumberIncrement);
+	  }
+	  
 
 	  // (+X) side
-	  // firstphi
-	  //nextphi
+	  if (countUnskewedLaddersAtPlusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
+	  else {
+
+	    // COMMON ALGORITHM PARAMETERS
+	    const double rangeAngleAtPlusXSide = unskewedLaddersAtPlusXSideCentersMaxPhi - unskewedLaddersAtPlusXSideCentersMinPhi;	  
+
+	    // FLIPPED LADDERS BLOCK
+	    const std::string flippedLadderName = rodname.str();	  
+	    const double flippedLadderRadius = unskewedLaddersCentersMinRho;
+	    const double flippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi; // WARNING: THIS ASSUMES
+	    // that the non-skewed ladder placed at min phi is placed at inner radius and flipped!!!
+	    const int countFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.) + 1;
+	    const int flippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 1;
+
+	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
+							 nameSpace, 
+							 parentName,
+							 flippedLadderName,
+							 flippedLadderCenterPhi,
+							 rangeAngleAtPlusXSide,
+							 flippedLadderRadius,
+							 center,
+							 countFlippedLaddersAtPlusXSide,
+							 flippedLadderStartCopyNumber,
+							 copyNumberIncrement);	  
+
+	    // UNFLIPPED LADDERS BLOCK
+	    const std::string unFlippedLadderName = rodNextPhiName.str();	  
+	    const double unFlippedLadderRadius = unskewedLaddersCentersMaxRho;
+	    const double deltaPhiAtPlusXSide = rangeAngleAtPlusXSide / (countUnskewedLaddersAtPlusXSide - 1);
+	    const double unFlippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi + deltaPhiAtPlusXSide;
+	    const int countUnFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.);
+	    const int unFlippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 2;
+
+	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
+							 nameSpace, 
+							 parentName,
+							 unFlippedLadderName,
+							 unFlippedLadderCenterPhi,
+							 rangeAngleAtPlusXSide,
+							 unFlippedLadderRadius,
+							 center,
+							 countUnFlippedLaddersAtPlusXSide,
+							 unFlippedLadderStartCopyNumber,
+							 copyNumberIncrement);
+	  }
 
 
-	  // just use the variables which have just been defined
-	}
+	  const int countTotalUnskewedLadders = countUnskewedLaddersAtMinusXSide + countUnskewedLaddersAtPlusXSide;
+
+	  // SKEWED LADDER, (-X) side
+	  pos.parent_tag = nameSpace + ":" + parentName;
+	  pos.child_tag = nameSpace  + ":" + rodNextPhiName.str(); // WARNING: THIS ASSUMES
+	  // that the skewed ladder is always non-flipped.
+
+	  pos.trans.dx = skewedLadderAtMinusXSideCenterRadius * cos(skewedLadderAtMinusXSideCenterPhi);
+	  pos.trans.dy = skewedLadderAtMinusXSideCenterRadius * sin(skewedLadderAtMinusXSideCenterPhi);
+	  pos.trans.dz = 0;
+
+	  const double skewRotationAngle = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
+	  const std::string skewRotationName = "Z" + std::to_string(rotationAroundLayerZAxisAngle * 180. / M_PI);
+	  addRotationAroundLocalZAxis(r, skewRotationName, skewRotationAngle);
+	  
+	  pos.rotref = nameSpace + ":" + skewRotationName;
+	  pos.copy = countTotalUnskewedLadders + 1;
+	  p.push_back(pos);
 
 
-	// THEN ALSO ADD A POSPART WITH SKEWED LADDERS
+	  // SKEWED LADDER, (+X) side
+	  pos.parent_tag = nameSpace + ":" + parentName;
+	  pos.child_tag = nameSpace  + ":" + rodNextPhiName.str(); // WARNING: THIS ASSUMES
+	  // that the skewed ladder is always non-flipped.
+
+	  pos.trans.dx = skewedLadderAtPlusXSideCenterRadius * cos(skewedLadderAtPlusXSideCenterPhi);
+	  pos.trans.dy = skewedLadderAtPlusXSideCenterRadius * sin(skewedLadderAtPlusXSideCenterPhi);
+	  pos.trans.dz = 0;
+
+	  const double skewRotationAngle = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;	    
+	  const std::string skewRotationName = "Z" + std::to_string(rotationAroundLayerZAxisAngle * 180. / M_PI);
+	  addRotationAroundZAxis(r, skewRotationName, skewRotationAngle);
+	  
+	  pos.rotref = nameSpace + ":" + skewRotationName;
+	  pos.copy = countTotalUnskewedLadders + 2;
+	  p.push_back(pos);
+
+	} // end of skewed layer
 
 
       }
@@ -1600,6 +1755,8 @@ namespace insur {
       pos.trans.dx = 0;
       pos.trans.dy = 0;
       pos.trans.dz = 0;
+      pos.rotref = "";
+      pos.copy = 1;
 
       // tilted rings
       if ( !rinfoplus.empty() || !rinfominus.empty() ) {
@@ -2837,13 +2994,13 @@ namespace insur {
   /* Add rotation around local Y axis.
      For example, this is used to skew modules: modules are rotated around their local Y axis.
   */
-  void Extractor::addRotationAroundLocalYAxis(std::map<std::string,Rotation>& storedRotations, 
+  void Extractor::addRotationAroundLocalZAxis(std::map<std::string,Rotation>& storedRotations, 
 					      const std::string rotationName,
 					      const double rotationAngle) const {
 
     if (storedRotations.find(rotationName) == storedRotations.end()) {
       Rotation rot;
-      rot.name = rotationName; //"Z" + to_string(angle);
+      rot.name = rotationName;
       rot.thetax = 90.;
       rot.phix = rotationAngle;
       rot.thetay = 90.;
@@ -2853,6 +3010,61 @@ namespace insur {
       storedRotations.insert(std::pair<std::string, Rotation>(rotationName, rot));
     }
   } 
+
+
+
+  void Extractor::createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
+							       const std::string nameSpace, 
+							       const std::string parentName,
+							       const std::string childName,
+							       const double startAngle,
+							       const double rangeAngle,
+							       const double radius,
+							       const XYZVector& center,
+							       const int numCopies,
+							       const int startCopyNumber,
+							       const int copyNumberIncrement) {
+    AlgoInfo myAlgo; // would obviously be better to build the algo directly here instead of having a constructor with no argument!
+
+    // Algo name
+    myAlgo.name = xml_angular_algo;
+
+    // Parent volume name
+    myAlgo.parent = nameSpace + ":" + parentName;
+
+    // Child volume name
+    myAlgo.parameters.push_back(stringParam(xml_childparam,  trackerXmlTags.nspace + ":" + childName));
+	 
+    // Volume with copy number 1, center phi angle
+    std::ostringstream startAngleStream;
+    startAngleStream << startAngle * 180. / M_PI << "*deg";
+    myAlgo.parameters.push_back(numericParam(xml_startangle, startAngleStream.str()));
+	 
+    // Difference between first and last volumes' centers phi angles
+    std::ostringstream rangeAngleStream;
+    rangeAngleStream << rangeAngle * 180. / M_PI << "*deg";
+    myAlgo.parameters.push_back(numericParam(xml_rangeangle, rangeAngleStream.str()));
+
+    // All volumes are assumed to be placed at same radius in that algorithm
+    std::ostringstream radiusStream;
+    radiusStream << radius << "*mm";
+    myAlgo.parameters.push_back(numericParam(xml_radius, radiusStream.str()));
+
+    // Shift of children with respect to parent, AFTER rotation is done
+    myAlgo.parameters.push_back(vectorParam(center.X(), center.Y(), center.Z()));
+
+    // Number of children copies
+    myAlgo.parameters.push_back(numericParam(xml_nmods, any2str(numCopies)));
+	  
+    // Start copy number
+    myAlgo.parameters.push_back(numericParam(xml_startcopyno, startCopyNumber));
+
+    // Copy number increment
+    myAlgo.parameters.push_back(numericParam(xml_incrcopyno, copyNumberIncrement));
+
+    // Store algo
+    storedAlgorithmBlocks.push_back(myAlgo);
+  }
 
 
   /**

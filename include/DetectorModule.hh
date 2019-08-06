@@ -242,7 +242,7 @@ public:
   double meanWidth() const { return decorated().meanWidth(); }
   double physicalLength() const { return decorated().physicalLength(); }
 
-  const bool isAtPlusXSide() const { return (center().Z() >= 0.); }
+  const bool isAtPlusXSide() const { return (center().Z() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
