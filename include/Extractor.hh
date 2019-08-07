@@ -109,8 +109,8 @@ namespace insur {
   private:
     void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
     void addRotationAroundZAxis(std::map<std::string,Rotation>& storedRotations, 
-				     const std::string rotationName,
-				     const double rotationAngle) const;
+				const std::string rotationName,
+				const double rotationAngleInRad) const;
     void createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
 						      const std::string nameSpace, 
 						      const std::string parentName,

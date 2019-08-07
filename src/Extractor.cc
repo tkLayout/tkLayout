@@ -606,10 +606,10 @@ namespace insur {
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
 
       // is the layer skewed?
-      const bool isSkewed = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
+      const bool isSkewedLayer = lagg.getBarrelLayers()->at(layer - 1)->isSkewedForInstallation();
 
       // check that the layer is not both tilted and skewed
-      if (isTilted && isSkewed) { logERROR("Layer is both tilted and skewed: this is not supported."); }
+      if (isTilted && isSkewedLayer) { logERROR("Layer is both tilted and skewed: this is not supported."); }
 
       bool isTimingLayer = lagg.getBarrelLayers()->at(layer - 1)->isTiming();
       // TO DO : NOT THAT EXTREMA OF MODULES WITH HYBRIDS HAVE BEEN INTRODUCED INTO DETECTORMODULE (USED TO BE IN MODULE COMPLEX CLASS ONLY)
@@ -639,15 +639,43 @@ namespace insur {
       // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
       double firstPhiRodRadius = 0;   // first rod encountered in phi by the visitor.
       double nextPhiRodRadius = 0;  // next rod encountered in phi by the visitor.
-      // WARING: This assumes that there is a 2 rod - periodicity.
+
+      // SKEWED INSTALLATION MODE: COLLECT INFO	
+      double unskewedLaddersCentersMinRho = std::numeric_limits<double>::max();
+      double unskewedLaddersCentersMaxRho = 0.;	
+      // (-X) side:
+      // Non-skewed ladders
+      double unskewedLaddersAtMinusXSideCentersMinPhi = std::numeric_limits<double>::max();
+      double unskewedLaddersAtMinusXSideCentersMaxPhi = 0.;
+      int countUnskewedLaddersAtMinusXSide = 0;
+      // Skewed ladder
+      double skewedLadderAtMinusXSideCenterRadius = 0.;
+      double skewedLadderAtMinusXSideCenterPhi = 0.;
+      double skewedLadderAtMinusXSideSkewAngle = 0.;
+
+      // (+X) side:
+      // Non-skewed ladders
+      double unskewedLaddersAtPlusXSideCentersMinPhi = std::numeric_limits<double>::max();
+      double unskewedLaddersAtPlusXSideCentersMaxPhi = 0.;
+      int countUnskewedLaddersAtPlusXSide = 0;
+      // Skewed ladder
+      double skewedLadderAtPlusXSideCenterRadius = 0.;
+      double skewedLadderAtPlusXSideCenterPhi = 0.;
+      double skewedLadderAtPlusXSideSkewAngle = 0.;
+      
       // loop on module caps
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
-	// only positive side, and modules with uniref phi == 1 or 2
+	const int modRing = iiter->getModule().uniRef().ring;
+	// only positive side	
 	if (iiter->getModule().uniRef().side > 0 
-	    && 
-	    (isSkewed || (!isSkewed && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)))
-	    ) {
-	  int modRing = iiter->getModule().uniRef().ring;
+	    && (
+		// Skewed layer: assumes all rings are identical
+		(isSkewedLayer && modRing == 1)	     
+		// Non-skewed layer: take only modules with uniref phi == 1 or 2
+		// WARING: This assumes that there is a 2 rod - periodicity.
+		|| (!isSkewedLayer && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2))
+		)) {
+	  
 	  // layer name
 	  std::ostringstream lname;
 	  lname << xml_layer << layer; // e.g. Layer1
@@ -687,7 +715,8 @@ namespace insur {
 	    flatPartMaxR = MAX(flatPartMaxR, modcomplex.getRmax());
 	    if (flatPartNumModules >= 2 && modRing == (flatPartNumModules - 1)) { flatPartOneBeforeLastModuleMaxZ = MAX(flatPartOneBeforeLastModuleMaxZ, modcomplex.getZmax()); }
 	  }
-	  if (!isSkewed) {
+
+	  if (!isSkewedLayer) {
 	    // WARNING: THIS ONLY LOOKS, ON A GIVEN LAYER, AT THE FIRST 2 MODULES. 
 	    // IT ASSUMES ALL OTHER PLACEMENTS ARE SIMILAR.
 	    // first rod encountered in phi
@@ -699,8 +728,60 @@ namespace insur {
 	      nextPhiRodRadius = nextPhiRodRadius + iiter->getModule().center().Rho() / 2; 
 	    }
 	  }
-	}
-      }
+
+	  // Skewed layer: take relevant info
+	  else {
+	    const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
+
+	    // (-X) side
+	    if (!isAtPositiveXSide) { 
+	      // Non-skewed ladders
+	      if (!iiter->getModule().isSkewed()) {
+		unskewedLaddersAtMinusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMinPhi, 2.*M_PI);
+		unskewedLaddersAtMinusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI);
+		countUnskewedLaddersAtMinusXSide++;
+
+		unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
+		unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
+	      }
+	      // Skewed ladder
+	      else {
+		skewedLadderAtMinusXSideCenterRadius = iiter->getModule().center().Rho();
+		skewedLadderAtMinusXSideCenterPhi = iiter->getModule().center().Phi();
+		skewedLadderAtMinusXSideSkewAngle = iiter->getModule().skewAngle();
+	      }
+	    }
+
+	    // (+X) side
+	    else {
+	      // Non-skewed ladders
+	      if (!iiter->getModule().isSkewed()) {
+		unskewedLaddersAtPlusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMinPhi, 2.*M_PI);
+		unskewedLaddersAtPlusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI);
+		countUnskewedLaddersAtPlusXSide++;
+
+		unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
+		unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
+	      }
+	      // Skewed ladder
+	      else {
+		skewedLadderAtPlusXSideCenterRadius = iiter->getModule().center().Rho();
+		skewedLadderAtPlusXSideCenterPhi = iiter->getModule().center().Phi();
+		skewedLadderAtPlusXSideSkewAngle = iiter->getModule().skewAngle();
+	      }
+	    }
+
+	    std::cout << "iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << std::endl;
+	    std::cout << " iiter->getModule().center().Phi()  = " << iiter->getModule().center().Phi() * 180. / M_PI  << std::endl;
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << std::endl;
+	    std::cout << "iiter->getModule().isSkewed() = " << iiter->getModule().isSkewed() << std::endl;
+	  } // end: skewed layer info
+
+	  std::cout << "countUnskewedLaddersAtPlusXSide = " << countUnskewedLaddersAtPlusXSide << std::endl;
+	  std::cout << "countUnskewedLaddersAtMinusXSide = " << countUnskewedLaddersAtMinusXSide << std::endl;
+
+	} // end: select a few modules only
+      } // end: loop on modules
 
       if ((rmax - rmin) == 0.0) continue;
 
@@ -766,80 +847,6 @@ namespace insur {
 	  }
 	}
 
-	// SKEWED INSTALLATION MODE: COLLECT INFO
-	// (-X) side
-	// Non-skewed ladders
-	double unskewedLaddersCentersMinRho = std::numeric_limits<double>::max();
-	double unskewedLaddersCentersMaxRho = 0.;
-	
-
-	double unskewedLaddersAtMinusXSideCentersMinPhi = std::numeric_limits<double>::max();
-	double unskewedLaddersAtMinusXSideCentersMaxPhi = 0.;
-	int countUnskewedLaddersAtMinusXSide = 0;
-
-	// Skewed ladder
-	double skewedLadderAtMinusXSideCenterRadius = 0.;
-	double skewedLadderAtMinusXSideCenterPhi = 0.;
-	double skewedLadderAtMinusXSideSkewAngle = 0.;
-
-	// (+X) side
-	// Non-skewed ladders
-	double unskewedLaddersAtPlusXSideCentersMinPhi = std::numeric_limits<double>::max();
-	double unskewedLaddersAtPlusXSideCentersMaxPhi = 0.;
-	int countUnskewedLaddersAtPlusXSide = 0;
-
-	// Skewed ladder
-	double skewedLadderAtPlusXSideCenterRadius = 0.;
-	double skewedLadderAtPlusXSideCenterPhi = 0.;
-	double skewedLadderAtPlusXSideSkewAngle = 0.;
-
-	// no point looking at different rings: assumption that all modules are the same along a ladder
-	if (iiter->getModule().uniRef().ring == 1) {
-	  const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
-
-	  // (-X) side
-	  if (!isAtPositiveXSide) { 
-	    // Non-skewed ladders
-	    if (!iiter->getModule().isSkewed()) {
-	      unskewedLaddersAtMinusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMinPhi, 2.*M_PI);
-	      unskewedLaddersAtMinusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI);
-	      countUnskewedLaddersAtMinusXSide++;
-
-	      unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
-	      unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
-	    }
-	    // Skewed ladder
-	    else {
-	      skewedLadderAtMinusXSideCenterRadius = iiter->getModule().center().Rho();
-	      skewedLadderAtMinusXSideCenterPhi = iiter->getModule().center().Phi();
-	      skewedLadderAtMinusXSideSkewAngle = iiter->getModule().skewAngle();
-	    }
-	  }
-
-	  // (+X) side
-	  else {
-	    // Non-skewed ladders
-	    if (!iiter->getModule().isSkewed()) {
-	      unskewedLaddersAtPlusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMinPhi, 2.*M_PI);
-	      unskewedLaddersAtPlusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI);
-	      countUnskewedLaddersAtPlusXSide++;
-
-	      unskewedLaddersCentersMinRho = MIN(iiter->getModule().center().Rho(), unskewedLaddersCentersMinRho);
-	      unskewedLaddersCentersMaxRho = MAX(iiter->getModule().center().Rho(), unskewedLaddersCentersMaxRho);
-	    }
-	    // Skewed ladder
-	    else {
-	      skewedLadderAtPlusXSideCenterRadius = iiter->getModule().center().Rho();
-	      skewedLadderAtPlusXSideCenterPhi = iiter->getModule().center().Phi();
-	      skewedLadderAtPlusXSideSkewAngle = iiter->getModule().skewAngle();
-	    }
-	  }
-
-	  std::cout << "iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << std::endl;
-	  std::cout << " iiter->getModule().center().Phi()  = " << iiter->getModule().center().Phi() * 180. / M_PI  << std::endl;
-	  std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << std::endl;
-	  std::cout << "iiter->getModule().isSkewed() = " << iiter->getModule().isSkewed() << std::endl;
-	}
 
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
@@ -1561,7 +1568,7 @@ namespace insur {
 
 
 	// NON-SKEWED LAYER
-	if (!isSkewedInstalationMode()) {
+	if (!isSkewedLayer) {
 	  
 	  // COMMON ALGORITHM PARAMETERS
 	  const double rangeAngle = 360.;	  
@@ -1609,6 +1616,7 @@ namespace insur {
 	else {
 
 	  // (-X) side
+	  std::cout << "countUnskewedLaddersAtMinusXSide = " << countUnskewedLaddersAtMinusXSide << std::endl;
 	  if (countUnskewedLaddersAtMinusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
 	  else {
 
@@ -1717,11 +1725,11 @@ namespace insur {
 	  pos.trans.dy = skewedLadderAtMinusXSideCenterRadius * sin(skewedLadderAtMinusXSideCenterPhi);
 	  pos.trans.dz = 0;
 
-	  const double skewRotationAngle = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
-	  const std::string skewRotationName = "Z" + std::to_string(rotationAroundLayerZAxisAngle * 180. / M_PI);
-	  addRotationAroundLocalZAxis(r, skewRotationName, skewRotationAngle);
+	  const double skewRotationAngleInRadAtMinusXSide = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
+	  const std::string skewRotationNameAtMinusXSide = "Z" + std::to_string(skewRotationAngleInRadAtMinusXSide * 180. / M_PI);
+	  addRotationAroundZAxis(r, skewRotationNameAtMinusXSide, skewRotationAngleInRadAtMinusXSide);
 	  
-	  pos.rotref = nameSpace + ":" + skewRotationName;
+	  pos.rotref = nameSpace + ":" + skewRotationNameAtMinusXSide;
 	  pos.copy = countTotalUnskewedLadders + 1;
 	  p.push_back(pos);
 
@@ -1735,11 +1743,11 @@ namespace insur {
 	  pos.trans.dy = skewedLadderAtPlusXSideCenterRadius * sin(skewedLadderAtPlusXSideCenterPhi);
 	  pos.trans.dz = 0;
 
-	  const double skewRotationAngle = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;	    
-	  const std::string skewRotationName = "Z" + std::to_string(rotationAroundLayerZAxisAngle * 180. / M_PI);
-	  addRotationAroundZAxis(r, skewRotationName, skewRotationAngle);
+	  const double skewRotationAngleInRadAtPlusXSide = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;	    
+	  const std::string skewRotationNameAtPlusXSide = "Z" + std::to_string(skewRotationAngleInRadAtPlusXSide * 180. / M_PI);
+	  addRotationAroundZAxis(r, skewRotationNameAtPlusXSide, skewRotationAngleInRadAtPlusXSide);
 	  
-	  pos.rotref = nameSpace + ":" + skewRotationName;
+	  pos.rotref = nameSpace + ":" + skewRotationNameAtPlusXSide;
 	  pos.copy = countTotalUnskewedLadders + 2;
 	  p.push_back(pos);
 
@@ -1914,7 +1922,7 @@ namespace insur {
       lspec.moduletypes.push_back(minfo_zero);
 
       layer++;
-    }
+    } // end: loop on layers
     if (!lspec.partselectors.empty()) t.push_back(lspec);
     if (!rspec.partselectors.empty()) t.push_back(rspec); 
     if (!srspec.partselectors.empty()) t.push_back(srspec);
@@ -2994,15 +3002,15 @@ namespace insur {
   /* Add rotation around local Y axis.
      For example, this is used to skew modules: modules are rotated around their local Y axis.
   */
-  void Extractor::addRotationAroundLocalZAxis(std::map<std::string,Rotation>& storedRotations, 
-					      const std::string rotationName,
-					      const double rotationAngle) const {
+  void Extractor::addRotationAroundZAxis(std::map<std::string,Rotation>& storedRotations, 
+					 const std::string rotationName,
+					 const double rotationAngleInRad) const {
 
     if (storedRotations.find(rotationName) == storedRotations.end()) {
       Rotation rot;
       rot.name = rotationName;
       rot.thetax = 90.;
-      rot.phix = rotationAngle;
+      rot.phix = rotationAngleInRad * 180. / M_PI;
       rot.thetay = 90.;
       rot.phiy = rot.phix + 90.;
       rot.thetaz = 0.;
@@ -3033,7 +3041,7 @@ namespace insur {
     myAlgo.parent = nameSpace + ":" + parentName;
 
     // Child volume name
-    myAlgo.parameters.push_back(stringParam(xml_childparam,  trackerXmlTags.nspace + ":" + childName));
+    myAlgo.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + childName));
 	 
     // Volume with copy number 1, center phi angle
     std::ostringstream startAngleStream;
@@ -3057,10 +3065,10 @@ namespace insur {
     myAlgo.parameters.push_back(numericParam(xml_nmods, any2str(numCopies)));
 	  
     // Start copy number
-    myAlgo.parameters.push_back(numericParam(xml_startcopyno, startCopyNumber));
+    myAlgo.parameters.push_back(numericParam(xml_startcopyno, any2str(startCopyNumber)));
 
     // Copy number increment
-    myAlgo.parameters.push_back(numericParam(xml_incrcopyno, copyNumberIncrement));
+    myAlgo.parameters.push_back(numericParam(xml_incrcopyno, any2str(copyNumberIncrement)));
 
     // Store algo
     storedAlgorithmBlocks.push_back(myAlgo);
