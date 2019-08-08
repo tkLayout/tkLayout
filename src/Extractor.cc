@@ -1618,10 +1618,14 @@ namespace insur {
 	}
 
 	// SKEWED LAYER
+	// WARNING: This assumes that, per (X) side:
+	// - there is only 1 skewed ladder (placed at outer radius).
+	// - there is an odd number of non-skewed ladders (>=3).
+
 	// ALGO BLOCKS TO PLACE UNSKEWED LADDERS
 	else {
 
-	  // (-X) side
+	  // (-X) SIDE
 	  if (countUnskewedLaddersAtMinusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
 	  else {
 
@@ -1630,13 +1634,23 @@ namespace insur {
 							femod(unskewedLaddersAtMinusXSideCentersMaxPhi, 2. * M_PI) 
 							- femod(unskewedLaddersAtMinusXSideCentersMinPhi, 2. * M_PI)
 							, 2. * M_PI);
-	    // FLIPPED LADDERS BLOCK
+
+	    // FLIPPED LADDERS BLOCK (INNER RADIUS)
+	    // flipped ladders
 	    const std::string flippedLadderName = ladderName.str();
+	    // phi
 	    const double flippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi; // WARNING: THIS ASSUMES
-	    // that the non-skewed ladder placed at min phi is placed at inner radius and flipped!!!
-	    const int countFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.) + 1;
+	                                                                                    // that the non-skewed ladder placed at min phi 
+	                                                                                    // is placed at inner radius and flipped!!!
+	    // number of flipped ladders
+	    const int countFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.) + 1; // WARNING: THIS ASSUMES
+	                                                                                                       // that there is an odd number of 
+                                                                                                               // non-skewed ladders: 
+	                                                                                                       // 1 more ladder at inner radius.
+	    // start copy number
 	    const int flippedLadderStartCopyNumber = 1;
 
+	    // algo block
 	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
 							 nameSpace, 
 							 parentName,
@@ -1649,13 +1663,22 @@ namespace insur {
 							 flippedLadderStartCopyNumber,
 							 copyNumberIncrement);	  
 
-	    // UNFLIPPED LADDERS BLOCK
-	    const std::string unFlippedLadderName = unflippedLadderName.str();	  
+	    // UNFLIPPED LADDERS BLOCK (OUTER RADIUS)
+	    // non-flipped ladders
+	    const std::string unFlippedLadderName = unflippedLadderName.str();
+	    // delta phi between 2 consecutive non-skewed ladders 
 	    const double deltaPhiAtMinusXSide = rangeAngleAtMinusXSide / (countUnskewedLaddersAtMinusXSide - 1);
+	    // phi
 	    const double unFlippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi + deltaPhiAtMinusXSide;
-	    const int countUnFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.);
+	    // number of non-flipped ladders
+	    const int countUnFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.); // WARNING: THIS ASSUMES
+	                                                                                                     // that there is an odd number of 
+                                                                                                             // non-skewed ladders: 
+	                                                                                                     // 1 less ladder at outer radius.
+	    // start copy number
 	    const int unFlippedLadderStartCopyNumber = 2;
 
+	    // algo block
 	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
 							 nameSpace, 
 							 parentName,
@@ -1680,13 +1703,22 @@ namespace insur {
 						       - femod(unskewedLaddersAtPlusXSideCentersMinPhi, 2. * M_PI)
 						       , 2.*M_PI);
 
-	    // FLIPPED LADDERS BLOCK
-	    const std::string flippedLadderName = ladderName.str();	  
+	    // FLIPPED LADDERS BLOCK  (INNER RADIUS)
+	    // flipped ladders
+	    const std::string flippedLadderName = ladderName.str();
+	    // phi	  
 	    const double flippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi; // WARNING: THIS ASSUMES
-	    // that the non-skewed ladder placed at min phi is placed at inner radius and flipped!!!
-	    const int countFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.) + 1;
+	                                                                                    // that the non-skewed ladder placed at min phi 
+	                                                                                    // is placed at inner radius and flipped!!!
+	    // number of flipped ladders
+	    const int countFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.) + 1; // WARNING: THIS ASSUMES
+	                                                                                                     // that there is an odd number of 
+                                                                                                             // non-skewed ladders: 
+	                                                                                                     // 1 more ladder at inner radius.
+	    // start copy number
 	    const int flippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 1;
 
+	    // algo block
 	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
 							 nameSpace, 
 							 parentName,
@@ -1699,13 +1731,22 @@ namespace insur {
 							 flippedLadderStartCopyNumber,
 							 copyNumberIncrement);	  
 
-	    // UNFLIPPED LADDERS BLOCK
+	    // UNFLIPPED LADDERS BLOCK (OUTER RADIUS)
+	    // non-flipped ladders
 	    const std::string unFlippedLadderName = unflippedLadderName.str();
+	    // delta phi between 2 consecutive non-skewed ladders
 	    const double deltaPhiAtPlusXSide = rangeAngleAtPlusXSide / (countUnskewedLaddersAtPlusXSide - 1);
+	    // phi
 	    const double unFlippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi + deltaPhiAtPlusXSide;
-	    const int countUnFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.);
+	    // number of non-flipped ladders
+	    const int countUnFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.); // WARNING: THIS ASSUMES
+	                                                                                                   // that there is an odd number of 
+                                                                                                           // non-skewed ladders: 
+	                                                                                                   // 1 less ladder at outer radius.
+	    // start copy number
 	    const int unFlippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 2;
 
+	    // algo block
 	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
 							 nameSpace, 
 							 parentName,
@@ -1763,7 +1804,6 @@ namespace insur {
 	  pos.trans.dz = 0;
 	  pos.rotref = "";
 	  pos.copy = 1;
-
 	} // end of skewed layer
 
       }
