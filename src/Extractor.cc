@@ -1732,7 +1732,7 @@ namespace insur {
 	  pos.trans.dz = 0;
 
 	  const double skewRotationAngleInRadAtMinusXSide = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
-	  const std::string skewRotationNameAtMinusXSide = "Z" + std::to_string(skewRotationAngleInRadAtMinusXSide * 180. / M_PI);
+	  const std::string skewRotationNameAtMinusXSide = "Z" + any2str(skewRotationAngleInRadAtMinusXSide * 180. / M_PI, 4);
 	  addRotationAroundZAxis(r, skewRotationNameAtMinusXSide, skewRotationAngleInRadAtMinusXSide);
 	  
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtMinusXSide;
@@ -1750,7 +1750,7 @@ namespace insur {
 	  pos.trans.dz = 0;
 
 	  const double skewRotationAngleInRadAtPlusXSide = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;	    
-	  const std::string skewRotationNameAtPlusXSide = "Z" + std::to_string(skewRotationAngleInRadAtPlusXSide * 180. / M_PI);
+	  const std::string skewRotationNameAtPlusXSide = "Z" + any2str(skewRotationAngleInRadAtPlusXSide * 180. / M_PI, 4);
 	  addRotationAroundZAxis(r, skewRotationNameAtPlusXSide, skewRotationAngleInRadAtPlusXSide);
 	  
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtPlusXSide;
