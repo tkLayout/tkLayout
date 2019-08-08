@@ -644,7 +644,7 @@ namespace insur {
       // (-X) side:
       // Non-skewed ladders
       double unskewedLaddersAtMinusXSideCentersMinPhi = 0.;
-      double unskewedLaddersAtMinusXSideCentersMaxPhi = 0.; // ?
+      double unskewedLaddersAtMinusXSideCentersMaxPhi = 0.;
       bool isPhiComputationAtMinusXSideInitialized = false;
       int countUnskewedLaddersAtMinusXSide = 0;
       // Skewed ladder
@@ -732,64 +732,56 @@ namespace insur {
 	  }
 
 	  // Skewed layer: take relevant info
-	  if (isSkewedLayer) {
+	  if (isSkewedLayer && modRing == 1) {
 	    // Assumes all rings are identical
-	    if (modRing == 1) {
-	      const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
+	    const bool isAtPositiveXSide = iiter->getModule().isAtPlusXSide();
 
-	      // (-X) side
-	      if (!isAtPositiveXSide) { 
-		// Non-skewed ladders
-		if (!iiter->getModule().isSkewed()) {
-		  if (!isPhiComputationAtMinusXSideInitialized) {
-		    unskewedLaddersAtMinusXSideCentersMinPhi = iiter->getModule().center().Phi();
-		    unskewedLaddersAtMinusXSideCentersMaxPhi = iiter->getModule().center().Phi();
-		    isPhiComputationAtMinusXSideInitialized = true;
-		  }
-		  else {
-		    unskewedLaddersAtMinusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMinPhi, 2.*M_PI);
-		    unskewedLaddersAtMinusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI);
-		  }
-		  countUnskewedLaddersAtMinusXSide++;
+	    // (-X) side
+	    if (!isAtPositiveXSide) { 
+	      // Non-skewed ladders
+	      if (!iiter->getModule().isSkewed()) {
+		if (!isPhiComputationAtMinusXSideInitialized) {
+		  unskewedLaddersAtMinusXSideCentersMinPhi = iiter->getModule().center().Phi();
+		  unskewedLaddersAtMinusXSideCentersMaxPhi = iiter->getModule().center().Phi();
+		  isPhiComputationAtMinusXSideInitialized = true;
 		}
-		// Skewed ladder
 		else {
-		  skewedLadderAtMinusXSideCenterRadius = iiter->getModule().center().Rho();
-		  skewedLadderAtMinusXSideCenterPhi = iiter->getModule().center().Phi();
-		  skewedLadderAtMinusXSideSkewAngle = iiter->getModule().skewAngle();
+		  unskewedLaddersAtMinusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMinPhi, 2.*M_PI);
+		  unskewedLaddersAtMinusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI);
 		}
+		countUnskewedLaddersAtMinusXSide++;
 	      }
-
-	      // (+X) side
+	      // Skewed ladder
 	      else {
-		// Non-skewed ladders
-		if (!iiter->getModule().isSkewed()) {
-		  if (!isPhiComputationAtPlusXSideInitialized) {
-		    unskewedLaddersAtPlusXSideCentersMinPhi = iiter->getModule().center().Phi();
-		    unskewedLaddersAtPlusXSideCentersMaxPhi = iiter->getModule().center().Phi();
-		    isPhiComputationAtPlusXSideInitialized = true;
-		  }
-		  else {
-		    unskewedLaddersAtPlusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMinPhi, 2.*M_PI);
-		    unskewedLaddersAtPlusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI);
-		  }
-		  countUnskewedLaddersAtPlusXSide++;
-		}
-		// Skewed ladder
-		else {
-		  skewedLadderAtPlusXSideCenterRadius = iiter->getModule().center().Rho();
-		  skewedLadderAtPlusXSideCenterPhi = iiter->getModule().center().Phi();
-		  skewedLadderAtPlusXSideSkewAngle = iiter->getModule().skewAngle();
-		}
+		skewedLadderAtMinusXSideCenterRadius = iiter->getModule().center().Rho();
+		skewedLadderAtMinusXSideCenterPhi = iiter->getModule().center().Phi();
+		skewedLadderAtMinusXSideSkewAngle = iiter->getModule().skewAngle();
 	      }
-
-	      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! start" << std::endl;
-	      std::cout << "iiter->getModule().isSkewed() = " << iiter->getModule().isSkewed() << std::endl;
-	      std::cout << " iiter->getModule().center().Phi()  = " << iiter->getModule().center().Phi() * 180. / M_PI  << std::endl;
-	      std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << std::endl;
-	      std::cout << "countUnskewedLaddersAtPlusXSide = " << countUnskewedLaddersAtPlusXSide << std::endl;
-	      std::cout << "countUnskewedLaddersAtMinusXSide = " << countUnskewedLaddersAtMinusXSide << std::endl;
 	    }
+
+	    // (+X) side
+	    else {
+	      // Non-skewed ladders
+	      if (!iiter->getModule().isSkewed()) {
+		if (!isPhiComputationAtPlusXSideInitialized) {
+		  unskewedLaddersAtPlusXSideCentersMinPhi = iiter->getModule().center().Phi();
+		  unskewedLaddersAtPlusXSideCentersMaxPhi = iiter->getModule().center().Phi();
+		  isPhiComputationAtPlusXSideInitialized = true;
+		}
+		else {
+		  unskewedLaddersAtPlusXSideCentersMinPhi = moduloMin(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMinPhi, 2.*M_PI);
+		  unskewedLaddersAtPlusXSideCentersMaxPhi = moduloMax(iiter->getModule().center().Phi(), unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI);
+		}
+		countUnskewedLaddersAtPlusXSide++;
+	      }
+	      // Skewed ladder
+	      else {
+		skewedLadderAtPlusXSideCenterRadius = iiter->getModule().center().Rho();
+		skewedLadderAtPlusXSideCenterPhi = iiter->getModule().center().Phi();
+		skewedLadderAtPlusXSideSkewAngle = iiter->getModule().skewAngle();
+	      }
+	    }
+
 	  } // end: skewed layer info 
 
 	} // end: select a few modules only
@@ -1638,10 +1630,6 @@ namespace insur {
 							femod(unskewedLaddersAtMinusXSideCentersMaxPhi, 2. * M_PI) 
 							- femod(unskewedLaddersAtMinusXSideCentersMinPhi, 2. * M_PI)
 							, 2. * M_PI);
-	    std::cout << "unskewedLaddersAtMinusXSideCentersMinPhi = " << femod(unskewedLaddersAtMinusXSideCentersMinPhi, 2. * M_PI) << std::endl;
-	    std::cout << "unskewedLaddersAtMinusXSideCentersMaxPhi = " << femod(unskewedLaddersAtMinusXSideCentersMaxPhi, 2.*M_PI)  << std::endl;
-	    std::cout << "rangeAngleAtMinusXSide = " << rangeAngleAtMinusXSide  << std::endl;
-
 	    // FLIPPED LADDERS BLOCK
 	    const std::string flippedLadderName = ladderName.str();
 	    const double flippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi; // WARNING: THIS ASSUMES
@@ -1664,9 +1652,6 @@ namespace insur {
 	    // UNFLIPPED LADDERS BLOCK
 	    const std::string unFlippedLadderName = unflippedLadderName.str();	  
 	    const double deltaPhiAtMinusXSide = rangeAngleAtMinusXSide / (countUnskewedLaddersAtMinusXSide - 1);
-	    std::cout << "countUnskewedLaddersAtMinusXSide = " << countUnskewedLaddersAtMinusXSide << std::endl;
-	    std::cout << "deltaPhiAtMinusXSide = " << deltaPhiAtMinusXSide << std::endl;
-	    std::cout << "range angle unflipped = " << (rangeAngleAtMinusXSide - 2. * deltaPhiAtMinusXSide) << std::endl;
 	    const double unFlippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi + deltaPhiAtMinusXSide;
 	    const int countUnFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.);
 	    const int unFlippedLadderStartCopyNumber = 2;
@@ -1694,9 +1679,6 @@ namespace insur {
 						       femod(unskewedLaddersAtPlusXSideCentersMaxPhi, 2. * M_PI) 
 						       - femod(unskewedLaddersAtPlusXSideCentersMinPhi, 2. * M_PI)
 						       , 2.*M_PI);
-	    std::cout << "unskewedLaddersAtPlusXSideCentersMinPhi = " << femod(unskewedLaddersAtPlusXSideCentersMinPhi, 2. * M_PI) << std::endl;
-	    std::cout << "unskewedLaddersAtPlusXSideCentersMaxPhi = " << femod(unskewedLaddersAtPlusXSideCentersMaxPhi, 2.*M_PI)  << std::endl;
-	    std::cout << "rangeAngleAtPlusXSide = " << rangeAngleAtPlusXSide  << std::endl;
 
 	    // FLIPPED LADDERS BLOCK
 	    const std::string flippedLadderName = ladderName.str();	  
@@ -1720,9 +1702,6 @@ namespace insur {
 	    // UNFLIPPED LADDERS BLOCK
 	    const std::string unFlippedLadderName = unflippedLadderName.str();
 	    const double deltaPhiAtPlusXSide = rangeAngleAtPlusXSide / (countUnskewedLaddersAtPlusXSide - 1);
-	    std::cout << "countUnSkewedLaddersAtPlusXSide = " << countUnskewedLaddersAtPlusXSide << std::endl;
-	    std::cout << "deltaPhiAtPlusXSide = " << deltaPhiAtPlusXSide  << std::endl;
-	    std::cout << "range angle unflipped" << (rangeAngleAtPlusXSide - 2. * deltaPhiAtPlusXSide) << std::endl;
 	    const double unFlippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi + deltaPhiAtPlusXSide;
 	    const int countUnFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.);
 	    const int unFlippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 2;
@@ -3058,8 +3037,8 @@ namespace insur {
 							       const std::string nameSpace, 
 							       const std::string parentName,
 							       const std::string childName,
-							       const double startAngle,
-							       const double rangeAngle,
+							       const double startAngleInRad,
+							       const double rangeAngleInRad,
 							       const double radius,
 							       const XYZVector& center,
 							       const int numCopies,
@@ -3077,19 +3056,13 @@ namespace insur {
     myAlgo.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + childName));
 	 
     // Volume with copy number 1, center phi angle
-    std::ostringstream startAngleStream;
-    startAngleStream << startAngle * 180. / M_PI << "*deg";
-    myAlgo.parameters.push_back(numericParam(xml_startangle, startAngleStream.str()));
+    myAlgo.parameters.push_back(numericParam(xml_startangle, any2str(startAngleInRad * 180. / M_PI) + "*deg"));
 	 
     // Difference between first and last volumes' centers phi angles
-    std::ostringstream rangeAngleStream;
-    rangeAngleStream << rangeAngle * 180. / M_PI << "*deg";
-    myAlgo.parameters.push_back(numericParam(xml_rangeangle, rangeAngleStream.str()));
+    myAlgo.parameters.push_back(numericParam(xml_rangeangle, any2str(rangeAngleInRad * 180. / M_PI) + "*deg"));
 
     // All volumes are assumed to be placed at same radius in that algorithm
-    std::ostringstream radiusStream;
-    radiusStream << radius << "*mm";
-    myAlgo.parameters.push_back(numericParam(xml_radius, radiusStream.str()));
+    myAlgo.parameters.push_back(numericParam(xml_radius, any2str(radius) + "*mm"));
 
     // Shift of children with respect to parent, AFTER rotation is done
     myAlgo.parameters.push_back(vectorParam(center.X(), center.Y(), center.Z()));
