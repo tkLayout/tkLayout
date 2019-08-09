@@ -1773,7 +1773,7 @@ namespace insur {
 	  pos.trans.dz = 0;
 
 	  const double skewRotationAngleInRadAtMinusXSide = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
-	  const std::string skewRotationNameAtMinusXSide = "Z" + any2str(skewRotationAngleInRadAtMinusXSide * 180. / M_PI, 4);
+	  const std::string skewRotationNameAtMinusXSide = "Z" + any2str(skewRotationAngleInRadAtMinusXSide * 180. / M_PI, xml_angle_name_precision);
 	  addRotationAroundZAxis(r, skewRotationNameAtMinusXSide, skewRotationAngleInRadAtMinusXSide);
 	  
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtMinusXSide;
@@ -1790,8 +1790,8 @@ namespace insur {
 	  pos.trans.dy = skewedLadderAtPlusXSideCenterRadius * sin(skewedLadderAtPlusXSideCenterPhi);
 	  pos.trans.dz = 0;
 
-	  const double skewRotationAngleInRadAtPlusXSide = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;	    
-	  const std::string skewRotationNameAtPlusXSide = "Z" + any2str(skewRotationAngleInRadAtPlusXSide * 180. / M_PI, 4);
+	  const double skewRotationAngleInRadAtPlusXSide = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;
+	  const std::string skewRotationNameAtPlusXSide = "Z" + any2str(skewRotationAngleInRadAtPlusXSide * 180. / M_PI, xml_angle_name_precision);
 	  addRotationAroundZAxis(r, skewRotationNameAtPlusXSide, skewRotationAngleInRadAtPlusXSide);
 	  
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtPlusXSide;
@@ -3096,10 +3096,10 @@ namespace insur {
     myAlgo.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + childName));
 	 
     // Volume with copy number 1, center phi angle
-    myAlgo.parameters.push_back(numericParam(xml_startangle, any2str(startAngleInRad * 180. / M_PI) + "*deg"));
+    myAlgo.parameters.push_back(numericParam(xml_startangle, any2str(startAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
 	 
     // Difference between first and last volumes' centers phi angles
-    myAlgo.parameters.push_back(numericParam(xml_rangeangle, any2str(rangeAngleInRad * 180. / M_PI) + "*deg"));
+    myAlgo.parameters.push_back(numericParam(xml_rangeangle, any2str(rangeAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
 
     // All volumes are assumed to be placed at same radius in that algorithm
     myAlgo.parameters.push_back(numericParam(xml_radius, any2str(radius) + "*mm"));

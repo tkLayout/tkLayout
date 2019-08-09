@@ -15,6 +15,8 @@ namespace insur {
     static const double xml_z_pixfwd = 291.0; // VERY IMPORTANT : xml_z_pixfwd defines the offset of the Pixel Forward container volume. 
     // It should be equal to ZPixelForward defined statically in pixfwd.xml. Otherwise, anything contained by Pixel Forward will have wrong Z in XMLs !!
     static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
+    static const int xml_angle_precision = 10;
+    static const int xml_angle_name_precision = 3;
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
     static const double xml_outerTrackerEndcapsMinZ = 1250.;
