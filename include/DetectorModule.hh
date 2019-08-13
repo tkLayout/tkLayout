@@ -242,6 +242,7 @@ public:
   double meanWidth() const { return decorated().meanWidth(); }
   double physicalLength() const { return decorated().physicalLength(); }
 
+  const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
@@ -287,6 +288,7 @@ public:
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
+  const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {

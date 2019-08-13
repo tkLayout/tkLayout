@@ -108,6 +108,20 @@ namespace insur {
                          std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
   private:
     void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
+    void addRotationAroundZAxis(std::map<std::string,Rotation>& storedRotations, 
+				const std::string rotationName,
+				const double rotationAngleInRad) const;
+    void createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
+						      const std::string nameSpace, 
+						      const std::string parentName,
+						      const std::string childName,
+						      const double startAngleInRad,
+						      const double rangeAngleInRad,
+						      const double radius,
+						      const XYZVector& center,
+						      const int numCopies,
+						      const int startCopyNumber,
+						      const int copyNumberIncrement);
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
