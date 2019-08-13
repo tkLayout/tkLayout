@@ -677,7 +677,7 @@ namespace insur {
 		)) {
 
 	  if (isSkewedLayer && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2) && iiter->getModule().isSkewed()) {
-	    logERROR("Nothing gonna work, old code assumes modules placed with uniRef().phi == 1 or 2 are non-skewed.");
+	    logERROR("Nothing gonna work, old code assumes that modules placed with uniRef().phi == 1 or 2 are non-skewed.");
 	  }
 	  
 	  // layer name
@@ -740,6 +740,7 @@ namespace insur {
 	    if (!isAtPositiveXSide) { 
 	      // Non-skewed ladders
 	      if (!iiter->getModule().isSkewed()) {
+		// initialize
 		if (!isPhiComputationAtMinusXSideInitialized) {
 		  unskewedLaddersAtMinusXSideCentersMinPhi = iiter->getModule().center().Phi();
 		  unskewedLaddersAtMinusXSideCentersMaxPhi = iiter->getModule().center().Phi();
@@ -763,6 +764,7 @@ namespace insur {
 	    else {
 	      // Non-skewed ladders
 	      if (!iiter->getModule().isSkewed()) {
+		// initialize
 		if (!isPhiComputationAtPlusXSideInitialized) {
 		  unskewedLaddersAtPlusXSideCentersMinPhi = iiter->getModule().center().Phi();
 		  unskewedLaddersAtPlusXSideCentersMaxPhi = iiter->getModule().center().Phi();
@@ -1626,7 +1628,9 @@ namespace insur {
 	else {
 
 	  // (-X) SIDE
-	  if (countUnskewedLaddersAtMinusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
+	  if (countUnskewedLaddersAtMinusXSide <= 2 || femod(countUnskewedLaddersAtMinusXSide, 2) == 0) { 
+	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side."); 
+	  }
 	  else {
 
 	    // COMMON ALGORITHM PARAMETERS
@@ -1694,7 +1698,9 @@ namespace insur {
 	  
 
 	  // (+X) side
-	  if (countUnskewedLaddersAtPlusXSide <= 2) { logERROR("Skewed layer: It is expected to have at least 2 non-skewed ladders per (X) side."); }
+	  if (countUnskewedLaddersAtMinusXSide <= 2 || femod(countUnskewedLaddersAtMinusXSide, 2) == 0) { 
+	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side."); 
+	  }
 	  else {
 
 	    // COMMON ALGORITHM PARAMETERS 
@@ -1703,7 +1709,7 @@ namespace insur {
 						       - femod(unskewedLaddersAtPlusXSideCentersMinPhi, 2. * M_PI)
 						       , 2.*M_PI);
 
-	    // FLIPPED LADDERS BLOCK  (INNER RADIUS)
+	    // FLIPPED LADDERS BLOCK (INNER RADIUS)
 	    // flipped ladders
 	    const std::string flippedLadderName = ladderName.str();
 	    // phi	  
@@ -2871,7 +2877,7 @@ namespace insur {
 #endif
 
       if (shapename.str() == "supportR1191Z1325") {
-	std::cout << "WARNING: Removed supportR1191Z1325, because OTST is already included independently in CMMSW. Make sure supportR1191Z1325 is the OTST though!!" << std::endl;
+	std::cout << "WARNING: Removed supportR1191Z1325, because OTST is already included independently in CMSSW. Make sure supportR1191Z1325 is the OTST though!!" << std::endl;
       }
 
       if ((iter->getZOffset() + iter->getZLength()) > 0 && shapename.str() != "supportR1191Z1325") {
@@ -3403,7 +3409,7 @@ namespace insur {
     //double intEstimate = pow(A_estimate, 1./3.)*A_a+A_b;
 
     // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from Z, A and density.
-    // Now, a question is whether the computed radiation and interaction lengths on CMMSW side (similar to radEstimate and intEstimate) are closed to the values we initially had at hand (double radiationLength and interactionLength) !
+    // Now, a question is whether the computed radiation and interaction lengths on CMSSW side (similar to radEstimate and intEstimate) are closed to the values we initially had at hand (double radiationLength and interactionLength) !
     // The estimated errors can be calculated by :
     // Error on radiation length : (radEstimate-radiationLength)/radiationLength
     // Error on nuclear interaction length : (intEstimate-interactionLength)/interactionLength
