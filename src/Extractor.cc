@@ -1579,7 +1579,7 @@ namespace insur {
 	if (!isSkewedLayer) {
 	  
 	  // COMMON ALGORITHM PARAMETERS
-	  const double rangeAngle = 360.;	  
+	  const double rangeAngle = 2. * M_PI;	  
 	  const int numberLadders = lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;	 
 
 	  // FIRST PHI LADDERS ALGORITHM
