@@ -423,7 +423,7 @@ const double DetectorModule::resolutionLocalY(const double theta) const {
  * Compute parametrized local spatial resolution on X axis.
  */
 const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const {
-  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double tanLorentzAngle = 0.053 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
   const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
   const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
 
@@ -518,10 +518,11 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 /*
  * Compute the alpha incident angle.
  * See README for definition of alpha angle.
- * This depends on the Phi-angle of the track and the Phi-position of the Module.
+ * alpha = (X, track) (oriented angle between 2 vectors).
+ * X is the vector of the Lorentz drift and track is the vector of the track.
  */
 const double DetectorModule::alpha(const double trackPhi) const {
-  double deltaPhi = center().Phi() + skewAngle() - trackPhi;
+  double deltaPhi = trackPhi - (center().Phi() + skewAngle());
   if (fabs(deltaPhi) > M_PI/2.) {
     if (deltaPhi < 0.) deltaPhi += 2.*M_PI;
     else deltaPhi -= 2.*M_PI;
