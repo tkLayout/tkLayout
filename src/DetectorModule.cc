@@ -518,16 +518,19 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 /*
  * Compute the alpha incident angle.
  * See README for definition of alpha angle.
- * alpha = (X, track) (oriented angle between 2 vectors).
+ * alpha = (X, track) (oriented angle between the 2 vectors).
  * X is the vector of the Lorentz drift and track is the vector of the track.
  */
 const double DetectorModule::alpha(const double trackPhi) const {
-  double deltaPhi = trackPhi - (center().Phi() + skewAngle());
-  if (fabs(deltaPhi) > M_PI/2.) {
-    if (deltaPhi < 0.) deltaPhi += 2.*M_PI;
-    else deltaPhi -= 2.*M_PI;
+  const double sensorNormalToTrackDeltaPhi = trackPhi - (center().Phi() + skewAngle());
+
+  const double sensorXToTrackDeltaPhi = (!flipped() ? M_PI / 2. + sensorNormalToTrackDeltaPhi : M_PI / 2. - sensorNormalToTrackDeltaPhi);
+
+  const double alpha = femod(sensorXToTrackDeltaPhi, 2.*M_PI);
+
+  if (alpha >= M_PI) { 
+    logERROR("alpha angle should be in ]0 180[, but found alpha = " + any2str(alpha * 180. / M_PI)); 
   }
-  const double alpha = deltaPhi + M_PI / 2.;
   return alpha;
 }
 
