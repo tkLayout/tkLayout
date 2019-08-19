@@ -178,7 +178,7 @@ void Hit::fillModuleLocalResolutionStats() {
   } else {
     if (m_hitModule) {
       // Compute hit module local resolution.
-      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
       const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
       
       // Fill the module statistics.
@@ -205,6 +205,19 @@ int Hit::getLayerOrDiscID() const {
 
   if (m_hitModule && m_hitModule->getConstModuleCap()!=nullptr) return m_hitModule->getConstModuleCap()->getLayerOrDiscID(); else return -1;
 }
+
+
+/**
+ * Get the track vector.
+ */
+const TVector3 Hit::getTrackDirection() const {
+
+  if (m_track==nullptr) {
+    logWARNING("Hit::getTrackDirection -> no track assigned, will return zero!");
+    return TVector3();
+  }
+  return m_track->getDirection();
+};
 
 
 /**
@@ -274,7 +287,7 @@ double Hit::getResolutionRphi(double trackRadius) {
       double B         = A/sqrt(1-A*A);
       double tiltAngle = m_hitModule->tiltAngle();
       double skewAngle = m_hitModule->skewAngle();
-      const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+      const double resLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
       const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
       // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
@@ -326,7 +339,7 @@ double Hit::getResolutionZ(double trackRadius) {
         double D         = m_track->getCotgTheta()/sqrt(1-A*A);
         double tiltAngle = m_hitModule->tiltAngle();
         double skewAngle = m_hitModule->skewAngle();
-        const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
+        const double resLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
         const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
 
         // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)

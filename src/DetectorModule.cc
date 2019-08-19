@@ -403,9 +403,9 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
  * RETURN LOCAL SPATIAL RESOLUTION ON X AXIS.
  * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
  */
-const double DetectorModule::resolutionLocalX(const double phi) const {
+const double DetectorModule::resolutionLocalX(const TVector3& trackDirection) const {
   if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
-  else { return calculateParameterizedResolutionLocalX(phi); }
+  else { return calculateParameterizedResolutionLocalX(trackDirection); }
 }
 
 
@@ -422,9 +422,9 @@ const double DetectorModule::resolutionLocalY(const double theta) const {
 /*
  * Compute parametrized local spatial resolution on X axis.
  */
-const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const {
+const double DetectorModule::calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const {
   const double tanLorentzAngle = 0.053 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+  const double cotanAlpha = 1./tan(alpha(trackDirection));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
   const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
 
   const bool isLocalXAxis = true;
@@ -517,20 +517,44 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 
 /*
  * Compute the alpha incident angle.
- * See README for definition of alpha angle.
- * alpha = (X, track) (oriented angle between the 2 vectors).
- * X is the vector of the Lorentz drift and track is the vector of the track.
+ * See README for definition of alpha angle. 
+ * alpha = (X, projectedTrack) (oriented angle between the 2 vectors).
+ * X is the vector of the Lorentz drift (= localX).
+ * projectedTrack is the projection of the track in the plane of normal localY.
  */
-const double DetectorModule::alpha(const double trackPhi) const {
-  const double sensorNormalToTrackDeltaPhi = trackPhi - (center().Phi() + skewAngle());
+const double DetectorModule::alpha(const TVector3& trackDirection) const {
 
-  const double sensorXToTrackDeltaPhi = (!flipped() ? M_PI / 2. + sensorNormalToTrackDeltaPhi : M_PI / 2. - sensorNormalToTrackDeltaPhi);
+  // Sensor local X vector (= Lorentz drift in TBPX).
+  const TVector3& localX = getLocalX();
 
-  const double alpha = femod(sensorXToTrackDeltaPhi, 2.*M_PI);
+  // Sensor local Y vector.
+  const TVector3& localY = getLocalY();
+
+  // Project the track vector into the plane of normal localY.
+  const TVector3& projectedTrack = CoordinateOperations::projectv1OnPlaneOfNormalUnitv2(trackDirection, localY);
+
+  // alpha = (localX, projectedTrack) (oriented angle between the 2 vectors).
+  const double alpha = femod(localX.Angle(projectedTrack), 2. * M_PI);
 
   if (alpha >= M_PI) { 
     logERROR("alpha angle should be in ]0 180[, but found alpha = " + any2str(alpha * 180. / M_PI)); 
   }
+
+  /* Keep old formula.
+     This is only true in (CMS_X, CMS_Y) plane.
+     This is a projection of the new formula onto the (CMS_X, CMS_Y) plane.
+
+     const double trackPhi = trackDirection.Phi();
+
+     // Oriented angle: between the normal to the sensor (oriented towards outer radius) and the track vector.
+     const double sensorNormalToTrackDeltaPhi = trackPhi - (center().Phi() + skewAngle());
+
+     // Oriented angle: between local X vector (= Lorentz drift) and the track vector.
+     const double sensorXToTrackDeltaPhi = (!flipped() ? M_PI / 2. + sensorNormalToTrackDeltaPhi : M_PI / 2. - sensorNormalToTrackDeltaPhi);
+
+     const double alpha = femod(sensorXToTrackDeltaPhi, 2.*M_PI);
+  */
+
   return alpha;
 }
 

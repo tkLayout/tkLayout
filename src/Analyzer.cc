@@ -2251,9 +2251,10 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		const auto& hitModule = (*iHit)->getHitModule();
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
+		  const TVector3& trackDirection = myTrack->getDirection();
 		  double trackPhi = myTrack->getPhi();
-		  double cotAlpha = 1./tan(hitModule->alpha(trackPhi));
-		  double resolutionLocalX = hitModule->resolutionLocalX(trackPhi)/Units::um; // um
+		  double cotAlpha = 1./tan(hitModule->alpha(trackDirection));
+		  double resolutionLocalX = hitModule->resolutionLocalX(trackDirection)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    trackPhiBarrelDistribution_[myTag].Fill(femod(trackPhi, 2.*M_PI));
 		    incidentAngleLocalXBarrelDistribution_[myTag].Fill(cotAlpha);
