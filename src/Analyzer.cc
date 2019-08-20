@@ -2112,8 +2112,8 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       const double incidentAngleXBarrelMin = -0.6;
       const double incidentAngleXBarrelMax = 0.6;
-      const double incidentAngleXEndcapsMin = -0.3;
-      const double incidentAngleXEndcapsMax = 0.3;
+      const double incidentAngleXEndcapsMin = -0.1;
+      const double incidentAngleXEndcapsMax = 0.1;
       const double incidentAngleYBarrelMin = 0.;
       const double incidentAngleYBarrelMax = 10.;
       const double incidentAngleYEndcapsMin = 0.;
