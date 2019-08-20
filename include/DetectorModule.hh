@@ -254,14 +254,14 @@ public:
 
   // RETURN LOCAL SPATIAL RESOLUTION
   // This resolution is either nominal, either from parametrization.
-  const double resolutionLocalX(const double phi) const;
-  const double resolutionLocalY(const double theta) const;
+  const double resolutionLocalX(const TVector3& trackDirection) const;
+  const double resolutionLocalY(const TVector3& trackDirection) const;
 
   // Used to compute local parametrized spatial resolution.
   const bool hasAnyResolutionLocalXParam() const;
   const bool hasAnyResolutionLocalYParam() const;
-  const double alpha(const double trackPhi) const;
-  const double beta(const double theta) const;
+  const double alpha(const TVector3& trackDirection) const;
+  const double beta(const TVector3& trackDirection) const;
  
   // STATISTICS ON LOCAL SPATIAL RESOLUTION
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
@@ -329,6 +329,22 @@ public:
   double maxTheta() const { return MAX(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double minTheta() const { return MIN(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double thetaAperture() const { return maxTheta() - minTheta(); }
+
+  // Get local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalX() const {
+    XYZVector localX = basePoly().getVertex(3) - basePoly().getVertex(0);
+    if (flipped()) { localX *= -1; } // a flip operation does not move the polygon vertexes, hence desserves special treatment.
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localX *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localX).Unit();
+  }
+  // Get local Y orientation on sensor plane.
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalY() const { 
+    XYZVector localY = basePoly().getVertex(0) - basePoly().getVertex(1);
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localY *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localY).Unit();
+  }
 
   const Sensors& sensors() const { return sensors_; }
   const MaterialObject& materialObject() const { return materialObject_; }
@@ -412,8 +428,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
 protected:
   // Used to compute local parametrized spatial resolution.
-  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  virtual const double calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const;
+  virtual const double calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const;
   const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
   MaterialObject materialObject_;

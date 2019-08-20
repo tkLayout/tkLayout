@@ -159,6 +159,7 @@ protected:
 
 private:
   
+  const TVector3 getTrackDirection() const;
   double getTrackPhi();
   double getTrackTheta();
 
