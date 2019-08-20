@@ -542,7 +542,7 @@ const double DetectorModule::alpha(const TVector3& trackDirection) const {
 
   /* Keep old formula.
      This is only true in (CMS_X, CMS_Y) plane.
-     This is a projection of the new formula onto the (CMS_X, CMS_Y) plane.
+     This is a projection of the new formula onto the (CMS_X, CMS_Y) plane (perfect match).
 
      const double trackPhi = trackDirection.Phi();
 
@@ -565,7 +565,9 @@ const double DetectorModule::alpha(const TVector3& trackDirection) const {
  * This depends on the theta-angle of the track and the tilt angle of the Module.
  */
 const double DetectorModule::beta(const double theta) const { 
-  return theta + tiltAngle(); 
+  const double beta = theta + tiltAngle();
+  const double orientedBeta = (fabs(tiltAngle() - M_PI/2.) < insur::geom_zero ? beta : (M_PI - beta));
+  return orientedBeta;
 }
 
 

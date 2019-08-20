@@ -330,19 +330,19 @@ public:
   double minTheta() const { return MIN(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
-  // IT MODULES ONLY!! FOR OT MODULES, THIS WAS NOT STUDIED!!!!
-  // Get CMSSW local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
-  // NB: The direction is correct but the sense might be the opposite in TFPX / TEPX, but does not matter, as there is no drift there.
+  // Get local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
   const TVector3 getLocalX() const {
-    const XYZVector& nonOrientedLocalX = basePoly().getVertex(3) - basePoly().getVertex(0);
-    const XYZVector& orientedLocalX = (!flipped() ? nonOrientedLocalX : -nonOrientedLocalX); // a flip operation does not move the polygon vertexes, hence desserves special treatment.
-    return CoordinateOperations::convertCoordVectorToTVector3(orientedLocalX).Unit();
+    XYZVector localX = basePoly().getVertex(3) - basePoly().getVertex(0);
+    if (flipped()) { localX *= -1; } // a flip operation does not move the polygon vertexes, hence desserves special treatment.
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localX *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localX).Unit();
   }
-  // IT MODULES ONLY!! FOR OT MODULES, THIS WAS NOT STUDIED!!!!
-  // Get CMSSW local Y orientation on sensor plane.
-  // NB: The direction is correct but the sense might be the opposite in TFPX / TEPX, but does not matter.
+  // Get local Y orientation on sensor plane.
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
   const TVector3 getLocalY() const { 
-    const XYZVector& localY = basePoly().getVertex(0) - basePoly().getVertex(1);
+    XYZVector localY = basePoly().getVertex(0) - basePoly().getVertex(1);
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localY *= -1; }
     return CoordinateOperations::convertCoordVectorToTVector3(localY).Unit();
   }
 
