@@ -413,9 +413,9 @@ const double DetectorModule::resolutionLocalX(const TVector3& trackDirection) co
  * RETURN LOCAL SPATIAL RESOLUTION ON Y AXIS.
  * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
  */
-const double DetectorModule::resolutionLocalY(const double theta) const {
+const double DetectorModule::resolutionLocalY(const TVector3& trackDirection) const {
   if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
-  else { return calculateParameterizedResolutionLocalY(theta); }
+  else { return calculateParameterizedResolutionLocalY(trackDirection); }
 }
 
 
@@ -437,8 +437,8 @@ const double DetectorModule::calculateParameterizedResolutionLocalX(const TVecto
 /*
  * Compute parametrized local spatial resolution on Y axis.
  */
-const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
-  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+const double DetectorModule::calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const {
+  const double cotanBeta = 1./tan(beta(trackDirection));           // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
   const double fabsTanDeepAngle = fabs(-cotanBeta); 
                  
   const bool isLocalXAxis = false;
@@ -541,8 +541,8 @@ const double DetectorModule::alpha(const TVector3& trackDirection) const {
   }
 
   /* Keep old formula.
-     This is only true in (CMS_X, CMS_Y) plane.
-     This is a projection of the new formula onto the (CMS_X, CMS_Y) plane (perfect match).
+     This old formula is only true in (CMS_X, CMS_Y) plane.
+     It is is a projection of the new formula onto the (CMS_X, CMS_Y) plane (perfect match).
 
      const double trackPhi = trackDirection.Phi();
 
@@ -562,12 +562,48 @@ const double DetectorModule::alpha(const TVector3& trackDirection) const {
 /*
  * Compute the beta incident angle.
  * See README for definition of beta angle.
- * This depends on the theta-angle of the track and the tilt angle of the Module.
+ * alpha = (Y, projectedTrack) (oriented angle between the 2 vectors).
+ * Y is the sensor localY vector.
+ * projectedTrack is the projection of the track in the plane of normal localX.
  */
-const double DetectorModule::beta(const double theta) const { 
-  const double beta = theta + tiltAngle();
-  const double orientedBeta = (fabs(tiltAngle() - M_PI/2.) < insur::geom_zero ? beta : (M_PI - beta));
-  return orientedBeta;
+const double DetectorModule::beta(const TVector3& trackDirection) const {
+
+  // Sensor local X vector
+  const TVector3& localX = getLocalX();
+
+  // Sensor local Y vector.
+  const TVector3& localY = getLocalY();
+
+  // Project the track vector into the plane of normal localX.
+  const TVector3& projectedTrack = CoordinateOperations::projectv1OnPlaneOfNormalUnitv2(trackDirection, localX);
+
+  // beta = (localY, projectedTrack) (oriented angle between the 2 vectors).
+  const double beta = femod(localY.Angle(projectedTrack), 2. * M_PI);
+
+  if (beta >= M_PI) { 
+    logERROR("beta angle should be in ]0 180[, but found beta = " + any2str(beta * 180. / M_PI)); 
+  }
+
+  /* Keep old formula.
+     This old formula is not really correct.
+     It does not take into account a dependency in track vector's phi (true story!!), which occurs for both the barrel and the forward.
+     This is because we are interested in the PROJECTION of the track vector into the plane of normal localX.
+     When we project the track vector into the plane of normal localX:
+     In the event the hit is not in the (sensor center, CMS_Z) plane, or if the module is skewed: 
+     * the component in (CMS_X, CMS_Y) plane of the track vector gets a smaller norm. 
+     * the component along CMS_Z of the track vector stays the same.
+     Hence, the projected track vector is more 'parallel to CMS_Z' than the track vector.
+     This implies that beta angle is further from M_PI/2 than eta is the barrel, and closer to M_PI/2 than eta in the forward.
+     The effect is quite negligible though, except for skewed ladders. 
+     It is way cleaner to have a vectorial formula amyway.
+
+     const double beta = theta + tiltAngle();
+
+     // Oriented angle: between local Y vector and the track vector.
+     const double orientedBeta = (fabs(tiltAngle() - M_PI/2.) < insur::geom_zero ? beta : (M_PI - beta));
+  */
+
+  return beta;
 }
 
 

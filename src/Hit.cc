@@ -179,7 +179,7 @@ void Hit::fillModuleLocalResolutionStats() {
     if (m_hitModule) {
       // Compute hit module local resolution.
       const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
-      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackDirection());
       
       // Fill the module statistics.
       if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
@@ -288,7 +288,7 @@ double Hit::getResolutionRphi(double trackRadius) {
       double tiltAngle = m_hitModule->tiltAngle();
       double skewAngle = m_hitModule->skewAngle();
       const double resLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
-      const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resLocalY = m_hitModule->resolutionLocalY(getTrackDirection());
 
       // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
       double resolutionRPhi = sqrt(pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resLocalX,2) + pow(B*sin(tiltAngle) * resLocalY,2));
@@ -340,7 +340,7 @@ double Hit::getResolutionZ(double trackRadius) {
         double tiltAngle = m_hitModule->tiltAngle();
         double skewAngle = m_hitModule->skewAngle();
         const double resLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
-        const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+        const double resLocalY = m_hitModule->resolutionLocalY(getTrackDirection());
 
         // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
         double resolutionZ = sqrt(pow(((D*cos(tiltAngle) + sin(tiltAngle))*sin(skewAngle)) * resLocalX,2) + pow((D*sin(tiltAngle) + cos(tiltAngle)) * resLocalY,2));

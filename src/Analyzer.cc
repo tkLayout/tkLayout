@@ -2249,11 +2249,13 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 	      if ((*iHit)->isActive() && (*iHit)->getHitModule()) {
 		
 		const auto& hitModule = (*iHit)->getHitModule();
+
+		const TVector3& trackDirection = myTrack->getDirection();
+
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
-		  // trackPhi is misleading, as actually the dependency is also in eta (in TFPX and TEPX).
-		  double trackPhi = myTrack->getPhi();
-		  const TVector3& trackDirection = myTrack->getDirection();
+		  // trackPhi is misleading, as actually the dependency is also in eta (in the forward).
+		  double trackPhi = myTrack->getPhi();		  
 		  double cotAlpha = 1./tan(hitModule->alpha(trackDirection));
 		  double resolutionLocalX = hitModule->resolutionLocalX(trackDirection)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
@@ -2271,10 +2273,10 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		}
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
+		  // trackEta is misleading, as actually the dependency is also in track vector's phi (in both barrel and forward).
 		  double trackEta = myTrack->getEta();
-		  double trackTheta = myTrack->getTheta();
-		  double absCotBeta = fabs(1./tan(hitModule->beta(trackTheta)));
-		  double resolutionLocalY = hitModule->resolutionLocalY(trackTheta)/Units::um; // um
+		  double absCotBeta = fabs(1./tan(hitModule->beta(trackDirection)));
+		  double resolutionLocalY = hitModule->resolutionLocalY(trackDirection)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    trackEtaBarrelDistribution_[myTag].Fill(trackEta);
 		    incidentAngleLocalYBarrelDistribution_[myTag].Fill(absCotBeta);

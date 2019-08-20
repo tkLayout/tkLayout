@@ -255,13 +255,13 @@ public:
   // RETURN LOCAL SPATIAL RESOLUTION
   // This resolution is either nominal, either from parametrization.
   const double resolutionLocalX(const TVector3& trackDirection) const;
-  const double resolutionLocalY(const double theta) const;
+  const double resolutionLocalY(const TVector3& trackDirection) const;
 
   // Used to compute local parametrized spatial resolution.
   const bool hasAnyResolutionLocalXParam() const;
   const bool hasAnyResolutionLocalYParam() const;
   const double alpha(const TVector3& trackDirection) const;
-  const double beta(const double theta) const;
+  const double beta(const TVector3& trackDirection) const;
  
   // STATISTICS ON LOCAL SPATIAL RESOLUTION
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
@@ -429,7 +429,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 protected:
   // Used to compute local parametrized spatial resolution.
   virtual const double calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  virtual const double calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const;
   const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
   MaterialObject materialObject_;
