@@ -2112,8 +2112,8 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       const double incidentAngleXBarrelMin = -0.6;
       const double incidentAngleXBarrelMax = 0.6;
-      const double incidentAngleXEndcapsMin = -0.3;
-      const double incidentAngleXEndcapsMax = 0.3;
+      const double incidentAngleXEndcapsMin = -0.1;
+      const double incidentAngleXEndcapsMax = 0.1;
       const double incidentAngleYBarrelMin = 0.;
       const double incidentAngleYBarrelMax = 10.;
       const double incidentAngleYEndcapsMin = 0.;
@@ -2251,8 +2251,9 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		const auto& hitModule = (*iHit)->getHitModule();
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
-		  const TVector3& trackDirection = myTrack->getDirection();
+		  // trackPhi is misleading, as actually the dependency is also in eta (in TFPX and TEPX).
 		  double trackPhi = myTrack->getPhi();
+		  const TVector3& trackDirection = myTrack->getDirection();
 		  double cotAlpha = 1./tan(hitModule->alpha(trackDirection));
 		  double resolutionLocalX = hitModule->resolutionLocalX(trackDirection)/Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {

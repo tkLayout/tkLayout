@@ -32,6 +32,8 @@ namespace CoordinateOperations {
    * Returns projection of v1 on the plane which has v2 as a normal.
    * WARNING!! Here, v2 needs to be unitary: ||v2|| = 1.
    * || || used is the euclidian norm on R3.
+   * Dot is the scalar product associated to || ||.
+   * NB: Very weird that this is not provided by default, v1.Perp(v2) provides a scalar but not a vector.
    */
   template<class GeoVector> GeoVector projectv1OnPlaneOfNormalUnitv2(const GeoVector& v1, const GeoVector& v2) {
     return (v1 - v1.Dot(v2) * v2);
