@@ -3,16 +3,27 @@
       //                                                      PIXEL MODULE
       //
       //  Top View 
-      //        ------------------           y
-      //        |                |           ^
-      //        |     Hybrid     |           |
-      //        |       (1)      |           +----> x
-      //        ------------------    
-      //                                             z
-      //                                             ^
-      //  Side View                                  |
-      //         ================ Hybrid  (1)        +----> x
-      //         ---------------- Sensor  (2)
-      //         ================ Chip    (3)
       //
-      // Chip(3) volume can contain Bumps and any other material for simplification.
+      //    --------------------       
+      //    |        (7)       |
+      //    --------------------        y
+      //    |   |          |   |        ^
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |  Sensor  |   |        |
+      //    |(6)|    (2)   |(5)|        |
+      //    |   |          |   |        |
+      //    |   |          |   |        |
+      //    |   |          |   |        +----> x
+      //    --------------------    
+      //    |        (8)       |                        
+      //    --------------------                        z
+      //                                                ^
+      //  Side View                                     |
+      //         ================          Hybrid  (1)  +----> x
+      //     (6) ---------------- (5)      Sensor  (2)
+      //     =========================     Chip    (3)
+      //
+      // Chip(3) volume can contain Bumps and any other material (supports, etc) for simplification.

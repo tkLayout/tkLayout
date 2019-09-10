@@ -23,4 +23,4 @@
       //  R(6) and L(5) are Front-End Hybrids.
       //  B(4) and F(3) are Service Hybdrids.
       //
-      //  SupportPlate(8) thickness is of course null for 2S modules
+      //  SupportPlate(8) thickness is 0 for 2S modules

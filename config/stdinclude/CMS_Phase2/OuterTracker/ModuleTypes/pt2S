@@ -2,8 +2,8 @@
 
 moduleType pt2S
 // Active silicon size
-width 91.44  // 91.440 precisely
-length 100.5 // 100.548 actually
+width 91.488
+length 100.580
 
 sensorLayout pt
 zCorrelation samesegment
@@ -12,7 +12,7 @@ numSensors 2
 
 powerPerModule 4700  // mW
 
-sensorThickness 0.2
+sensorThickness 0.32
 
 serviceHybridWidth 16.78   // 15.4085 hybrid + 1.3715 inactive silicon // OK
 frontEndHybridWidth 21.725 // 20.625 hybrid  + 1.1    inactive silicon // OK
