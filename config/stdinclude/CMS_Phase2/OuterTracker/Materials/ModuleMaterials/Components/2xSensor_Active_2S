@@ -1,26 +1,26 @@
 // Sensor
 Component {
-  componentName "Module: Sensors"
+  componentName "2S Module: Sensors"
   service false
   scaleOnSensor 0
   targetVolume 1
   Element {
     elementName SenSi
-    quantity 0.2
-    unit mm
+    quantity 6.2224688657
+    unit g
   }
 }
 
 // Sensor
 Component {
-  componentName "Module: Sensors"
+  componentName "2S Module: Sensors"
   service false
   scaleOnSensor 0
   targetVolume 2
   Element {
     elementName SenSi
-    quantity 0.2
-    unit mm
+    quantity 6.2224688657
+    unit g
   }
 }
 

@@ -6,14 +6,14 @@ Component {
    //MPA on sensors
    Element {
      elementName Si
-     quantity 2.069
+     quantity 3.15
      unit g
      targetVolume 7
    }
    //MPA periphery
    Element {
      elementName Si
-     quantity 0.256
+     quantity 0.204
      unit g
      targetVolume 56
    }

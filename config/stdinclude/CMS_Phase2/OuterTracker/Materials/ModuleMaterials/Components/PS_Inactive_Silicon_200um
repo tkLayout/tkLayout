@@ -1,14 +1,40 @@
-// PS inactive silicon for 200 um sensors
+// PS inactive silicon
 
 Component {
-  componentName "PS Module: Inactive silicon"
+  componentName "PS Module: Inactive silicon (around the edges)"
   service false
   scaleOnSensor 0
-  //Sensor inactive edges
   Element {
     elementName Si
-    quantity 0.385
+    quantity 0.48
     unit g
     targetVolume 0
+  }
+}
+
+// p-sensor
+Component {
+  componentName "PS Module: Inactive silicon (deep diffused)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.315
+    unit g
+    targetVolume 8
+  }
+}
+
+
+// s-sensor
+Component {
+  componentName "PS Module: Inactive silicon (deep diffused)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.316
+    unit g
+    targetVolume 7
   }
 }
