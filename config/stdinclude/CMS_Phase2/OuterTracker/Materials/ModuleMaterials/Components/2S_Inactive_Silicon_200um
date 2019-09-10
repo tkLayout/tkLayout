@@ -6,21 +6,9 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity 0.691
+    quantity 0.519
     unit g
     targetVolume 0
   }
 }
 
-
-Component {
-  componentName "2S Module: Inactive silicon (deep diffused)"
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Si
-    quantity 1.287
-    unit g
-    targetVolume 7
-  }
-}
