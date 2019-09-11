@@ -6,7 +6,7 @@ Component {
   targetVolume 1
   Element {
     elementName SenSi
-    quantity 2.5201041408
+    quantity 3.0451258368
     unit g
   }
 }
@@ -19,7 +19,7 @@ Component {
   targetVolume 2
   Element {
     elementName SenSi
-    quantity 2.5318607616
+    quantity 3.0593317536
     unit g
   }
 }
