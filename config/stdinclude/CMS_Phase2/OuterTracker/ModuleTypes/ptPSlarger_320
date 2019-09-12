@@ -2,8 +2,8 @@
 
 moduleType ptPS
 // Active silicon size
-width 96.055
-length 46.999
+width 96         // NB: Latest info is 96.055 mm (96 mm used in MB).
+length 46.944    // NB: Latest info is 46.999 mm (46.944 mm used in MB) for p-sensor, 47.163 mm (47.163 mm already used in MB) for s-sensor.
 
 sensorLayout pt
 zCorrelation samesegment
