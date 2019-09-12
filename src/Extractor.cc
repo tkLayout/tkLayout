@@ -1093,6 +1093,7 @@ namespace insur {
 
 		// SolidSection
 		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
 		s.push_back(shape);
 
 		// LogicalPartSection
@@ -1181,6 +1182,7 @@ namespace insur {
 		  if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		  else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		  else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		  shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
 		  s.push_back(shape);
 
 		  // LogicalPartSection
@@ -2276,6 +2278,7 @@ namespace insur {
 		//pos.parent_tag = logic.shape_tag;
 
 		shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
+		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
@@ -2319,6 +2322,7 @@ namespace insur {
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      shape.dy = iiter->getModule().length() / 2.0;
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
@@ -2356,6 +2360,7 @@ namespace insur {
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
@@ -3513,7 +3518,7 @@ namespace insur {
                                                              sensorThickness(module.sensorThickness()),
                                                              sensorDistance(module.dsDistance()),
 							     modWidth(module.area()/module.length()),
-                                                             modLength(module.length()),
+                                                             modLength(module.length() + module.outerSensorExtraLength()),
                                                              frontEndHybridWidth(module.frontEndHybridWidth()),
                                                              serviceHybridWidth(module.serviceHybridWidth()),
                                                              hybridThickness(module.hybridThickness()),
@@ -3872,16 +3877,16 @@ namespace insur {
     vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
 
     // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
-    XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
-    XYZVector my = 0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center ;
+    XYZVector mx = (0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center).Unit() ;
+    XYZVector my = (0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center).Unit() ;
 
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
     XYZVector v[npoints-1];
-    v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
-    v[1] = module.center() - (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
-    v[2] = module.center() + (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
-    v[3] = module.center() + (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
+    v[0] = module.center() - expandedModWidth/2. * mx - expandedModLength/2. * my;
+    v[1] = module.center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[2] = module.center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[3] = module.center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface

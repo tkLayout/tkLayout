@@ -14,11 +14,6 @@ powerPerModule 6300
 
 sensorThickness 0.2
 
-serviceHybridWidth 12.0  // 10.63 hybrid + 1.37 inactive silicon // OK
-frontEndHybridWidth 11.5 // 10.05 hybrid + 1.45 inactive silicon // OK
-hybridThickness 1.0
-supportPlateThickness 1.0
-
 physicalLength 71        // to avoid collisions with previous module in barrels
 
 reduceCombinatorialBackground true 
@@ -38,6 +33,15 @@ Sensor 2 {
   numROCX 4
   numROCY 2
 }
+
+
+// These quantities' materials appear in tkLayout, but the geo volumes are only modeled in CMSSW
+serviceHybridWidth 12.0  // 10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 11.5 // 10.05 hybrid + 1.45 inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 1.0
+outerSensorExtraLength 0.164
+
 
 plotColor 1
 

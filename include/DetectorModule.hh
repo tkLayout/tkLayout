@@ -142,6 +142,7 @@ public:
   Property<double, AutoDefault> deadAreaExtraWidth;
   Property<double, AutoDefault> chipNegativeXExtraWidth;
   Property<double, AutoDefault> chipPositiveXExtraWidth;
+  Property<double, AutoDefault> outerSensorExtraLength;
 
   Property<bool, Default> removeModule;
 
@@ -206,6 +207,7 @@ public:
       deadAreaExtraWidth       ("deadAreaExtraWidth"       , parsedOnly()),
       chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
+      outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),

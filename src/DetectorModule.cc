@@ -203,7 +203,7 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     double width = area() / length();
     double expandedModWidth = width + 2 * serviceHybridWidth();
-    double expandedModLength = length() + 2 * frontEndHybridWidth();
+    double expandedModLength = length() + outerSensorExtraLength() + 2 * frontEndHybridWidth();
     double expandedModThickness;
     if (!isPixelModule()) { expandedModThickness = dsDistance() + 2.0 * (supportPlateThickness() + sensorThickness()); }
     //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
@@ -218,16 +218,16 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
 
     // mx: (v2+v3)/2 - center(), my: (v1+v2)/2 - center()
-    XYZVector mx = 0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center() ;
-    XYZVector my = 0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center() ;
+    XYZVector mx = (0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center()).Unit() ;
+    XYZVector my = (0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center()).Unit() ;
 
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
     XYZVector v[npoints-1];
-    v[0] = center() - (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
-    v[1] = center() - (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
-    v[2] = center() + (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
-    v[3] = center() + (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+    v[0] = center() - expandedModWidth/2. * mx - expandedModLength/2. * my;
+    v[1] = center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[2] = center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[3] = center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface

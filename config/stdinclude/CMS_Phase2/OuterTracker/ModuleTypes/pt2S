@@ -14,11 +14,6 @@ powerPerModule 4700  // mW
 
 sensorThickness 0.2
 
-serviceHybridWidth 16.78   // 15.4085 hybrid + 1.3715 inactive silicon // OK
-frontEndHybridWidth 21.725 // 20.625 hybrid  + 1.1    inactive silicon // OK
-hybridThickness 1.0
-supportPlateThickness 0.0
-
 Sensor 1 {
   sensorType strip
   numStripsAcross 1016
@@ -34,6 +29,14 @@ Sensor 2 {
   numROCX 8
   numROCY 2
 }
+
+
+// These quantities' materials appear in tkLayout, but the geo volumes are only modeled in CMSSW
+serviceHybridWidth 16.78   // 15.4085 hybrid + 1.3715 inactive silicon // OK
+frontEndHybridWidth 21.725 // 20.625 hybrid  + 1.1    inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 0.0
+
 
 plotColor 2 
 
