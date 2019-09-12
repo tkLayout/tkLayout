@@ -3566,6 +3566,8 @@ namespace insur {
     if (!module.isPixelModule()) {
 
       if (!module.isTimingModule()) {
+	//                                                   (FOR XML EXPORT ONLY)
+	//                                           MATERIAL ASSIGNMENT IN TARGET VOLUMES
 	//                                                   OUTER TRACKER MODULE
 	//
 	//  Top View
@@ -3589,8 +3591,15 @@ namespace insur {
 	//  R(6) and L(5) are Front-End Hybrids.
 	//  B(4) and F(3) are Service Hybdrids.
 	//
-	//  SupportPlate(8) thickness is of course null for 2S modules
+	//  SupportPlate(8) thickness is 0 for 2S modules
     
+    
+	// Combinations
+	// Volume (34) is volume (3) + volume (4)
+	// Volume (56) is volume (5) + volume (6)
+	// Volume (0) is volume (3) + volume (4) + volume (5) + volume (6)
+    
+
 	//Unused pointers
 	vol[xml_HybridFBLR_0] = 0;
 	vol[xml_InnerSensor]  = 0;
@@ -3723,6 +3732,8 @@ namespace insur {
     }
 
     else {
+      //                                                   (FOR XML EXPORT ONLY)
+      //                                           MATERIAL ASSIGNMENT IN TARGET VOLUMES
       //                                                      PIXEL MODULE
       //
       //  Top View 
@@ -3750,6 +3761,14 @@ namespace insur {
       //     =========================     Chip    (3)
       //
       // Chip(3) volume can contain Bumps and any other material (supports, etc) for simplification.
+      //
+      // Volumes (5), (6), (7), and (8) are volumes of same thickness as the sensor, located around the sensor.
+      // They are used for Si inactive areas.
+      
+      // Combinations
+      // Volume (4) is volume (5) + volume (6) + volume (7) + volume (8).
+      // Volume (0) does not target anything.
+
 
       //Unused pointers
       vol[xml_PixelModuleNull] = 0;
