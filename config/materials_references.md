@@ -69,7 +69,7 @@ Purdue, Physics Particle Detector Support Structure, 2018/12/03.
 
 ### MODULE_COMMON:
 
-[OT_MODULE_2019_09_10_MB]
+[OT_MODULE_2019_09_10_MB] https://espace.cern.ch/Tracker-Upgrade/_layouts/15/WopiFrame.aspx?sourcedoc=/Tracker-Upgrade/Shared%20Documents/Tracker_materials_to_tkLayout/Outer_Tracker/Module-Sensors-Masses-by-Duccio.xlsx&action=default
 
 
 

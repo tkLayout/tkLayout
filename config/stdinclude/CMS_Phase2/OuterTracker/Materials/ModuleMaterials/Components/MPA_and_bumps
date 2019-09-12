@@ -6,14 +6,18 @@ Component {
    //MPA on sensors
    Element {
      elementName Si
-     quantity 3.15
+     quantity 3.15      // 30 um (thickness) / 1000 x 11.9 mm (width) x 25.2 mm (length) x 2.33 g/cm3 (Si density) / 1000 x 16
+                        // That total quantity is spread among sensors (7) and 'MPA periphery' (56).
+                        // Source: [OT_MODULE_2019_09_10_MB]
      unit g
      targetVolume 7
    }
    //MPA periphery
    Element {
      elementName Si
-     quantity 0.204
+     quantity 0.204     // 30 um (thickness) / 1000 x 11.9 mm (width) x 25.2 mm (length) x 2.33 g/cm3 (Si density) / 1000 x 16
+                        // That total quantity is spread among sensors (7) and 'MPA periphery' (56).
+                        // Source: [OT_MODULE_2019_09_10_MB]
      unit g
      targetVolume 56
    }
