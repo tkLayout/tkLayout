@@ -65,6 +65,12 @@ Purdue, Physics Particle Detector Support Structure, 2018/12/03.
 
 
 
+## OUTER TRACKER:
+
+### MODULE_COMMON:
+
+[OT_MODULE_2019_09_10_MB]
+
 
 
 

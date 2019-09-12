@@ -1,7 +1,7 @@
- // PS 320 um sensors, 1.6 mm spacer
+// PS 320 um sensors, 1.6 mm spacer
 
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_referenceSensors
-@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2xSensor_Active_200um
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2xSensor_Active_PS_290um
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_Inactive_Silicon_320um
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/MPA_and_bumps
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_Hybrid_Circuits
