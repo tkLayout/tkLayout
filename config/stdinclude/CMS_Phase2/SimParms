@@ -27,7 +27,9 @@ SimParms {
     numTriggerTowersEta 6
     numTriggerTowersPhi 8
 
-    irradiationMapFiles 1MeVneq_CMS_HGC_pp_7TeV_v3.7.2.0_FLUKA.map,1MeVneq_CMS_HGC_pp_7TeV_v3.7.2.0_FLUKA_pixel.map
+    irradiationMapFiles 1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.19.1.map  // VERY IMPORTANT WARNING: need to add IT map (present binning 10 mm is too big!!). 
+                                                                                 // Syntax: after the OT map file name, just add ',*v3.7.19.1_pixel.map'.
+                                                                                 // v3.7.19.1 IT map presently not available yet.
 
     Gabie IsAHero           // inside joke. forget about it
 }
