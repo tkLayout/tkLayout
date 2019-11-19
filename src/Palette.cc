@@ -42,57 +42,102 @@ Color_t Palette::color(const unsigned int& plotIndex, bool isTransparent) {
 }
 
 Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
+  std::string colorCode;
+  TColor* selectedColor;
   short paletteIndex = kBlack;
+  Float_t fRed;
+  Float_t fGreen;
+  Float_t fBlue;
 
-  if (plotIndex==0) paletteIndex = kBlack;
-  else {
+  if (plotIndex==0) {
+    // #000000
+    fRed=0, fGreen=0, fBlue=0;
+    paletteIndex = kBlack;
+  } else {
     int nColor=(plotIndex-1) % 12;
-
     switch (nColor) {
     case 0 :
+      // LibreOffice Palette Color 1
+      // #004586
+      fRed=0, fGreen=0.270588, fBlue=0.52549;
       paletteIndex = kAzure-6; // dark blue
       break;
     case 1 :
+      // LibreOffice Palette Color 2
+      // #ff420e
+      fRed=1, fGreen=0.258824, fBlue=0.054902;
       paletteIndex = kOrange+10; // red
       break;
     case 2 :
+      // LibreOffice Palette Color 3
+      // #ffd320
+      fRed=1, fGreen=0.827451, fBlue=0.12549;
       paletteIndex = kOrange-2; // yellow
       break;
     case 3 :
+      // LibreOffice Palette Color 4
+      // #579d1c
+      fRed=0.341176, fGreen=0.615686, fBlue=0.109804;
       paletteIndex = kSpring-6; // dark green
       break;
     case 4 :
+      // LibreOffice Palette Color 5
+      // #7e0021
+      fRed=0.494118, fGreen=0, fBlue=0.129412;
       paletteIndex = kOrange+3; // brown
       break;
     case 5 :
+      // LibreOffice Palette Color 6
+      // #83caff
+      fRed=0.513726, fGreen=0.792157, fBlue=1;
       paletteIndex = kAzure+6; // very clear blue
       break;
     case 6 :
+      // #314004
+      fRed=0.192157, fGreen=0.25098, fBlue=0.0156863;
       paletteIndex = kYellow+4; // very dark green
       break;
     case 7 :
+      // LibreOffice Palette Color 8
+      // #aecf00
+      fRed=0.682353, fGreen=0.811765, fBlue=0;
       paletteIndex = kSpring + 5;  // teal
       break;
     case 8 :
+      // LibreOffice Palette Color 9
+      // #4b1f6f
+      fRed=0.294118, fGreen=0.121569, fBlue=0.435294;
       paletteIndex = kViolet + 3; // violet
       break;
     case 9 :
+      // LibreOffice Palette Color 10
+      // #ff950e
+      fRed=1, fGreen=0.584314, fBlue=0.054902;
       paletteIndex = kOrange+1; // orange
       break;
     case 10 :
+      // LibreOffice Palette Color 11
+      // #c5000b
+      fRed=0.772549, fGreen=0, fBlue=0.0431373;
       paletteIndex = kRed+1; // dark red
       break;
     case 11 :
+      // LibreOffice Palette Color 12
+      // #0084d1
+      fRed=0, fGreen=0.517647, fBlue=0.819608;
       paletteIndex = kAzure-2; // blue azur
       break;
     default :
-      std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
+      std::cerr << "ERROR: in Palette::color_int() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
+      fRed=0, fGreen=0, fBlue=0;
       paletteIndex = kBlack;
       break;
     }
   }
   
   if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
+  selectedColor = gROOT->GetColor(paletteIndex);
+  selectedColor->SetRGB(fRed, fGreen, fBlue);
 
   return paletteIndex;
 }
