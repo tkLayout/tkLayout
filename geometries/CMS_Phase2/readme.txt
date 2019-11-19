@@ -463,7 +463,14 @@ OT614_200_IT613.cfg                  OT Version 6.1.4
                                      * Disk 2: 1985.43 mm -> 2009.59 mm   
                                      * Disk 3: 2250.83 mm -> 2307.69 mm       
                                      * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                                            
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   
+
+
+=================   MATERIAL BUDGET STUDIES   =================     
+OT616_IT614.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.4.
+                                     TFPX, Disk 6 : -15 mm. Disk 7: + 15mm. All TBPX conversion stations placed between Disk 6 and Disk 7.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
 ============   ZEBRA STUDIES   ============                 
