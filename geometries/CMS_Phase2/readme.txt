@@ -473,10 +473,14 @@ OT616_IT614.cfg                      OT Version 6.1.6
                                      
 OT616_IT615.cfg                      OT Version 6.1.6
                                      Based from Inner Tracker version 6.1.4.
-                                     Stretched double-disk system, data from Yadira. 
+                                     TFPX: Stretched double-disk system, data from Yadira. 
                                      smallDelta: 2 -> 2.75 mm. bigDelta: 4 -> 6.25 mm.
                                      Sensors on both faces of same dee: inter sensor centers distance (in Z) is now 5.5 mm.
                                      Back sensors of one dee VS front sensors of next dee: inter sensor centers distance (in Z) is now 7 mm.
+                                     
+OT616_IT616.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.5.
+                                     TFPX: Tested shift in Z of +25 mm on all double-disks.                                     
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
