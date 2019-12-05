@@ -229,6 +229,10 @@ OT616_200_IT404.cfg	   Diff with OT615:
                              L3: radius -27 mm (OT envelope shrink) +2 mm (smaller no-go zone between TB2S and BTL). numRods: -2 rods.
                          - TBPS:
                              L1: +2 mm in last 5 rings radii.
+                             
+OT616_IT613.cfg	       Diff with OT616_200:
+                       Sensor thickness: 200 um -> 290 um + Add 30 um deep-diffused Si + Review Si in inactive edges and MPA.
+                       Add 164 um to s-sensor in PS module.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
