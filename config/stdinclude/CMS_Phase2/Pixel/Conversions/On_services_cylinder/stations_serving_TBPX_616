@@ -17,7 +17,7 @@ Station {
   stationName BPIX2
   type second
   minZ 971.00
-  maxZ 914.00
+  maxZ 1014.00
   @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 
