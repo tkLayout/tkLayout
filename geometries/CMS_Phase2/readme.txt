@@ -466,10 +466,21 @@ OT614_200_IT613.cfg                  OT Version 6.1.4
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   
 
 
-=================   MATERIAL BUDGET STUDIES   =================     
+=================   INSTALLATION STUDIES   =================     
 OT616_IT614.cfg                      OT Version 6.1.6
-                                     Based from Inner Tracker version 6.1.4.
+                                     Based from Inner Tracker version 6.1.3.
                                      TFPX, Disk 6 : -15 mm. Disk 7: + 15mm. All TBPX conversion stations placed between Disk 6 and Disk 7.
+                                     
+OT616_IT615.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.4.
+                                     TFPX: Stretched double-disk system, data from Yadira. 
+                                     smallDelta: 2 -> 2.75 mm. bigDelta: 4 -> 6.25 mm.
+                                     Sensors on both faces of same dee: inter sensor centers distance (in Z) is now 5.5 mm.
+                                     Back sensors of one dee VS front sensors of next dee: inter sensor centers distance (in Z) is now 7 mm.
+                                     
+OT616_IT616.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.5.
+                                     TFPX: Tested shift in Z of +25 mm on all double-disks.                                     
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
