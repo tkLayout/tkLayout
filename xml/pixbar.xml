@@ -7,7 +7,7 @@
     <Constant name="Rin3" value="18.6*cm"/>
     <Constant name="RinSupTubCab"      value="15.00*cm"/>
     <!--<Constant name="Rout1" value="20.35*cm"/>-->
-    <Constant name="Rout1" value="19.20*cm"/> <!-- 21.35*cm-->
+    <Constant name="Rout1" value="21.2*cm"/> <!-- 21.35*cm-->
     <Constant name="Rout2" value="21.00*cm"/>
     <Constant name="Zv1" value="22.70*cm"/> <!-- For Tilted Inner Tracker 501: value="41.50*cm"  -->
     <Constant name="Zv2" value="56.00*cm"/>
@@ -150,12 +150,12 @@
   </RotationSection>
   <SolidSection label="pixbar.xml">
     <Polycone name="Barrel" startPhi="0*deg" deltaPhi="360*deg">  <!-- TEMPORARY!! Should be defined automatically -->
-      <ZSection z="-125.0*cm" rMin="19.65*cm" rMax="[Tracker2SOuterRadius]"/>
-      <ZSection z="-[Zv1]" rMin="19.65*cm" rMax="[Tracker2SOuterRadius]"/>
+      <ZSection z="-125.0*cm" rMin="[pixfwd:RootRadius1]" rMax="[Tracker2SOuterRadius]"/>
+      <ZSection z="-[Zv1]" rMin="[pixfwd:RootRadius1]" rMax="[Tracker2SOuterRadius]"/>
       <ZSection z="-[Zv1]" rMin="[Rin1]" rMax="[Tracker2SOuterRadius]"/>
       <ZSection z="[Zv1]" rMin="[Rin1]" rMax="[Tracker2SOuterRadius]"/>
-      <ZSection z="[Zv1]" rMin="19.65*cm" rMax="[Tracker2SOuterRadius]"/>
-      <ZSection z="125.0*cm" rMin="19.65*cm" rMax="[Tracker2SOuterRadius]"/>
+      <ZSection z="[Zv1]" rMin="[pixfwd:RootRadius1]" rMax="[Tracker2SOuterRadius]"/>
+      <ZSection z="125.0*cm" rMin="[pixfwd:RootRadius1]" rMax="[Tracker2SOuterRadius]"/>
     </Polycone>
     <Polycone name="Phase2PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />

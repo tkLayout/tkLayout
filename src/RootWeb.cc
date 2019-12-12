@@ -62,7 +62,8 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
 //*******************************************//
 // RootWTable                                //
 //*******************************************//
-RootWTable::RootWTable() {
+RootWTable::RootWTable(bool isPlacedBelow /*= false*/) {
+  isPlacedBelow_ = isPlacedBelow;
   serialRow_ = 0;
   serialCol_ = 0;
   maxRow_ = 0;
@@ -492,6 +493,10 @@ void RootWContent::addItem(RootWItem* newItem) {
   }
 }
 
+void RootWContent::addItem(std::unique_ptr<RootWItem> newItem) {
+  addItem(newItem.release());
+}
+
 void RootWContent::setTitle(string newTitle) {
   title_ = newTitle;
 }
@@ -640,6 +645,7 @@ ostream& RootWContent::dump(ostream& output) {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
     }
+    if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\"> <br> <br> &nbsp;</div>"; }
     myItem->dump(output);
   }
   output << "<div class=\"clearer\">&nbsp;</div>";
@@ -710,6 +716,10 @@ void RootWPage::addContent(RootWContent* newContent) {
   if (newContent) {
     contentList_.push_back(newContent);
   }
+}
+
+void RootWPage::addContent(std::unique_ptr<RootWContent> newContent) {
+  addContent(newContent.release());
 }
 
 RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {

@@ -270,5 +270,20 @@ public:
 };
 
 
+    //************************************//
+    //*               Visitor             //
+    //*     CMSSWInnerTrackerCablingMap   //
+    //*                                   //
+    //************************************//
+class CMSSWInnerTrackerCablingMapVisitor : public ConstGeometryVisitor {
+  std::stringstream output_;
+ 
+public:
+  void preVisit();
+  void visit(const Module& m);
+  std::string output() const { return output_.str(); }
+};
+
+
 
 #endif // _GEOMETRICINFO_HH

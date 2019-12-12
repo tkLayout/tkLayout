@@ -1,5 +1,5 @@
 Component {
-  componentName "IT Module: Inactive silicon around sensor" 
+  componentName "IT Module: Sensor (dead area)" 
   service false
   scaleOnSensor 0
   Element {

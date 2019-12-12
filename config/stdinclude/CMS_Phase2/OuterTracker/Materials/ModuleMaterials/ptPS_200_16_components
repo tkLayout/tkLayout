@@ -1,4 +1,4 @@
- // PS 200 um sensors, 1.6 mm spacer
+// PS 200 um sensors, 1.6 mm spacer
 
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/PS_referenceSensors
 @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2xSensor_Active_200um

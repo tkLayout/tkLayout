@@ -17,7 +17,7 @@ nominalResolutionLocalY = RMS over sensors of (length / (maxSegments * sqrt(12))
 Please specify the set of parameters for resolutionLocalX or Y in cfg file.
 Please note that as soon as any parameter is specified for a given module type and local coordinate, then the parametric mode is chosen to calculate the corresponding resolution.
 
-Example : @includestd CMS_Phase2/Pixel/Resolutions/100x100
+Example : @include-std CMS_Phase2/Pixel/Resolutions/100x100
 Sets of parameters are available for the following module types : 25 um x 100 um, 50 um x 50 um, 50 um x 200 um, 100 um x 100 um.
 
 Initial study was conducted in [1] and [2].

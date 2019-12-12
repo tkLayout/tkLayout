@@ -262,7 +262,7 @@ void Layer::cutAtEta(double eta) {
 
 /*
  * Build a straight layer (with opposition to tilted layer).
- * The layer can be skewed around the (X=0) plane if requested.
+ * The ladders can be skewed around the (CMS_Z) axis if requested.
  */
 void Layer::buildStraight() {
 
@@ -733,7 +733,7 @@ void Layer::buildAndStoreClonedRodsInSkewedMode(const StraightRodPair* firstRod,
   
   const int numRodsPerXSide = numRods() / 2;
   double lastNonSkewedRodCenterPhi = 0.;  // Phi of the center of the last non-skewed rod which has been computed.
-                                          // This will in turn be used to computed the phi of the skewed rod.
+                                          // This will in turn be used to compute the phi of the skewed rod.
 
   // LOOP ON ALL RODS
   // NB: Works on one (X) side.
@@ -768,6 +768,7 @@ double Layer::buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int 
   double lastNonSkewedRodCenterPhi = 0.;
 
   // CLONE RODS
+  // if rodId is odd: clone firstRod, otherwise clone secondRod.
   StraightRodPair* rod = (rodId-1)%2 ? GeometryFactory::clone(*secondRod) : GeometryFactory::clone(*firstRod);
   const double firstRodCenterPhi = firstRod->Phi();
   const double secondRodCenterPhi = secondRod->Phi();
@@ -777,6 +778,8 @@ double Layer::buildAndStoreNonSkewedRodsInSkewedMode(const int rodId, const int 
 
   // FIRST 2 RODS
   // if bigParity() > 0, mirror all rods phi placements through the (XZ) plane.
+  // In practice, need to mirror through (YZ) plane (ie, consider M_PI - angle instead of angle).
+  // Then everytheing end up being rotated by a global Pi/2 rotation around CMS_Z.
   if (rodId <= 2 && bigParity() > 0) {
     const double rodPhiPosition = M_PI - rodClonedPhi; // mirror through (XZ) plane.
     rod->rotateZ(-rodClonedPhi + rodPhiPosition);      // -rodClonedPhi is to remove whatever phi position the rod already has.

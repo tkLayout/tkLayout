@@ -183,7 +183,7 @@ struct TypeInnerBundleTransparentColor { // Module-maintained InnerBundle color
 
 struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
   double operator()(const Module& m) {
-    bool isTransparent = (m.isPositiveZEnd() < 0);
+    bool isTransparent = (m.isPositiveZEnd() < 0 || !m.isPositiveXSide());
     return Palette::colorScrabble(m.innerDTCPlotColor(), isTransparent);
   }
 };

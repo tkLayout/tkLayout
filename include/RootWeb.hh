@@ -36,13 +36,16 @@ using namespace RootWeb;
 class RootWItem {
 public:
   virtual ~RootWItem() {};
-  RootWItem() {taken=false;};
+  RootWItem() {taken=false; isPlacedBelow_=false;};
   virtual bool isTable() {return false;};
   virtual bool isImage() {return false;};
   virtual bool isText() {return false;};
   virtual bool isFile() {return false;};
   virtual ostream& dump(ostream& output) {return output;};
   bool taken;
+  virtual bool isPlacedBelow() { return isPlacedBelow_; }
+protected:
+  bool isPlacedBelow_;
 };
 
 class RootWText: public RootWItem {
@@ -82,7 +85,7 @@ typedef std::map<pair<int,int>, bool> rootWTableContentBold;
 class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
-  RootWTable();
+  RootWTable(bool isPlacedBelow = false);
   void setContent(int row, int column, string content, const bool isBold = false, const int color = kBlack);
   void setContent(int row, int column, int number, const bool isBold = false, const int color = kBlack);
   void setContent(int row, int column, double number, int precision, const bool isBold = false, const int color = kBlack);
@@ -240,6 +243,7 @@ public:
   void addParagraph(string parText) ;
   void setTitle(string newTitle) ;
   void addItem(RootWItem* newItem);
+  void addItem(std::unique_ptr<RootWItem> newItem);
   ostream& dump(ostream& output);
   RootWText& addText();
   RootWText& addText(string newText);
@@ -333,6 +337,7 @@ public:
   ostream& dump(ostream& output);
   void addContent(RootWContent* newContent);
   RootWContent& addContent(string title, bool visible=true);
+  void addContent(std::unique_ptr<RootWContent> newContent);
   void setAlert(double alert);
   double getAlert();
   void setRelevance(int newRelevance);

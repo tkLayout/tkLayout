@@ -6,8 +6,8 @@
  <Constant name="zero" value="0.0*fm"/>
  <!-- <Constant name="RootRadius"     value="[pixfwdCylinder:CylindersOuterRmax]"/>-->
  <!--<Constant name="RootRadius"     value="20.1*cm"/>-->
- <Constant name="RootRadius1"     value="19.65*cm"/>
- <Constant name="RootRadius2"     value="28.8*cm"/> <!-- For Pixel 1_1_1 : RootRadius2 = RootRadius1 -->
+ <Constant name="RootRadius1"     value="21.2*cm"/>
+ <Constant name="RootRadius2"     value="30.7*cm"/> <!-- For Pixel 1_1_1 : RootRadius2 = RootRadius1 -->
 
  <Constant name="AnchorZ"        value="0.*mm"/>
  <Constant name="ZPixelForward"  value="291.*mm"/>
