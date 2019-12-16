@@ -423,7 +423,9 @@ const double DetectorModule::resolutionLocalY(const TVector3& trackDirection) co
  * Compute parametrized local spatial resolution on X axis.
  */
 const double DetectorModule::calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const {
-  const double tanLorentzAngle = 0.053 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double tanLorentzAngle = (is3DPixelModule() ? 0. :
+				  0.053 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+				  );
   const double cotanAlpha = 1./tan(alpha(trackDirection));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
   const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
 
