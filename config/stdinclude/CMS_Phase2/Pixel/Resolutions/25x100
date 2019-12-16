@@ -1,30 +1,32 @@
 // Parametrization by Riccardo del Burgo.
 // Simulation parameters:
 // sensor thickness: 150 um
-// threshold= 1500 e-
+// threshold: 1000 e-
+// digitization (4 bits)
+// voltage: 400V
 // gaussian noise: μ = 0 e-, σ = 120 e-
-// μRH= 0.1078
+// μRH: 0.053
 
 // pitch in X = 25 um. 
-resolutionLocalXParam0 -1.65887e-03      // mm
-resolutionLocalXParam1 -2.22576e-03      // mm
-resolutionLocalXParam2 1.17684e-02       // mm
-resolutionLocalXParam3 2.10522e+00      
-resolutionLocalXParam4 1.61396e+00      
-resolutionLocalXParam5 1.40810e-02       // mm
-resolutionLocalXParam6 -1.18373e-01       
-resolutionLocalXParam7 1.08128e-01      
-resolutionLocalXParam8 2.04617e-02       // mm
-resolutionLocalXParam9 7.24302e-01      
+resolutionLocalXParam0 68.51e-03         // mm
+resolutionLocalXParam1 15.6923e-03       // mm
+resolutionLocalXParam2 667.507e-03       // mm
+resolutionLocalXParam3 -0.013986      
+resolutionLocalXParam4 102.184       
+resolutionLocalXParam5 -8.50693e+03      // mm
+resolutionLocalXParam6 -0.391975      
+resolutionLocalXParam7 0.0742621      
+resolutionLocalXParam8 -51.5195e-03      // mm
+resolutionLocalXParam9 0.695858
 
 // pitch in Y = 100 um.
-resolutionLocalYParam0 1.36198e-02       // mm
-resolutionLocalYParam1 2.69508e-03       // mm
-resolutionLocalYParam2 2.07958e-03       // mm
-resolutionLocalYParam3 8.80011e+00      
-resolutionLocalYParam4 -3.82634e+00      
-resolutionLocalYParam5 1.66384e-02       // mm
-resolutionLocalYParam6 2.60254e-02      
-resolutionLocalYParam7 2.39881e-01      
-resolutionLocalYParam8 -7.20557e-03      // mm
-resolutionLocalYParam9 4.02918e-01
+resolutionLocalYParam0 22.4684e-03       // mm
+resolutionLocalYParam1 5.91399e-03       // mm
+resolutionLocalYParam2 9.77838e-03       // mm
+resolutionLocalYParam3 5.14923        
+resolutionLocalYParam4 93.3833    
+resolutionLocalYParam5 -3.5427e-03       // mm
+resolutionLocalYParam6 1.39766     
+resolutionLocalYParam7 -0.156411   
+resolutionLocalYParam8 -19.0808e-03      // mm
+resolutionLocalYParam9 1.50209 
