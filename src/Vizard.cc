@@ -2319,8 +2319,8 @@ namespace insur {
     moduleTable->setContent(inactiveWeightRow, 0, "Service Weight");
     moduleTable->setContent(totalWeightRow, 0, "Total Weight");
 
-    int loPitch;
-    int hiPitch;
+    double loPitch;
+    double hiPitch;
 
 
     // Summary cycle: prepares the rows cell by cell
@@ -2447,8 +2447,10 @@ namespace insur {
 
       // Pitch
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
-      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
+      //loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
+      //hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
+      loPitch=(*tagMapIt).second->outerSensor().minPitch() / Units::um; // mm -> um
+      hiPitch=(*tagMapIt).second->outerSensor().maxPitch() / Units::um; // mm -> um
 
       if (loPitch==hiPitch) {
         aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
@@ -2462,7 +2464,8 @@ namespace insur {
       stripLengthStream.str("");
       int stripLengthKeep = 0;
       for (const auto& sensorIt : aModule->sensors()) {
-	const int stripLength = (int)(sensorIt.stripLength() / Units::um); // mm -> um
+	//const int stripLength = (int)(sensorIt.stripLength() / Units::um); // mm -> um
+	const double stripLength = (sensorIt.stripLength() / Units::um); // mm -> um
 	if (stripLength != stripLengthKeep) {
 	  if (stripLengthKeep != 0) { stripLengthStream << ", "; }
 	  stripLengthStream << stripLength;
