@@ -8,16 +8,16 @@
 // μRH: 0.053
 
 // pitch in X = 25 um. 
-resolutionLocalXParam0 68.51e-03         // mm
-resolutionLocalXParam1 15.6923e-03       // mm
-resolutionLocalXParam2 667.507e-03       // mm
-resolutionLocalXParam3 -0.013986      
-resolutionLocalXParam4 102.184       
-resolutionLocalXParam5 -8.50693e+03      // mm
-resolutionLocalXParam6 -0.391975      
-resolutionLocalXParam7 0.0742621      
-resolutionLocalXParam8 -51.5195e-03      // mm
-resolutionLocalXParam9 0.695858
+resolutionLocalXParam0 5.60959e-03        // mm
+resolutionLocalXParam1 5.74913e-03        // mm
+resolutionLocalXParam2 7.03433e-03        // mm
+resolutionLocalXParam3 1.99516
+resolutionLocalXParam4 -663.952
+resolutionLocalXParam5 3.752e-03          // mm
+resolutionLocalXParam6 0
+resolutionLocalXParam7 -0.0704734
+resolutionLocalXParam8 0.0454867e-03      // mm
+resolutionLocalXParam9 1.07359
 
 // pitch in Y = 100 um.
 resolutionLocalYParam0 22.4684e-03       // mm
