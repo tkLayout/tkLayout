@@ -1,0 +1,96 @@
+// Generic 2S module properties
+
+moduleType pt2S
+// Active silicon size
+width 91.44  // NB: Latest info is 91.488 mm (91.44 mm used in MB).
+length 100.5 // NB: Latest info is 100.58 mm + 0.13 mm = 100.71 mm (100.71 mm already used in MB).
+
+sensorLayout pt
+zCorrelation samesegment
+
+numSensors 2
+
+powerPerModule 4700  // mW
+
+sensorThickness 0.29     // 290 um active + 30 um inactive
+
+Sensor 1 {
+  sensorType strip
+  numStripsAcross 1016
+  numSegments 2
+  numROCX 8
+  numROCY 2
+}
+
+Sensor 2 {
+  sensorType strip
+  numStripsAcross 1016
+  numSegments 2
+  numROCX 8
+  numROCY 2
+}
+
+
+// These quantities' materials appear in tkLayout, but the geo volumes are only modeled in CMSSW
+serviceHybridWidth 16.78   // 15.4085 hybrid + 1.3715 inactive silicon // OK
+frontEndHybridWidth 21.725 // 20.625 hybrid  + 1.1    inactive silicon // OK
+hybridThickness 1.0
+supportPlateThickness 0.0
+
+
+plotColor 2 
+
+ContourPoint 0 {
+  pointY 71.951
+  pointX 62.5
+}
+
+ContourPoint 1 {
+  pointY 71.951
+  pointX 0
+}
+
+ContourPoint 2 {
+  pointY 71.951
+  pointX -62.5
+}
+
+ContourPoint 3 {
+  pointY 42.5
+  pointX -62.5
+}
+
+ContourPoint 4 {
+  pointY 42.5
+  pointX -47.791
+}
+
+ContourPoint 5 {
+  pointY -42.5
+  pointX -47.791
+}
+
+ContourPoint 6 {
+  pointY -42.5
+  pointX -62.5
+}
+
+ContourPoint 7 {
+  pointY -71.951
+  pointX -62.5
+}
+
+ContourPoint 8 {
+  pointY -71.951
+  pointX 0 
+}
+
+ContourPoint 9 {
+  pointY -71.951
+  pointX 62.5
+}
+
+
+
+
+

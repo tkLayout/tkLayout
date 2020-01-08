@@ -1,16 +1,16 @@
 // TEXP Ring1: module with 4 chips
-// 2.5 modules/GBT
+// 1.666 modules/GBT
 
 Conversion {
   Input {
     // Two conductors
     Element {
       elementName Cu_Elinks_TEPX_R1_4chipmodules
-      quantity 1.6575              // = 2.5 * quantity / module
+      quantity 1.473               // = 1.666 * quantity / module
       unit g/m
     }
   }
   Output {
-    @include GBT_and_fibres        // = 1 GBT
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC        // = 1 GBT
   }
 }

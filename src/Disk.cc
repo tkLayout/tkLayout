@@ -350,10 +350,10 @@ void Disk::computeActualCoverage() {
   for (auto& r : rings_) r.computeActualPhiCoverage();
 }
 
-void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
+void Disk::translateZ(double z) { centerZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 
 void Disk::rotateToNegativeZSide() {
-  averageZ_ = -averageZ_;
+  centerZ_ = -centerZ_;
   for (auto& r : rings_) r.rotateToNegativeZSide();
 }
 

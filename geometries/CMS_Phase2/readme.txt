@@ -229,6 +229,10 @@ OT616_200_IT404.cfg	   Diff with OT615:
                              L3: radius -27 mm (OT envelope shrink) +2 mm (smaller no-go zone between TB2S and BTL). numRods: -2 rods.
                          - TBPS:
                              L1: +2 mm in last 5 rings radii.
+                             
+OT616_IT613.cfg	       Diff with OT616_200:
+                       Sensor thickness: 200 um -> 290 um + Add 30 um deep-diffused Si + Review Si in inactive edges and MPA.
+                       Add 164 um to s-sensor in PS module.
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
@@ -447,7 +451,7 @@ OT614_200_IT611.cfg                  OT Version 6.1.4
                                      Based from Inner Tracker version 6.1.0.
                                      TEPX: 2x2 modules in Ring 1 and Ring 2.
                                      Materials: adapted correspondingly.
-                                     NB: numModules / GBT still follow IT404 cabling map, will need slight update (+4 modules in R4).
+                                     NB: IT cabling still follows IT404 cabling map, will need slight update (+4 modules in R4).
                                      WARNING: Rings radii to be tuned!! 
                                      Rmin set to 62.9 mm, is that fine? Rmax < 254.52 mm, is that the constrainst?  
                                      What is the Rmax constrainst on TFPX???  
@@ -462,9 +466,34 @@ OT614_200_IT613.cfg                  OT Version 6.1.4
                                      * Disk 1: same Z.
                                      * Disk 2: 1985.43 mm -> 2009.59 mm   
                                      * Disk 3: 2250.83 mm -> 2307.69 mm       
-                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                               
+                                     * Disk 4: 2550.00 mm -> 2650.00 mm (set same Z as last TEDD disk's meanZ for now).                                                                                                                                                                            
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   
+
+
+=================   INSTALLATION STUDIES   =================     
+OT616_IT614.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.3.
+                                     TFPX, Disk 6 : -15 mm. Disk 7: + 15mm. All TBPX conversion stations placed between Disk 6 and Disk 7.
                                      
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                        
+OT616_IT615.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.4.
+                                     TFPX: Stretched double-disk system, data from Yadira. 
+                                     smallDelta: 2 -> 2.75 mm. bigDelta: 4 -> 6.25 mm.
+                                     Sensors on both faces of same dee: inter sensor centers distance (in Z) is now 5.5 mm.
+                                     Back sensors of one dee VS front sensors of next dee: inter sensor centers distance (in Z) is now 7 mm.
+                                     
+OT616_IT616.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.5.
+                                     TFPX: Tested shift in Z of +25 mm on all double-disks.                                     
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
+
+
+============   ZEBRA STUDIES   ============                 
+OT616_200_IT620.cfg                  OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.3.
+                                     Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
+                                     Layouts fully with 25x100 or 50x50 were studied, but not one that would include a mix of the 2!
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                  
                                                                                            
 
 ============   TIMING BARREL LAYER STUDIES   =============

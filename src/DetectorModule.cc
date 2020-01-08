@@ -203,7 +203,7 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     double width = area() / length();
     double expandedModWidth = width + 2 * serviceHybridWidth();
-    double expandedModLength = length() + 2 * frontEndHybridWidth();
+    double expandedModLength = length() + outerSensorExtraLength() + 2 * frontEndHybridWidth();
     double expandedModThickness;
     if (!isPixelModule()) { expandedModThickness = dsDistance() + 2.0 * (supportPlateThickness() + sensorThickness()); }
     //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
@@ -218,16 +218,16 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
 
     // mx: (v2+v3)/2 - center(), my: (v1+v2)/2 - center()
-    XYZVector mx = 0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center() ;
-    XYZVector my = 0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center() ;
+    XYZVector mx = (0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center()).Unit() ;
+    XYZVector my = (0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center()).Unit() ;
 
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
     XYZVector v[npoints-1];
-    v[0] = center() - (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
-    v[1] = center() - (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
-    v[2] = center() + (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
-    v[3] = center() + (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+    v[0] = center() - expandedModWidth/2. * mx - expandedModLength/2. * my;
+    v[1] = center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[2] = center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
+    v[3] = center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface
@@ -403,9 +403,9 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
  * RETURN LOCAL SPATIAL RESOLUTION ON X AXIS.
  * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
  */
-const double DetectorModule::resolutionLocalX(const double phi) const {
+const double DetectorModule::resolutionLocalX(const TVector3& trackDirection) const {
   if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
-  else { return calculateParameterizedResolutionLocalX(phi); }
+  else { return calculateParameterizedResolutionLocalX(trackDirection); }
 }
 
 
@@ -413,18 +413,18 @@ const double DetectorModule::resolutionLocalX(const double phi) const {
  * RETURN LOCAL SPATIAL RESOLUTION ON Y AXIS.
  * This resolution is nominal by default, and parametrized if the paramnetrization model is called.
  */
-const double DetectorModule::resolutionLocalY(const double theta) const {
+const double DetectorModule::resolutionLocalY(const TVector3& trackDirection) const {
   if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
-  else { return calculateParameterizedResolutionLocalY(theta); }
+  else { return calculateParameterizedResolutionLocalY(trackDirection); }
 }
 
 
 /*
  * Compute parametrized local spatial resolution on X axis.
  */
-const double DetectorModule::calculateParameterizedResolutionLocalX(const double trackPhi) const {
-  const double tanLorentzAngle = 0.1078 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
-  const double cotanAlpha = 1./tan(alpha(trackPhi));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
+const double DetectorModule::calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const {
+  const double tanLorentzAngle = 0.053 * SimParms::getInstance().magField() * cos(tiltAngle());  // dependancy on tilt angle is here!!! :)
+  const double cotanAlpha = 1./tan(alpha(trackDirection));         // Riccardo's theta = alpha - Pi/2    => than(theta) = -cotan(alpha)
   const double fabsTanDeepAngle = fabs(-cotanAlpha - tanLorentzAngle);  
 
   const bool isLocalXAxis = true;
@@ -437,8 +437,8 @@ const double DetectorModule::calculateParameterizedResolutionLocalX(const double
 /*
  * Compute parametrized local spatial resolution on Y axis.
  */
-const double DetectorModule::calculateParameterizedResolutionLocalY(const double theta) const {
-  const double cotanBeta = 1./tan(beta(theta));               // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
+const double DetectorModule::calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const {
+  const double cotanBeta = 1./tan(beta(trackDirection));           // Riccardo's theta = beta - Pi/2    => than(theta) = -cotan(beta)
   const double fabsTanDeepAngle = fabs(-cotanBeta); 
                  
   const bool isLocalXAxis = false;
@@ -517,16 +517,44 @@ const bool DetectorModule::hasAnyResolutionLocalYParam() const {
 
 /*
  * Compute the alpha incident angle.
- * See README for definition of alpha angle.
- * This depends on the Phi-angle of the track and the Phi-position of the Module.
+ * See README for definition of alpha angle. 
+ * alpha = (X, projectedTrack) (oriented angle between the 2 vectors).
+ * X is the vector of the Lorentz drift (= localX).
+ * projectedTrack is the projection of the track in the plane of normal localY.
  */
-const double DetectorModule::alpha(const double trackPhi) const {
-  double deltaPhi = center().Phi() + skewAngle() - trackPhi;
-  if (fabs(deltaPhi) > M_PI/2.) {
-    if (deltaPhi < 0.) deltaPhi += 2.*M_PI;
-    else deltaPhi -= 2.*M_PI;
+const double DetectorModule::alpha(const TVector3& trackDirection) const {
+
+  // Sensor local X vector (= Lorentz drift in TBPX).
+  const TVector3& localX = getLocalX();
+
+  // Sensor local Y vector.
+  const TVector3& localY = getLocalY();
+
+  // Project the track vector into the plane of normal localY.
+  const TVector3& projectedTrack = CoordinateOperations::projectv1OnPlaneOfNormalUnitv2(trackDirection, localY);
+
+  // alpha = (localX, projectedTrack) (oriented angle between the 2 vectors).
+  const double alpha = femod(localX.Angle(projectedTrack), 2. * M_PI);
+
+  if (alpha >= M_PI) { 
+    logERROR("alpha angle should be in ]0 180[, but found alpha = " + any2str(alpha * 180. / M_PI)); 
   }
-  const double alpha = deltaPhi + M_PI / 2.;
+
+  /* Keep old formula.
+     This old formula is only true in (CMS_X, CMS_Y) plane.
+     It is is a projection of the new formula onto the (CMS_X, CMS_Y) plane (perfect match).
+
+     const double trackPhi = trackDirection.Phi();
+
+     // Oriented angle: between the normal to the sensor (oriented towards outer radius) and the track vector.
+     const double sensorNormalToTrackDeltaPhi = trackPhi - (center().Phi() + skewAngle());
+
+     // Oriented angle: between local X vector (= Lorentz drift) and the track vector.
+     const double sensorXToTrackDeltaPhi = (!flipped() ? M_PI / 2. + sensorNormalToTrackDeltaPhi : M_PI / 2. - sensorNormalToTrackDeltaPhi);
+
+     const double alpha = femod(sensorXToTrackDeltaPhi, 2.*M_PI);
+  */
+
   return alpha;
 }
 
@@ -534,10 +562,48 @@ const double DetectorModule::alpha(const double trackPhi) const {
 /*
  * Compute the beta incident angle.
  * See README for definition of beta angle.
- * This depends on the theta-angle of the track and the tilt angle of the Module.
+ * alpha = (Y, projectedTrack) (oriented angle between the 2 vectors).
+ * Y is the sensor localY vector.
+ * projectedTrack is the projection of the track in the plane of normal localX.
  */
-const double DetectorModule::beta(const double theta) const { 
-  return theta + tiltAngle(); 
+const double DetectorModule::beta(const TVector3& trackDirection) const {
+
+  // Sensor local X vector
+  const TVector3& localX = getLocalX();
+
+  // Sensor local Y vector.
+  const TVector3& localY = getLocalY();
+
+  // Project the track vector into the plane of normal localX.
+  const TVector3& projectedTrack = CoordinateOperations::projectv1OnPlaneOfNormalUnitv2(trackDirection, localX);
+
+  // beta = (localY, projectedTrack) (oriented angle between the 2 vectors).
+  const double beta = femod(localY.Angle(projectedTrack), 2. * M_PI);
+
+  if (beta >= M_PI) { 
+    logERROR("beta angle should be in ]0 180[, but found beta = " + any2str(beta * 180. / M_PI)); 
+  }
+
+  /* Keep old formula.
+     This old formula is not really correct.
+     It does not take into account a dependency in track vector's phi (true story!!), which occurs for both the barrel and the forward.
+     This is because we are interested in the PROJECTION of the track vector into the plane of normal localX.
+     When we project the track vector into the plane of normal localX:
+     In the event the hit is not in the (sensor center, CMS_Z) plane, or if the module is skewed: 
+     * the component in (CMS_X, CMS_Y) plane of the track vector gets a smaller norm. 
+     * the component along CMS_Z of the track vector stays the same.
+     Hence, the projected track vector is more 'parallel to CMS_Z' than the track vector.
+     This implies that beta angle is further from M_PI/2 than eta is the barrel, and closer to M_PI/2 than eta in the forward.
+     The effect is quite negligible though, except for skewed ladders. 
+     It is way cleaner to have a vectorial formula amyway.
+
+     const double beta = theta + tiltAngle();
+
+     // Oriented angle: between local Y vector and the track vector.
+     const double orientedBeta = (fabs(tiltAngle() - M_PI/2.) < insur::geom_zero ? beta : (M_PI - beta));
+  */
+
+  return beta;
 }
 
 

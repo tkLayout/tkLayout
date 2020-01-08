@@ -1,75 +1,88 @@
-// Pixel endcap disks material
-// Large disks (220 modules)
-// 2.41 times bigger than small disk
+// TEPX double-disk materials.
+// Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 // 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
 Materials FPIX_2_disk_2500_10000 {
   type layer
 
-  // Cooling for the module
-  // Average on disk (scales on surface)
+
+  // Modules Cooling.
+  // Material LOCAL to the dees.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant (on dees)"
     service false
     scaleOnSensor 0
     Element {
-      elementName Ti
-      quantity 24.94
+      elementName StainlessSteel
+      quantity 113.8                  // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a disk volume!
       unit g
     }
     Element {
       elementName CO2
-      quantity 23.66
+      quantity 67.8
       unit g
     }
   }
-  // fake numbers for calculating conversion with a factor of 1000
-  // 16 pipes per disk
+  
+  
+  // Modules Cooling.
+  // 16 pipes (inlet or outlets) ROUTED: 4 for each dee.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
+  // NB: evth 'divided by 1000', so that the value routed along the dee is negligible (x 1000 conversion at the edge of the dee).
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant (routed)"
     service true
     scaleOnSensor 0
     Element {
-      elementName FPIX_Ti
-      quantity 0.0532
+      elementName StainlessSteel_fake1000factor
+      quantity 0.0847                 // = 8.02 g/cm^3 (SS density) /1000 (to g/mm^3) * 0.66 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
     Element {
-      elementName FPIX_CO2
-      quantity 0.052
+      elementName CO2_fake1000factor
+      quantity 0.050                  // = 1.0 g/cm^3 (CO2 density) /1000 (to g/mm^3) * 3.14 mm^2 (SS cross-section) * 1000 (to g/m) * 16 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
   }
+
 
   // Power for the module
   // Average on disk
   // 28 power chains per disk
   // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
-  Component {
-    componentName "Cabling: Serial power chains"
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName Al
-      quantity 21.665
-      unit g
-    }
-    Element {
-      elementName Cu
-      quantity 2.947
-      unit g
-    }
-    Element {
-      elementName PE
-      quantity 7.714
-      unit g
-    }
-  }
+  //Component {
+  //  componentName "Cabling: Serial power chains (on dees)"
+  //  service false
+  //  scaleOnSensor 0
+  //  Element {
+  //    elementName Al
+  //    quantity 21.665
+  //    unit g
+  //  }
+  // Element {
+  //    elementName Cu
+  //    quantity 2.947
+  //    unit g
+  //  }
+  //  Element {
+  //    elementName PE
+  //    quantity 7.714
+  //    unit g
+  //  }
+  //}
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 28 power chains per disk
   // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
-    componentName "Cabling: Serial power chains"
+    componentName "Cabling: Serial power chains (routed)"
     service true
     scaleOnSensor 0
     Element {
@@ -89,34 +102,37 @@ Materials FPIX_2_disk_2500_10000 {
     }
   }
 
+
   // HV power lines
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
-  Component {
-    componentName "Cabling: High voltage lines"
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName Al_HV
-      quantity 12.85
-      unit g
-    }
-    Element {
-      elementName Cu
-      quantity 4.58
-      unit g
-    }
-    Element {
-      elementName PE
-      quantity 46.2
-      unit g
-    }
-  }
+  //Component {
+  //  componentName "Cabling: High voltage lines (on dees)"
+  //  service false
+  //  scaleOnSensor 0
+  //  Element {
+  //    elementName Al_HV
+  //    quantity 12.85
+  //    unit g
+  //  }
+  //  Element {
+  //    elementName Cu
+  //    quantity 4.58
+  //    unit g
+  //  }
+  //  Element {
+  //    elementName PE
+  //    quantity 46.2
+  //    unit g
+  //  }
+  //}
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 28 power chains per disk, 2 HV lines per power chain
   // Proportional to PP0-SEH-HV (700067231 Rev 01)
   Component {
-    componentName "Cabling: High voltage lines"
+    componentName "Cabling: High voltage lines (routed)"
     service true
     scaleOnSensor 0
     Element {
@@ -136,21 +152,73 @@ Materials FPIX_2_disk_2500_10000 {
     }
   }
 
-  // Supports Mechanics
-  //Mechanics
+
+  // Supports Mechanics: Airex foam insert
   Component {
-    componentName "Supports Mechanics: disk"
+    componentName "Supports Mechanics: Dee Airex foam"
     service false
     scaleOnSensor 0
-    Element {
-      elementName CF
-      quantity 0.4
-      unit mm
-    }
+ 
     Element {
       elementName Airex
-      quantity 4
-      unit mm
+      quantity 52             // 13g per dee, hence 4*13 = 52g per double-disk. Source: [TEPX_2018_12_07_LC].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes.
+      // thickness approach would be: ~1.7 mm per dee, hence ~ 2*1.7 = 3.4 mm per double-disk. 
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
     }
   }
+ 
+ 
+  // Cabling: PCB panel
+  Component {
+    componentName "Cabling: Dee PCB panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName PCB_panel_EPX
+      quantity 424        // 106g per dee, hence 4*106 = 424g per double-disk. Source: [TEPX_2018_12_07_LC].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      // thickness approach would be: ~0.28 mm per panel, hence ~ 4*0.28 = 1.12 mm per double-disk. 
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
+    }
+
+  }
+  
+    
+  // Supports Mechanics: CFRP panel (also called CFK stiffener)
+  Component {
+    componentName "Supports Mechanics: Dee CFRP panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName CFRP_EPX
+      quantity 300          // 75g per dee, hence 4*75 = 300g per double-disk. Source: [TEPX_2018_12_07_LC].
+      unit g
+      // APPROXIMATION: mass spread across a uniform disk cylinder, while there should be holes for modules.
+      
+      // thickness approach would be as follows (but far more precise because of modules holes).                     
+      //quantity 1.2
+      //unit mm        
+      
+      // 0.5 mm thick CFRP panel, with holes for the modules. Equivalent is set to 0.3 mm thickness (with no hole for modules). 
+      // 1 dee has 2 panels. Hence one double-disk crosses 4 panels through its thickness.
+      // total thickness = 4 * 0.3 = 1.2 mm
+      // Source: [TEPX_2018_12_07_LC].
+      
+      // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+      // Directly specifying mass amount is much cleaner approach!
+    }   
+  }
+
 }
+

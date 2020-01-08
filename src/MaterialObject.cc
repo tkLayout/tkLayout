@@ -24,6 +24,8 @@ namespace material {
       {LAYER, "layer"}
   };
 
+  define_enum_strings(Location) = { "all", "dee", "external" };
+
   MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
     subdetectorName_(subdetectorName),
       materialType_ (materialType),
@@ -115,13 +117,13 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element * currElement : serviceElements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     
     if (materials_ != nullptr) {
-      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }    
   }
 
@@ -208,9 +210,9 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -274,12 +276,12 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element* currElement : elements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -302,13 +304,6 @@ namespace material {
   }
 
 
-  /*
-  const std::map<MaterialObject::Type, const std::string> MaterialObject::Element::unitString = {
-      {GRAMS, "g"},
-      {MILLIMETERS, "mm"},
-      {GRAMS_METER, "gm"}
-  };
-  */
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
@@ -324,11 +319,14 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
+    location ("location", parsedOnly(), Location::EXTERNAL),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
     subdetectorName_(subdetectorName),
     materialsTable_ (MaterialsTable::instance()),
     materialType_(newMaterialType) 
-  {};
+  {
+    if (location() == Location::ALL) { logERROR("location ALL can not be set to an element."); }
+};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : 
     Element(original.materialType_, original.subdetectorName()) 
@@ -356,46 +354,44 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     const Element* elementToDeploy = this;
-    bool valid = false;
-    if ((! onlyServices) || (onlyServices && (service() == true))) {
-      if((unit().compare("g") == 0) && (service() == true)) { 
-        logERROR(err_service1 + elementName() + err_service2);
-      } else {
-        valid = true;
-      }
-      // if (materialType_ == STATION) {
-      //   if(unit().compare("g") == 0) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == ROD) {
-      //   if((unit().compare("g") == 0) && (service() == true) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == MODULE) {
-      //   if (service() == true) {
-      //     valid = true;
-      //   }      
-      // }
-        
-      if(valid) {
-        for(const std::string& unitToDeploy : unitsToDeploy) {
-          if (unit().compare(unitToDeploy) == 0) {
-            if (((materialType_ == ROD) || (materialType_ == MODULE)) && (service()==true) && (unit().compare("mm") == 0)) {
-              logUniqueWARNING("Definition of services in \"mm\" is deprecated");
-            }
-            if (unit().compare("g") == 0) {
-              elementToDeploy = new Element(*this, gramsMultiplier);
-            }
-            outputObject.addElement(elementToDeploy);
-            break;
-          }
-        }
+    // (materialType_ == STATION)
+    // (materialType_ == ROD)
+    // (materialType_ == MODULE)
+
+    // KEY POINT.
+    // Only deploy materials to the section if:
+    // * no specific requestedLocation
+    // * there is a specific requestedLocation AND IT IS MATCHING THE MaterialObject::Element location.
+    if (requestedLocation == Location::ALL || 
+	(requestedLocation == location())
+	) {
+
+      if ( (!onlyServices) || (onlyServices && (service() == true))) {      
+     
+	for (const std::string& unitToDeploy : unitsToDeploy) {
+	  if (unit().compare(unitToDeploy) == 0) {
+
+	    if (service() == true && (unit().compare("g/m") != 0) ) {
+	      logERROR(any2str("Definition of services (") 
+		       + any2str(elementName())
+		       + any2str(") in ") 
+		       + any2str(unit())
+		       + any2str(" is not supported. Please use g/m !!")
+		       );
+	    }
+	    else {
+	      if (unit().compare("g") == 0) {
+		elementToDeploy = new Element(*this, gramsMultiplier);
+	      }
+
+	      outputObject.addElement(elementToDeploy);
+	      break;
+	    }
+	  }
+	}
+      
       }
     }
   }

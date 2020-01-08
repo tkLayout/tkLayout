@@ -142,6 +142,7 @@ public:
   Property<double, AutoDefault> deadAreaExtraWidth;
   Property<double, AutoDefault> chipNegativeXExtraWidth;
   Property<double, AutoDefault> chipPositiveXExtraWidth;
+  Property<double, AutoDefault> outerSensorExtraLength;
 
   Property<bool, Default> removeModule;
 
@@ -206,6 +207,7 @@ public:
       deadAreaExtraWidth       ("deadAreaExtraWidth"       , parsedOnly()),
       chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
+      outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
@@ -242,6 +244,7 @@ public:
   double meanWidth() const { return decorated().meanWidth(); }
   double physicalLength() const { return decorated().physicalLength(); }
 
+  const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
@@ -253,14 +256,14 @@ public:
 
   // RETURN LOCAL SPATIAL RESOLUTION
   // This resolution is either nominal, either from parametrization.
-  const double resolutionLocalX(const double phi) const;
-  const double resolutionLocalY(const double theta) const;
+  const double resolutionLocalX(const TVector3& trackDirection) const;
+  const double resolutionLocalY(const TVector3& trackDirection) const;
 
   // Used to compute local parametrized spatial resolution.
   const bool hasAnyResolutionLocalXParam() const;
   const bool hasAnyResolutionLocalYParam() const;
-  const double alpha(const double trackPhi) const;
-  const double beta(const double theta) const;
+  const double alpha(const TVector3& trackDirection) const;
+  const double beta(const TVector3& trackDirection) const;
  
   // STATISTICS ON LOCAL SPATIAL RESOLUTION
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
@@ -287,6 +290,7 @@ public:
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
+  const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
@@ -327,6 +331,22 @@ public:
   double maxTheta() const { return MAX(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double minTheta() const { return MIN(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double thetaAperture() const { return maxTheta() - minTheta(); }
+
+  // Get local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalX() const {
+    XYZVector localX = basePoly().getVertex(3) - basePoly().getVertex(0);
+    if (flipped()) { localX *= -1; } // a flip operation does not move the polygon vertexes, hence desserves special treatment.
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localX *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localX).Unit();
+  }
+  // Get local Y orientation on sensor plane.
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalY() const { 
+    XYZVector localY = basePoly().getVertex(0) - basePoly().getVertex(1);
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localY *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localY).Unit();
+  }
 
   const Sensors& sensors() const { return sensors_; }
   const MaterialObject& materialObject() const { return materialObject_; }
@@ -410,8 +430,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
 protected:
   // Used to compute local parametrized spatial resolution.
-  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  virtual const double calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const;
+  virtual const double calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const;
   const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
   MaterialObject materialObject_;
@@ -588,6 +608,8 @@ public:
   void setIsSmallerAbsZModuleInRing(const bool isSmallerAbsZModuleInRing) { isSmallerAbsZModuleInRing_ = isSmallerAbsZModuleInRing; }
   const bool isSmallerAbsZModuleInRing() const override { return isSmallerAbsZModuleInRing_; }
   const int diskSurface() const override { return endcapDiskSurface(); }
+  const bool isAtSmallerAbsZSideInDee() const { return (femod(diskSurface(), 2) == 1); }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return (diskSurface() <= 2); }
 
   EndcapModule(Decorated* decorated, const std::string subdetectorName) :
     DetectorModule(decorated, subdetectorName)

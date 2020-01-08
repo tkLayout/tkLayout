@@ -1,7 +1,7 @@
 // Sensor spacers for PS module 2.6 mm spacing
 
 Component {
-  componentName "PS Module: Sensor spacers (2.6 mm)"
+  componentName "PS Module: Sensor spacers"
   service false
   scaleOnSensor 0
   targetVolume 7

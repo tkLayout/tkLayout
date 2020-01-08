@@ -78,6 +78,13 @@ public:
   
   virtual double thickness() const = 0;
   virtual bool isTilted() const = 0;
+  const double orientedSkewAngle() const {
+    double skewAngle = 0.;
+    if (zPlusModules_.size() == 0) { logERROR("Tried to access modules from a RodPair with 0 (Z+) module."); }
+    else { skewAngle = zPlusModules_.at(0).skewAngle(); }
+    return skewAngle;
+  }
+  const bool isSkewed() const { return (fabs(orientedSkewAngle()) > insur::geom_zero); }
 
   const std::string subdetectorName() const { return subdetectorName_; }
   bool isTiming() const {
