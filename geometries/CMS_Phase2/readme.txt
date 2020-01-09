@@ -233,6 +233,16 @@ OT616_200_IT404.cfg	   Diff with OT615:
 OT616_IT613.cfg	       Diff with OT616_200:
                        Sensor thickness: 200 um -> 290 um + Add 30 um deep-diffused Si + Review Si in inactive edges and MPA.
                        Add 164 um to s-sensor in PS module.
+                       
+OT617_IT615.cfg	       Diff with OT616:
+                       All TEDD: update smallDeltas to latest info.
+                          * PS 4 mm: 7.375 mm -> 7.550 mm.
+                          * 2S 4 mm:  8.550 mm -> 8.595 mm.
+                          * 2S 1.8 mm: 7.450 mm -> 7.495 mm.
+                       Improve transition region between TB2S and TEDD by removing readout hybrid in TEDD1, R15.
+                          * Special modules in TEDD1, R15, with halved number of strips / module. WARNING: MB NOT UPDATED!! SHOULD UPDATE REF SENSOR MB AND READOUT MB.
+                          * Outer radius increased by 20.47 mm : R15 sensors centers: 1023.16 mm -> 1043.63 mm.
+                          * Radii in TEDD1, R12, R13, R14 adjusted accordingly.                              
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
