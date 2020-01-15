@@ -3055,8 +3055,8 @@ namespace insur {
       detailProfile.SetMarkerColor(Palette::color(colorIndex));
       detailProfile.SetLineColor(Palette::color(colorIndex));
       detailProfile.SetFillColor(Palette::color(colorIndex));
-      detailProfile.SetMarkerStyle(8);
-      detailProfile.SetMarkerSize(1.5);
+      detailProfile.SetMarkerStyle(1);
+      detailProfile.SetMarkerSize(1);
       detailProfile.GetYaxis()->SetTitleOffset(1.3);
       detailProfile.SetStats(0);
       detailProfile.Draw("same");
@@ -3282,8 +3282,8 @@ namespace insur {
 	detailProfile.SetMaximum(1.05);
 	detailProfile.SetMarkerColor(Palette::color(colorIndex));
 	detailProfile.SetLineColor(Palette::color(colorIndex));
-	detailProfile.SetMarkerStyle(8);
-	detailProfile.SetMarkerSize(0.3);  
+	detailProfile.SetMarkerStyle(1);
+	detailProfile.SetMarkerSize(1);  
 	detailProfile.Draw("same");
 
 	std::ostringstream titleStream;
@@ -3618,7 +3618,7 @@ namespace insur {
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
     std::unique_ptr<TCanvas> totalEtaProfileFull(new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY));
     totalEtaProfileFull->cd();
-    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetStats(0.);
@@ -3639,7 +3639,7 @@ namespace insur {
     if (totalLayersCountOuter) {
       totalLayersCountOuter->SetBit(1);
       totalLayersEtaStack->Add(totalLayersCountOuter);
-      totalLayersCountOuter->SetMarkerStyle(8);
+      totalLayersCountOuter->SetMarkerStyle(1);
       totalLayersCountOuter->SetMarkerSize(1);
       totalLayersCountOuter->SetMarkerColor(Palette::color(1));
       totalLayersCountOuter->SetStats(0);
@@ -3648,12 +3648,12 @@ namespace insur {
     if (totalLayersCountInner) {   
       totalLayersCountInner->SetBit(1);
       totalLayersEtaStack->Add(totalLayersCountInner);
-      totalLayersCountInner->SetMarkerStyle(8);
+      totalLayersCountInner->SetMarkerStyle(1);
       totalLayersCountInner->SetMarkerSize(1);
       totalLayersCountInner->SetMarkerColor(Palette::color(2));
       totalLayersCountInner->SetStats(0);
     }
-    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
@@ -4099,8 +4099,8 @@ namespace insur {
         std::unique_ptr<TCanvas> pCanvas(new TCanvas());
 
         int myColor=0;
-        int nRebin = 2;
-        int markerStyle = 21;
+        int nRebin = 1;
+        int markerStyle = 1;
         double markerSize = 1.;
         double lineWidth = 2.;
 
@@ -4216,11 +4216,13 @@ namespace insur {
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
           ctgThetaCanvas->SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
+	  ctgThetaProfile.SetLineWidth(lineWidth);
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
           etaProfile.SetMinimum(vis_min_dCtgTheta);
           etaProfile.SetMaximum(vis_max_dCtgTheta);
           etaCanvas->SetLogy();
           etaProfile.SetLineColor(momentumColor(myColor));
+	  etaProfile.SetLineWidth(lineWidth);
           etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
@@ -4248,6 +4250,7 @@ namespace insur {
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
           z0Canvas->SetLogy();
           z0Profile.SetLineColor(momentumColor(myColor));
+	  z0Profile.SetLineWidth(lineWidth);
           z0Profile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
@@ -4256,7 +4259,7 @@ namespace insur {
           if (z0Graph.GetN() > 0) {
             z0Canvas->cd();
             z0Profile.Draw(plotOption.c_str());
-            plotOption = "p same";
+            plotOption = "same";
           }
         }
         plotOption = "";
@@ -4275,6 +4278,7 @@ namespace insur {
           }
           pCanvas->SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
+	  pProfile.SetLineWidth(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
@@ -4283,7 +4287,7 @@ namespace insur {
           if (pGraph.GetN() > 0) {
             pCanvas->cd();
             pProfile.Draw(plotOption.c_str());
-            plotOption = "p same";
+            plotOption = "same";
           }
         }
         RootWImage& linearMomentumImage = myContent->addImage(std::move(linearMomentumCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -4513,7 +4517,7 @@ namespace insur {
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
-          int markerStyle        = 21;
+          int markerStyle        = 1;
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
@@ -4596,7 +4600,7 @@ namespace insur {
             if (pGraph.GetN() > 0) {
               pCanvas_Pt->cd();
               pProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           // Draw d0
@@ -4724,7 +4728,7 @@ namespace insur {
             if (z0Graph.GetN() > 0) {
               z0Canvas_Pt->cd();
               z0Profile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4752,7 +4756,7 @@ namespace insur {
             if (LGraph.GetN() > 0) {
               lCanvas_Pt->cd();
               lProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4780,7 +4784,7 @@ namespace insur {
             if (BetaGraph.GetN() > 0) {
               betaCanvas_Pt->cd();
               betaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4808,7 +4812,7 @@ namespace insur {
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_Pt->cd();
               omegaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4894,7 +4898,7 @@ namespace insur {
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
-          int markerStyle        = 21;
+          int markerStyle        = 1;
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
@@ -4977,7 +4981,7 @@ namespace insur {
             if (pGraph.GetN() > 0) {
               pCanvas_P->cd();
               pProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           // Draw d0
@@ -5105,7 +5109,7 @@ namespace insur {
             if (z0Graph.GetN() > 0) {
               z0Canvas_P->cd();
               z0Profile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           plotOption = "";
@@ -5135,7 +5139,7 @@ namespace insur {
             if (LGraph.GetN() > 0) {
               lCanvas_P->cd();
               lProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5163,7 +5167,7 @@ namespace insur {
             if (BetaGraph.GetN() > 0) {
               betaCanvas_P->cd();
               betaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5191,7 +5195,7 @@ namespace insur {
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_P->cd();
               omegaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5518,7 +5522,7 @@ namespace insur {
 
       a.hisPatternRecoInOutPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoInOutPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutPt[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoInOutPt[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5553,7 +5557,7 @@ namespace insur {
 
       a.hisPatternRecoOutInPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoOutInPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInPt[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoOutInPt[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoOutInPt[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoOutInPt[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5596,7 +5600,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5639,7 +5643,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5679,7 +5683,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5724,7 +5728,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5767,7 +5771,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5807,7 +5811,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5852,7 +5856,7 @@ namespace insur {
 
       a.hisPatternRecoInOutP[iMomentum]->SetNameTitle(std::string("hisPBkgContInOut"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutP[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoInOutP[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5887,7 +5891,7 @@ namespace insur {
 
       a.hisPatternRecoOutInP[iMomentum]->SetNameTitle(std::string("hisPBkgContOutIn"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInP[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoOutInP[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoOutInP[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoOutInP[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5930,7 +5934,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5973,7 +5977,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6015,7 +6019,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6059,7 +6063,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6102,7 +6106,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6144,7 +6148,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6248,7 +6252,7 @@ namespace insur {
         npointsProfile.SetMarkerColor(Palette::color(myColor));
         npointsProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        npointsProfile.SetMarkerStyle(8);
+        npointsProfile.SetMarkerStyle(1);
         pointsCanvas->SetFillColor(color_plot_background);
 
         pointsCanvas->cd();
@@ -6310,7 +6314,7 @@ namespace insur {
         fractionProfile.SetMarkerColor(Palette::color(myColor));
         fractionProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        fractionProfile.SetMarkerStyle(8);
+        fractionProfile.SetMarkerStyle(1);
         fractionCanvas->SetFillColor(color_plot_background);
 
         fractionCanvas->cd();
@@ -6376,7 +6380,7 @@ namespace insur {
         purityProfile.SetMarkerColor(Palette::color(myColor));
         purityProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        purityProfile.SetMarkerStyle(8);
+        purityProfile.SetMarkerStyle(1);
         purityCanvas->SetFillColor(color_plot_background);
 
         purityCanvas->cd();

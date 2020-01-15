@@ -473,7 +473,7 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
   const auto& directory     = mainConfig.getIrradiationDirectory();
   bool        fluenceMapOK  = false;
   IrradiationMap* fluenceMap= nullptr;
-  int         nBins         = vis_n_bins*2;
+  int         nBins         = vis_n_bins;
 
   fluenceMapOK = checkFile(default_fluence_file, directory);
   std::cout << "Reading in: " << directory + "/" + default_fluence_file << std::endl;
@@ -2947,14 +2947,14 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
        it!=moduleTypeCount.end(); it++) {
     TProfile& aProfile = etaProfileByType[(*it).first];
-    aProfile.SetBins(100, 0, maxEta);  
+    aProfile.SetBins(insur::vis_n_bins, 0, maxEta);  
     aProfile.SetName((*it).first.c_str());
     aProfile.SetTitle((*it).first.c_str());
   }
 
   for (auto mel : sensorTypeCount) {
     TProfile& aProfileStubs = etaProfileByTypeSensors[mel.first];
-    aProfileStubs.SetBins(100, 0, maxEta);
+    aProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
     aProfileStubs.SetName(mel.first.c_str());
     aProfileStubs.SetTitle(mel.first.c_str());
   }
@@ -2964,7 +2964,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     // Indeed, 1 IT 'offline' stub can be on different modules types!
     for (auto mel : moduleTypeCountStubs) {
       TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
-      aProfileStubs.SetBins(100, 0, maxEta);
+      aProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
       aProfileStubs.SetName(mel.first.c_str());
       aProfileStubs.SetTitle(mel.first.c_str());
     }
@@ -2982,33 +2982,33 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   totalEtaProfile.Reset();
   totalEtaProfile.SetName("totalEtaProfile");
-  totalEtaProfile.SetMarkerStyle(8);
+  totalEtaProfile.SetMarkerStyle(1);
+  totalEtaProfile.SetMarkerSize(1);
   totalEtaProfile.SetMarkerColor(1);
   totalEtaProfile.SetLineColor(1);
-  totalEtaProfile.SetMarkerSize(1.5);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
-  totalEtaProfile.SetBins(100, 0, maxEta);
+  totalEtaProfile.SetBins(insur::vis_n_bins, 0, maxEta);
   totalEtaProfile.SetStats(0);
 
   totalEtaProfileSensors.Reset();
   totalEtaProfileSensors.SetName("totalEtaProfileSensors");
-  totalEtaProfileSensors.SetMarkerStyle(8);
+  totalEtaProfileSensors.SetMarkerStyle(1);
+  totalEtaProfileSensors.SetMarkerSize(1);
   totalEtaProfileSensors.SetMarkerColor(1);
   totalEtaProfileSensors.SetLineColor(1);
-  totalEtaProfileSensors.SetMarkerSize(1.5);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
-  totalEtaProfileSensors.SetBins(100, 0, maxEta);
+  totalEtaProfileSensors.SetBins(insur::vis_n_bins, 0, maxEta);
   totalEtaProfileSensors.SetStats(0);
 
   totalEtaProfileStubs.Reset();
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
-  totalEtaProfileStubs.SetMarkerStyle(8);
+  totalEtaProfileStubs.SetMarkerStyle(1);
+  totalEtaProfileStubs.SetMarkerSize(1);
   totalEtaProfileStubs.SetMarkerColor(1);
   totalEtaProfileStubs.SetLineColor(1);
-  totalEtaProfileStubs.SetMarkerSize(1.5);
   if (!tracker.isPixelTracker()) { totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs"); }
   else { totalEtaProfileStubs.SetTitle("Number of stubs;#eta;Number of stubs"); }
-  totalEtaProfileStubs.SetBins(100, 0, maxEta);
+  totalEtaProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
   totalEtaProfileStubs.SetStats(0);
 
   // CREATE PLOTS: distribution of tracks per number of stubs.
@@ -3016,18 +3016,18 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
-				     30, 0, maxEta); 
+				     insur::vis_n_bins, 0, maxEta); 
     tracksDistributionPerNumberOfStubs_[numberOfStubs] = stubProfile;
   }
 
   totalEtaProfileLayers.Reset();
   totalEtaProfileLayers.SetName("totalEtaProfileLayers");
-  totalEtaProfileLayers.SetMarkerStyle(8);
+  totalEtaProfileLayers.SetMarkerStyle(1);
   totalEtaProfileLayers.SetMarkerColor(1);
   totalEtaProfileLayers.SetLineColor(1);
-  totalEtaProfileLayers.SetMarkerSize(1.5);
+  totalEtaProfileLayers.SetMarkerSize(1);
   totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
-  totalEtaProfileLayers.SetBins(100, 0, maxEta);
+  totalEtaProfileLayers.SetBins(insur::vis_n_bins, 0, maxEta);
   totalEtaProfileLayers.SetStats(0);
 
   // CREATE COVERAGE PER LAYER PLOTS
@@ -3162,7 +3162,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
        it!=etaProfileByType.end(); it++) {
     TProfile* myProfile=(TProfile*)it->second.Clone();
     savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
-    myProfile->SetMarkerStyle(8);
+    myProfile->SetMarkerStyle(1);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
@@ -3178,10 +3178,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeSensors.begin();
        it!=etaProfileByTypeSensors.end(); it++) {
     TProfile* myProfile=(TProfile*)it->second.Clone();
-    myProfile->SetMarkerStyle(8);
+    myProfile->SetMarkerStyle(1);
+    myProfile->SetMarkerSize(1);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
-    myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfileSensors"+(*it).first;
     myProfile->SetName(profileName.c_str());
     myProfile->SetTitle((*it).first.c_str());
@@ -3195,7 +3195,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
 	 it!=etaProfileByTypeStubs.end(); it++) {
       TProfile* myProfile=(TProfile*)it->second.Clone();
-      myProfile->SetMarkerStyle(8);
+      myProfile->SetMarkerStyle(1);
       myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
       myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
       myProfile->SetMarkerSize(1);
