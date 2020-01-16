@@ -1244,9 +1244,42 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
           }
           if (r == c) {
 
-            double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
-            //std::cout << ">>> " << sqrt(sum) << " " << prec << std::endl;
-            sum = sum + prec * prec;
+            //double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
+
+	    const Hit* const myHit = m_hits.at(r).get();
+
+	    const double trackRadius   = getRadius(refPointRPos*m_cotgTheta); 
+	    // r_i / 2R
+	    const double A = (SimParms::getInstance().isMagFieldConst() ? myHit->getRPos() / ( 2 * trackRadius) : 0.);
+	    const double B         = A/sqrt(1-A*A);
+	    const double tiltAngle = myHit->getHitModule()->tiltAngle();
+	    const double skewAngle = myHit->getHitModule()->skewAngle();
+	    const double resoSensorLocalX = myHit->getHitModule()->resolutionLocalX(getDirection());
+	    const double resoSensorLocalY = myHit->getHitModule()->resolutionLocalY(getDirection());
+
+
+	    const double hitR = std::hypot(myHit->getZPos(), myHit->getRPos());
+	    const double deltaTheta = getDeltaCtgTheta(refPointRPos) * pow(sin(getTheta()), 2.);
+	    const double resoPositionLocalY = hitR * deltaTheta * sin(myHit->getHitModule()->beta(getDirection()));
+
+	    const double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
+
+	    //std::cout << "newwwwww resPosY = " << resPosY << std::endl;
+	    //std::cout << "newwwwww resY = " << resY << std::endl;
+
+
+
+
+
+	    const double resolutionRPhi = sqrt(
+					       pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resoSensorLocalX, 2) 
+					       + pow(B*sin(tiltAngle) * resoLocalY, 2)
+					       );
+	       
+            sum = sum + resolutionRPhi * resolutionRPhi;
+	    //sum = sum + prec * prec;
+
+	    //std::cout << ">>> " << sqrt(sum) << " " << resolutionRPhi << std::endl;
 
           }
           m_varMatrixRPhi(r, c) = sum;
