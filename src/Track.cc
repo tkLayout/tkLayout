@@ -1245,41 +1245,59 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
           if (r == c) {
 
             //double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
-
+	    // Get hit
 	    const Hit* const myHit = m_hits.at(r).get();
 
-	    const double trackRadius   = getRadius(refPointRPos*m_cotgTheta); 
-	    // r_i / 2R
-	    const double A = (SimParms::getInstance().isMagFieldConst() ? myHit->getRPos() / ( 2 * trackRadius) : 0.);
-	    const double B         = A/sqrt(1-A*A);
-	    const double tiltAngle = fabs(myHit->getHitModule()->tiltAngle());
-	    const double skewAngle = fabs(myHit->getHitModule()->skewAngle());
+	    // Sensor local resolution
 	    const double resoSensorLocalX = myHit->getHitModule()->resolutionLocalX(getDirection());
 	    const double resoSensorLocalY = myHit->getHitModule()->resolutionLocalY(getDirection());
 
-
+	    // Also get hit position resolution in (RZ) plane
+	    // Simply project R * deltaTheta into the sensor plane.
 	    const double hitR = std::hypot(myHit->getZPos(), myHit->getRPos());
 	    const double deltaTheta = getDeltaCtgTheta(refPointRPos) * pow(sin(getTheta()), 2.);
-	    const double incidentAngleInRZPlane = myHit->getHitModule()->beta(getDirection());
+	    const double incidentAngleInRZPlane = fabs(myHit->getHitModule()->beta(getDirection()));	    
+	    const double resoPositionLocalY = hitR * deltaTheta / sin(incidentAngleInRZPlane);
+	    //resoPositionLocalY = myHit->getZPos() * getDeltaCtgTheta(refPointRPos) * pow(tan(getTheta()), 2.);
+
+	    // Resolution localY: 
+	    // take into account both the sensor local Y resolution and the hit position resolution in (RZ) plane.
+	    double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
+
+	    // Dependency on pT: compute B coefficient
+	    const double trackRadius   = getRadius(refPointRPos * m_cotgTheta); 	    
+	    const double A = (SimParms::getInstance().isMagFieldConst() ? myHit->getRPos() / ( 2 * trackRadius) : 0.); // r_i / 2R
+	    const double B         = A / sqrt(1. - A*A);
+
+	    // Sensor's orientation
+	    const double tiltAngle = fabs(myHit->getHitModule()->tiltAngle());
+	    const double skewAngle = fabs(myHit->getHitModule()->skewAngle());
 	    
-	    const double resoPositionLocalY = hitR * deltaTheta / fabs(sin(incidentAngleInRZPlane));
-	   
 
-	    /*if (tiltAngle > 89 * M_PI / 180.) {
-	      resoPositionLocalY = myHit->getZPos() * getDeltaCtgTheta(refPointRPos) * pow(tan(getTheta()), 2.);
-	      
-	      }*/
-
-	    
-
-	    const double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
+	    if (tiltAngle > 1. * M_PI / 180. && tiltAngle < 89 * M_PI / 180.) {
+	      resoLocalY = resoSensorLocalY;	      
+	    }
 
 
-
+	    // Can finally compute resolutionRPhi !!
 	    const double resolutionRPhi = sqrt(
-					       pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resoSensorLocalX, 2) 
-					       + pow(B*sin(tiltAngle) * resoLocalY, 2)
+					       pow( (B * sin(skewAngle) * cos(tiltAngle) + cos(skewAngle)) * resoSensorLocalX, 2.) 
+					       + pow(B * sin(tiltAngle) * resoLocalY, 2.)
 					       );
+
+
+
+
+	    /*std::cout << "myHit->getHitModule()->moduleType() = " << myHit->getHitModule()->moduleType() << std::endl;
+	    std::cout << "myHit->getRPos() = " << myHit->getRPos() << std::endl;
+	    std::cout << "myHit->getZPos() = " << myHit->getZPos() << std::endl;
+	    std::cout << "resoSensorLocalX = " << resoSensorLocalX << std::endl;
+	    std::cout << "resoSensorLocalY = " << resoSensorLocalY << std::endl;
+	    std::cout << "deltaTheta = " << deltaTheta* 180. / M_PI << std::endl;
+	    std::cout << "incidentAngleInRZPlane = " << incidentAngleInRZPlane * 180. / M_PI << std::endl;
+	    std::cout << "resoPositionLocalY = " << resoPositionLocalY << std::endl;
+	    std::cout << "resolutionRPhi = " << resolutionRPhi << std::endl;*/
+
 	       
             sum = sum + resolutionRPhi * resolutionRPhi;
 	    //sum = sum + prec * prec;
