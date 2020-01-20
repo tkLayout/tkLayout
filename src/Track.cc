@@ -720,9 +720,9 @@ void Track::printErrors() {
 }
 
 //
-// Helper method printing symmetric matrix
+// Helper method printing matrix
 //
-void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
+void Track::printMatrix(const TMatrixTSym<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -741,37 +741,19 @@ void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
 }
 
 //
-// Helper method printing matrix
-//
-void Track::printMatrix(const TMatrixT<double>& matrix) const {
-
-  std::cout << std::endl;
-
-  int nCols = matrix.GetNcols();
-  int nRows = matrix.GetNrows();
-
-  for (int i = 0; i<nRows; i++) {
-    std::cout << "(";
-    for (int j=0; j<nCols;j++) {
-
-      std::cout << " " << std::fixed << std::setprecision(5) << matrix(i,j);
-    }
-    std::cout << ")" << std::endl;
-  }
-  std::cout << std::endl;
-}
-
-//
 // Helper method printing track hits
 //
-void Track::printHits() const {
+void Track::printHits() {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
 
+  const double refPointRPos = 0.;
+  const double deltaTheta = getDeltaTheta(refPointRPos);
+
   for (const auto& it : m_hits) {
     std::cout << "    Hit";
-    if (it->isActive())   std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+    if (it->isActive())   std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()), deltaTheta);
     else                  std::cout << " r="  << it->getRPos();
     if (it->isActive())   std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
     else                  std::cout << " z="  << it->getZPos();
@@ -796,16 +778,19 @@ void Track::printHits() const {
 //
 // Helper method printing track hits
 //
-void Track::printActiveHits() const {
+void Track::printActiveHits() {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
+
+  const double refPointRPos = 0.;
+  const double deltaTheta = getDeltaTheta(refPointRPos);
 
   for (const auto& it : m_hits) {
     if (it->isActive()) {
 
       std::cout << "    Hit";
-      std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+      std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()), deltaTheta);
       std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
       std::cout << " d="  << it->getDistance()
                 << " rl=" << it->getCorrectedMaterial().radiation
@@ -1242,69 +1227,24 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
                    * (m_hits.at(r)->getRPos() - m_hits.at(i)->getRPos());
 
           }
-          if (r == c) {
 
-            //double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
+          if (r == c) {
 	    // Get hit
 	    const Hit* const myHit = m_hits.at(r).get();
 
-	    // Sensor local resolution
-	    const double resoSensorLocalX = myHit->getHitModule()->resolutionLocalX(getDirection());
-	    const double resoSensorLocalY = myHit->getHitModule()->resolutionLocalY(getDirection());
+	    // Get the track's deltaTheta
+	    const double deltaTheta = getDeltaTheta(refPointRPos); // VERY IMPORTANT NB:
+	    // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
+	    // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
 
-	    // Also get hit position resolution in (RZ) plane
-	    // Simply project R * deltaTheta into the sensor plane.
-	    const double hitR = std::hypot(myHit->getZPos(), myHit->getRPos());
-	    const double deltaTheta = getDeltaCtgTheta(refPointRPos) * pow(sin(getTheta()), 2.);
-	    const double incidentAngleInRZPlane = fabs(myHit->getHitModule()->beta(getDirection()));	    
-	    const double resoPositionLocalY = hitR * deltaTheta / sin(incidentAngleInRZPlane);
-	    //resoPositionLocalY = myHit->getZPos() * getDeltaCtgTheta(refPointRPos) * pow(tan(getTheta()), 2.);
+	    // Get the hit's Rphi resolution
+	    const double trackRadius = getRadius(myHit->getZPos());
+	    const double resolutionRPhi = myHit->getResolutionRphi(trackRadius, deltaTheta);
 
-	    // Resolution localY: 
-	    // take into account both the sensor local Y resolution and the hit position resolution in (RZ) plane.
-	    double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
-
-	    // Dependency on pT: compute B coefficient
-	    const double trackRadius   = getRadius(refPointRPos * m_cotgTheta); 	    
-	    const double A = (SimParms::getInstance().isMagFieldConst() ? myHit->getRPos() / ( 2 * trackRadius) : 0.); // r_i / 2R
-	    const double B         = A / sqrt(1. - A*A);
-
-	    // Sensor's orientation
-	    const double tiltAngle = fabs(myHit->getHitModule()->tiltAngle());
-	    const double skewAngle = fabs(myHit->getHitModule()->skewAngle());
-	    
-
-	    if (tiltAngle > 1. * M_PI / 180. && tiltAngle < 89 * M_PI / 180.) {
-	      resoLocalY = resoSensorLocalY;	      
-	    }
-
-
-	    // Can finally compute resolutionRPhi !!
-	    const double resolutionRPhi = sqrt(
-					       pow( (B * sin(skewAngle) * cos(tiltAngle) + cos(skewAngle)) * resoSensorLocalX, 2.) 
-					       + pow(B * sin(tiltAngle) * resoLocalY, 2.)
-					       );
-
-
-
-
-	    /*std::cout << "myHit->getHitModule()->moduleType() = " << myHit->getHitModule()->moduleType() << std::endl;
-	    std::cout << "myHit->getRPos() = " << myHit->getRPos() << std::endl;
-	    std::cout << "myHit->getZPos() = " << myHit->getZPos() << std::endl;
-	    std::cout << "resoSensorLocalX = " << resoSensorLocalX << std::endl;
-	    std::cout << "resoSensorLocalY = " << resoSensorLocalY << std::endl;
-	    std::cout << "deltaTheta = " << deltaTheta* 180. / M_PI << std::endl;
-	    std::cout << "incidentAngleInRZPlane = " << incidentAngleInRZPlane * 180. / M_PI << std::endl;
-	    std::cout << "resoPositionLocalY = " << resoPositionLocalY << std::endl;
-	    std::cout << "resolutionRPhi = " << resolutionRPhi << std::endl;*/
-
-	       
-            sum = sum + resolutionRPhi * resolutionRPhi;
-	    //sum = sum + prec * prec;
-
-	    //std::cout << ">>> " << sqrt(sum) << " " << resolutionRPhi << std::endl;
-
+	    // Add resolutionRPhi to the correlation matrix
+            sum = sum + pow(resolutionRPhi, 2.);
           }
+
           m_varMatrixRPhi(r, c) = sum;
           if (r != c) m_varMatrixRPhi(c, r) = sum;
         }
@@ -1314,7 +1254,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Phi (with zero cols/rows): " << std::endl;
-  //printSymMatrix(m_varMatrixRPhi);
+  //printMatrix(m_varMatrixRPhi);
 
   //
   // Remove zero rows and columns in covariance matrix
@@ -1349,7 +1289,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Phi: " << std::endl;
-  //printSymMatrix(m_varMatrixRPhi);
+  //printMatrix(m_varMatrixRPhi);
 
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRPhi.GetNoElements() > 0) && (m_varMatrixRPhi.Determinant() != 0.0))) {
@@ -1547,7 +1487,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Z (with zero cols/rows): " << std::endl;
-  //printSymMatrix(m_varMatrixRZ);
+  //printMatrix(m_varMatrixRZ);
 
   //
   // Remove zero rows and columns in covariance matrix
@@ -1582,7 +1522,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Z: " << std::endl;
-  //printSymMatrix(m_varMatrixRZ);
+  //printMatrix(m_varMatrixRZ);
 
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRZ.GetNoElements() > 0) && (m_varMatrixRZ.Determinant() != 0.0))) {
