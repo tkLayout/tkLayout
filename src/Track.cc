@@ -722,7 +722,7 @@ void Track::printErrors() {
 //
 // Helper method printing matrix
 //
-void Track::printMatrix(const TMatrixTSym<double>& matrix) const {
+void Track::printMatrix(const TMatrixT<double>& matrix) const {
 
   std::cout << std::endl;
 
