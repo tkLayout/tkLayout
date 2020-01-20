@@ -1252,22 +1252,27 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 	    // r_i / 2R
 	    const double A = (SimParms::getInstance().isMagFieldConst() ? myHit->getRPos() / ( 2 * trackRadius) : 0.);
 	    const double B         = A/sqrt(1-A*A);
-	    const double tiltAngle = myHit->getHitModule()->tiltAngle();
-	    const double skewAngle = myHit->getHitModule()->skewAngle();
+	    const double tiltAngle = fabs(myHit->getHitModule()->tiltAngle());
+	    const double skewAngle = fabs(myHit->getHitModule()->skewAngle());
 	    const double resoSensorLocalX = myHit->getHitModule()->resolutionLocalX(getDirection());
 	    const double resoSensorLocalY = myHit->getHitModule()->resolutionLocalY(getDirection());
 
 
 	    const double hitR = std::hypot(myHit->getZPos(), myHit->getRPos());
 	    const double deltaTheta = getDeltaCtgTheta(refPointRPos) * pow(sin(getTheta()), 2.);
-	    const double resoPositionLocalY = hitR * deltaTheta * sin(myHit->getHitModule()->beta(getDirection()));
+	    const double incidentAngleInRZPlane = myHit->getHitModule()->beta(getDirection());
+	    
+	    const double resoPositionLocalY = hitR * deltaTheta / fabs(sin(incidentAngleInRZPlane));
+	   
+
+	    /*if (tiltAngle > 89 * M_PI / 180.) {
+	      resoPositionLocalY = myHit->getZPos() * getDeltaCtgTheta(refPointRPos) * pow(tan(getTheta()), 2.);
+	      
+	      }*/
+
+	    
 
 	    const double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
-
-	    //std::cout << "newwwwww resPosY = " << resPosY << std::endl;
-	    //std::cout << "newwwwww resY = " << resY << std::endl;
-
-
 
 
 
