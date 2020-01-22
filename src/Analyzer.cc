@@ -3163,6 +3163,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     TProfile* myProfile=(TProfile*)it->second.Clone();
     savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
     myProfile->SetMarkerStyle(1);
+    myProfile->SetMarkerSize(1);
     myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
@@ -3196,6 +3197,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 	 it!=etaProfileByTypeStubs.end(); it++) {
       TProfile* myProfile=(TProfile*)it->second.Clone();
       myProfile->SetMarkerStyle(1);
+      myProfile->SetMarkerSize(1);
       myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
       myProfile->SetLineColor(Palette::color(modulePlotColors[it->first]));
       myProfile->SetMarkerSize(1);
