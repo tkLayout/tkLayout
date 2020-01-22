@@ -3016,7 +3016,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
-				     insur::vis_n_bins, 0, maxEta); 
+				     insur::vis_n_bins / 2., 0, maxEta); 
     tracksDistributionPerNumberOfStubs_[numberOfStubs] = stubProfile;
   }
 
@@ -3027,7 +3027,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileLayers.SetLineColor(1);
   totalEtaProfileLayers.SetMarkerSize(1);
   totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
-  totalEtaProfileLayers.SetBins(insur::vis_n_bins, 0, maxEta);
+  totalEtaProfileLayers.SetBins(2. * insur::vis_n_bins, 0, maxEta);
   totalEtaProfileLayers.SetStats(0);
 
   // CREATE COVERAGE PER LAYER PLOTS
