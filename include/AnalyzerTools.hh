@@ -17,7 +17,7 @@ namespace insur {
   // Example: if plotNumberOfInnerTrackerStubs == 3, and a track has 4 stubs, it will be counted in the (>=3 stubs) category.
   static const int plotMaxNumberOfOuterTrackerHitsPerLayer = 5;
   static const int plotMaxNumberOfInnerTrackerHitsPerLayer = 4;
-  static const int plotMaxNumberOfOuterTrackerStubs = 11;
+  static const int plotMaxNumberOfOuterTrackerStubs = 10;
   static const int plotMaxNumberOfInnerTrackerStubs = 3;
 
   // Simply set the plots MaxY.
