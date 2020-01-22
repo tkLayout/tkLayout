@@ -3620,6 +3620,8 @@ namespace insur {
     totalEtaProfileFull->cd();
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetLineColor(kBlack);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetStats(0.);
     totalEtaStack->GetStack()->Last()->Draw();
@@ -3642,6 +3644,7 @@ namespace insur {
       totalLayersCountOuter->SetMarkerStyle(1);
       totalLayersCountOuter->SetMarkerSize(1);
       totalLayersCountOuter->SetMarkerColor(Palette::color(1));
+      totalLayersCountOuter->SetLineColor(Palette::color(1));
       totalLayersCountOuter->SetStats(0);
     }
     TH1D* totalLayersCountInner = (totalEtaProfileLayersPixel_ ? (TH1D*)totalEtaProfileLayersPixel_->ProjectionX()->Clone() : nullptr);
@@ -3651,11 +3654,13 @@ namespace insur {
       totalLayersCountInner->SetMarkerStyle(1);
       totalLayersCountInner->SetMarkerSize(1);
       totalLayersCountInner->SetMarkerColor(Palette::color(2));
+      totalLayersCountInner->SetLineColor(Palette::color(2));
       totalLayersCountInner->SetStats(0);
     }
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetLineColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetStats(0);
     totalLayersEtaStack->GetStack()->Last()->Draw();
@@ -4278,7 +4283,7 @@ namespace insur {
           }
           pCanvas->SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
-	  pProfile.SetLineWidth(momentumColor(myColor));
+	  pProfile.SetLineWidth(lineWidth);
           pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
