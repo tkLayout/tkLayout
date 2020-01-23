@@ -103,17 +103,14 @@ public:
   //! Helper method printing track covariance matrices in R-Phi
   void printErrors();
 
-  //! Helper method printing symmetric matrix
-  void printSymMatrix(const TMatrixTSym<double>&) const;
-
-  //! Helper method printing general matrix
+  //! Helper method printing matrix
   void printMatrix(const TMatrixT<double>&) const;
 
   //! Helper method printing track hits
-  void printHits() const;
+  void printHits();
 
   //! Helper method printing active track hits
-  void printActiveHits() const;
+  void printActiveHits();
 
   //! Does track contain no hits?
   bool hasNoHits() const {return m_hits.empty(); }
@@ -154,7 +151,13 @@ public:
 
   //! Get DeltaCtgTheta at refPoint [rPos, zPos]
   //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
-  double getDeltaCtgTheta(double refPointRPos, bool propagOutIn=true);
+  double getDeltaCtgTheta(double refPointRPos, bool propagOutIn = true);
+
+  //! Get DeltaTheta at refPoint [rPos, zPos]
+  //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
+  double getDeltaTheta(double refPointRPos, bool propagOutIn = true) {
+    return getDeltaCtgTheta(refPointRPos, propagOutIn) * pow(sin(getTheta()), 2.);
+  }
 
   //! Get DeltaZ (Z0) at refPoint [rPos, zPos] ([0,0])
   //! Propagator direction defines, which part of tracker (at higher radii or lower radii from the ref. point) is going to be used.
