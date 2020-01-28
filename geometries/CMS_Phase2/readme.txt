@@ -488,10 +488,14 @@ OT616_IT616.cfg                      OT Version 6.1.6
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
-=================   3D SENSORS STUDIES   =================     
-OT616_IT700.cfg                      OT Version 6.1.6
+=================   3D SENSORS STUDIES   =================
+OT616_IT699.cfg                      OT Version 6.1.6
                                      Based from Inner Tracker version 6.1.5.
-                                     3D sensors in TBPX L1 + TBPX L2 + TFPX R1.
+                                     Reduced holes in TBPX L1 and L2: 1.3 mm -> 0.6 mm, to account for future 3D sensors spacing.
+ 
+OT616_IT700.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.9.9.
+                                     Same geometry + materials, but 3D sensor type in TBPX L1 + TBPX L2 + TFPX R1 (+ slightly different inactive Si).
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
