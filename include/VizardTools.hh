@@ -45,6 +45,7 @@ static const int occupancyPrecision = 1;
 static const int rphiResolutionPrecision = 1;
 static const int rphiResolutionRmsePrecision = 1;
 static const int pitchPrecision = 1;
+static const int stripLengthPrecision = 1;
 static const int millionChannelPrecision = 2;
 static const int totalPowerPrecision = 2;
 static const int modulePowerPrecision = 0;

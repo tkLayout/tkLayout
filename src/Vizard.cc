@@ -2445,30 +2445,26 @@ namespace insur {
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
         aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
 
+
       // Pitch
       aPitchPair.str("");
-      //loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
-      //hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
       loPitch=(*tagMapIt).second->outerSensor().minPitch() / Units::um; // mm -> um
       hiPitch=(*tagMapIt).second->outerSensor().maxPitch() / Units::um; // mm -> um
-
-      if (loPitch==hiPitch) {
-        aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
-      } else {
-        aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
-          << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
+      
+      aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
+      if (fabs(loPitch - hiPitch) > insur::geom_zero) {
+        aPitchPair << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
       }
 
 
       // Strip Length   
       stripLengthStream.str("");
-      int stripLengthKeep = 0;
+      double stripLengthKeep = 0.;
       for (const auto& sensorIt : aModule->sensors()) {
-	//const int stripLength = (int)(sensorIt.stripLength() / Units::um); // mm -> um
 	const double stripLength = (sensorIt.stripLength() / Units::um); // mm -> um
-	if (stripLength != stripLengthKeep) {
-	  if (stripLengthKeep != 0) { stripLengthStream << ", "; }
-	  stripLengthStream << stripLength;
+	if (fabs(stripLength - stripLengthKeep) > insur::geom_zero) {
+	  if (fabs(stripLengthKeep) > insur::geom_zero) { stripLengthStream << ", "; }
+	  stripLengthStream << std::fixed << std::setprecision(stripLengthPrecision) << stripLength;
 	}
 	stripLengthKeep	= stripLength;
       }
