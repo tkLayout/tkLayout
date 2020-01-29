@@ -1,6 +1,6 @@
 // SENSOR ACTIVE SILICONE MATERIAL
 // This does not include inactive Si, placed in another file.
-// PLANAR SENSOR TYPE
+// 3D SENSOR TYPE
 
 Component {
   componentName "IT Module: Sensor (active Si)" 
