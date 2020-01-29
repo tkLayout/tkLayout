@@ -134,7 +134,8 @@ namespace insur {
    * Internal string constants for modules types.
    */
   static const std::string type_pixel   = "pixel";
-  static const std::string type_timing = "timing";
+  static const std::string type_3D      = "3D";
+  static const std::string type_timing  = "timing";
 
 
   /**

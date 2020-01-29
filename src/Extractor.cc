@@ -1136,7 +1136,10 @@ namespace insur {
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-		else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+		else if (iiter->getModule().isPixelModule()) {
+		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
+		  else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		}
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    
 		// SolidSection
@@ -2320,7 +2323,10 @@ namespace insur {
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+	      else if (iiter->getModule().isPixelModule()) {
+		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
 	      s.push_back(shape);
