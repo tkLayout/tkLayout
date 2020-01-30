@@ -3551,7 +3551,7 @@ namespace insur {
   }
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
-                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site) {
+                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& outerTracker, Tracker& innerTracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
 
@@ -3559,7 +3559,7 @@ namespace insur {
     RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
 
     RootWBinaryFile* myBinaryFile;
-    std::string trackerName = tracker.myid();
+    std::string trackerName = outerTracker.myid();
 
     int materialTracksUsed = analyzer.getMaterialTracksUsed();
     int geometryTracksUsed = analyzer.getGeometryTracksUsed();
@@ -3686,24 +3686,73 @@ namespace insur {
     RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", origSet.begin(), origSet.end());
     configFilesContent->addItem(myBinaryFileList);
 
+
+    // Access module operating parameters info: operating temperature and bias voltage.
+    class ModuleOperatingParmsVisitor : public GeometryVisitor {  
+    public:
+      void visit(Barrel& b) { 
+	std::cout << b.myid() << std::endl;
+      }
+      void visit(Module& m) { 
+	if (!m.isPixelModule()) {
+	  outerTrackerModuleOperatingTemp_ = m.operatingTemp();
+	  outerTrackerModuleBiasVoltage_ = m.biasVoltage();
+	}
+	else {
+	  innerTrackerModuleOperatingTemp_ = m.operatingTemp();
+	  innerTrackerModuleBiasVoltage_ = m.biasVoltage();
+	}
+      }
+      const double getOuterTrackerModuleOperatingTemp() const { return outerTrackerModuleOperatingTemp_; }
+      const double getInnerTrackerModuleOperatingTemp() const { return innerTrackerModuleOperatingTemp_; }
+      const double getOuterTrackerModuleBiasVoltage() const { return outerTrackerModuleBiasVoltage_; }
+      const double getInnerTrackerModuleBiasVoltage() const { return innerTrackerModuleBiasVoltage_; }
+
+    private:
+      double outerTrackerModuleOperatingTemp_;
+      double innerTrackerModuleOperatingTemp_;
+      double outerTrackerModuleBiasVoltage_;
+      double innerTrackerModuleBiasVoltage_;
+    };
+
+    ModuleOperatingParmsVisitor outerVisitor;
+    outerTracker.accept(outerVisitor);
+    const double outerTrackerModuleOperatingTemp = outerVisitor.getOuterTrackerModuleOperatingTemp();
+    const double outerTrackerModuleBiasVoltage = outerVisitor.getOuterTrackerModuleBiasVoltage();
+    ModuleOperatingParmsVisitor innerVisitor;
+    innerTracker.accept(innerVisitor);
+    const double innerTrackerModuleOperatingTemp = innerVisitor.getInnerTrackerModuleOperatingTemp();
+    const double innerTrackerModuleBiasVoltage = innerVisitor.getInnerTrackerModuleBiasVoltage();
+
+
+    // Add sim parms and module operating parameters to info page
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
     myInfo->setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for geometry");
+    myInfo->setValue(geometryTracksUsed);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for material");
+    myInfo->setValue(materialTracksUsed);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Integrated luminosity");
     myInfo->setValue(SimParms::getInstance().timeIntegratedLumi(), luminosityPrecision);
     myInfo->appendValue(" fb" + superStart + "-1" + superEnd);
     simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for material");
-    myInfo->setValue(materialTracksUsed);
-    simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for geometry");
-    myInfo->setValue(geometryTracksUsed);
-    simulationContent->addItem(myInfo);
     myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", SimParms::getInstance().referenceTemp()));
     myInfo->setValueSci(SimParms::getInstance().alphaParam(), alphaParamPrecision);
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Module operating temperature");
+    myInfo->setValue(outerTrackerModuleOperatingTemp);
+    myInfo->appendValue(" °C in OT, " + std::to_string((int)innerTrackerModuleOperatingTemp) + " °C in IT");
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Module bias voltage");
+    myInfo->setValue(outerTrackerModuleBiasVoltage);
+    myInfo->appendValue(" V in OT, " + std::to_string((int)innerTrackerModuleBiasVoltage) + " V in IT");
+    simulationContent->addItem(myInfo);
+
 
     //********************************//
     //*                              *//
