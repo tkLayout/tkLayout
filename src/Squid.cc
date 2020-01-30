@@ -798,7 +798,7 @@ namespace insur {
     } else {
       startTaskClock("Saving additional information");
       v.additionalInfoSite(getSettingsFile(),
-                           a, pixelAnalyzer, *tr, *px, site);
+                           a, pixelAnalyzer, *tr, px, site);
       stopTaskClock();
       return true;
     }

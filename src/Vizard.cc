@@ -3551,7 +3551,7 @@ namespace insur {
   }
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
-                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& outerTracker, Tracker& innerTracker, RootWSite& site) {
+                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& outerTracker, Tracker* innerTracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
 
@@ -3720,9 +3720,9 @@ namespace insur {
     const double outerTrackerModuleOperatingTemp = outerVisitor.getOuterTrackerModuleOperatingTemp();
     const double outerTrackerModuleBiasVoltage = outerVisitor.getOuterTrackerModuleBiasVoltage();
     ModuleOperatingParmsVisitor innerVisitor;
-    innerTracker.accept(innerVisitor);
-    const double innerTrackerModuleOperatingTemp = innerVisitor.getInnerTrackerModuleOperatingTemp();
-    const double innerTrackerModuleBiasVoltage = innerVisitor.getInnerTrackerModuleBiasVoltage();
+    if (!innerTracker) { innerTracker->accept(innerVisitor); }
+    const double innerTrackerModuleOperatingTemp = (!innerTracker ? innerVisitor.getInnerTrackerModuleOperatingTemp() : 0.);
+    const double innerTrackerModuleBiasVoltage = (!innerTracker ? innerVisitor.getInnerTrackerModuleBiasVoltage() : 0.);
 
 
     // Add sim parms and module operating parameters to info page
