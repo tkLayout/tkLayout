@@ -3690,10 +3690,7 @@ namespace insur {
     // Access module operating parameters info: operating temperature and bias voltage.
     class ModuleOperatingParmsVisitor : public GeometryVisitor {  
     public:
-      void visit(Barrel& b) { 
-	std::cout << b.myid() << std::endl;
-      }
-      void visit(Module& m) { 
+      void visit(Module& m) {
 	if (!m.isPixelModule()) {
 	  outerTrackerModuleOperatingTemp_ = m.operatingTemp();
 	  outerTrackerModuleBiasVoltage_ = m.biasVoltage();
@@ -8660,7 +8657,7 @@ namespace insur {
 
   std::string Vizard::createModulesDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -8673,7 +8670,7 @@ namespace insur {
 
   std::string Vizard::createSensorsDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_deg/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, phi_deg/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
