@@ -148,7 +148,7 @@ namespace insur {
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site);
     WeightsPerSubdetector computeDetailedWeights(MaterialBudget& mb, RootWPage& page);
     bool additionalInfoSite(const std::string& settingsfile,
-                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site);
+                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& outerTracker, Tracker* innerTracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
     void createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
