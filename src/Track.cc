@@ -1237,7 +1237,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 	    // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
 	    // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
 
-	    // Sort back hits based on particle direction if they were resorted
+	    // Sort back hits as needed by Track::computeCovarianceMatrixRPhi.
 	    if (m_pt>=0 && !propagOutIn) sortHits(!bySmallerR);
 
 	    // Get the hit's Rphi resolution
