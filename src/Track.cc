@@ -1233,9 +1233,12 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 	    const Hit* const myHit = m_hits.at(r).get();
 
 	    // Get the track's deltaTheta
-	    const double deltaTheta = getDeltaTheta(refPointRPos); // VERY IMPORTANT NB:
+	    const double deltaTheta = getDeltaTheta(refPointRPos, propagOutIn); // VERY IMPORTANT NB:
 	    // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
 	    // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
+
+	    // Sort back hits based on particle direction if they were resorted
+	    if (m_pt>=0 && !propagOutIn) sortHits(!bySmallerR);
 
 	    // Get the hit's Rphi resolution
 	    const double trackRadius = getRadius(myHit->getZPos());
