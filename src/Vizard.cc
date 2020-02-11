@@ -3717,9 +3717,9 @@ namespace insur {
     const double outerTrackerModuleOperatingTemp = outerVisitor.getOuterTrackerModuleOperatingTemp();
     const double outerTrackerModuleBiasVoltage = outerVisitor.getOuterTrackerModuleBiasVoltage();
     ModuleOperatingParmsVisitor innerVisitor;
-    if (!innerTracker) { innerTracker->accept(innerVisitor); }
-    const double innerTrackerModuleOperatingTemp = (!innerTracker ? innerVisitor.getInnerTrackerModuleOperatingTemp() : 0.);
-    const double innerTrackerModuleBiasVoltage = (!innerTracker ? innerVisitor.getInnerTrackerModuleBiasVoltage() : 0.);
+    if (innerTracker) { innerTracker->accept(innerVisitor); }
+    const double innerTrackerModuleOperatingTemp = (innerTracker ? innerVisitor.getInnerTrackerModuleOperatingTemp() : 0.);
+    const double innerTrackerModuleBiasVoltage = (innerTracker ? innerVisitor.getInnerTrackerModuleBiasVoltage() : 0.);
 
 
     // Add sim parms and module operating parameters to info page
