@@ -1106,6 +1106,13 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
 //
 bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
+  // Get the track's deltaTheta
+  const double deltaTheta = getDeltaTheta(refPointRPos, propagOutIn); // VERY IMPORTANT NB:
+  // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
+  // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
+  // getDeltaTheta should be called first, in computeCovarianceMatrixRPhi, as it sorts the hits in a certain way.
+  // Hence, it needs to be done before the custom sorting done below.
+
   // Matrix size
   int nHits = m_hits.size();
   m_varMatrixRPhi.ResizeTo(nHits,nHits);
@@ -1228,17 +1235,9 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
           }
 
-          if (r == c) {
+          if (r == c) {	    
 	    // Get hit
 	    const Hit* const myHit = m_hits.at(r).get();
-
-	    // Get the track's deltaTheta
-	    const double deltaTheta = getDeltaTheta(refPointRPos, propagOutIn); // VERY IMPORTANT NB:
-	    // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
-	    // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
-
-	    // Sort back hits as needed by Track::computeCovarianceMatrixRPhi.
-	    if (m_pt>=0 && !propagOutIn) sortHits(!bySmallerR);
 
 	    // Get the hit's Rphi resolution
 	    const double trackRadius = getRadius(myHit->getZPos());
