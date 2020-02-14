@@ -82,46 +82,6 @@ namespace insur {
         while (std::getline(in, line)) out << line << std::endl;
     }
     
-
-
-  void XMLWriter::otst(CMSSWBundle& otstData, std::ofstream& out, std::istream& emptyStream, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags) {
-    std::vector<Element>& e = otstData.elements;
-    std::vector<Composite>& c = otstData.composites;
-    std::vector<LogicalInfo>& l = otstData.logic;
-    std::vector<ShapeInfo>& s = otstData.shapes;
-    std::vector<ShapeOperationInfo>& so = otstData.shapeOps;
-    std::vector<PosInfo>& p = otstData.positions;
-    std::vector<AlgoInfo>& a = otstData.algos;
-
-    std::ostringstream buffer;
-    buffer << xml_preamble;
-    buffer << getSimpleHeader();
-    buffer << xml_definition;
-
-    const bool isOTST = true;
-
-    materialSection(xml_OTSTfile, e, c, buffer, isPixelTracker, trackerXmlTags);
-    logicalPartSection(l, xml_OTSTfile, buffer, isPixelTracker, trackerXmlTags, isOTST, false);
-    solidSection(s, so, xml_OTSTfile, buffer, emptyStream, true, isPixelTracker, isOTST, false);
-    posPartSection(p, a, xml_OTSTfile, buffer);
-
-    buffer << xml_defclose;
-    out << buffer.str();
-
-    // Also write the CMSSW Materials Mechanical Categories files
-    // IMPORTANT: this needs to be done after materialSection is called, as materialSection modifies the vec of composites.
-    // RADIATION LENGTH RATIOS
-    std::ostringstream mechanicalCategoriesRLStream;
-    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesRLStream, true, isPixelTracker);
-    mechanicalCategoriesRL << mechanicalCategoriesRLStream.str();
-    // INTERACTION LENGTH RATIOS
-    std::ostringstream mechanicalCategoriesILStream;
-    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesILStream, false, isPixelTracker);
-    mechanicalCategoriesIL << mechanicalCategoriesILStream.str();
-  }
-
-
-
     /**
      * This function creates the file <i>tracker.xml</i> from scratch from the information that is available in struct
      * <i>d</i>. It does this by iterating over the contents of the various vectors in the struct, formatting the information
@@ -149,20 +109,22 @@ namespace insur {
     buffer << getSimpleHeader();
     buffer << xml_definition;
 
+    const bool isOTST = false;
+
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
+      materialSection(xml_newtrackerfile, e, c, buffer, trackerXmlTags, isPixelTracker, isOTST);
       rotationSection(r, xml_newtrackerfile, buffer);
-      logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
-      solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
+      logicalPartSection(l, xml_newtrackerfile, buffer, trackerXmlTags, isPixelTracker, isOTST, true);
+      solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, isOTST, true);
       posPartSection(p, a, xml_newtrackerfile, buffer);
     }
     else {
       if (!isPixelTracker) buffer << xml_const_section;
-      materialSection(trackerXmlTags.trackerfile, e, c, buffer, isPixelTracker, trackerXmlTags);
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, trackerXmlTags, isPixelTracker, isOTST);
       rotationSection(r, trackerXmlTags.trackerfile, buffer);
-      logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
-      solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
+      logicalPartSection(l, trackerXmlTags.trackerfile, buffer, trackerXmlTags, isPixelTracker, isOTST);
+      solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, isOTST);
       posPartSection(p, a, trackerXmlTags.trackerfile, buffer);
     }
     buffer << xml_defclose;
@@ -178,6 +140,45 @@ namespace insur {
     // INTERACTION LENGTH RATIOS
     std::ostringstream mechanicalCategoriesILStream;
     if (!isPixelTracker) writeMechanicalCategoriesFilesHeaders(mechanicalCategoriesILStream);
+    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesILStream, false, isPixelTracker);
+    mechanicalCategoriesIL << mechanicalCategoriesILStream.str();
+  }
+
+  /**
+     Creates all relevant sections in otst.xml
+  */
+  void XMLWriter::otst(CMSSWBundle& otstData, std::ofstream& out, std::istream& emptyStream, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags) {
+    std::vector<Element>& e = otstData.elements;
+    std::vector<Composite>& c = otstData.composites;
+    std::vector<LogicalInfo>& l = otstData.logic;
+    std::vector<ShapeInfo>& s = otstData.shapes;
+    std::vector<ShapeOperationInfo>& so = otstData.shapeOps;
+    std::vector<PosInfo>& p = otstData.positions;
+    std::vector<AlgoInfo>& a = otstData.algos;
+
+    std::ostringstream buffer;
+    buffer << xml_preamble;
+    buffer << getSimpleHeader();
+    buffer << xml_definition;
+
+    const bool isOTST = true;
+
+    materialSection(xml_OTSTfile, e, c, buffer, trackerXmlTags, isPixelTracker, isOTST);
+    logicalPartSection(l, xml_OTSTfile, buffer, trackerXmlTags, isPixelTracker, isOTST, false);
+    solidSection(s, so, xml_OTSTfile, buffer, emptyStream, true, isPixelTracker, isOTST, false);
+    posPartSection(p, a, xml_OTSTfile, buffer);
+
+    buffer << xml_defclose;
+    out << buffer.str();
+
+    // OTST: Also write the CMSSW Materials Mechanical Categories files
+    // IMPORTANT: this needs to be done after materialSection is called, as materialSection modifies the vec of composites.
+    // RADIATION LENGTH RATIOS
+    std::ostringstream mechanicalCategoriesRLStream;
+    writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesRLStream, true, isPixelTracker);
+    mechanicalCategoriesRL << mechanicalCategoriesRLStream.str();
+    // INTERACTION LENGTH RATIOS
+    std::ostringstream mechanicalCategoriesILStream;
     writeMechanicalCategoriesFiles(e, c, mechanicalCategoriesILStream, false, isPixelTracker);
     mechanicalCategoriesIL << mechanicalCategoriesILStream.str();
   }
@@ -449,11 +450,11 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags) {
+  void XMLWriter::materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, XmlTags& trackerXmlTags, bool isPixelTracker, bool isOTST /* = false*/) {
         stream << xml_material_section_open << name << xml_general_inter;
 
 	// Elementary materials (only in tracker.xml)
-	if (!isPixelTracker) {
+	if (!isPixelTracker && !isOTST) {
 	  for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i), stream);
 	}
 
@@ -488,7 +489,7 @@ namespace insur {
      * @param label The label of the logical part section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-  void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool isOTST /* = false*/, bool wt /* = false*/) {
+  void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, XmlTags& trackerXmlTags, bool isPixelTracker, bool isOTST /* = false*/, bool wt /* = false*/) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
         if (!wt && !isPixelTracker && !isOTST) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream, trackerXmlTags);

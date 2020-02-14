@@ -2911,9 +2911,11 @@ namespace insur {
 	}
       }
 
+
       if ((iter->getZOffset() + iter->getZLength()) > 0) { // && shapename.str() != "supportR1191Z1325")
         if ( iter->getLocalMasses().size() ) {
 
+	  // Create composite
           if (!isOTST) { c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter)); }
 	  else { otstComposites.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter)); }
 

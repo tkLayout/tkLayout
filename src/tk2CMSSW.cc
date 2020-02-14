@@ -88,26 +88,15 @@ namespace insur {
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
-	    //mechanicalCategoriesRL.close();
-	    //mechanicalCategoriesIL.close();
             std::cout << "CMSSW tracker geometry output has been written to " << xmlOutputPath << (wt ? xml_newtrackerfile : trackerXmlTags.trackerfile) << std::endl;
 
 	    // OTST
 	    if (!isPixelTracker) {
 	      outstream.open((xmlOutputPath + xml_OTSTfile).c_str());
-	      // if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the OTST files.");
-	      //if (instream.fail()) throw std::runtime_error("Error opening one of the OTST files.");
-	      //writeSimpleHeader(outstream);
-
-	      //std::ofstream mechanicalCategoriesRL;
-	      //mechanicalCategoriesRL.open((xmlOutputPath + xml_mechanicalCategoriesRLfile).c_str(), std::ofstream::app);
-	      //std::ofstream mechanicalCategoriesIL;
-	      //mechanicalCategoriesIL.open((xmlOutputPath + xml_mechanicalCategoriesILfile).c_str(), std::ofstream::app);
+	      if (outstream.fail()) throw std::runtime_error("Error opening OTST file for writing.");
 	      std::ifstream emptyStream;
 	      wr.otst(otstData, outstream, emptyStream, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags);
 	      if (outstream.fail()) throw std::runtime_error("Error writing OTST file.");	     
-	      //instream.close();
-	      //instream.clear();
 	      outstream.close();
 	      outstream.clear();
 	      mechanicalCategoriesRL.close();
