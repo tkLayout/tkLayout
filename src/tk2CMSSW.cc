@@ -27,7 +27,7 @@ namespace insur {
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
-        ex.analyse(mt, mb, trackerXmlTags, data, wt);
+        ex.analyse(mt, mb, trackerXmlTags, trackerData, otstData, wt);
 
         std::stringstream simpleHeaderStream;
 	std::string metdataFileName = xmlOutputName + "_" + currentDateTime(false) + ".cfg";
@@ -54,7 +54,7 @@ namespace insur {
 		outstream.open((xmlOutputPath + xml_pixbarfile).c_str());
 		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
 		//writeSimpleHeader(outstream);
-		wr.pixbar(data.shapes, instream, outstream);
+		wr.pixbar(trackerData.shapes, instream, outstream);
 		if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
 		instream.close();
 		instream.clear();
@@ -66,7 +66,7 @@ namespace insur {
 		outstream.open((xmlOutputPath + xml_pixfwdfile).c_str());
 		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
 		//writeSimpleHeader(outstream);
-		wr.pixfwd(data.shapes, instream, outstream);
+		wr.pixfwd(trackerData.shapes, instream, outstream);
 		if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
 		instream.close();
 		instream.clear();
@@ -84,20 +84,32 @@ namespace insur {
 	    mechanicalCategoriesRL.open((xmlOutputPath + xml_mechanicalCategoriesRLfile).c_str(), std::ofstream::app);
 	    std::ofstream mechanicalCategoriesIL;
 	    mechanicalCategoriesIL.open((xmlOutputPath + xml_mechanicalCategoriesILfile).c_str(), std::ofstream::app);
-            wr.tracker(data, outstream, trackerVolumeTemplate, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags, wt);
+            wr.tracker(trackerData, outstream, trackerVolumeTemplate, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
-	    mechanicalCategoriesRL.close();
-	    mechanicalCategoriesIL.close();
             std::cout << "CMSSW tracker geometry output has been written to " << xmlOutputPath << (wt ? xml_newtrackerfile : trackerXmlTags.trackerfile) << std::endl;
+
+	    // OTST
+	    if (!isPixelTracker) {
+	      outstream.open((xmlOutputPath + xml_OTSTfile).c_str());
+	      if (outstream.fail()) throw std::runtime_error("Error opening OTST file for writing.");
+	      std::ifstream emptyStream;
+	      wr.otst(otstData, outstream, emptyStream, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags);
+	      if (outstream.fail()) throw std::runtime_error("Error writing OTST file.");	     
+	      outstream.close();
+	      outstream.clear();
+	      mechanicalCategoriesRL.close();
+	      mechanicalCategoriesIL.close();
+	      std::cout << "CMSSW OTST output has been written to " << xmlOutputPath << xml_OTSTfile << std::endl;
+	    }
 
 	    if (wt) instream.open((xmlDirectoryPath + "/" + xml_newtopologyfile).c_str());
 	    else instream.open((xmlDirectoryPath + "/" + xml_topologyfile).c_str());
 	    outstream.open((xmlOutputPath + trackerXmlTags.topologyfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
             //writeSimpleHeader(outstream);
-            wr.topology(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.topology(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing to topology file.");
             instream.close();
             instream.clear();
@@ -109,7 +121,7 @@ namespace insur {
 	    outstream.open((xmlOutputPath + trackerXmlTags.prodcutsfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
             //writeSimpleHeader(outstream);
-            wr.prodcuts(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.prodcuts(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing to prodcuts file.");
             instream.close();
             instream.clear();
@@ -121,7 +133,7 @@ namespace insur {
 	    outstream.open((xmlOutputPath + trackerXmlTags.trackersensfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
             //writeSimpleHeader(outstream);
-            wr.trackersens(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.trackersens(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing trackersens to file.");
             instream.close();
             instream.clear();
@@ -139,7 +151,7 @@ namespace insur {
 	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
             //writeSimpleHeader(outstream);
-            wr.recomaterial(data.specs, data.lrilength, instream, outstream, isPixelTracker, trackerXmlTags, wt);
+            wr.recomaterial(trackerData.specs, trackerData.lrilength, instream, outstream, isPixelTracker, trackerXmlTags, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing recomaterial to file.");
             instream.close();
             instream.clear();
@@ -152,7 +164,7 @@ namespace insur {
     /**
      * This prints the contents of the internal CMSSWBundle collection; used for debugging.
      */
-    void tk2CMSSW::print() {
+    void tk2CMSSW::print(CMSSWBundle& data) {
         std::cout << "tm2CMSSW internal status:" << std::endl;
         std::cout << "elements: " << data.elements.size() << " entries." << std::endl;
         for (unsigned int i = 0; i < data.elements.size(); i++) {

@@ -55,12 +55,13 @@ namespace insur {
         struct ConfigFile { std::string name, content; };
         void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
     protected:
-        CMSSWBundle data;
+        CMSSWBundle trackerData;
+        CMSSWBundle otstData;
         Extractor ex;
         XMLWriter wr;
     private:
         std::vector<ConfigFile> configFiles_;
-        void print();
+        void print(CMSSWBundle& data);
         void writeSimpleHeader(std::ostream& os, std::string& metadataFileName);
 	void writeMetadata(std::ofstream& out);
         std::string currentDateTime(bool withTime) const;
