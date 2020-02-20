@@ -206,8 +206,8 @@ std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int 
  */
 const int PowerSection::computeChannelPlotColor(const int channelNumber, const ChannelSlot& channelSlot, const bool isPositiveCablingSide) const {
   int plotColor = fabs(channelNumber);
-  if ( (isPositiveCablingSide && channelSlot == ChannelSlot::A)
-       || (!isPositiveCablingSide && channelSlot == ChannelSlot::C)
+  if ( (isPositiveCablingSide && channelSlot == ChannelSlot::C)
+       || (!isPositiveCablingSide && channelSlot == ChannelSlot::A)
        ) {
     //if (channelSlot == ChannelSlot::A) {
     plotColor += 12;  // This is used to activate transparency.
