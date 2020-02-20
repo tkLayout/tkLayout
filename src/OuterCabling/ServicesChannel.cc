@@ -146,8 +146,8 @@ PowerSection::PowerSection(const int semiPhiRegionRef, const bool isPositiveCabl
 /* Compute the number of the Channel, through which the power cables are routed when they exit the Tracker.
  * Also compute the channel slot on which the power cables are routed.
  * This is done in a way that leaves space free for the cooling pipes routing.
- * Positive cabling side: 1A, 3A, 5A, 7A, 9A, 11A used for cooling pipes.
- * Negative cabling side: -2C, -4C, -6C, -8C, -10C, -12C used for cooling pipes.
+ * Positive cabling side: 1C, 3C, 5C, 7C, 9C, 11C used for cooling pipes.
+ * Negative cabling side: -2A, -4A, -6A, -8A, -10A, -12A used for cooling pipes.
  */
 std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int semiPhiRegionRef, const bool isPositiveCablingSide) const {
 
@@ -155,22 +155,22 @@ std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int 
   ChannelSlot channelSlot = ChannelSlot::UNKNOWN;
 
   if (isPositiveCablingSide) {
-    if (semiPhiRegionRef == 0) { channelNumber = 1; channelSlot = ChannelSlot::C; }
+    if (semiPhiRegionRef == 0) { channelNumber = 1; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 1) { channelNumber = 2; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 2) { channelNumber = 2; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 3) { channelNumber = 3; channelSlot = ChannelSlot::C; }
+    else if (semiPhiRegionRef == 3) { channelNumber = 3; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 4) { channelNumber = 4; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 5) { channelNumber = 4; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 6) { channelNumber = 5; channelSlot = ChannelSlot::C; }
+    else if (semiPhiRegionRef == 6) { channelNumber = 5; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 7) { channelNumber = 6; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 8) { channelNumber = 6; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 9) { channelNumber = 7; channelSlot = ChannelSlot::C; }
+    else if (semiPhiRegionRef == 9) { channelNumber = 7; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 10) { channelNumber = 8; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 11) { channelNumber = 8; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 12) { channelNumber = 9; channelSlot = ChannelSlot::C; }
+    else if (semiPhiRegionRef == 12) { channelNumber = 9; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 13) { channelNumber = 10; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 14) { channelNumber = 10; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 15) { channelNumber = 11; channelSlot = ChannelSlot::C; }
+    else if (semiPhiRegionRef == 15) { channelNumber = 11; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 16) { channelNumber = 12; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 17) { channelNumber = 12; channelSlot = ChannelSlot::C; }
     else { std::cout << "ERROR: semiPhiRegionRef = " << semiPhiRegionRef << std::endl; }
@@ -179,22 +179,22 @@ std::pair<int, ChannelSlot> PowerSection::computeChannelNumberAndSlot(const int 
   else {
     if (semiPhiRegionRef == 0) { channelNumber = -1; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 1) { channelNumber = -1; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 2) { channelNumber = -2; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 2) { channelNumber = -2; channelSlot = ChannelSlot::C; }
     else if (semiPhiRegionRef == 3) { channelNumber = -3; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 4) { channelNumber = -3; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 5) { channelNumber = -4; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 5) { channelNumber = -4; channelSlot = ChannelSlot::C; }
     else if (semiPhiRegionRef == 6) { channelNumber = -5; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 7) { channelNumber = -5; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 8) { channelNumber = -6; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 8) { channelNumber = -6; channelSlot = ChannelSlot::C; }
     else if (semiPhiRegionRef == 9) { channelNumber = -7; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 10) { channelNumber = -7; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 11) { channelNumber = -8; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 11) { channelNumber = -8; channelSlot = ChannelSlot::C; }
     else if (semiPhiRegionRef == 12) { channelNumber = -9; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 13) { channelNumber = -9; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 14) { channelNumber = -10; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 14) { channelNumber = -10; channelSlot = ChannelSlot::C; }
     else if (semiPhiRegionRef == 15) { channelNumber = -11; channelSlot = ChannelSlot::A; }
     else if (semiPhiRegionRef == 16) { channelNumber = -11; channelSlot = ChannelSlot::C; }
-    else if (semiPhiRegionRef == 17) { channelNumber = -12; channelSlot = ChannelSlot::A; }
+    else if (semiPhiRegionRef == 17) { channelNumber = -12; channelSlot = ChannelSlot::C; }
     else { std::cout << "ERROR: semiPhiRegionRef = " << semiPhiRegionRef << std::endl; }
   }
 
