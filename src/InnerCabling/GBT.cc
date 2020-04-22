@@ -4,6 +4,7 @@
 
 GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule) :
   myGBTId_(GBTId),
+  myGBTCMSSWId_(myPowerChain->myid() * 10 + myGBTIndex),
   myGBTIndex_(myGBTIndex),
   myGBTIndexColor_(myGBTIndexColor),
   numELinksPerModule_(numELinksPerModule)
