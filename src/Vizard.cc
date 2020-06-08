@@ -8253,7 +8253,7 @@ namespace insur {
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
@@ -9097,7 +9097,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC/I, MFB/I, LpGBT/C, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I" << std::endl;
+    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC_Id/I, DTC_CMSSW_Id/U, MFB/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
@@ -9106,7 +9106,8 @@ namespace insur {
 	std::stringstream DTCInfo;
 	DTCInfo << myDTC->isPositiveZEnd() << ","
 		<< myDTC->isPositiveXSide() << ","
-		<< myDTC->myid() << ",";
+		<< myDTC->myid() << ","
+		<< myDTC->getCMSSWId() << ",";
 
 	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
 	for (const auto& myBundle : myBundles) {
@@ -9117,6 +9118,7 @@ namespace insur {
 	  for (const auto& myGBT : myGBTs) {
 	    std::stringstream GBTInfo;
 	    GBTInfo << any2str(myGBT->GBTId()) << ","
+		    << myGBT->getCMSSWId() << ","
 		    << myGBT->numELinksPerModule() << ",";
 
 	    const PowerChain* myPowerChain = myGBT->getPowerChain();

@@ -48,8 +48,9 @@ public:
 
   // GENERAL INFO ON THE GBT
   const std::string GBTId() const { return myGBTId_; }
+  void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
+  const int getCMSSWId() const { return myGBTCMSSWId_; }
   const int GBTPhiIndex() const { return myGBTIndex_; }
-  const int getCMSSWId() const { return myGBTCMSSWId_; } 
   const int indexColor() const { return myGBTIndexColor_; }
   const int numELinksPerModule() const { return numELinksPerModule_; }
   

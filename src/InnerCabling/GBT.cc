@@ -4,7 +4,7 @@
 
 GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule) :
   myGBTId_(GBTId),
-  myGBTCMSSWId_(myPowerChain->myid() * 10 + myGBTIndex),
+  myGBTCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
   myGBTIndex_(myGBTIndex),
   myGBTIndexColor_(myGBTIndexColor),
   numELinksPerModule_(numELinksPerModule)
