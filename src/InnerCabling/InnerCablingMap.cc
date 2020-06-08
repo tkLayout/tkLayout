@@ -193,7 +193,6 @@ void InnerCablingMap::connectOneModuleToOneGBT(Module* m, GBT* myGBT) const {
 
 /* Check bundles-cables connections.
  */
-
 void InnerCablingMap::checkModulesToGBTsCabling(const std::map<std::string, std::unique_ptr<GBT> >& GBTs) const {
   for (const auto& it : GBTs) {
     const std::string myGBTId = it.first;
@@ -350,6 +349,9 @@ void InnerCablingMap::connectBundlesToDTCs(std::map<int, std::unique_ptr<InnerBu
     createAndStoreDTCs(myBundle, DTCs, myDTCId, isPositiveZEnd, isPositiveXSide);    
   }
 
+  // COMPUTE CMSSW IDS (now that full cabling map is created!)
+  computeCMSSWIds(DTCs);
+
   // CHECK DTCS
   checkBundlesToDTCsCabling(DTCs);
 }
@@ -414,9 +416,49 @@ void InnerCablingMap::connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* 
 }
 
 
+/* Compute DTCs and GBTs CMSSW Ids.
+ * Need to be consecutive integers, hence is done after full cabling map is created. 
+ */
+void InnerCablingMap::computeCMSSWIds(std::map<int, std::unique_ptr<InnerDTC> >& DTCs) {
+  int lastDTCId = 0;
+  int dtcCMSSWId = 0;
+
+  // DTCs loop
+  for (auto& it : DTCs) {
+    const int myDTCId = it.first;
+    InnerDTC* myDTC = it.second.get();
+
+    if (myDTCId != lastDTCId) {
+      dtcCMSSWId++; // map is already sorted: CMSSW DTC Ids are consecutive integers.
+      lastDTCId = myDTCId;
+    }
+    myDTC->setCMSSWId(dtcCMSSWId);
+
+    std::string lastGBTId = "";
+    int gbtCMSSWId = 0; // CMSSW GBTs Ids are local: ie they are GBTs Ids PER DTC!!
+
+    const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
+    // Bundles loop
+    for (const auto& myBundle : myBundles) {
+
+      const std::vector<GBT*>& myGBTs = myBundle->GBTs();
+      // GBTs loop
+      for (const auto& myGBT : myGBTs) {
+
+	const std::string myGBTId = myGBT->GBTId();
+	if (myGBTId != lastGBTId) {
+	  gbtCMSSWId++; // map is already sorted: CMSSW GBT Ids are consecutive integers.
+	  lastGBTId = myGBTId;
+	}
+	myGBT->setCMSSWId(gbtCMSSWId);
+      } // GBTs loop
+    } // Bundles loop
+  } // DTCs loop
+}
+
+
 /* Check Bundles-DTC connections.
  */
-
 void InnerCablingMap::checkBundlesToDTCsCabling(const std::map<int, std::unique_ptr<InnerDTC> >& DTCs) const {
   for (const auto& it : DTCs) {
     const int myDTCId = it.first;

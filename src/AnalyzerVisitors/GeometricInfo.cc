@@ -620,7 +620,7 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT/C, MFB/I, DTC/I, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -661,7 +661,8 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     if (myGBT != nullptr) {
       std::stringstream GBTInfo;
       GBTInfo << myGBT->numELinksPerModule() << ","
-	      << any2str(myGBT->GBTId()) << ",";
+	      << any2str(myGBT->GBTId()) << ","
+	      << myGBT->getCMSSWId() << ",";
 
       const InnerBundle* myBundle = myGBT->getBundle();
       if (myBundle != nullptr) {
@@ -672,6 +673,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->myid() << ","
+		  << myDTC->getCMSSWId() << ","
 		  << myDTC->isPositiveZEnd() << ","
 		  << myDTC->isPositiveXSide();
 	  output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << DTCInfo.str() << std::endl;
@@ -691,7 +693,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void CMSSWInnerTrackerCablingMapVisitor::preVisit() {
-  output_ << "Module DetId/U, GBT Id/U, DTC Id/U" << std::endl;
+  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
 }
 
 void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
@@ -706,7 +708,7 @@ void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
     const InnerDTC* myDTC = m.getInnerDTC();
     if (myDTC) {
       std::stringstream DTCInfo;
-      DTCInfo << myDTC->myid();	 
+      DTCInfo << myDTC->getCMSSWId();	 
       output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
     }
     else output_ << moduleInfo.str() << GBTInfo.str() << std::endl;
