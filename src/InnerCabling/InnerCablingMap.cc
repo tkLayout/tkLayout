@@ -421,7 +421,7 @@ void InnerCablingMap::connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* 
  */
 void InnerCablingMap::computeCMSSWIds(std::map<int, std::unique_ptr<InnerDTC> >& DTCs) {
   int lastDTCId = 0;
-  int dtcCMSSWId = 0;
+  int dtcCMSSWId = outer_cabling_totalNumDTCs; // Start from last CMSSW OT Id, to be as compact as possible.
 
   // DTCs loop
   for (auto& it : DTCs) {
@@ -435,7 +435,7 @@ void InnerCablingMap::computeCMSSWIds(std::map<int, std::unique_ptr<InnerDTC> >&
     myDTC->setCMSSWId(dtcCMSSWId);
 
     std::string lastGBTId = "";
-    int gbtCMSSWId = 0; // CMSSW GBTs Ids are local: ie they are GBTs Ids PER DTC!!
+    int gbtCMSSWId = 0; // CMSSW GBTs Ids are local: ie they are Ids PER DTC!!
 
     const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
     // Bundles loop
