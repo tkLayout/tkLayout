@@ -248,7 +248,16 @@ OT618_IT615.cfg	       Diff with OT617:
                        Also improve transition between TB2S/TBPS and TEDD by removing readout hybrid in TEDD2, R15.
                           * Special modules in TEDD2, R15, with halved number of strips / module. WARNING: MB NOT UPDATED!! SHOULD UPDATE MODULE MB.
                           * Outer radius increased by 20.47 mm : R15 sensors centers: 1023.16 mm -> 1043.63 mm.
-                          * Radii in TEDD2, R12, R13, R14 adjusted accordingly.                          
+                          * Radii in TEDD2, R12, R13, R14 adjusted accordingly.
+                          
+OT800_IT615.cfg	       Diff with OT616:
+		       All TEDD: 
+		       	  Update smallDeltas to latest info. Identical to the smallDelta updates in OT617. 
+		       	  Excluding all the other updates in OT617 though (related to special 2S module in R15 and radii adjustments).
+		       TBPS:
+		          Adjustments in Layer 1 to enable a safe IT installation, while respecting needed spacing with TBPS Layer 2 (supports and services).
+		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
+		                                          
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
         
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
