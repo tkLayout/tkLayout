@@ -191,6 +191,7 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
                                           
 OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
 
+
 ======================   TDR LAYOUT   ====================
 
 OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
@@ -201,6 +202,16 @@ OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+============   TIMING BARREL LAYER STUDIES   =============
+OT613_200_IT4025.cfg  Reference "standard" 78 ladders
+OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
+OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
+OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
+OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 ===========   POST-TDR OUTER TRACKER STUDIES   ===========                    
 OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
@@ -250,7 +261,7 @@ OT618_IT615.cfg	       Diff with OT617:
                           * Outer radius increased by 20.47 mm : R15 sensors centers: 1023.16 mm -> 1043.63 mm.
                           * Radii in TEDD2, R12, R13, R14 adjusted accordingly.
                           
-OT800_IT615.cfg	       Diff with OT616:
+OT800_IT615.cfg	       Based from Outer Tracker version 616.
 		       All TEDD: 
 		       	  Update smallDeltas to latest info. Identical to the smallDelta updates in OT617. 
 		       	  Excluding all the other updates in OT617 though (related to special 2S module in R15 and radii adjustments).
@@ -259,7 +270,8 @@ OT800_IT615.cfg	       Diff with OT616:
 		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
 		                                          
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
-        
+
+
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
 OT613_200_IT4125.cfg	  Like OT613_200_IT4025, but with 50x50 pixels instead of 25x100.
 
@@ -513,6 +525,18 @@ OT616_IT616.cfg                      OT Version 6.1.6
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
+================   LOCAL RESOLUTION STUDIES   ============                 
+OT616_200_IT620.cfg                  OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.3.
+                                     Zebra layout: Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
+                                     Layouts fully with 25x100 or 50x50 were studied, but not one that would include a mix of the 2!
+                                     
+OT618_200_IT621.cfg                  OT Version 6.1.8
+                                     Based from Inner Tracker version 6.1.5.
+                                     Same as IT 6.1.5., but with 50x50 everywhere (instead of 25x100).                                   
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
 =================   3D SENSORS STUDIES   =================
 OT616_IT699.cfg                      OT Version 6.1.6
                                      Based from Inner Tracker version 6.1.5.
@@ -521,21 +545,6 @@ OT616_IT699.cfg                      OT Version 6.1.6
 OT616_IT700.cfg                      OT Version 6.1.6
                                      Based from Inner Tracker version 6.9.9.
                                      Same geometry + materials, but 3D sensor type in TBPX L1 + TBPX L2 + TFPX R1 (+ slightly different inactive Si).
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
-
-
-============   ZEBRA STUDIES   ============                 
-OT616_200_IT620.cfg                  OT Version 6.1.6
-                                     Based from Inner Tracker version 6.1.3.
-                                     Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
-                                     Layouts fully with 25x100 or 50x50 were studied, but not one that would include a mix of the 2!
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                  
-                                                                                           
-
-============   TIMING BARREL LAYER STUDIES   =============
-OT613_200_IT4025.cfg  Reference "standard" 78 ladders
-OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
-OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
-OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
-OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
