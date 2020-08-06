@@ -798,8 +798,9 @@ RootWSite::RootWSite() {
   title_ = "Untitled";
   comment_ = "";
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -811,8 +812,9 @@ RootWSite::RootWSite(string title) {
   title_ = title;
   comment_ = "";
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -824,8 +826,9 @@ RootWSite::RootWSite(string title, string comment) {
   title_ = title;
   comment_ = comment;
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -898,10 +901,6 @@ RootWPage& RootWSite::addPage(string newTitle, int relevance /* = least_relevant
   return (*newPage);
 }
 
-void RootWSite::addAuthor(string newAuthor) {
-  authorList_.push_back(newAuthor);
-}
-
 ostream& RootWSite::dumpFooter(ostream& output) {
   output  << "          </div>" << endl
 	  << "        </div>" << endl
@@ -909,24 +908,16 @@ ostream& RootWSite::dumpFooter(ostream& output) {
 	  << "      </div>" << endl
 	  << "      <div id=\"footer\">" << endl;
 
-  // Add the list of authors if any
-  bool firstAuthorFound=false;
-  for (vector<string>::iterator it= authorList_.begin();
-       it != authorList_.end(); ++it) {
-    if (!firstAuthorFound) {
-      firstAuthorFound = true;
-      output << "        <p>&copy; ";
-      output << (*it);
-    } else {
-      output << ", " << (*it);
-    }
-  }
-  if (firstAuthorFound) output <<"</p>" << endl;
+  output << "<p> &copy; tkLayout developers: " 
+	 << "<a href=\"" << toolkitContributors_ << "\">" << toolkitContributors_ << "</a>"
+	 << "</p>" 
+	 << std::endl;
+
 
   time_t rawtime;
   time ( &rawtime );
   output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << endl
-	 << "        <p>by <a href=\""<< programSite_ <<"\">"<<programName_<<"</a>";
+	 << "        <p>by <a href=\""<< toolkitGithub_ <<"\">"<< toolkitName_ <<"</a>";
   if (revision_!="")
     output << " revision " << revision_;
   output << "</p>" << endl
