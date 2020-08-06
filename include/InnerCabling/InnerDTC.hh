@@ -26,11 +26,12 @@ public:
   const int numBundles() const { return bundles_.size(); }
   void addBundle(InnerBundle* bundle);
 
+  // GENERAL INFO
+  void setCMSSWId(const int cmsswId) { myDTCCMSSWId_ = cmsswId; }
+  const int getCMSSWId() const { return myDTCCMSSWId_; }
 
   const bool isPositiveZEnd() const { return isPositiveZEnd_; }
   const bool isPositiveXSide() const { return isPositiveXSide_; }
-
-  // GENERAL INFO
   const int plotColor() const { return plotColor_; }
 
 private:
@@ -38,9 +39,10 @@ private:
 
   Container bundles_;
 
+  int myDTCCMSSWId_;
+
   bool isPositiveZEnd_;
   bool isPositiveXSide_;
-
   int plotColor_;
 };
 

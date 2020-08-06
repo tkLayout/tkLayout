@@ -1,0 +1,11 @@
+// 2S, 1 Strip, reference sensors
+
+// Default sensor:
+ReferenceSensor 1 {
+  numStripsAcross 1016
+  numSegments 1
+}
+ReferenceSensor 2 {
+  numStripsAcross 1016
+  numSegments 1
+} 

@@ -48,6 +48,8 @@ public:
 
   // GENERAL INFO ON THE GBT
   const std::string GBTId() const { return myGBTId_; }
+  void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
+  const int getCMSSWId() const { return myGBTCMSSWId_; }
   const int GBTPhiIndex() const { return myGBTIndex_; }
   const int indexColor() const { return myGBTIndexColor_; }
   const int numELinksPerModule() const { return numELinksPerModule_; }
@@ -77,6 +79,7 @@ private:
   InnerBundle* myBundle_ = nullptr;
 
   std::string myGBTId_;
+  int myGBTCMSSWId_;
   int myGBTIndex_;
   int myGBTIndexColor_;
   int numELinksPerModule_;

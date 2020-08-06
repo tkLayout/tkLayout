@@ -2319,8 +2319,8 @@ namespace insur {
     moduleTable->setContent(inactiveWeightRow, 0, "Service Weight");
     moduleTable->setContent(totalWeightRow, 0, "Total Weight");
 
-    int loPitch;
-    int hiPitch;
+    double loPitch;
+    double hiPitch;
 
 
     // Summary cycle: prepares the rows cell by cell
@@ -2445,27 +2445,26 @@ namespace insur {
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
         aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
 
+
       // Pitch
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
-      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
-
-      if (loPitch==hiPitch) {
-        aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
-      } else {
-        aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
-          << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
+      loPitch=(*tagMapIt).second->outerSensor().minPitch() / Units::um; // mm -> um
+      hiPitch=(*tagMapIt).second->outerSensor().maxPitch() / Units::um; // mm -> um
+      
+      aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
+      if (fabs(loPitch - hiPitch) > insur::geom_zero) {
+        aPitchPair << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
       }
 
 
       // Strip Length   
       stripLengthStream.str("");
-      int stripLengthKeep = 0;
+      double stripLengthKeep = 0.;
       for (const auto& sensorIt : aModule->sensors()) {
-	const int stripLength = (int)(sensorIt.stripLength() / Units::um); // mm -> um
-	if (stripLength != stripLengthKeep) {
-	  if (stripLengthKeep != 0) { stripLengthStream << ", "; }
-	  stripLengthStream << stripLength;
+	const double stripLength = (sensorIt.stripLength() / Units::um); // mm -> um
+	if (fabs(stripLength - stripLengthKeep) > insur::geom_zero) {
+	  if (fabs(stripLengthKeep) > insur::geom_zero) { stripLengthStream << ", "; }
+	  stripLengthStream << std::fixed << std::setprecision(stripLengthPrecision) << stripLength;
 	}
 	stripLengthKeep	= stripLength;
       }
@@ -3055,8 +3054,8 @@ namespace insur {
       detailProfile.SetMarkerColor(Palette::color(colorIndex));
       detailProfile.SetLineColor(Palette::color(colorIndex));
       detailProfile.SetFillColor(Palette::color(colorIndex));
-      detailProfile.SetMarkerStyle(8);
-      detailProfile.SetMarkerSize(1.5);
+      detailProfile.SetMarkerStyle(1);
+      detailProfile.SetMarkerSize(1);
       detailProfile.GetYaxis()->SetTitleOffset(1.3);
       detailProfile.SetStats(0);
       detailProfile.Draw("same");
@@ -3282,8 +3281,8 @@ namespace insur {
 	detailProfile.SetMaximum(1.05);
 	detailProfile.SetMarkerColor(Palette::color(colorIndex));
 	detailProfile.SetLineColor(Palette::color(colorIndex));
-	detailProfile.SetMarkerStyle(8);
-	detailProfile.SetMarkerSize(0.3);  
+	detailProfile.SetMarkerStyle(1);
+	detailProfile.SetMarkerSize(1);  
 	detailProfile.Draw("same");
 
 	std::ostringstream titleStream;
@@ -3552,7 +3551,7 @@ namespace insur {
   }
 
   bool Vizard::additionalInfoSite(const std::string& settingsfile,
-                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, RootWSite& site) {
+                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& outerTracker, Tracker* innerTracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
 
@@ -3560,7 +3559,7 @@ namespace insur {
     RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
 
     RootWBinaryFile* myBinaryFile;
-    std::string trackerName = tracker.myid();
+    std::string trackerName = outerTracker.myid();
 
     int materialTracksUsed = analyzer.getMaterialTracksUsed();
     int geometryTracksUsed = analyzer.getGeometryTracksUsed();
@@ -3618,8 +3617,10 @@ namespace insur {
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
     std::unique_ptr<TCanvas> totalEtaProfileFull(new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY));
     totalEtaProfileFull->cd();
-    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetLineColor(kBlack);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     ((TH1D*)totalEtaStack->GetStack()->Last())->SetStats(0.);
     totalEtaStack->GetStack()->Last()->Draw();
@@ -3639,23 +3640,26 @@ namespace insur {
     if (totalLayersCountOuter) {
       totalLayersCountOuter->SetBit(1);
       totalLayersEtaStack->Add(totalLayersCountOuter);
-      totalLayersCountOuter->SetMarkerStyle(8);
+      totalLayersCountOuter->SetMarkerStyle(1);
       totalLayersCountOuter->SetMarkerSize(1);
       totalLayersCountOuter->SetMarkerColor(Palette::color(1));
+      totalLayersCountOuter->SetLineColor(Palette::color(1));
       totalLayersCountOuter->SetStats(0);
     }
     TH1D* totalLayersCountInner = (totalEtaProfileLayersPixel_ ? (TH1D*)totalEtaProfileLayersPixel_->ProjectionX()->Clone() : nullptr);
     if (totalLayersCountInner) {   
       totalLayersCountInner->SetBit(1);
       totalLayersEtaStack->Add(totalLayersCountInner);
-      totalLayersCountInner->SetMarkerStyle(8);
+      totalLayersCountInner->SetMarkerStyle(1);
       totalLayersCountInner->SetMarkerSize(1);
       totalLayersCountInner->SetMarkerColor(Palette::color(2));
+      totalLayersCountInner->SetLineColor(Palette::color(2));
       totalLayersCountInner->SetStats(0);
     }
-    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerColor(kBlack);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetLineColor(kBlack);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetStats(0);
     totalLayersEtaStack->GetStack()->Last()->Draw();
@@ -3682,24 +3686,70 @@ namespace insur {
     RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", origSet.begin(), origSet.end());
     configFilesContent->addItem(myBinaryFileList);
 
+
+    // Access module operating parameters info: operating temperature and bias voltage.
+    class ModuleOperatingParmsVisitor : public GeometryVisitor {  
+    public:
+      void visit(Module& m) {
+	if (!m.isPixelModule()) {
+	  outerTrackerModuleOperatingTemp_ = m.operatingTemp();
+	  outerTrackerModuleBiasVoltage_ = m.biasVoltage();
+	}
+	else {
+	  innerTrackerModuleOperatingTemp_ = m.operatingTemp();
+	  innerTrackerModuleBiasVoltage_ = m.biasVoltage();
+	}
+      }
+      const double getOuterTrackerModuleOperatingTemp() const { return outerTrackerModuleOperatingTemp_; }
+      const double getInnerTrackerModuleOperatingTemp() const { return innerTrackerModuleOperatingTemp_; }
+      const double getOuterTrackerModuleBiasVoltage() const { return outerTrackerModuleBiasVoltage_; }
+      const double getInnerTrackerModuleBiasVoltage() const { return innerTrackerModuleBiasVoltage_; }
+
+    private:
+      double outerTrackerModuleOperatingTemp_;
+      double innerTrackerModuleOperatingTemp_;
+      double outerTrackerModuleBiasVoltage_;
+      double innerTrackerModuleBiasVoltage_;
+    };
+
+    ModuleOperatingParmsVisitor outerVisitor;
+    outerTracker.accept(outerVisitor);
+    const double outerTrackerModuleOperatingTemp = outerVisitor.getOuterTrackerModuleOperatingTemp();
+    const double outerTrackerModuleBiasVoltage = outerVisitor.getOuterTrackerModuleBiasVoltage();
+    ModuleOperatingParmsVisitor innerVisitor;
+    if (innerTracker) { innerTracker->accept(innerVisitor); }
+    const double innerTrackerModuleOperatingTemp = (innerTracker ? innerVisitor.getInnerTrackerModuleOperatingTemp() : 0.);
+    const double innerTrackerModuleBiasVoltage = (innerTracker ? innerVisitor.getInnerTrackerModuleBiasVoltage() : 0.);
+
+
+    // Add sim parms and module operating parameters to info page
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
     myInfo->setValue(SimParms::getInstance().numMinBiasEvents(), minimumBiasPrecision);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for geometry");
+    myInfo->setValue(geometryTracksUsed);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for material");
+    myInfo->setValue(materialTracksUsed);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Integrated luminosity");
     myInfo->setValue(SimParms::getInstance().timeIntegratedLumi(), luminosityPrecision);
     myInfo->appendValue(" fb" + superStart + "-1" + superEnd);
     simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for material");
-    myInfo->setValue(materialTracksUsed);
-    simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for geometry");
-    myInfo->setValue(geometryTracksUsed);
-    simulationContent->addItem(myInfo);
     myInfo = new RootWInfo(Form("Irradiation &alpha; parameter (at reference temperature %.0f °C)", SimParms::getInstance().referenceTemp()));
     myInfo->setValueSci(SimParms::getInstance().alphaParam(), alphaParamPrecision);
     myInfo->appendValue(" A/cm");
     simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Module operating temperature");
+    myInfo->setValue(outerTrackerModuleOperatingTemp);
+    myInfo->appendValue(" °C in OT, " + std::to_string((int)innerTrackerModuleOperatingTemp) + " °C in IT");
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Module bias voltage");
+    myInfo->setValue(outerTrackerModuleBiasVoltage);
+    myInfo->appendValue(" V in OT, " + std::to_string((int)innerTrackerModuleBiasVoltage) + " V in IT");
+    simulationContent->addItem(myInfo);
+
 
     //********************************//
     //*                              *//
@@ -4099,8 +4149,8 @@ namespace insur {
         std::unique_ptr<TCanvas> pCanvas(new TCanvas());
 
         int myColor=0;
-        int nRebin = 2;
-        int markerStyle = 21;
+        int nRebin = 1;
+        int markerStyle = 1;
         double markerSize = 1.;
         double lineWidth = 2.;
 
@@ -4216,11 +4266,13 @@ namespace insur {
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
           ctgThetaCanvas->SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
+	  ctgThetaProfile.SetLineWidth(lineWidth);
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
           etaProfile.SetMinimum(vis_min_dCtgTheta);
           etaProfile.SetMaximum(vis_max_dCtgTheta);
           etaCanvas->SetLogy();
           etaProfile.SetLineColor(momentumColor(myColor));
+	  etaProfile.SetLineWidth(lineWidth);
           etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
@@ -4248,6 +4300,7 @@ namespace insur {
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
           z0Canvas->SetLogy();
           z0Profile.SetLineColor(momentumColor(myColor));
+	  z0Profile.SetLineWidth(lineWidth);
           z0Profile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
@@ -4256,7 +4309,7 @@ namespace insur {
           if (z0Graph.GetN() > 0) {
             z0Canvas->cd();
             z0Profile.Draw(plotOption.c_str());
-            plotOption = "p same";
+            plotOption = "same";
           }
         }
         plotOption = "";
@@ -4275,6 +4328,7 @@ namespace insur {
           }
           pCanvas->SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
+	  pProfile.SetLineWidth(lineWidth);
           pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
@@ -4283,7 +4337,7 @@ namespace insur {
           if (pGraph.GetN() > 0) {
             pCanvas->cd();
             pProfile.Draw(plotOption.c_str());
-            plotOption = "p same";
+            plotOption = "same";
           }
         }
         RootWImage& linearMomentumImage = myContent->addImage(std::move(linearMomentumCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -4513,7 +4567,7 @@ namespace insur {
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
-          int markerStyle        = 21;
+          int markerStyle        = 1;
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
@@ -4596,7 +4650,7 @@ namespace insur {
             if (pGraph.GetN() > 0) {
               pCanvas_Pt->cd();
               pProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           // Draw d0
@@ -4724,7 +4778,7 @@ namespace insur {
             if (z0Graph.GetN() > 0) {
               z0Canvas_Pt->cd();
               z0Profile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4752,7 +4806,7 @@ namespace insur {
             if (LGraph.GetN() > 0) {
               lCanvas_Pt->cd();
               lProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4780,7 +4834,7 @@ namespace insur {
             if (BetaGraph.GetN() > 0) {
               betaCanvas_Pt->cd();
               betaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4808,7 +4862,7 @@ namespace insur {
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_Pt->cd();
               omegaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -4894,7 +4948,7 @@ namespace insur {
           // Default attributes
           int myColor            = 0;
           int nBins              = insur::vis_n_bins;
-          int markerStyle        = 21;
+          int markerStyle        = 1;
           double markerSize      = 1.;
           double lineWidth       = 2.;
           std::string plotOption = "";
@@ -4977,7 +5031,7 @@ namespace insur {
             if (pGraph.GetN() > 0) {
               pCanvas_P->cd();
               pProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           // Draw d0
@@ -5105,7 +5159,7 @@ namespace insur {
             if (z0Graph.GetN() > 0) {
               z0Canvas_P->cd();
               z0Profile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
           plotOption = "";
@@ -5135,7 +5189,7 @@ namespace insur {
             if (LGraph.GetN() > 0) {
               lCanvas_P->cd();
               lProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5163,7 +5217,7 @@ namespace insur {
             if (BetaGraph.GetN() > 0) {
               betaCanvas_P->cd();
               betaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5191,7 +5245,7 @@ namespace insur {
             if (OmegaGraph.GetN() > 0) {
               omegaCanvas_P->cd();
               omegaProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
+              plotOption = "same";
             }
           }
 
@@ -5518,7 +5572,7 @@ namespace insur {
 
       a.hisPatternRecoInOutPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoInOutPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutPt[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutPt[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoInOutPt[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoInOutPt[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5553,7 +5607,7 @@ namespace insur {
 
       a.hisPatternRecoOutInPt[iMomentum]->SetNameTitle(std::string("hisPatternRecoOutInPt"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInPt[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoOutInPt[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoOutInPt[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoOutInPt[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoOutInPt[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5596,7 +5650,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5639,7 +5693,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5679,7 +5733,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5724,7 +5778,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5767,7 +5821,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5807,7 +5861,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPtProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5852,7 +5906,7 @@ namespace insur {
 
       a.hisPatternRecoInOutP[iMomentum]->SetNameTitle(std::string("hisPBkgContInOut"+any2str(pIter/Units::GeV)+"GeV").c_str(),"In-Out: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoInOutP[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoInOutP[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoInOutP[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoInOutP[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5887,7 +5941,7 @@ namespace insur {
 
       a.hisPatternRecoOutInP[iMomentum]->SetNameTitle(std::string("hisPBkgContOutIn"+any2str(pIter/Units::GeV)+"GeV").c_str(),"Out-In: Bkg contamination prob. in 95% area of 2D error ellipse accumulated accross N layers;#eta;1 - #Pi_{i=1}^{N} (1-p^{i}_{bkg_95%})");
       a.hisPatternRecoOutInP[iMomentum]->SetLineWidth(2.);
-      a.hisPatternRecoOutInP[iMomentum]->SetMarkerStyle(21);
+      a.hisPatternRecoOutInP[iMomentum]->SetMarkerStyle(1);
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerSize(1.);
       a.hisPatternRecoOutInP[iMomentum]->SetLineColor(momentumColor(iMomentum));
       a.hisPatternRecoOutInP[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5930,7 +5984,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPD0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -5973,7 +6027,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0InOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6015,7 +6069,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamInOut"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6059,7 +6113,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPD0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{R-#Phi} from previous layers/discs;#eta; #sigma_{R-#Phi} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6102,7 +6156,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPZ0OutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: an extrapolated #sigma_{Z} from previous layers/discs;#eta; #sigma_{Z} [#mum]").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6144,7 +6198,7 @@ namespace insur {
         auto & profHis = iterMap.second;
         profHis[iMomentum]->SetNameTitle(std::string("canvasPProbContamOutIn"+name+any2str(pIter/Units::GeV)+"GeV").c_str(),std::string(name+" In-Out approach: bkg contamination prob. as error ellipse extrap. from previous layers/discs;#eta; probability").c_str());
         profHis[iMomentum]->SetLineWidth(2.);
-        profHis[iMomentum]->SetMarkerStyle(21);
+        profHis[iMomentum]->SetMarkerStyle(1);
         profHis[iMomentum]->SetMarkerSize(1.);
         profHis[iMomentum]->SetLineColor(momentumColor(iMomentum));
         profHis[iMomentum]->SetMarkerColor(momentumColor(iMomentum));
@@ -6248,7 +6302,7 @@ namespace insur {
         npointsProfile.SetMarkerColor(Palette::color(myColor));
         npointsProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        npointsProfile.SetMarkerStyle(8);
+        npointsProfile.SetMarkerStyle(1);
         pointsCanvas->SetFillColor(color_plot_background);
 
         pointsCanvas->cd();
@@ -6310,7 +6364,7 @@ namespace insur {
         fractionProfile.SetMarkerColor(Palette::color(myColor));
         fractionProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        fractionProfile.SetMarkerStyle(8);
+        fractionProfile.SetMarkerStyle(1);
         fractionCanvas->SetFillColor(color_plot_background);
 
         fractionCanvas->cd();
@@ -6376,7 +6430,7 @@ namespace insur {
         purityProfile.SetMarkerColor(Palette::color(myColor));
         purityProfile.SetFillColor(Palette::color(myColor));
         myColor++;
-        purityProfile.SetMarkerStyle(8);
+        purityProfile.SetMarkerStyle(1);
         purityCanvas->SetFillColor(color_plot_background);
 
         purityCanvas->cd();
@@ -8199,7 +8253,7 @@ namespace insur {
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
@@ -8603,7 +8657,7 @@ namespace insur {
 
   std::string Vizard::createModulesDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -8616,7 +8670,7 @@ namespace insur {
 
   std::string Vizard::createSensorsDetIdListCsv() {
     std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_deg/D" << std::endl;
+    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, phi_deg/D" << std::endl;
     std::string detIdsListCsv = header.str();
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
@@ -9043,7 +9097,7 @@ namespace insur {
   std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
 
     std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC/I, MFB/I, LpGBT/C, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I" << std::endl;
+    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC_Id/I, DTC_CMSSW_Id/U, MFB/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I" << std::endl;
 
     const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
     for (const auto& itDTC : myDTCs) {
@@ -9052,7 +9106,8 @@ namespace insur {
 	std::stringstream DTCInfo;
 	DTCInfo << myDTC->isPositiveZEnd() << ","
 		<< myDTC->isPositiveXSide() << ","
-		<< myDTC->myid() << ",";
+		<< myDTC->myid() << ","
+		<< myDTC->getCMSSWId() << ",";
 
 	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
 	for (const auto& myBundle : myBundles) {
@@ -9063,6 +9118,7 @@ namespace insur {
 	  for (const auto& myGBT : myGBTs) {
 	    std::stringstream GBTInfo;
 	    GBTInfo << any2str(myGBT->GBTId()) << ","
+		    << myGBT->getCMSSWId() << ","
 		    << myGBT->numELinksPerModule() << ",";
 
 	    const PowerChain* myPowerChain = myGBT->getPowerChain();
