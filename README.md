@@ -8,7 +8,7 @@ tkLayout requires:
 
 If you are on lxplus, you can just run a bash shell and then:
 
-     source setup_slc6.sh
+     source setup_centos7.sh
      
      
 # Getting the code
