@@ -55,9 +55,6 @@ class RootWSite {
   inline void setCommentLink(std::string newCommentLink) {m_commentLink = newCommentLink; }
   inline void setRevision (std::string newRevision)      {m_revision = newRevision;}
 
-  //! Add tkLayout author (printed out in the footer)
-  inline void addAuthor(std::string newAuthor) {m_authorList.push_back(newAuthor);}
-
   //! Set target directory, where all html generated results will be saved
   inline void setTargetDirectory(std::string newTargetDirectory) {m_targetDirectory = newTargetDirectory; };
 
@@ -76,9 +73,9 @@ class RootWSite {
   std::string              m_title;                    //!< Web site title
   std::string              m_comment;                  //!< Comment to the web-site name (e.g. All layouts)
   std::string              m_commentLink;              //!< Link connecting the comment with other web-site (e.g. ../ to get to the uppermost directory with all layouts)
-  std::vector<std::string> m_authorList;               //!< Official list of tkLayout authors (names of authors)
-  std::string              m_programName;              //!< Program name, i.e. tkLayout
-  std::string              m_programSite;              //!< Github address, where the program is located
+  std::string              m_toolkitName;              //!< Program name, i.e. tkLayout
+  std::string              m_toolkitGithub;            //!< Github address, where the program is located
+  std::string              m_toolkitDevelopers;        //!< Core initital toolkit developers
   std::string              m_revision;                 //!< Footer prints out current software revision
   std::string              m_targetDirectory;          //!< Directory, where all the html results are saved
   std::string              m_styleDirectory;
