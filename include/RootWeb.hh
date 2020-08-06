@@ -19,13 +19,14 @@
 using namespace std;
 
 #define THUMBSMALLSIZE 120
-#define DEFAULTPROGRAMNAME "tkLayout"
-#define DEFAULTPROGRAMSITE "https://github.com/tkLayout/tkLayout"
 // The following is a list of allowed file etensions for TCanvas::SaveAs
 // It should be separated, start and end with '|'
 #define DEFAULTALLOWEDEXTENSIONS "|C|png|gif|svg|root|eps|pdf|ps|"
 
 namespace RootWeb {
+  static const std::string toolkit_name = "tkLayout";
+  static const std::string toolkit_github = "https://github.com/tkLayout/tkLayout";
+  static const std::string toolkit_contributors = "https://github.com/tkLayout/tkLayout/graphs/contributors";
   std::string cleanUpObjectName(const std::string&);
   static const int least_relevant = std::numeric_limits<int>::min();
   static const int most_relevant = std::numeric_limits<int>::max();
@@ -281,9 +282,9 @@ private:
   string title_;
   string comment_;
   string commentLink_;
-  vector<string> authorList_;
-  string programName_;
-  string programSite_;
+  std::string toolkitName_;
+  std::string toolkitGithub_;
+  std::string toolkitContributors_;
   string revision_;
   string targetDirectory_;
   std::unique_ptr<TFile> summaryFile_;
@@ -306,7 +307,6 @@ public:
   ostream& dumpFooter(ostream& output);
   RootWPage& addPage(string title, int relevance = least_relevant);
   void addPage(RootWPage* newPage, int relevance = least_relevant);
-  void addAuthor(string newAuthor);
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
   bool makeSite(bool verbose);
