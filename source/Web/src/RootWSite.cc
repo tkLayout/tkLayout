@@ -24,8 +24,9 @@ using std::string;
 using std::vector;
 
 // Defined constants
-const string RootWSite::c_program_name          = "tkLayout";
-const string RootWSite::c_program_site          = "https://github.com/drasal/tkLayout/tree/masterLite"; // "https://github.com/alkemyst/tkLayout"
+const string RootWSite::c_toolkit_name          = "tkLayout";
+const string RootWSite::c_toolkit_github        = "https://github.com/drasal/tkLayout/tree/masterLite";
+const string RootWSite::c_toolkit_developers    = "https://github.com/tkLayout/tkLayout/graphs/contributors";
 
 //
 // Default constructor
@@ -34,8 +35,9 @@ RootWSite::RootWSite() {
   m_title                = "Untitled";
   m_comment              = "";
   m_commentLink          = "";
-  m_programName          = c_program_name;
-  m_programSite          = c_program_site;
+  m_toolkitName          = c_toolkit_name;
+  m_toolkitGithub        = c_toolkit_github;
+  m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
   m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
@@ -50,8 +52,9 @@ RootWSite::RootWSite(string title) {
   m_title                = title;
   m_comment              = "";
   m_commentLink          = "";
-  m_programName          = c_program_name;
-  m_programSite          = c_program_site;
+  m_toolkitName          = c_toolkit_name;
+  m_toolkitGithub        = c_toolkit_github;
+  m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
   m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
@@ -66,8 +69,9 @@ RootWSite::RootWSite(string title, string comment) {
   m_title                = title;
   m_comment              = comment;
   m_commentLink          = "";
-  m_programName          = c_program_name;
-  m_programSite          = c_program_site;
+  m_toolkitName          = c_toolkit_name;
+  m_toolkitGithub        = c_toolkit_github;
+  m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
   m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
@@ -251,20 +255,10 @@ ostream& RootWSite::dumpFooter(ostream& output) const {
          << "   </div>" << std::endl
          << "   <div id=\"footer\">" << std::endl;
 
-  // Add the list of authors if any
-  bool firstAuthorFound=false;
-  for (auto iAuthor : m_authorList) {
-
-    if (!firstAuthorFound) {
-      firstAuthorFound = true;
-      output << "    <p>&copy; ";
-      output << iAuthor;
-    }
-    else {
-      output << ", " << iAuthor;
-    }
-  }
-  if (firstAuthorFound) output <<"</p>" << std::endl;
+  output << "<p> &copy; tkLayout developers: " 
+	 << "<a href=\"" << m_toolkitDevelopers << "\">" << m_toolkitDevelopers << "</a>"
+	 << "</p>" 
+	 << std::endl;
 
   time_t rawtime;
   time ( &rawtime );
@@ -272,7 +266,7 @@ ostream& RootWSite::dumpFooter(ostream& output) const {
   strftime (timeBuffer,80,"%a, %b %d %G, %T",gmtime(&rawtime));
 
   output << "    <p>Page created on "<< timeBuffer << " GMT</p>" << std::endl
-         << "    <p>By <a href=\""<< m_programSite <<"\">"<<m_programName<<"</a>" << " (" << m_tkLayoutProjectName << ": " << m_tkLayoutResultsAuthor << ")";
+         << "    <p>By <a href=\""<< m_toolkitGithub <<"\">"<<m_toolkitName<<"</a>" << " (" << m_tkLayoutProjectName << ": " << m_tkLayoutResultsAuthor << ")";
 
   if (m_revision!="") output << ", revision " << m_revision;
 

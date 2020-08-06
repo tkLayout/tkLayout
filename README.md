@@ -3,8 +3,9 @@
 
 The **tkLayout-lite** represents a derived SW version of tracker geometry modelling tool and tracker performance analysis tool **tkLayout**, 
 which has been fully developed within the CMS collaboration at CERN. Its main aim is to study performance of a new silicon tracker, 
-replacing the current one in a view of the Phase-2 upgrade (early 2020's). In order to utilize such broad functionality of tkLayout SW in 
-other experiments an intensive effort has been made to prepare a ligth version of the original tkLayout tool. Its main feature is a full modularity, 
+replacing the current one in a view of the Phase-2 upgrade (mid 2020's). In order to utilize such broad functionality of tkLayout SW in 
+other experiments, an intensive effort has been made to prepare a ligth version of the original tkLayout tool. 
+Its main feature is a full modularity, 
 experiment independence and comprehensive documentation.
 
 The key features of tkLayout may be described as follows: a tracker geometry is generated from a set of simple configuration files (cf. GeometryManager 
@@ -22,8 +23,7 @@ applied to a parabolic approximation; to estimate the background level (hits) fo
 to tkLayout on the inpute), AnalyzerGeometry reporting details about geometry), AnalyzerMatBudget (reporting tracker material budget) & AnalyzerOccupancy (reporting 
 occupancy & date rates being estimated based on built-in geometry & Fluka charged particles fluence provided as an input to tkLayout).   
 
-Developed at CERN by Giovanni Bianchi, Nicoletta De Maio, Stefano Martina and Stefano Mersi. tkLayout-lite version developed at CERN by Zbynek Drasal in 
-collaboration with tkLayout team.
+Developed at CERN by Gabrielle Hugo, Stefano Martina, Giovanni Bianchi, Nicoletta De Maio. Manager: Stefano Mersi. tkLayout-lite version developed at CERN by Zbynek Drasal in collaboration with tkLayout team.
 
 # Getting the code
 
