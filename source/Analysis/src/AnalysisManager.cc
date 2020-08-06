@@ -190,10 +190,6 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   // Set authors
   m_webSite->setComment("Layouts");
   m_webSite->setCommentLink("../");
-  m_webSite->addAuthor("Giovanni Bianchi");
-  m_webSite->addAuthor("Nicoletta De Maio");
-  m_webSite->addAuthor("Stefano Martina");
-  m_webSite->addAuthor("Stefano Mersi");
   m_webSite->setRevision(GitRevision::revisionNumber);
   return true;
 }
