@@ -185,7 +185,7 @@ namespace insur {
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
   static const std::string default_cabledOTName                  = "OT616";
-  static const std::string default_cabledITName                  = "IT613";
+  static const std::string default_cabledITName                  = "IT701";
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
   static const std::string default_chemicalElementsFile          = "chemical_elements.list";

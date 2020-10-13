@@ -229,6 +229,23 @@ struct FillStyle {
   template <class StatType> void operator()(TPolyLine& line, StatType& bin, const DrawerPalette& palette) const {
     line.SetFillColor(palette.getColor(bin.get()));
     line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY(),"f");
+
+    /*line.SetLineColor(0);
+    line.SetLineWidth(2);
+    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());*/
+  }
+};
+
+struct DashedContourStyle {
+  template <class StatType> void operator()(TPolyLine& line, StatType& bin, const DrawerPalette& palette) const {
+    line.SetFillColor(palette.getColor(bin.get()));
+    line.SetFillStyle(3004);
+    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY(),"f");
+
+    line.SetLineColor(palette.getColor(bin.get()));
+    line.SetLineWidth(2);
+    //line.SetLineStyle(7);
+    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());
   }
 };
 

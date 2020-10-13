@@ -82,7 +82,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
       const int ringRef = (isLongBarrel ? m->uniRef().ring - 1 : m->uniRef().ring - 2);
       const int phiRefInPowerChain = m->getPhiRefInPowerChain();
       
-      const std::pair<int, int> myGBTIndexes = computeGBTPhiIndex(isBarrel, ringRef, phiRefInPowerChain, numModulesPerGBTExact, numGBTsInPowerChain);
+      const std::pair<int, int> myGBTIndexes = computeGBTPhiIndex(isBarrel, numModulesInPowerChain, ringRef, phiRefInPowerChain, numModulesPerGBTExact, numGBTsInPowerChain);
       const int myGBTIndex = myGBTIndexes.first;
       const int myGBTIndexColor = myGBTIndexes.second;
       const std::string myGBTId = computeGBTId(powerChainId, myGBTIndex);
@@ -105,11 +105,11 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
 const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
 
   int numModules = numModulesInPowerChain;
-  if (isBarrel) {
+  /*if (isBarrel) {
     if (numModules % 2 == 1) logERROR(any2str("Found an odd number of modules in BPIX power chain, which is not supported."));
     else numModules /= 2;  // Divide by 2 because in BPIX, the GBTs assignment works by rod.
                            // This is becasue it makes the powering of the GBTs much easier.
-  }
+			   }*/
 
   const double maxNumModulesPerGBTExact = static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule;
   const int maxNumModulesPerGBT = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
@@ -135,9 +135,11 @@ const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const i
 
 /* Compute the phi index associated to each GBT.
  */
-const std::pair<int, int> InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int ringRef, const int phiRefInPowerChain, const double numModulesPerGBTExact, const int numGBTsInPowerChain) const {
+const std::pair<int, int> InnerCablingMap::computeGBTPhiIndex(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double numModulesPerGBTExact, const int numGBTsInPowerChain) const {
 
-  const int moduleRef = (isBarrel ? ringRef : phiRefInPowerChain);
+  const int halfNumModulesInPowerChain = numModulesInPowerChain / 2;
+  const int barrelModuleRef = (phiRefInPowerChain == 0 ? ringRef : 2 * halfNumModulesInPowerChain - ringRef - 1);
+  const int moduleRef = (isBarrel ? barrelModuleRef : phiRefInPowerChain);
 
   if (fabs(numModulesPerGBTExact) < inner_cabling_roundingTolerance) logERROR(any2str("Found numModulesPerGBTExact ~ 0."));
 
@@ -146,11 +148,32 @@ const std::pair<int, int> InnerCablingMap::computeGBTPhiIndex(const bool isBarre
 		    round(myGBTIndexExact) 
 		    : std::floor(myGBTIndexExact)
 		    );
-  if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
+			 //if (isBarrel && phiRefInPowerChain == 1) myGBTIndex += numGBTsInPowerChain;
 
-  int myGBTIndexColor = myGBTIndex;
-  if (isBarrel && phiRefInPowerChain == 1 && femod(numGBTsInPowerChain, 2) == 0) myGBTIndexColor += 1;
-  myGBTIndexColor = femod(myGBTIndexColor, 2);
+
+
+  if (isBarrel && numGBTsInPowerChain >= 3 && (femod(numGBTsInPowerChain, 2) == 0) && barrelModuleRef == 2 && myGBTIndex == 0) {
+    myGBTIndex += 1;
+  }
+
+
+  if (isBarrel) {
+    std::cout << "ringRef = " << ringRef << std::endl;
+    std::cout << "moduleRef = " << moduleRef << std::endl;
+    std::cout << "myGBTIndexExact = " << myGBTIndexExact << std::endl;
+    std::cout << "myGBTIndex = " << myGBTIndex << std::endl;
+  }
+
+  //int myGBTIndexColor = myGBTIndex;
+  //if (isBarrel && phiRefInPowerChain == 1 && femod(numGBTsInPowerChain, 2) == 0) myGBTIndexColor += 1;
+
+  //myGBTIndexColor = femod(myGBTIndexColor, 2);
+  std::cout << "numGBTsInPowerChain = " << numGBTsInPowerChain << std::endl;
+  int myGBTIndexColor = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) ? femod(myGBTIndex, 2) : femod(myGBTIndex, 3));
+  //myGBTIndexColor = femod(myGBTIndexColor, 3);
+  std::cout << "myGBTIndexColor = " << myGBTIndexColor << std::endl;
+
+  //myGBTIndexColor = myGBTIndexColor;
 
   return std::make_pair(myGBTIndex, myGBTIndexColor);
 }

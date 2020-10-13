@@ -8229,17 +8229,6 @@ namespace insur {
       std::unique_ptr<TCanvas> ZPhiCanvasPos(new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
 					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
-      // Contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
-      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
-	  return (m.subdet() == BARREL 
-		  && m.uniRef().layer == layerNumber
-		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
-		  ); 
-	} );
-      zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
-      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
       zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -8249,23 +8238,35 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
+      zphiBarrelFillDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
       zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos.get());
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
+      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+		  ); 
+	} );
+      //zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
+      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
+      // Dashed contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedContourDrawerPos;
+      zphiBarrelDashedContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 2)
+		  ); 
+	} );
+      zphiBarrelDashedContourDrawerPos.drawModules<DashedContourStyle>(*ZPhiCanvasPos.get());
+
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
 					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
-      // Contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
-      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
-	  return (m.subdet() == BARREL 
-		  && m.uniRef().layer == layerNumber
-		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
-		  ); 
-	} );
-      zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
-      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
       zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
@@ -8275,7 +8276,29 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
+      zphiBarrelFillDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg.get());
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
+      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+		  ); 
+	} );
+      //zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
+      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
+      // Dashed contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedContourDrawerNeg;
+      zphiBarrelDashedContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 2)
+		  ); 
+	} );
+      zphiBarrelDashedContourDrawerNeg.drawModules<DashedContourStyle>(*ZPhiCanvasNeg.get());
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
 
