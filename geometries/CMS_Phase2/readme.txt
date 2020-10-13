@@ -268,6 +268,9 @@ OT800_IT615.cfg	       Based from Outer Tracker version 616.
 		       TBPS:
 		          Adjustments in Layer 1 to enable a safe IT installation, while respecting needed spacing with TBPS Layer 2 (supports and services).
 		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
+		       	  
+OT801_IT701.cfg	       Based from Outer Tracker version 800.
+                       TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  
 		                                          
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
 
