@@ -214,35 +214,14 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
       double forbiddenRange_begin,forbiddenRange_end; 
       forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
       forbiddenRange_end=forbiddenRange[1];
-
-      std::cout << subdetectorName_ << std::endl;
-      std::cout << "minr = " << minr << ", maxr = " << maxr  << std::endl;
-      std::cout << "Layer " << myid() << std::endl;
-      std::cout << "newZ = " << newZ << std::endl;
-      std::cout << "newZ from overlaps was " << newZA << std::endl;
-      std::cout << "newZ from zError() was " << newZB << std::endl;
-      std::cout << "sensor length = " << newDsLength << std::endl;
-      std::cout << "newZ-lastZ = " << (newZ-lastZ) << std::endl;
-      std::cout << "parity = " << parity << std::endl;
-
       if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
         newZ = lastZ + forbiddenRange_begin - newDsLength;
-	std::cout << "forbiddenRange_begin = forbiddenRange[0]" << std::endl;
-	std::cout << "forbiddenRange_end = (forbiddenRange[0]+forbiddenRange[1])/2" << std::endl;
-	std::cout << "(forbiddenRange_begin - newDsLength) <= (newZ - lastZ) <= (forbiddenRange_end - newDsLength) " << std::endl;
-	std::cout << (forbiddenRange_begin - newDsLength) << " <= (newZ - lastZ) <= " << (forbiddenRange_end - newDsLength) << std::endl;
-	std::cout << "newZ = " << newZ << std::endl;
       } else {
-	forbiddenRange_begin=forbiddenRange[0];
-	forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
-	if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
-	  newZ = lastZ + forbiddenRange_begin - newDsLength;
-	  std::cout << "forbiddenRange_begin = (forbiddenRange[0]+forbiddenRange[1])/2" << std::endl;
-	  std::cout << "forbiddenRange_end = forbiddenRange[1]" << std::endl;
-	  std::cout << "(forbiddenRange_begin - newDsLength) <= (newZ - lastZ) <= (forbiddenRange_end - newDsLength) " << std::endl;
-	  std::cout << (forbiddenRange_begin - newDsLength) << " <= (newZ - lastZ) <= " << (forbiddenRange_end - newDsLength) << std::endl;
-	  std::cout << "newZ = " << newZ << std::endl;
-	}
+         forbiddenRange_begin=forbiddenRange[0];
+         forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
+	 if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
+            newZ = lastZ + forbiddenRange_begin - newDsLength;
+	 }
       }
     }
   } 
@@ -370,7 +349,6 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     if (smallDelta() != 0) { mod->flipped(parity != 1); } // When smallDelta() != 0, the flip is alternated.
     else { mod->flipped(!isPlusBigDeltaRod); } // When smallDelta() == 0, the flip only depends whether the rod is located at + BigDelta or at - BigDelta.
     mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
-    std::cout << "mod->translateZ" << posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2) << std::endl;
     // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules.push_back(mod);
   }
