@@ -548,3 +548,12 @@ OT616_IT700.cfg                      OT Version 6.1.6
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
+================   INSTALLATION STUDIES   ================
+OT800_IT701.cfg                      OT Version 8.0.0
+                                     Based from Inner Tracker version 7.0.0.
+                                     TFPX: Change of ring paradigm: modules of the same ring are now on 2 different dees, instead of being on both sides of the same dee.
+                                     This model is already used in TEPX. 
+                                     This makes the dee model mecanically feasible (cut at X~0), and better equilibrates services distribution among disks.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
+
