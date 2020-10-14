@@ -8227,7 +8227,7 @@ namespace insur {
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasPos(new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/empty/(dashed) module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
@@ -8238,7 +8238,8 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
-      zphiBarrelFillDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
+      zphiBarrelFillDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get()); // call once and first
+      // WARNING: this will draw the plot frame according to the positions of the filled modules only.
       zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos.get());
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
@@ -8249,23 +8250,22 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
-      //zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
       zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
-      // Dashed contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedContourDrawerPos;
-      zphiBarrelDashedContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      // Dashed modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerPos;
+      zphiBarrelDashedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 2)
 		  ); 
 	} );
-      zphiBarrelDashedContourDrawerPos.drawModules<DashedContourStyle>(*ZPhiCanvasPos.get());
+      zphiBarrelDashedDrawerPos.drawModules<DashedStyle>(*ZPhiCanvasPos.get());
 
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/empty/(dashed) module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
@@ -8276,7 +8276,8 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
 		  ); 
 	} );
-      zphiBarrelFillDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
+      zphiBarrelFillDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get()); // call once and first
+      // WARNING: this will draw the plot frame according to the positions of the filled modules only.
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg.get());
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
@@ -8287,18 +8288,17 @@ namespace insur {
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
 		  ); 
 	} );
-      //zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
       zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
-      // Dashed contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedContourDrawerNeg;
-      zphiBarrelDashedContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      // Dashed modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerNeg;
+      zphiBarrelDashedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
 		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 2)
 		  ); 
 	} );
-      zphiBarrelDashedContourDrawerNeg.drawModules<DashedContourStyle>(*ZPhiCanvasNeg.get());
+      zphiBarrelDashedDrawerNeg.drawModules<DashedStyle>(*ZPhiCanvasNeg.get());
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
 

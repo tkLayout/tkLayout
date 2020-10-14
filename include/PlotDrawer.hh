@@ -224,33 +224,26 @@ public:
 
 
 
-
 struct FillStyle {
   template <class StatType> void operator()(TPolyLine& line, StatType& bin, const DrawerPalette& palette) const {
     line.SetFillColor(palette.getColor(bin.get()));
     line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY(),"f");
-
-    /*line.SetLineColor(0);
-    line.SetLineWidth(2);
-    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());*/
   }
 };
 
-struct DashedContourStyle {
+struct DashedStyle {
   template <class StatType> void operator()(TPolyLine& line, StatType& bin, const DrawerPalette& palette) const {
+    // dashed fill style
     line.SetFillColor(palette.getColor(bin.get()));
-    line.SetFillStyle(3004);
+    line.SetFillStyle(3004); // dashed fill style
     line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY(),"f");
 
+    // draw contour as well for clarity
     line.SetLineColor(palette.getColor(bin.get()));
     line.SetLineWidth(2);
-    //line.SetLineStyle(7);
     line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());
   }
 };
-
-extern int
-g;
 
 class ContourStyle {
   const int lineWidth_;
@@ -262,6 +255,9 @@ public:
     line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());
   }
 };
+
+extern int
+g;
 
 
 // ===============================================================================================
@@ -560,11 +556,11 @@ struct HistogramFrameStyle {
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - frameStyle is the instance of a FrameStyleType class, which can be used in case of custom frame styles. Default is FrameStyleType<CoordType>()
 /// 4) Draw the modules: void drawModules<DrawStyleType>(canvas, drawStyle)
-///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
+///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules), FillStyle (which draws filled modules), and DashedStyle (which draws dashed modules).
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
 /// 5) Draw the modules with outer contour: void drawModuleContours<DrawStyleType>(canvas, drawStyle)
-///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
+///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules), FillStyle (which draws filled modules), and DashedStyle (which draws dashed modules).
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
 ///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
 
