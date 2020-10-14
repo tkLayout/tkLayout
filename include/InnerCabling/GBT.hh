@@ -50,8 +50,8 @@ public:
   const std::string GBTId() const { return myGBTId_; }
   void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
   const int getCMSSWId() const { return myGBTCMSSWId_; }
-  const int GBTPhiIndex() const { return myGBTIndex_; }
-  const int indexColor() const { return myGBTIndexColor_; }
+  const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; }
+  const int plotGBTIndexInPowerChain() const { return plotGBTIndexInPowerChain_; }
   const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
@@ -68,7 +68,7 @@ public:
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 
-  const int plotColor() const { return plotColor_; }
+  const int plotPowerChainColor() const { return plotPowerChainColor_; }
 
 private:
   const int computePlotColor(const PowerChain* myPowerChain) const;
@@ -80,11 +80,11 @@ private:
 
   std::string myGBTId_;
   int myGBTCMSSWId_;
-  int myGBTIndex_;
-  int myGBTIndexColor_;
+  int myGBTIndexInPowerChain_;
+  int plotGBTIndexInPowerChain_;
   int numELinksPerModule_;
 
-  int plotColor_;
+  int plotPowerChainColor_;
 };
 
 
