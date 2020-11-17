@@ -52,7 +52,7 @@
    <ZSection z="120.9*cm"   rMin="6.23*cm" rMax="[TBPXAndTFPXOuterRadius]"/>
    <ZSection z="129.9*cm"   rMin="6.23*cm" rMax="[TBPXAndTFPXOuterRadius]"/>
    <ZSection z="129.9*cm"   rMin="6.23*cm" rMax="[TEPXOuterRadius]"/>
-   <ZSection z="247.8*cm"   rMin="6.23*cm" rMax="[RootRadius2]"/>
+   <ZSection z="247.8*cm"   rMin="6.23*cm" rMax="[TEPXOuterRadius]"/>
  </Polycone>
  <SubtractionSolid name="Phase2OTForward">
    <rSolid name="Forward"/>
