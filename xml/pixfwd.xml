@@ -42,7 +42,9 @@
    <ZSection z="95.90*cm" rMin="2.8*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
    <ZSection z="120.9*cm" rMin="2.8*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
    <ZSection z="120.9*cm" rMin="6.23*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
-   <ZSection z="261.9*cm" rMin="6.23*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
+   <ZSection z="247.8*cm" rMin="6.23*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
+   <ZSection z="247.8*cm" rMin="110.0*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
+   <ZSection z="261.9*cm" rMin="110.0*cm" rMax="[pixbar:Tracker2SOuterRadius]"/>
  </Polycone>
  <Polycone name="Phase2PixelEndcap" startPhi="0*deg" deltaPhi="360*deg" >
    <ZSection z="[RootStartZ]"  rMin="2.8*cm" rMax="[TBPXAndTFPXOuterRadius]"/>
@@ -50,7 +52,7 @@
    <ZSection z="120.9*cm"   rMin="6.23*cm" rMax="[TBPXAndTFPXOuterRadius]"/>
    <ZSection z="129.9*cm"   rMin="6.23*cm" rMax="[TBPXAndTFPXOuterRadius]"/>
    <ZSection z="129.9*cm"   rMin="6.23*cm" rMax="[TEPXOuterRadius]"/>
-   <ZSection z="261.9*cm"   rMin="6.23*cm" rMax="[TEPXOuterRadius]"/>
+   <ZSection z="247.8*cm"   rMin="6.23*cm" rMax="[RootRadius2]"/>
  </Polycone>
  <SubtractionSolid name="Phase2OTForward">
    <rSolid name="Forward"/>
