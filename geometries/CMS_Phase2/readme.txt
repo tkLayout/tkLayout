@@ -268,6 +268,9 @@ OT800_IT615.cfg	       Based from Outer Tracker version 616.
 		       TBPS:
 		          Adjustments in Layer 1 to enable a safe IT installation, while respecting needed spacing with TBPS Layer 2 (supports and services).
 		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
+		       	  
+OT801_IT701.cfg	       Based from Outer Tracker version 800.
+                       TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  
 		                                          
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
 
@@ -546,5 +549,14 @@ OT616_IT700.cfg                      OT Version 6.1.6
                                      Based from Inner Tracker version 6.9.9.
                                      Same geometry + materials, but 3D sensor type in TBPX L1 + TBPX L2 + TFPX R1 (+ slightly different inactive Si).
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+================   INSTALLATION STUDIES   ================
+OT800_IT701.cfg                      OT Version 8.0.0
+                                     Based from Inner Tracker version 7.0.0.
+                                     TFPX: Change of ring paradigm: modules of the same ring are now on 2 different dees, instead of being on both sides of the same dee.
+                                     This model is already used in TEPX. 
+                                     This makes the dee model mecanically feasible (cut at X~0), and better equilibrates services distribution among disks.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
 
 
