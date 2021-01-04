@@ -79,8 +79,6 @@ class RootWSite {
   std::string              m_revision;                 //!< Footer prints out current software revision
   std::string              m_targetDirectory;          //!< Directory, where all the html results are saved
   std::string              m_styleDirectory;
-  std::string              m_tkLayoutProjectName;      //!< Footer prints out current software project used to produce results
-  std::string              m_tkLayoutResultsAuthor;    //!< Footer prints out the author of given results
 
   static const int         c_leastRelevant= -1000;     //!< Lowest priority to order web pages on the web site
   static const std::string c_toolkit_name;             //!< Default program name, i.e. tkLayout
