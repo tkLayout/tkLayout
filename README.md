@@ -69,11 +69,11 @@ Obviously, make sure you will use the executable which you just created in ${HOM
     which tklayout
 
 
-## Documentation
-Doxygen documentation is generated using **doc** option and all the generated html files are saved in tkLayout/doc/html directory.
+# Documentation
+Doxygen documentation is generated using **make doc**, and all the generated html files are saved in tkLayout/doc/html directory.
 
 
-## First-time install
+# First-time install
 If this is the first time that you install tkLayout, a few questions will be asked and a tkLayout configuration
 file will be created in $HOME/.tkgeometry:
 
