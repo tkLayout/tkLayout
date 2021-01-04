@@ -25,7 +25,7 @@ using std::vector;
 
 // Defined constants
 const string RootWSite::c_toolkit_name          = "tkLayout";
-const string RootWSite::c_toolkit_github        = "https://github.com/drasal/tkLayout/tree/masterLite";
+const string RootWSite::c_toolkit_github        = "https://github.com/tkLayout/tkLayout/tree/masterLite";
 const string RootWSite::c_toolkit_developers    = "https://github.com/tkLayout/tkLayout/graphs/contributors";
 
 //
@@ -40,8 +40,6 @@ RootWSite::RootWSite() {
   m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
-  m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
-  m_tkLayoutResultsAuthor= MainConfigHandler::getInstance().getResultsAuthor();
   //styleDirectory_ = ".";
 }
 
@@ -57,8 +55,6 @@ RootWSite::RootWSite(string title) {
   m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
-  m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
-  m_tkLayoutResultsAuthor= MainConfigHandler::getInstance().getResultsAuthor();
   //styleDirectory_ = ".";
 }
 
@@ -74,8 +70,6 @@ RootWSite::RootWSite(string title, string comment) {
   m_toolkitDevelopers    = c_toolkit_developers;
   m_revision             = "";
   m_targetDirectory      = ".";
-  m_tkLayoutProjectName  = MainConfigHandler::getInstance().getProjectName();
-  m_tkLayoutResultsAuthor= MainConfigHandler::getInstance().getResultsAuthor();
   //styleDirectory_ = ".";
 }
 
@@ -189,8 +183,8 @@ ostream& RootWSite::dumpHeader(ostream& output, const RootWPage& thisPage) const
          << "  <meta http-equiv=\"expires\" content=\"0\" />" << std::endl
          << "  <meta http-equiv=\"expires\" content=\""<< timeBuffer<< " GMT\" />" << std::endl
          << "  <meta http-equiv=\"pragma\" content=\"no-cache\" />" << std::endl
-         << "  <meta name=\"keywords\" content=\"CERN "+m_tkLayoutProjectName+" tracker design\" />" << std::endl
-         << "  <meta name=\"description\" content=\""+m_tkLayoutProjectName+" Tracker design summary page\" />" << std::endl
+         << "  <meta name=\"keywords\" content=\"CERN tracker design\" />" << std::endl
+         << "  <meta name=\"description\" content=\" Tracker design summary page\" />" << std::endl
          << "  <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << std::endl
          << "  <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << std::endl
          << " </head>" << std::endl
@@ -266,7 +260,7 @@ ostream& RootWSite::dumpFooter(ostream& output) const {
   strftime (timeBuffer,80,"%a, %b %d %G, %T",gmtime(&rawtime));
 
   output << "    <p>Page created on "<< timeBuffer << " GMT</p>" << std::endl
-         << "    <p>By <a href=\""<< m_toolkitGithub <<"\">"<<m_toolkitName<<"</a>" << " (" << m_tkLayoutProjectName << ": " << m_tkLayoutResultsAuthor << ")";
+         << "    <p>By <a href=\""<< m_toolkitGithub <<"\">"<<m_toolkitName<<"</a>";
 
   if (m_revision!="") output << ", revision " << m_revision;
 
