@@ -1,4 +1,4 @@
-# Getting the code
+# Getting the repository
 
      git clone https://github.com/tkLayout/tkLayout.git
      cd tkLayout
