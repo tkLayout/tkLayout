@@ -25,7 +25,7 @@ using std::vector;
 
 // Defined constants
 const string RootWSite::c_toolkit_name          = "tkLayout";
-const string RootWSite::c_toolkit_github        = "https://github.com/drasal/tkLayout/tree/masterLite";
+const string RootWSite::c_toolkit_github        = "https://github.com/tkLayout/tkLayout/tree/masterLite";
 const string RootWSite::c_toolkit_developers    = "https://github.com/tkLayout/tkLayout/graphs/contributors";
 
 //

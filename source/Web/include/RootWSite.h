@@ -75,7 +75,7 @@ class RootWSite {
   std::string              m_commentLink;              //!< Link connecting the comment with other web-site (e.g. ../ to get to the uppermost directory with all layouts)
   std::string              m_toolkitName;              //!< Program name, i.e. tkLayout
   std::string              m_toolkitGithub;            //!< Github address, where the program is located
-  std::string              m_toolkitDevelopers;        //!< Core initital toolkit developers
+  std::string              m_toolkitDevelopers;        //!< Core toolkit developers
   std::string              m_revision;                 //!< Footer prints out current software revision
   std::string              m_targetDirectory;          //!< Directory, where all the html results are saved
   std::string              m_styleDirectory;
@@ -83,8 +83,9 @@ class RootWSite {
   std::string              m_tkLayoutResultsAuthor;    //!< Footer prints out the author of given results
 
   static const int         c_leastRelevant= -1000;     //!< Lowest priority to order web pages on the web site
-  static const std::string c_program_name;             //!< Default program name, i.e. tkLayout
-  static const std::string c_program_site;             //!< Default github address to tkLayout master branch
+  static const std::string c_toolkit_name;             //!< Default program name, i.e. tkLayout
+  static const std::string c_toolkit_github;           //!< Default github address, where the program is located
+  static const std::string c_toolkit_developers;       //!< Core toolkit developers
 
 }; // Class
 
