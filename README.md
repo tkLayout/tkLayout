@@ -1,4 +1,4 @@
-# Prerequisites
+# Environment
 
 tkLayout requires:
 
@@ -8,7 +8,8 @@ tkLayout requires:
 
 If you are on lxplus, you can just run a bash shell and then:
 
-     source setup_centos7.sh
+     source setup_centos7.sh         # If you plan to use make directly
+     source setupCMake_centos7.sh    # If you plan to use make CMake
      
      
 # Getting the code
@@ -16,17 +17,19 @@ If you are on lxplus, you can just run a bash shell and then:
      git clone https://github.com/tkLayout/tkLayout.git
      cd tkLayout
 
-The latest official version is at tkLayout/master branch, the latest devolpment version at tkLayout/dev branch.
+The latest official version is at tkLayout/master branch, the latest development version at tkLayout/dev branch.
+
 
 # Compilation
 
-Compilation using make:
+- Compilation using make:
 
     make -j8
+    make install
 
-This will build the needed programs and put them in the ./bin directory.
+This will build the needed programs, and put them in the tkLayout/bin directory.
 
-Compilation using cmake:
+- Compilation using cmake:
 
     mkdir build     (all object files, help files, libs, ... will be kept here)
     cd build
@@ -38,13 +41,8 @@ Compilation using cmake:
     make uninstall  (if cleaning needed)
     rm *            (clean all content in build directory & restart if needed)
 
-This will build the needed programs, copy the executables into tkLayout/bin directory and create symlink in ${HOME}/bin directory.
+This will build the needed programs, and put them in the tkLayout/build/bin directory.
 
-
-# Install
-  If the make command runs properly, you can install the program with:
-
-     make install
 
 ### First-time install
 If this is the first time that you install tkLayout, a few questions will be asked. You will need to provide:
