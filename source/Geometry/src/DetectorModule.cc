@@ -242,16 +242,9 @@ void DetectorModule::setModuleCap(ModuleCap* newCap)
   m_moduleCap = newCap ;
 }
 
-void DetectorModule::mirrorZ() {
+void DetectorModule::rotateToNegativeZSide() {
   side(-side());
-  double zTranslation = -center().Z();
-  double zRotation = -center().Phi();
-  translateZ(zTranslation);
-  rotateZ(zRotation);
-  rotateY(M_PI);
-  translateZ(zTranslation);
-  rotateZ(-zRotation);
-  //decorated().mirror(XYZVector(1., 1., -1.));
+  rotateY(M_PI);  // Rotation around FCC_Y of angle Pi
   clearSensorPolys();
 }
 
