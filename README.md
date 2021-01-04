@@ -22,18 +22,19 @@ The latest official version is at tkLayout/master branch, the latest devolpment 
 
 Compilation using make:
 
-    make
+    make -j8
 
 This will build the needed programs and put them in the ./bin directory.
 
-Compilation using cmake (NEW):
+Compilation using cmake:
 
     mkdir build     (all object files, help files, libs, ... will be kept here)
     cd build
     cmake ..        (generate makefile)
-    make install    (or write make all + make install)
+    make -j8
+    
     make doc        (generate Doxygen-based documentation in doc directory)
-
+    
     make uninstall  (if cleaning needed)
     rm *            (clean all content in build directory & restart if needed)
 
@@ -41,7 +42,7 @@ This will build the needed programs, copy the executables into tkLayout/bin dire
 
 
 # Install
-  If the make command runs properly you can install the program with the script
+  If the make command runs properly, you can install the program with:
 
      make install
 
