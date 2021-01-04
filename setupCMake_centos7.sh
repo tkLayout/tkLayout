@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# EXPLICIT, MINIMAL DPEENDENCIES FOR SLC6
-source setup_slc6.sh
+# EXPLICIT, MINIMAL DPEENDENCIES FOR CENTOS7
+source setup_centos7.sh
 
 
 # CMAKE
