@@ -5,4 +5,3 @@ export CXX=`which g++`
 export BOOST_LIB=/cvmfs/sft.cern.ch/lcg/releases/Boost/1.59.0_python2.7-71952/x86_64-cc7-gcc49-opt/lib
 export BOOST_INCLUDE=/cvmfs/sft.cern.ch/lcg/releases/Boost/1.59.0_python2.7-71952/x86_64-cc7-gcc49-opt/include/boost-1_59
 export BOOST_SUFFIX=-gcc49-mt-1_59
-
