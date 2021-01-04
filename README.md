@@ -52,11 +52,8 @@ Compilation using cMake:
     mkdir build     (all object files, help files, libs, ... will be kept here)
     cd build
     cmake ..        (generate makefile)
-    make install    (or write make all + make install)
-    make doc        (generate Doxygen-based documentation in doc directory)
-
-    make uninstall  (if cleaning needed)
-    rm *            (clean all content in build directory & restart if needed)
+    make -j8
+    make install    (this will ask few questions for a first-time install, read dedicated section)
 
 Create first a **build** directory in the tkLayout home directory. All make related content will be then created here. Change the working 
 directory to **build** and call **cmake ..** command (directing cMake to the tkLayout uppermost directory such as it reads correctly the 
@@ -69,35 +66,33 @@ Obviously, make sure you will use the executable which you just created in ${HOM
     which tklayout
 
 
-# Documentation
-Doxygen documentation is generated using **make doc**, and all the generated html files are saved in tkLayout/doc/html directory.
-
-
 # First-time install
-If this is the first time that you install tkLayout, a few questions will be asked and a tkLayout configuration
-file will be created in $HOME/.tkgeometry:
 
-1. One needs to provide the destination directory for the www output of the program (proabably
-  something like /afs/cern.ch/user/y/yourname/www/layouts) this directory needs to be writable by you
-  and readable by the web server.
-     The style files will be copied during the installation to that directory (for example
-  /afs/cern.ch/user/y/yourname/www/layouts/style ). If the style files get changed during the development
-  a new ./install.sh will be needed to get this propagated to the output.
-     Alternatively, one can choose to make a symbolic link between the source directory style directory and
-  the layout directory. This avoids the need of repeating the ./install.sh at every update of the style files
-  but in order to do this the source directory should also be within the reach of the web server.
-2. The set of momentum values to be used for the simulation
-3. Project name
-4. Author of generated results
+If this is the first time that you install tkLayout, a few questions will be asked on the prompt.
+A tkLayout configuration file will be created in $HOME/.tkgeometryrc with your answers. 
+You can directly update this file, if you fail to answer the questions, or for any further update.
+
+Example: www output of the program. You can specify: $HOME/www/layouts. 
+To circulate the webpage instead, you will need to have a www repository writable by you and readable by the web server (EOS www repo).
+
+
+# Documentation (optional)
+Doxygen documentation is generated using **make doc**, and all the generated html files are saved in tkLayout/doc/html directory.
 
 
 # Run
 Run tklayout on a test-study FCC design:
 
     cd tkLayout/geometries
-    tklayout FCC/FCChh_Option4.cfg --geometry --material
+    tklayout FCC/FCChh_Option4/FCChh_Option4.cfg --geometry --material
     
+    
+# Clean-up (optional):
 
+    make uninstall  (if cleaning needed)
+    rm *            (clean all content in build directory & restart if needed)
+    
+    
 # Command line options
 
 You should want to get more options / tune number of tracks used for analysis.
@@ -107,5 +102,6 @@ Have a look at:
 
 
 # Have fun!
-Of course, there would be a lot of developments / debug / design work to do :) 
-The present design study with FCChh_Option4.cfg has been done by Zbynek Drasal.
+Of course, there would be a lot of developments / debug / design work to do, which is the difficult part :) 
+A good grasp of the project codebase is absolutely necessary to get meaningful, fully understood results.
+
