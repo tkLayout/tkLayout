@@ -393,7 +393,7 @@ class PropertyObject {
     }
   }
 protected:
-  const PropertyTree& propertyTree() const { return pt_; }
+  
   PropertyMap& parsedAndChecked() { return parsedCheckedProperties_; }
   PropertyMap& parsedOnly() { return parsedProperties_; }
   PropertyMap& checkedOnly() { return checkedProperties_; }
@@ -408,6 +408,7 @@ protected:
 public:
   PropertyObject() {}
   virtual ~PropertyObject() {};
+  const PropertyTree& propertyTree() const { return pt_; }
   virtual void store(const PropertyTree& newpt) {
     if (pt_.empty()) pt_ = newpt;
     else { 
