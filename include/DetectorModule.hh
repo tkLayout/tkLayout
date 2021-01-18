@@ -254,6 +254,7 @@ public:
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
   double zRotationAngle() const { return zRotationAngle_; }
+  const XYZVector& getRAxis() const {return rAxis_;}
 
   // SPATIAL RESOLUTION
 
@@ -288,6 +289,7 @@ public:
   void rotateToNegativeZSide() {
     side(-side());
     rotateY(M_PI);  // Rotation around CMS_Y of angle Pi
+    zRotationAngle_=-zRotationAngle_; // Flip zRotAngle to match how the modules are actually placed
     clearSensorPolys();
   }
 
