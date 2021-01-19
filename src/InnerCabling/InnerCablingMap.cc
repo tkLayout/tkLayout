@@ -110,7 +110,7 @@ const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const i
                            // This is becasue it makes the powering of the GBTs much easier.
 			   }*/
 
-  const double maxNumModulesPerGBTExact = static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule;
+  const double maxNumModulesPerGBTExact = std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, static_cast<double>(inner_cabling_maxNumModulesPerGBT));
   const int maxNumModulesPerGBT = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
 					       round(maxNumModulesPerGBTExact) 
 					       : std::floor(maxNumModulesPerGBTExact)
