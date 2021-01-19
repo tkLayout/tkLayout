@@ -67,6 +67,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
     const int numGBTsInPowerChain = gbtsInPowerChain.first;
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
+    myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
 
     const int powerChainId = myPowerChain->myid();
     const bool isLongBarrel = myPowerChain->isLongBarrel();

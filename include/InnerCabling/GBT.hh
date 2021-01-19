@@ -24,7 +24,7 @@ class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<Module*> Container; 
 
 public:
-  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule);
+  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor, const int numELinksPerModule);
 
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
@@ -71,6 +71,7 @@ public:
   const int plotPowerChainColor() const { return plotPowerChainColor_; }
 
 private:
+  const int computePlotGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const;
   const int computePlotColor(const PowerChain* myPowerChain) const;
 
   Container modules_;

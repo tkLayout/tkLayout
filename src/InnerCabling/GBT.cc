@@ -6,7 +6,7 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
   myGBTId_(GBTId),
   myGBTCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
   myGBTIndexInPowerChain_(myGBTIndexInPowerChain),
-  plotGBTIndexInPowerChain_(computePlotGBTIndexInPowerChain(myGBTIndexInPowerChain)),
+  plotGBTIndexInPowerChain_(computePlotGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain)),
   numELinksPerModule_(numELinksPerModule)
 {
   myPowerChain_ = myPowerChain;
@@ -26,26 +26,21 @@ void GBT::addModule(Module* m) {
  * Compute GBT plot style on website.
  * To distinguish different GBTs within the same power chain, alternation of fill, contour and dashed styles is used
  */
-const int GBT::computePlotGBTIndexInPowerChain(const int myGBTIndexInPowerChain) const {
-
-  if (isBarrel) {
-    std::cout << "ringRef = " << ringRef << std::endl;
-    std::cout << "moduleRef = " << moduleRef << std::endl;
-    std::cout << "myGBTIndexInPowerChainExact = " << myGBTIndexInPowerChainExact << std::endl;
-    std::cout << "myGBTIndexInPowerChain = " << myGBTIndexInPowerChain << std::endl;
-  }
+const int GBT::computePlotGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const {
+  const bool isBarrel = myPowerChain->isBarrel();
+  const int numGBTsInPowerChain = myPowerChain->numGBTsInPowerChain();
 
   //int myGBTIndexInPowerChainPlotStyle = myGBTIndexInPowerChain;
   //if (isBarrel && phiRefInPowerChain == 1 && femod(numGBTsInPowerChain, 2) == 0) myGBTIndexInPowerChainPlotStyle += 1;
 
   //myGBTIndexInPowerChainPlotStyle = femod(myGBTIndexInPowerChainPlotStyle, 2);
   std::cout << "numGBTsInPowerChain = " << numGBTsInPowerChain << std::endl;
-  int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) ? femod(myGBTIndexInPowerChain, 2) : femod(myGBTIndexInPowerChain, 3));
+  const int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) ? femod(myGBTIndexInPowerChain, 2) : femod(myGBTIndexInPowerChain, 3));
   //myGBTIndexInPowerChainPlotStyle = femod(myGBTIndexInPowerChainPlotStyle, 3);
   std::cout << "myGBTIndexInPowerChainPlotStyle = " << myGBTIndexInPowerChainPlotStyle << std::endl;
 
   //myGBTIndexInPowerChainPlotStyle = myGBTIndexInPowerChainPlotStyle;
-
+  return myGBTIndexInPowerChainPlotStyle;
 }
 
 

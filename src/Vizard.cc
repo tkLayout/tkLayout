@@ -8235,7 +8235,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 1) // fill style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 1) // fill style
 		  ); 
 	} );
       zphiBarrelFillDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get()); // Call once and first.
@@ -8247,7 +8247,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 0) // contour style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 0) // contour style
 		  ); 
 	} );
       zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
@@ -8257,7 +8257,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 2) // dashed style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 2) // dashed style
 		  ); 
 	} );
       zphiBarrelDashedDrawerPos.drawModules<DashedStyle>(*ZPhiCanvasPos.get());
@@ -8273,7 +8273,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 1) // fill style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 1) // fill style
 		  ); 
 	} );
       zphiBarrelFillDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get()); // Call once and first.
@@ -8285,7 +8285,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 0) // contour style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 0) // contour style
 		  ); 
 	} );
       zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
@@ -8295,7 +8295,7 @@ namespace insur {
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 2) // dashed style
+		  && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 2) // dashed style
 		  ); 
 	} );
       zphiBarrelDashedDrawerNeg.drawModules<DashedStyle>(*ZPhiCanvasNeg.get());
@@ -8324,7 +8324,7 @@ namespace insur {
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 0)
+			   && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 0)
 			   );
 		} );
 	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get()); // Call once and first.
@@ -8334,7 +8334,7 @@ namespace insur {
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && ((m.getGBT() ? m.getGBT()->indexPlotStyle() : 0) == 1)
+			   && ((m.getGBT() ? m.getGBT()->plotGBTIndexInPowerChain() : 0) == 1)
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());

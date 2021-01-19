@@ -825,7 +825,7 @@ const int DetectorModule::gbtPlotColor() const {
   int gbtPlotColor = 0;
   const GBT* myGBT = getGBT();
   if (myGBT) {
-    gbtPlotColor = myGBT->plotColor();
+    gbtPlotColor = myGBT->plotPowerChainColor();
   }
   return gbtPlotColor;
 }
