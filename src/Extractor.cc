@@ -2168,13 +2168,64 @@ namespace insur {
 	ril.index = discNumber;
 
 
-	//if (zmin > 0) {	
+	//if (zmin > 0) 	
         std::ostringstream dname, pconverter;
 	//disk name
         dname << xml_disc << discNumber; // e.g. Disc6
 
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
+
+      
+        std::map<int, std::vector<double>> phi_one;
+        std::map<int, std::vector<double>> phi_two;
+        std::map<int, std::vector<double>> radius_one;
+        std::map<int, std::vector<double>> radius_two;
+        std::map<int, std::vector<double>> zrot_one;
+        std::map<int, std::vector<double>> zrot_two;
+
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
+          std::cout<<"uniRef phi is "<<iiter->getModule().uniRef().phi<<" for ring number "<<iiter->getModule().uniRef().ring<<" and subdetector name "<<iiter->getModule().uniRef().subdetectorName<<std::endl;
+          if(iiter->getModule().uniRef().subdetectorName=="FPIX_1"){ //Don't need to check this for every endcap ring - awful hack, to be improved
+            if(phi_one.count(iiter->getModule().uniRef().ring)==0){
+              phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(radius_one.count(iiter->getModule().uniRef().ring)==0){
+              radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(zrot_one.count(iiter->getModule().uniRef().ring)==0){
+              zrot_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(phi_two.count(iiter->getModule().uniRef().ring)==0){
+              phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(radius_two.count(iiter->getModule().uniRef().ring)==0){
+              radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(zrot_two.count(iiter->getModule().uniRef().ring)==0){
+              zrot_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(iiter->getModule().uniRef().phi%2 == 1){
+              phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              zrot_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().zRotationAngle()*180./M_PI);
+            } else {
+              phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              zrot_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().zRotationAngle()*180./M_PI);
+            }
+          }
+        }
+        /*std::cout<<"UNIFREFONE "<<std::endl;
+        for(unsigned int i = 0; i<phi_unirefone.size();i++){
+          std::cout<<i<<" has "<<phi_unirefone.at(i)<<std::endl;
+        }
+        std::cout<<"UNIFREFTWO "<<std::endl;
+        for(unsigned int i = 0; i<phi_unireftwo.size();i++){
+          std::cout<<i<<" has "<<phi_unireftwo.at(i)<<std::endl;
+        }*/
+
+        std::cout<<" Now going to loop on module caps "<<std::endl;
 
 
         // LOOP ON MODULE CAPS
@@ -2188,7 +2239,7 @@ namespace insur {
 
 	    if (iiter->getModule().uniRef().phi == 1) {
 	      // new ring
-	      //if (ridx.find(modRing) == ridx.end()) {
+	      //if (ridx.find(modRing) == ridx.end()) 
 	      ridx.insert(modRing);
 
 	      std::ostringstream matname, rname, mname, specname;
@@ -2410,6 +2461,7 @@ namespace insur {
 	      const Ring* myRing = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing);
 	      ERingInfo myRingInfo;
 	      myRingInfo.name = rname.str();
+              myRingInfo.discNumber = discNumber;
 	      myRingInfo.childname = mname.str();
 	      myRingInfo.isDiskAtPlusZEnd = iiter->getModule().uniRef().side;
 	      myRingInfo.numModules = myRing->numModules();
@@ -2572,6 +2624,19 @@ namespace insur {
             pconverter << myRingInfo.radiusMid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
+            if(myRingInfo.discNumber <= 8 && (phi_one[ringIndex]).size()>0){
+              alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_one[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("zRotAngleVec",zrot_one[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_one[ringIndex]));
+              pconverter.str("");
+            } else {
+              alg.parameters.push_back(numericParam("hasExtraInfo", "0"));
+              pconverter.str("");
+            }
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
@@ -2598,6 +2663,19 @@ namespace insur {
             pconverter << myRingInfo.radiusMid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
+            if(myRingInfo.discNumber <=8 && (phi_two[ringIndex]).size()>0 ){
+              alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_two[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("zRotAngleVec",zrot_two[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_two[ringIndex]));
+              pconverter.str("");
+            } else {
+              alg.parameters.push_back(numericParam("hasExtraInfo", "0"));
+              pconverter.str("");
+            }
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
@@ -3381,6 +3459,20 @@ namespace insur {
     res << xml_algorithm_vector_open << x << "," << y << "," << z << xml_algorithm_vector_close;
     return res.str();
   }
+
+ std::string Extractor::arbitraryLengthVector(std::string name, std::vector<double> invec){
+    std::ostringstream res;
+    std::string vector_opening = "<Vector name=\""+name+"\" type=\"numeric\" nEntries=\""+std::to_string(invec.size())+"\">";
+    if(invec.size() > 0){
+      res << vector_opening << invec.at(0);
+      for(unsigned int i=1; i<invec.size();i++){
+        res << "," << invec.at(i);
+      }
+      res << xml_algorithm_vector_close;
+    }
+    return res.str();
+ }
+    
 
   /**
    * Calculate the composite density of the material mix in a module. A boolean flag controls whether the sensor silicon

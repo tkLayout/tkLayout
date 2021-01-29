@@ -89,10 +89,12 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     EndcapModule* mod = GeometryFactory::clone(*templ);
     if (moduleNode.count(i) > 0){ mod->store(moduleNode.at(i));}
     mod->myid(i+1);
+    std::cout<<"------begin module printout--------"<<std::endl;
     if(mod->propertyTree().get<double>("rotAngle",-99) > -99 ){//Need to do this before further determining phi/z of the module
       double tmp_r = mod->center().Rho();
       mod->translateR(-tmp_r);
       mod->rotateZAtModuleCenter(mod->propertyTree().get<double>("rotAngle"));
+      std::cout<<"rotAngle is "<<mod->propertyTree().get<double>("rotAngle");
      if(mod->propertyTree().get<double>("rhoCentre",0) > 0 ){
         mod->translateR(mod->propertyTree().get<double>("rhoCentre")-mod->center().Rho());
       } else {
@@ -110,6 +112,13 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     }
     mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());
+    std::cout<<"Module phi is "<<mod->center().Phi();
+    std::cout<<"Center position "<<mod->center().X()<<" y = "<<mod->center().Y()<<std::endl;
+    std::cout<<" Corner one "<<mod->cornerone().X()<<" y = "<<mod->cornerone().Y()<<std::endl;
+    std::cout<<" Corner two "<<mod->cornertwo().X()<<" y = "<<mod->cornertwo().Y()<<std::endl;
+    std::cout<<" Corner three "<<mod->cornerthree().X()<<" y = "<<mod->cornerthree().Y()<<std::endl;
+    std::cout<<" Corner four "<<mod->cornerfour().X()<<" y = "<<mod->cornerfour().Y()<<std::endl;
+    std::cout<<"------end module printout--------"<<std::endl;
     mod->translateZ(parity*smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
     const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) // Case where ring modules are placed on both sides of a same dee.
