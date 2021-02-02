@@ -281,6 +281,12 @@ $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cc $(LIBDIR)/MainConfigHandler.o 
 
 test: $(TESTDIR)/ModuleTest
 
+testMakeUnique14: $(TESTDIR)/testMakeUnique.cpp
+	g++ -std=c++14 $(TESTDIR)/testMakeUnique.cpp -o testMakeUnique14
+
+testMakeUnique17: $(TESTDIR)/testMakeUnique.cpp
+	g++ -std=c++17 $(TESTDIR)/testMakeUnique.cpp -o testMakeUnique17
+
 $(TESTDIR)/%: $(SRCDIR)/Tests/%.cc $(INCDIR)/Tests/%.hh
 	@echo "Building target $@..."
 	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAGS) -o $@ $< $(SRCDIR)/DetectorModule.cc $(SRCDIR)/GeometricModule.cc $(SRCDIR)/Sensor.cc $(SRCDIR)/global_funcs.cc $(SRCDIR)/Polygon3d.cc
