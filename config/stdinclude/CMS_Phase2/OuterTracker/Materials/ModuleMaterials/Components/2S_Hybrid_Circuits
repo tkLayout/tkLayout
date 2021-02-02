@@ -2,7 +2,7 @@
 
 // Two hybrids
 Component {
-  componentName "2S FE hybrid circuits"
+  componentName "2S Module: FE hybrid circuits"
   service false
   scaleOnSensor 0
   targetVolume 56
@@ -46,7 +46,7 @@ Component {
 }
 
 Component {
-  componentName "2S Service hybrids"
+  componentName "2S Module: Service hybrids"
   service false
   scaleOnSensor 0
   targetVolume 3

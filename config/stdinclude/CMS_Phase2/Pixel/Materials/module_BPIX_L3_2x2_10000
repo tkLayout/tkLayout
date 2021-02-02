@@ -1,0 +1,14 @@
+
+Materials BPIX_L3_2x2_10000 {
+  type module
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_2x2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_10000
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TBPX_2x2  
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TBPX_L3
+}

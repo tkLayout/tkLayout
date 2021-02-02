@@ -46,7 +46,6 @@ namespace insur {
   static const double geom_max_length                 = 2800.0; // mm, maximum length, in +z, available to place the tracker components
 
   static const double geom_max_eta_coverage           = geom_range_eta_regions[geom_range_eta_regions.size()-1]; // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
-  static const int    geom_n_eta_regions              = geom_range_eta_regions.size();                           // Tracking performed in the following Number of eta regions
 
   static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
 
@@ -68,6 +67,8 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
+  static const double mat_negligible         = 1.0E-06; 
+
   static const double mat_a_silicon          = 28.0855;
   static const double mat_z_silicon          = 14;
   static const double mat_d_silicon          = 2.329;
@@ -89,13 +90,6 @@ namespace insur {
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
    * short_eta_coverage - long_eta_coverage
    */
-  static const double vis_step_eta_short     = 0.2;
-  static const double vis_step_eta_long      = 0.5;
-  static const double vis_step_eta_epsilon   = 0.001;
-  static const double vis_short_eta_coverage = geom_range_eta_regions[1];
-  static const double vis_trk_eta_coverage   = geom_range_eta_regions[2];
-  static const double vis_long_eta_coverage  = geom_range_eta_regions[3];
-
   static const double vis_max_dPtOverPt      = 100;  // [%]
   static const double vis_min_dPtOverPt      = 0.1; // [%]
   static const double vis_max_dZ0            = 5000.;
@@ -113,8 +107,6 @@ namespace insur {
   static const double vis_max_omega          = +M_PI;
   static const double vis_min_omega          = -M_PI;
 
-  static const double vis_safety_factor      = geom_safety_factor;
-
   static const int    vis_min_canvas_sizeX   = 600;
   static const int    vis_std_canvas_sizeX   = 900;
   static const int    vis_max_canvas_sizeX   =1800;
@@ -123,7 +115,6 @@ namespace insur {
   static const int    vis_max_canvas_sizeY   =1800;
 
   static const double vis_eta_step           = 0.1;
-  static const double vis_material_eta_step  = 0.05;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
 
@@ -147,6 +138,37 @@ namespace insur {
 
 
   /**
+   * Integers used for materials assignments to modules volumes (XML export only!!).
+   * This is not placed in the XMLs dedicated file, as it might be needed to move this to core tkLayout MB analysis.
+   */
+  // OUTER TRACKER MODULE
+  static const int xml_HybridFBLR_0  = 0; // Front + Back + Right + Left
+  static const int xml_InnerSensor   = 1; 
+  static const int xml_OuterSensor   = 2; 
+  static const int xml_HybridFront   = 3; 
+  static const int xml_HybridBack    = 4; 
+  static const int xml_HybridLeft    = 5; 
+  static const int xml_HybridRight   = 6; 
+  static const int xml_HybridBetween = 7; 
+  static const int xml_SupportPlate  = 8; // Support Plate
+  // extras
+  static const int xml_HybridFB        = 34; 
+  static const int xml_HybridLR        = 56; 
+  static const int xml_HybridFBLR_3456 = 3456; // Front + Back + Right + Left
+
+  // PIXEL MODULE
+  static const int xml_PixelModuleNull   = 0;
+  static const int xml_PixelModuleHybrid   = 1; 
+  static const int xml_PixelModuleSensor   = 2; 
+  static const int xml_PixelModuleChip     = 3;
+  static const int xml_PixelModuleDeadArea      = 4;
+  static const int xml_PixelModuleDeadAreaRight = 5;
+  static const int xml_PixelModuleDeadAreaLeft  = 6;
+  static const int xml_PixelModuleDeadAreaFront = 7;
+  static const int xml_PixelModuleDeadAreaBack  = 8;
+
+
+  /**
    * Filename and path constants
    * @param default_mattabdir Relative path to the list of materials
    * @param default_mattabfile List of materials and of their properties as required by <i>MaterialTable</i>
@@ -161,10 +183,14 @@ namespace insur {
    */
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
-  static const std::string default_cabledOTName                  = "OT614";
-  static const std::string default_cabledITName                  = "IT404";
+  static const std::string default_cabledOTName                  = "OT616";
+  static const std::string default_cabledITName                  = "IT613";
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
+  static const std::string default_chemicalElementsFile          = "chemical_elements.list";
+  static const std::string default_chemicalCompoundsFile         = "chemical_compounds.list";
+  static const std::string default_chemicalMixturesFile          = "chemical_mixtures.list";
+  static const std::string default_composition_delimiter         = ":";
   static const std::string default_irradiationdir                = "config";
   static const std::string default_fluence_file                  = "fluencePer1ppCol.map";
   static const std::string default_materialsdir                  = "config";

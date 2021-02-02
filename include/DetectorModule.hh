@@ -138,14 +138,19 @@ public:
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
   Property<double, Default> chipThickness;
+  Property<double, AutoDefault> deadAreaExtraLength;
+  Property<double, AutoDefault> deadAreaExtraWidth;
+  Property<double, AutoDefault> chipNegativeXExtraWidth;
+  Property<double, AutoDefault> chipPositiveXExtraWidth;
+  Property<double, AutoDefault> outerSensorExtraLength;
 
   Property<bool, Default> removeModule;
 
-  int16_t subdetectorId() const { return subdetectorId_; }
-  const std::string& subdetectorName() const { return subdetectorName_; }
-  void subdetectorNameId(const std::string& name, const int id) { subdetectorName_ = name; subdetectorId_ = id; }
+  const std::string subdetectorName() const { return subdetectorName_; }
+  void subdetectorId(const int id) { subdetectorId_ = id; }
+  const int subdetectorId() const { return subdetectorId_; }
   
- DetectorModule(Decorated* decorated) : 
+  DetectorModule(Decorated* decorated, const std::string subdetectorName) : 
     Decorator<GeometricModule>(decorated),
       skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
@@ -198,8 +203,14 @@ public:
       hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
       chipThickness            ("chipThickness"            , parsedOnly(), 0),
+      deadAreaExtraLength      ("deadAreaExtraLength"      , parsedOnly()),
+      deadAreaExtraWidth       ("deadAreaExtraWidth"       , parsedOnly()),
+      chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
+      chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
+      outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
-      materialObject_(MaterialObject::MODULE),
+      materialObject_          (MaterialObject::MODULE, subdetectorName),
+      subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
 	{ }
 
@@ -233,6 +244,7 @@ public:
   double meanWidth() const { return decorated().meanWidth(); }
   double physicalLength() const { return decorated().physicalLength(); }
 
+  const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
 
@@ -244,14 +256,14 @@ public:
 
   // RETURN LOCAL SPATIAL RESOLUTION
   // This resolution is either nominal, either from parametrization.
-  const double resolutionLocalX(const double phi) const;
-  const double resolutionLocalY(const double theta) const;
+  const double resolutionLocalX(const TVector3& trackDirection) const;
+  const double resolutionLocalY(const TVector3& trackDirection) const;
 
   // Used to compute local parametrized spatial resolution.
   const bool hasAnyResolutionLocalXParam() const;
   const bool hasAnyResolutionLocalYParam() const;
-  const double alpha(const double trackPhi) const;
-  const double beta(const double theta) const;
+  const double alpha(const TVector3& trackDirection) const;
+  const double beta(const TVector3& trackDirection) const;
  
   // STATISTICS ON LOCAL SPATIAL RESOLUTION
   accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
@@ -278,6 +290,7 @@ public:
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
+  const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
@@ -319,6 +332,22 @@ public:
   double minTheta() const { return MIN(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
+  // Get local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalX() const {
+    XYZVector localX = basePoly().getVertex(3) - basePoly().getVertex(0);
+    if (flipped()) { localX *= -1; } // a flip operation does not move the polygon vertexes, hence desserves special treatment.
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localX *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localX).Unit();
+  }
+  // Get local Y orientation on sensor plane.
+  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
+  const TVector3 getLocalY() const { 
+    XYZVector localY = basePoly().getVertex(0) - basePoly().getVertex(1);
+    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localY *= -1; }
+    return CoordinateOperations::convertCoordVectorToTVector3(localY).Unit();
+  }
+
   const Sensors& sensors() const { return sensors_; }
   const MaterialObject& materialObject() const { return materialObject_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
@@ -351,6 +380,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
   virtual const int diskSurface() const { return -1; }
+  virtual const bool isSmallerAbsZModuleInRing() const { return true; }
 
   inline bool isPixelModule() const { return (moduleType().find(insur::type_pixel) != std::string::npos); }
   inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
@@ -365,13 +395,16 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   std::string summaryFullType() const;
 
   // OT CABLING
-  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }
+  const int isPositiveCablingSide() const;                    // Can be different from (Z) end. 
+                                                              // 'Positive cabling side': the module end up connected on a DTC on (Z+) end.
+  void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }  // MFB
   const OuterBundle* getBundle() const { return bundle_; }
-  const int isPositiveCablingSide() const;
   const int bundlePlotColor() const; 
+  void setEndcapFiberFanoutBranch(const int branchIndex) { endcapFiberFanoutBranch_ = branchIndex; } // Branch of the MFB fanout
+  const int getEndcapFiberFanoutBranch() const { return endcapFiberFanoutBranch_; }
   const int opticalChannelSectionPlotColor() const;
   const int powerChannelSectionPlotColor() const; 
-  const OuterDTC* getDTC() const;
+  const OuterDTC* getDTC() const;                             // DTC
   const int dtcPlotColor() const;
   const int dtcPhiSectorRef() const;
 
@@ -397,8 +430,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
 
 protected:
   // Used to compute local parametrized spatial resolution.
-  virtual const double calculateParameterizedResolutionLocalX(const double phi) const;
-  virtual const double calculateParameterizedResolutionLocalY(const double theta) const;
+  virtual const double calculateParameterizedResolutionLocalX(const TVector3& trackDirection) const;
+  virtual const double calculateParameterizedResolutionLocalY(const TVector3& trackDirection) const;
   const double calculateParameterizedResolutionLocalAxis(const double fabsTanDeepAngle, const bool isLocalXAxis) const;
 
   MaterialObject materialObject_;
@@ -420,6 +453,7 @@ private:
 
   // OT CABLING MAP
   OuterBundle* bundle_ = nullptr;
+  int endcapFiberFanoutBranch_ = 0;
   // IT CABLING MAP
   PowerChain* powerChain_ = nullptr;
   int phiRefInPowerChain_;
@@ -440,8 +474,8 @@ public:
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) :
-    DetectorModule(decorated)
+  BarrelModule(Decorated* decorated, const std::string subdetectorName) :
+    DetectorModule(decorated, subdetectorName)
   { setup(); }
 
   void accept(GeometryVisitor& v) {
@@ -571,10 +605,14 @@ public:
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
   Property<int, AutoDefault> endcapDiskSurface;
+  void setIsSmallerAbsZModuleInRing(const bool isSmallerAbsZModuleInRing) { isSmallerAbsZModuleInRing_ = isSmallerAbsZModuleInRing; }
+  const bool isSmallerAbsZModuleInRing() const override { return isSmallerAbsZModuleInRing_; }
   const int diskSurface() const override { return endcapDiskSurface(); }
+  const bool isAtSmallerAbsZSideInDee() const { return (femod(diskSurface(), 2) == 1); }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return (diskSurface() <= 2); }
 
-  EndcapModule(Decorated* decorated) :
-    DetectorModule(decorated)
+  EndcapModule(Decorated* decorated, const std::string subdetectorName) :
+    DetectorModule(decorated, subdetectorName)
   { setup(); }
 
 
@@ -730,6 +768,9 @@ public:
   PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }
   UniRef uniRef() const { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
+
+private:
+  bool isSmallerAbsZModuleInRing_;
 };
 
 

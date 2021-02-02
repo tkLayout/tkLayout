@@ -101,6 +101,13 @@ struct Type { // Module-maintained color
 };
 
 // OT CABLING
+struct TypeFanoutBranchTransparentColor { // Module-maintained Bundle fanout branch color
+  double operator()(const Module& m) {
+    const bool isTransparent = ((m.getEndcapFiberFanoutBranch() % 2) == 1);
+    return Palette::color(m.bundlePlotColor(), isTransparent);
+  }
+};
+
 struct TypeBundleColor { // Module-maintained Bundle color
   double operator()(const Module& m) {
     return Palette::color(m.bundlePlotColor());
@@ -176,7 +183,7 @@ struct TypeInnerBundleTransparentColor { // Module-maintained InnerBundle color
 
 struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
   double operator()(const Module& m) {
-    bool isTransparent = (m.isPositiveZEnd() < 0);
+    bool isTransparent = (m.isPositiveZEnd() < 0 || !m.isPositiveXSide());
     return Palette::colorScrabble(m.innerDTCPlotColor(), isTransparent);
   }
 };
@@ -606,6 +613,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
   viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
   TH2C* frame = getFrame(viewportMaxX_, viewportMaxY_);
+  frame->SetStats(0);
   frameStyle(*frame, canvas, palette_);
 }
 

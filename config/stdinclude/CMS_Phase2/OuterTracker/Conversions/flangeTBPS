@@ -7,7 +7,7 @@ Station {
   stationName flangeTBPS
   type flange
 
-  // Optical fibres and twp propagation
+  // Cabling: Optical fibers and twp propagation
   @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_PE
   @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Al
   @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Cu

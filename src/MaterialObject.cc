@@ -24,17 +24,22 @@ namespace material {
       {LAYER, "layer"}
   };
 
-  MaterialObject::MaterialObject(Type materialType) :
+  define_enum_strings(Location) = { "all", "dee", "external" };
+
+  MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
+    subdetectorName_(subdetectorName),
       materialType_ (materialType),
       type_ ("type", parsedOnly()),
       destination_ ("destination", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       // sensorNode_ ("Sensor", parsedOnly()),
-      materials_ (nullptr) {}
+      materials_ (nullptr) 
+  {}
 
   MaterialObject::MaterialObject(const MaterialObject& other) :
-    MaterialObject(other.materialType_) {
+    MaterialObject(other.materialType_, other.subdetectorName()) 
+  {
     materials_ = other.materials_;
     serviceElements_ = other.serviceElements_; //do shallow copies
   }
@@ -87,9 +92,9 @@ namespace material {
 
         check();
         if (type_().compare(getTypeString()) == 0) {
-          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
+          MaterialObjectKey myKey(subdetectorName(), currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
-            Materials * newMaterials  = new Materials(materialType_);
+            Materials * newMaterials  = new Materials(materialType_, subdetectorName());
             newMaterials->store(currentMaterialNode.second);
 
             //pass destination to newMaterials
@@ -112,13 +117,13 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false */, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element * currElement : serviceElements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     
     if (materials_ != nullptr) {
-      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }    
   }
 
@@ -138,14 +143,16 @@ namespace material {
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
+	if (currElement->subdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->subdetectorName() = " << currElement->subdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
-	  /*if (currElement->componentName() == "Sensor HV line") {
+	  /*if (currElement->componentName() == "High voltage lines") {
 	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
 	    }*/
-          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
+          materialProperties.addLocalMass(currElement->subdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
-          materialProperties.addLocalMass(currElement->elementName(), quantity);
+	  std::cout << "MaterialObject::populateMaterialProperties: No component name, element name = " << currElement->elementName() << std::endl;
+          materialProperties.addLocalMass(currElement->subdetectorName(), "", currElement->elementName(), quantity);
         }
       }
     }
@@ -173,9 +180,11 @@ namespace material {
   //  materials_->chargeTrain(train);
   //}
 
-  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType) :
+  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Materials::~Materials() {}
 
@@ -190,7 +199,7 @@ namespace material {
   void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
     check();        
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -201,9 +210,9 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -219,11 +228,12 @@ namespace material {
     }
   }
 
-  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType) :
-    //componentName ("componentName", parsedAndChecked()),
+  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()),
-    materialType_(newMaterialType) {};
+    materialType_(newMaterialType),
+    subdetectorName_(subdetectorName)
+  {};
 
   MaterialObject::Component::~Component() { }
 
@@ -244,7 +254,7 @@ namespace material {
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component(materialType_);
+      Component* newComponent = new Component(materialType_, subdetectorName());
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -254,26 +264,24 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode_) {
-      Element* newElement = new Element(materialType_);
+      Element* newElement = new Element(materialType_, subdetectorName());
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
       newElement->cleanup();
       newElement->build(newSensorChannels);
-      //bool test1 = newElement->componentName.state();
-      //bool test2 = newElement->nSegments.state();
 
       elements_.push_back(newElement);
     }
     cleanup();
   }
 
-  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     for(const Element* currElement : elements_) {
-      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
     for (const Component* currComponent : components_) {
-      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices, gramsMultiplier, requestedLocation);
     }
   }
 
@@ -296,15 +304,8 @@ namespace material {
   }
 
 
-  /*
-  const std::map<MaterialObject::Type, const std::string> MaterialObject::Element::unitString = {
-      {GRAMS, "g"},
-      {MILLIMETERS, "mm"},
-      {GRAMS_METER, "gm"}
-  };
-  */
 
-  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
+  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
     //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
     //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
@@ -318,12 +319,18 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
+    location ("location", parsedOnly(), Location::EXTERNAL),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
-    materialTab_ (MaterialTab::instance()),
-    materialType_(newMaterialType) {
-  };
+    subdetectorName_(subdetectorName),
+    materialsTable_ (MaterialsTable::instance()),
+    materialType_(newMaterialType) 
+  {
+    if (location() == Location::ALL) { logERROR("location ALL can not be set to an element."); }
+};
 
-  MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
+  MaterialObject::Element::Element(const Element& original, double multiplier) : 
+    Element(original.materialType_, original.subdetectorName()) 
+  {
     if(original.componentName.state())
       componentName(original.componentName());   
     elementName(original.elementName());
@@ -332,6 +339,9 @@ namespace material {
     quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
     unit(original.unit());
     debugInactivate(original.debugInactivate());
+    if(original.destination.state())
+      destination(original.destination());
+    targetVolume(original.targetVolume());
   }
   
   MaterialObject::Element::~Element() { }
@@ -344,46 +354,44 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/) const {
+  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
     const Element* elementToDeploy = this;
-    bool valid = false;
-    if ((! onlyServices) || (onlyServices && (service() == true))) {
-      if((unit().compare("g") == 0) && (service() == true)) { 
-        logERROR(err_service1 + elementName() + err_service2);
-      } else {
-        valid = true;
-      }
-      // if (materialType_ == STATION) {
-      //   if(unit().compare("g") == 0) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == ROD) {
-      //   if((unit().compare("g") == 0) && (service() == true) { 
-      //     logERROR(err_service1 + elementName() + err_service2);
-      //   } else {
-      //     valid = true;
-      //   }
-      // } else if (materialType_ == MODULE) {
-      //   if (service() == true) {
-      //     valid = true;
-      //   }      
-      // }
-        
-      if(valid) {
-        for(const std::string& unitToDeploy : unitsToDeploy) {
-          if (unit().compare(unitToDeploy) == 0) {
-            if (((materialType_ == ROD) || (materialType_ == MODULE)) && (service()==true) && (unit().compare("mm") == 0)) {
-              logUniqueWARNING("Definition of services in \"mm\" is deprecated");
-            }
-            if (unit().compare("g") == 0) {
-              elementToDeploy = new Element(*this, gramsMultiplier);
-            }
-            outputObject.addElement(elementToDeploy);
-            break;
-          }
-        }
+    // (materialType_ == STATION)
+    // (materialType_ == ROD)
+    // (materialType_ == MODULE)
+
+    // KEY POINT.
+    // Only deploy materials to the section if:
+    // * no specific requestedLocation
+    // * there is a specific requestedLocation AND IT IS MATCHING THE MaterialObject::Element location.
+    if (requestedLocation == Location::ALL || 
+	(requestedLocation == location())
+	) {
+
+      if ( (!onlyServices) || (onlyServices && (service() == true))) {      
+     
+	for (const std::string& unitToDeploy : unitsToDeploy) {
+	  if (unit().compare(unitToDeploy) == 0) {
+
+	    if (service() == true && (unit().compare("g/m") != 0) ) {
+	      logERROR(any2str("Definition of services (") 
+		       + any2str(elementName())
+		       + any2str(") in ") 
+		       + any2str(unit())
+		       + any2str(" is not supported. Please use g/m !!")
+		       );
+	    }
+	    else {
+	      if (unit().compare("g") == 0) {
+		elementToDeploy = new Element(*this, gramsMultiplier);
+	      }
+
+	      outputObject.addElement(elementToDeploy);
+	      break;
+	    }
+	  }
+	}
+      
       }
     }
   }
@@ -413,7 +421,7 @@ namespace material {
      
   double MaterialObject::Element::quantityInUnit(const std::string desiredUnit, const double length, const double surface) const {
     double returnVal = 0;
-    double density = materialTab_.density(elementName());
+    double density = materialsTable_.getDensity(elementName());
     bool invert;
     Unit desiredUnitVal, elementUnitVal, tempUnit;
 
@@ -547,7 +555,8 @@ namespace material {
     if(debugInactivate() == false) {
       if(service() == false) {
         quantity = totalGrams(materialProperties);
-        materialProperties.addLocalMass(elementName(), componentName(), quantity);
+	if (subdetectorName() == "") std::cout << "canary: MaterialObject::Element::populateMaterialProperties subdetectorName() = " << subdetectorName() << std::endl;
+        materialProperties.addLocalMass(subdetectorName(), elementName(), componentName(), quantity);
       }
     }
   }

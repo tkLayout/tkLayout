@@ -180,7 +180,7 @@ namespace insur {
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
    * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
-   * The underlying cabling was designed for OT614, and will not work for any other layout.
+   * The underlying cabling was designed for OT616, and is not garanteed to work for any other layout (could/should require adaptations).
    */
   bool Squid::buildOuterCablingMap(const bool outerCablingOption) {
     startTaskClock("Building optical and power cabling map in the Outer Tracker.");
@@ -211,7 +211,7 @@ namespace insur {
    * Build an optical cabling map, which connects each module to a bundle, cable, DTC. 
    * Can actually be reused for power cables routing.
    * Please note that this is independant from any cable Material Budget consideration, which is done indepedently.
-   * The underlying cabling was designed for IT404, and will not work for any other layout.
+   * The underlying cabling was designed for IT613, and will not work for any other layout.
    */
   bool Squid::buildInnerCablingMap(const bool innerCablingOption) {
     startTaskClock("Building optical and power cabling map in the Inner Tracker.");
@@ -312,28 +312,28 @@ namespace insur {
       if (!is) is = new InactiveSurfaces();
       if (mb) delete mb;
       mb  = new MaterialBudget(*tr, *is);
-      if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
-      if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
-      if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-        if (verbose) mb->print();
+      //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
+      //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
+      //if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+      if (verbose) mb->print();
 
-        if (px) {
-	  if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-	    if (!pi) pi = new InactiveSurfaces();
-	    if (pm) delete pm;
-	    pm = new MaterialBudget(*px, *pi);
-	    if (verbose) pm->print();
-	  }
-        }
-        return true;
-      } else {
-        if (mb) delete mb;
-        mb = NULL;
-        if (pm) delete pm;
-        pm = NULL;
-        logERROR(err_init_failed);
-        return false;
+      if (px) {
+	//if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+	if (!pi) pi = new InactiveSurfaces();
+	if (pm) delete pm;
+	pm = new MaterialBudget(*px, *pi);
+	if (verbose) pm->print();
+	//}
       }
+      return true;
+      //} else {
+      //if (mb) delete mb;
+      // mb = NULL;
+      //if (pm) delete pm;
+      //pm = NULL;
+      //logERROR(err_init_failed);
+      //return false;
+      //}
     } else {
       logERROR(err_no_tracker);
       return false;
@@ -524,7 +524,7 @@ namespace insur {
    */
   bool Squid::reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName) {
     startTaskClock("Creating OT Cabling map report.");
-    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT614 only.");
+    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout is at your own risks (could require adaptations).");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
       v.outerCablingSummary(a, *tr, site);
@@ -540,11 +540,11 @@ namespace insur {
 
 
   /**
-   * Add the Outer Tracker optical cabling map to the website.
+   * Add the Inner Tracker optical cabling map to the website.
    */
   bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
     startTaskClock("Creating IT Cabling map report.");
-    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT404 only.");
+    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT613 only. Forcing it on another layout is at your own risks (could require adaptations).");
     if (px) {
       // CREATE REPORT ON WEBSITE.
       v.innerCablingSummary(pixelAnalyzer, *px, site);
@@ -709,16 +709,16 @@ namespace insur {
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportMaterialBudgetSite(bool debugServices) {
+  bool Squid::reportMaterialBudgetSite() {
     if (mb) {
       startTaskClock("Creating material budget report");
-      v.histogramSummary(a, *mb, debugServices, site, "outer");
+      v.histogramSummary(a, *mb, site, "outer");
       if (pm) {
-	v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
+	v.histogramSummary(pixelAnalyzer, *pm, site, "pixel");
 	v.totalMaterialSummary(a, pixelAnalyzer, site);
       }
-      v.weigthSummart(a, weightDistributionTracker, site, "outer");
-      if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
+      v.weigthSummary(a, *mb, weightDistributionTracker, site, "outer");
+      if (pm) v.weigthSummary(pixelAnalyzer, *pm, weightDistributionPixel, site, "pixel");
       stopTaskClock();
       return true;
     }

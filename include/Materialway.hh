@@ -97,6 +97,7 @@ namespace material {
     public:
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
+      Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Location& location);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
       Section(const Section& other);
       virtual ~Section() {};
@@ -113,6 +114,8 @@ namespace material {
       int maxZ() const;
       int maxR() const;
       int lenght() const;
+      const double getVolume() const;
+      const Location getLocation() const { return myLocation_; };
       Direction bearing() const;
       Section* nextSection() const;
       bool hasNextSection() const;
@@ -126,7 +129,8 @@ namespace material {
 
       bool debug_;
     private:
-      int minZ_, minR_, maxZ_, maxR_;   
+      int minZ_, minR_, maxZ_, maxR_;
+      Location myLocation_; // Location of the section: undefined, external to the layer / double-disk, or inside dee.
       Direction bearing_;
       Section* nextSection_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
@@ -170,7 +174,7 @@ namespace material {
     public:
       Boundary();
       //Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR);
-      Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR);
+      Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices = false, int cShapeMinZ = std::numeric_limits<int>::max());
       virtual ~Boundary();
 
       int isHit(int z, int r, Direction aDirection) const;
@@ -184,6 +188,8 @@ namespace material {
       int minR() const;
       int maxZ() const;
       int maxR() const;
+      const bool hasCShapeOutgoingServices() const { return hasCShapeOutgoingServices_; }
+      const int cShapeMinZ() const { return cShapeMinZ_; }
       Section* outgoingSection();
       const bool isBarrel() const { return isBarrel_; }
 
@@ -195,6 +201,8 @@ namespace material {
       const Visitable* containedElement_;
       const bool isBarrel_;
       int minZ_, maxZ_, minR_, maxR_;
+      bool hasCShapeOutgoingServices_;
+      int cShapeMinZ_;
       Section* outgoingSection_;
     }; //class Boundary
 
@@ -202,7 +210,7 @@ namespace material {
     typedef std::map<const Endcap*, Boundary*> EndcapBoundaryMap;
 
     struct BoundaryComparator {
-      bool operator()(Boundary* const& one, Boundary* const& two) {
+      bool operator()(Boundary* const& one, Boundary* const& two) const {
         //return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
         return ((one->maxZ() + one->maxR()) > (two->maxZ() + two->maxR()));
       }
@@ -226,9 +234,11 @@ namespace material {
       BoundariesSet& boundariesList_;
 
       Direction buildDirection(const int& startZ, const int& startR, const bool& hasStepInEndcapsOuterRadius, const int& numBarrels);
+      void routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ);
       bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction);
       bool findSectionCollision(std::pair<int,Section*>& sectionCollision, int startZ, int startR, int end, Direction direction);
-      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction);
+      bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, 
+			bool isTowardsBiggerZ = true, bool isTowardsBiggerR = true);
       bool buildSectionPair(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int collision, int border, Direction direction);
       Section* splitSection(Section* section, int collision, Direction direction);
       Direction inverseDirection(Direction direction) const;
@@ -292,7 +302,6 @@ namespace material {
     static const int boundaryPaddingBarrel;
     static const int boundaryPaddingEndcaps;
     static const int boundaryPrincipalPaddingBarrel;
-    static const int boundaryPrincipalPaddingEndcaps;
     static const int globalMaxZPadding;
     static const int globalMaxRPadding;
     static const int layerSectionMargin;
@@ -300,6 +309,7 @@ namespace material {
     static const int layerSectionRightMargin;
     static const int diskSectionUpMargin;
     static const int sectionTolerance;
+    static const int cShapeMinZTolerance;
     static const int layerStationLenght;
     static const int layerStationWidth;
     static const double radialDistribError;

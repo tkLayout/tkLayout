@@ -29,7 +29,7 @@ Materials rodPtPS {
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Twisted pairs"
+    componentName "Cabling: Pipe thermistor twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain
@@ -54,10 +54,10 @@ Materials rodPtPS {
 
 
 
- // Support Mechanics
+ // Supports Mechanics
   //Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics: flat TBPS ladder"
     service false
     scaleOnSensor 0
     Element {

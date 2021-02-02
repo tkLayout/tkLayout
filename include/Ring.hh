@@ -154,7 +154,12 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   Property<double, Default> ringGap;
   Property<int   , Default> smallParity;
 
+  bool isSmallerAbsZRingInDisk_;
+  bool isRingOn4Dees_;
+
   double minRadius_, maxRadius_;
+
+  std::string subdetectorName_;
 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
@@ -186,8 +191,8 @@ public:
 
   int nModules() const { return modules_.size(); }
  
-  Ring() :
-      materialObject_(MaterialObject::ROD),
+  Ring(const std::string subdetectorName) :
+    materialObject_(MaterialObject::ROD, subdetectorName),
       moduleShape           ("moduleShape"           , parsedAndChecked()),
       phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
@@ -196,6 +201,7 @@ public:
       alignEdges            ("alignEdges"            , parsedOnly(), true),
       ringGap               ("ringGap"               , parsedOnly(), 0.),
       smallParity           ("smallParity"           , parsedOnly(), 1),
+      subdetectorName_      (subdetectorName),
       smallDelta            ("smallDelta"            , parsedAndChecked()),
       zError                ("zError"                , parsedAndChecked()),
       rSafetyMargin         ("rSafetyMargin"         , parsedOnly(), 0.),
@@ -227,6 +233,8 @@ public:
   void build();
   void check() override;
 
+  const std::string subdetectorName() const { return subdetectorName_; }
+
   void translateZ(double z);
   void rotateToNegativeZSide();
   double averageZ() const {
@@ -234,6 +242,11 @@ public:
     for (const auto& m : modules_) { averageZ = averageZ + m.center().Z(); } 
     averageZ /= numModules(); return averageZ;
   }
+
+  void setIsSmallerAbsZRingInDisk(const bool isSmallerAbsZRingInDisk) { isSmallerAbsZRingInDisk_ = isSmallerAbsZRingInDisk; }
+  const bool isSmallerAbsZRingInDisk() const { return isSmallerAbsZRingInDisk_; }
+  void setIsRingOn4Dees(const bool isRingOn4Dees) { isRingOn4Dees_ = isRingOn4Dees; }
+  const bool isRingOn4Dees() const { return isRingOn4Dees_; }
 
   void cutAtEta(double eta);
 

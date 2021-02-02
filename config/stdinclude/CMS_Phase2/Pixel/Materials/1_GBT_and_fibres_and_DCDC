@@ -1,0 +1,95 @@
+//Powering of each GBT with a reduced version of the DCDC converter, no more 1DCDC:6GBT 
+//numbers estimated for a smaller DCDC alim carrying less current
+//ant the outer tracker SEH keeping 75% size 
+
+//Component {
+  //componentName "GBT"
+  Element {
+//quantity is OT version 1.146(*75%)
+    componentName "Cabling: GBT + DCDC converter"
+    service false
+    elementName CFRP
+    quantity 0.8595  
+    unit g
+  }
+  Element {
+//SEH glue, quantity is OT version 0.089(*75%)
+    componentName "Cabling: GBT + DCDC converter"
+    service false
+    elementName Epoxy
+    quantity 0.06675  
+    unit g
+  }
+  Element {
+//SEH copper, quantity is OT version 2.379(*50%)
+    componentName "Cabling: GBT + DCDC converter"
+    service false
+    elementName Cu
+    quantity 1.435
+    unit g
+  }
+  Element {
+//SEH board and components, OT number is 5.743
+    componentName "Cabling: GBT + DCDC converter"
+    service false
+    elementName 2S-SEH-mix
+    quantity 4.391
+    unit g
+  }
+//}
+    
+
+// 2 Optical fibers
+//Component {
+  Element {
+    componentName "Cabling: Optical fibers"
+    service true
+    elementName PE
+    quantity 1.139
+    unit g/m 
+  }
+  Element {
+    componentName "Cabling: Optical fibers"
+    service true
+    elementName Glass
+    quantity 0.06
+    unit g/m
+  }
+  Element {
+    componentName "Cabling: Optical fibers"
+    service true
+    elementName Acrylate
+    quantity 0.07
+    unit g/m
+  }
+//}
+
+
+// Power for the converter (10V)
+// PP0-SEH-LV (700067232 Rev 01)
+// 1 pair of Al/Cu 0.09/0.10
+//Component {
+  Element {
+    componentName "Cabling: DCDC converter power wires"
+    service true
+    elementName Cu
+    quantity 0.16
+    unit g/m
+  }
+  // Two wires/1
+  Element {
+    componentName "Cabling: DCDC converter power wires"
+    service true
+    elementName PE
+    quantity 0.88
+    unit g/m
+  }
+  // Two wires/1 0.1 mm^2
+  Element {
+    componentName "Cabling: DCDC converter power wires"
+    service true
+    elementName Al
+    quantity 0.46
+    unit g/m
+  }
+//}

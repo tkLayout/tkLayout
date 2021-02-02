@@ -1,0 +1,38 @@
+// TBPX second-conversion stations (service cylinder)
+// twisted pairs -> GBT
+
+// maxZ from Yadira 2018/11/13
+// conversion station length: 43 mm
+// distance between conversion stations: 3 mm
+
+Station {
+  stationName BPIX1
+  type second
+  minZ 467.99
+  maxZ 510.99
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+
+Station {
+  stationName BPIX2
+  type second
+  minZ 584.61
+  maxZ 627.61
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+
+Station {
+  stationName BPIX3
+  type second
+  minZ 630.61
+  maxZ 673.61
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+
+Station {
+  stationName BPIX4
+  type second
+  minZ 728.08
+  maxZ 771.08
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}

@@ -1,0 +1,16 @@
+// TEXP Ring5: module with 4 chips
+// 6 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TEPX_R5
+      quantity 2.652               // = 6 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC        // = 1 GBT
+  }
+}

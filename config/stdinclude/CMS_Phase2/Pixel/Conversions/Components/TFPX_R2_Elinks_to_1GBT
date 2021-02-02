@@ -1,0 +1,16 @@
+// TFPX Ring2: module with 2 chips
+// ~2.67 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TFPX_R2
+      quantity 1.77021             // = 2.67 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC        // = 1 GBT
+  }
+}

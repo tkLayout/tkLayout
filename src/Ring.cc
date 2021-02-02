@@ -87,7 +87,14 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
     mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
-    mod->flipped(parity != 1);
+    mod->setIsSmallerAbsZModuleInRing(parity < 0);
+    const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) // Case where ring modules are placed on both sides of a same dee.
+			                                    // Half of the ring modules are flipped: 
+			                                    // the ones placed with parity < 0, hence on the small |Z| side.
+			    : isSmallerAbsZRingInDisk()); // Case where ring modules are placed on 4 dees.
+                                                          // If the ring is on the small |Z| side with respect to the disk:
+                                                          // all ring modules are flipped.
+    mod->flipped(isFlipped);
     modules_.push_back(mod);  
   }
 }
@@ -123,7 +130,7 @@ void Ring::buildBottomUp() {
     wmod->build();
 
     modLength = wmod->length();
-    emod = GeometryFactory::make<EndcapModule>(wmod);
+    emod = GeometryFactory::make<EndcapModule>(wmod, subdetectorName());
 
   } else {
 
@@ -136,11 +143,12 @@ void Ring::buildBottomUp() {
 
     modLength = rmod->length();
 
-    emod = GeometryFactory::make<EndcapModule>(rmod); 
+    emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName()); 
 
   }
 
   emod->store(propertyTree());
+  //emod->subdetectorName(subdetectorName());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
 
@@ -172,7 +180,7 @@ void Ring::buildTopDown() {
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
-  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod);
+  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
   emod->store(propertyTree());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
@@ -190,6 +198,7 @@ void Ring::buildTopDown() {
 
 void Ring::build() {
   materialObject_.store(propertyTree());
+  //std::cout << "Ring::build()  : materialObject_.subdetectorName() = " << materialObject_.subdetectorName() << std::endl;
   materialObject_.build();
 
   if(materialObject_.isPopulated()) {

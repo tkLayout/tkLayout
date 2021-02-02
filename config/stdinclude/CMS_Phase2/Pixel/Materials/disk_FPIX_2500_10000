@@ -1,51 +1,63 @@
-// Pixel endcap disks material
-// Small disks (108 modules)
+// TFPX double-disk materials.
+// Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 // 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
 Materials FPIX_disk_2500_10000 {
   type layer
 
-  // Cooling for the module
-  // Average on disk
+
+  // Modules Cooling.
+  // Material LOCAL to the dees.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
   Component {
-    componentName Cooling
+    componentName "Cooling: Pipes & Coolant (on dees)"
     service false
     scaleOnSensor 0
     Element {
-      elementName Ti
-      quantity 10.21
+      elementName StainlessSteel
+      quantity 29.6                   // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a disk volume!
       unit g
     }
     Element {
       elementName CO2
-      quantity 9.69
+      quantity 17.6
       unit g
     }
   }
-  // fake numbers for calculating conversion with a factor of 1000
-  // 8 pipes per disk
+  
+  
+  // Modules Cooling.
+  // 8 pipes (inlet or outlets) ROUTED: 2 for each dee.
+  // ID = 2.0 mm, OD = 2.2 mm, double-pass design.
+  // NB: evth 'divided by 1000', so that the value routed along the dee is negligible (x 1000 conversion at the edge of the dee).
   Component {
-    componentName "Cooling"
+    componentName "Cooling: Pipes & Coolant (routed)"
     service true
     scaleOnSensor 0
     Element {
-      elementName FPIX_Ti
-      quantity 0.0266
+      elementName StainlessSteel_fake1000factor
+      quantity 0.0423                 // = 8.02 g/cm^3 (SS density) /1000 (to g/mm^3) * 0.66 mm^2 (SS cross-section) * 1000 (to g/m) * 8 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
     Element {
-      elementName FPIX_CO2
-      quantity 0.026
+      elementName CO2_fake1000factor
+      quantity 0.025                  // = 1.0 g/cm^3 (CO2 density) /1000 (to g/mm^3) * 3.14 mm^2 (SS cross-section) * 1000 (to g/m) * 8 (# pipes) / 1000 (fake factor)
+                                      // Source: [IT_COOLING_2019_04_16]
+                                      // APPROXIMATION: uniform mass distribution in a cylinder!
       unit g/m
     }
   }
+
 
   // Power for the module
   // Average on disk
   // 16 power chains per disk
   // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains (on dees)"
     service false
     scaleOnSensor 0
     Element {
@@ -64,11 +76,13 @@ Materials FPIX_disk_2500_10000 {
       unit g
     }
   }
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk
   // 75% of the amount in disk_FPIX : 50% reduction in 2 rings out of 4 (hence reduction is 0.5*0.5 = 0.25)
   Component {
-    componentName "Power wires"
+    componentName "Cabling: Serial power chains (routed)"
     service true
     scaleOnSensor 0
     Element {
@@ -88,10 +102,11 @@ Materials FPIX_disk_2500_10000 {
     }
   }
 
+
   // HV power lines
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "Sensor HV line"
+    componentName "Cabling: High voltage lines (on dees)"
     service false
     scaleOnSensor 0
     Element {
@@ -110,10 +125,12 @@ Materials FPIX_disk_2500_10000 {
       unit g
     }
   }
+  
+  
   // fake numbers for calculating conversion with a factor of 1000
   // 16 power chains per disk, 2 HV lines per power chain
   Component {
-    componentName "Sensor HV line"
+    componentName "Cabling: High voltage lines (routed)"
     service true
     scaleOnSensor 0
     Element {
@@ -133,21 +150,47 @@ Materials FPIX_disk_2500_10000 {
     }
   }
 
-  // Support Mechanics
-  //Mechanics
+  
+  // Supports Mechanics: Carbon foam panel
   Component {
-    componentName "Disk support mechanics"
+    componentName "Supports Mechanics: Dee Carbon foam panel"
     service false
     scaleOnSensor 0
+ 
     Element {
-      elementName CF
-      quantity 0.4
-      unit mm
-    }
-    Element {
-      elementName Airex
-      quantity 4
-      unit mm
-    }
+      elementName Carbon_foam_FPX
+      quantity 166.704      // = 42.83 g (odd dee) * 2 (odd disk) + 40.522 g (even dee) * 2 (even disk).
+                            // Each dee has 2 panels (each panel weights ~21 g).
+                            // Source: [TFPX_2019_03_19_YP].                           
+      unit g                // APPROXIMATION: mass spread across a uniform disk cylinder.
+                            // Equivalent tkLayout thickness is ~2.15 mm per panel (uniform disk with no hole).
+                            // Hence 4 * 2.15 ~ 8.6 mm thickness through double dee.
+                            
+                            // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+                            // Directly specifying mass amount is much cleaner approach!
+    }   
   }
+  
+    
+  // Supports Mechanics: CFRP panel
+  Component {
+    componentName "Supports Mechanics: Dee CFRP panel"
+    service false
+    scaleOnSensor 0
+ 
+    Element {
+      elementName CFRP_FPX
+      quantity 194.112      // = 49.49 g (odd dee) * 2 (odd disk) + 47.566 g (even dee) * 2 (even disk).
+                            // Each dee has 2 panels (each panel weights ~24 g).
+                            // Source: [TFPX_2019_03_19_YP].                           
+      unit g                // APPROXIMATION: mass spread across a uniform disk cylinder.
+                            // Equivalent thickness is ~0.28 mm per panel (uniform disk with no hole).
+                            // Hence 4 * 0.28 ~ 1.12 mm thickness through double dee.
+      
+                            // Warning: cannot really think in terms of thickness, as disk surface as assumed by tkLayout is not accurate (slightly smaller).
+                            // Directly specifying mass amount is much cleaner approach!
+    }   
+  }
+  
 }
+

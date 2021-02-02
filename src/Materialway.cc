@@ -51,17 +51,19 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR, bool hasCShapeOutgoingServices, int cShapeMinZ) :
       containedElement_(containedElement),
       isBarrel_(isBarrel),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
       maxR_(maxR),
+      hasCShapeOutgoingServices_(hasCShapeOutgoingServices),
+      cShapeMinZ_(cShapeMinZ),
       outgoingSection_(nullptr) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, true, 0, 0, 0, 0){}
+    Boundary(nullptr, true, 0, 0, 0, 0, false, std::numeric_limits<int>::max()){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -119,10 +121,12 @@ namespace material {
     minR_(minR),
     maxZ_(maxZ),
     maxR_(maxR),
+    myLocation_(Location::EXTERNAL),
     bearing_(bearing),
     nextSection_(nextSection),
     inactiveElement_(nullptr), 
-    materialObject_ (MaterialObject::SERVICE) {}
+    materialObject_ (MaterialObject::SERVICE, "") 
+  {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
     Section(minZ,
@@ -131,7 +135,20 @@ namespace material {
             maxR,
             bearing,
             nextSection,
-            false) {}
+            false) 
+  {}
+
+  Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, const Location& location) :
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nextSection,
+            false) 
+  {
+    myLocation_ = location;
+  }
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
     Section(minZ,
@@ -139,7 +156,8 @@ namespace material {
             maxZ,
             maxR,
             bearing,
-            nullptr) {}
+            nullptr) 
+  {}
 
   Materialway::Section::Section(const Section& other) :
     debug_(other.debug_),
@@ -240,6 +258,14 @@ namespace material {
       return maxR() - minR();
     }
   }
+  // NB: Very bad idea to have lengths in integers (even if all lengths are multiplied by 1000, ie precision is 1 um).
+  // Do what we can with present codebase...
+  const double Materialway::Section::getVolume() const {
+    const double crossSection =  M_PI * (pow((double)maxR(), 2.) - pow((double)minR(), 2.));
+    const double zLength = (double)maxZ() - (double)minZ();
+    const double volume = crossSection * zLength;
+    return volume;
+  }
   Materialway::Direction Materialway::Section::bearing() const {
     return bearing_;
   }
@@ -281,7 +307,7 @@ namespace material {
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection) :
       Section(minZ, minR, maxZ, maxR, bearing, nextSection),
       conversionStation_ (conversionStation),
-      outgoingMaterialObject_ (MaterialObject::SERVICE) {}
+      outgoingMaterialObject_ (MaterialObject::SERVICE, "") {}
 
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation) :
       Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}
@@ -317,6 +343,7 @@ namespace material {
   void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
     Direction direction;
+    bool wasRoutedAlongCShape = false;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -329,7 +356,15 @@ namespace material {
       // compute direction along which external sections will be built
       direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
 
-      // Look for a possible colision between the services to be routed and all boundaries
+      // If requested, build the 'C-shape' outgoing services.
+      // Example: this is used on the outgoing services over TBPX.
+      // The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
+      if (boundary->hasCShapeOutgoingServices() && !wasRoutedAlongCShape) {
+	routeOutgoingServicesAlongCShape(firstSection, lastSection, startR, direction, startZ, boundary->cShapeMinZ());	
+	wasRoutedAlongCShape = true;
+      }
+ 
+      // Look for a possible collision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
 
       // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
@@ -370,6 +405,42 @@ namespace material {
     }
     else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
     return direction;
+  }
+
+
+  /**
+   * This is used to build the 'C-shape' outgoing services.
+   * Example: this is used on the outgoing services out of TBPX.
+   * The services leave from barrel's (maxZ, MaxR). They go horizontally towards Z = cShapeMinZ, then back horizontally towards bigger |Z|.
+   */
+  void Materialway::OuterUsher::routeOutgoingServicesAlongCShape(Section*& firstSection, Section*& lastSection, int& startR, const Direction direction, int startZ, int cShapeMinZ) {
+    if (direction == VERTICAL) {
+      logERROR("Route outgoing services along C-shape: supported on horizontal direction only. Otherwise, it's a U-shape!");
+    }
+
+    // HORIZONTAL DIRECTION ONLY
+    else {
+      // FIRST, GO TOWARDS SMALLER |Z|.
+      // Z: startZ -> cShapeMinZ
+      const bool isTowardsBiggerZ = false;
+      int towardsSmallerZCablingMinR = startR + safetySpace;
+      bool noCollision = buildSection(firstSection, lastSection, startZ, towardsSmallerZCablingMinR, cShapeMinZ, direction, isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
+
+      // THEN, GO BACK TOWARDS BIGGER |Z|.
+      // Z: cShapeMinZ -> startZ
+      int towardsBiggerZCablingMinR = towardsSmallerZCablingMinR + sectionWidth + layerStationLenght + safetySpace;
+      noCollision = buildSection(firstSection, lastSection, cShapeMinZ, towardsBiggerZCablingMinR, startZ, direction, !isTowardsBiggerZ);
+      if (!noCollision) logERROR("Found a collision, which is not supported.");
+      
+
+      startR += sectionWidth + safetySpace;
+
+      // firstSection has been updated and now points to the Section which is the 'towards smaller |Z|' branch of the C.
+      // lastSection has been updated and now points to the Section which is the 'towards bigger |Z|' branch of the C.
+      // startR is updated, so that the services will leave at a reasonable radius.
+      // startZ is not updated.
+    }
   }
 
 
@@ -458,9 +529,12 @@ namespace material {
    * @param startR is a reference to the rho start coordinate
    * @param end is a reference to the end coordinate (Z if horizontal, rho if vertical)
    * @param direction is the direction
+   * @param isTowardsBiggerZ
+   * @param isTowardsBiggerR  NB: !isTowardsBiggerR not used at all so far, added for flexibility purposes!
    * @return true if no section collision found, false otherwise
    */
-  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction) {
+  bool Materialway::OuterUsher::buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction, 
+					     bool isTowardsBiggerZ, bool isTowardsBiggerR) {
     int minZ, minR, maxZ, maxR;
     int trueEnd = end;
     int cutCoordinate;
@@ -471,7 +545,11 @@ namespace material {
     int N_subsections;
 
     //search for collisions
-    foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    // Dont handle this if goes towards smaller |Z|, or smaller R. 
+    // These are corner cases which are rare and handled independently (routeOutgoingServicesAlongCShape, or routeOutgoingServicesAlongUShape).
+    if (isTowardsBiggerZ && isTowardsBiggerR) {
+      foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
+    }
 
     //if section collision found update the end
     if(foundSectionCollision) {
@@ -480,20 +558,40 @@ namespace material {
     }
 
     //set coordinates
+    // HORIZONTAL DIRECTION
     if (direction == HORIZONTAL) {
-      minZ = startZ;
+      // TOWARDS BIGGER |Z|
+      if (isTowardsBiggerZ) {
+	minZ = startZ;      
+	maxZ = trueEnd;
+	startZ = trueEnd + safetySpace;
+      }
+      // TOWARDS SMALLER |Z|
+      else {
+	minZ = trueEnd;      
+	maxZ = startZ;
+	// Do not silently update startZ. Here we will just create a section with the desired coordinates.
+      }
       minR = startR;
-      maxZ = trueEnd;
-      maxR = startR + sectionWidth;
+      maxR = startR + sectionWidth;    
+    } 
 
-      startZ = trueEnd + safetySpace;
-    } else {
-      minZ = startZ;
-      minR = startR;
-      maxZ = startZ + sectionWidth;
-      maxR = trueEnd;
-
-      startR = trueEnd + safetySpace;
+    // VERTICAL DIRECTION
+    else {
+      // TOWARDS BIGGER R
+      if (isTowardsBiggerR) {
+	minR = startR;
+	maxR = trueEnd;
+	startR = trueEnd + safetySpace;
+      }
+      // TOWARDS SMALLER R
+      else {
+	minR = trueEnd;
+	maxR = startR;
+	// Do not silently update startR. Here we will just create a section with the desired coordinates.
+      }
+      minZ = startZ;    
+      maxZ = startZ + sectionWidth;   
     }
 
     //build section and update last section's nextSection pointer
@@ -629,7 +727,10 @@ namespace material {
         diskRodSections_(diskRodSections) {}
   Materialway::InnerUsher::~InnerUsher() {}
 
+
   void Materialway::InnerUsher::go(Tracker& tracker) {
+
+
     //Visitor for the barrel layers
     class MultipleVisitor : public GeometryVisitor {
     public:
@@ -656,9 +757,11 @@ namespace material {
         startEndcap(nullptr),
         startDisk(nullptr),
         currLayer_(nullptr),
-        currDisk_(nullptr) {}
+        currDisk_(nullptr),
+	hasCShapeOutgoingServices_(false) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
+
 
       //For the barrels ----------------------------------------------------
       void visit(Barrel& barrel) {
@@ -671,7 +774,10 @@ namespace material {
         int maxR = boundary->maxR() - safetySpace;
 
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection());
+
+	hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
       }
+
 
       void visit(Layer& layer) {
         ConversionStation* flangeConversionStation = layer.flangeConversionStation();
@@ -696,116 +802,51 @@ namespace material {
         section = startBarrel;
         attachPoint = discretize(layer.maxRwithHybrids()) + layerSectionMargin;        //discretize(layer.minRwithHybrids());
 
-        while(section->maxR() < attachPoint + sectionTolerance) {
-          if(!section->hasNextSection()) {
-            logERROR("Error in finding attach point during construction of services");
-            return;
-          }
-          section = section->nextSection();
-        }
+	
+	while(section->maxR() < attachPoint + sectionTolerance) {
+	  if(!section->hasNextSection()) {
+	    logERROR("Error in finding attach point during construction of services");
+	    return;
+	  }
+	  section = section->nextSection();
+	}
 
-        if (section->minR() < attachPoint - sectionTolerance) {
-          section = splitSection(section, attachPoint);
-        }
+	if (section->minR() < attachPoint - sectionTolerance) {
+	  section = splitSection(section, attachPoint);
+	}
 
-        //built main sections above the layer
+	//built main sections above the layer
 
-        sectionMinZ = safetySpace;
-        sectionMinR = attachPoint;
-        //sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
-        sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
-        sectionMaxR = sectionMinR + sectionWidth;
+	sectionMinZ = safetySpace;
+	sectionMinR = attachPoint;
+	//sectionMaxZ = discretize(layer.maxZwithHybrids()) + layerSectionRightMargin;
+	sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+	sectionMaxR = sectionMinR + sectionWidth;
 
-        stationMinZ = sectionMaxZ + safetySpace;
-        stationMinR = sectionMinR - (layerStationWidth / 2);
-        stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-        stationMaxR = sectionMinR + (layerStationWidth / 2);
+	stationMinZ = sectionMaxZ + safetySpace;
+	stationMinR = sectionMinR - (layerStationWidth / 2);
+	stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+	stationMaxR = sectionMinR + (layerStationWidth / 2);
 
-        if(flangeConversionStation != nullptr) {
-          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
-          sectionsList_.push_back(station);
-          stationListFirst_.push_back(station);
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
-          layerRodSections_[currLayer_].setStation(station);
-        } else {
-          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
-          layerRodSections_[currLayer_].setStation(section);
-          logERROR("Flange conversion not defined, bypassed.");
-        }
-        sectionsList_.push_back(startLayer);
-        layerRodSections_[currLayer_].addSection(startLayer);
+	if(flangeConversionStation != nullptr) {
+	  station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *flangeConversionStation, section); //TODO: check if is ok VERTICAL
+	  sectionsList_.push_back(station);
+	  stationListFirst_.push_back(station);
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
+	  layerRodSections_[currLayer_].setStation(station);
+	} else {
+	  startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
+	  layerRodSections_[currLayer_].setStation(section);
+	  logERROR("Flange conversion not defined, bypassed.");
+	}
+	sectionsList_.push_back(startLayer);
+	layerRodSections_[currLayer_].addSection(startLayer);
+
         
-        
-
         //==========second level conversion station
-
-        //find attach point
-        for(ConversionStation* secondConversionStation : secondConversionStations) {
-          bool validConversion = true;
-          
-          if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
-            continue;
-          }
-          
-          //check if the station is already built
-          for (auto& existentStation : stationListSecond_) {
-            if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-              validConversion = false;
-              break;
-            }
-          }
-
-          if (validConversion) {
-
-            attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
-         
-            while(section->maxZ() < attachPoint + sectionTolerance) {
-              if(!section->hasNextSection()) {
-                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
-                return;
-              }
-              section = section->nextSection();
-            }
-
-            if (section->minZ() < attachPoint - sectionTolerance) {
-              splitSection(section, attachPoint);
-            }
-
-            stationMinZ = discretize(secondConversionStation->minZ_());
-            stationMinR = section->maxR() + safetySpace;
-            stationMaxZ = discretize(secondConversionStation->maxZ_());
-            stationMaxR = stationMinR + layerStationLenght;
-
-            if(section->hasNextSection()) {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
-            } else {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
-            }
-
-            section->nextSection(station);
-
-            sectionsList_.push_back(station);
-            stationListSecond_.push_back(station);
-          }
-        }
-
-        /*
-        //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
-        sectionMinZ = - section->minZ() + safetySpace + layerStationLenght;
-        sectionMaxZ = 0 - safetySpace;
-
-        stationMinZ = sectionMinZ - safetySpace - layerStationLenght;
-        stationMaxZ = sectionMinZ - safetySpace;
-
-        station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL); //TODO: check if is ok VERTICAL
-        sectionsList_.push_back(station);
-        startLayerZMinus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
-        sectionsList_.push_back(startLayerZMinus);
-        */
-
-        //TODO:aggiungi riferimento della rod a startZ...
+	buildSecondConversionStations(section, secondConversionStations);
       }
+
 
       void visit(BarrelModule& module) {
         Section* section;
@@ -851,6 +892,7 @@ namespace material {
         */
       }
 
+
       //For the endcaps ----------------------------------------------------
       void visit(Endcap& endcap) {
         if (endcap.minZwithHybrids() >= 0) {
@@ -863,11 +905,11 @@ namespace material {
           int maxZ = boundary->maxZ() - safetySpace;
           int maxR = minR + sectionWidth;
           startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection());
+
+	  hasCShapeOutgoingServices_ = boundary->hasCShapeOutgoingServices();
         }
-        //else {
-          //currEndcapPosition = NEGATIVE;
-        //}
       }
+
 
       void visit(Disk& disk) {
         Section* section = nullptr;
@@ -897,89 +939,71 @@ namespace material {
 
           //built two main sections above the layer
 
+	  // EXTERNAL SECTION ON THE RIGHT OF THE DISK
           int sectionMinZ = attachPoint;
           int sectionMinR = discretize(disk.minRwithHybrids());
           int sectionMaxZ = sectionMinZ + sectionWidth;
           //int sectionMaxR = discretize(disk.maxRwithHybrids()) + diskSectionUpMargin;
           int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
 
+	  // DEE VOLUMES (1 disk = 2 dees)
+	  // TO DO: move this to tuneable disk properties.
+	  const int deeZThickness = sectionWidth;
+	  const int deeRadialDistanceToEdge = discretize(0.); // = 2 mm
+
+	  // small |Z| disk
+	  const int smallAbsZDiskMinZ = discretize(disk.smallAbsZDeeCenterZ()) - deeZThickness / 2.;
+	  const int smallAbsZDiskMaxZ = discretize(disk.smallAbsZDeeCenterZ()) + deeZThickness / 2.;
+          const int smallAbsZDiskMinR = discretize(disk.minRwithHybrids()) - deeRadialDistanceToEdge;
+	  const int smallAbsZDiskMaxR = discretize(disk.maxRwithHybrids()) + deeRadialDistanceToEdge;
+
+	  // big |Z| disk
+	  const int bigAbsZDiskMinZ = discretize(disk.bigAbsZDeeCenterZ()) - deeZThickness / 2.;
+	  const int bigAbsZDiskMaxZ = discretize(disk.bigAbsZDeeCenterZ()) + deeZThickness / 2.;
+          const int bigAbsZDiskMinR = smallAbsZDiskMinR;
+	  const int bigAbsZDiskMaxR = smallAbsZDiskMaxR;
+
+
+	  // FLANGE STATION OVER THE DISK
           int stationMinZ = sectionMinZ - (layerStationWidth / 2);
           int stationMinR = sectionMaxR + safetySpace;
           int stationMaxZ = sectionMinZ + (layerStationWidth / 2);
           int stationMaxR = sectionMaxR + safetySpace + layerStationLenght;
 
+	  Section* smallAbsZDisk = nullptr;
+	  Section* bigAbsZDisk = nullptr;
           if(flangeConversionStation != nullptr) {
             station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *flangeConversionStation, section);
             sectionsList_.push_back(station);
             stationListFirst_.push_back(station);
-            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
             diskRodSections_[currDisk_].setStation(station);
-          } else {
-            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section);
-            //startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL);
+
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station, Location::EXTERNAL);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, station, Location::DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, station, Location::DEE);
+          } 
+	  else {         
             diskRodSections_[currDisk_].setStation(section);
+
+	    startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section, Location::EXTERNAL);
+	    smallAbsZDisk = new Section(smallAbsZDiskMinZ, smallAbsZDiskMinR, smallAbsZDiskMaxZ, smallAbsZDiskMaxR, VERTICAL, section, Location::DEE);
+	    bigAbsZDisk = new Section(bigAbsZDiskMinZ, bigAbsZDiskMinR, bigAbsZDiskMaxZ, bigAbsZDiskMaxR, VERTICAL, section, Location::DEE);
           }
+
           sectionsList_.push_back(startDisk);
+	  sectionsList_.push_back(smallAbsZDisk);
+	  sectionsList_.push_back(bigAbsZDisk);
+
           diskRodSections_[currDisk_].addSection(startDisk);
-
-          //TODO:aggiungi riferimento della rod a startZ...
-
+	  diskRodSections_[currDisk_].addSection(smallAbsZDisk);
+	  diskRodSections_[currDisk_].addSection(bigAbsZDisk);
         
 
-        //==========second level conversion station
-
-          //find attach point
-          for(ConversionStation* secondConversionStation : secondConversionStations) {
-            bool validConversion = true;
-          
-            if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position ("+to_string(section->minZ())+"), Z too low (Z="+to_string(discretize(secondConversionStation->maxZ_())) + ").");
-              continue;
-            }
-
-            //check if the station is already built
-            for (auto& existentStation : stationListSecond_) {
-              if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-                validConversion = false;
-                break;
-              }
-            }
-
-            if (validConversion) {
-
-              attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
-         
-              while(section->maxZ() < attachPoint + sectionTolerance) {
-                if(!section->hasNextSection()) {
-                  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high");
-                  return;
-                }
-                section = section->nextSection();
-              }
-
-              if (section->minZ() < attachPoint - sectionTolerance) {
-                splitSection(section, attachPoint);
-              }
-
-              stationMinZ = discretize(secondConversionStation->minZ_());
-              stationMinR = section->maxR() + safetySpace;
-              stationMaxZ = discretize(secondConversionStation->maxZ_());
-              stationMaxR = stationMinR + layerStationLenght;
-
-              if(section->hasNextSection()) {
-                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
-              } else {
-                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
-              }
-
-              section->nextSection(station);
-
-              sectionsList_.push_back(station);
-              stationListSecond_.push_back(station);
-            }
-          }
+	  //==========second level conversion station
+	  buildSecondConversionStations(section, secondConversionStations);
         }
       }
+
 
       void visit(EndcapModule& module) {
         //if(currEndcapPosition == POSITIVE) {
@@ -1005,7 +1029,188 @@ namespace material {
         }
       }
 
+
     private:
+      /*
+       * This is used to build the conversion stations volumes + make the succession of sections and stations correctly point to each other.
+       */
+      void buildSecondConversionStations(Section* section, const std::vector<ConversionStation*>& secondConversionStations) {
+
+	// Loop on all cfg conversion stations
+        for(ConversionStation* stationFromCfg : secondConversionStations) {
+          bool isStationAlreadyBuilt = false;
+          
+          // Check whether the station is already built
+          for (auto& existentStation : stationListSecond_) {
+            if (existentStation->conversionStation().stationName_().compare(stationFromCfg->stationName_()) == 0) {
+              isStationAlreadyBuilt = true;
+              break;
+            }
+          }
+
+
+	  // Only do sth if conversion station does not exist yet.
+          if (!isStationAlreadyBuilt) {   
+
+	    // STANDARD CASE: THERE IS NO C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // STATIONS ARE BUILT TOWARDS BIGGER |Z|.
+	    if (!hasCShapeOutgoingServices_) {
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards bigger |Z|.
+	      if (discretize(stationFromCfg->maxZ_()) < section->minZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards bigger |Z|. ")
+			 + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			 + any2str(" and station maxZ = ") + any2str(stationFromCfg->maxZ_()) + any2str(" mm.")
+			 );
+		continue;
+	      }
+
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
+        
+	      // If we are at a too low |Z|, we go on from section to section, towards bigger |Z|.
+	      while(section->maxZ() < attachPoint + sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards bigger |Z|. ")
+			   + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
+		  return;
+		}
+		section = section->nextSection();
+	      }
+     
+	      // Now we are correctly placed at section = the section below the conversion station. :)
+
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
+	      if (section->minZ() < attachPoint - sectionTolerance) {
+		splitSection(section, attachPoint); 
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at smaller |Z| points towards the section at bigger |Z|.
+	      }
+	    }
+
+
+	    // C-SHAPE LOOP OVER THE BARREL / ENDCAP.
+	    // For example, C-shape loop built over TBPX.
+	    // STATIONS ARE BUILT TOWARDS SMALLER |Z|.
+	    // THEY ARE BUILT ALONG THE RADIALLY LOWER HORIZONTAL BRANCH OF THE C.
+	    else {
+	      const bool isTowardsBiggerZ = false;
+
+	      // PART A: FIND THE CABLING SECTION LOCATED BELOW THE CONVERSION STATION.
+
+	      // Check whether station is placed towards smaller |Z|.
+	      if (discretize(stationFromCfg->minZ_()) > section->maxZ()) {
+		logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			 + any2str(" towards smaller |Z|. ")
+			 + any2str("But we are at maxZ = ") + any2str(section->maxZ()/1000.) + any2str(" mm")
+			 + any2str(" and station minZ = ") + any2str(stationFromCfg->minZ_()) + any2str(" mm.")
+			 );
+		continue;
+	      }
+
+	      const int attachPoint = discretize(stationFromCfg->meanZ());
+        
+	      // If we are at a too big |Z|, we go on from section to section, towards smaller |Z|.
+	      while(section->minZ() > attachPoint - sectionTolerance) {
+		if(!section->hasNextSection()) {
+		  logERROR(any2str("Want to place conversion station (type second) ") + any2str(stationFromCfg->stationName_()) 
+			   + any2str(" towards smaller |Z|. ")
+			   + any2str("But we are at minZ = ") + any2str(section->minZ()/1000.) + any2str(" mm")
+			   + any2str(" and we have no next section (routing is stopping here).")
+			   );
+		  return;
+		}
+		section = section->nextSection();
+	      }
+	   
+	      // Now we are correctly placed at section = the section below the conversion station. :)
+
+	      // PART B: BUILD THE 2 CABLING SECTIONS BELOW THE STATION.
+	      if (section->maxZ() > attachPoint + sectionTolerance) {
+		splitSection(section, attachPoint, isTowardsBiggerZ);
+		// Split the exisiting section under the conversion station into 2 sections, around Z = attachPoint.
+		// The section at bigger |Z| points towards the section at smaller |Z|.
+	      }
+	    }
+
+
+	    // PART C: BUILD CONVERSION STATION
+	    const int stationMinZ = discretize(stationFromCfg->minZ_());
+	    const int stationMaxZ = discretize(stationFromCfg->maxZ_());
+	    const int stationMinR = section->maxR() + safetySpace;
+	    const int stationMaxR = stationMinR + layerStationLenght;
+	   
+	    Station* myStation = nullptr;
+            if(section->hasNextSection()) {
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg, section->nextSection());
+            } else {
+              myStation = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *stationFromCfg);
+            }
+
+            section->nextSection(myStation);
+
+
+	    // PART D: STORE CONVERSION STATION.
+            sectionsList_.push_back(myStation);
+            stationListSecond_.push_back(myStation);
+          }
+        }
+      }
+
+
+      /*
+       * Split section into 2 sections, at the collision coordinate.
+       * NB: !isTowardsBiggerR not used at all so far, just added for flexibility purposes!
+       */
+      Section* splitSection(Section* section, const int collision, bool isTowardsBiggerZ = true, bool isTowardsBiggerR = true, bool debug = false) {
+        Section* newSection = nullptr;
+
+	// HORIZONTAL DIRECTION
+        if (section->bearing() == HORIZONTAL) { 
+	  // A: Create new section
+	  // TOWARDS BIGGER |Z|
+	  if (isTowardsBiggerZ) { 
+	    newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug); 
+	  }
+	  // TOWARDS SMALLER |Z|
+	  else { 
+	    newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection(), debug);
+	  }
+          sectionsList_.push_back(newSection);
+
+	  // B: Update previous section
+	  if (isTowardsBiggerZ) { section->maxZ(collision - safetySpace); } 
+	  else { section->minZ(collision + safetySpace); }
+          section->nextSection(newSection);
+        } 
+
+	// VERTICAL DIRECTION
+	else {
+	  // A: Create new section
+	  // TOWARDS BIGGER R
+	  if (isTowardsBiggerR) {
+	    newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);	    
+	  }
+	  // TOWARDS SMALLER R
+	  else {
+	    newSection = new Section(section->minZ(), section->minR(), section->maxZ(), collision, section->bearing(), section->nextSection(), debug);
+	  }
+	  sectionsList_.push_back(newSection);
+
+	  // B: Update previous section
+          if (isTowardsBiggerR) { section->maxR(collision - safetySpace); }
+	  else { section->minR(collision + safetySpace); }
+          section->nextSection(newSection);
+        }
+        return newSection;
+      }
+      
+
       enum ZPosition {POSITIVE, NEGATIVE};
       //int splitCounter;
       SectionVector& sectionsList_;
@@ -1024,38 +1229,7 @@ namespace material {
       //ZPosition currEndcapPosition;
       Layer* currLayer_;
       Disk* currDisk_;
-
-
-      //Section* findAttachPoint(Section* section, )
-
-      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool debug = false) {
-        //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
-        Section* newSection = nullptr;
-
-        if (section->bearing() == HORIZONTAL) {
-          //if(zPlus) {
-            newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          //} else {
-          //  newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection());
-          //}
-          sectionsList_.push_back(newSection);
-
-          //if(zPlus) {
-            section->maxZ(collision - safetySpace);
-          //} else {
-          //  section->minZ(collision + safetySpace);
-          //}
-          section->nextSection(newSection);
-
-        } else {
-          newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
-          sectionsList_.push_back(newSection);
-
-          section->maxR(collision - safetySpace);
-          section->nextSection(newSection);
-        }
-        return newSection;
-      }
+      bool hasCShapeOutgoingServices_;
     }; //END class MultipleVisitor
 
     MultipleVisitor visitor (sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);
@@ -1074,18 +1248,23 @@ namespace material {
   //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
+
   const int Materialway::boundaryPaddingBarrel = discretize(12.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
   const int Materialway::boundaryPaddingEndcaps = discretize(10.0); 
-  const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
-  const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(16.0);
+  const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */  
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
-  //const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
-  const int Materialway::globalMaxRPadding = discretize(25.0);
+  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
+
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
+  const int Materialway::cShapeMinZTolerance = 1.1 * sectionTolerance; /** Distance in Z between the minZ of the cabling along C-shape, 
+									   and the center of the conversion station (of type second). 
+									   If there are several conversion stations (of type second) on the boundary, 
+									   consider the station located at the lowest |Z|.
+									   WARNING: By construction, cShapeMinZTolerance need to be > sectionTolerance. */
   const int Materialway::layerStationLenght = discretize(insur::geom_conversion_station_width);  /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
@@ -1105,64 +1284,6 @@ namespace material {
   }
 
   bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid& weightDistribution) {
-    /*
-    std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
-    std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
-    std::cout<<"disk0: < "<<tracker.endcaps()[0].disks()[0].minZ()<<"; > "<<tracker.endcaps()[0].disks()[0].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[0].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[0].maxR()<<endl;
-    std::cout<<"disk1: < "<<tracker.endcaps()[0].disks()[1].minZ()<<"; > "<<tracker.endcaps()[0].disks()[1].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[1].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[1].maxR()<<endl;
-    std::cout<<"disk2: < "<<tracker.endcaps()[0].disks()[2].minZ()<<"; > "<<tracker.endcaps()[0].disks()[2].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[2].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[2].maxR()<<endl;
-    std::cout<<"disk3: < "<<tracker.endcaps()[0].disks()[3].minZ()<<"; > "<<tracker.endcaps()[0].disks()[3].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[3].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[3].maxR()<<endl;
-    std::cout<<"disk4: < "<<tracker.endcaps()[0].disks()[4].minZ()<<"; > "<<tracker.endcaps()[0].disks()[4].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[4].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[4].maxR()<<endl;
-    std::cout<<"disk5: < "<<tracker.endcaps()[0].disks()[5].minZ()<<"; > "<<tracker.endcaps()[0].disks()[5].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[5].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].maxR()<<endl;
-    std::cout<<"disk6: < "<<tracker.endcaps()[0].disks()[6].minZ()<<"; > "<<tracker.endcaps()[0].disks()[6].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[6].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[6].maxR()<<endl;
-    std::cout<<"disk7: < "<<tracker.endcaps()[0].disks()[7].minZ()<<"; > "<<tracker.endcaps()[0].disks()[7].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[7].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[7].maxR()<<endl;
-    std::cout<<"disk8: < "<<tracker.endcaps()[0].disks()[8].minZ()<<"; > "<<tracker.endcaps()[0].disks()[8].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[8].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[8].maxR()<<endl;
-    std::cout<<"disk9: < "<<tracker.endcaps()[0].disks()[9].minZ()<<"; > "<<tracker.endcaps()[0].disks()[9].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[9].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[9].maxR()<<endl;
-
-    std::cout<<"ring0: v "<<tracker.endcaps()[0].disks()[5].rings()[0].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[0].maxR()<<endl;
-    std::cout<<"ring1: v "<<tracker.endcaps()[0].disks()[5].rings()[1].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[1].maxR()<<endl;
-    std::cout<<"ring2: v "<<tracker.endcaps()[0].disks()[5].rings()[2].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[2].maxR()<<endl;
-    std::cout<<"ring3: v "<<tracker.endcaps()[0].disks()[5].rings()[3].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[3].maxR()<<endl;
-    std::cout<<"ring4: v "<<tracker.endcaps()[0].disks()[5].rings()[4].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[4].maxR()<<endl;
-    std::cout<<"ring5: v "<<tracker.endcaps()[0].disks()[5].rings()[5].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[5].maxR()<<endl;
-    std::cout<<"ring6: v "<<tracker.endcaps()[0].disks()[5].rings()[6].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[6].maxR()<<endl;
-    std::cout<<"ring7: v "<<tracker.endcaps()[0].disks()[5].rings()[7].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[7].maxR()<<endl;
-    std::cout<<"ring8: v "<<tracker.endcaps()[0].disks()[5].rings()[8].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[8].maxR()<<endl;
-    std::cout<<"ring9: v "<<tracker.endcaps()[0].disks()[5].rings()[9].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[9].maxR()<<endl;
-    std::cout<<"ring10: v "<<tracker.endcaps()[0].disks()[5].rings()[10].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[10].maxR()<<endl;
-    std::cout<<"ring11: v "<<tracker.endcaps()[0].disks()[5].rings()[11].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[11].maxR()<<endl;
-    std::cout<<"ring12: v "<<tracker.endcaps()[0].disks()[5].rings()[12].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[12].maxR()<<endl;
-    std::cout<<"ring13: v "<<tracker.endcaps()[0].disks()[5].rings()[13].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[13].maxR()<<endl;
-    std::cout<<"ring14: v "<<tracker.endcaps()[0].disks()[5].rings()[14].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[14].maxR()<<endl;
-
-    std::cout<<"endcapmodule0: < "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[0].minZ()<<"; > "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[0].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[0].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[0].maxR()<<endl;
-    std::cout<<"endcapmodule1: < "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[1].minZ()<<"; > "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[1].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[1].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[1].maxR()<<endl;
-    std::cout<<"endcapmodule2: < "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[2].minZ()<<"; > "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[2].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[2].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[2].maxR()<<endl;
-    std::cout<<"endcapmodule3: < "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[3].minZ()<<"; > "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[3].maxZ()<<"; v "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[3].minR()<<"; ^ "<<tracker.endcaps()[0].disks()[5].rings()[0].modules()[3].maxR()<<endl;
-
-    std::cout<<"===================================================="<<endl;
-    std::cout<<"barrel: < "<<tracker.barrels()[0].minZ()<<"; > "<<tracker.barrels()[0].maxZ()<<"; v "<<tracker.barrels()[0].minR()<<"; ^ "<<tracker.barrels()[0].maxR()<<endl;
-
-    std::cout<<"layer0: < "<<tracker.barrels()[0].layers()[0].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].maxR()<<endl;
-    std::cout<<"layer1: < "<<tracker.barrels()[0].layers()[1].minZ()<<"; > "<<tracker.barrels()[0].layers()[1].maxZ()<<"; v "<<tracker.barrels()[0].layers()[1].minR()<<"; ^ "<<tracker.barrels()[0].layers()[1].maxR()<<endl;
-    std::cout<<"layer2: < "<<tracker.barrels()[0].layers()[2].minZ()<<"; > "<<tracker.barrels()[0].layers()[2].maxZ()<<"; v "<<tracker.barrels()[0].layers()[2].minR()<<"; ^ "<<tracker.barrels()[0].layers()[2].maxR()<<endl;
-
-    std::cout<<"rodpair0: < "<<tracker.barrels()[0].layers()[0].rods()[0].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].maxR()<<endl;
-    std::cout<<"rodpair1: < "<<tracker.barrels()[0].layers()[0].rods()[1].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[1].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[1].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[1].maxR()<<endl;
-    std::cout<<"rodpair2: < "<<tracker.barrels()[0].layers()[0].rods()[2].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[2].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[2].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[2].maxR()<<endl;
-    std::cout<<"rodpair3: < "<<tracker.barrels()[0].layers()[0].rods()[3].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[3].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[3].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[3].maxR()<<endl;
-
-    std::cout<<"barrelModule0: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[0].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[0].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[0].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[0].maxR()<<endl;
-    std::cout<<"barrelModule1: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[1].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[1].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[1].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[1].maxR()<<endl;
-    std::cout<<"barrelModule2: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[2].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[2].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[2].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[2].maxR()<<endl;
-    std::cout<<"barrelModule3: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[3].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[3].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[3].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[3].maxR()<<endl;
-    std::cout<<"barrelModule4: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[4].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[4].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[4].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[4].maxR()<<endl;
-    std::cout<<"barrelModule5: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[5].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[5].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[5].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[5].maxR()<<endl;
-    std::cout<<"barrelModule6: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[6].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[6].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[6].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[6].maxR()<<endl;
-    std::cout<<"barrelModule7: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].maxR()<<endl;
-    std::cout<<"barrelModule8: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].maxR()<<endl;
-*/
-
     bool retValue = false;
 
     //int startTime = time(0);
@@ -1201,24 +1322,46 @@ namespace material {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
-	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+
+	const int barrelSecondStationsMinMeanZ = computeBarrelSecondStationsMinMeanZ(barrel);
+	const bool hasCShapeOutgoingServices = (barrelSecondStationsMinMeanZ < boundMaxZ); // KEY POINT: Need to route services along a C-shape.
+	const int cShapeMinZ = barrelSecondStationsMinMeanZ - cShapeMinZTolerance;
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR, hasCShapeOutgoingServices, cShapeMinZ);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
       }
 
       void visit(const Endcap& endcap) {
-        int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPaddingEndcaps;
-        int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
-        int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
-        int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
+        const int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPaddingEndcaps;
+        const int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
+        const int boundMaxZ = discretize(endcap.maxZwithHybrids()) + discretize(endcap.distanceFromEndcapsModulesMaxZtoRoutedMaterial());
+        const int boundMaxR = discretize(endcap.maxRwithHybrids()) + discretize(endcap.distanceFromEndcapsModulesMaxRtoRoutedMaterial());
         Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
       }
 
+
     private:
+      /*
+       * This is used to compute the minimum meanZ of the barrel second conversion stations.
+       */
+      const int computeBarrelSecondStationsMinMeanZ(const Barrel& barrel) {
+	int barrelSecondStationsMinMeanZ = std::numeric_limits<int>::max();
+	
+	for (const auto& layer: barrel.layers()) {
+	  const std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
+	  for (const auto& station : secondConversionStations) {
+	    barrelSecondStationsMinMeanZ = MIN(barrelSecondStationsMinMeanZ, 
+					       discretize(station->meanZ())
+					       );
+	  }
+	}
+	return barrelSecondStationsMinMeanZ;
+      }
+
       BoundariesSet& boundariesList_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
@@ -1456,31 +1599,51 @@ namespace material {
 
       void visit(const Disk& disk) {
         currDisk_ = &disk;
-        //const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
+
         if(disk.maxZwithHybrids() > 0) {
           firstRing = true;
-          int totalLength = 0;
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            totalLength += currSection->maxR() - currSection->minR();
-          }
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, double(currSection->maxR()-currSection->minR()) / totalLength);
-          }          
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), unitsToPassLayerServ);
-        }
 
-        /*
-        if(currDisk_->minZwithHybrids() > 0) {
-          //iterate for number of radial sectors (module in first ring of disk)
-          for (int i = 0; i < currDisk_->rings()[0].modules().size() / 2; ++i) {
-            for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-              currDisk_->materialObject().copyServicesTo(currSection->materialObject());
-              currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
-            }
-            diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
-          }
-        }
-        */
+	  // COMPUTE TOTAL VOLUME OF A DOUBLE-DISK
+	  double totalDeesVolume = 0; 
+          double totalExternalVolume = 0; 
+	  // This loops on all the sections making up the double disk.
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+	    if (currSection->getLocation() == Location::DEE) {
+	      totalDeesVolume += currSection->getVolume();
+	    }
+	    else if (currSection->getLocation() == Location::EXTERNAL) {
+	      totalExternalVolume += currSection->getVolume();
+	    }
+	    else {
+	      logERROR("Double-Disk: created a section of unsupported location type.");
+	    }
+	  }
+
+	  // ASSIGN MATERIALS OF THE DOUBLE-DISK (DEFINED IN CFG) TO THE SECTIONS (DEFINED IN MARTINA'S CODE).
+	  // This loops on all the sections making up the double disk.
+	  // The full point here is that the sections have shapes already, but no material affected to them yet!!
+	  for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+	    // Ratio of volume of the section divided by the total volume of the double-disk.
+	    // This is a fix to Martina's code!!
+	    // We want to use volume ratio, because we want to keep density uniform within the double-disk.
+	    const double totalVolume = (currSection->getLocation() == Location::DEE ? totalDeesVolume : totalExternalVolume);
+
+	    const double massRatio = currSection->getVolume() / totalVolume;
+	    disk.materialObject().deployMaterialTo(currSection->materialObject(), 
+						   unitsToPassLayer, 
+						   MaterialObject::SERVICES_AND_LOCALS, 
+						   massRatio,
+						   currSection->getLocation()
+						   );
+	    // disk.materialObject() is the materials info from cfg files (all double-disk).
+	    // currSection->materialObject() is the small section to which we want to assign a fraction of the materials.
+	  }
+
+	  // ROUTE SERVICES FROM DOUBLE-DISK   
+	  diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), 
+									  unitsToPassLayerServ);
+	}
+
       }
 
       void visit(const Ring& ring) {

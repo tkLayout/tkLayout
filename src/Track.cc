@@ -503,7 +503,7 @@ void Track::addEfficiency() {
 // Set track polar angle - theta, azimuthal angle - phi, particle transverse momentum - pt
 // (magnetic field obtained automatically from SimParms singleton class)Setter for the track azimuthal angle.
 //
-const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt) {
+const TVector3& Track::setThetaPhiPt(const double& newTheta, const double& newPhi, const double& newPt) {
 
   m_theta     = newTheta;
   m_cotgTheta = 1/tan(newTheta);
@@ -511,8 +511,10 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
   m_phi       = newPhi;
   m_pt        = newPt;
 
-  if (m_pt>=0) m_direction.SetCoordinates(+1, m_theta, m_phi); // Particle inside-out
-  else         m_direction.SetCoordinates(-1, m_theta, m_phi); // Particle outside-in
+  Polar3DVector polarDirection;
+  if (m_pt>=0) polarDirection.SetCoordinates(+1, m_theta, m_phi); // Particle inside-out
+  else         polarDirection.SetCoordinates(-1, m_theta, m_phi); // Particle outside-in
+  m_direction = CoordinateOperations::convertCoordVectorToTVector3(polarDirection);
 
   // Clear all previously assigned hits -> hits need to be recalculated
   m_hits.clear();

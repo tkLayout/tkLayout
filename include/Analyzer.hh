@@ -68,6 +68,12 @@ namespace insur {
 
   typedef std::map<int, TProfile> CoveragePerNumberOfHits;
 
+  using MaterialsPlotsPerComponent = std::map<std::string, TH1D*>;
+  using RIPlotsPerComponent = std::pair<MaterialsPlotsPerComponent, MaterialsPlotsPerComponent>;
+  using RIPlotsPerComponentAndPerSubdetector = std::map<std::string, RIPlotsPerComponent>;
+  using RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory = std::map<MechanicalCategory, RIPlotsPerComponentAndPerSubdetector>; 
+
+
   class LayerNameVisitor : public ConstGeometryVisitor {
     string id_;
   public:
@@ -100,61 +106,32 @@ namespace insur {
   public:
     Analyzer();
     virtual ~Analyzer() {}  
-    std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
-    std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
-    // TRACKING VOLUMES PLOTS
+
+    // FULL VOLUME
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInFullVolume() const { 
+      return radiationAndInteractionLengthPlotsInFullVolume_;
+    }
+
+    // TRACKING VOLUME
     // Beam pipe
     std::map<std::string, TH1D*>& getHistoBeamPipeR() { return rComponentsBeamPipe; }
     std::map<std::string, TH1D*>& getHistoBeamPipeI() { return iComponentsBeamPipe; }
     // Pixel interstice (between Beam pipe and Pixel tracking volumes)
     std::map<std::string, TH1D*>& getHistoPixelIntersticeR() { return rComponentsPixelInterstice; }
     std::map<std::string, TH1D*>& getHistoPixelIntersticeI() { return iComponentsPixelInterstice; }
-    // Pixel tracking volume
-    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeR() { return rComponentsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoPixelTrackingVolumeI() { return iComponentsPixelTrackingVolume; }
+    // Pixel tracking volume (between first and last IT active hits)  
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInPixelTrackingVolume() const { 
+      return radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
+    }
     // Interstice (betweenPixel and Outer tracking volumes)
     std::map<std::string, TH1D*>& getHistoIntersticeR() { return rComponentsInterstice; }
     std::map<std::string, TH1D*>& getHistoIntersticeI() { return iComponentsInterstice; }
-    // Outer tracking volume
-    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeR() { return rComponentsOuterTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoOuterTrackingVolumeI() { return iComponentsOuterTrackingVolume; }
-    // SERVICES DETAILS (in Pixel and Outer tracking volumes only)
-    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeR() { return rComponentsServicesDetailsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsPixelTrackingVolumeI() { return iComponentsServicesDetailsPixelTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeR() { return rComponentsServicesDetailsOuterTrackingVolume; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsOuterTrackingVolumeI() { return iComponentsServicesDetailsOuterTrackingVolume; }
-    TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
-    TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
-    TH1D& getHistoModulesEndcapsR() { return ractiveendcap; }
-    TH1D& getHistoModulesEndcapsI() { return iactiveendcap; }
-    TH1D& getHistoServicesBarrelsR() { return rserfbarrel; }
-    TH1D& getHistoServicesBarrelsI() { return iserfbarrel; }
-    TH1D& getHistoServicesEndcapsR() { return rserfendcap; }
-    TH1D& getHistoServicesEndcapsI() { return iserfendcap; }
-    TH1D& getHistoSupportsBarrelsR() { return rlazybarrel; }
-    TH1D& getHistoSupportsBarrelsI() { return ilazybarrel; }
-    TH1D& getHistoSupportsEndcapsR() { return rlazyendcap; }
-    TH1D& getHistoSupportsEndcapsI() { return ilazyendcap; }
-    TH1D& getHistoSupportsBarrelTubesR() { return rlazybtube; }
-    TH1D& getHistoSupportsBarrelTubesI() { return ilazybtube; }
-    TH1D& getHistoSupportsTubesR() { return rlazytube; }
-    TH1D& getHistoSupportsTubesI() { return ilazytube; }
-    TH1D& getHistoSupportsUserDefinedR() { return rlazyuserdef; }
-    TH1D& getHistoSupportsUserDefinedI() { return ilazyuserdef; }
-    TH1D& getHistoBarrelsAllR() { return rbarrelall; }
-    TH1D& getHistoBarrelsAllI() { return ibarrelall; }
-    TH1D& getHistoEndcapsAllR() { return rendcapall; }
-    TH1D& getHistoEndcapsAllI() { return iendcapall; }
-    TH1D& getHistoModulesAllR() { return ractiveall; }
-    TH1D& getHistoModulesAllI() { return iactiveall; }
-    TH1D& getHistoServicesAllR() { return rserfall; }
-    TH1D& getHistoServicesAllI() { return iserfall; }
-    TH1D& getHistoSupportsAllR() { return rlazyall; }
-    TH1D& getHistoSupportsAllI() { return ilazyall; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsR() { return rComponentsServicesDetails; }
-    std::map<std::string, TH1D*>& getHistoServicesDetailsI() { return iComponentsServicesDetails; }
-    TH1D& getHistoGlobalR() { return rglobal; }
-    TH1D& getHistoGlobalI() { return iglobal; }
+    // Outer tracking volume (between first and last OT active hits)   
+    const RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory& getRIPlotsInOuterTrackingVolume() const { 
+      return radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
+    }
+ 
+
     TH2D& getHistoIsoR() { return isor; }
     TH2D& getHistoIsoI() { return isoi; }
     TH2D& getHistoMapRadiation();
@@ -272,6 +249,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, double>& getTagWeigth() { return tagWeight; };
+
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXBarrelMap() {return parametrizedResolutionLocalXBarrelMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
     std::map<std::string, TH2D>& getParametrizedResolutionLocalYBarrelMap() { return parametrizedResolutionLocalYBarrelMap; }
@@ -332,21 +310,17 @@ namespace insur {
      */
     struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
     std::vector<std::vector<Cell> > cells;
-    TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazybtube, rlazytube, rlazyuserdef;
-    TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
-    TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
-    TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
-    std::map<std::string, TH1D*> rComponentsServicesDetails, iComponentsServicesDetails;
-    TH1D rglobal, iglobal;
 
-    std::map<std::string, TH1D*> rComponents, iComponents;
+    // FULL VOLUME
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInFullVolume_;
+
+    // TRACKING VOLUME
     std::map<std::string, TH1D*> rComponentsBeamPipe, iComponentsBeamPipe;
     std::map<std::string, TH1D*> rComponentsPixelInterstice, iComponentsPixelInterstice;
-    std::map<std::string, TH1D*> rComponentsPixelTrackingVolume, iComponentsPixelTrackingVolume;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInPixelTrackingVolume_;
     std::map<std::string, TH1D*> rComponentsInterstice, iComponentsInterstice;
-    std::map<std::string, TH1D*> rComponentsOuterTrackingVolume, iComponentsOuterTrackingVolume;
-    std::map<std::string, TH1D*> rComponentsServicesDetailsPixelTrackingVolume, iComponentsServicesDetailsPixelTrackingVolume;
-    std::map<std::string, TH1D*> rComponentsServicesDetailsOuterTrackingVolume, iComponentsServicesDetailsOuterTrackingVolume;
+    RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInOuterTrackingVolume_;
+
     TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
     TH2I mapRadiationCount, mapInteractionCount;
@@ -451,22 +425,23 @@ namespace insur {
     const XYZVector getLuminousRegion();
     const XYZVector getLuminousRegionInMatBudgetAnalysis();
 
-    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track);
+    RILength findAllHits(MaterialBudget& mb, MaterialBudget* pm, Track& track);
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
-    virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, Track& track,
-                                    std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
+
+    virtual RILength analyzeModules(std::vector<std::vector<ModuleCap> >& tr, Track& track,
+                                    std::map<std::string, RILength>& sumComponentsRI, bool isPixel = false);
 
     int findHitsModules(Tracker& tracker, Track& t);
 
-    virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr, Track& t, bool isPixel = false);
-    virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, bool isPixel = false);
+    virtual RILength findHitsModules(std::vector<std::vector<ModuleCap> >& tr, Track& t, bool isPixel = false);
+    virtual RILength findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, bool isPixel = false);
 
-    virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, Track& track,
-                                       std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
-    virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
-                                             std::map<std::string, Material>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
-    virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, Track& t, bool isPixel = false);
+    virtual RILength findModuleLayerRI(std::vector<ModuleCap>& layer, Track& track,
+                                       std::map<std::string, RILength>& sumComponentsRI, bool isPixel = false);
+    virtual RILength analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
+                                             std::map<std::string, RILength>& sumServicesComponentsRI, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+    virtual RILength findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, Track& t, bool isPixel = false);
 
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
@@ -491,9 +466,9 @@ namespace insur {
     void clearCells();
     void setHistogramBinsBoundaries(int bins, double min, double max);
     void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
-    void fillCell(double r, double eta, double theta, Material mat);
-    void fillMapRT(const double& r, const double& theta, const Material& mat);
-    void fillMapRZ(const double& r, const double& z, const Material& mat);
+    void fillCell(double r, double eta, double theta, RILength mat);
+    void fillMapRT(const double& r, const double& theta, const RILength& mat);
+    void fillMapRZ(const double& r, const double& z, const RILength& mat);
     void transformEtaToZ();
     double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     std::pair<double, double> computeMinMaxTracksEta(const Tracker& t) const;
@@ -539,10 +514,14 @@ namespace insur {
 				       const int numStubsPerTrack,
 				       const int plotMaxNumberOfStubs);
 
-    void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, Material>& innerTrackerModulesComponentsRI, const std::map<std::string, Material>& outerTrackerModulesComponentsRI);
-    void fillRIServicesDetailsHistos(std::map<std::string, TH1D*>& rServicesDetails, std::map<std::string, TH1D*>& iServicesDetails, const std::unique_ptr<Hit>& hitOnService, const double eta, const double theta, const int nTracks, const double etaMax) const;
-    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const Material& correctedMat, const double eta, const int nTracks, const double etaMax) const;
-    const Material computeCorrectedMat(const Material& uncorrectedMat, const double theta, const bool isInactiveVolumeVertical) const;
+    void computeTrackingVolumeMaterialBudget(const Track& track, const int nTracks, const std::map<std::string, RILength>& innerTrackerModulesComponentsRI, const std::map<std::string, RILength>& outerTrackerModulesComponentsRI);
+
+    void fillRIPlotsPerMechanicalCategoryAndSubdetector(std::map<MechanicalCategory, std::map<std::string, std::pair<std::map<std::string, TH1D*>, std::map<std::string, TH1D*> > > >& radiationAndInteractionLengthPerMechanicalCategoryAndSubdetector,
+							const std::unique_ptr<Hit>& hit,
+							const double eta, const double theta, const int nTracks, const double etaMax) const;
+
+    void fillRIComponentsHistos(std::map<std::string, TH1D*>& rComponentsHistos, std::map<std::string, TH1D*>& iComponentsHistos, const std::string componentName, const RILength& correctedMat, const double eta, const int nTracks, const double etaMax) const;
+    const RILength computeCorrectedMat(const RILength& uncorrectedMat, const double theta, const double tiltAngle) const;
 
     static int bsCounter;
     

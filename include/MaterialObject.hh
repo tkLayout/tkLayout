@@ -11,6 +11,10 @@
 #include "Property.hh"
 //#include "Materialway.hh"
 
+
+#include "MaterialTab.hh"
+
+
 class DetectorModule;
 
 namespace insur {
@@ -20,11 +24,13 @@ namespace insur {
 using insur::MaterialProperties;
 
 namespace material {
-  static const std::string err_service1 = "Impossible to use 'g' as unit for service materials, element '";
-  static const std::string err_service2 = "' ignored.";
 
   class MaterialTab;
   class ConversionStation;
+
+  // Location of the materials from cfg files
+  enum Location { ALL, DEE, EXTERNAL };
+  // EXTERNAL means outside the double-disk / layer.
 
   class MaterialObject : public PropertyObject {
   public:
@@ -38,15 +44,20 @@ namespace material {
 
     enum Type {MODULE, ROD, LAYER, SERVICE, STATION};
 
-    MaterialObject(Type materialType);
+    MaterialObject(Type materialType, const std::string subdetectorName);
     MaterialObject(const MaterialObject& other);
     virtual ~MaterialObject();
+
+    const std::string subdetectorName() const { return subdetectorName_; }
 
     double totalGrams(double length, double surface) const;
 
     virtual void build();
     
-    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, 
+			  double gramsMultiplier = 1.,
+			  Location requestedLocation = Location::ALL
+			  ) const;
     void addElement(const MaterialObject::Element* element);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
@@ -58,6 +69,7 @@ namespace material {
 
   private:
     static const std::map<Type, const std::string> typeString;
+    std::string subdetectorName_;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<std::string, NoDefault> destination_;
@@ -103,12 +115,15 @@ namespace material {
     class MaterialObjectKey {
     public:
       // TODO embed sensorChannel map into a fancier object?...?
-      MaterialObjectKey(const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+      MaterialObjectKey(const std::string subdetectorName, const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+	subdetectorName_(subdetectorName),
         name(newName), 
         sensorChannels(newSensorChannels),
         destination(newDestination)  {}
 
       bool operator<(const MaterialObjectKey& r ) const {
+	if (this->subdetectorName_ < r.subdetectorName_) return true;
+	if (this->subdetectorName_ > r.subdetectorName_) return false;
         if (this->sensorChannels < r.sensorChannels) return true;
         if (this->sensorChannels > r.sensorChannels) return false;
         if (this->name < r.name) return true;
@@ -117,6 +132,7 @@ namespace material {
         return false;
       }
     private:
+      std::string subdetectorName_;
       std::string name;
       std::map<int, int> sensorChannels;
       std::string destination;
@@ -127,6 +143,7 @@ namespace material {
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
+      
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;
@@ -136,16 +153,17 @@ namespace material {
       Property<bool, Default> debugInactivate;
       Property<std::string, NoDefault> destination;
       Property<int, Default> targetVolume;
+      Property<Location, Default> location;
       PropertyNode<int> referenceSensorNode;
 
-      Element(MaterialObject::Type& newMaterialType);
+      Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName);
       Element(const Element& original, double multiplier = 1.0);
       //Element(const Element& originElement);
       std::map<int, ReferenceSensor*> referenceSensors_;
 
       virtual ~Element();
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(const double length, const double surface) const;
@@ -157,10 +175,13 @@ namespace material {
       double scalingMultiplier() const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
+      const std::string subdetectorName() const { return subdetectorName_; }
       std::map<int, int> sensorChannels_;
 
     private:
-      const MaterialTab& materialTab_;
+      //const MaterialTab& materialTab_;
+      std::string subdetectorName_;
+      const MaterialsTable& materialsTable_;
       static const std::string msg_no_valid_unit;
       MaterialObject::Type& materialType_;
       //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
@@ -168,38 +189,46 @@ namespace material {
 
     class Component : public PropertyObject {
     public:
-      //Property<std::string, NoDefault> componentName;
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
-      Component(MaterialObject::Type& newMaterialType);
+      Component(MaterialObject::Type& newMaterialType, const std::string subdetectorName);
       virtual ~Component();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
       void getLocalElements(ElementsVector& elementsList) const;
+
+      const std::string subdetectorName() const { return subdetectorName_; }
 
       ComponentsVector components_;
       ElementsVector elements_;
 
       MaterialObject::Type& materialType_;
+
+    private:
+      std::string subdetectorName_;
     };
 
     class Materials : public PropertyObject {
     public:
       PropertyNodeUnique<std::string> componentsNode_;
-      //Property<double, Computable> radiationLength, interactionLenght;
-      Materials(MaterialObject::Type newMaterialType);
+      Materials(MaterialObject::Type newMaterialType, const std::string subdetectorName);
       virtual ~Materials();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1., Location requestedLocation = ALL) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
+
+      const std::string subdetectorName() const { return subdetectorName_; }
 
       ComponentsVector components_;
 
       MaterialObject::Type materialType_;
+
+    private:
+      std::string subdetectorName_;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects

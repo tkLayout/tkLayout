@@ -48,6 +48,10 @@ private:
   // CHECKING
   void checkModulesToBundlesCabling(const std::map<int, OuterBundle*>& bundles) const;
 
+  // ENDCAPS ONLY: ASSIGN THE MFB FANOUTS BRANCHES TO THE MODULES
+  void connectEndcapModulesToBundlesFanoutBranches(std::map<int, OuterBundle*>& bundles);
+  void checkEndcapModulesToBundlesFanoutBranchesCabling(const std::map<int, OuterBundle*>& bundles) const;
+
   std::map<int, OuterBundle*> bundles_;     // positive cabling side bundles.
   std::map<int, OuterBundle*> negBundles_;  // negative cabling side bundles.
 

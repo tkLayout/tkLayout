@@ -1,0 +1,47 @@
+// TEPX Mounting.
+// Evth from [TEPX_2018_12_07_LC].
+
+
+Component {
+  componentName "Supports Mechanics: Module Mounting clamp"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName CFRP_module
+    quantity 0.2        // Source: [TEPX_2018_12_07_LC]
+    unit mm             // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 1    
+  }
+}
+
+
+
+Component {
+  componentName "Supports Mechanics: Module Airex spacer"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Airex
+    quantity 0.36      // Source: [TEPX_2018_12_07_LC]
+    
+    unit mm            // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+    targetVolume 1     // APPROXIMATION: LOCATION! THERE IS NO SUPPORTED VOLUME FOR THIS!!
+  }
+}
+
+
+
+//Component {
+//  componentName "IT Module: glue for HD"
+//  service false
+// scaleOnSensor 0
+//  Element {
+//    elementName Epoxy
+//    quantity 0.34     // Source: [TEPX_2018_12_07_LC] // WATCH OUT, LOOKS TOO BIG!!
+//    // APPROXIMATION: LOCATION
+//    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+//    targetVolume 3
+//  }
+//}
+
+

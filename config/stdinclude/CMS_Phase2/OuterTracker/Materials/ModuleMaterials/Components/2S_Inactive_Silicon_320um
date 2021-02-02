@@ -1,21 +1,31 @@
 // 2S inactive silicon for 320 um sensors
 
+
+// around the edges, 2 sensors
 Component {
-  componentName "2S Inactive silicon"
+  componentName "2S Module: Inactive silicon (around the edges)"
   service false
   scaleOnSensor 0
-  //Silicon deep diffused
   Element {
     elementName Si
-    quantity 5.134
-    unit g
-    targetVolume 7
-  }
-  //Sensor inactive edges
-  Element {
-    elementName Si
-    quantity 0.734
+    quantity 0.691      // = 320 um (sensor thickness) / 1000 x (94.183 mm x 102.700 mm - 91.44 mm x 100.71 mm) x 2.33 g/cm3 (Si density) / 1000 x 2
+                        // Source: [OT_MODULE_2019_09_10_MB]
     unit g
     targetVolume 0
+  }
+}
+
+
+// deep diffused, 2 sensors
+Component {
+  componentName "2S Module: Inactive silicon (deep diffused)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 1.287      // = 30 um (deep diffused thickness) / 1000 x 91.44 mm x 100.71 mm x 2.33 g/cm3 (Si density) / 1000 x 2
+                        // Source: [OT_MODULE_2019_09_10_MB]
+    unit g
+    targetVolume 7
   }
 }

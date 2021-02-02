@@ -8,7 +8,7 @@ const std::vector<double> Disk::scanSmallDeltas() const {
   std::vector<double> ringsSmallDeltas;
 
   for (int i = 1; i <= numRings(); i++) {
-    Ring* ringTemplate = GeometryFactory::make<Ring>();
+    Ring* ringTemplate = GeometryFactory::make<Ring>(subdetectorName());
     ringTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) ringTemplate->store(ringNode.at(i));
     ringsSmallDeltas.push_back(ringTemplate->smallDelta());
@@ -181,7 +181,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
-    Ring* ring = GeometryFactory::make<Ring>();
+    Ring* ring = GeometryFactory::make<Ring>(subdetectorName());
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));
@@ -210,8 +210,10 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
     // NOW THAT RADIUS HAS BEEN CALCULATED, FINISH BUILDING THE RING AND STORE IT
     ring->myid(i);
+    ring->setIsRingOn4Dees(ring->smallDelta() > bigDelta());
+    ring->setIsSmallerAbsZRingInDisk(parity < 0);
     ring->build();
-    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
+    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());   
 
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
@@ -235,7 +237,8 @@ void Disk::build(const ScanEndcapInfo& extremaDisksInfo) {
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
   for (auto& currentStationNode : stationsNode) {
-    conversionStation = new ConversionStation();
+    conversionStation = new ConversionStation(subdetectorName());
+    conversionStation->store(propertyTree());
     conversionStation->store(currentStationNode.second);
     conversionStation->check();
     conversionStation->build();
@@ -347,10 +350,10 @@ void Disk::computeActualCoverage() {
   for (auto& r : rings_) r.computeActualPhiCoverage();
 }
 
-void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
+void Disk::translateZ(double z) { centerZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 
 void Disk::rotateToNegativeZSide() {
-  averageZ_ = -averageZ_;
+  centerZ_ = -centerZ_;
   for (auto& r : rings_) r.rotateToNegativeZSide();
 }
 

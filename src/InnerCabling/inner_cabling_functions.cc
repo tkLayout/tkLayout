@@ -81,6 +81,10 @@ namespace inner_cabling_functions {
 
   /*
    * Split IT per (Z) end and (X) side: hence per quarter.
+   * 1: (+X) side, (+Z) end
+   * 2: (-X) side, (+Z) end
+   * 3: (+X) side, (-Z) end
+   * 4: (-X) side, (-Z) end
    */
   const int computeInnerTrackerQuarterIndex(const bool isPositiveZEnd, const bool isPositiveXSide) {
     int innerTrackerQuarterIndex = 0;
@@ -113,13 +117,13 @@ namespace inner_cabling_functions {
 
 
   /*
-   * A given IT ring is divided by (X) side AND per dee side: hence notion of ring quarter.
-   * Each ring quarter is identified by a unique index.
+   * This identifies the ring number (associated to a given radius) + the (Z) side of the ring on which the module is located.
+   * The '(Z) side of a ring' identifies whether a module is at the low |Z| or at the high |Z| within the ring.
    */
-  const int computeRingQuarterIndex(const int ringNumber, const bool isRingInnerEnd) {
-    const int isRingInnerEndIndex = (!isRingInnerEnd);
-    const int ringQuarterIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isRingInnerEndIndex);
-    return ringQuarterIndex;
+  const int computeHalfRingIndex(const int ringNumber, const bool isSmallerAbsZHalfRing) {
+    const int isSmallerAbsZHalfRingIndex = (!isSmallerAbsZHalfRing);
+    const int halfRingIndex = (ringNumber < 1 ? 0 : (ringNumber - 1) * 2 + isSmallerAbsZHalfRingIndex);
+    return halfRingIndex;
   }
 
 
@@ -127,18 +131,18 @@ namespace inner_cabling_functions {
    * Retrieve the ring index from the ring quarter idex.
    * This is possible because a ring quarter is a part of a ring.
    */
-  const int computeRingNumber(const int ringQuarterIndex) {
-    const int ringNumber = 1 + ringQuarterIndex / 2;
+  const int computeRingNumber(const int halfRingIndex) {
+    const int ringNumber = 1 + halfRingIndex / 2;
     return ringNumber;
   }
 
 
   /*
-   * Retrieve, from the index, whether one is on one dee side or the other.
+   * Retrieve, from the index, whether one is on one ring (Z) side or the other.
    */
-  const bool isRingInnerEnd(const int ringQuarterIndex) {
-    const bool isRingInnerEnd = (ringQuarterIndex % 2 ? true : false);
-    return isRingInnerEnd;
+  const bool isSmallerAbsZHalfRing(const int halfRingIndex) {
+    const bool isSmallerAbsZHalfRing = (halfRingIndex % 2 ? false : true);
+    return isSmallerAbsZHalfRing;
   }
 
 
@@ -176,7 +180,17 @@ namespace inner_cabling_functions {
     }
     // tepx
     else if (subDetectorName == inner_cabling_tepx) {
-      numELinksPerModule = inner_cabling_numELinksPerModuleEndcap;
+      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing1;
+      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing2;
+      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing3;
+      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing4;
+      else if (layerOrRingNumber == 5) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing5;
+      else { 
+	logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
+		 + any2str(" in ") + any2str(inner_cabling_tepx)
+		 + any2str(". This is not supported.")
+		 );
+      }
     }
     // other
     else { 

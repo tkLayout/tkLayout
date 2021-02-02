@@ -22,7 +22,7 @@ class PowerChain : public PropertyObject, public Buildable, public Identifiable<
   typedef std::vector<Module*> Container; 
 
 public:
-  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex);
+  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee);
 
   // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
@@ -42,24 +42,25 @@ public:
   const std::string subDetectorName() const { return subDetectorName_; }
   const int layerDiskNumber() const { return layerDiskNumber_; }
   const int phiRef() const { return phiRef_; }
-  const int ringQuarterIndex() const { return ringQuarterIndex_; }
+  const int halfRingIndex() const { return halfRingIndex_; }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return isAtSmallerAbsZDeeInDoubleDisk_; }
+  const bool isAtSmallerAbsZSideInDee() const { return isAtSmallerAbsZSideInDee_; }
 
   const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
-  const bool isRingInnerEnd() const { return isRingInnerEnd_; }
+  const bool isSmallerAbsZHalfRing() const { return isSmallerAbsZHalfRing_; }
 
-  const PowerChainType powerChainType() const { return powerChainType_; }
-
-  const bool isBarrelLong() const {
-    if (isBarrel()) return (numModules() == inner_cabling_maxNumModulesPerPowerChain);
+  const bool isLongBarrel() const {
+    if (isBarrel()) return isLongBarrel_;
     else return false;
   }
 
   const int plotColor() const { return plotColor_; }
 
+  const PowerChainType powerChainType() const;  // Returns whether a power chain has 4 Ampere or 8 Ampere.
+
 private:
-  const PowerChainType computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const;
-  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const;
+  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int halfRingIndex) const;
 
   void buildHvLine(const int powerChainId);
   const std::string computeHvLineName(const int powerChainId) const;
@@ -73,13 +74,14 @@ private:
   std::string subDetectorName_;
   int layerDiskNumber_;
   int phiRef_;
-  int ringQuarterIndex_;
+  bool isLongBarrel_;
+  int halfRingIndex_;
+  bool isAtSmallerAbsZDeeInDoubleDisk_;
+  bool isAtSmallerAbsZSideInDee_;
   
   bool isBarrel_;
   int ringNumber_;
-  bool isRingInnerEnd_;
-
-  PowerChainType powerChainType_;
+  bool isSmallerAbsZHalfRing_;
 
   int plotColor_;
 };

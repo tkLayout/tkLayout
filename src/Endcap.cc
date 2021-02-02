@@ -16,7 +16,7 @@ void Endcap::cutAtEta(double eta) {
 */
 const ScanDiskInfo Endcap::scanDiskPropertyTree(int diskNumber) const {
 
-  Disk* diskTemplate = GeometryFactory::make<Disk>();
+  Disk* diskTemplate = GeometryFactory::make<Disk>(myid());
   diskTemplate->myid(diskNumber);
   diskTemplate->store(propertyTree());
   if (diskNode.count(diskNumber) > 0) diskTemplate->store(diskNode.at(diskNumber));
@@ -53,7 +53,7 @@ void Endcap::build() {
     double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
 
     for (int i = 1; i <= numDisks(); i++) {
-      Disk* diskp = GeometryFactory::make<Disk>();
+      Disk* diskp = GeometryFactory::make<Disk>(myid());
       diskp->myid(i);
 
       // Standard is to build & calculate parameters for the central disc (in the middle)

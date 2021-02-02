@@ -20,7 +20,7 @@
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
-    componentName "Twisted pairs"
+    componentName "Cabling: Pipe thermistor twisted pairs"
     service true
     scaleOnSensor 0
     // Two conductors and a drain
@@ -43,10 +43,10 @@
     }
   }
 
-  // Support Mechanics
+  // Supports Mechanics
   // Mechanics
   Component {
-    componentName Mechanics
+    componentName "Supports Mechanics: TBPS (Tilted Ring common)"
     service false
     scaleOnSensor 0
     targetVolume 8

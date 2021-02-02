@@ -1,0 +1,25 @@
+// (3+1) High-Speed TWP / module
+
+Component {
+  componentName "Cabling: E-links"
+  service true
+  scaleOnSensor 0
+  // Two conductors
+  Element {
+    elementName Cu_Elinks_TEPX_R1_4chipmodules
+    quantity 0.000884     // IMPORTANT: PCB panel in TEPX.
+                          // Remove e-links locally on dees: 0.884 g/m is divided by 1000.
+                          // Quantity is multiplied by 1000 (ie, start to appear) in routage from flange conversion onwards.
+    unit g/m
+    targetVolume 1
+  }
+  // Two insulations
+  Element {
+    elementName Kapton
+    quantity 0.000076     // IMPORTANT: PCB panel in TEPX.
+                          // Remove e-links locally on dees: 0.076 g/m is divided by 1000.
+                          // Quantity is multiplied by 1000 (ie, start to appear) in routage from flange conversion onwards.
+    unit g/m
+    targetVolume 1
+  }
+}

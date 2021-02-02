@@ -1,14 +1,16 @@
-// Bumps for a 10'000 um^2 pixel size
-// Bump size like Phase-1
+// Bumps for a 10 000 um^2 pixel size
+// Bump size: 25-30 um diameter, 20-25 um height. 
+// APPROXIMATION: volume of a sphere with diameter 30 um.
 
 Component {
-  componentName "Bumps"
+  componentName "IT Module: Bump bonds"
   service false
   scaleOnSensor 0
   Element {
     elementName Pix_Bumps
-    quantity 0.004
-    unit mm
+    quantity 0.002                 // = averaged thickness. Volume of a sphere with diameter 30 um / 10 000 um^2. Source [IT_MODULE_2019_02_13_SO].
+                                   // This value ends up being multiplied by Pix_Bumps density.
+    unit mm                        // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 3
   }
 }

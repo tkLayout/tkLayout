@@ -37,13 +37,14 @@ namespace insur {
   public:
     void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
     void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
-    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
+    void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void setSimpleHeader(const std::string& header) { simpleHeader_ = header; }
     const std::string& getSimpleHeader() const { return simpleHeader_; }
+
   protected:
     void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
     void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags);
@@ -53,7 +54,7 @@ namespace insur {
     void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
     void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
     void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
-    void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
+    void elementaryMaterial(Element& elem, std::ostringstream& stream);
     void compositeMaterial(Composite& comp, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream, XmlTags& trackerXmlTags);
     void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
@@ -72,7 +73,12 @@ namespace insur {
     void specParKeep(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
     void specPar(std::string name, std::vector<SpecParInfo>& t, std::ofstream& stream, XmlTags& trackerXmlTags);
     void specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker);
+
   private:
+    void writeMechanicalCategoriesFilesHeaders(std::ostringstream& mechanicalCategoriesStream);
+    void writeMechanicalCategoriesFiles(const std::vector<Element>& allChemicalElements, const std::vector<Composite>& allChemicalMixturesAndComposites, std::ostringstream& mechanicalCategoriesStream, const bool isRL, const bool isPixelTracker);
+    std::vector<MechanicalCategory> printedCompositesMechanicalCategories_;
+
     std::vector<Composite> printedComposites_; // List of composites whose materials are printed in the XMLs.
     std::map<std::string, std::string> mapCompoToPrintedCompo_; // This maps each existing composite to a composite which has same materials. 
                                                                 // Only the PrintedCompo materials are printed in the XMLs.

@@ -1,0 +1,19 @@
+// 1:1000 conversion of Cu_Elinks_TEPX_R2_4chipmodules
+
+Conversion {
+  Input {
+    Element {
+      elementName Cu_Elinks_TEPX_R2_4chipmodules
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu_Elinks_TEPX_R2_4chipmodules
+      quantity 1000
+      unit g/m
+      service true
+    }
+  }
+}

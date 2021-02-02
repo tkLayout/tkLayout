@@ -1,0 +1,16 @@
+// Layer 3: module with 4 chips
+// ~2.25 modules/GBT
+
+Conversion {
+  Input {
+    // Two conductors
+    Element {
+      elementName Cu_Elinks_TBPX_L3
+      quantity 1.49175      // = 2.25 * quantity / module
+      unit g/m
+    }
+  }
+  Output {
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC // = 1 GBT
+  }
+}
