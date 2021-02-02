@@ -1,5 +1,5 @@
 // MATERIALS COMMON TO ALL MODULES TYPES
-// This obviously does not include bumps, ROC, cooling blocks, conectivity (dedicated ModuleMaterials files).
+// This obviously does not include bumps, ROC, cooling blocks, connectivity (dedicated ModuleMaterials files).
 
 Component {
   componentName "IT Module: HDI" 
@@ -49,20 +49,6 @@ Component {
     unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
                       // APPROXIMATION: Takes slightly bigger thickness, because only multiplied by active sensor area.
     targetVolume 1
-  }
-}
-
-
-
-Component {
-  componentName "IT Module: Sensor (active Si)" 
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName SenSi
-    quantity 0.15       
-    unit mm                  // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
-    targetVolume 2
   }
 }
 

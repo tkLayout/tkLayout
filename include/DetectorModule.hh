@@ -383,6 +383,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual const bool isSmallerAbsZModuleInRing() const { return true; }
 
   inline bool isPixelModule() const { return (moduleType().find(insur::type_pixel) != std::string::npos); }
+  inline bool is3DPixelModule() const { return (isPixelModule() && moduleType().find(insur::type_3D) != std::string::npos); }
   inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
 
   bool couldHit(const XYZVector& direction, double zError) const;

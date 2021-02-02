@@ -471,11 +471,6 @@ namespace insur {
     site.setTitle(trackerName);
     site.setComment("layouts");
     site.setCommentLink("../");
-    site.addAuthor("Giovanni Bianchi");
-    site.addAuthor("Nicoletta De Maio");
-    site.addAuthor("Stefano Martina");
-    site.addAuthor("Stefano Mersi");
-    site.addAuthor("Gabrielle Hugo");
     site.setRevision(SvnRevision::revisionNumber);
     return true;
   }
@@ -798,7 +793,7 @@ namespace insur {
     } else {
       startTaskClock("Saving additional information");
       v.additionalInfoSite(getSettingsFile(),
-                           a, pixelAnalyzer, *tr, site);
+                           a, pixelAnalyzer, *tr, px, site);
       stopTaskClock();
       return true;
     }

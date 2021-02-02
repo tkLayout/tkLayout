@@ -191,6 +191,7 @@ OT711_200_IT4025.cfg                      Like 6.1.1 TDR geometry but with paire
                                           
 OT612_200_IT4025.cfg	Like 6.1.1 but with slightly larger PS modules
 
+
 ======================   TDR LAYOUT   ====================
 
 OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03-27
@@ -201,6 +202,16 @@ OT613_200_IT4025.cfg	   Like 6.1.2 but fixing bigDelta according to Nick 2017-03
                         Any ring movement was instead *avoided* by constraining the ring radii to those of 6.1.2, so that the geometry in the
                         xy plane is exactly the same
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+============   TIMING BARREL LAYER STUDIES   =============
+OT613_200_IT4025.cfg  Reference "standard" 78 ladders
+OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
+OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
+OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
+OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 ===========   POST-TDR OUTER TRACKER STUDIES   ===========                    
 OT614_200_IT4025.cfg	  OT 614: Like 6.1.3 but updates from Nick 2017-11-07 in TEDD.
@@ -233,8 +244,37 @@ OT616_200_IT404.cfg	   Diff with OT615:
 OT616_IT613.cfg	       Diff with OT616_200:
                        Sensor thickness: 200 um -> 290 um + Add 30 um deep-diffused Si + Review Si in inactive edges and MPA.
                        Add 164 um to s-sensor in PS module.
+                       
+OT617_IT615.cfg	       Diff with OT616:
+                       All TEDD: update smallDeltas to latest info.
+                          * PS 4 mm: 7.375 mm -> 7.550 mm.
+                          * 2S 4 mm:  8.550 mm -> 8.595 mm.
+                          * 2S 1.8 mm: 7.450 mm -> 7.495 mm.
+                       Improve transition region between TB2S and TEDD by removing readout hybrid in TEDD1, R15.
+                          * Special modules in TEDD1, R15, with halved number of strips / module. WARNING: MB NOT UPDATED!! SHOULD UPDATE MODULE MB.
+                          * Outer radius increased by 20.47 mm : R15 sensors centers: 1023.16 mm -> 1043.63 mm.
+                          * Radii in TEDD1, R12, R13, R14 adjusted accordingly.
+                       
+OT618_IT615.cfg	       Diff with OT617:
+                       Also improve transition between TB2S/TBPS and TEDD by removing readout hybrid in TEDD2, R15.
+                          * Special modules in TEDD2, R15, with halved number of strips / module. WARNING: MB NOT UPDATED!! SHOULD UPDATE MODULE MB.
+                          * Outer radius increased by 20.47 mm : R15 sensors centers: 1023.16 mm -> 1043.63 mm.
+                          * Radii in TEDD2, R12, R13, R14 adjusted accordingly.
+                          
+OT800_IT615.cfg	       Based from Outer Tracker version 616.
+		       All TEDD: 
+		       	  Update smallDeltas to latest info. Identical to the smallDelta updates in OT617. 
+		       	  Excluding all the other updates in OT617 though (related to special 2S module in R15 and radii adjustments).
+		       TBPS:
+		          Adjustments in Layer 1 to enable a safe IT installation, while respecting needed spacing with TBPS Layer 2 (supports and services).
+		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
+		       	  
+OT801_IT701.cfg	       Based from Outer Tracker version 800.
+                       TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  
+		                                          
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                          
-        
+
+
 ===========   POST-TDR INNER TRACKER STUDIES   ===========                           
 OT613_200_IT4125.cfg	  Like OT613_200_IT4025, but with 50x50 pixels instead of 25x100.
 
@@ -488,18 +528,35 @@ OT616_IT616.cfg                      OT Version 6.1.6
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
 
 
-============   ZEBRA STUDIES   ============                 
+================   LOCAL RESOLUTION STUDIES   ============                 
 OT616_200_IT620.cfg                  OT Version 6.1.6
                                      Based from Inner Tracker version 6.1.3.
-                                     Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
+                                     Zebra layout: Alternation of layers with 25x100 and 50x50 pixel aspect ratios.
                                      Layouts fully with 25x100 or 50x50 were studied, but not one that would include a mix of the 2!
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                  
-                                                                                           
-
-============   TIMING BARREL LAYER STUDIES   =============
-OT613_200_IT4025.cfg  Reference "standard" 78 ladders
-OT624_200_IT4025.cfg  -15 mm outer radius  78 ladders
-OT625_200_IT4025.cfg  -30 mm outer radius  76 ladders (-2)
-OT626_200_IT4025.cfg  -30 mm outer radius  78 ladders
-OT627_200_IT4025.cfg  -69 mm outer radius  72 ladders (-6)
+                                     
+OT618_200_IT621.cfg                  OT Version 6.1.8
+                                     Based from Inner Tracker version 6.1.5.
+                                     Same as IT 6.1.5., but with 50x50 everywhere (instead of 25x100).                                   
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+=================   3D SENSORS STUDIES   =================
+OT616_IT699.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.1.5.
+                                     Reduced holes in TBPX L1 and L2: 1.3 mm -> 0.6 mm, to account for future 3D sensors spacing.
+ 
+OT616_IT700.cfg                      OT Version 6.1.6
+                                     Based from Inner Tracker version 6.9.9.
+                                     Same geometry + materials, but 3D sensor type in TBPX L1 + TBPX L2 + TFPX R1 (+ slightly different inactive Si).
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+================   INSTALLATION STUDIES   ================
+OT800_IT701.cfg                      OT Version 8.0.0
+                                     Based from Inner Tracker version 7.0.0.
+                                     TFPX: Change of ring paradigm: modules of the same ring are now on 2 different dees, instead of being on both sides of the same dee.
+                                     This model is already used in TEPX. 
+                                     This makes the dee model mecanically feasible (cut at X~0), and better equilibrates services distribution among disks.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
+

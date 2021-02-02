@@ -29,7 +29,7 @@ namespace insur {
      */
     static const std::string xml_preamble_concise = "<?xml ";
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n";
-    static const std::string xml_definition = "<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";  
+    static const std::string xml_definition = "<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";  
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
@@ -162,6 +162,7 @@ namespace insur {
     static const std::string xml_trackervolumefile = "trackerVolumeTemplate.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
+    static const std::string xml_OTSTfile = "otst.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
     static const std::string xml_newtopologyfile = "newTrackerStructureTopology.xml";
     static const std::string xml_PX_topologyfile = "pixelStructureTopology.xml";
@@ -194,8 +195,10 @@ namespace insur {
     static const std::string xml_base_strip = "Strip";
     static const std::string xml_base_ps = "PS";
     static const std::string xml_base_2s = "2S";
+    static const std::string xml_OTST = "OTST";
     static const std::string xml_OT = "OuterTracker";
     static const std::string xml_PX = "InnerPixel";
+    static const std::string xml_3D = "3D";
     static const std::string xml_timing = "Timing";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
@@ -220,6 +223,7 @@ namespace insur {
     static const std::string xml_sensor_LYSO = "SenLYSO";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
+    static const std::string xml_otstident = "otst";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
     static const std::string xml_PX_fileident = "pixel";

@@ -85,7 +85,7 @@ namespace insur {
       }
     };
   public:
-    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
+    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& trackerData, CMSSWBundle& otstData, bool wt = false);
   protected:
     void analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites);
     void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
@@ -104,8 +104,10 @@ namespace insur {
 			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
 			 std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
     void analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
-			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
+			 std::vector<Composite>& otstComposites, std::vector<LogicalInfo>& otstLogic, std::vector<ShapeInfo>& otstShapes, std::vector<PosInfo>& otstPositions, 
+			 std::vector<SpecParInfo>& t, 
+			 bool wt = false);
   private:
     void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
     void addRotationAroundZAxis(std::map<std::string,Rotation>& storedRotations, 

@@ -363,7 +363,7 @@ void TiltedLayersVisitor::visit(const Layer& l) {
     //************************************//
 void TrackerVisitor::preVisit() {
   //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
-  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
 }
 
 void TrackerVisitor::visit(const Barrel& b) {
@@ -408,7 +408,7 @@ void TrackerVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void BarrelVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Barrel-Layer name, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 void BarrelVisitor::visit(const Barrel& b) {
   barName_ = b.myid();
@@ -443,7 +443,7 @@ std::string BarrelVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void EndcapVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 
 void EndcapVisitor::visit(const Endcap& e) {
@@ -620,7 +620,7 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT/C, MFB/I, DTC/I, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -661,7 +661,8 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     if (myGBT != nullptr) {
       std::stringstream GBTInfo;
       GBTInfo << myGBT->numELinksPerModule() << ","
-	      << any2str(myGBT->GBTId()) << ",";
+	      << any2str(myGBT->GBTId()) << ","
+	      << myGBT->getCMSSWId() << ",";
 
       const InnerBundle* myBundle = myGBT->getBundle();
       if (myBundle != nullptr) {
@@ -672,6 +673,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->myid() << ","
+		  << myDTC->getCMSSWId() << ","
 		  << myDTC->isPositiveZEnd() << ","
 		  << myDTC->isPositiveXSide();
 	  output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << DTCInfo.str() << std::endl;
@@ -691,17 +693,25 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void CMSSWInnerTrackerCablingMapVisitor::preVisit() {
-  output_ << "Module DetId/U, DTC Id/U" << std::endl;
+  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
 }
 
 void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
   std::stringstream moduleInfo;
   moduleInfo << m.myDetId() << ", ";
-  const InnerDTC* myDTC = m.getInnerDTC();
-  if (myDTC) {
-    std::stringstream DTCInfo;
-    DTCInfo << myDTC->myid();	 
-    output_ << moduleInfo.str() << DTCInfo.str() << std::endl;
+
+  const GBT* myGBT = m.getGBT();
+  if (myGBT) {
+    std::stringstream GBTInfo;
+    GBTInfo << myGBT->getCMSSWId() << ",";
+
+    const InnerDTC* myDTC = m.getInnerDTC();
+    if (myDTC) {
+      std::stringstream DTCInfo;
+      DTCInfo << myDTC->getCMSSWId();	 
+      output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
+    }
+    else output_ << moduleInfo.str() << GBTInfo.str() << std::endl;
   }
   else output_ << moduleInfo.str() << std::endl;
 }
