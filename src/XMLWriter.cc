@@ -1100,7 +1100,7 @@ namespace insur {
 	std::string& lcurrent = specs.at(lindex).partselectors.at(i);
 
 	std::string lnumber;
-	lnumber = lcurrent.substr(xml_layer.size()); 
+	lnumber = lcurrent.substr(lcurrent.find(xml_layer) + xml_layer.size());
 
 	// Looks whether a layer is tilted. If so, finds the number of its first tilted ring.
 	bool isTilted = false;
@@ -1112,7 +1112,7 @@ namespace insur {
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
 	  if ((lnumber == compstr) && (rcurrent.find(xml_ring) != std::string::npos)) { 
 	    isTilted = true;
-	    firstTiltedRing = rcurrent.substr(xml_ring.size());
+	    firstTiltedRing = rcurrent.substr(rcurrent.find(xml_ring) + xml_ring.size());
 	    firstTiltedRing = firstTiltedRing.substr(0, findNumericPrefixSize(firstTiltedRing));
 	  }
 	  j++;
@@ -1124,25 +1124,17 @@ namespace insur {
 	  std::string rnumber;
 	  std::string compstr;
 	  // rod case
-	  if (rcurrent.find(xml_rod) != std::string::npos) {
-	    if (rcurrent.find(xml_flipped) == std::string::npos && rcurrent.find(xml_unflipped) == std::string::npos) {
-	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size());
-	    }
-	    else if (rcurrent.find(xml_flipped) != std::string::npos) {
-	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size() + xml_flipped.size());
-	    }
-	    else if (rcurrent.find(xml_unflipped) != std::string::npos) {
-	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size() + xml_unflipped.size());
-	    }
+	  if (rcurrent.find(xml_rod) != std::string::npos && rcurrent.find(xml_layer) != std::string::npos) {
+	    compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());	    
 	  }
 	  // (if any) tilted ring case
 	  else if ((rcurrent.find(xml_ring) != std::string::npos) && (rcurrent.find(xml_layer) != std::string::npos)) {
-	    rnumber = rcurrent.substr(xml_ring.size());
+	    rnumber = rcurrent.substr(rcurrent.find(xml_ring) + xml_ring.size());
 	    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 	    compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
 	  }
 	  else {
-	    std::cerr << "While building paths for trackerRecoMaterial.xml, neither " << xml_rod << " nor " << xml_ring << " can be found in " << rcurrent << "." << std::endl; 
+	    std::cerr << "While building paths for trackerRecoMaterial.xml, neither " << xml_rod << " nor " << xml_ring << " can be found with " << xml_layer << " in " << rcurrent << "." << std::endl; 
 	  }
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
 
@@ -1150,8 +1142,8 @@ namespace insur {
 	  if (lnumber == compstr) {
 	    spname = trackerXmlTags.reco_layer_name + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
-	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
+	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
 	    //else prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
 	    prefix = prefix + trackerXmlTags.nspace + ":" + rcurrent;
 
@@ -1161,8 +1153,8 @@ namespace insur {
 
 	      std::string mnumber;
 
-	      if (refstring.find(xml_barrel_module) != std::string::npos) {
-		mnumber = refstring.substr(xml_barrel_module.size());
+	      if (refstring.find(xml_barrel_module) != std::string::npos && refstring.find(xml_R) != std::string::npos) {
+		mnumber = refstring.substr(rcurrent.find(xml_R) + xml_R.size());
 		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
 
 		bool isTiming = (refstring.find(xml_timing) != std::string::npos);
@@ -1173,7 +1165,7 @@ namespace insur {
 		    || ((isTilted) && (rcurrent.find(xml_rod) != std::string::npos) && (atoi(mnumber.c_str()) < atoi(firstTiltedRing.c_str()))) 
 		    // For tilted layer, in case of tilted ring, takes the corresponding module. e.g. BModule5 for Ring5 of Layer1.
 		    || ((isTilted) && (rcurrent.find(xml_ring) != std::string::npos) && (atoi(mnumber.c_str()) == atoi(rnumber.c_str())))) { 
-		  postfix = xml_barrel_module + mnumber + xml_layer + lnumber;
+		  postfix = trackerXmlTags.tracker + xml_layer + lnumber + xml_R + mnumber + xml_barrel_module;
 		  
 		  if (refstring.find(postfix) != std::string::npos) {
 		      
@@ -1230,7 +1222,7 @@ namespace insur {
 
 	bool plus = specs.at(dindex).partextras.at(i) == xml_plus; // CUIDADO was : (dcurrent.size() >= xml_plus.size() && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
 	std::string dnumber, rnumber;
-	dnumber = dcurrent.substr(xml_disc.size()); 
+	dnumber = dcurrent.substr(dcurrent.find(xml_disc) + xml_disc.size()); 
 	//CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
 	//else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
 	std::ostringstream index;
@@ -1251,23 +1243,22 @@ namespace insur {
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
 	  std::string compstr = specs.at(rindex).partselectors.at(j);
 
-	  rnumber = compstr.substr(xml_ring.size());
+	  rnumber = compstr.substr(rnumber.find(xml_ring) + xml_ring.size());
 	  rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 
-	  compstr = compstr.substr(xml_ring.size() + rnumber.size() + xml_disc.size());
+	  compstr = compstr.substr(compstr.find(xml_disc) + xml_disc.size());
 
 	  // matching discs
 	  if (dnumber.compare(compstr) == 0) {
 
-	    std::string postfixbase = xml_endcap_module + rnumber + xml_disc;
-	    postfix = postfixbase + dnumber;
+	    postfix = trackerXmlTags.tracker + xml_disc + dnumber + xml_R + rnumber + xml_endcap_module;
 
 	    // module loop
 	    for (unsigned int k=0; k<specs.at(windex).partselectors.size(); k++ ) {
 	      std::string refstring = specs.at(windex).partselectors.at(k);
 
 	      if (refstring.find(postfix) != std::string::npos) {
-		std::string refdnumber = refstring.substr(postfixbase.size());
+		std::string refdnumber = refstring.substr(refstring.find(xml_disc) + xml_disc.size());
 		refdnumber = refdnumber.substr(0, findNumericPrefixSize(refdnumber));
 		if (dnumber == refdnumber) {
 
@@ -1289,7 +1280,7 @@ namespace insur {
         
 		  if (plus) paths.push_back(prefix + postfix);
 		  else tpaths.push_back(prefix + postfix);
-		  postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+		  postfix = trackerXmlTags.tracker + xml_disc + dnumber + xml_R + rnumber + xml_endcap_module;
 
 		}
 	      }
