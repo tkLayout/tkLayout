@@ -1243,10 +1243,11 @@ namespace insur {
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
 	  std::string compstr = specs.at(rindex).partselectors.at(j);
 
-	  rnumber = compstr.substr(rnumber.find(xml_ring) + xml_ring.size());
+	  rnumber = compstr.substr(compstr.find(xml_ring) + xml_ring.size());
 	  rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 
 	  compstr = compstr.substr(compstr.find(xml_disc) + xml_disc.size());
+	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
 
 	  // matching discs
 	  if (dnumber.compare(compstr) == 0) {
