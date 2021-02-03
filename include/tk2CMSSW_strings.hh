@@ -138,6 +138,7 @@ namespace insur {
     static const std::string xml_spec_par_open = "<SpecPar name=\"";
     static const std::string xml_spec_par_selector = "<PartSelector path=\"//";
     static const std::string xml_spec_par_parameter_first = "<Parameter name=\"";
+    static const std::string xml_spec_par_parameter_evaluation = "\" eval=\"true"; // numerical parameters need to be evaluated
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
 
