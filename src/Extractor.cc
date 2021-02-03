@@ -328,7 +328,7 @@ namespace insur {
 	  lname << xml_layer << layer; // e.g. Layer1
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); // .e.g. BModule1Layer1
+	  mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; // .e.g. OTLayer1R1Bmodule
 	  // parent module name
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -432,7 +432,7 @@ namespace insur {
 	  dname << xml_disc << layer; // e.g. Disc6
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	  mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	  // parent module name  
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -692,7 +692,7 @@ namespace insur {
 	  lname << xml_layer << layer; // e.g. Layer1
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); //.e.g. BModule1Layer1
+	  mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; //.e.g. OTLayer1R1BModule
 	  // parent module name
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -877,12 +877,12 @@ namespace insur {
 	  std::ostringstream mname;
 	  std::ostringstream mnameBase;
 	  std::ostringstream mnameNeg;
-	  if (!iiter->getModule().isTimingModule()) mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  if (!iiter->getModule().isTimingModule()) { mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; } // e.g. OTLayer1R1Bmodule
 	  // Timing layer : insert both +Z and -Z sides
 	  else {
-	    mnameBase << xml_barrel_module << modRing << lname.str();
-	    mname << xml_barrel_module << modRing << lname.str() << xml_positive_z;
-	    mnameNeg << xml_barrel_module << modRing << lname.str() << xml_negative_z;
+	    mnameBase << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module;
+	    mname << mnameBase.str() << xml_positive_z;
+	    mnameNeg << mnameBase.str() << xml_negative_z;
 	  }
 
 
@@ -1057,7 +1057,7 @@ namespace insur {
 		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	      }	    
 	      else {
-		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
 		else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      }
@@ -1144,8 +1144,8 @@ namespace insur {
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 		else if (iiter->getModule().isPixelModule()) {
-		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
-		  else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
+		  else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
 		}
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    
@@ -1165,7 +1165,7 @@ namespace insur {
 		if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		else {
 		  if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
 		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		}
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
@@ -2124,7 +2124,7 @@ namespace insur {
 	    dname << xml_disc << discNumber; // e.g. Disc6
 	    // module name
 	    std::ostringstream mname;
-	    mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	    mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	    // parent module name
 	    std::string parentName = mname.str();
 	    // build module volumes, with hybrids taken into account
@@ -2195,7 +2195,7 @@ namespace insur {
 	      // ring name
 	      rname << xml_ring << modRing << dname.str(); // e.g. Ring1Disc6
 	      // module name
-	      mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	      mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
  
 	      // parent module name
 	      std::string parentName = mname.str();
@@ -2261,7 +2261,7 @@ namespace insur {
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	    }
 	    else {
-	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
 	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    }     
@@ -2331,8 +2331,8 @@ namespace insur {
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) {
-		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
-		else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
 	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
@@ -2346,7 +2346,7 @@ namespace insur {
 	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 	      else {
 		if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
 		else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      }
 

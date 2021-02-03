@@ -248,7 +248,7 @@ namespace insur {
 
 	if (!isPixelTracker) {
 	  // Add LowerDetectors
-	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	  if (pos != -1) {
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -269,7 +269,7 @@ namespace insur {
 	  out << xml_spec_par_close;
 
 	  // Add UpperDetectors
-	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	  if (pos != -1) {
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -1191,7 +1191,7 @@ namespace insur {
 			postfixPos = trackerXmlTags.nspace + ":" + postfix + xml_positive_z + "/" + postfix + xml_positive_z + xml_timing + xml_base_waf + "/" + refstring;
 			postfixNeg = trackerXmlTags.nspace + ":" + postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
 		      }
-		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
+		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_InnerPixel + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
 		    if (!isTiming) {
 		      paths.push_back(prefix + "/" + postfix);
 		    }
@@ -1283,7 +1283,7 @@ namespace insur {
         
 		  else
 		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
-		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
+		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_InnerPixel + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
         
 		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         

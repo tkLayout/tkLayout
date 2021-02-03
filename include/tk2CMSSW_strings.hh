@@ -197,8 +197,10 @@ namespace insur {
     static const std::string xml_base_ps = "PS";
     static const std::string xml_base_2s = "2S";
     static const std::string xml_OTST = "OTST";
-    static const std::string xml_OT = "OuterTracker";
-    static const std::string xml_PX = "InnerPixel";
+    static const std::string xml_OuterTracker = "OuterTracker";
+    static const std::string xml_InnerPixel = "InnerPixel";
+    static const std::string xml_OT = "OT";
+    static const std::string xml_IT = "IT";
     static const std::string xml_3D = "3D";
     static const std::string xml_timing = "Timing";
     static const std::string xml_base_serf = "service";
@@ -208,6 +210,7 @@ namespace insur {
     static const std::string xml_rod = "Rod";
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
+    static const std::string xml_R = "R";
     static const std::string xml_ring = "Ring";
     static const std::string xml_positive_z = "PositiveZ";
     static const std::string xml_negative_z = "NegativeZ";
@@ -368,8 +371,9 @@ namespace insur {
 
     struct XmlTags {
     XmlTags(bool isPixelTracker) : 
-      nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
-	tracker(!isPixelTracker ? xml_OT : xml_PX),
+        nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
+        tracker(!isPixelTracker ? xml_OT : xml_IT),
+	trackerLong(!isPixelTracker ? xml_OuterTracker : xml_InnerPixel),        
 	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
 	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
 
@@ -405,6 +409,7 @@ namespace insur {
 
       const std::string nspace;
       const std::string tracker;
+      const std::string trackerLong;
       const std::string bar;
       const std::string fwd;
 
