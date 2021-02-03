@@ -325,7 +325,7 @@ namespace insur {
 	  int modRing = iiter->getModule().uniRef().ring;
 	  // layer name
 	  std::ostringstream lname;
-	  lname << xml_layer << layer; // e.g. Layer1
+	  lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
 	  // module name
 	  std::ostringstream mname;
 	  mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; // .e.g. OTLayer1R1Bmodule
@@ -429,10 +429,10 @@ namespace insur {
 	  ridx.insert(modRing);
 	  // disk name
 	  std::ostringstream dname;
-	  dname << xml_disc << layer; // e.g. Disc6
+	  dname << trackerXmlTags.tracker << xml_disc << layer; // e.g. OTDisc6
 	  // module name
 	  std::ostringstream mname;
-	  mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
+	  mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	  // parent module name  
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -689,10 +689,10 @@ namespace insur {
 	  
 	  // layer name
 	  std::ostringstream lname;
-	  lname << xml_layer << layer; // e.g. Layer1
+	  lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
 	  // module name
 	  std::ostringstream mname;
-	  mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; //.e.g. OTLayer1R1BModule
+	  mname << lname.str() << xml_R << modRing << xml_barrel_module; //.e.g. OTLayer1R1BModule
 	  // parent module name
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -811,11 +811,11 @@ namespace insur {
       
 
       std::ostringstream lname, ladderName, unflippedLadderName, pconverter;
-      lname << xml_layer << layer; // e.g. Layer1
-      if (!isPixelTracker) ladderName << xml_rod << layer; // e.g.Rod1
+      lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
+      if (!isPixelTracker) ladderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod; // e.g. OTLayer1Rod
       else {
-	ladderName << xml_rod << xml_flipped << layer; // e.g.RodFlipped1
-	unflippedLadderName << xml_rod << xml_unflipped << layer; // e.g.RodUnflipped1
+	ladderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_flipped; // e.g. OTLayer1RodFlipped
+	unflippedLadderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_unflipped; // e.g. OTLayer1RodUnflipped
       }
 
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
@@ -877,10 +877,10 @@ namespace insur {
 	  std::ostringstream mname;
 	  std::ostringstream mnameBase;
 	  std::ostringstream mnameNeg;
-	  if (!iiter->getModule().isTimingModule()) { mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; } // e.g. OTLayer1R1Bmodule
+	  if (!iiter->getModule().isTimingModule()) { mname << lname.str() << xml_R << modRing << xml_barrel_module; } // e.g. OTLayer1R1Bmodule
 	  // Timing layer : insert both +Z and -Z sides
 	  else {
-	    mnameBase << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module;
+	    mnameBase << lname.str() << xml_R << modRing << xml_barrel_module;
 	    mname << mnameBase.str() << xml_positive_z;
 	    mnameNeg << mnameBase.str() << xml_negative_z;
 	  }
@@ -903,7 +903,7 @@ namespace insur {
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
             std::ostringstream ringname;
-	    ringname << xml_ring << modRing << lname.str();
+	    ringname << lname.str() << xml_ring << modRing;
 
 
 	    // MODULE
@@ -1038,7 +1038,7 @@ namespace insur {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
 	      std::ostringstream ringname;
-	      ringname << xml_ring << modRing << lname.str();
+	      ringname << lname.str() << xml_ring << modRing;
 
 	      // Topology
 	      sspec.partselectors.push_back(mname.str());
@@ -2121,10 +2121,10 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 	    //disk name
 	    std::ostringstream dname;
-	    dname << xml_disc << discNumber; // e.g. Disc6
+	    dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
 	    // module name
 	    std::ostringstream mname;
-	    mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
+	    mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	    // parent module name
 	    std::string parentName = mname.str();
 	    // build module volumes, with hybrids taken into account
@@ -2171,7 +2171,7 @@ namespace insur {
 	//if (zmin > 0) {	
         std::ostringstream dname, pconverter;
 	//disk name
-        dname << xml_disc << discNumber; // e.g. Disc6
+        dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
 
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
@@ -2193,9 +2193,9 @@ namespace insur {
 
 	      std::ostringstream matname, rname, mname, specname;
 	      // ring name
-	      rname << xml_ring << modRing << dname.str(); // e.g. Ring1Disc6
+	      rname << dname.str() << xml_ring << modRing; // e.g. OTDisc6Ring1
 	      // module name
-	      mname << trackerXmlTags.tracker << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
+	      mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
  
 	      // parent module name
 	      std::string parentName = mname.str();
