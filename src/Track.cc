@@ -720,9 +720,9 @@ void Track::printErrors() {
 }
 
 //
-// Helper method printing symmetric matrix
+// Helper method printing matrix
 //
-void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
+void Track::printMatrix(const TMatrixT<double>& matrix) const {
 
   std::cout << std::endl;
 
@@ -741,37 +741,19 @@ void Track::printSymMatrix(const TMatrixTSym<double>& matrix) const {
 }
 
 //
-// Helper method printing matrix
-//
-void Track::printMatrix(const TMatrixT<double>& matrix) const {
-
-  std::cout << std::endl;
-
-  int nCols = matrix.GetNcols();
-  int nRows = matrix.GetNrows();
-
-  for (int i = 0; i<nRows; i++) {
-    std::cout << "(";
-    for (int j=0; j<nCols;j++) {
-
-      std::cout << " " << std::fixed << std::setprecision(5) << matrix(i,j);
-    }
-    std::cout << ")" << std::endl;
-  }
-  std::cout << std::endl;
-}
-
-//
 // Helper method printing track hits
 //
-void Track::printHits() const {
+void Track::printHits() {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
 
+  const double refPointRPos = 0.;
+  const double deltaTheta = getDeltaTheta(refPointRPos);
+
   for (const auto& it : m_hits) {
     std::cout << "    Hit";
-    if (it->isActive())   std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+    if (it->isActive())   std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()), deltaTheta);
     else                  std::cout << " r="  << it->getRPos();
     if (it->isActive())   std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
     else                  std::cout << " z="  << it->getZPos();
@@ -796,16 +778,19 @@ void Track::printHits() const {
 //
 // Helper method printing track hits
 //
-void Track::printActiveHits() const {
+void Track::printActiveHits() {
 
   std::cout << "******************" << std::endl;
   std::cout << "Track eta=" << m_eta << std::endl;
+
+  const double refPointRPos = 0.;
+  const double deltaTheta = getDeltaTheta(refPointRPos);
 
   for (const auto& it : m_hits) {
     if (it->isActive()) {
 
       std::cout << "    Hit";
-      std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()));
+      std::cout << " r="  << it->getRPos() << " +- " << it->getResolutionRphi(getRadius(it->getZPos()), deltaTheta);
       std::cout << " z="  << it->getZPos() << " +- " << it->getResolutionZ(getRadius(it->getZPos()));
       std::cout << " d="  << it->getDistance()
                 << " rl=" << it->getCorrectedMaterial().radiation
@@ -1121,6 +1106,13 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
 //
 bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
+  // Get the track's deltaTheta
+  const double deltaTheta = getDeltaTheta(refPointRPos, propagOutIn); // VERY IMPORTANT NB:
+  // Track::getDeltaCtgTheta introduces a call to Track::computeErrorsRZ.
+  // IE, THE TRACK THETA ERROR ON (RZ) PLANE IS COMPUTED FIRST, THEN IS USED TO GET THE RPHI ERROR!
+  // getDeltaTheta should be called first, in computeCovarianceMatrixRPhi, as it sorts the hits in a certain way.
+  // Hence, it needs to be done before the custom sorting done below.
+
   // Matrix size
   int nHits = m_hits.size();
   m_varMatrixRPhi.ResizeTo(nHits,nHits);
@@ -1242,13 +1234,19 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
                    * (m_hits.at(r)->getRPos() - m_hits.at(i)->getRPos());
 
           }
-          if (r == c) {
 
-            double prec = m_hits.at(r)->getResolutionRphi(getRadius(m_hits.at(r)->getZPos()));
-            //std::cout << ">>> " << sqrt(sum) << " " << prec << std::endl;
-            sum = sum + prec * prec;
+          if (r == c) {	    
+	    // Get hit
+	    const Hit* const myHit = m_hits.at(r).get();
 
+	    // Get the hit's Rphi resolution
+	    const double trackRadius = getRadius(myHit->getZPos());
+	    const double resolutionRPhi = myHit->getResolutionRphi(trackRadius, deltaTheta);
+
+	    // Add resolutionRPhi to the correlation matrix
+            sum = sum + pow(resolutionRPhi, 2.);
           }
+
           m_varMatrixRPhi(r, c) = sum;
           if (r != c) m_varMatrixRPhi(c, r) = sum;
         }
@@ -1258,7 +1256,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Phi (with zero cols/rows): " << std::endl;
-  //printSymMatrix(m_varMatrixRPhi);
+  //printMatrix(m_varMatrixRPhi);
 
   //
   // Remove zero rows and columns in covariance matrix
@@ -1293,7 +1291,7 @@ bool Track::computeCovarianceMatrixRPhi(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Phi: " << std::endl;
-  //printSymMatrix(m_varMatrixRPhi);
+  //printMatrix(m_varMatrixRPhi);
 
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRPhi.GetNoElements() > 0) && (m_varMatrixRPhi.Determinant() != 0.0))) {
@@ -1491,7 +1489,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Z (with zero cols/rows): " << std::endl;
-  //printSymMatrix(m_varMatrixRZ);
+  //printMatrix(m_varMatrixRZ);
 
   //
   // Remove zero rows and columns in covariance matrix
@@ -1526,7 +1524,7 @@ bool Track::computeCovarianceMatrixRZ(double refPointRPos, bool propagOutIn) {
 
   // Print variance matrix
   //std::cout << "Variance matrix in R-Z: " << std::endl;
-  //printSymMatrix(m_varMatrixRZ);
+  //printMatrix(m_varMatrixRZ);
 
   // Check if matrix is sane and worth keeping
   if (!((m_varMatrixRZ.GetNoElements() > 0) && (m_varMatrixRZ.Determinant() != 0.0))) {

@@ -60,4 +60,11 @@ static const std::string inner_cabling_tfpx = "FPIX_1";
 static const std::string inner_cabling_tepx = "FPIX_2";
 
 
+// CMSSW IDS
+// Total number of DTCs in OT
+static const int outer_cabling_totalNumDTCs = 216; // This could be obtained by:
+// outer_cabling_numNonants * outer_cabling_maxNumDTCsPerNonantPerZEnd,
+// but ugly to introduce dependency of IT cabling map on OT, because the maps are actually fully independent.
+
+
 #endif  // INNER_CABLING_CONSTANTS_HH

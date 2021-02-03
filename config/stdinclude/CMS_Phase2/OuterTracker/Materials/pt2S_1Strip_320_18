@@ -1,0 +1,8 @@
+// pt-2S module 10x10 for the outer region
+// GBT on the module
+
+Materials module-pt2S_1Strip_320_18 {
+  type module
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/pt2S_1Strip_320_18_components
+} 
+   

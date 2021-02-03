@@ -114,7 +114,7 @@ namespace insur {
   static const int    vis_std_canvas_sizeY   = 900;
   static const int    vis_max_canvas_sizeY   =1800;
 
-  static const double vis_eta_step           = 0.1;
+  static const double vis_eta_step           = 0.02;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
 
@@ -134,7 +134,8 @@ namespace insur {
    * Internal string constants for modules types.
    */
   static const std::string type_pixel   = "pixel";
-  static const std::string type_timing = "timing";
+  static const std::string type_3D      = "3D";
+  static const std::string type_timing  = "timing";
 
 
   /**

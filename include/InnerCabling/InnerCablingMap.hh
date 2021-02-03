@@ -52,6 +52,7 @@ private:
   const int computeDTCId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber) const;
   void createAndStoreDTCs(InnerBundle* myBundle, std::map<int, std::unique_ptr<InnerDTC> >& DTCs, const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
   void connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const;
+  void computeCMSSWIds(std::map<int, std::unique_ptr<InnerDTC> >& DTCs);
   void checkBundlesToDTCsCabling(const std::map<int, std::unique_ptr<InnerDTC> >& DTCs) const;
 
 

@@ -2,7 +2,8 @@
 Materials FPIX_R1_1x2_2500 {
   type module
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common         
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Active_Planar    
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_1x2
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC

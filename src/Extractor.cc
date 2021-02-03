@@ -24,7 +24,7 @@ namespace insur {
    * @param mb A reference to the material budget that is to be analysed; used as input
    * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
    */
-  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt) {
+  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& trackerData, CMSSWBundle& otstData, bool wt) {
 
     std::cout << "Starting analysis..." << std::endl;
 
@@ -35,16 +35,23 @@ namespace insur {
     //std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& ec = mb.getEndcapModuleCaps();
 
-    std::vector<Element>& e = d.elements;
-    std::vector<Composite>& c = d.composites;
-    std::vector<LogicalInfo>& l = d.logic;
-    std::vector<ShapeInfo>& s = d.shapes;
-    std::vector<ShapeOperationInfo>& so = d.shapeOps;
-    std::vector<PosInfo>& p = d.positions;
-    std::vector<AlgoInfo>& a = d.algos;
-    std::map<std::string,Rotation>& r = d.rots;
-    std::vector<SpecParInfo>& t = d.specs;
-    std::vector<RILengthInfo>& ri = d.lrilength;
+    // trackerData
+    std::vector<Element>& e = trackerData.elements;
+    std::vector<Composite>& c = trackerData.composites;
+    std::vector<LogicalInfo>& l = trackerData.logic;
+    std::vector<ShapeInfo>& s = trackerData.shapes;
+    std::vector<ShapeOperationInfo>& so = trackerData.shapeOps;
+    std::vector<PosInfo>& p = trackerData.positions;
+    std::vector<AlgoInfo>& a = trackerData.algos;
+    std::map<std::string,Rotation>& r = trackerData.rots;
+    std::vector<SpecParInfo>& t = trackerData.specs;
+    std::vector<RILengthInfo>& ri = trackerData.lrilength;
+
+    // otstData
+    std::vector<Composite>& otstComposites = otstData.composites;
+    std::vector<LogicalInfo>& otstLogic = otstData.logic;
+    std::vector<ShapeInfo>& otstShapes = otstData.shapes;
+    std::vector<PosInfo>& otstPositions = otstData.positions;
 
     //int layer;
 
@@ -200,7 +207,7 @@ namespace insur {
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Services done." << std::endl;
     // Analyse supports
-    analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
+    analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, otstComposites, otstLogic, otstShapes, otstPositions, t);
     std::cout << "Support structures done." << std::endl;
     std::cout << "Analysis done." << std::endl;
   }
@@ -1136,7 +1143,10 @@ namespace insur {
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-		else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+		else if (iiter->getModule().isPixelModule()) {
+		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
+		  else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		}
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    
 		// SolidSection
@@ -2320,7 +2330,10 @@ namespace insur {
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
-	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_Act;
+	      else if (iiter->getModule().isPixelModule()) {
+		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
 	      s.push_back(shape);
@@ -2845,8 +2858,12 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    */
   void Extractor::analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
-				  std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+				  std::vector<Composite>& c, std::vector<LogicalInfo>& l, 
+				  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
+				  std::vector<Composite>& otstComposites, std::vector<LogicalInfo>& otstLogic, 
+				  std::vector<ShapeInfo>& otstShapes, std::vector<PosInfo>& otstPositions,
+				  std::vector<SpecParInfo>& t, 
+				  bool wt) {
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2881,14 +2898,26 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
 #endif
 
-      if (shapename.str() == "supportR1191Z1325") {
-	std::cout << "WARNING: Removed supportR1191Z1325, because OTST is already included independently in CMSSW. Make sure supportR1191Z1325 is the OTST though!!" << std::endl;
+   
+      // Test whether the support is the OTST.
+      const std::map<LocalElement, double, ElementNameCompare>& allMasses = iter->getLocalElementsDetails();
+      bool isOTST = false;
+      for (const auto& massIt : allMasses) {
+	const LocalElement& myElement = massIt.first;
+	const std::string subdetectorName = myElement.subdetectorName();
+	if (subdetectorName == xml_OTST) { isOTST = true; }
+	if (isOTST && subdetectorName != xml_OTST) {
+	  std::cout << "VERY IMPORTANT!! NOT SUPPORTED: SAME volume contains OTST element(s), but also other element(s) assigned to different subdetector(s)." << std::endl;
+	}
       }
 
-      if ((iter->getZOffset() + iter->getZLength()) > 0 && shapename.str() != "supportR1191Z1325") {
-	// Hack to avoid the export of the OTST (supportR1191Z1325). TO DO: automatic export of the OTST.
+
+      if ((iter->getZOffset() + iter->getZLength()) > 0) { // && shapename.str() != "supportR1191Z1325")
         if ( iter->getLocalMasses().size() ) {
-          c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+
+	  // Create composite
+          if (!isOTST) { c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter)); }
+	  else { otstComposites.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter)); }
 
 	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
@@ -2899,29 +2928,35 @@ namespace insur {
 	  // BARREL supports
 	  if ( (!isPixelTracker && iter->getZOffset() < startEndcaps)
 	       || (isPixelTracker && ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps))
+	       || isOTST
 	       ) {
 
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
 	    shape.rmin = iter->getInnerRadius();
 	    shape.rmax = shape.rmin + iter->getRWidth();
-	    s.push_back(shape);
+	    if (!isOTST) { s.push_back(shape); }
+	    else { otstShapes.push_back(shape); }
 	    if (shape.rmin < supportBarrelRMin) supportBarrelRMin = shape.rmin;
 	    if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
-	    logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
-	    logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
-	    l.push_back(logic);
+	    logic.shape_tag = (!isOTST ? trackerXmlTags.nspace : xml_otstident) + ":" + shapename.str();
+	    logic.material_tag = (!isOTST ? trackerXmlTags.nspace : xml_otstident) + ":" + matname.str();
+	    if (!isOTST) { l.push_back(logic); }
+	    else { otstLogic.push_back(logic); }
 
-	    pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+	    if (!isOTST) { pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; }
+	    else { pos.parent_tag = trackerXmlTags.nspace + ":" + xml_tracker; }
 	    pos.child_tag = logic.shape_tag;
 	    pos.trans.dz = iter->getZOffset() + shape.dz;
-	    p.push_back(pos);
+	    if (!isOTST) { p.push_back(pos); }
+	    else { otstPositions.push_back(pos); }
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
 	    pos.rotref = trackerXmlTags.nspace + ":" + xml_Y180;
-	    p.push_back(pos);
+	    if (!isOTST) { p.push_back(pos);  }
+	    else { otstPositions.push_back(pos); }
 	  }
 
 	  // ENDCAPS supports
@@ -2947,7 +2982,7 @@ namespace insur {
 	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
+	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz + xml_epsilon;
 	      p.push_back(pos);
@@ -2973,7 +3008,7 @@ namespace insur {
 	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = startEndcaps + shape.dz + xml_epsilon - xml_z_pixfwd;
 	      p.push_back(pos);
