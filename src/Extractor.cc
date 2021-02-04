@@ -261,25 +261,35 @@ namespace insur {
 
     // FROM TABLE: MIXTURES (INCLUDE COMPOUNDS)
     const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+    const int maxMaterialsTreeHierarchyLevel = myTable.getMaxMaterialsTreeHierarchyLevel();
 
-    for (const auto& mixIt : allChemicalMixtures) {
-      const std::string mixtureName = mixIt.first;
-      const ChemicalMixture& mix = mixIt.second;
+    // This is to print the mixtures in a specific order: from lowest to highest materialsTreeHierarchyLevel.
+    // This is because the materials a mixture is made of, need to be printed first (on top of the XML file).
+    for (int materialsTreeHierarchyLevel = 1; materialsTreeHierarchyLevel <= maxMaterialsTreeHierarchyLevel; ++materialsTreeHierarchyLevel) {
 
-      Composite comp;
-      comp.name = xml_tkLayout_material + mixtureName;
-      comp.density = mix.getDensity() * 1000.;  // g/cm3
-      comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
+      for (const auto& mixIt : allChemicalMixtures) {	
+	const ChemicalMixture& mix = mixIt.second;
 
-      const MassComposition& fractions = mix.getMassComposition();
-      for (const auto& fractionIt : fractions) {
-	comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
+	// Select the mixtures which have hierarchy level of interest.
+	if (mix.getMaterialsTreeHierarchyLevel() == materialsTreeHierarchyLevel) {
+	  const std::string mixtureName = mixIt.first;
+
+	  Composite comp;
+	  comp.name = xml_tkLayout_material + mixtureName;
+	  comp.density = mix.getDensity() * 1000.;  // g/cm3
+	  comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
+
+	  const MassComposition& fractions = mix.getMassComposition();
+	  for (const auto& fractionIt : fractions) {
+	    comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
+	  }
+
+	  comp.isMixture = true;
+	  allComposites.push_back(comp); // Add composite to the queue to be printed
+	}
       }
 
-      comp.isMixture = true;
-      allComposites.push_back(comp);
     }
-
   }
 
   /**
