@@ -207,10 +207,9 @@ namespace insur {
         // Find the break
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
 
-        // Add Phase2OTBarrel
+        // Add Barrels
 	out << xml_spec_par_open << trackerXmlTags.topo_barrel_name << xml_par_tail << xml_general_inter;       
 	out << xml_spec_par_selector;
-	if (isPixelTracker) out << xml_pixbarident << ":";
 	out << trackerXmlTags.bar << xml_general_endline;
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_barrel_value;
         out << xml_spec_par_close;
@@ -228,10 +227,9 @@ namespace insur {
 	// (only for OT)
 	if (!isPixelTracker) specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
 
-        // Add Phase2OTForward
+        // Add Endcaps
 	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
 	out << xml_spec_par_selector;
-	if (isPixelTracker) out << xml_pixfwdident << ":";
 	out << trackerXmlTags.fwd << xml_general_endline;
 	out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_endcaps_value;   
 	out << xml_spec_par_close;
@@ -323,22 +321,20 @@ namespace insur {
         out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         // head of file
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
-        // TOB
+        // Barrels
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         if (pos < t.size()) {
-            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-	      else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
         pos = 0;
-        // TID
+        // Endcaps
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
         if (pos < t.size()) {
-            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
         // tail of file
         while (std::getline(in, line)) out << line << std::endl;
@@ -357,24 +353,22 @@ namespace insur {
         std::string line;
         while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
         out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
-        // TOB
+        // Barrels
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
-            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
         pos = 0;
-        // TID
+        // Endcaps
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
-            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		else  out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
         // tail of file
         while (std::getline(in, line)) out << line << std::endl;
@@ -949,7 +943,7 @@ namespace insur {
     if (pos != -1) {
       stream << xml_spec_par_open << name << xml_par_tail << xml_general_inter;
       for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-	stream << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	stream << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
       }
       stream << xml_spec_par_parameter_first << t.at(pos).parameter.first << xml_spec_par_parameter_second << t.at(pos).parameter.second;
       stream << xml_spec_par_close;
@@ -968,8 +962,7 @@ namespace insur {
   void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker) {
     for (unsigned i = 0; i < partsel.size(); i++) {
       stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
-      if (!isPixelTracker) stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
-      else stream << xml_spec_par_selector << xml_PX_fileident << ":" << partsel.at(i) << xml_general_endline;
+      stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
       if( param.second.find("TOBDet") != std::string::npos) param.second = xml_subdet_tobdet_1;
       if( param.second.find("TIDDet") != std::string::npos) param.second = xml_subdet_tiddet;
       stream<< xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second  << param.second  << xml_general_endline;
@@ -1142,10 +1135,9 @@ namespace insur {
 	  if (lnumber == compstr) {
 	    spname = trackerXmlTags.reco_layer_name + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
-	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
-	    //else prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
-	    prefix = prefix + trackerXmlTags.nspace + ":" + rcurrent;
+	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
+	    else prefix = trackerXmlTags.bar + "/" + trackerXmlTags.tracker + xml_layer + lnumber + "/";
+	    prefix = prefix + rcurrent;
 
 	    // module loop
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
@@ -1171,19 +1163,19 @@ namespace insur {
 		      
 		    // This is to take care of the Inner/Outer distinction
 		    if (refstring.find(xml_base_lower) != std::string::npos) {
-		      postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		      postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
 		    }
 		    else if (refstring.find(xml_base_upper) != std::string::npos) {
-		      postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		      postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
 		    }
 
 		    else
-		      if (!isPixelTracker && !isTiming) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
+		      if (!isPixelTracker && !isTiming) postfix = postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
 		      else if (isTiming) {
-			postfixPos = trackerXmlTags.nspace + ":" + postfix + xml_positive_z + "/" + postfix + xml_positive_z + xml_timing + xml_base_waf + "/" + refstring;
-			postfixNeg = trackerXmlTags.nspace + ":" + postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
+			postfixPos = postfix + xml_positive_z + "/" + postfix + xml_positive_z + xml_timing + xml_base_waf + "/" + refstring;
+			postfixNeg = postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
 		      }
-		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_InnerPixel + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
+		      else postfix = postfix + "/" + postfix + xml_InnerPixel + xml_base_waf + "/" + refstring;
 		    if (!isTiming) {
 		      paths.push_back(prefix + "/" + postfix);
 		    }
@@ -1234,10 +1226,8 @@ namespace insur {
 	//else spname = spname + xml_backward;
 
 	if (!isPixelTracker) prefix = trackerXmlTags.fwd;
-	else prefix = xml_pixfwdident + ":" + trackerXmlTags.fwd;
-	//if (plus) prefix = xml_pixfwd_plus;
-	//else prefix = xml_pixfwd_minus;
-	prefix = prefix + "/" + trackerXmlTags.nspace + ":" + dcurrent + "/" + trackerXmlTags.nspace + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
+	else prefix = trackerXmlTags.fwd;
+	prefix = prefix + "/" + dcurrent + "/"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
 	// ring loop
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
@@ -1266,16 +1256,16 @@ namespace insur {
 		  // This is to take care of the Inner/Outer distinction
 		  if (refstring.find(xml_base_lower) != std::string::npos) {
 		    //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
-		    postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		    postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
 		  }
 		  else if (refstring.find(xml_base_upper) != std::string::npos) {
 		    //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
-		    postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		    postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
 		  }
         
 		  else
-		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
-		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_InnerPixel + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
+		    if (!isPixelTracker) postfix = postfix + "/" + postfix + xml_timing + xml_base_waf + "/" + refstring;
+		    else postfix = postfix + "/" + postfix + xml_InnerPixel + xml_base_waf + "/" + refstring;
         
 		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
