@@ -1932,7 +1932,7 @@ namespace insur {
 	      pconverter << rinfo.startPhiAngle1 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
-	      pconverter << rinfo.r1;
+	      pconverter << rinfo.r1 << "*mm";
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
 	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));	      
@@ -1961,7 +1961,7 @@ namespace insur {
 	      pconverter << rinfo.startPhiAngle2 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
-	      pconverter << rinfo.r2;
+	      pconverter << rinfo.r2 << "*mm";
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
 	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
@@ -2579,7 +2579,7 @@ namespace insur {
             pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << myRingInfo.radiusMid;
+            pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
@@ -2605,7 +2605,7 @@ namespace insur {
             pconverter << myRingInfo.surface2StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << myRingInfo.radiusMid;
+            pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
@@ -3388,7 +3388,7 @@ namespace insur {
    */
   std::string Extractor::vectorParam(double x, double y, double z) {
     std::ostringstream res;
-    res << xml_algorithm_vector_open << x << "," << y << "," << z << xml_algorithm_vector_close;
+    res << xml_algorithm_vector_open << x << "*mm, " << y << "*mm, " << z << "*mm" << xml_algorithm_vector_close;
     return res.str();
   }
 

@@ -55,8 +55,8 @@ namespace insur {
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
     static const std::string xml_algorithm_numeric = "<Numeric name=\"";
-    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\">";
-    static const std::string xml_algorithm_vector_close = "</Vector>\n";
+    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\"> ";
+    static const std::string xml_algorithm_vector_close = " </Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
     static const std::string xml_tkLayout_material = "tkLayout_";
