@@ -1176,13 +1176,9 @@ namespace insur {
 			postfixNeg = postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
 		      }
 		      else postfix = postfix + "/" + postfix + xml_InnerPixel + xml_base_waf + "/" + refstring;
-		    if (!isTiming) {
-		      paths.push_back(prefix + "/" + postfix);
-		    }
-		    else {
-		      paths.push_back(prefix + "/" + postfixPos);
-		      paths.push_back(prefix + "/" + postfixNeg);
-		    }
+		    //if (!isTiming) {
+		      //paths.push_back(prefix + "/" + postfix);
+		      paths.push_back(refstring);
 		  }
 		}
 	      }
@@ -1269,10 +1265,9 @@ namespace insur {
         
 		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-		  if (plus) paths.push_back(prefix + postfix);
-		  else tpaths.push_back(prefix + postfix);
+		  if (plus) paths.push_back(refstring);
+		  else tpaths.push_back(refstring);
 		  postfix = trackerXmlTags.tracker + xml_disc + dnumber + xml_R + rnumber + xml_endcap_module;
-
 		}
 	      }
 	    } // Added to allow Inner/Outer distinction
