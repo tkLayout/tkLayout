@@ -281,6 +281,7 @@ namespace insur {
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
     static const std::string xml_subdet_upper_detectors = "UpperDetectors";
     static const std::string xml_true = "true";
+    static const std::string xml_readout = "Readout";
     static const std::string xml_roc_x = "PixelROC_X";
     static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_roc_rows_name = "PixelROCRows";

@@ -961,7 +961,7 @@ namespace insur {
 
   void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker) {
     for (unsigned i = 0; i < partsel.size(); i++) {
-      stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
+      stream << xml_spec_par_open << partsel.at(i) << xml_readout << xml_par_tail << xml_general_inter;
       stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
       if( param.second.find("TOBDet") != std::string::npos) param.second = xml_subdet_tobdet_1;
       if( param.second.find("TIDDet") != std::string::npos) param.second = xml_subdet_tiddet;
