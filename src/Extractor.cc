@@ -2194,11 +2194,10 @@ namespace insur {
         std::map<int, std::vector<double>> phi_two;
         std::map<int, std::vector<double>> radius_one;
         std::map<int, std::vector<double>> radius_two;
-        std::map<int, std::vector<double>> zrot_one;
-        std::map<int, std::vector<double>> zrot_two;
+        std::map<int, std::vector<double>> twist_one;
+        std::map<int, std::vector<double>> twist_two;
 
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
-          std::cout<<"uniRef phi is "<<iiter->getModule().uniRef().phi<<" for ring number "<<iiter->getModule().uniRef().ring<<" and subdetector name "<<iiter->getModule().uniRef().subdetectorName<<std::endl;
           if(iiter->getModule().uniRef().subdetectorName=="FPIX_1"){ //Don't need to check this for every endcap ring - awful hack, to be improved
             if(phi_one.count(iiter->getModule().uniRef().ring)==0){
               phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
@@ -2206,8 +2205,8 @@ namespace insur {
             if(radius_one.count(iiter->getModule().uniRef().ring)==0){
               radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
             } 
-            if(zrot_one.count(iiter->getModule().uniRef().ring)==0){
-              zrot_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            if(twist_one.count(iiter->getModule().uniRef().ring)==0){
+              twist_one[iiter->getModule().uniRef().ring] = std::vector<double>();
             } 
             if(phi_two.count(iiter->getModule().uniRef().ring)==0){
               phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
@@ -2215,31 +2214,20 @@ namespace insur {
             if(radius_two.count(iiter->getModule().uniRef().ring)==0){
               radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
             }
-            if(zrot_two.count(iiter->getModule().uniRef().ring)==0){
-              zrot_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            if(twist_two.count(iiter->getModule().uniRef().ring)==0){
+              twist_two[iiter->getModule().uniRef().ring] = std::vector<double>();
             }
             if(iiter->getModule().uniRef().phi%2 == 1){
               phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
               radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              zrot_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().zRotationAngle()*180./M_PI);
+              twist_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().twistAngle()*180./M_PI);
             } else {
               phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
               radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              zrot_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().zRotationAngle()*180./M_PI);
+              twist_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().twistAngle()*180./M_PI);
             }
           }
         }
-        /*std::cout<<"UNIFREFONE "<<std::endl;
-        for(unsigned int i = 0; i<phi_unirefone.size();i++){
-          std::cout<<i<<" has "<<phi_unirefone.at(i)<<std::endl;
-        }
-        std::cout<<"UNIFREFTWO "<<std::endl;
-        for(unsigned int i = 0; i<phi_unireftwo.size();i++){
-          std::cout<<i<<" has "<<phi_unireftwo.at(i)<<std::endl;
-        }*/
-
-        std::cout<<" Now going to loop on module caps "<<std::endl;
-
 
         // LOOP ON MODULE CAPS
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -2644,7 +2632,7 @@ namespace insur {
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_one[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("zRotAngleVec",zrot_one[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("twistAngleVec",twist_one[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_one[ringIndex]));
               pconverter.str("");
@@ -2683,7 +2671,7 @@ namespace insur {
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_two[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("zRotAngleVec",zrot_two[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("twistAngleVec",twist_two[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_two[ringIndex]));
               pconverter.str("");

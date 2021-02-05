@@ -90,11 +90,10 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     if (moduleNode.count(i) > 0){ mod->store(moduleNode.at(i));}
     mod->myid(i+1);
     std::cout<<"------begin module printout--------"<<std::endl;
-    if(mod->propertyTree().get<double>("rotAngle",-99) > -99 ){//Need to do this before further determining phi/z of the module
+    if(mod->propertyTree().get<double>("twistAng",-99) > -99 ){//Need to do this before further determining phi/z of the module
       double tmp_r = mod->center().Rho();
       mod->translateR(-tmp_r);
-      mod->rotateZAtModuleCenter(mod->propertyTree().get<double>("rotAngle"));
-      std::cout<<"rotAngle is "<<mod->propertyTree().get<double>("rotAngle");
+      mod->twist(mod->propertyTree().get<double>("twistAng"));
      if(mod->propertyTree().get<double>("rhoCentre",0) > 0 ){
         mod->translateR(mod->propertyTree().get<double>("rhoCentre")-mod->center().Rho());
       } else {
