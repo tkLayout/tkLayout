@@ -25,6 +25,7 @@ const std::vector<double> Disk::scanDsDistances() const {
     RectangularModule* modTemplate = GeometryFactory::make<RectangularModule>();
     modTemplate->store(propertyTree());
     if (ringNode.count(i) > 0) modTemplate->store(ringNode.at(i));
+
     ringsDsDistances.push_back(modTemplate->dsDistance());
   }
   return ringsDsDistances;
@@ -174,7 +175,6 @@ double Disk::computeNextRho(const int parity, const double zError, const double 
     i is ringNumber.
  */
 void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
-
   double oneBeforeLastRho = 0.;
   double lastRho = 0.;
 
@@ -182,6 +182,7 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
     // CREATES RING (NOT PLACED AT ANY RADIUS YET)
     Ring* ring = GeometryFactory::make<Ring>(subdetectorName());
+    
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));

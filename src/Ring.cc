@@ -79,13 +79,45 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 }
 
 
-void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
+void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift) {
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
+  double deltaPhiNom = 2.*M_PI/numMods;
+  double deltaPhiLarge = deltaPhiNom+2*phiShift;
+  double nominalZRot = 0.;
+  if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));}
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
     EndcapModule* mod = GeometryFactory::clone(*templ);
+    if (moduleNode.count(i) > 0){ mod->store(moduleNode.at(i));}
     mod->myid(i+1);
-    mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
+    std::cout<<"------begin module printout--------"<<std::endl;
+    if(mod->propertyTree().get<double>("twistAng",-99) > -99 ){//Need to do this before further determining phi/z of the module
+      double tmp_r = mod->center().Rho();
+      mod->translateR(-tmp_r);
+      mod->twist(mod->propertyTree().get<double>("twistAng"));
+     if(mod->propertyTree().get<double>("rhoCentre",0) > 0 ){
+        mod->translateR(mod->propertyTree().get<double>("rhoCentre")-mod->center().Rho());
+      } else {
+        mod->translateR(tmp_r-mod->center().Rho());
+      }
+    }
+    if (deltaPhiLarge == deltaPhiNom) {
+      nominalZRot = (i + alignmentRotation)*deltaPhiNom;
+    } else {
+      if (((i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom)) < M_PI ){
+        nominalZRot = (i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom);
+      } else {
+        nominalZRot = (i + alignmentRotation)*deltaPhiNom + (1+alignmentRotation)*(deltaPhiLarge-deltaPhiNom);
+      } 
+    }
+    mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());
+    std::cout<<"Module phi is "<<mod->center().Phi();
+    std::cout<<"Center position "<<mod->center().X()<<" y = "<<mod->center().Y()<<std::endl;
+    std::cout<<" Corner one "<<mod->cornerone().X()<<" y = "<<mod->cornerone().Y()<<std::endl;
+    std::cout<<" Corner two "<<mod->cornertwo().X()<<" y = "<<mod->cornertwo().Y()<<std::endl;
+    std::cout<<" Corner three "<<mod->cornerthree().X()<<" y = "<<mod->cornerthree().Y()<<std::endl;
+    std::cout<<" Corner four "<<mod->cornerfour().X()<<" y = "<<mod->cornerfour().Y()<<std::endl;
+    std::cout<<"------end module printout--------"<<std::endl;
     mod->translateZ(parity*smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
     const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) // Case where ring modules are placed on both sides of a same dee.
@@ -157,7 +189,7 @@ void Ring::buildBottomUp() {
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta());
+  buildModules(emod, numMods, smallDelta(),phiShift());
 
   delete emod;
 }
@@ -190,7 +222,7 @@ void Ring::buildTopDown() {
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta());
+  buildModules(emod, numMods, smallDelta(),phiShift());
 
   delete emod;
 }

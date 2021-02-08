@@ -21,6 +21,7 @@
 #include "CoordinateOperations.hh"
 #include "Visitable.hh"
 #include "MaterialObject.hh"
+#include "Property.hh"
 
 namespace insur { class ModuleCap; }
 using insur::ModuleCap;
@@ -146,6 +147,9 @@ public:
 
   Property<bool, Default> removeModule;
 
+  Property<double, Default> twistAng;
+  Property<double, Default> rhoCentre;
+
   const std::string subdetectorName() const { return subdetectorName_; }
   void subdetectorId(const int id) { subdetectorId_ = id; }
   const int subdetectorId() const { return subdetectorId_; }
@@ -209,6 +213,8 @@ public:
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
+      twistAng                 ("twistAng"                , parsedOnly(),-99.),
+      rhoCentre                ("rhoCentre"               , parsedOnly(),0.),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
@@ -224,6 +230,10 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
+  const XYZVector& cornerone() const { return decorated().cornerone(); }
+  const XYZVector& cornertwo() const { return decorated().cornertwo(); }
+  const XYZVector& cornerthree() const { return decorated().cornerthree(); }
+  const XYZVector& cornerfour() const { return decorated().cornerfour(); }
   double area() const { 
     //return decorated().area();
     const GeometricModule& module = decorated();
@@ -247,6 +257,8 @@ public:
   const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
+  double twistAngle() const { return twistAngle_; }
+  const XYZVector& getRAxis() const {return rAxis_;}
 
   // SPATIAL RESOLUTION
 
@@ -281,11 +293,13 @@ public:
   void rotateToNegativeZSide() {
     side(-side());
     rotateY(M_PI);  // Rotation around CMS_Y of angle Pi
+    twistAngle_=-twistAngle_; // Flip twistAngle to match how the modules are actually placed
     clearSensorPolys();
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
+  void twist(double angle) { decorated().rotateZ(angle); clearSensorPolys(); twistAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
@@ -443,6 +457,7 @@ protected:
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
   double tiltAngle_ = 0.;
+  double twistAngle_ = 0.;
 
   int numHits_ = 0;
   

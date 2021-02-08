@@ -263,6 +263,7 @@ namespace insur {
         std::string childname;
         bool isDiskAtPlusZEnd;
         int numModules;
+        int discNumber;
         double moduleThickness;
         double radiusMin;
         double radiusMid;
