@@ -5,7 +5,9 @@
 -->
 <Polycone name="<!--mid point marker-->" startPhi="0*deg" deltaPhi="360*deg">
   <!-- TEMPORARY!! Should be defined automatically -->
-  <ZSection z="-291.0*cm" rMin="6.23*cm" rMax="[tracker:TrackerOutermostRadius]"/>
+  <ZSection z="-291.0*cm" rMin="110.0*cm" rMax="[tracker:TrackerOutermostRadius]"/>
+  <ZSection z="-276.9*cm" rMin="110.0*cm" rMax="[tracker:TrackerOutermostRadius]"/>
+  <ZSection z="-276.9*cm" rMin="6.23*cm" rMax="[tracker:TrackerOutermostRadius]"/>
   <ZSection z="-150.0*cm" rMin="6.23*cm" rMax="[tracker:TrackerOutermostRadius]"/>
   <ZSection z="-150.0*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>
   <ZSection z="-22.70*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>    <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker 501 : z="-41.50*cm" -->
