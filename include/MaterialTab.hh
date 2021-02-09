@@ -26,7 +26,7 @@ namespace material {
     int materialsTreeHierarchyLevel_;
     double density_;
     double radiationLength_;
-    double interactionLength_;    
+    double interactionLength_;
   };
   
 

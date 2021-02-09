@@ -1175,7 +1175,6 @@ namespace insur {
 			postfixNeg = postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
 		      }
 		      else postfix = postfix + "/" + postfix + xml_InnerPixel + xml_base_waf + "/" + refstring;
-		    std::cout << "refstring = " << refstring << std::endl;
 		    paths.push_back(refstring);
 		  }
 		}
