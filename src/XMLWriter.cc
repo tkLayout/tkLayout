@@ -1143,10 +1143,9 @@ namespace insur {
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
 	      std::string refstring = specs.at(mindex).partselectors.at(k);
 
-	      std::string mnumber;
-
-	      if (refstring.find(xml_barrel_module) != std::string::npos && refstring.find(xml_R) != std::string::npos) {
-		mnumber = refstring.substr(rcurrent.find(xml_R) + xml_R.size());
+	      if (refstring.find(xml_R) != std::string::npos
+		  && refstring.find(xml_barrel_module) != std::string::npos) {
+		std::string mnumber = refstring.substr(rcurrent.find(xml_R) + xml_R.size());
 		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
 
 		bool isTiming = (refstring.find(xml_timing) != std::string::npos);
@@ -1176,15 +1175,24 @@ namespace insur {
 			postfixNeg = postfix + xml_negative_z + "/" + postfix + xml_negative_z + xml_timing + xml_base_waf + "/" + refstring;
 		      }
 		      else postfix = postfix + "/" + postfix + xml_InnerPixel + xml_base_waf + "/" + refstring;
-		    //if (!isTiming) {
-		      //paths.push_back(prefix + "/" + postfix);
-		      paths.push_back(refstring);
+		    std::cout << "refstring = " << refstring << std::endl;
+		    paths.push_back(refstring);
 		  }
 		}
 	      }
 	    }
+	    // Check whether block already exists.
 	    existing = findEntry(spname, blocks);
-	    if (existing != blocks.end()) existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
+	    // Block already exists: add the paths to the existing block.
+	    if (existing != blocks.end()) {
+	      for (const auto& myPath : paths) {
+		// Only add the paths which are not already in it.
+		if (std::find(existing->paths.begin(), existing->paths.end(), myPath) == existing->paths.end()) {
+		  existing->paths.emplace_back(myPath);
+		}
+	      }
+	    }
+	    // Block does not already exist: hence create it.
 	    else {
 	      PathInfo pi;
 	      pi.block_name = spname;
