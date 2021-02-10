@@ -261,25 +261,35 @@ namespace insur {
 
     // FROM TABLE: MIXTURES (INCLUDE COMPOUNDS)
     const ChemicalMixtureMap& allChemicalMixtures = myTable.getAllChemicalMixtures();
+    const int maxMaterialsTreeHierarchyLevel = myTable.getMaxMaterialsTreeHierarchyLevel();
 
-    for (const auto& mixIt : allChemicalMixtures) {
-      const std::string mixtureName = mixIt.first;
-      const ChemicalMixture& mix = mixIt.second;
+    // This is to print the mixtures in a specific order: from lowest to highest materialsTreeHierarchyLevel.
+    // This is because the materials a mixture is made of, need to be printed first (on top of the XML file).
+    for (int materialsTreeHierarchyLevel = 1; materialsTreeHierarchyLevel <= maxMaterialsTreeHierarchyLevel; ++materialsTreeHierarchyLevel) {
 
-      Composite comp;
-      comp.name = xml_tkLayout_material + mixtureName;
-      comp.density = mix.getDensity() * 1000.;  // g/cm3
-      comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
+      for (const auto& mixIt : allChemicalMixtures) {	
+	const ChemicalMixture& mix = mixIt.second;
 
-      const MassComposition& fractions = mix.getMassComposition();
-      for (const auto& fractionIt : fractions) {
-	comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
+	// Select the mixtures which have hierarchy level of interest.
+	if (mix.getMaterialsTreeHierarchyLevel() == materialsTreeHierarchyLevel) {
+	  const std::string mixtureName = mixIt.first;
+
+	  Composite comp;
+	  comp.name = xml_tkLayout_material + mixtureName;
+	  comp.density = mix.getDensity() * 1000.;  // g/cm3
+	  comp.method = wt;  // to do: USE ATOMIC FORMULA METHOD FOR COMPOUNDS ?
+
+	  const MassComposition& fractions = mix.getMassComposition();
+	  for (const auto& fractionIt : fractions) {
+	    comp.elements.insert(std::make_pair(fractionIt.first, fractionIt.second));
+	  }
+
+	  comp.isMixture = true;
+	  allComposites.push_back(comp); // Add composite to the queue to be printed
+	}
       }
 
-      comp.isMixture = true;
-      allComposites.push_back(comp);
     }
-
   }
 
   /**
@@ -325,10 +335,10 @@ namespace insur {
 	  int modRing = iiter->getModule().uniRef().ring;
 	  // layer name
 	  std::ostringstream lname;
-	  lname << xml_layer << layer; // e.g. Layer1
+	  lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); // .e.g. BModule1Layer1
+	  mname << trackerXmlTags.tracker << lname.str() << xml_R << modRing << xml_barrel_module; // .e.g. OTLayer1R1Bmodule
 	  // parent module name
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -429,10 +439,10 @@ namespace insur {
 	  ridx.insert(modRing);
 	  // disk name
 	  std::ostringstream dname;
-	  dname << xml_disc << layer; // e.g. Disc6
+	  dname << trackerXmlTags.tracker << xml_disc << layer; // e.g. OTDisc6
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	  mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	  // parent module name  
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -689,10 +699,10 @@ namespace insur {
 	  
 	  // layer name
 	  std::ostringstream lname;
-	  lname << xml_layer << layer; // e.g. Layer1
+	  lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
 	  // module name
 	  std::ostringstream mname;
-	  mname << xml_barrel_module << modRing << lname.str(); //.e.g. BModule1Layer1
+	  mname << lname.str() << xml_R << modRing << xml_barrel_module; //.e.g. OTLayer1R1BModule
 	  // parent module name
 	  std::string parentName = mname.str();
 	  // build module volumes, with hybrids taken into account
@@ -811,11 +821,11 @@ namespace insur {
       
 
       std::ostringstream lname, ladderName, unflippedLadderName, pconverter;
-      lname << xml_layer << layer; // e.g. Layer1
-      if (!isPixelTracker) ladderName << xml_rod << layer; // e.g.Rod1
+      lname << trackerXmlTags.tracker << xml_layer << layer; // e.g. OTLayer1
+      if (!isPixelTracker) ladderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod; // e.g. OTLayer1Rod
       else {
-	ladderName << xml_rod << xml_flipped << layer; // e.g.RodFlipped1
-	unflippedLadderName << xml_rod << xml_unflipped << layer; // e.g.RodUnflipped1
+	ladderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_flipped; // e.g. OTLayer1RodFlipped
+	unflippedLadderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_unflipped; // e.g. OTLayer1RodUnflipped
       }
 
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
@@ -877,12 +887,12 @@ namespace insur {
 	  std::ostringstream mname;
 	  std::ostringstream mnameBase;
 	  std::ostringstream mnameNeg;
-	  if (!iiter->getModule().isTimingModule()) mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
+	  if (!iiter->getModule().isTimingModule()) { mname << lname.str() << xml_R << modRing << xml_barrel_module; } // e.g. OTLayer1R1Bmodule
 	  // Timing layer : insert both +Z and -Z sides
 	  else {
-	    mnameBase << xml_barrel_module << modRing << lname.str();
-	    mname << xml_barrel_module << modRing << lname.str() << xml_positive_z;
-	    mnameNeg << xml_barrel_module << modRing << lname.str() << xml_negative_z;
+	    mnameBase << lname.str() << xml_R << modRing << xml_barrel_module;
+	    mname << mnameBase.str() << xml_positive_z;
+	    mnameNeg << mnameBase.str() << xml_negative_z;
 	  }
 
 
@@ -903,7 +913,7 @@ namespace insur {
 	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
 
             std::ostringstream ringname;
-	    ringname << xml_ring << modRing << lname.str();
+	    ringname << lname.str() << xml_ring << modRing;
 
 
 	    // MODULE
@@ -1038,7 +1048,7 @@ namespace insur {
 	    if (!iiter->getModule().isTimingModule() || newTimingModuleType) {
 
 	      std::ostringstream ringname;
-	      ringname << xml_ring << modRing << lname.str();
+	      ringname << lname.str() << xml_ring << modRing;
 
 	      // Topology
 	      sspec.partselectors.push_back(mname.str());
@@ -1057,7 +1067,7 @@ namespace insur {
 		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	      }	    
 	      else {
-		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
 		else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      }
@@ -1144,8 +1154,8 @@ namespace insur {
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 		else if (iiter->getModule().isPixelModule()) {
-		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
-		  else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
+		  else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
 		}
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    
@@ -1165,7 +1175,7 @@ namespace insur {
 		if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		else {
 		  if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
 		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		}
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
@@ -1922,7 +1932,7 @@ namespace insur {
 	      pconverter << rinfo.startPhiAngle1 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
-	      pconverter << rinfo.r1;
+	      pconverter << rinfo.r1 << "*mm";
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
 	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));	      
@@ -1951,7 +1961,7 @@ namespace insur {
 	      pconverter << rinfo.startPhiAngle2 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
-	      pconverter << rinfo.r2;
+	      pconverter << rinfo.r2 << "*mm";
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
 	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
@@ -2121,10 +2131,10 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 	    //disk name
 	    std::ostringstream dname;
-	    dname << xml_disc << discNumber; // e.g. Disc6
+	    dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
 	    // module name
 	    std::ostringstream mname;
-	    mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	    mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
 	    // parent module name
 	    std::string parentName = mname.str();
 	    // build module volumes, with hybrids taken into account
@@ -2171,7 +2181,7 @@ namespace insur {
 	//if (zmin > 0) 	
         std::ostringstream dname, pconverter;
 	//disk name
-        dname << xml_disc << discNumber; // e.g. Disc6
+        dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
 
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
@@ -2232,9 +2242,9 @@ namespace insur {
 
 	      std::ostringstream matname, rname, mname, specname;
 	      // ring name
-	      rname << xml_ring << modRing << dname.str(); // e.g. Ring1Disc6
+	      rname << dname.str() << xml_ring << modRing; // e.g. OTDisc6Ring1
 	      // module name
-	      mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	      mname << dname.str() << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6R1EModule
  
 	      // parent module name
 	      std::string parentName = mname.str();
@@ -2300,7 +2310,7 @@ namespace insur {
 	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	    }
 	    else {
-	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_waf;
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
 	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    }     
@@ -2370,8 +2380,8 @@ namespace insur {
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) {
-		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_PX + xml_base_Act; }
-		else { shape.name_tag = mname.str() + xml_PX + xml_3D + xml_base_Act; }
+		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
 	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
@@ -2385,7 +2395,7 @@ namespace insur {
 	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 	      else {
 		if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
-		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
 		else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      }
 
@@ -2609,7 +2619,7 @@ namespace insur {
             pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << myRingInfo.radiusMid;
+            pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             if(myRingInfo.discNumber <= 8 && (phi_one[ringIndex]).size()>0){
@@ -2648,7 +2658,7 @@ namespace insur {
             pconverter << myRingInfo.surface2StartPhi * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
-            pconverter << myRingInfo.radiusMid;
+            pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             if(myRingInfo.discNumber <=8 && (phi_two[ringIndex]).size()>0 ){
@@ -3444,7 +3454,7 @@ namespace insur {
    */
   std::string Extractor::vectorParam(double x, double y, double z) {
     std::ostringstream res;
-    res << xml_algorithm_vector_open << x << "," << y << "," << z << xml_algorithm_vector_close;
+    res << xml_algorithm_vector_open << x << "*mm, " << y << "*mm, " << z << "*mm" << xml_algorithm_vector_close;
     return res.str();
   }
 
