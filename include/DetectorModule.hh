@@ -230,10 +230,7 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
-  const XYZVector& cornerone() const { return decorated().cornerone(); }
-  const XYZVector& cornertwo() const { return decorated().cornertwo(); }
-  const XYZVector& cornerthree() const { return decorated().cornerthree(); }
-  const XYZVector& cornerfour() const { return decorated().cornerfour(); }
+  const XYZVector& getVertex(int i) const { return decorated().getVertex(i); }
   double area() const { 
     //return decorated().area();
     const GeometricModule& module = decorated();

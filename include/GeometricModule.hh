@@ -64,10 +64,7 @@ public:
   const std::vector<XYZVector>& contour() const { return contour_; }
   const XYZVector& center() const { return basePoly_.getCenter(); }
   const XYZVector& normal() const { return basePoly_.getNormal(); }
-  const XYZVector& cornerone() const {return basePoly_.getVertex(0);}
-  const XYZVector& cornertwo() const {return basePoly_.getVertex(1);}
-  const XYZVector& cornerthree() const {return basePoly_.getVertex(2);}
-  const XYZVector& cornerfour() const {return basePoly_.getVertex(3);}
+  const XYZVector& getVertex(int i) const {return basePoly_.getVertex(i);}
   virtual double area() const = 0;
   virtual double length() const = 0;
   virtual double maxWidth() const = 0;
