@@ -147,7 +147,7 @@ public:
 
   Property<bool, Default> removeModule;
 
-  Property<double, Default> twistAng;
+  Property<double, Default> twistAngleFromConfig;
   Property<double, Default> rhoCentre;
 
   const std::string subdetectorName() const { return subdetectorName_; }
@@ -213,7 +213,7 @@ public:
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
-      twistAng                 ("twistAng"                , parsedOnly(),-99.),
+      twistAngleFromConfig     ("twistAngleFromConfig"     , parsedOnly(),-999.),
       rhoCentre                ("rhoCentre"               , parsedOnly(),0.),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
@@ -302,6 +302,8 @@ public:
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
   const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
+  bool inRegularRing() { return isInRegularRing_;}
+  void notInRegularRing() {isInRegularRing_=false;}
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
@@ -455,6 +457,8 @@ protected:
   XYZVector rAxis_;
   double tiltAngle_ = 0.;
   double twistAngle_ = 0.;
+  bool isInRegularRing_ = true;
+
 
   int numHits_ = 0;
   

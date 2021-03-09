@@ -51,6 +51,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   Property<double, NoDefault> theta_g;
   Property<double, NoDefault> ringZOverlap;
 
+
   const Container& modules() const { return modules_; }
 
  TiltedRing() :
@@ -143,7 +144,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius);
   std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double highRadius);
 
-  void buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift);
+  void buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift, double modTranslateX);
   void buildBottomUp();
   void buildTopDown();
 
@@ -162,6 +163,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   bool isRingOn4Dees_;
 
   double minRadius_, maxRadius_;
+
 
   std::string subdetectorName_;
 
@@ -184,6 +186,7 @@ public:
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
+
 
   Property<double, AutoDefault> actualZError;
   Property<double, AutoDefault> actualPhiOverlap;

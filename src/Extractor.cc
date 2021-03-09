@@ -2195,7 +2195,7 @@ namespace insur {
         std::map<int, std::vector<double>> twist_two;
 
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
-          if(iiter->getModule().uniRef().subdetectorName=="FPIX_1"){ //Don't need to check this for every endcap ring - awful hack, to be improved
+          if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
             if(phi_one.count(iiter->getModule().uniRef().ring)==0){
               phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
             } 
@@ -2228,7 +2228,7 @@ namespace insur {
 
         // LOOP ON MODULE CAPS
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
-	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	  if (iiter->getModule().uniRef().side > 0 &&  (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 	    // ring number
 	    int modRing = iiter->getModule().uniRef().ring;
 
@@ -2473,6 +2473,7 @@ namespace insur {
 	      myRingInfo.zMax = ringzmax.at(modRing);
 	      myRingInfo.zMid = (myRingInfo.zMin + myRingInfo.zMax) / 2.;
 	      myRingInfo.isRingOn4Dees = myRing->isRingOn4Dees();
+              myRingInfo.isRegularRing = iiter->getModule().inRegularRing();
 
 	      // surface 1 is whatever surface the (phi == 1) module belongs to.
 	      myRingInfo.surface1ZMid = iiter->getModule().center().Z();
@@ -2622,7 +2623,7 @@ namespace insur {
             pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            if(myRingInfo.discNumber <= 8 && (phi_one[ringIndex]).size()>0){
+            if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
               alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_one[ringIndex]));
