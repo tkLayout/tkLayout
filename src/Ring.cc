@@ -79,23 +79,29 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 }
 
 
-void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift) {
+void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift, double modTranslateX) {
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
   double deltaPhiNom = 2.*M_PI/numMods;
   double deltaPhiLarge = deltaPhiNom+2*phiShift;
   double nominalZRot = 0.;
   if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));}
+  templ->store(propertyTree());
+
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
+    if (moduleNode.count(i) > 0) {
+     templ->store(moduleNode.at(i));
+    }
     EndcapModule* mod = GeometryFactory::clone(*templ);
-    if (moduleNode.count(i) > 0){ mod->store(moduleNode.at(i));}
+    mod->build();
+    mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
-    std::cout<<"------begin module printout--------"<<std::endl;
-    if(mod->propertyTree().get<double>("twistAng",-99) > -99 ){//Need to do this before further determining phi/z of the module
+    if(mod->twistAngleFromConfig() > -999){
+      mod->notInRegularRing();
       double tmp_r = mod->center().Rho();
       mod->translateR(-tmp_r);
-      mod->twist(mod->propertyTree().get<double>("twistAng"));
-     if(mod->propertyTree().get<double>("rhoCentre",0) > 0 ){
-        mod->translateR(mod->propertyTree().get<double>("rhoCentre")-mod->center().Rho());
+      mod->twist(mod->twistAngleFromConfig());
+      if(mod->rhoCentre() > 0 ){
+        mod->translateR(mod->rhoCentre()-mod->center().Rho());
       } else {
         mod->translateR(tmp_r-mod->center().Rho());
       }
@@ -103,6 +109,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     if (deltaPhiLarge == deltaPhiNom) {
       nominalZRot = (i + alignmentRotation)*deltaPhiNom;
     } else {
+      mod->notInRegularRing();
       if (((i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom)) < M_PI ){
         nominalZRot = (i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom);
       } else {
@@ -111,13 +118,6 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     }
     mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());
-    std::cout<<"Module phi is "<<mod->center().Phi();
-    std::cout<<"Center position "<<mod->center().X()<<" y = "<<mod->center().Y()<<std::endl;
-    std::cout<<" Corner one "<<mod->cornerone().X()<<" y = "<<mod->cornerone().Y()<<std::endl;
-    std::cout<<" Corner two "<<mod->cornertwo().X()<<" y = "<<mod->cornertwo().Y()<<std::endl;
-    std::cout<<" Corner three "<<mod->cornerthree().X()<<" y = "<<mod->cornerthree().Y()<<std::endl;
-    std::cout<<" Corner four "<<mod->cornerfour().X()<<" y = "<<mod->cornerfour().Y()<<std::endl;
-    std::cout<<"------end module printout--------"<<std::endl;
     mod->translateZ(parity*smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
     const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) // Case where ring modules are placed on both sides of a same dee.
@@ -179,17 +179,17 @@ void Ring::buildBottomUp() {
 
   }
 
-  emod->store(propertyTree());
+  /*emod->store(propertyTree());
   //emod->subdetectorName(subdetectorName());
   emod->build();
-  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
+  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));*/
 
   minRadius_ = buildStartRadius();
   maxRadius_ = buildStartRadius() + modLength;
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta(),phiShift());
+  buildModules(emod, numMods, smallDelta(),phiShift(),buildStartRadius()+modLength/2);
 
   delete emod;
 }
@@ -213,16 +213,16 @@ void Ring::buildTopDown() {
   int numMods = optimalRingParms.second;
 
   EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
-  emod->store(propertyTree());
-  emod->build();
-  emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
+  //emod->store(propertyTree());
+  //emod->build();
+  //emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
 
   minRadius_ = buildStartRadius() - rmod->length();
   maxRadius_ = buildStartRadius();
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta(),phiShift());
+  buildModules(emod, numMods, smallDelta(),phiShift(),buildStartRadius() - rmod->length()/2);
 
   delete emod;
 }

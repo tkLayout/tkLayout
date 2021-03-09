@@ -263,7 +263,6 @@ namespace insur {
         std::string childname;
         bool isDiskAtPlusZEnd;
         int numModules;
-        int discNumber;
         double moduleThickness;
         double radiusMin;
         double radiusMid;
@@ -281,6 +280,7 @@ namespace insur {
         double surface2ZMid;
         double surface2StartPhi;  // in RAD
         bool surface2IsFlipped;
+        bool isRegularRing;
     };
     /**
      * @struct BTiltedRingInfo
