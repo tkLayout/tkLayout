@@ -55,8 +55,8 @@ namespace insur {
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
     static const std::string xml_algorithm_numeric = "<Numeric name=\"";
-    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\">";
-    static const std::string xml_algorithm_vector_close = "</Vector>\n";
+    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\"> ";
+    static const std::string xml_algorithm_vector_close = " </Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
     static const std::string xml_tkLayout_material = "tkLayout_";
@@ -138,6 +138,7 @@ namespace insur {
     static const std::string xml_spec_par_open = "<SpecPar name=\"";
     static const std::string xml_spec_par_selector = "<PartSelector path=\"//";
     static const std::string xml_spec_par_parameter_first = "<Parameter name=\"";
+    static const std::string xml_spec_par_parameter_evaluation = "\" eval=\"true"; // numerical parameters need to be evaluated
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
 
@@ -196,8 +197,10 @@ namespace insur {
     static const std::string xml_base_ps = "PS";
     static const std::string xml_base_2s = "2S";
     static const std::string xml_OTST = "OTST";
-    static const std::string xml_OT = "OuterTracker";
-    static const std::string xml_PX = "InnerPixel";
+    static const std::string xml_OuterTracker = "OuterTracker";
+    static const std::string xml_InnerPixel = "InnerPixel";
+    static const std::string xml_OT = "OT";
+    static const std::string xml_IT = "IT";
     static const std::string xml_3D = "3D";
     static const std::string xml_timing = "Timing";
     static const std::string xml_base_serf = "service";
@@ -207,6 +210,7 @@ namespace insur {
     static const std::string xml_rod = "Rod";
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
+    static const std::string xml_R = "R";
     static const std::string xml_ring = "Ring";
     static const std::string xml_positive_z = "PositiveZ";
     static const std::string xml_negative_z = "NegativeZ";
@@ -277,6 +281,7 @@ namespace insur {
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
     static const std::string xml_subdet_upper_detectors = "UpperDetectors";
     static const std::string xml_true = "true";
+    static const std::string xml_readout = "Readout";
     static const std::string xml_roc_x = "PixelROC_X";
     static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_roc_rows_name = "PixelROCRows";
@@ -367,8 +372,9 @@ namespace insur {
 
     struct XmlTags {
     XmlTags(bool isPixelTracker) : 
-      nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
-	tracker(!isPixelTracker ? xml_OT : xml_PX),
+        nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
+        tracker(!isPixelTracker ? xml_OT : xml_IT),
+	trackerLong(!isPixelTracker ? xml_OuterTracker : xml_InnerPixel),        
 	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
 	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
 
@@ -404,6 +410,7 @@ namespace insur {
 
       const std::string nspace;
       const std::string tracker;
+      const std::string trackerLong;
       const std::string bar;
       const std::string fwd;
 

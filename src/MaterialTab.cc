@@ -9,15 +9,17 @@
 namespace material {
 
 
-  ChemicalBase::ChemicalBase(const double density) : 
-    density_(density) 
+  ChemicalBase::ChemicalBase(const int materialsTreeHierarchyLevel, const double density) : 
+    materialsTreeHierarchyLevel_(materialsTreeHierarchyLevel),
+    density_(density)
   { }
 
 
 
 
   ChemicalElement::ChemicalElement(const double density, const int atomicNumber, const double atomicWeight) : 
-    ChemicalBase(density),
+    ChemicalBase(0, density), 
+    // A ChemicalElement has materialsTreeHierarchyLevel_ = 0.
     atomicNumber_(atomicNumber), 
     atomicWeight_(atomicWeight) 
   {
@@ -85,7 +87,9 @@ namespace material {
 
 
   ChemicalMixture::ChemicalMixture(const double density, const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) :
-    ChemicalBase(density),
+    ChemicalBase(1, density), 
+    // A ChemicalMixture with formula MADE OF ELEMENTARY MATERIALS 
+    // has materialsTreeHierarchyLevel_ = 1.
     formula_(formula)
   {
     fractions_ = computeMassComposition(formula, allChemicalElements);
@@ -101,7 +105,7 @@ namespace material {
 
 
   ChemicalMixture::ChemicalMixture(const double density, const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) :
-    ChemicalBase(density)   
+    ChemicalBase(computeMaterialsTreeHierarchyLevel(fractions, alreadyDefinedMaterials), density)
   {
     fractions_ = computeMassComposition(fractions);
 
@@ -195,6 +199,30 @@ namespace material {
   }   
 
 
+  const int ChemicalMixture::computeMaterialsTreeHierarchyLevel(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const {   
+    int materialsTreeHierarchyLevel = 0;
+
+    // Get the max hierarchy level among all materials making-up the mixture.
+    for (const auto& fractionIt : fractions) {
+      const std::string chemicalBaseName = fractionIt.first;
+
+      const auto found = alreadyDefinedMaterials.find(chemicalBaseName);
+      if (found == alreadyDefinedMaterials.end()) {
+	std::cout << "Tried to create mixture made of unknow chemical element / chemical compound / mixture:" << chemicalBaseName << std::endl;
+      }
+      else {
+	const ChemicalBase& alreadyDefinedMaterial = found->second;
+	materialsTreeHierarchyLevel = std::max(materialsTreeHierarchyLevel, 
+					       alreadyDefinedMaterial.getMaterialsTreeHierarchyLevel());
+      }
+    }
+
+    // The mixture hirerarchy level is defined as =
+    // (max hierarchy level among all materials making-up the mixture) + 1.
+    materialsTreeHierarchyLevel++;
+
+    return materialsTreeHierarchyLevel;
+  }
 
 
   const std::pair<double, double> ChemicalMixture::computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const {
@@ -537,6 +565,18 @@ namespace material {
   const MaterialsTable& MaterialsTable::instance() {
     static MaterialsTable instance_;
     return instance_;
+  }
+
+  int MaterialsTable::getMaxMaterialsTreeHierarchyLevel() const {
+    const ChemicalMixtureMap& allChemicalMixtures = this->second;
+    int maxMaterialsTreeHierarchyLevel = 0;
+
+    for (const auto& mixIt : allChemicalMixtures) {
+      maxMaterialsTreeHierarchyLevel = std::max(maxMaterialsTreeHierarchyLevel,
+						mixIt.second.getMaterialsTreeHierarchyLevel());
+    }
+    
+    return maxMaterialsTreeHierarchyLevel;
   }
 
   double MaterialsTable::getDensity(const std::string materialName) const {
