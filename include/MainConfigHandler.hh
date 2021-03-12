@@ -1,17 +1,18 @@
 /**
  * @file mainConfigHandler.h
- * @brief Takes care of creating, reading and administering the configuration file .tkgeometryrc
+ * @brief Takes care of creating, reading and administering the configuration
+ * file .tkgeometryrc
  */
 
 #ifndef _MAINCONFIGHANDLER_H__
 #define _MAINCONFIGHANDLER_H__
 
-#include <string>
-#include <vector>
-#include <set>
+#include "MessageLogger.hh"
 #include <global_constants.hh>
 #include <global_funcs.hh>
-#include "MessageLogger.hh"
+#include <set>
+#include <string>
+#include <vector>
 
 #include "GraphVizCreator.hh"
 
@@ -21,17 +22,17 @@ using namespace std;
 #define CONFIGURATIONFILENAME ".tkgeometryrc"
 #define CONFIGURATIONFILENAMEDEFINITION "TKGEOMETRYRC"
 #define BINDIRECTORYDEFINITION "TKG_BINDIRECTORY"
-#define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
-#define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
-#define MOMENTADEFINITION "TKG_MOMENTA" 
-#define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
+#define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY"
+#define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY"
+#define MOMENTADEFINITION "TKG_MOMENTA"
+#define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA"
 #define THRESHOLDPROBABILITIESDEFINITION "TKG_THRESHOLD_PROB"
 
 class ConfigInputOutput {
 public:
-  ConfigInputOutput(istream& newIs, ostream& newOs) : is(newIs) , os(newOs) {}
-  istream& is;
-  ostream& os;
+  ConfigInputOutput(istream &newIs, ostream &newOs) : is(newIs), os(newOs) {}
+  istream &is;
+  ostream &os;
   string absoluteFileName = "";
   string relativeFileName = "";
   bool standardInclude = false;
@@ -48,12 +49,13 @@ public:
 class mainConfigHandler : public GraphVizCreator {
 private:
   mainConfigHandler();
+
 public:
-  ~mainConfigHandler() {};
-  static mainConfigHandler& instance();
+  ~mainConfigHandler(){};
+  static mainConfigHandler &instance();
   bool getConfiguration(bool checkDirExists = true);
-  //bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
-  bool getConfiguration(string& layoutDirectory);
+  // bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
+  bool getConfiguration(string &layoutDirectory);
   string getBinDirectory();
   string getLayoutDirectory();
   string getStandardDirectory();
@@ -68,30 +70,31 @@ public:
   string getGeometriesDirectory();
   string getConfigFileName();
   std::set<string> preprocessConfiguration(ConfigInputOutput);
-  vector<double>& getMomenta();
-  vector<double>& getTriggerMomenta();
-  vector<double>& getThresholdProbabilities();
+  vector<double> &getMomenta();
+  vector<double> &getTriggerMomenta();
+  vector<double> &getThresholdProbabilities();
+
 private:
   bool goodConfigurationRead_;
-  std::map<std::string, std::vector<int> > detIdSchemes_;
-  //string styleDirectory_;
+  std::map<std::string, std::vector<int>> detIdSchemes_;
+  // string styleDirectory_;
   string binDirectory_;
   string layoutDirectory_;
-  //string xmlDirectory_;
+  // string xmlDirectory_;
   string standardDirectory_;
   vector<double> momenta_;
   vector<double> triggerMomenta_;
   vector<double> thresholdProbabilities_;
-  bool checkDirectory(string dirName) ;
+  bool checkDirectory(string dirName);
   void askBinDirectory();
   void askLayoutDirectory();
   void askStandardDirectory();
   void askMomenta();
   void askTriggerMomenta();
   void askThresholdProbabilities();
-  bool createConfigurationFileFromQuestions(string& configFileName);
-  bool parseLine(const char* codeLine, string& parameter, string& value);
-  bool readConfigurationFile(string& configFileName);
+  bool createConfigurationFileFromQuestions(string &configFileName);
+  bool parseLine(const char *codeLine, string &parameter, string &value);
+  bool readConfigurationFile(string &configFileName);
   bool readConfiguration(bool checkDirExists);
   vector<double> parseDoubleList(string);
   string getBinDirectory_();
@@ -106,7 +109,6 @@ private:
   void readDetIdSchemes();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();
-
 };
 
 #endif

@@ -13,8 +13,8 @@ public:
   Visitable(){};
   virtual ~Visitable(){};
 
-  virtual void accept(GeometryVisitor& v) = 0;
-  virtual void accept(ConstGeometryVisitor& v) const = 0;
+  virtual void accept(GeometryVisitor &v) = 0;
+  virtual void accept(ConstGeometryVisitor &v) const = 0;
 };
 
 #endif /* VISITABLE_H_ */

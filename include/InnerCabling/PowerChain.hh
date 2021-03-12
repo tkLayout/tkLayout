@@ -1,38 +1,48 @@
 #ifndef POWERCHAIN_HH
 #define POWERCHAIN_HH
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Property.hh"
-#include "Module.hh"
 #include "InnerCabling/inner_cabling_functions.hh"
+#include "Module.hh"
+#include "Property.hh"
 
-
-namespace insur { class HvLine; }
+namespace insur {
+class HvLine;
+}
 using insur::HvLine;
-
 
 /*
  * Power chain class.
- * All modules connected to a given Power Chain can be accessed, as well as the HV line they are connected to.
- * General info on the Power Chain is also provided.
+ * All modules connected to a given Power Chain can be accessed, as well as the
+ * HV line they are connected to. General info on the Power Chain is also
+ * provided.
  */
-class PowerChain : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container; 
+class PowerChain : public PropertyObject,
+                   public Buildable,
+                   public Identifiable<int> {
+  typedef std::vector<Module *> Container;
 
 public:
-  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee);
+  PowerChain(const int powerChainId, const bool isPositiveZEnd,
+             const bool isPositiveXSide, const std::string subDetectorName,
+             const int layerDiskNumber, const int phiRef,
+             const bool isLongBarrel, const int halfRingIndex,
+             const bool isAtSmallerAbsZDeeInDoubleDisk,
+             const bool isAtSmallerAbsZSideInDee);
 
   // MODULES CONNECTED TO THE POWER CHAIN.
-  const Container& modules() const { return modules_; }
-  Container& modules() { return modules_; }
+  const Container &modules() const { return modules_; }
+  Container &modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
-  void addModule(Module* m);
+  void addModule(Module *m);
 
-  // HIGH VOLTAGE LINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
-  const HvLine* getHvLine() const {
-    if (!hvLine_) throw PathfulException("hvLine_ is nullptr");
+  // HIGH VOLTAGE LINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL
+  // CONNECTED
+  const HvLine *getHvLine() const {
+    if (!hvLine_)
+      throw PathfulException("hvLine_ is nullptr");
     return hvLine_.get();
   }
 
@@ -43,24 +53,32 @@ public:
   const int layerDiskNumber() const { return layerDiskNumber_; }
   const int phiRef() const { return phiRef_; }
   const int halfRingIndex() const { return halfRingIndex_; }
-  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return isAtSmallerAbsZDeeInDoubleDisk_; }
-  const bool isAtSmallerAbsZSideInDee() const { return isAtSmallerAbsZSideInDee_; }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const {
+    return isAtSmallerAbsZDeeInDoubleDisk_;
+  }
+  const bool isAtSmallerAbsZSideInDee() const {
+    return isAtSmallerAbsZSideInDee_;
+  }
 
   const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
   const bool isSmallerAbsZHalfRing() const { return isSmallerAbsZHalfRing_; }
 
   const bool isLongBarrel() const {
-    if (isBarrel()) return isLongBarrel_;
-    else return false;
+    if (isBarrel())
+      return isLongBarrel_;
+    else
+      return false;
   }
 
   const int plotColor() const { return plotColor_; }
 
-  const PowerChainType powerChainType() const;  // Returns whether a power chain has 4 Ampere or 8 Ampere.
+  const PowerChainType powerChainType()
+      const; // Returns whether a power chain has 4 Ampere or 8 Ampere.
 
 private:
-  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int halfRingIndex) const;
+  const int computePlotColor(const bool isBarrel, const bool isPositiveZEnd,
+                             const int phiRef, const int halfRingIndex) const;
 
   void buildHvLine(const int powerChainId);
   const std::string computeHvLineName(const int powerChainId) const;
@@ -78,14 +96,12 @@ private:
   int halfRingIndex_;
   bool isAtSmallerAbsZDeeInDoubleDisk_;
   bool isAtSmallerAbsZSideInDee_;
-  
+
   bool isBarrel_;
   int ringNumber_;
   bool isSmallerAbsZHalfRing_;
 
   int plotColor_;
 };
-
-
 
 #endif

@@ -1,24 +1,19 @@
 #include "InnerCabling/InnerDTC.hh"
 
-
-InnerDTC::InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide) :
-  myDTCCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
-  isPositiveZEnd_(isPositiveZEnd),
-  isPositiveXSide_(isPositiveXSide)
-{
+InnerDTC::InnerDTC(const int DTCId, const bool isPositiveZEnd,
+                   const bool isPositiveXSide)
+    : myDTCCMSSWId_(0), // Need to have consecutive integers, hence is done
+                        // after full cabling map is created.
+      isPositiveZEnd_(isPositiveZEnd), isPositiveXSide_(isPositiveXSide) {
   myid(DTCId);
 
   plotColor_ = computePlotColor(DTCId);
 };
 
-
 /*
  *  Connect a Bundle to the DTC.
  */
-void InnerDTC::addBundle(InnerBundle* bundle) { 
-  bundles_.push_back(bundle);
-}
-
+void InnerDTC::addBundle(InnerBundle *bundle) { bundles_.push_back(bundle); }
 
 /*
  * Compute DTC color on website.

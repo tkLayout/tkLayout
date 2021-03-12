@@ -1,11 +1,9 @@
 #ifndef MODULE_H
 #define MODULE_H
 
-#include "GeometricModule.hh"
 #include "DetectorModule.hh"
+#include "GeometricModule.hh"
 
 typedef DetectorModule Module;
-
-
 
 #endif

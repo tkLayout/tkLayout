@@ -4,4 +4,4 @@
 #define REVISIONNUMBER "Undefined"
 #endif
 
-const std::string SvnRevision::revisionNumber = REVISIONNUMBER ;
+const std::string SvnRevision::revisionNumber = REVISIONNUMBER;

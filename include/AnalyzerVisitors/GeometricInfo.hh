@@ -1,32 +1,31 @@
 #ifndef _GEOMETRICINFO_HH
-#define	_GEOMETRICINFO_HH
+#define _GEOMETRICINFO_HH
 
-#include <global_constants.hh>
-#include <VizardTools.hh>
-#include <Tracker.hh>
+#include <RootWeb.hh>
 #include <SimParms.hh>
 #include <TagMaker.hh>
-#include <RootWeb.hh>
+#include <Tracker.hh>
+#include <VizardTools.hh>
+#include <global_constants.hh>
 
+//**************************************//
+//*             Visitor                *//
+//*  Layers and disks : global info    *//
+//*                                    *//
+//**************************************//
 
-    //**************************************//
-    //*             Visitor                *//
-    //*  Layers and disks : global info    *//
-    //*                                    *//
-    //**************************************//
-
-    // Build the module type maps
-    // with a pointer to a sample module
+// Build the module type maps
+// with a pointer to a sample module
 class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
 public:
   // info
-  RootWTable* layerTable = new RootWTable();  
-  RootWTable* diskTable = new RootWTable();
-  std::vector<RootWTable*> endcapNames;
-  std::vector<RootWTable*> endcapTables;
-  std::vector<RootWTable*> diskNames;
-  std::vector<RootWTable*> zErrorTables;
-  std::map<std::string, std::set<std::string> > tagMapPositions;
+  RootWTable *layerTable = new RootWTable();
+  RootWTable *diskTable = new RootWTable();
+  std::vector<RootWTable *> endcapNames;
+  std::vector<RootWTable *> endcapTables;
+  std::vector<RootWTable *> diskNames;
+  std::vector<RootWTable *> zErrorTables;
+  std::map<std::string, std::set<std::string>> tagMapPositions;
   std::map<std::string, int> tagMapCount;
   std::map<std::string, long> tagMapCountChan;
   std::map<std::string, double> tagMapMaxStripOccupancy;
@@ -49,7 +48,7 @@ public:
   std::map<std::string, double> tagMapAveYResolutionTrigger;
   std::map<std::string, double> tagMapSensorPowerAvg;
   std::map<std::string, double> tagMapSensorPowerMax;
-  std::map<std::string, const DetectorModule*> tagMap;
+  std::map<std::string, const DetectorModule *> tagMap;
 
   std::string endcapId;
   std::string diskId;
@@ -72,66 +71,60 @@ public:
   double nMB;
 
   void preVisit();
-  void visit(const Barrel& b) override;
-  void visit(const Layer& l) override;
-  void visit(const Endcap& e) override;
-  void visit(const Disk& d) override;
-  void visit(const Ring& r) override;
-  void visit(const Module& m) override;
-  void visit(const EndcapModule& m) override;
+  void visit(const Barrel &b) override;
+  void visit(const Layer &l) override;
+  void visit(const Endcap &e) override;
+  void visit(const Disk &d) override;
+  void visit(const Ring &r) override;
+  void visit(const Module &m) override;
+  void visit(const EndcapModule &m) override;
   void postVisit();
 };
 
-
-
-
-    //***************************************//
-    //*                Visitor              *//
-    //*             Skewed layers:          *//
-    //*            Additional info          *//
-    //*                                     *//
-    //***************************************//
+//***************************************//
+//*                Visitor              *//
+//*             Skewed layers:          *//
+//*            Additional info          *//
+//*                                     *//
+//***************************************//
 
 class SkewedLayersVisitor : public ConstGeometryVisitor {
 public:
-  std::vector<RootWTable*> tables;
+  std::vector<RootWTable *> tables;
 
   // counter
   int numSkewedLayers = 0;
 
-  void visit(const Layer& l) override;     
+  void visit(const Layer &l) override;
 };
 
-
-
-    //***************************************//
-    //*                Visitor              *//
-    //* Automatic-placement tilted layers : *//
-    //*            Additional info          *//
-    //*                                     *//
-    //***************************************//
+//***************************************//
+//*                Visitor              *//
+//* Automatic-placement tilted layers : *//
+//*            Additional info          *//
+//*                                     *//
+//***************************************//
 
 class TiltedLayersVisitor : public ConstGeometryVisitor {
 public:
   // tilted info
-  std::vector<RootWTable*> tiltedLayerNames;
-  std::vector<RootWTable*> flatPartNames;
-  std::vector<RootWTable*> tiltedPartNames;
-  std::vector<RootWTable*> flatPartTables;
-  std::vector<RootWTable*> tiltedPartTables;
+  std::vector<RootWTable *> tiltedLayerNames;
+  std::vector<RootWTable *> flatPartNames;
+  std::vector<RootWTable *> tiltedPartNames;
+  std::vector<RootWTable *> flatPartTables;
+  std::vector<RootWTable *> tiltedPartTables;
 
   // counter
   int numTiltedLayers = 0;
 
-  void visit(const Layer& l) override;     
+  void visit(const Layer &l) override;
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*            AllModulesCsv          //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*            AllModulesCsv          //
+//*                                   //
+//************************************//
 class TrackerVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
   string sectionName_;
@@ -139,20 +132,19 @@ class TrackerVisitor : public ConstGeometryVisitor {
 
 public:
   void preVisit();
-  void visit(const Barrel& b);
-  void visit(const Endcap& e);
-  void visit(const Layer& l);
-  void visit(const Disk& d);
-  void visit(const Module& m);
+  void visit(const Barrel &b);
+  void visit(const Endcap &e);
+  void visit(const Layer &l);
+  void visit(const Disk &d);
+  void visit(const Module &m);
   std::string output() const { return output_.str(); }
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*            BarrelModulesCsv       //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*            BarrelModulesCsv       //
+//*                                   //
+//************************************//
 class BarrelVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
   string barName_;
@@ -161,18 +153,17 @@ class BarrelVisitor : public ConstGeometryVisitor {
 
 public:
   void preVisit();
-  void visit(const Barrel& b);
-  void visit(const Layer& l);
-  void visit(const BarrelModule& m);
+  void visit(const Barrel &b);
+  void visit(const Layer &l);
+  void visit(const BarrelModule &m);
   std::string output() const;
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*            EndcapModulesCsv       //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*            EndcapModulesCsv       //
+//*                                   //
+//************************************//
 class EndcapVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
   string endcapName_;
@@ -180,19 +171,18 @@ class EndcapVisitor : public ConstGeometryVisitor {
 
 public:
   void preVisit();
-  void visit(const Endcap& e);
-  void visit(const Disk& d);
-  void visit(const EndcapModule& m);
+  void visit(const Endcap &e);
+  void visit(const Disk &d);
+  void visit(const EndcapModule &m);
 
   std::string output() const;
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*            Sensors DetIds         //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*            Sensors DetIds         //
+//*                                   //
+//************************************//
 class TrackerSensorVisitor : public SensorGeometryVisitor {
   std::stringstream output_;
   string sectionName_;
@@ -200,22 +190,21 @@ class TrackerSensorVisitor : public SensorGeometryVisitor {
   int moduleRing_;
 
 public:
-  void visit(Barrel& b);
-  void visit(Endcap& e);
-  void visit(Layer& l);
-  void visit(Disk& d);
-  void visit(Module& m);
-  void visit(Sensor& s);
+  void visit(Barrel &b);
+  void visit(Endcap &e);
+  void visit(Layer &l);
+  void visit(Disk &d);
+  void visit(Module &m);
+  void visit(Sensor &s);
 
   std::string output() const;
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*            ModulesToDTCsCsv       //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*            ModulesToDTCsCsv       //
+//*                                   //
+//************************************//
 class ModulesToDTCsVisitor : public ConstGeometryVisitor {
   bool isPositiveCablingSide_;
   std::stringstream output_;
@@ -225,35 +214,33 @@ class ModulesToDTCsVisitor : public ConstGeometryVisitor {
 public:
   ModulesToDTCsVisitor(bool isPositiveCablingSide);
   void preVisit();
-  void visit(const Barrel& b);
-  void visit(const Endcap& e);
-  void visit(const Layer& l);
-  void visit(const Disk& d);
-  void visit(const Module& m);
+  void visit(const Barrel &b);
+  void visit(const Endcap &e);
+  void visit(const Layer &l);
+  void visit(const Disk &d);
+  void visit(const Module &m);
   std::string output() const { return output_.str(); }
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*     CMSSWOuterTrackerCablingMap   //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*     CMSSWOuterTrackerCablingMap   //
+//*                                   //
+//************************************//
 class CMSSWOuterTrackerCablingMapVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
- 
+
 public:
   void preVisit();
-  void visit(const Module& m);
+  void visit(const Module &m);
   std::string output() const { return output_.str(); }
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*   InnerTrackerModulesToDTCsCsv    //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*   InnerTrackerModulesToDTCsCsv    //
+//*                                   //
+//************************************//
 class InnerTrackerModulesToDTCsVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
   string sectionName_;
@@ -261,29 +248,26 @@ class InnerTrackerModulesToDTCsVisitor : public ConstGeometryVisitor {
 
 public:
   void preVisit();
-  void visit(const Barrel& b);
-  void visit(const Endcap& e);
-  void visit(const Layer& l);
-  void visit(const Disk& d);
-  void visit(const Module& m);
+  void visit(const Barrel &b);
+  void visit(const Endcap &e);
+  void visit(const Layer &l);
+  void visit(const Disk &d);
+  void visit(const Module &m);
   std::string output() const { return output_.str(); }
 };
 
-
-    //************************************//
-    //*               Visitor             //
-    //*     CMSSWInnerTrackerCablingMap   //
-    //*                                   //
-    //************************************//
+//************************************//
+//*               Visitor             //
+//*     CMSSWInnerTrackerCablingMap   //
+//*                                   //
+//************************************//
 class CMSSWInnerTrackerCablingMapVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
- 
+
 public:
   void preVisit();
-  void visit(const Module& m);
+  void visit(const Module &m);
   std::string output() const { return output_.str(); }
 };
-
-
 
 #endif // _GEOMETRICINFO_HH

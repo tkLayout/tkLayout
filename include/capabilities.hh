@@ -1,23 +1,23 @@
 #ifndef CAPABILITIES_H
 #define CAPABILITIES_H
 
-#include <typeinfo>
-#include <string>
 #include <bitset>
+#include <string>
+#include <typeinfo>
 
 #include "GeometryFactory.hh"
-#include "global_funcs.hh"
 #include "MessageLogger.hh"
+#include "global_funcs.hh"
 
 using std::string;
-
 
 class Buildable {
 protected:
   bool built_;
+
 public:
   Buildable() : built_(false) {}
-  virtual ~Buildable() {};
+  virtual ~Buildable(){};
   bool builtok() const { return built_; }
   void builtok(bool state) { built_ = state; }
 };
@@ -25,9 +25,10 @@ public:
 class Placeable {
 protected:
   bool placed_;
+
 public:
   Placeable() : placed_(false) {}
-  virtual ~Placeable() {};
+  virtual ~Placeable(){};
   bool placed() const { return placed_; }
   void placed(bool state) { placed_ = state; }
 };
@@ -43,56 +44,70 @@ public:
   //template<class U> void myid(U id) { myid_ = any2str(id); }
   void myid(T::IdType id) { myid_ = id; }
   T::IdType myid() const { return myid_; }
-  IdentifiableType fullid() const { return base_ + "(" + any2str(myid()) + ")"; }
+  IdentifiableType fullid() const { return base_ + "(" + any2str(myid()) + ")";
+}
 };
 */
-template<class T>
-class Identifiable {
+template <class T> class Identifiable {
   T myid_;
+
 public:
-  virtual ~Identifiable() {};
-  void myid(const T& id) { myid_ = id; }
-  const T& myid() const { return myid_; }
+  virtual ~Identifiable(){};
+  void myid(const T &id) { myid_ = id; }
+  const T &myid() const { return myid_; }
 };
 
-template<class T> string fullid(const T& o) { return string(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
+template <class T> string fullid(const T &o) {
+  return string(typeid(T).name()) + "(" + any2str(o.myid()) + ")";
+}
 
 class DetIdentifiable {
 public:
-  virtual ~DetIdentifiable() {};
+  virtual ~DetIdentifiable(){};
   uint32_t myDetId() const { return myDetId_; }
-  std::bitset<32> myBinaryDetId() const { std::bitset<32> myBinaryDetId(myDetId_); return myBinaryDetId; }
-  std::map<int, uint32_t> geometryHierarchyIds() const { return geometryHierarchyIds_; }
+  std::bitset<32> myBinaryDetId() const {
+    std::bitset<32> myBinaryDetId(myDetId_);
+    return myBinaryDetId;
+  }
+  std::map<int, uint32_t> geometryHierarchyIds() const {
+    return geometryHierarchyIds_;
+  }
 
-  void buildDetId(std::map<int, uint32_t> geometryHierarchyIds, std::vector<int> geometryHierarchySizes);
+  void buildDetId(std::map<int, uint32_t> geometryHierarchyIds,
+                  std::vector<int> geometryHierarchySizes);
 
-private :
+private:
   uint32_t myDetId_ = 0;
   std::map<int, uint32_t> geometryHierarchyIds_;
 };
 
-template<class T>
-class Clonable {
-  template<class U> static void conditionalSetup(U* t, typename std::enable_if<std::is_void<decltype(t->setup())>::value>::type* = 0) { t->setup(); } 
+template <class T> class Clonable {
+  template <class U>
+  static void conditionalSetup(
+      U *t,
+      typename std::enable_if<std::is_void<decltype(t->setup())>::value>::type
+          * = 0) {
+    t->setup();
+  }
   static void conditionalSetup(...) {}
+
 protected:
-  Clonable(const Clonable&) {}
+  Clonable(const Clonable &) {}
+
 public:
   Clonable() {}
-  virtual ~Clonable() {};
-  T* clone() const {
-    T* t = new T(static_cast<const T&>(*this));
+  virtual ~Clonable(){};
+  T *clone() const {
+    T *t = new T(static_cast<const T &>(*this));
     conditionalSetup(t);
     return t;
   }
 
-  template<class ...U> static T* make(const U&... args) {
-    T* t = new T(args...);
+  template <class... U> static T *make(const U &... args) {
+    T *t = new T(args...);
     conditionalSetup(t);
     return t;
   }
 };
-
-
 
 #endif

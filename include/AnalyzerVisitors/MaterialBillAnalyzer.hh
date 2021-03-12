@@ -1,43 +1,41 @@
 #ifndef FLUKAGEOMETRYANALYZER_H
 #define FLUKAGEOMETRYANALYZER_H
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
-#include "Tracker.hh"
-#include "MaterialBudget.hh"
 #include "InactiveElement.hh"
+#include "MaterialBudget.hh"
+#include "Tracker.hh"
 
 namespace MaterialBillAnalyzerData {
 
-  typedef std::map<std::string, double> MaterialMap;
-  using namespace insur;
+typedef std::map<std::string, double> MaterialMap;
+using namespace insur;
 
-  class ServiceElement {
-  public: 
-    double zmin, zmax, rmin, rmax;
-    MaterialMap materialMap;
-  };
-}
+class ServiceElement {
+public:
+  double zmin, zmax, rmin, rmax;
+  MaterialMap materialMap;
+};
+} // namespace MaterialBillAnalyzerData
 
 using namespace MaterialBillAnalyzerData;
 
 class MaterialBillAnalyzer {
- private:
+private:
   typedef std::map<std::string, MaterialMap> LayerMaterialMap;
   typedef std::vector<ServiceElement> ServicesMaterialVector;
   ServicesMaterialVector servicesMaterialVector_;
   LayerMaterialMap layerMaterialMap_;
-  void inspectInactiveElements(const std::vector<InactiveElement>& inactiveElements);
-  void inspectModules(std::vector<std::vector<insur::ModuleCap> >& tracker);
+  void
+  inspectInactiveElements(const std::vector<InactiveElement> &inactiveElements);
+  void inspectModules(std::vector<std::vector<insur::ModuleCap>> &tracker);
 
-
- public:
+public:
   std::string outputTable;
-  void inspectTracker(MaterialBudget&);
-
+  void inspectTracker(MaterialBudget &);
 };
-
 
 #endif

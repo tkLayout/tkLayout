@@ -7,7 +7,7 @@ const int node_cane = 2;
 const int node_cacca = 3;
 const int node_altro = 4;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   GraphVizCreator GVC;
   int fileId[10];
 
@@ -23,8 +23,7 @@ int main(int argc, char* argv[]) {
   GVC.addGraphLink(fileId[node_cane], fileId[node_altro]);
   GVC.addGraphLink(fileId[node_cane], fileId[node_altro]);
 
-  std::cout << GVC.createGraphVizFile() ;
+  std::cout << GVC.createGraphVizFile();
 
   return 0;
-
 }

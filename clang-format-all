@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if which clang-format 2>/dev/null ; then
+  find . -type f -regex '.*\.\(hh\|cc\|cpp\|h\|C\)' -exec clang-format -i "{}" \;
+else
+  echo ERROR: clang-format not found
+  echo you can probably install it with something like
+  echo sudo yum install -y llvm-toolset 
+fi
+

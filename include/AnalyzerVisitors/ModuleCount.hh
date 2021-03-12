@@ -1,8 +1,8 @@
 #ifndef MODULECOUNT_HH
 #define MODULECOUNT_HH
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "Visitor.hh"
 
@@ -21,14 +21,15 @@ private:
   std::map<std::pair<std::string, std::string>, int> count_TypeSub;
   std::string currentSubdetector;
   int currentSubdetectorIndex;
-  std::string moduleSummaryType(const DetectorModule& m) const;
+  std::string moduleSummaryType(const DetectorModule &m) const;
   void sortTypesAndDetectors();
+
 public:
-  RootWTable* makeTable();
-  void preVisit(const Tracker& tracker);
-  void visit(const Barrel& barrel);
-  void visit(const Endcap& endcap);
-  void visit(const DetectorModule& m);
+  RootWTable *makeTable();
+  void preVisit(const Tracker &tracker);
+  void visit(const Barrel &barrel);
+  void visit(const Endcap &endcap);
+  void visit(const DetectorModule &m);
 };
 
 #endif
