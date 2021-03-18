@@ -560,3 +560,14 @@ OT800_IT701.cfg                      OT Version 8.0.0
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
 
 
+=============   SENSOR TECHNOLOGY STUDIES   =============
+OT800_IT702.cfg                      OT Version 8.0.0
+                                     Based on IT version 7.0.0.
+                                     TPBX L1 with 3D sensors, planar 25x100 um2 pixels in TBPX L2,L3,L4, TFPX and TEPX
+
+OT800_IT703.cfg                      OT Version 8.0.0
+                                     Based on IT version 7.0.0.
+                                     TPBX L1 with 3D sensors, planar 25x100 um2 pixels in TBPX L2,L3,L4; planar 50x50um2 pixels in TFPX and TEPX
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
+
