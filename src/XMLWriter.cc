@@ -966,6 +966,9 @@ namespace insur {
       if( param.second.find("TOBDet") != std::string::npos) param.second = xml_subdet_tobdet_1;
       if( param.second.find("TIDDet") != std::string::npos) param.second = xml_subdet_tiddet;
       stream<< xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second  << param.second  << xml_general_endline;
+      if( minfo.at(i).bricked ){ // Only add the line if isBricked exists
+          stream<< xml_spec_par_parameter_first << xml_bricked_name    << xml_spec_par_parameter_second << xml_true <<xml_general_endline;
+      }
       stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
       stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
       stream<< xml_spec_par_parameter_first << xml_roc_x           << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).rocx     << xml_general_endline;
