@@ -1,11 +1,10 @@
 #ifndef INNER_CABLING_CONSTANTS_HH
 #define INNER_CABLING_CONSTANTS_HH
 
+#include "OuterCabling/outer_cabling_constants.hh"
+#include "global_funcs.hh"
 #include <math.h>
 #include <string>
-#include "global_funcs.hh"
-#include "OuterCabling/outer_cabling_constants.hh"
-
 
 // DESIGN
 // Maximum number of modules per serial power chain
@@ -16,7 +15,6 @@ static const int inner_cabling_maxNumELinksPerGBT = 7;
 static const int inner_cabling_maxNumGBTsPerBundle = 12;
 // Maximum number of bundles per cable
 static const int inner_cabling_maxNumBundlesPerCable = 6;
-
 
 // READOUT 1.28 GB/s E-LINKS
 static const int inner_cabling_numELinksPerModuleBarrelLayer1 = 6;
@@ -35,7 +33,6 @@ static const int inner_cabling_numELinksPerModuleEndcapRing3 = 1;
 static const int inner_cabling_numELinksPerModuleEndcapRing4 = 1;
 static const int inner_cabling_numELinksPerModuleEndcapRing5 = 1;
 
-
 // MAX NUMBER OF POWER CHAINS PER FIBER BUNDLE, in TBPX
 // This would be uselessly complicated to make this automatic.
 static const int maxNumPowerChainsPerBundleBarrelLayer1 = 1;
@@ -43,28 +40,26 @@ static const int maxNumPowerChainsPerBundleBarrelLayer2 = 3;
 static const int maxNumPowerChainsPerBundleBarrelLayer3 = 3;
 static const int maxNumPowerChainsPerBundleBarrelLayer4 = 4;
 
-
 // POWER CHAIN TYPE
 // 4 ampere or 8 ampere.
 enum PowerChainType { IUNDEFINED, I4A, I8A };
 
-
 // ROUNDING
-static const double inner_cabling_roundingTolerance = outer_cabling_roundingTolerance;
-
+static const double inner_cabling_roundingTolerance =
+    outer_cabling_roundingTolerance;
 
 // GEOMETRY NAMES
-// The cabling map is geometry-dependent, hence the subdetector names are placed here.
+// The cabling map is geometry-dependent, hence the subdetector names are placed
+// here.
 static const std::string inner_cabling_tbpx = "PXB";
 static const std::string inner_cabling_tfpx = "FPIX_1";
 static const std::string inner_cabling_tepx = "FPIX_2";
-
 
 // CMSSW IDS
 // Total number of DTCs in OT
 static const int outer_cabling_totalNumDTCs = 216; // This could be obtained by:
 // outer_cabling_numNonants * outer_cabling_maxNumDTCsPerNonantPerZEnd,
-// but ugly to introduce dependency of IT cabling map on OT, because the maps are actually fully independent.
+// but ugly to introduce dependency of IT cabling map on OT, because the maps
+// are actually fully independent.
 
-
-#endif  // INNER_CABLING_CONSTANTS_HH
+#endif // INNER_CABLING_CONSTANTS_HH

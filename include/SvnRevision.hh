@@ -1,7 +1,6 @@
 #include <string>
 
-class SvnRevision
-{
+class SvnRevision {
 public:
   static const std::string revisionNumber;
 };

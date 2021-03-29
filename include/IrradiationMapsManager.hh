@@ -7,10 +7,10 @@
 #ifndef IRRADIATIONMAPSMANAGER_H_
 #define IRRADIATIONMAPSMANAGER_H_
 
-#include <utility>
-#include <string>
+#include "IrradiationMap.hh"
 #include <set>
-#include"IrradiationMap.hh"
+#include <string>
+#include <utility>
 
 /**
  * @class IrradiationMapsManager
@@ -28,7 +28,7 @@ public:
    * Add the passed map to internal set
    * @param IrradiationMap is the new map
    */
-  void addIrradiationMap(const IrradiationMap& newIrradiationMap);
+  void addIrradiationMap(const IrradiationMap &newIrradiationMap);
 
   /**
    * Create a new map with passed file and ad it to internal set
@@ -39,13 +39,14 @@ public:
   /**
    * Get the irradiation of the point in the passed coordinates using the best
    * avaiable map that contains that point
-   * @param coordinates represent the point, is a pair (z,r) with coordinates z in Z, and r in Rho
+   * @param coordinates represent the point, is a pair (z,r) with coordinates z
+   * in Z, and r in Rho
    * @return The value of irradiation in the point
    */
-  double calculateIrradiationPower(const std::pair<double,double>& coordinates) const;
+  double
+  calculateIrradiationPower(const std::pair<double, double> &coordinates) const;
 
 private:
-
   /**
    * The set that contains all the maps ordered by resolution
    */

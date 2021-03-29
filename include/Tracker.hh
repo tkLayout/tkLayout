@@ -1,43 +1,47 @@
 #ifndef TRACKER_H
 #define TRACKER_H
 
-#include <vector>
-#include <string>
+#include <limits.h>
 #include <memory>
 #include <set>
-#include <limits.h>
+#include <string>
+#include <vector>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include <TCanvas.h>
 
-#include "global_funcs.hh"
-#include "Property.hh"
 #include "Barrel.hh"
+#include "DetIdBuilder.hh"
 #include "Endcap.hh"
-#include "SupportStructure.hh"
-#include "Visitor.hh"
-#include "Visitable.hh"
-#include "OuterCabling/OuterCablingMap.hh"
 #include "InnerCabling/InnerCablingMap.hh"
 #include "MainConfigHandler.hh"
-#include "DetIdBuilder.hh"
+#include "OuterCabling/OuterCablingMap.hh"
+#include "Property.hh"
+#include "SupportStructure.hh"
+#include "Visitable.hh"
+#include "Visitor.hh"
+#include "global_funcs.hh"
 
-using std::set;
 using material::SupportStructure;
+using std::set;
 
-
-
-class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {
+class Tracker : public PropertyObject,
+                public Buildable,
+                public Identifiable<string>,
+                Clonable<Tracker>,
+                public Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
-    typedef set<Module*> Modules;
+    typedef set<Module *> Modules;
+
   private:
     Modules modules_;
+
   public:
-    void visit(Module& m) override { modules_.insert(&m); }
-    Modules& modules() { return modules_; }
-    const Modules& modules() const { return modules_; }
+    void visit(Module &m) override { modules_.insert(&m); }
+    Modules &modules() { return modules_; }
+    const Modules &modules() const { return modules_; }
     Modules::iterator begin() { return modules_.begin(); }
     Modules::iterator end() { return modules_.end(); }
     Modules::const_iterator begin() const { return modules_.begin(); }
@@ -52,7 +56,8 @@ public:
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
-  Property<double, Computable> maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
+  Property<double, Computable> maxZwithHybrids, minRwithHybrids,
+      maxRwithHybrids;
   ReadonlyProperty<bool, Computable> hasStepInEndcapsOuterRadius;
   ReadonlyProperty<double, Default> etaCut;
   ReadonlyProperty<bool, Default> servicesForcedUp;
@@ -75,78 +80,88 @@ private:
   Property<std::string, AutoDefault> barrelDetIdScheme;
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
-  //std::map<uint32_t, Module> modules_;
+  // std::map<uint32_t, Module> modules_;
   std::unique_ptr<const OuterCablingMap> myOuterCablingMap_;
   std::unique_ptr<const InnerCablingMap> myInnerCablingMap_;
 
-  //Tracker(const Tracker& otherTracker) = default;
+  // Tracker(const Tracker& otherTracker) = default;
 public:
-
-  Tracker() :
-      etaCut("etaCut", parsedOnly(), 7.),
-      servicesForcedUp("servicesForcedUp", parsedOnly(), true),
-      skipAllServices("skipAllServices", parsedOnly(), false),
-      skipAllSupports("skipAllSupports", parsedOnly(), false),
-      barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly()),
-      supportNode("Support", parsedOnly()),
-      containsOnly("containsOnly", parsedOnly()),
-      barrelDetIdScheme("barrelDetIdScheme", parsedOnly()),
-      endcapDetIdScheme("endcapDetIdScheme", parsedOnly())
-  {}
+  Tracker()
+      : etaCut("etaCut", parsedOnly(), 7.),
+        servicesForcedUp("servicesForcedUp", parsedOnly(), true),
+        skipAllServices("skipAllServices", parsedOnly(), false),
+        skipAllSupports("skipAllSupports", parsedOnly(), false),
+        barrelNode("Barrel", parsedOnly()), endcapNode("Endcap", parsedOnly()),
+        supportNode("Support", parsedOnly()),
+        containsOnly("containsOnly", parsedOnly()),
+        barrelDetIdScheme("barrelDetIdScheme", parsedOnly()),
+        endcapDetIdScheme("endcapDetIdScheme", parsedOnly()) {}
 
   void setup() {
-      maxR.setup([this]() {
-        double max = 0; 
-        for (const auto& b : barrels_) max = MAX(max, b.maxR());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxR());
-        return max;
-      });
-      minR.setup([this]() {
-        double min = std::numeric_limits<double>::max(); 
-        for (const auto& b : barrels_) min = MIN(min, b.minR());
-        for (const auto& e : endcaps_) min = MIN(min, e.minR());
-        return min;
-      });
-      maxZ.setup([this]() {
-        double max = 0;
-        for (const auto& b : barrels_) max = MAX(max, b.maxZ());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
-        return max;
-     });
+    maxR.setup([this]() {
+      double max = 0;
+      for (const auto &b : barrels_)
+        max = MAX(max, b.maxR());
+      for (const auto &e : endcaps_)
+        max = MAX(max, e.maxR());
+      return max;
+    });
+    minR.setup([this]() {
+      double min = std::numeric_limits<double>::max();
+      for (const auto &b : barrels_)
+        min = MIN(min, b.minR());
+      for (const auto &e : endcaps_)
+        min = MIN(min, e.minR());
+      return min;
+    });
+    maxZ.setup([this]() {
+      double max = 0;
+      for (const auto &b : barrels_)
+        max = MAX(max, b.maxZ());
+      for (const auto &e : endcaps_)
+        max = MAX(max, e.maxZ());
+      return max;
+    });
 
+    maxRwithHybrids.setup([this]() {
+      double max = 0;
+      for (const auto &b : barrels_)
+        max = MAX(max, b.maxRwithHybrids());
+      for (const auto &e : endcaps_)
+        max = MAX(max, e.maxRwithHybrids());
+      return max;
+    });
+    minRwithHybrids.setup([this]() {
+      double min = std::numeric_limits<double>::max();
+      for (const auto &b : barrels_)
+        min = MIN(min, b.minRwithHybrids());
+      for (const auto &e : endcaps_)
+        min = MIN(min, e.minRwithHybrids());
+      return min;
+    });
+    maxZwithHybrids.setup([this]() {
+      double max = 0;
+      for (const auto &b : barrels_)
+        max = MAX(max, b.maxZwithHybrids());
+      for (const auto &e : endcaps_)
+        max = MAX(max, e.maxZwithHybrids());
+      return max;
+    });
 
-
-      maxRwithHybrids.setup([this]() { 
-	  double max = 0; 
-	  for (const auto& b : barrels_) max = MAX(max, b.maxRwithHybrids());
-	  for (const auto& e : endcaps_) max = MAX(max, e.maxRwithHybrids());
-	  return max;
-	});
-      minRwithHybrids.setup([this]() {
-	  double min = std::numeric_limits<double>::max(); 
-	  for (const auto& b : barrels_) min = MIN(min, b.minRwithHybrids());
-	  for (const auto& e : endcaps_) min = MIN(min, e.minRwithHybrids());
-	  return min;
-	});
-      maxZwithHybrids.setup([this]() {
-	  double max = 0;
-	  for (const auto& b : barrels_) max = MAX(max, b.maxZwithHybrids());
-	  for (const auto& e : endcaps_) max = MAX(max, e.maxZwithHybrids());
-	  return max;
-	});
-
-
-      hasStepInEndcapsOuterRadius.setup([this]() {
-	  bool hasStep = false;
-	  if (endcaps().size() > 1) {
-	    // check whether all endcaps outer radii are identical with each other
-	    // if radii are not all identical, there is an endcap step !
-	    hasStep = !std::equal(endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(), 
-				  [&](const Endcap& e1, const Endcap& e2) { return (fabs(e1.maxRwithHybrids() - e2.maxRwithHybrids()) < insur::geom_epsilon); });
-	  }
-	  return hasStep;
-	});
+    hasStepInEndcapsOuterRadius.setup([this]() {
+      bool hasStep = false;
+      if (endcaps().size() > 1) {
+        // check whether all endcaps outer radii are identical with each other
+        // if radii are not all identical, there is an endcap step !
+        hasStep = !std::equal(
+            endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(),
+            [&](const Endcap &e1, const Endcap &e2) {
+              return (fabs(e1.maxRwithHybrids() - e2.maxRwithHybrids()) <
+                      insur::geom_epsilon);
+            });
+      }
+      return hasStep;
+    });
   }
 
   void build();
@@ -155,54 +170,75 @@ public:
   void buildDetIds();
   void checkDetIds();
 
-  void setOuterCablingMap(std::unique_ptr<const OuterCablingMap> map) { myOuterCablingMap_ = std::move(map); }
-  const OuterCablingMap* getOuterCablingMap() const {
-    if (!myOuterCablingMap_) throw PathfulException("Tracker has no OT cabling map, but one tries to access it.");
+  void setOuterCablingMap(std::unique_ptr<const OuterCablingMap> map) {
+    myOuterCablingMap_ = std::move(map);
+  }
+  const OuterCablingMap *getOuterCablingMap() const {
+    if (!myOuterCablingMap_)
+      throw PathfulException(
+          "Tracker has no OT cabling map, but one tries to access it.");
     return myOuterCablingMap_.get();
   }
 
-  void setInnerCablingMap(std::unique_ptr<const InnerCablingMap> map) { myInnerCablingMap_ = std::move(map); }
-  const InnerCablingMap* getInnerCablingMap() const {
-    if (!myInnerCablingMap_) throw PathfulException("Tracker has no IT cabling map, but one tries to access it.");
+  void setInnerCablingMap(std::unique_ptr<const InnerCablingMap> map) {
+    myInnerCablingMap_ = std::move(map);
+  }
+  const InnerCablingMap *getInnerCablingMap() const {
+    if (!myInnerCablingMap_)
+      throw PathfulException(
+          "Tracker has no IT cabling map, but one tries to access it.");
     return myInnerCablingMap_.get();
   }
 
-  const Barrels& barrels() const { return barrels_; }
-  const Endcaps& endcaps() const { return endcaps_; }
+  const Barrels &barrels() const { return barrels_; }
+  const Endcaps &endcaps() const { return endcaps_; }
 
-  const Modules& modules() const { return moduleSetVisitor_.modules(); }
-  Modules& modules() { return moduleSetVisitor_.modules(); }
+  const Modules &modules() const { return moduleSetVisitor_.modules(); }
+  Modules &modules() { return moduleSetVisitor_.modules(); }
 
   bool isPixelTracker() const { return myid() == "Pixels"; }
 
-  std::map<std::string, std::vector<int> > detIdSchemes();
+  std::map<std::string, std::vector<int>> detIdSchemes();
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& b : barrels_) { b.accept(v); }
-    for (auto& e : endcaps_) { e.accept(v); }
+  void accept(GeometryVisitor &v) {
+    v.visit(*this);
+    for (auto &b : barrels_) {
+      b.accept(v);
+    }
+    for (auto &e : endcaps_) {
+      e.accept(v);
+    }
   }
-  void accept(ConstGeometryVisitor& v) const {
-    v.visit(*this); 
-    for (const auto& b : barrels_) { b.accept(v); }
-    for (const auto& e : endcaps_) { e.accept(v); }
+  void accept(ConstGeometryVisitor &v) const {
+    v.visit(*this);
+    for (const auto &b : barrels_) {
+      b.accept(v);
+    }
+    for (const auto &e : endcaps_) {
+      e.accept(v);
+    }
   }
-  void accept(SensorGeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& b : barrels_) { b.accept(v); }
-    for (auto& e : endcaps_) { e.accept(v); }
+  void accept(SensorGeometryVisitor &v) {
+    v.visit(*this);
+    for (auto &b : barrels_) {
+      b.accept(v);
+    }
+    for (auto &e : endcaps_) {
+      e.accept(v);
+    }
   }
 
-  std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)
+  std::pair<double, double> computeMinMaxEta()
+      const; // pair.first = minEta, pair.second = maxEta (reversed with respect
+             // to the previous tkLayout geometry model)
 
   void createGeometry(bool) {}
-  TCanvas* getGeomLite()   { return NULL; }
-  TCanvas* getGeomLiteXY() { return NULL; }
-  TCanvas* getGeomLiteYZ() { return NULL; }
-  TCanvas* getGeomLiteEC() { return NULL; }
-  
-  SupportStructures& supportStructures() {return supportStructures_;}
-};
+  TCanvas *getGeomLite() { return NULL; }
+  TCanvas *getGeomLiteXY() { return NULL; }
+  TCanvas *getGeomLiteYZ() { return NULL; }
+  TCanvas *getGeomLiteEC() { return NULL; }
 
+  SupportStructures &supportStructures() { return supportStructures_; }
+};
 
 #endif

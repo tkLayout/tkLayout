@@ -3,8 +3,8 @@
 
 #include <MessageLogger.hh>
 #include <ctime>
-#include <string>
 #include <list>
+#include <string>
 
 #define startTaskClock(message) StopWatch::instance()->startCounter(message)
 #define addTaskInfo(message) StopWatch::instance()->addInfo(message)
@@ -22,19 +22,20 @@
  * when asked
  */
 class StopWatch {
- public:
-  static StopWatch* instance();
+public:
+  static StopWatch *instance();
   void startCounter(std::string message);
   double stopCounter();
   void setVerbosity(unsigned int newVerbosity, bool newPerformance);
   void addInfo(std::string message);
   static void destroy();
- private:
+
+private:
   StopWatch();
   ~StopWatch();
-  static StopWatch* myInstance_;
+  static StopWatch *myInstance_;
   std::list<clock_t> startTimes_;
-  double diffClock(const clock_t& stopTime, const clock_t& startTime);
+  double diffClock(const clock_t &stopTime, const clock_t &startTime);
   unsigned int verbosity_;
   unsigned int lastVerbosity_;
   bool reportTime_;

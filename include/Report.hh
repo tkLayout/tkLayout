@@ -11,15 +11,15 @@ class RootWContent;
 
 class Report {
 public:
-  virtual ~Report() {};
-  virtual void analyze() { };  
-  virtual void analyze(Detector&) { };
-  virtual void analyze(Tracker&) { };
-  virtual void analyze(const Detector&) { };
-  virtual void analyze(const Tracker&) { };
-  virtual void visualizeTo(RootWSite&) { };
-  virtual void visualizeTo(RootWPage&) { };
-  virtual void visualizeTo(RootWContent&) { };
+  virtual ~Report(){};
+  virtual void analyze(){};
+  virtual void analyze(Detector &){};
+  virtual void analyze(Tracker &){};
+  virtual void analyze(const Detector &){};
+  virtual void analyze(const Tracker &){};
+  virtual void visualizeTo(RootWSite &){};
+  virtual void visualizeTo(RootWPage &){};
+  virtual void visualizeTo(RootWContent &){};
 };
 
 #endif

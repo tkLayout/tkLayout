@@ -281,7 +281,8 @@ void Analyzer::analyzeTaggedTracking(
           TrackPtr trackPt(new Track(track));
           trackPt->resetPt(pT);
           // trackPt.pruneHits();                // Remove hits from a track
-          // that is not able to reach a given radius due to its limited momentum
+          // that is not able to reach a given radius due to its limited
+          // momentum
           if (trackPt->getNActiveHits(tag, useIPConstraint) >=
               3) { // Only keep tracks which have minimum 3 active hits
             trackPt->fillModuleLocalResolutionStats();
@@ -718,7 +719,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget &mb,
 
               // Print info
               // std::cout << ">> " << iHitID << " R=" << nextRPos/Units::mm <<
-              // " dD=" << dDProj/Units::um << " " << " Z=" << nextZPos/Units::mm
+              // " dD=" << dDProj/Units::um << " " << " Z=" <<
+              // nextZPos/Units::mm
               // << " dZ=" << dZProj/Units::um << std::endl;
 
               // Calculate how many sigmas does one need to get in 2D Gauss. 5%
@@ -2347,7 +2349,7 @@ void Analyzer::calculateGraphsConstPt(const int &parameter,
     //    if ( mh->getObjectKind() == Hit::Active) {
     //      if (mh->getHitModule()) {
     //	//std::cout << "mh->getResolutionLocalX() = " <<
-    //mh->getResolutionLocalX() << std::endl;
+    // mh->getResolutionLocalX() << std::endl;
     //      }
     //    }
     //    }

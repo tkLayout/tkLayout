@@ -3,18 +3,21 @@
 int IdMaker::id = 0;
 const int IdMaker::nBinsZoom = 1000;
 
-template<> TH2C* FrameGetter<YZFull>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<YZFull>::operator()(double viewportX,
+                                      double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, 0, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, -viewportX,
+                         viewportX, nBinsZoom, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-
-
-template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0, viewportX, nBinsZoom, 0, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0,
+                         viewportX, nBinsZoom, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   //    frame->GetXaxis()->SetTickLength(-0.03);
   //    frame->GetXaxis()->SetLabelOffset(0.03);
@@ -28,57 +31,70 @@ template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
-int g
-;
+int g;
 
-template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameXYPos") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX,
+                         viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-template<> TH2C* FrameGetter<XYRotateY180>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<XYRotateY180>::operator()(double viewportX,
+                                            double viewportY) const {
   std::string name = std::string("frameXYPosRotateY180") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX,
+                         viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-template<> TH2C* FrameGetter<XYNeg>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<XYNeg>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameXYNeg") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX,
+                         viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-template<> TH2C* FrameGetter<XYNegRotateY180>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<XYNegRotateY180>::operator()(double viewportX,
+                                               double viewportY) const {
   std::string name = std::string("frameXYNegRotateY180") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C *frame = new TH2C(name.c_str(), ";-x [mm];y [mm]", nBinsZoom, -viewportX,
+                         viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-template<> TH2C* FrameGetter<ZPhi>::operator()(double viewportX, double viewportY) const {
+template <>
+TH2C *FrameGetter<ZPhi>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameZPhi") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm]; phi [rad]",
-			 nBinsZoom, -viewportX, viewportX,
-			 nBinsZoom, (viewportY > M_PI ? 0.9 * M_PI/2. : -viewportY), (viewportY > M_PI ? 1.033 * 3./2.*M_PI : viewportY));
+  TH2C *frame = new TH2C(
+      name.c_str(), ";z [mm]; phi [rad]", nBinsZoom, -viewportX, viewportX,
+      nBinsZoom, (viewportY > M_PI ? 0.9 * M_PI / 2. : -viewportY),
+      (viewportY > M_PI ? 1.033 * 3. / 2. * M_PI : viewportY));
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-TPolyLine* drawMod() {
-  double x[] = { 131., 31., 31., 131., 131., 101. };
-  double y[] = { 132., 132., 32., 32., 81., 81. };
+TPolyLine *drawMod() {
+  double x[] = {131., 31., 31., 131., 131., 101.};
+  double y[] = {132., 132., 32., 32., 81., 81.};
   return new TPolyLine(6, x, y);
 }
 
-template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, 
-									  double tickDistanceRRatio, double tickLengthRRatio, double textDistanceRRatio,
-									  double tickDistanceLRatio, double tickLengthLRatio, double textDistanceLRatio, 
-									  Style_t labelFont, Float_t labelSize, 
-									  double etaStep, double etaMax, double etaLongLine) const {
+template <class CoordType>
+void SummaryFrameStyle<CoordType>::drawEtaTicks(
+    double maxL, double maxR, double tickDistanceRRatio,
+    double tickLengthRRatio, double textDistanceRRatio,
+    double tickDistanceLRatio, double tickLengthLRatio,
+    double textDistanceLRatio, Style_t labelFont, Float_t labelSize,
+    double etaStep, double etaMax, double etaLongLine) const {
   // Add the eta ticks
   double theta;
   double tickDistanceR = tickDistanceRRatio * maxR;
@@ -92,41 +108,48 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double startL = maxL + tickDistanceL;
   double endR = maxR + tickLengthR + tickDistanceR;
   double endL = maxL + tickLengthL + tickDistanceL;
-  TLine* aTick = new TLine();
+  TLine *aTick = new TLine();
   double textX = 0, textY = 0;
 
-  TText* aLabel;
+  TText *aLabel;
   char labelChar[10];
   double eta;
 
-  double thetaLimit = atan(startR/startL);
+  double thetaLimit = atan(startR / startL);
   std::vector<double> etaSteps;
-  for (eta=0; eta<=etaMax; eta+=etaStep) etaSteps.push_back(eta);
-  if (etaLongLine>0) etaSteps.push_back(etaLongLine);
+  for (eta = 0; eta <= etaMax; eta += etaStep)
+    etaSteps.push_back(eta);
+  if (etaLongLine > 0)
+    etaSteps.push_back(etaLongLine);
 
-  for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
-    eta=*it;
+  for (std::vector<double>::iterator it = etaSteps.begin();
+       it != etaSteps.end(); ++it) {
+    eta = *it;
     theta = 2 * atan(exp(-eta));
 
     aTick->SetLineColor(kBlack);
     aTick->SetLineWidth(1);
-    if (theta>thetaLimit) {
-      aTick->DrawLine(startR / tan(theta), startR, endR / tan(theta),  endR);
+    if (theta > thetaLimit) {
+      aTick->DrawLine(startR / tan(theta), startR, endR / tan(theta), endR);
     } else {
       aTick->DrawLine(startL, startL * tan(theta), endL, endL * tan(theta));
     }
-    if ((eta==etaLongLine)&&(etaLongLine!=0)) {
+    if ((eta == etaLongLine) && (etaLongLine != 0)) {
       aTick->SetLineColor(kGray);
-      if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta), endR);
-      else aTick->DrawLine(0., 0., endL, endL * tan(theta));
-      labelSize*=2;
+      if (theta > thetaLimit)
+        aTick->DrawLine(0., 0., endR / tan(theta), endR);
+      else
+        aTick->DrawLine(0., 0., endL, endL * tan(theta));
+      labelSize *= 2;
     }
 
-    if (labelSize!=0) {
+    if (labelSize != 0) {
       textX = (endR + textDistanceR) / tan(theta);
       textY = (endL + textDistanceL) * tan(theta);
-      if (textX > (endL + textDistanceL)) textX = endL + textDistanceL;
-      if (textY > (endR + textDistanceR)) textY = endR + textDistanceR;
+      if (textX > (endL + textDistanceL))
+        textX = endL + textDistanceL;
+      if (textY > (endR + textDistanceR))
+        textY = endR + textDistanceR;
 
       sprintf(labelChar, "%.01f", eta);
       aLabel = new TText(textX, textY, labelChar);
@@ -137,8 +160,8 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
     }
   }
 
-  if (labelSize>0) {
-    textY -= 3*tickLengthR;
+  if (labelSize > 0) {
+    textY -= 3 * tickLengthR;
     aLabel = new TLatex(textX, textY, "#eta");
     aLabel->SetTextFont(labelFont);
     aLabel->SetTextSize(labelSize);
@@ -146,37 +169,50 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   }
 }
 
-
-template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+template <>
+void SummaryFrameStyle<YZ>::operator()(TH2C &frame, TCanvas &,
+                                       DrawerPalette &) const {
   frame.Draw();
-  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0,
+               0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(),
+               frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
-template<> void SummaryFrameStyle<YZFull>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+template <>
+void SummaryFrameStyle<YZFull>::operator()(TH2C &frame, TCanvas &,
+                                           DrawerPalette &) const {
   frame.Draw();
-  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0,
+               0.04, 0.04, 0, 0.017, 0.017, frame.GetXaxis()->GetLabelFont(),
+               frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
-template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
-  frame.Draw();    
+template <>
+void SummaryFrameStyle<XY>::operator()(TH2C &frame, TCanvas &,
+                                       DrawerPalette &) const {
+  frame.Draw();
 }
 
-template<> void SummaryFrameStyle<XYRotateY180>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
-  frame.Draw();    
+template <>
+void SummaryFrameStyle<XYRotateY180>::operator()(TH2C &frame, TCanvas &,
+                                                 DrawerPalette &) const {
+  frame.Draw();
 }
 
-template<> void SummaryFrameStyle<XYNeg>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
-  frame.Draw();    
+template <>
+void SummaryFrameStyle<XYNeg>::operator()(TH2C &frame, TCanvas &,
+                                          DrawerPalette &) const {
+  frame.Draw();
 }
 
-template<> void SummaryFrameStyle<XYNegRotateY180>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
-  frame.Draw();    
+template <>
+void SummaryFrameStyle<XYNegRotateY180>::operator()(TH2C &frame, TCanvas &,
+                                                    DrawerPalette &) const {
+  frame.Draw();
 }
 
-template<> void SummaryFrameStyle<ZPhi>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
-  frame.Draw();    
+template <>
+void SummaryFrameStyle<ZPhi>::operator()(TH2C &frame, TCanvas &,
+                                         DrawerPalette &) const {
+  frame.Draw();
 }
-
-
-
-
