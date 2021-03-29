@@ -1,0 +1,8 @@
+
+# You can permanently use this ignore file by running
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Mass reformatting with clang-format (Stefano)
+033372618406a50fc31684e794ac88f514c3efb9
+
+
