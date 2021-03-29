@@ -53,7 +53,7 @@ public:
     stripLengthEstimate("stripLengthEstimate", parsedOnly()),
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
-    isBricked("isBricked", parsedOnly(),false),
+    isBricked("isBricked", parsedOnly(), false),
     sensorThickness("sensorThickness", parsedAndChecked()),
     type("sensorType", parsedOnly(), SensorType::None),
     powerPerChannel("powerPerChannel", parsedOnly()),
