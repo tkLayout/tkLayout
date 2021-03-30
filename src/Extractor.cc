@@ -1188,6 +1188,7 @@ namespace insur {
 		// Topology
 		minfo.name		= iiter->getModule().moduleType();
 		mspec.partselectors.push_back(shape.name_tag);
+                minfo.bricked   = iiter->getModule().innerSensor().isBricked();
 		minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
 		minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 		minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
@@ -1220,6 +1221,7 @@ namespace insur {
 
 		  // Topology
 		  mspec.partselectors.push_back(shape.name_tag);
+                  minfo.bricked = iiter->getModule().outerSensor().isBricked();
 		  minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
 		  minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
 		  minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
@@ -1299,6 +1301,7 @@ namespace insur {
 		  if (std::find(mspec.partselectors.begin(), mspec.partselectors.end(), crystalName) == mspec.partselectors.end()) {
 		    minfo.name		= iiter->getModule().moduleType();
 		    mspec.partselectors.push_back(crystalName);
+		    minfo.bricked	= iiter->getModule().innerSensor().isBricked();
 		    minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
 		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
@@ -2370,6 +2373,7 @@ namespace insur {
 	      // Topology
 	      mspec.partselectors.push_back(logic.name_tag);
 	      minfo.name		= iiter->getModule().moduleType();
+	      minfo.bricked	= iiter->getModule().innerSensor().isBricked();
 	      minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
 	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
@@ -2401,6 +2405,7 @@ namespace insur {
 
 		// Topology
 		mspec.partselectors.push_back(logic.name_tag);
+		minfo.bricked	= iiter->getModule().outerSensor().isBricked();
 		minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
 		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
 		minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());

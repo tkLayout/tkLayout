@@ -286,6 +286,7 @@ namespace insur {
     static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_roc_rows_name = "PixelROCRows";
     static const std::string xml_roc_cols_name = "PixelROCCols";
+    static const std::string xml_bricked_name = "isBricked";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_reco = "TrackerRecMaterial";
     static const std::string xml_OT_reco_layer_name = "Phase2OTBarrelLayer";
