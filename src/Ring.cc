@@ -95,13 +95,13 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
-    if(mod->twistAngleFromConfig() > -999){
+    if(mod->yawAngleFromConfig() > -999){
       mod->notInRegularRing();
       double tmp_r = mod->center().Rho();
-      mod->translateR(-tmp_r);
-      mod->twist(mod->twistAngleFromConfig());
-      if(mod->rhoCentre() > 0 ){
-        mod->translateR(mod->rhoCentre()-mod->center().Rho());
+      mod->translateR(-tmp_r); //perform yaw angle rotation with the module at the centre
+      mod->yaw(mod->yawAngleFromConfig());
+      if(mod->manualRhoCentre() > 0 ){// For irregular rings (with yawed modules) that need to stay tangent to the same inner/outer radius, the module centre is shifted
+        mod->translateR(mod->manualRhoCentre()-mod->center().Rho());
       } else {
         mod->translateR(tmp_r-mod->center().Rho());
       }
@@ -179,11 +179,6 @@ void Ring::buildBottomUp() {
 
   }
 
-  /*emod->store(propertyTree());
-  //emod->subdetectorName(subdetectorName());
-  emod->build();
-  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));*/
-
   minRadius_ = buildStartRadius();
   maxRadius_ = buildStartRadius() + modLength;
 
@@ -213,9 +208,6 @@ void Ring::buildTopDown() {
   int numMods = optimalRingParms.second;
 
   EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
-  //emod->store(propertyTree());
-  //emod->build();
-  //emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
 
   minRadius_ = buildStartRadius() - rmod->length();
   maxRadius_ = buildStartRadius();

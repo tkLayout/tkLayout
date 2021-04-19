@@ -2191,8 +2191,8 @@ namespace insur {
         std::map<int, std::vector<double>> phi_two;
         std::map<int, std::vector<double>> radius_one;
         std::map<int, std::vector<double>> radius_two;
-        std::map<int, std::vector<double>> twist_one;
-        std::map<int, std::vector<double>> twist_two;
+        std::map<int, std::vector<double>> yaw_one;
+        std::map<int, std::vector<double>> yaw_two;
 
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
           if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
@@ -2202,8 +2202,8 @@ namespace insur {
             if(radius_one.count(iiter->getModule().uniRef().ring)==0){
               radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
             } 
-            if(twist_one.count(iiter->getModule().uniRef().ring)==0){
-              twist_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            if(yaw_one.count(iiter->getModule().uniRef().ring)==0){
+              yaw_one[iiter->getModule().uniRef().ring] = std::vector<double>();
             } 
             if(phi_two.count(iiter->getModule().uniRef().ring)==0){
               phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
@@ -2211,17 +2211,17 @@ namespace insur {
             if(radius_two.count(iiter->getModule().uniRef().ring)==0){
               radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
             }
-            if(twist_two.count(iiter->getModule().uniRef().ring)==0){
-              twist_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            if(yaw_two.count(iiter->getModule().uniRef().ring)==0){
+              yaw_two[iiter->getModule().uniRef().ring] = std::vector<double>();
             }
             if(iiter->getModule().uniRef().phi%2 == 1){
               phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
               radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              twist_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().twistAngle()*180./M_PI);
+              yaw_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
             } else {
               phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
               radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              twist_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().twistAngle()*180./M_PI);
+              yaw_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
             }
           }
         }
@@ -2459,7 +2459,6 @@ namespace insur {
 	      const Ring* myRing = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing);
 	      ERingInfo myRingInfo;
 	      myRingInfo.name = rname.str();
-              myRingInfo.discNumber = discNumber;
 	      myRingInfo.childname = mname.str();
 	      myRingInfo.isDiskAtPlusZEnd = iiter->getModule().uniRef().side;
 	      myRingInfo.numModules = myRing->numModules();
@@ -2609,6 +2608,7 @@ namespace insur {
 
 	    // Ring Surface 1 (half the modules)
 	    alg.name = xml_trackerring_algo;
+            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
             alg.parent = logic.shape_tag;
             alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
             pconverter << (myRingInfo.numModules / 2);
@@ -2626,11 +2626,11 @@ namespace insur {
             if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
               alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_one[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("twistAngleVec",twist_one[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_one[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
               pconverter.str("");
             } else {
               alg.parameters.push_back(numericParam("hasExtraInfo", "0"));
@@ -2649,6 +2649,7 @@ namespace insur {
 
 	    // Ring Surface 2 (half the modules)
 	    alg.name = xml_trackerring_algo;
+            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
             alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
             pconverter << (myRingInfo.numModules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
@@ -2662,14 +2663,14 @@ namespace insur {
             pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            if(myRingInfo.discNumber <=8 && (phi_two[ringIndex]).size()>0 ){
+            if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
               alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleVec",phi_two[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("twistAngleVec",twist_two[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
               pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusVec",radius_two[ringIndex]));
+              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
               pconverter.str("");
             } else {
               alg.parameters.push_back(numericParam("hasExtraInfo", "0"));

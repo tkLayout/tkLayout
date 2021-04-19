@@ -147,8 +147,8 @@ public:
 
   Property<bool, Default> removeModule;
 
-  Property<double, Default> twistAngleFromConfig;
-  Property<double, Default> rhoCentre;
+  Property<double, Default> yawAngleFromConfig;
+  Property<double, Default> manualRhoCentre;
 
   const std::string subdetectorName() const { return subdetectorName_; }
   void subdetectorId(const int id) { subdetectorId_ = id; }
@@ -213,8 +213,8 @@ public:
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
-      twistAngleFromConfig     ("twistAngleFromConfig"     , parsedOnly(),-999.),
-      rhoCentre                ("rhoCentre"               , parsedOnly(),0.),
+      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
+      manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
@@ -254,7 +254,7 @@ public:
   const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
-  double twistAngle() const { return twistAngle_; }
+  double yawAngle() const { return yawAngle_; }
   const XYZVector& getRAxis() const {return rAxis_;}
 
   // SPATIAL RESOLUTION
@@ -290,13 +290,13 @@ public:
   void rotateToNegativeZSide() {
     side(-side());
     rotateY(M_PI);  // Rotation around CMS_Y of angle Pi
-    twistAngle_=-twistAngle_; // Flip twistAngle to match how the modules are actually placed
+    yawAngle_=-yawAngle_; // Flip yawAngle to match how the modules are actually placed
     clearSensorPolys();
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
-  void twist(double angle) { decorated().rotateZ(angle); clearSensorPolys(); twistAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
+  void yaw(double angle) { decorated().rotateZ(angle); clearSensorPolys(); yawAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
@@ -456,7 +456,7 @@ protected:
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
   double tiltAngle_ = 0.;
-  double twistAngle_ = 0.;
+  double yawAngle_ = 0.;
   bool isInRegularRing_ = true;
 
 
