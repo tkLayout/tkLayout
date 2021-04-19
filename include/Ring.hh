@@ -17,6 +17,7 @@ using std::string;
 #include "Visitable.hh"
 
 #define MAX_WEDGE_CALC_LOOPS 100
+#define INVALID_ANGLE -999
 
 
 
