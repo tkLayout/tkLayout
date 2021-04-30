@@ -2629,18 +2629,13 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
-              alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
-              pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
               pconverter.str("");
-            } else {
-              alg.parameters.push_back(numericParam("hasExtraInfo", "0"));
-              pconverter.str("");
-            }
+            } 
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
@@ -2669,18 +2664,13 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
-              alg.parameters.push_back(numericParam("hasExtraInfo", "1"));
-              pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
               pconverter.str("");
               alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
               pconverter.str("");
-            } else {
-              alg.parameters.push_back(numericParam("hasExtraInfo", "0"));
-              pconverter.str("");
-            }
+            } 
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
