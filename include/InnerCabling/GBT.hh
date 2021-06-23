@@ -24,7 +24,7 @@ class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<Module*> Container; 
 
 public:
-  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule);
+  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor, const int numELinksPerModule);
 
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
@@ -50,8 +50,8 @@ public:
   const std::string GBTId() const { return myGBTId_; }
   void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
   const int getCMSSWId() const { return myGBTCMSSWId_; }
-  const int GBTPhiIndex() const { return myGBTIndex_; }
-  const int indexColor() const { return myGBTIndexColor_; }
+  const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; } // GBT location index in power chain
+  const int plotStyleGBTIndexInPowerChain() const { return plotStyleGBTIndexInPowerChain_; } // GBT plotting style
   const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
@@ -68,9 +68,10 @@ public:
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 
-  const int plotColor() const { return plotColor_; }
+  const int plotPowerChainColor() const { return plotPowerChainColor_; }
 
 private:
+  const int computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const;
   const int computePlotColor(const PowerChain* myPowerChain) const;
 
   Container modules_;
@@ -80,11 +81,11 @@ private:
 
   std::string myGBTId_;
   int myGBTCMSSWId_;
-  int myGBTIndex_;
-  int myGBTIndexColor_;
+  int myGBTIndexInPowerChain_;
+  int plotStyleGBTIndexInPowerChain_;
   int numELinksPerModule_;
 
-  int plotColor_;
+  int plotPowerChainColor_;
 };
 
 
