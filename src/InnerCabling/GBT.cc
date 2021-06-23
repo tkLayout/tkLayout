@@ -6,7 +6,7 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
   myGBTId_(GBTId),
   myGBTCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
   myGBTIndexInPowerChain_(myGBTIndexInPowerChain),
-  plotGBTIndexInPowerChain_(computePlotGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain)),
+  plotStyleGBTIndexInPowerChain_(computePlotStyleGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain)),
   numELinksPerModule_(numELinksPerModule)
 {
   myPowerChain_ = myPowerChain;
@@ -24,22 +24,22 @@ void GBT::addModule(Module* m) {
 
 /*
  * Compute GBT plot style on website.
- * To distinguish different GBTs within the same power chain, alternation of fill, contour and dashed styles is used
+ * To distinguish different GBTs within the same power chain, alternation of fill, contour and dashed styles is used.
  */
-const int GBT::computePlotGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const {
+const int GBT::computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const {
   const bool isBarrel = myPowerChain->isBarrel();
   const int numGBTsInPowerChain = myPowerChain->numGBTsInPowerChain();
 
-  //int myGBTIndexInPowerChainPlotStyle = myGBTIndexInPowerChain;
-  //if (isBarrel && phiRefInPowerChain == 1 && femod(numGBTsInPowerChain, 2) == 0) myGBTIndexInPowerChainPlotStyle += 1;
-
-  //myGBTIndexInPowerChainPlotStyle = femod(myGBTIndexInPowerChainPlotStyle, 2);
-  std::cout << "numGBTsInPowerChain = " << numGBTsInPowerChain << std::endl;
-  const int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) ? femod(myGBTIndexInPowerChain, 2) : femod(myGBTIndexInPowerChain, 3));
-  //myGBTIndexInPowerChainPlotStyle = femod(myGBTIndexInPowerChainPlotStyle, 3);
-  std::cout << "myGBTIndexInPowerChainPlotStyle = " << myGBTIndexInPowerChainPlotStyle << std::endl;
-
-  //myGBTIndexInPowerChainPlotStyle = myGBTIndexInPowerChainPlotStyle;
+  // Usually, only 2 plot styles are needed (for example, alternation of fill and empty plot styles) 
+  // to distinguish the GBTs among a power chain.
+  // Exception: case of an odd number of GBTs within the same power chain in the barrel:
+  // a third plot style (for example, dashed) becomes necessary.
+  const int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) 
+                                                // 2 styles are enough (for example, full and contour)
+                                                ? femod(myGBTIndexInPowerChain, 2)
+                                                // 3 styles are necessary (for example, full, contour, and dashed)
+                                                : femod(myGBTIndexInPowerChain, 3));
+ 
   return myGBTIndexInPowerChainPlotStyle;
 }
 

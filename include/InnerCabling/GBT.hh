@@ -50,8 +50,8 @@ public:
   const std::string GBTId() const { return myGBTId_; }
   void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
   const int getCMSSWId() const { return myGBTCMSSWId_; }
-  const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; }
-  const int plotGBTIndexInPowerChain() const { return plotGBTIndexInPowerChain_; }
+  const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; } // GBT location index in power chain
+  const int plotStyleGBTIndexInPowerChain() const { return plotStyleGBTIndexInPowerChain_; } // GBT plotting style
   const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
@@ -71,7 +71,7 @@ public:
   const int plotPowerChainColor() const { return plotPowerChainColor_; }
 
 private:
-  const int computePlotGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const;
+  const int computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const;
   const int computePlotColor(const PowerChain* myPowerChain) const;
 
   Container modules_;
@@ -82,7 +82,7 @@ private:
   std::string myGBTId_;
   int myGBTCMSSWId_;
   int myGBTIndexInPowerChain_;
-  int plotGBTIndexInPowerChain_;
+  int plotStyleGBTIndexInPowerChain_;
   int numELinksPerModule_;
 
   int plotPowerChainColor_;

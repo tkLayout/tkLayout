@@ -102,31 +102,25 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
  * This is obviously based on the number of ELinks the modules are connected to, and the total number of modules in the power chain.
  */
 const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
-
-  int numModules = numModulesInPowerChain;
-  /*if (isBarrel) {
-    if (numModules % 2 == 1) logERROR(any2str("Found an odd number of modules in BPIX power chain, which is not supported."));
-    else numModules /= 2;  // Divide by 2 because in BPIX, the GBTs assignment works by rod.
-                           // This is becasue it makes the powering of the GBTs much easier.
-			   }*/
-
-  const double maxNumModulesPerGBTExact = std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, static_cast<double>(inner_cabling_maxNumModulesPerGBT));
+        
+  const double maxNumModulesPerGBTExact = std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
+						   static_cast<double>(inner_cabling_maxNumModulesPerGBT));
   const int maxNumModulesPerGBT = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
-					       round(maxNumModulesPerGBTExact) 
-					       : std::floor(maxNumModulesPerGBTExact)
-					       );
+				   round(maxNumModulesPerGBTExact) 
+				   : std::floor(maxNumModulesPerGBTExact)
+				   );
 
-  const double numGBTsExact = static_cast<double>(numModules) / maxNumModulesPerGBT;
+  const double numGBTsExact = static_cast<double>(numModulesInPowerChain) / maxNumModulesPerGBT;
   const int numGBTs = (fabs(numGBTsExact - round(numGBTsExact)) < inner_cabling_roundingTolerance ? 
 		       round(numGBTsExact) 
 		       : std::ceil(numGBTsExact)
 		       );
 
-  if (numGBTs == 0) logERROR(any2str("Power chain has ") + any2str(numModules) 
+  if (numGBTs == 0) logERROR(any2str("Power chain has ") + any2str(numModulesInPowerChain) 
 			     + any2str(" modules, but found numGBTs == ") +  any2str(numGBTs) + any2str(", that's not enough!!")
 			     );
 
-  const double numModulesPerGBTExact = static_cast<double>(numModules) / numGBTs;
+  const double numModulesPerGBTExact = static_cast<double>(numModulesInPowerChain) / numGBTs;
 
   return std::make_pair(numGBTs, numModulesPerGBTExact);
 }
@@ -136,20 +130,18 @@ const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const i
  */
 const int InnerCablingMap::computeGBTIndexInPowerChain(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double numModulesPerGBTExact, const int numGBTsInPowerChain) const {
 
-  const int halfNumModulesInPowerChain = numModulesInPowerChain / 2;
-  const int barrelModuleRef = (phiRefInPowerChain == 0 ? ringRef : 2 * halfNumModulesInPowerChain - ringRef - 1);
+  // For one barrel ladder out of 2 (identified by phiRefInPowerChain), 
+  // index modules from max |Z| to |Z| ~ 0, instead of from |Z| ~ 0 to max |Z|
+  const int barrelModuleRef = (phiRefInPowerChain == 0 ? ringRef : numModulesInPowerChain - ringRef - 1);
   const int moduleRef = (isBarrel ? barrelModuleRef : phiRefInPowerChain);
 
-  if (fabs(numModulesPerGBTExact) < inner_cabling_roundingTolerance) logERROR(any2str("Found numModulesPerGBTExact ~ 0."));
+  if (fabs(numModulesPerGBTExact) < inner_cabling_roundingTolerance) { logERROR(any2str("Found numModulesPerGBTExact ~ 0.")); }
 
   const double myGBTIndexInPowerChainExact = moduleRef / numModulesPerGBTExact;
   int myGBTIndexInPowerChain = (fabs(myGBTIndexInPowerChainExact - round(myGBTIndexInPowerChainExact)) < inner_cabling_roundingTolerance ? 
-		    round(myGBTIndexInPowerChainExact) 
-		    : std::floor(myGBTIndexInPowerChainExact)
-		    );
-			 //if (isBarrel && phiRefInPowerChain == 1) myGBTIndexInPowerChain += numGBTsInPowerChain;
-
-
+				round(myGBTIndexInPowerChainExact) 
+				: std::floor(myGBTIndexInPowerChainExact)
+				);
 
   if (isBarrel && numGBTsInPowerChain >= 3 && (femod(numGBTsInPowerChain, 2) == 0) && barrelModuleRef == 2 && myGBTIndexInPowerChain == 0) {
     myGBTIndexInPowerChain += 1;
