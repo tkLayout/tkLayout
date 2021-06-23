@@ -8227,55 +8227,78 @@ namespace insur {
     for (int layerNumber = 1; layerNumber <= numLayers; layerNumber++) {
       // POSITIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasPos(new TCanvas(Form("ZPhiGBTBarrelLayer%d_positiveXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (+X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/empty/(dashed) module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
-      // Contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
-      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
-	  return (m.subdet() == BARREL 
-		  && m.uniRef().layer == layerNumber
-		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
-		  ); 
-	} );
-      zphiBarrelContourDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get());
-      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
       zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 1) // fill style
 		  ); 
 	} );
+      zphiBarrelFillDrawerPos.drawFrame<SummaryFrameStyle>(*ZPhiCanvasPos.get()); // Call once and first.
+      // WARNING: this will draw the plot frame, according to the positions of the filled modules only.
       zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos.get());
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
+      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 0) // contour style
+		  ); 
+	} );
+      zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
+      // Dashed modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerPos;
+      zphiBarrelDashedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 2) // dashed style
+		  ); 
+	} );
+      zphiBarrelDashedDrawerPos.drawModules<DashedStyle>(*ZPhiCanvasPos.get());
+
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
       std::unique_ptr<TCanvas> ZPhiCanvasNeg(new TCanvas(Form("ZPhiGBTBarrelLayer%d_negativeXSide", layerNumber),
-					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/contoured module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+					   Form("(ZPhi), Barrel Layer %d. (-X) side. (≠ colors) => (≠ power chains). Alternance of groups of filled/empty/(dashed) module(s) is used to show the alternance of GBTs.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
-      // Contour modules
-      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
-      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
-	  return (m.subdet() == BARREL 
-		  && m.uniRef().layer == layerNumber
-		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
-		  ); 
-	} );
-      zphiBarrelContourDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get());
-      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
       zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
-		  && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 1) // fill style
 		  ); 
 	} );
+      zphiBarrelFillDrawerNeg.drawFrame<SummaryFrameStyle>(*ZPhiCanvasNeg.get()); // Call once and first.
+      // WARNING: this will draw the plot frame, according to the positions of the filled modules only.
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg.get());
+      // Contour modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
+      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 0) // contour style
+		  ); 
+	} );
+      zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
+      // Dashed modules
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerNeg;
+      zphiBarrelDashedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 2) // dashed style
+		  ); 
+	} );
+      zphiBarrelDashedDrawerNeg.drawModules<DashedStyle>(*ZPhiCanvasNeg.get());
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
 
@@ -8301,16 +8324,17 @@ namespace insur {
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 0)
+			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 0)
 			   );
 		} );
-	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get()); // Call once and first.
+	      // WARNING: this will draw the plot frame, according to the positions of the filled modules only.
 	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && ((m.getGBT() ? m.getGBT()->indexColor() : 0) == 1)
+			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 1)
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
@@ -8322,23 +8346,24 @@ namespace insur {
 	      bool isRotatedY180 = false;
 	      const std::vector<const Module*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
-						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
-						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
+								 Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
+								 vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      // Filled modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 0)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 2) == 0)
 			   );
 		} );
-	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
+	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get()); // Call once and first.
+	      // WARNING: this will draw the plot frame, according to the positions of the filled modules only.
 	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTPhiIndex() : 0), 2) == 1)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 2) == 1)
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());

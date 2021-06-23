@@ -30,6 +30,11 @@ public:
   const int numModules() const { return modules_.size(); }
   void addModule(Module* m);
 
+  // GBTs CONNECTED TO THE MODULES WHICH ARE IN THE SAME POWER CHAIN
+  // NB: This is set a posteriori, once the connections from the modules to the GBTs are made.
+  void setNumGBTsInPowerChain(const int numGBTsInPowerChain) { numGBTsInPowerChain_ = numGBTsInPowerChain; }
+  const int numGBTsInPowerChain() const { return numGBTsInPowerChain_; }
+
   // HIGH VOLTAGE LINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
   const HvLine* getHvLine() const {
     if (!hvLine_) throw PathfulException("hvLine_ is nullptr");
@@ -66,6 +71,8 @@ private:
   const std::string computeHvLineName(const int powerChainId) const;
 
   Container modules_;
+
+  int numGBTsInPowerChain_ = 0;
 
   std::unique_ptr<HvLine> hvLine_; // PowerChain owns HvLine
 
