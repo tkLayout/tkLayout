@@ -328,6 +328,7 @@ namespace insur {
       * * @struct ModuleROCInfo
       * * @brief The information in this struct is a parameter in SpecParInfo.
       * * @param name The module type
+      * * @param bricked Whether the module is bricked or not
       * * @param rocrows The number of ROCRows
       * * @param roccols The number of ROCCols
       * * @param rocx The number of ROC_X
@@ -335,6 +336,7 @@ namespace insur {
       * */
     struct ModuleROCInfo {
       std::string name;
+      bool bricked;
       std::string rocrows;
       std::string roccols;
       std::string rocx;

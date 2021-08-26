@@ -2,15 +2,15 @@
 #include "InnerCabling/InnerBundle.hh"
 
 
-GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule) :
+GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexInPowerChain, const int numELinksPerModule) :
   myGBTId_(GBTId),
   myGBTCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
-  myGBTIndex_(myGBTIndex),
-  myGBTIndexColor_(myGBTIndexColor),
+  myGBTIndexInPowerChain_(myGBTIndexInPowerChain),
+  plotStyleGBTIndexInPowerChain_(computePlotStyleGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain)),
   numELinksPerModule_(numELinksPerModule)
 {
   myPowerChain_ = myPowerChain;
-  plotColor_ = computePlotColor(myPowerChain);
+  plotPowerChainColor_ = computePlotColor(myPowerChain);
 };
 
 
@@ -23,11 +23,32 @@ void GBT::addModule(Module* m) {
 
 
 /*
+ * Compute GBT plot style on website.
+ * To distinguish different GBTs within the same power chain, alternation of fill, contour and dashed styles is used.
+ */
+const int GBT::computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const {
+  const bool isBarrel = myPowerChain->isBarrel();
+  const int numGBTsInPowerChain = myPowerChain->numGBTsInPowerChain();
+
+  // Usually, only 2 plot styles are needed (for example, alternation of fill and empty plot styles) 
+  // to distinguish the GBTs among a power chain.
+  // Exception: case of an odd number of GBTs within the same power chain in the barrel:
+  // a third plot style (for example, dashed) becomes necessary.
+  const int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) 
+                                                // 2 styles are enough (for example, full and contour)
+                                                ? femod(myGBTIndexInPowerChain, 2)
+                                                // 3 styles are necessary (for example, full, contour, and dashed)
+                                                : femod(myGBTIndexInPowerChain, 3));
+ 
+  return myGBTIndexInPowerChainPlotStyle;
+}
+
+
+/*
  * Compute GBT color on website.
  * GBT color is the same as the power chain its modules belong to.
- * To distinguish different GBTs on the same power chain, alternation of fill and contour style is used.
  */
 const int GBT::computePlotColor(const PowerChain* myPowerChain) const {
-  const int plotColor = myPowerChain->plotColor();
-  return plotColor;
+  const int plotPowerChainColor = myPowerChain->plotColor();
+  return plotPowerChainColor;
 }
