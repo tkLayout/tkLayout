@@ -268,6 +268,8 @@ OT800_IT615.cfg	       Based from Outer Tracker version 616.
 		       TBPS:
 		          Adjustments in Layer 1 to enable a safe IT installation, while respecting needed spacing with TBPS Layer 2 (supports and services).
 		       	  Layer 1, Ring 12-16: radius +0.5 mm, tiltAngle 74 -> 72 deg.
+
+OT800_IT630.cfg        Based on OT800_IT615. Very small pixels for phase3: TBPX L1, TBPX L2, TFPX R1 have a 15µm × 60µm size
 		       	  
 OT801_IT701.cfg	       Based from Outer Tracker version 800.
                        TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  
