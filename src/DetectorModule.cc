@@ -757,7 +757,7 @@ const int DetectorModule::powerChannelSectionPlotColor() const {
 }
 
 
-const OuterDTC* DetectorModule::getDTC() const{
+const OuterDTC* DetectorModule::getDTC() const {
   const OuterDTC* myDTC = nullptr;
   const OuterBundle* myBundle = getBundle();
   if (myBundle) {
