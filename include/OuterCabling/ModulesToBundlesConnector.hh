@@ -5,6 +5,7 @@
 #include "global_funcs.hh"
 #include "OuterCabling/PhiPosition.hh"
 #include "OuterCabling/OuterDTC.hh"
+#include "OuterCabling/OuterGBT.hh"
 
 
 /* This class is used to CONNECT MODULES TO BUNDLES.
@@ -12,11 +13,13 @@
  * Then, a bundle corresponding to that position is built or found.
  * Lastly, the module is connected to that bundle, and vice-versa.
  * At the end of the process, 2 maps containing all the bundles which have been built are returned.
+ * As each module has its own lpGBT, we also create module<->lpGBT links here.
 */
 class ModulesToBundlesConnector : public GeometryVisitor {
 public:
   std::map<int, OuterBundle*> getBundles() { return bundles_; }        // positive cabling side
   std::map<int, OuterBundle*> getNegBundles() { return negBundles_; }  // negative cabling side
+  std::map<int, OuterGBT*> getGBTs() { return gbts_; }
 
   void visit(Barrel& b);
   void visit(Layer& l);
@@ -36,11 +39,14 @@ private:
 
   const Category computeBundleType(const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const int ringNumber = 0) const;
   void buildBundle(DetectorModule& m, std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const Category& bundleType, const bool isBarrel, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const int totalNumFlatRings = 0, const bool isTiltedPart = false, const bool isExtraFlatPart = false);
+  void buildGBT(DetectorModule& m, std::map<int, OuterGBT*>& gbts);
   const int computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings = 0, const bool isTilted = false, const bool isExtraFlatPart = false) const;
   const int computeBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
   const int computeStereoBundleId(const bool isBarrel, const bool isPositiveCablingSide, const int layerDiskNumber, const int phiRef, const int bundleTypeIndex) const;
   OuterBundle* createAndStoreBundle(std::map<int, OuterBundle*>& bundles, std::map<int, OuterBundle*>& negBundles, const int bundleId, const int stereoBundleId, const Category& bundleType, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& modulePhiPosition, const bool isPositiveCablingSide, const bool isTiltedPart = false);
+  OuterGBT* createAndStoreGBT(std::map<int, OuterGBT*>&gbts, const int gbtId);
   void connectModuleToBundle(DetectorModule& m, OuterBundle* bundle) const;
+  void connectModuleToGBT(DetectorModule& m, OuterGBT* bundle) const;
 
   // STAGERRING
   void staggerModules(std::map<int, OuterBundle*>& bundles);
@@ -54,6 +60,7 @@ private:
 
   std::map<int, OuterBundle*> bundles_;     // positive cabling side bundles.
   std::map<int, OuterBundle*> negBundles_;  // negative cabling side bundles.
+  std::map<int, OuterGBT*> gbts_;
 
   bool isBarrel_;
   std::string barrelName_;

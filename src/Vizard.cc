@@ -1515,7 +1515,7 @@ namespace insur {
       filesContent->addItem(bothSidesName);
       // CMSSW MODULES DETIDS TO DTC IDS
       myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMSSW: Modules DetIds to DTCs Ids");
-      myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker));
+      myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker,true));
       filesContent->addItem(myTextFile);
 
 
@@ -1906,6 +1906,7 @@ namespace insur {
       myTextFile = new RootWTextFile(Form("CMSSWCablingMap%s.csv", name.c_str()), "CMSSW: Modules DetIds to DTCs Ids");
       myTextFile->addText(createCMSSWInnerTrackerCablingMapCsv(tracker));
       filesContent->addItem(myTextFile);
+      
 
 
       // CABLING COUNT
@@ -2074,6 +2075,36 @@ namespace insur {
     } // end of isPixelTracker
     return true;
   }
+
+  bool Vizard::innerAndOuterCablingSummary(Tracker& tracker, Tracker& pixel, RootWSite& site) {
+    bool haveTracker = !(tracker.isPixelTracker());
+    bool havePixel = (pixel.isPixelTracker());
+    if (havePixel && haveTracker) {
+      std::string name = "combined";
+
+      std::string pageTitle = "Cabling";
+      pageTitle += " (" + name + ")";
+      RootWPage* myPage = new RootWPage(pageTitle);
+
+      std::string pageAddress ="cabling" + name + ".html";
+      myPage->setAddress(pageAddress);
+
+      site.addPage(myPage);
+
+      RootWContent* filesContent = new RootWContent("Cabling files", true);
+      myPage->addContent(filesContent);   
+      RootWTextFile* myTextFile;
+      myTextFile = new RootWTextFile(Form("CMSSWCablingMapInnerAndOuter.csv") , "CMSSW: Modules DetIds to DTCs Ids");
+      myTextFile->addText(createCMSSWInnerTrackerCablingMapCsv(pixel));
+      myTextFile->addText(createCMSSWOuterTrackerCablingMapCsv(tracker,false));
+      filesContent->addItem(myTextFile);
+    }
+    return true;
+  }
+
+   
+
+  
 
 
   /**
@@ -9099,12 +9130,16 @@ namespace insur {
 
   /* Create csv file (Outer Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
    */
-  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker) {
+  std::string Vizard::createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker, const bool withPreVisit) {
     CMSSWOuterTrackerCablingMapVisitor v;
-    v.preVisit();
+    if(withPreVisit){
+      v.preVisit();
+    }
     tracker.accept(v);
     return v.output();
   }
+
+
 
 
   /* Create csv file (Inner Tracker), navigating from Module hierarchy level to DTC hierarchy level.

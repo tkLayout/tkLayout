@@ -597,17 +597,22 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void CMSSWOuterTrackerCablingMapVisitor::preVisit() {
-  output_ << "Module DetId/U, DTC Id/U" << std::endl;
+  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
 }
 
 void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
   std::stringstream moduleInfo;
   moduleInfo << m.myDetId() << ", ";
-  const OuterDTC* myDTC = m.getDTC();
-  if (myDTC) {
-    std::stringstream DTCInfo;
-    DTCInfo << myDTC->getCMSSWId();	 
-    output_ << moduleInfo.str() << DTCInfo.str() << std::endl;
+  const OuterGBT* myGBT = m.getOuterGBT();
+  if (myGBT) {
+    std::stringstream GBTInfo;
+    GBTInfo << myGBT->getCMSSWId() << ", ";
+    const OuterDTC* myDTC = m.getDTC();
+    if (myDTC) {
+      std::stringstream DTCInfo;
+      DTCInfo << myDTC->getCMSSWId();	 
+      output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
+    }
   }
   else output_ << moduleInfo.str() << std::endl;
 }
