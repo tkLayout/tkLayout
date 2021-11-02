@@ -539,7 +539,7 @@ namespace insur {
    */
   bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
     startTaskClock("Creating IT Cabling map report.");
-    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT613 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout is at your own risks (could require adaptations).");
     if (px) {
       // CREATE REPORT ON WEBSITE.
       v.innerCablingSummary(pixelAnalyzer, *px, site);
@@ -552,6 +552,30 @@ namespace insur {
       return false;
     }
   }
+
+  /**
+   * Add a file with the IT+OT cabling map to the website.
+   */
+
+  bool Squid::reportInnerAndOuterCablingMapSite(const bool innerCablingOption, const bool outerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating IT+OT Cabling map report.");
+    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    if (px) {
+      // CREATE REPORT ON WEBSITE.
+      v.innerAndOuterCablingSummary(*tr, *px, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+
 
 
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {

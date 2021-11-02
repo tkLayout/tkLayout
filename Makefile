@@ -142,6 +142,7 @@ OUTERCABLING+=outer_cabling_constants
 OUTERCABLING+=outer_cabling_functions
 OUTERCABLING+=OuterCablingMap
 OUTERCABLING+=OuterDTC
+OUTERCABLING+=OuterGBT
 OUTERCABLING+=ModulesToBundlesConnector
 OUTERCABLING+=PhiPosition
 OUTERCABLING+=ServicesChannel

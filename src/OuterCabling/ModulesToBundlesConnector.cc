@@ -69,6 +69,9 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
+  
+  // ALSO BUILD A GBT
+  buildGBT(m, gbts_);
 }
 
 
@@ -102,6 +105,9 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
+
+  // ALSO BUILD A GBT
+  buildGBT(m, gbts_);
 }
 
 
@@ -211,6 +217,19 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Out
   connectModuleToBundle(m, bundle);
 }
 
+void ModulesToBundlesConnector::buildGBT(DetectorModule& m, std::map<int, OuterGBT*>& gbts){
+  const int gbtId=m.myDetId();
+  OuterGBT* gbt = nullptr; 
+  auto found = gbts.find(gbtId);
+  if ( found == gbts.end()){
+     gbt= createAndStoreGBT(gbts, gbtId);
+  } else {
+     gbt = found->second; // This shouldn't happen, but just in case
+  }
+  // CONNECT MODULE TO GBT
+  connectModuleToGBT(m, gbt);
+}
+
 
 /* Compute the index associated to each bundle type.
  */
@@ -287,12 +306,25 @@ OuterBundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Outer
   return bundle;
 }
 
+OuterGBT* ModulesToBundlesConnector::createAndStoreGBT(std::map<int, OuterGBT*>& gbts, const int gbtId) {
+  OuterGBT* gbt = new OuterGBT(gbtId);
+  gbts.insert(std::make_pair(gbtId, gbt));
+  return gbt;
+}
+
 
 /* Connect module to bundle and vice-versa.
  */
 void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, OuterBundle* bundle) const {
   bundle->addModule(&m);
   m.setBundle(bundle);
+}
+
+/* Connect module to GBT and vice-versa.
+ */
+void ModulesToBundlesConnector::connectModuleToGBT(DetectorModule& m, OuterGBT* gbt) const {
+  gbt->addModule(&m);
+  m.setOuterGBT(gbt);
 }
  
 

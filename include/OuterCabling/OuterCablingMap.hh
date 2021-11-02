@@ -26,6 +26,7 @@ public:
   const std::map<const int, std::unique_ptr<OuterBundle> >& getNegBundles() const { return negBundles_; }
   const std::map<const int, std::unique_ptr<OuterCable> >& getNegCables() const { return negCables_; }
   const std::map<const std::string, std::unique_ptr<const OuterDTC> >& getNegDTCs() const { return negDTCs_; }
+  const std::map<const int, std::unique_ptr<OuterGBT> >& getGBTs() const { return gbts_; }
   
 
 private:
@@ -41,6 +42,7 @@ private:
   void createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::map<const int, std::unique_ptr<OuterCable> >& cables, std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs, const int cableId, const double phiSectorWidth, const int phiSectorRefCable, const Category& type, const int slot, const bool isPositiveCablingSide); 
   void connectOneBundleToOneCable(OuterBundle* bundle, OuterCable* cable) const;
   void checkBundlesToCablesCabling(const std::map<const int, std::unique_ptr<OuterCable> >& cables);  // check bundles to cables connections
+  void computeCMSSWIds(std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs);
 
   // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
   void computePowerServicesChannels();
@@ -56,6 +58,7 @@ private:
   std::map<const int, std::unique_ptr<OuterBundle> > negBundles_;
   std::map<const int, std::unique_ptr<OuterCable> > negCables_;
   std::map<const std::string, std::unique_ptr<const OuterDTC> > negDTCs_;
+  std::map<const int, std::unique_ptr<OuterGBT> > gbts_;
   // All bundles, cables, and DTC are owned by the Cabling map, and the Cabling map only!!
 };
 
