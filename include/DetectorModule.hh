@@ -34,6 +34,8 @@ namespace insur { class OuterBundle; }
 using insur::OuterBundle;
 namespace insur { class OuterDTC; }
 using insur::OuterDTC;
+namespace insur { class OuterGBT;}
+using insur::OuterGBT;
 // IT CABLING MAP
 namespace insur { class PowerChain; }
 using insur::PowerChain;
@@ -400,6 +402,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
                                                               // 'Positive cabling side': the module end up connected on a DTC on (Z+) end.
   void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }  // MFB
   const OuterBundle* getBundle() const { return bundle_; }
+  void setOuterGBT(OuterGBT* gbt) { outerGBT_ = gbt ; }
+  OuterGBT* getOuterGBT() const {return outerGBT_; }
   const int bundlePlotColor() const; 
   void setEndcapFiberFanoutBranch(const int branchIndex) { endcapFiberFanoutBranch_ = branchIndex; } // Branch of the MFB fanout
   const int getEndcapFiberFanoutBranch() const { return endcapFiberFanoutBranch_; }
@@ -461,6 +465,7 @@ private:
   HvLine* hvLine_ = nullptr;
   int numELinks_;
   GBT* GBT_ =  nullptr;
+  OuterGBT* outerGBT_ =  nullptr;
   // The raw pointers are intended. DetectorModule is NOT owning the cabling resources.
   // All cabling ressources are owned by the CablingMap, which is a member variable of Tracker.
   // They get destructed when Tracker is destructed.

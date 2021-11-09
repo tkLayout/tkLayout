@@ -11,12 +11,16 @@ OuterCablingMap::OuterCablingMap(Tracker* tracker) {
     connectBundlesToCables(bundles_, cables_, DTCs_);
     connectBundlesToCables(negBundles_, negCables_, negDTCs_);
 
+    computeCMSSWIds(DTCs_);
+    computeCMSSWIds(negDTCs_);
+
     // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
     computePowerServicesChannels();
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 }
+
 
 
 /* MODULES TO BUNDLES CONNECTIONS.
@@ -35,6 +39,12 @@ void OuterCablingMap::connectModulesToBundles(Tracker* tracker) {
   for (const auto& bundleIt : bundlesBuilder.getNegBundles()) {
     std::unique_ptr<OuterBundle> myBundle(bundleIt.second);
     negBundles_.insert(std::make_pair(bundleIt.first, std::move(myBundle)));
+  }
+
+  //Store GBTs
+  for (const auto& gbtIt : bundlesBuilder.getGBTs()){
+   std::unique_ptr<OuterGBT> myGBT(gbtIt.second);
+   gbts_.insert(std::make_pair(gbtIt.first, std::move(myGBT)));
   }
 }
 
@@ -543,6 +553,55 @@ void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<const i
 	       + any2str(" Max number of power cables per channel section is ") 
 	       + any2str(outer_cabling_maxNumPowerCablesPerChannel)
 	       );
+    }
+  }
+}
+
+/* Compute GBTs CMSSW Ids.
+ * Want to have these as consectuive integers, ordered by detID, so done after the full map is created.
+ */
+void OuterCablingMap::computeCMSSWIds(std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs) {
+  std::string lastDTCId = "";
+
+  // DTCs loop
+  for (auto& it : DTCs) {
+    const std::string myDTCId = it.first;
+    const OuterDTC* myDTC = it.second.get();
+
+    if (myDTCId != lastDTCId) {
+      lastDTCId = myDTCId;
+    }
+
+    std::vector<int> detIds;
+    std::map<int, int> detIdToGBT;
+    int gbtCMSSWId=1;
+    const std::vector<OuterCable*>& myCables = myDTC->cable();
+    for (const auto& myCable : myCables){
+       const std::vector<OuterBundle*>& myBundles = myCable->bundles();
+       for (const auto& myBundle : myBundles){
+         const std::vector<Module*> & myModules = myBundle->modules();
+         for (const auto& myModule : myModules){
+             detIds.push_back(myModule->myDetId());
+         }
+      }
+    }
+    //Sort detIDs and determine GBT IDs
+    std::sort(detIds.begin(), detIds.end());
+    for(auto id : detIds){
+      detIdToGBT[id] = gbtCMSSWId;
+      gbtCMSSWId++;
+    }
+   
+    //Now loop again, extracting the GBT from the module and setting the GBT ID just stored in the detIdToGBT map.
+    for (const auto& myCable : myCables){
+       const std::vector<OuterBundle*>& myBundles = myCable->bundles();
+       for (const auto& myBundle : myBundles){
+         const std::vector<Module*> & myModules = myBundle->modules();
+         for (const auto& myModule : myModules){
+            OuterGBT* myGBT = myModule->getOuterGBT();
+            myGBT->setCMSSWId(detIdToGBT[myModule->myDetId()]);
+         }
+      }
     }
   }
 }
