@@ -11,7 +11,7 @@ numSensors 1
 
 powerPerModule 0 // mW
 
-sensorThickness 0.150
+sensorThickness 0.080
 hybridThickness 0.5
 chipThickness 0.5
 
