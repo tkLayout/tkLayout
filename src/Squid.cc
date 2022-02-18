@@ -34,6 +34,7 @@ namespace insur {
     myPixelMaterialFile_ = "";
     defaultMaterialFile = false;
     defaultPixelMaterialFile = false;
+    geometryWithSubDisks = false;
   }
 
   /**
@@ -126,8 +127,9 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        if (t->myid() == "Pixels") px = t;
+        if (t->myid() == "Pixels" || t->myid() == "PixelsSubDisk") px = t;
         else { tr = t; }
+        if(t->myid() == "PixelsSubDisk") geometryWithSubDisks=true;
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -395,15 +397,15 @@ namespace insur {
 
     try {
       if (mb) {
-	XmlTags outerTrackerXmlTags = XmlTags(false);
+	XmlTags outerTrackerXmlTags = XmlTags(false,false);
 	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, outerTrackerXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
 	if (pm) {
-	  XmlTags pixelXmlTags = XmlTags(true);
+	  XmlTags pixelXmlTags = XmlTags(true,geometryWithSubDisks);
 	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, pixelXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false);
-	}
+       }
       }
       else {
-	std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
+       std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
 	return false;
       }
       bfs::remove_all(temporaryPath);

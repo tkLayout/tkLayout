@@ -158,6 +158,7 @@ namespace insur {
     std::set<std::string> includeSet_; // list of configuration files
     bool defaultMaterialFile;
     bool defaultPixelMaterialFile;
+    bool geometryWithSubDisks;
 
     RootWSite site;
 

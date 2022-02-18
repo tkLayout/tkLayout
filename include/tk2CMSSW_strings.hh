@@ -207,6 +207,8 @@ namespace insur {
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
     static const std::string xml_disc = "Disc";
+    static const std::string xml_subdisc = "SubDisc";
+    static const std::string xml_SD = "SD";
     static const std::string xml_rod = "Rod";
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
@@ -352,9 +354,14 @@ namespace insur {
 
     static const std::string xml_OT_topo_disc_name = "OuterTrackerPixelEndcapDisk";
     static const std::string xml_PX_topo_disc_name = "PixelEndcapDisk";
+    static const std::string xml_PX_topo_disc_case_sd_name = "PixelEndcapDoubleDisk";
    
     static const std::string xml_OT_topo_disc_value = "Phase2OTEndcapDisk";
     static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapTDRDisk";
+    static const std::string xml_PX_topo_disc_case_sd_value = "PixelPhase2EndcapDoubleDisk";
+
+    static const std::string xml_PX_topo_subdisc_name = "PixelEndcapSubDisk";
+    static const std::string xml_PX_topo_subdisc_value = "PixelPhase2EndcapSubDisk";
 
     static const std::string xml_OT_topo_ring_name = "OuterTrackerPixelEndcapPanel";
     static const std::string xml_PX_topo_ring_name = "PixelEndcapRing";
@@ -373,7 +380,7 @@ namespace insur {
 
 
     struct XmlTags {
-    XmlTags(bool isPixelTracker) : 
+    XmlTags(bool isPixelTracker, bool hasSubDisk) : 
         nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
         tracker(!isPixelTracker ? xml_OT : xml_IT),
 	trackerLong(!isPixelTracker ? xml_OuterTracker : xml_InnerPixel),        
@@ -399,8 +406,12 @@ namespace insur {
 	topo_bmodule_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodule_value),
 	topo_endcaps_name(!isPixelTracker ? xml_OT_topo_endcaps_name : xml_PX_topo_endcaps_name),
 	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
-	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
-	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	//topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
+	//topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : hasSubDisk ? xml_PX_topo_disc_case_sd_name : xml_PX_topo_disc_name),
+	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : hasSubDisk ? xml_PX_topo_disc_case_sd_value : xml_PX_topo_disc_value),
+	topo_subdisc_name("PixelEndcapSubDisk"),
+        topo_subdisc_value("PixelPhase2EndcapSubDisk"),
 	topo_ring_name(!isPixelTracker ? xml_OT_topo_ring_name : xml_PX_topo_ring_name),
 	topo_ring_value(!isPixelTracker ? xml_OT_topo_ring_value : xml_PX_topo_ring_value),
 	topo_emodule_name(!isPixelTracker ? xml_OT_topo_emodule_name : xml_PX_topo_emodule_name),
@@ -437,6 +448,8 @@ namespace insur {
       const std::string topo_endcaps_value;
       const std::string topo_disc_name;
       const std::string topo_disc_value;
+      const std::string topo_subdisc_name;
+      const std::string topo_subdisc_value;
       const std::string topo_ring_name;
       const std::string topo_ring_value;
       const std::string topo_emodule_name;

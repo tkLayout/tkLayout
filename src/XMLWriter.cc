@@ -195,7 +195,7 @@ namespace insur {
      * @in A reference to a file stream that is bound to the input file
      * @out A reference to a file stream that is bound to the output file
      */
-  void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags) {
+  void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, bool hasSubDisks, XmlTags& trackerXmlTags) {
         std::ostringstream strm;
         std::string line;
         unsigned int i;
@@ -236,6 +236,11 @@ namespace insur {
 
         // Add Disks
 	specPar(trackerXmlTags.topo_disc_name, t, out, trackerXmlTags);
+        
+        //Add subdisks, if we have them
+        if(hasSubDisks){
+           specPar(trackerXmlTags.topo_subdisc_name, t, out, trackerXmlTags);
+        }
 
 	// Add Rings
 	specPar(trackerXmlTags.topo_ring_name, t, out, trackerXmlTags);
@@ -403,8 +408,12 @@ namespace insur {
                     if ((ri.at(id).index == iter->layer) && (ri.at(id).barrel == iter->barrel)) break;
                 }
 
+                std::cout<<"iter->block_name "<<iter->block_name<<std::endl;
+                bool emptypaths=iter->paths.empty();
+                std::cout<<"iter->paths.empty? "<<emptypaths<<std::endl;
                 if ((!iter->block_name.empty()) && (!iter->paths.empty())) {
                     std::vector<std::string>::iterator iiter, iguard = iter->paths.end();
+                    std::cout<<xml_spec_par_open << iter->block_name << xml_eval_true<<std::endl;
                     out << xml_spec_par_open << iter->block_name << xml_eval_true;
                     for (iiter = iter->paths.begin(); iiter != iguard; iiter++) {
                         out << xml_spec_par_selector << *iiter << xml_general_endline;
@@ -1080,7 +1089,7 @@ namespace insur {
 
   std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
     std::vector<PathInfo>::iterator existing;
-    std::string prefix, postfix, spname;
+    std::string prefix, postfix, altPostfixOne, altPostfixTwo, spname;
     std::vector<std::string> paths, tpaths;
     int lindex, dindex, rindex, mindex, layer = 0;
     int windex = 0;
@@ -1216,6 +1225,7 @@ namespace insur {
     if ((dindex >= 0) && (rindex >= 0) && (windex >= 0)) {
       // disc loop
       for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
+        std::cout<<"In the disc loop now"<<std::endl;
 	std::string& dcurrent = specs.at(dindex).partselectors.at(i);
 
 	bool plus = specs.at(dindex).partextras.at(i) == xml_plus; // CUIDADO was : (dcurrent.size() >= xml_plus.size() && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
@@ -1231,11 +1241,13 @@ namespace insur {
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;
 
+        std::cout<<"Is this pixelTracker? "<<isPixelTracker<<std::endl;
 	if (!isPixelTracker) prefix = trackerXmlTags.fwd;
 	else prefix = trackerXmlTags.fwd;
 	prefix = prefix + "/" + dcurrent + "/"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
 	// ring loop
+	std::cout<<"Going into ring loop now "<<std::endl;
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
 	  std::string compstr = specs.at(rindex).partselectors.at(j);
 
@@ -1246,15 +1258,20 @@ namespace insur {
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
 
 	  // matching discs
+	  std::cout<<"compstr is "<<compstr<<std::endl;
 	  if (dnumber.compare(compstr) == 0) {
 
 	    postfix = trackerXmlTags.tracker + xml_disc + dnumber + xml_R + rnumber + xml_endcap_module;
+            altPostfixOne = trackerXmlTags.tracker + xml_disc + dnumber + xml_SD + "1" + xml_R + rnumber + xml_endcap_module;
+            altPostfixTwo = trackerXmlTags.tracker + xml_disc + dnumber + xml_SD + "2" + xml_R + rnumber + xml_endcap_module;
 
 	    // module loop
 	    for (unsigned int k=0; k<specs.at(windex).partselectors.size(); k++ ) {
 	      std::string refstring = specs.at(windex).partselectors.at(k);
+              std::cout<<"refstring "<<refstring<<std::endl;
+              std::cout<<"postfix "<<postfix<<std::endl;
 
-	      if (refstring.find(postfix) != std::string::npos) {
+	      if (refstring.find(postfix) != std::string::npos || refstring.find(altPostfixOne) != std::string::npos || refstring.find(altPostfixTwo) != std::string::npos ) {
 		std::string refdnumber = refstring.substr(refstring.find(xml_disc) + xml_disc.size());
 		refdnumber = refdnumber.substr(0, findNumericPrefixSize(refdnumber));
 		if (dnumber == refdnumber) {
@@ -1284,15 +1301,23 @@ namespace insur {
 	  }
 	}
 	if (plus) {
+          std::cout<<"spname "<<spname<<std::endl;
 	  existing = findEntry(spname, blocks);
 	}
 	else {
+          std::cout<<"else spname "<<spname<<std::endl;
 	  existing = findEntry(spname, tblocks);
+          bool existsok = existing==tblocks.end();
+          std::cout<<"existing ==tblocks.end() "<<existsok<<std::endl;
 	}
 	if (plus && (existing != blocks.end())) {
 	  existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
 	}
 	else if (!plus && (existing != tblocks.end())) {
+          std::cout<<"tpaths "<<std::endl;
+          for(unsigned int i=0; i<tpaths.size();i++){
+            std::cout<<"path "<<tpaths.at(i)<<std::endl;
+          }
 	  existing->paths.insert(existing->paths.end(), tpaths.begin(), tpaths.end());
 	}
 	else {
@@ -1307,6 +1332,11 @@ namespace insur {
 	  else {
 	    pi.paths = tpaths;
 	    tblocks.push_back(pi);
+            std::cout<<"blockname "<<pi.block_name<<std::endl;
+         std::cout<<"tpaths "<<std::endl;
+          for(unsigned int i=0; i<tpaths.size();i++){
+            std::cout<<"path "<<tpaths.at(i)<<std::endl;
+          }
 	  }
 	}
 	paths.clear();
