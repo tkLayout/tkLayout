@@ -2730,7 +2730,7 @@ namespace insur {
   }
 
   /**
-   * This is one of the two main analysis functions that provide the core functionality of this class. It examines the endcap discs in z+
+   * This is a modification of analyseDiscs, for the case where we have subdisks. It examines the endcap discs in z+
    * and the rings and modules within, extracting a great range of different pieces of information from the geometry layout. These
    * are shapes for individual modules, but also for their enclosing volumes, divided into rings and then discs. They form hierarchies
    * of volumes, one inside the other.
@@ -3026,12 +3026,8 @@ namespace insur {
 	      logic.name_tag = mname.str();
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 
-	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
-	      // module composite material
-	      //matname << xml_base_actcomp << "D" << discNumber << "R" << modRing;
-	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 	    //Topology
 	    sspec.partselectors.push_back(mname.str());
@@ -3052,7 +3048,6 @@ namespace insur {
 	    }     
 
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
-	      //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
@@ -3292,7 +3287,7 @@ namespace insur {
               rspec.partselectors.push_back(logic.name_tag);
               rspec.moduletypes.push_back(minfo_zero);
 
-	      // Ring Surface 1 (half the modules)
+	      // Ring Surface 1 (half the modules - subdisk 1)
 	      if(sdIndex==1){
                 alg.name = xml_trackerring_algo;
                 if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
@@ -3330,7 +3325,7 @@ namespace insur {
                 alg.parameters.clear();
               }
 
-	      // Ring Surface 2 (half the modules)
+	      // Ring Surface 2 (half the modules - subdisk 2)
 	      if(sdIndex==2){
                 alg.name = xml_trackerring_algo;
                 if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
@@ -3408,21 +3403,12 @@ namespace insur {
 
         pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
         pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-        //pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
 	pos.trans.dz = diskZ - xml_z_pixfwd;
         p.push_back(pos);
 
         dspec.partselectors.push_back(logic.name_tag);
         dspec.moduletypes.push_back(minfo_zero);
         dspec.partextras.push_back(logic.extra);
-        //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
-        //   logic.extra = xml_minus;
-        //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
-        //   pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-        //   p.push_back(pos);
-        //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
-        //dspec.partextras.push_back(logic.extra);
 	discNumber++;
       }
       layer++;
