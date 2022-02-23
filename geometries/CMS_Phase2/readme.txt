@@ -574,4 +574,27 @@ OT800_IT703.cfg                      OT Version 8.0.0
                                      TPBX L1 with 3D sensors, planar 25x100 um2 pixels in TBPX L2,L3,L4; planar 50x50um2 pixels in TFPX and TEPX
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
 
+=============   BRICKED SENSOR STUDIES   =============
+OT800_IT800.cfg                      OT Version 8.0.0
+                                     Based on IT version 7.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2 bricked in central rod; TBPX L3+L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX
+                                     Bricked pixels everywhere in TEPX and TFPX
+
+OT800_IT801.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2 bricked in central rod; TBPX L3+L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX, TFPX and TEPX
+
+OT800_IT802.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2,L3 bricked in central rod; TBPX L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX and disks 1-4 of TFPX. 
+                                     Bricked pixels in TFPX disks 5-8 and in all of TEPX. 
+
+OT800_IT803.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2,L3 bricked in central rod; TBPX L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX.
+                                     50x50 um2 pixels in TFPX and TEPX.
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
+
 
