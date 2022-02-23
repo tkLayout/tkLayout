@@ -60,7 +60,7 @@ private:
 class EndcapDetIdBuilder : public SensorGeometryVisitor {
 
 public:
-  EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes);
+  EndcapDetIdBuilder(bool isPixelTracker, bool hasSubDisks, std::vector<int> geometryHierarchySizes);
 
   void visit(Endcap& e);
   void visit(Disk& d);
@@ -70,6 +70,7 @@ public:
 
 private:
   bool isPixelTracker_;
+  bool hasSubDisks_;
   std::vector<int> geometryHierarchySizes_;  // Size (in number of bits) associated to each level in the geometry hierarchy.
   std::map< std::tuple<std::string, int, bool>, int > sortedDisksIds_;  // Full subdetector disks sorted by Z.
   // For example, TEDD_1 Disk 1 is asigned number 1, TEDD_1 Disk 2 is asigned number 2, TEDD_2 Disk 1 is assigned number 3.
