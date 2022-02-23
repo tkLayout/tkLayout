@@ -2967,21 +2967,20 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 
 	    if (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi==2) {
-	      // new ring  - in SD1 or 2 depending on the uniRef value
+	      // new ring  - in SD1 or 2 depending on whether it's phi 1/2
 	      int phiuniref = iiter->getModule().uniRef().phi;
-	      //if (ridx.find(modRing) == ridx.end()) 
-	      ridx.insert(modRing); //Just for the index, we'll loop over the subdsik indices as well later
-	      //ridx.insert(nRings*(phiuniref-1)+modRing);
+	      ridx.insert(modRing); //Just for the index, we'll loop over the subdisk indices as well later
 
 	      std::ostringstream matname, sdname, rname, mname, specname;
-              // subdisc name
               if(phiuniref==1){
+                // subdisc name
                 sdname << dname.str() << xml_subdisc << "1"; // e.g. OTDisc6SubDisc1
                 // ring name
                 rname << dname.str() << xml_subdisc << "1" << xml_ring << modRing; // e.g. OTDisc6SubDisc1Ring1
                 // module name
                 mname << dname.str() << xml_SD << "1" << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6SD1R1EModule
               } else {
+                // subdisc name
                 sdname << dname.str() << xml_subdisc << "2"; // e.g. OTDisc6SubDisc2
                 // ring name
                 rname << dname.str() << xml_subdisc << "2" << xml_ring << modRing; // e.g. OTDisc6SubDisc2Ring1
@@ -3239,142 +3238,158 @@ namespace insur {
         
        
 
-        std::set<int> sdidx;
+        std::set<int> sdidx; //Double disc, so if we have subdisks there must be 2
         sdidx.insert(1);
         sdidx.insert(2);
         
         for (const auto& sdIndex : sdidx) {
-          std::ostringstream sdname;
-          sdname << dname.str() << xml_subdisc << sdIndex; // e.g. OTDisc6SubDisc2
-          for (const auto& ringIndex : ridx) {
-          const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
-	  if (found != rinfo.end()) {
-	    const ERingInfo& myRingInfo = found->second;
-	    if (myRingInfo.numModules > 0) {
+            std::ostringstream sdname;
+            sdname << dname.str() << xml_subdisc << sdIndex; // e.g. OTDisc6SubDisc2
+            //First determine subdisk position, based on the first 2 rings
+            float subDiskZPosition=0;
+            float ringZ=0;
+            for (const auto& ringIndex : ridx) {
+                if(ringIndex<3){
+                  const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
+                  if (found!=rinfo.end()) {
+                      const ERingInfo& myRingInfo = found->second;
+                      subDiskZPosition+=myRingInfo.surface1ZMid;
+                      ringZ+=myRingInfo.zMid;
+                  }   
+                }
+              }
+              subDiskZPosition=subDiskZPosition/2.;
+              ringZ=ringZ/2.;
+                
+            for (const auto& ringIndex : ridx) {
+            const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
+            if (found != rinfo.end()) {
+	      const ERingInfo& myRingInfo = found->second;
+              if (myRingInfo.numModules > 0) {
 
-              //When we have subdisks all rings are "flat" and there are no sections to be removed
-              shape.name_tag = myRingInfo.name;
-              shape.rmin = myRingInfo.radiusMin - xml_epsilon;
-              shape.rmax = myRingInfo.radiusMax + xml_epsilon;
-              shape.dz = diskThickness/(2*sdidx.size()*ridx.size()); //Bit of a hack. Alas.
-              s.push_back(shape);
-	    }
+                //When we have subdisks all rings are "flat" and there are no sections to be removed
+                shape.name_tag = myRingInfo.name;
+                shape.rmin = myRingInfo.radiusMin - xml_epsilon;
+                shape.rmax = myRingInfo.radiusMax + xml_epsilon;
+                shape.dz = diskThickness/(2*sdidx.size()*ridx.size()); //Bit of a hack, but works for now.
+                s.push_back(shape);
+	      }
 	      
 
-	    logic.name_tag = myRingInfo.name;
-            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-            logic.material_tag = xml_material_air;
-            l.push_back(logic);
+	      logic.name_tag = myRingInfo.name;
+              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+              logic.material_tag = xml_material_air;
+              l.push_back(logic);
 
 
 
-            pos.parent_tag = trackerXmlTags.nspace + ":" + sdname.str(); // CUIDADO ended with: + xml_plus;
-            pos.child_tag = logic.shape_tag;
+              pos.parent_tag = trackerXmlTags.nspace + ":" + sdname.str(); // CUIDADO ended with: + xml_plus;
+              pos.child_tag = logic.shape_tag;
 
-	    pos.trans.dz = myRingInfo.zMid - diskZ;
-            p.push_back(pos);
+              pos.trans.dz = myRingInfo.surface1ZMid-subDiskZPosition;
+              p.push_back(pos);
 
-            rspec.partselectors.push_back(logic.name_tag);
-            rspec.moduletypes.push_back(minfo_zero);
+              rspec.partselectors.push_back(logic.name_tag);
+              rspec.moduletypes.push_back(minfo_zero);
 
-	    // Ring Surface 1 (half the modules)
-	    if(sdIndex==1){
-	    alg.name = xml_trackerring_algo;
-            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-            alg.parent = logic.shape_tag;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-            pconverter << (myRingInfo.numModules / 2);
-            alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << myRingInfo.radiusMid << "*mm";
-            alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-            pconverter.str("");
-            if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
-              pconverter.str("");
-            } 
-	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
-	    pconverter << myRingInfo.isDiskAtPlusZEnd;
-	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	    pconverter.str("");
-	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << myRingInfo.surface1IsFlipped;
-	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	    pconverter.str("");
-            a.push_back(alg);
-            alg.parameters.clear();
+	      // Ring Surface 1 (half the modules)
+	      if(sdIndex==1){
+                alg.name = xml_trackerring_algo;
+                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
+                alg.parent = logic.shape_tag;
+                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+                pconverter << (myRingInfo.numModules / 2);
+                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
+                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+                pconverter.str("");
+                pconverter << myRingInfo.radiusMid << "*mm";
+                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+                pconverter.str("");
+                if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
+                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
+                  pconverter.str("");
+                } 
+	        alg.parameters.push_back(vectorParam(0, 0, 0));
+	        pconverter << myRingInfo.isDiskAtPlusZEnd;
+	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	        pconverter.str("");
+	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	        pconverter << myRingInfo.surface1IsFlipped;
+                alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+                pconverter.str("");
+                a.push_back(alg);
+                alg.parameters.clear();
+              }
+
+	      // Ring Surface 2 (half the modules)
+	      if(sdIndex==2){
+                alg.name = xml_trackerring_algo;
+                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
+                alg.parent = logic.shape_tag;
+                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+                pconverter << (myRingInfo.numModules / 2);
+                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
+                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+                pconverter.str("");
+                pconverter << myRingInfo.radiusMid << "*mm";
+                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+                pconverter.str("");
+                if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
+                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
+                  pconverter.str("");
+                } 
+	        alg.parameters.push_back(vectorParam(0, 0, 0));
+	        pconverter << myRingInfo.isDiskAtPlusZEnd;
+	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	        pconverter.str("");
+	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	        pconverter << myRingInfo.surface1IsFlipped;
+	        alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	        pconverter.str("");
+                a.push_back(alg);
+                alg.parameters.clear();
+              }
             }
-
-	    // Ring Surface 2 (half the modules)
-	    if(sdIndex==2){
-	    alg.name = xml_trackerring_algo;
-            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-            pconverter << (myRingInfo.numModules / 2);
-            alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << myRingInfo.radiusMid << "*mm";
-            alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-            pconverter.str("");
-            if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
-              pconverter.str("");
-            } 
-	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
-	    pconverter << myRingInfo.isDiskAtPlusZEnd;
-	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	    pconverter.str("");
-	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << myRingInfo.surface1IsFlipped;
-	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	    pconverter.str("");
-            a.push_back(alg);
-            alg.parameters.clear();
           }
-         }
-        }
-        //subdisc
-        shape.name_tag = sdname.str();
-        shape.rmin = rmin - 2 * xml_epsilon;
-        shape.rmax = rmax + 2 * xml_epsilon;
-        shape.dz = (diskThickness / (2.0*sdidx.size())) + 2 * xml_epsilon; //(zmax - zmin) / 2.0; HACK FOR NOW, LET'S SEE.
-        s.push_back(shape);
+          //subdisc
+          shape.name_tag = sdname.str();
+          shape.rmin = rmin - 2 * xml_epsilon;
+          shape.rmax = rmax + 2 * xml_epsilon;
+          shape.dz = (diskThickness / (2.0*sdidx.size())) + 2 * xml_epsilon; //(zmax - zmin) / 2.0; This is a hack, but it works for now
+          s.push_back(shape);
 
-	shape.name_tag = sdname.str();
-        logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
-        logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-        logic.material_tag = xml_material_air;
-        l.push_back(logic);
+          shape.name_tag = sdname.str();
+          logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
+          logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+          logic.material_tag = xml_material_air;
+          l.push_back(logic);
 
-        pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str();
-        pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-        //pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
-	pos.trans.dz = diskZ - xml_z_pixfwd;
-        p.push_back(pos);
+          pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str();
+          pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+          pos.trans.dz = subDiskZPosition - ringZ;
+          p.push_back(pos);
 
-        sdspec.partselectors.push_back(logic.name_tag);
-        sdspec.moduletypes.push_back(minfo_zero);
-        sdspec.partextras.push_back(logic.extra);
+          sdspec.partselectors.push_back(logic.name_tag);
+          sdspec.moduletypes.push_back(minfo_zero);
+          sdspec.partextras.push_back(logic.extra);
 
         }
 
