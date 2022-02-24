@@ -82,15 +82,15 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift, double modTranslateX) {
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
   double deltaPhiNom = 2.*M_PI/numMods;
-  double deltaPhiLarge = deltaPhiNom+2*phiShift;
+  double deltaPhiLarge = deltaPhiNom+2*phiShift; //This is the spacing in phi between modules around +/- 90 deg
   double nominalZRot = 0.;
-  if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));}
+  if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));} //Adjust nominal module spacing if the spacing between modules around +/- 90 deg is more than the nominal
   templ->store(propertyTree());
 
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
     if (moduleNode.count(i) > 0) {
-     templ->store(moduleNode.at(i));
-    }
+     templ->store(moduleNode.at(i)); // Store module config in the template module so we have access to it later
+    } 
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
@@ -106,10 +106,12 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
         mod->translateR(tmp_r-mod->center().Rho());
       }
     }
-    if (deltaPhiLarge == deltaPhiNom) {
+    if (deltaPhiLarge == deltaPhiNom) { //In this case we have uniform phi spacing between the modules
       nominalZRot = (i + alignmentRotation)*deltaPhiNom;
-    } else {
+    } else { 
       mod->notInRegularRing();
+      //Ensure larger spacing is used between modules around +/- 90 deg - use pi and not pi/2 to switch between the two calculations as there is a range
+      //translation later and this gives the correct spacing in the end. 
       if (((i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom)) < M_PI ){
         nominalZRot = (i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom);
       } else {
