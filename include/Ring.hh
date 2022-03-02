@@ -17,6 +17,7 @@ using std::string;
 #include "Visitable.hh"
 
 #define MAX_WEDGE_CALC_LOOPS 100
+#define INVALID_ANGLE -999
 
 
 
@@ -39,6 +40,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
   double rStartInner_REAL_, zStartInner_REAL_, rEndInner_REAL_, zEndInner_REAL_;
+  PropertyNode<int> moduleNode;
 
 
  public:
@@ -50,10 +52,12 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   Property<double, NoDefault> theta_g;
   Property<double, NoDefault> ringZOverlap;
 
+
   const Container& modules() const { return modules_; }
 
  TiltedRing() :
   //materialObject_(MaterialObject::ROD),
+    moduleNode            ("Module"                , parsedOnly()),
     innerRadius           ("ringInnerRadius"       , parsedAndChecked()),
     outerRadius           ("ringOuterRadius"       , parsedAndChecked()),
     zInner                ("ringInnerZ"            , parsedOnly()),
@@ -141,7 +145,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius);
   std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double highRadius);
 
-  void buildModules(EndcapModule* templ, int numMods, double smallDelta);
+  void buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift, double modTranslateX);
   void buildBottomUp();
   void buildTopDown();
 
@@ -153,11 +157,14 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   Property<bool  , Default> alignEdges;
   Property<double, Default> ringGap;
   Property<int   , Default> smallParity;
+  PropertyNode<int> moduleNode;
+  
 
   bool isSmallerAbsZRingInDisk_;
   bool isRingOn4Dees_;
 
   double minRadius_, maxRadius_;
+
 
   std::string subdetectorName_;
 
@@ -165,6 +172,7 @@ public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
 
   ReadonlyProperty<double, NoDefault> smallDelta;
+  Property<double, Default> phiShift;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<BuildDirection, NoDefault> buildDirection;
   Property<int   , AutoDefault> disk;
@@ -179,6 +187,7 @@ public:
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
+
 
   Property<double, AutoDefault> actualZError;
   Property<double, AutoDefault> actualPhiOverlap;
@@ -201,8 +210,10 @@ public:
       alignEdges            ("alignEdges"            , parsedOnly(), true),
       ringGap               ("ringGap"               , parsedOnly(), 0.),
       smallParity           ("smallParity"           , parsedOnly(), 1),
+      moduleNode            ("Module"                , parsedOnly()),
       subdetectorName_      (subdetectorName),
       smallDelta            ("smallDelta"            , parsedAndChecked()),
+      phiShift              ("phiShift"              , parsedOnly(),0.),
       zError                ("zError"                , parsedAndChecked()),
       rSafetyMargin         ("rSafetyMargin"         , parsedOnly(), 0.),
       numModules            ("numModules"            , parsedOnly()),

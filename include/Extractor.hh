@@ -100,6 +100,10 @@ namespace insur {
                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p,
 		      std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri,
 		      bool wt = false);
+    void analyseDiscsAndSubDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
+                      std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p,
+		      std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri,
+		      bool wt = false);
     void analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
 			 std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
@@ -134,6 +138,7 @@ namespace insur {
     std::string stringParam(std::string name, std::string value);
     std::string numericParam(std::string name, std::string value);
     std::string vectorParam(double x, double y, double z);
+    std::string arbitraryLengthVector(std::string name, std::vector<double> invec);
     double compositeDensity(ModuleCap& mc, bool nosensors = false);
     double compositeDensity(InactiveElement& ie);
     double fromRim(double r, double w);

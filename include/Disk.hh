@@ -42,6 +42,7 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
+  Property<double, Default>   subDiskDelta;
   Property<int   , Default>   bigParity;
   Property<double, NoDefault> rOverlap;
 
@@ -76,6 +77,7 @@ public:
     innerRadius( "innerRadius", parsedAndChecked()),
     outerRadius( "outerRadius", parsedAndChecked()),
     bigDelta(    "bigDelta"   , parsedAndChecked()),
+    subDiskDelta("subDiskDelta",parsedOnly(), 0),
     bigParity(   "bigParity"  , parsedOnly(), 1),
     rOverlap(    "rOverlap"   , parsedOnly()), 
     ringNode(    "Ring"       , parsedOnly()),

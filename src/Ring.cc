@@ -79,12 +79,46 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 }
 
 
-void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
+void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, double phiShift, double modTranslateX) {
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
+  double deltaPhiNom = 2.*M_PI/numMods;
+  double deltaPhiLarge = deltaPhiNom+2*phiShift; //This is the spacing in phi between modules around +/- 90 deg
+  double nominalZRot = 0.;
+  if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));} //Adjust nominal module spacing if the spacing between modules around +/- 90 deg is more than the nominal
+  templ->store(propertyTree());
+
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
+    if (moduleNode.count(i) > 0) {
+     templ->store(moduleNode.at(i)); // Store module config in the template module so we have access to it later
+    } 
     EndcapModule* mod = GeometryFactory::clone(*templ);
+    mod->build();
+    mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
-    mod->rotateZ(2.*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
+    if(mod->yawAngleFromConfig() > INVALID_ANGLE){
+      mod->notInRegularRing();
+      double tmp_r = mod->center().Rho();
+      mod->translateR(-tmp_r); //perform yaw angle rotation with the module at the centre
+      mod->yaw(mod->yawAngleFromConfig());
+      if(mod->manualRhoCentre() > 0 ){// For irregular rings (with yawed modules) that need to stay tangent to the same inner/outer radius, the module centre is shifted
+        mod->translateR(mod->manualRhoCentre()-mod->center().Rho());
+      } else {
+        mod->translateR(tmp_r-mod->center().Rho());
+      }
+    }
+    if (deltaPhiLarge == deltaPhiNom) { //In this case we have uniform phi spacing between the modules
+      nominalZRot = (i + alignmentRotation)*deltaPhiNom;
+    } else { 
+      mod->notInRegularRing();
+      //Ensure larger spacing is used between modules around +/- 90 deg - use pi and not pi/2 to switch between the two calculations as there is a range
+      //translation later and this gives the correct spacing in the end. 
+      if (((i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom)) < M_PI ){
+        nominalZRot = (i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom);
+      } else {
+        nominalZRot = (i + alignmentRotation)*deltaPhiNom + (1+alignmentRotation)*(deltaPhiLarge-deltaPhiNom);
+      } 
+    }
+    mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
@@ -147,17 +181,12 @@ void Ring::buildBottomUp() {
 
   }
 
-  emod->store(propertyTree());
-  //emod->subdetectorName(subdetectorName());
-  emod->build();
-  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
-
   minRadius_ = buildStartRadius();
   maxRadius_ = buildStartRadius() + modLength;
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta());
+  buildModules(emod, numMods, smallDelta(),phiShift(),buildStartRadius()+modLength/2);
 
   delete emod;
 }
@@ -181,16 +210,13 @@ void Ring::buildTopDown() {
   int numMods = optimalRingParms.second;
 
   EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod, subdetectorName());
-  emod->store(propertyTree());
-  emod->build();
-  emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
 
   minRadius_ = buildStartRadius() - rmod->length();
   maxRadius_ = buildStartRadius();
 
   if (numModules.state()) numMods = numModules();
   else numModules(numMods);
-  buildModules(emod, numMods, smallDelta());
+  buildModules(emod, numMods, smallDelta(),phiShift(),buildStartRadius() - rmod->length()/2);
 
   delete emod;
 }

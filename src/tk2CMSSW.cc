@@ -24,6 +24,7 @@ namespace insur {
   void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, std::string xmlDirectoryPath, std::string xmlOutputPath, std::string xmlOutputName, bool wt) {
 
     bool isPixelTracker = mb.getTracker().isPixelTracker();
+    bool hasSubDisks = mb.getTracker().hasSubDisks();
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
@@ -109,7 +110,7 @@ namespace insur {
 	    outstream.open((xmlOutputPath + trackerXmlTags.topologyfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
             //writeSimpleHeader(outstream);
-            wr.topology(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.topology(trackerData.specs, instream, outstream, isPixelTracker, hasSubDisks, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing to topology file.");
             instream.close();
             instream.clear();
