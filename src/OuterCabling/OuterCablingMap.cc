@@ -574,7 +574,7 @@ void OuterCablingMap::computeCMSSWIds(std::map<const std::string, std::unique_pt
 
     std::vector<int> detIds;
     std::map<int, int> detIdToGBT;
-    int gbtCMSSWId=1;
+    int gbtCMSSWId=0;
     const std::vector<OuterCable*>& myCables = myDTC->cable();
     for (const auto& myCable : myCables){
        const std::vector<OuterBundle*>& myBundles = myCable->bundles();
