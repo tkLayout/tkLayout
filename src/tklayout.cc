@@ -133,11 +133,16 @@ int main(int argc, char* argv[]) {
 
   // Build cabling map.
   // With option 'all', cabling map is only computed on a specific layout, for which the map is designed.
+  // It is also computed for layouts that are marked as compatible with this map
   // The user can also force the computation by using 'cablingMap' option.
-  const bool buildOuterCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledOTName) != std::string::npos) // Layout on which Outer Tracker cabling map was designed.
+  const bool compatibleOTCablingMap = std::any_of(insur::compatible_cabledOTName.begin(), insur::compatible_cabledOTName.end(), [&](std::string s) {
+      return (basename.find(s) != std::string::npos); });
+  const bool compatibleITCablingMap = std::any_of(insur::compatible_cabledITName.begin(), insur::compatible_cabledITName.end(), [&](std::string s) {
+      return (basename.find(s) != std::string::npos); });
+  const bool buildOuterCablingMap = ( (vm.count("all") && (basename.find(insur::default_cabledOTName) != std::string::npos || compatibleOTCablingMap)) // Layout on which Outer Tracker cabling map was designed or one that is compatible.
 				 || vm.count("outerCablingMap") ); // Forces cabling map computation.
   if (buildOuterCablingMap && !squid.buildOuterCablingMap(vm.count("outerCablingMap")) ) return EXIT_FAILURE;
-  const bool buildInnerCablingMap = ( (vm.count("all") && basename.find(insur::default_cabledITName) != std::string::npos) // Layout on which Inner Tracker cabling map was designed.
+  const bool buildInnerCablingMap = ( (vm.count("all") && (basename.find(insur::default_cabledITName) != std::string::npos || compatibleITCablingMap)) // Layout on which Inner Tracker cabling map was designed.
 				 || vm.count("innerCablingMap") ); // Forces cabling map computation.
   if (buildInnerCablingMap && !squid.buildInnerCablingMap(vm.count("innerCablingMap")) ) return EXIT_FAILURE;
   
