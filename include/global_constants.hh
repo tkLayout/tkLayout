@@ -186,6 +186,8 @@ namespace insur {
   // mainConfigHandler
   static const std::string default_cabledOTName                  = "OT616";
   static const std::string default_cabledITName                  = "IT701";
+  static const std::vector<std::string> compatible_cabledOTName       = {"OT800","OT801"};
+  static const std::vector<std::string> compatible_cabledITName       = {"IT700"};
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
   static const std::string default_chemicalElementsFile          = "chemical_elements.list";

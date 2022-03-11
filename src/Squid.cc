@@ -521,7 +521,9 @@ namespace insur {
    */
   bool Squid::reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName) {
     startTaskClock("Creating OT Cabling map report.");
-    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    const bool compatibleOTCablingMap = std::any_of(insur::compatible_cabledOTName.begin(), insur::compatible_cabledOTName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledOTName) == std::string::npos) && !compatibleOTCablingMap) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
       v.outerCablingSummary(a, *tr, site);
@@ -541,7 +543,9 @@ namespace insur {
    */
   bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
     startTaskClock("Creating IT Cabling map report.");
-    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    const bool compatibleITCablingMap = std::any_of(insur::compatible_cabledITName.begin(), insur::compatible_cabledITName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledITName) == std::string::npos) && !compatibleITCablingMap) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
     if (px) {
       // CREATE REPORT ON WEBSITE.
       v.innerCablingSummary(pixelAnalyzer, *px, site);
@@ -561,8 +565,12 @@ namespace insur {
 
   bool Squid::reportInnerAndOuterCablingMapSite(const bool innerCablingOption, const bool outerCablingOption, const std::string layoutName) {
     startTaskClock("Creating IT+OT Cabling map report.");
-    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout is at your own risks (could require adaptations).");
-    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    const bool compatibleOTCablingMap = std::any_of(insur::compatible_cabledOTName.begin(), insur::compatible_cabledOTName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    const bool compatibleITCablingMap = std::any_of(insur::compatible_cabledITName.begin(), insur::compatible_cabledITName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledITName) == std::string::npos) && !compatibleITCablingMap) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
+    if ((layoutName.find(default_cabledOTName) == std::string::npos) && !compatibleOTCablingMap) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
     if (px) {
       // CREATE REPORT ON WEBSITE.
       v.innerAndOuterCablingSummary(*tr, *px, site);
