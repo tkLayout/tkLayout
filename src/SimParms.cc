@@ -37,7 +37,9 @@ SimParms::SimParms() :
     irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
     minTracksEta("minTracksEta", parsedOnly()),
     maxTracksEta("maxTracksEta", parsedOnly()),
-    taggedTracking("TaggedTracking", parsedOnly())
+    taggedTracking("TaggedTracking", parsedOnly()),
+    beamPipeX("beamPipeX", parsedOnly(), insur::mat_default_beam_pipe_radiation),
+    beamPipeL("beamPipeL", parsedOnly(), insur::mat_default_beam_pipe_interaction)
 { }
 
 void SimParms::build() {

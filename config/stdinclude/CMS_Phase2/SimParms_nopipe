@@ -11,8 +11,8 @@ SimParms {
     useIPConstraint 0
     rphiErrorCollider 5      // mm
 
-    beamPipeX  0.0022761  // thickness of the beam pipe in units of radiation length
-    beamPipeL  0.0020334  // thickness of the beam pipe in units of nuclear interaction length
+    beamPipeX  0.0  // thickness of the beam pipe in units of radiation length
+    beamPipeL  0.0  // thickness of the beam pipe in units of nuclear interaction length
     
     ptCost 0                  // CHF / cm^2
     stripCost 0               // CHF / cm^2

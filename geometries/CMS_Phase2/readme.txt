@@ -271,7 +271,9 @@ OT800_IT615.cfg	       Based from Outer Tracker version 616.
 
 OT800_IT630.cfg        Based on OT800_IT615. Very small pixels for phase3: TBPX L1, TBPX L2, TFPX R1 have a 15µm × 60µm size
 
-OT800_IT631.cfg        Based on OT800_IT630. Bit small pixels in Layer 1,2 and Ring 1,2 
+OT800_IT631.cfg        Based on OT800_IT630. But small pixels in Layer 1,2 and Ring 1,2 
+
+OT800_IT632.cfg        Based on OT800_IT631 (small pixels), but with no beam pipe material
 		       	  
 OT801_IT701.cfg	       Based from Outer Tracker version 800.
                        TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  

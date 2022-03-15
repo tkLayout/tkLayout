@@ -225,8 +225,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
     RILength material;
-    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
-    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+    material.radiation   = SimParms::getInstance().beamPipeX() / sin(theta);  // Beam pipe material (radiation length)
+    material.interaction = SimParms::getInstance().beamPipeL() / sin(theta);  // Beam pipe material (interaction length)
     hit->setCorrectedMaterial(material);
     track.addHit(std::move(hit));
 
@@ -531,8 +531,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
     RILength material;
-    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
-    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+    material.radiation   = SimParms::getInstance().beamPipeX() / sin(theta);  // Beam pipe material (radiation length)
+    material.interaction = SimParms::getInstance().beamPipeL() / sin(theta);  // Beam pipe material (interaction length)
     hit->setCorrectedMaterial(material);
     matTrack.addHit(std::move(hit));
 
@@ -989,8 +989,8 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     HitPtr hit(new Hit(rPos, zPos, nullptr, HitPassiveType::BeamPipe));
 
     RILength material;
-    material.radiation   = 0.0022761 / sin(theta);  // was 0.0023, adapted to fit CMSSW 81X 2016/11/30
-    material.interaction = 0.0020334 / sin(theta);  // was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+    material.radiation   = SimParms::getInstance().beamPipeX() / sin(theta);  // Beam pipe material (radiation length)
+    material.interaction = SimParms::getInstance().beamPipeL() / sin(theta);  // Beam pipe material (interaction length)
     hit->setCorrectedMaterial(material);
     track.addHit(std::move(hit));
 
