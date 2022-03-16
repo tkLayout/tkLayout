@@ -28,6 +28,8 @@ SimParms {
     numTriggerTowersPhi 8
 
     irradiationMapFiles 1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0.map,1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0_pixel.map
+    doseMapFiles  Dose_CMS_HGC_pp_7TeV_v3.7.2.0_FLUKA.map
+    //doseMapFiles 1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0.map
     
     Gabie IsAHero           // inside joke. forget about it
 }

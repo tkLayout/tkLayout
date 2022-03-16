@@ -13,18 +13,30 @@ void ReportIrradiation::preparePowerHistograms() {
 }
 
 void ReportIrradiation::computeIrradiationPowerConsumption() {
+  std::cout<<"AA"<<std::endl;
   IrradiationPowerVisitor irradiation_;
   irradiation_.preVisit();
+  std::cout<<"aa"<<std::endl;
   SimParms::getInstance().accept(irradiation_);
+  std::cout<<"axxxxxa"<<std::endl;
   tracker.accept(irradiation_);
+  std::cout<<"bb"<<std::endl;
   irradiation_.postVisit();
 
   powerSummaries = irradiation_.sensorsPowerSummary;
+  std::cout<<"cc"<<std::endl;
   fluenceSummaries = irradiation_.sensorsFluenceSummary;
+  std::cout<<"dd"<<std::endl;
+  doseSummaries = irradiation_.sensorsDoseSummary;
+  std::cout<<"ee"<<std::endl;
   fluenceSummaryPerType = irradiation_.sensorsFluencePerType;
+  std::cout<<"ff"<<std::endl;
+  doseSummaryPerType = irradiation_.sensorsDosePerType;
+  std::cout<<"BB"<<std::endl;
 }
 
 void ReportIrradiation::computeChipPowerConsumptionTable() {
+  std::cout<<"CC"<<std::endl;
   int iType=1;
   struct ModuleTypeVisitor : public ConstGeometryVisitor {
     std::map<std::string, std::vector<std::string> > typeMap;
@@ -53,9 +65,11 @@ void ReportIrradiation::computeChipPowerConsumptionTable() {
     }
     iType++;
   }
+  std::cout<<"DD"<<std::endl;
 }
 
 std::string ReportIrradiation::createSensorsIrradiationCsv() {
+  std::cout<<"EE"<<std::endl;
   class TrackerVisitor : public ConstGeometryVisitor {
     std::stringstream output_;
     string sectionName_;
@@ -99,6 +113,7 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
   TrackerVisitor v;
   v.preVisit();
   tracker.accept(v);
+  std::cout<<"FF"<<std::endl;
   return v.output();
 }
 
@@ -127,13 +142,20 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   RootWTable& summaryTable = summaryContent.addTable();
   summaryTable.setContent(fluenceSummaryPerType.getContent());
 
+  // Dose on each module type (fine grained)
+  RootWContent& doseSummaryContent = myPage.addContent("Dose summary per module type");
+  RootWTable& doseSummaryTable = doseSummaryContent.addTable();
+  doseSummaryTable.setContent(doseSummaryPerType.getContent());
+
+
   // Power consumption per module tpye (coarse grained)
   RootWContent& chipContent = myPage.addContent("Chip power consumption per module type", false);
   RootWTable& typesTable = chipContent.addTable();
   typesTable.setContent(chipPowerPerType.getContent());
   
   dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
-  dumpRadiationTableSummary(myPage, fluenceSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
+  dumpRadiationTableSummary(myPage, fluenceSummaries, "Niel fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
+  dumpRadiationTableSummary(myPage, doseSummaries, "Dose on sensors", "Gy");
 
   // Some helper string objects
   ostringstream tempSS;
