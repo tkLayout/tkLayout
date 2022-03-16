@@ -39,19 +39,13 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // The irradiationMap_ was obtained with FLUKA simulation.
   // The irradiationMap_ values are 1 MeV-neutrons-equivalent fluence, for an integrated luminosity = 1 fb-1 .
   // The values are the mean and the max on different points on the module's sensor(s).
-  std::cout<<"AAA a"<<std::endl;
   std::pair<double, double> irradiationMeanMax = getModuleFluenceMeanMax(irradiationMap_, m);
   double irradiationMean = irradiationMeanMax.first * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
-  std::cout<<"AAA b"<<std::endl;
   double irradiationMax = irradiationMeanMax.second * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
-  std::cout<<"AAA c"<<std::endl;
   //Also get the dose
   std::pair<double, double> doseMeanMax = getModuleDoseMeanMax(doseMap_,m);
-  std::cout<<"AAA d"<<std::endl;
   double doseMean = doseMeanMax.first * timeIntegratedLumi_;
-  std::cout<<"AAA e"<<std::endl;
   double doseMax = doseMeanMax.second * timeIntegratedLumi_;
-  std::cout<<"AAA f"<<std::endl;
 
   // B) FOR A GIVEN MODULE, CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
   // This use the irradiation on sensors from FLUKA maps, which has just been obtained : irradiationMean, irradiationMax.
@@ -64,16 +58,12 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // C) STORE RESULTS
   // Results for each module
   //
-  std::cout<<"AAA g"<<std::endl;
   m.sensorsIrradiationMean(irradiationMean); // 1MeV-equiv-neutrons / cm^2
   m.sensorsIrradiationMax(irradiationMax);   // 1MeV-equiv-neutrons / cm^2
-  std::cout<<"AAA h"<<std::endl;
   m.sensorsDoseMean(doseMean); // 1MeV-equiv-neutrons / cm^2
   m.sensorsDoseMax(doseMax);   // 1MeV-equiv-neutrons / cm^2
-  std::cout<<"AAA i"<<std::endl;
   m.sensorsIrradiationPowerMean(sensorsPowerMean);  // W
   m.sensorsIrradiationPowerMax(sensorsPowerMax);    // W
-  std::cout<<"AAA j"<<std::endl;
   // Also gather results for all modules of a given type, identified by ModuleRef.
   // This will be used for summary tables.
   TableRef tableRef = m.tableRef();
@@ -81,15 +71,11 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // mean
   sensorsPowerMean_[moduleRef] += sensorsPowerMean;
   sensorsFluenceMean_[moduleRef] += irradiationMean;
-  std::cout<<"AAA k"<<std::endl;
   sensorsDoseMean_[moduleRef] += doseMean;
-  std::cout<<"AAA l"<<std::endl;
   // max
   sensorsPowerMax_[moduleRef] = MAX(sensorsPowerMax_[moduleRef], sensorsPowerMax);
   sensorsFluenceMax_[moduleRef] = MAX(sensorsFluenceMax_[moduleRef], irradiationMax);
-  std::cout<<"AAA m"<<std::endl;
   sensorsDoseMax_[moduleRef] = MAX(sensorsDoseMax_[moduleRef], doseMax);
-  std::cout<<"AAA n"<<std::endl;
   // counter
   modulesCounter_[moduleRef]++;
   // The list of modules per irradiation type
