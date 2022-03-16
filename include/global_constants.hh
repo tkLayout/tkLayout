@@ -67,6 +67,10 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
+
+  static const double mat_default_beam_pipe_radiation   = 0.0022761;  // default material amount (radiation length) in the beam pipe. It was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+  static const double mat_default_beam_pipe_interaction = 0.0020334;  // default material amount (nucl. interaction lenggth) in the beam pipe. It was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+
   static const double mat_negligible         = 1.0E-06; 
 
   static const double mat_a_silicon          = 28.0855;

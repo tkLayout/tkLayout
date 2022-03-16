@@ -51,6 +51,10 @@ public:
 
   PropertyNode<std::string> taggedTracking;
 
+  ReadonlyProperty<double, Default> beamPipeX;
+  ReadonlyProperty<double, Default> beamPipeL;
+
+
   void build();
 
   void addIrradiationMapFile(std::string path);
