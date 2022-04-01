@@ -48,7 +48,9 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   MultiSummaryTable sensorsFluenceSummary;
   SummaryTable sensorsFluencePerType;
   SummaryTable sensorsDosePerType;
-  
+  std::string lumiInformation;
+  std::string mapInformation;
+ 
   void preVisit();
   void visit(SimParms& sp);
   void visit(Barrel& b);

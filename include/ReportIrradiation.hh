@@ -25,6 +25,8 @@ private:
   SummaryTable fluenceSummaryPerType;
   SummaryTable doseSummaryPerType;
   SummaryTable chipPowerPerType;
+  std::string lumiInfo_="";  
+  std::string mapNames_="";
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();
   void computeIrradiationPowerConsumption();

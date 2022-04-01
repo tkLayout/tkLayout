@@ -6,6 +6,8 @@ void IrradiationPowerVisitor::preVisit() {
   sensorsFluencePerType.clear();
   sensorsDoseSummary.clear();
   sensorsDosePerType.clear();
+  lumiInformation="";
+  mapInformation="";
 }
 
 void IrradiationPowerVisitor::visit(SimParms& sp) {
@@ -46,6 +48,23 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   std::pair<double, double> doseMeanMax = getModuleDoseMeanMax(doseMap_,m);
   double doseMean = doseMeanMax.first * timeIntegratedLumi_;
   double doseMax = doseMeanMax.second * timeIntegratedLumi_;
+  if(lumiInformation==""){
+    lumiInformation+=std::to_string(timeIntegratedLumi_);
+    lumiInformation+=" invfb";
+  }
+
+  if(mapInformation==""){
+    for(auto irradMaps : irradiationMap_->getIrradiationMaps()){
+      int theIdx = irradMaps.getMapName().rfind('/');
+      mapInformation+=(irradMaps.getMapName()).substr(theIdx+1);
+      mapInformation+=", ";
+    }
+    for(auto irradMaps : doseMap_->getIrradiationMaps()){
+      int theIdx = irradMaps.getMapName().rfind('/');
+      mapInformation+=(irradMaps.getMapName()).substr(theIdx+1);
+      mapInformation+=", ";
+    }
+  }
 
   // B) FOR A GIVEN MODULE, CALCULATE THE POWER DISSIPATED WITHIN THE SENSORS, DUE TO THE LEAKAGE CURRENT EFFECT
   // This use the irradiation on sensors from FLUKA maps, which has just been obtained : irradiationMean, irradiationMax.

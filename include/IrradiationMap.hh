@@ -65,6 +65,8 @@ public:
    */
   double calculateIrradiation(const std::pair<double,double>& coordinates) const;
 
+  std::string getMapName() const;
+
 private:
   const std::string comp_rhoMin = "# R min: ";                  /**< Prefix of the line of the header of the feeded file that precedes the value of min rho*/
   const std::string comp_rhoMax = "# R max: ";                  /**< Prefix of the line of the header of the feeded file that precedes the value of max rho*/
@@ -87,6 +89,7 @@ private:
   double invFemUnit;    /**< The value of the normalization value in fb^-1*/
 
   std::vector< std::vector<double> > irradiation;       /**< The matrix (rho * Z) that contains the irradiation values for each bin of the map*/
+  std::string mapName;
 };
 
 

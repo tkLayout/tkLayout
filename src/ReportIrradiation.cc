@@ -24,6 +24,8 @@ void ReportIrradiation::computeIrradiationPowerConsumption() {
   doseSummaries = irradiation_.sensorsDoseSummary;
   fluenceSummaryPerType = irradiation_.sensorsFluencePerType;
   doseSummaryPerType = irradiation_.sensorsDosePerType;
+  lumiInfo_ = irradiation_.lumiInformation;
+  mapNames_ = irradiation_.mapInformation;
 }
 
 void ReportIrradiation::computeChipPowerConsumptionTable() {
@@ -123,6 +125,17 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
 
   RootWPage& myPage = site.addPage(pageName);
   myPage.setAddress(pageAddress);
+
+  RootWContent& settingsContent = myPage.addContent("Simulation settings");
+  RootWInfo* lumInfo;
+  lumInfo = new RootWInfo("Integrated luminosity");
+  lumInfo->setValue(lumiInfo_);
+  settingsContent.addItem(lumInfo);
+  RootWInfo* mapNamesInfo;
+  mapNamesInfo = new RootWInfo("Dose and irradiation map names");
+  mapNamesInfo->setValue(mapNames_);
+  settingsContent.addItem(mapNamesInfo);
+
 
   // Irradiation on each module type (fine grained)
   RootWContent& summaryContent = myPage.addContent("Irradiation summary per module type");
