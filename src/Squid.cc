@@ -34,6 +34,7 @@ namespace insur {
     myPixelMaterialFile_ = "";
     defaultMaterialFile = false;
     defaultPixelMaterialFile = false;
+    geometryWithSubDisks = false;
   }
 
   /**
@@ -126,8 +127,9 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        if (t->myid() == "Pixels") px = t;
+        if (t->myid() == "Pixels" || t->myid() == "PixelsSubDisk") px = t;
         else { tr = t; }
+        if(t->myid() == "PixelsSubDisk") geometryWithSubDisks=true;
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -395,15 +397,15 @@ namespace insur {
 
     try {
       if (mb) {
-	XmlTags outerTrackerXmlTags = XmlTags(false);
+	XmlTags outerTrackerXmlTags = XmlTags(false,false);
 	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, outerTrackerXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
 	if (pm) {
-	  XmlTags pixelXmlTags = XmlTags(true);
+	  XmlTags pixelXmlTags = XmlTags(true,geometryWithSubDisks);
 	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, pixelXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false);
-	}
+       }
       }
       else {
-	std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
+       std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
 	return false;
       }
       bfs::remove_all(temporaryPath);
@@ -519,7 +521,9 @@ namespace insur {
    */
   bool Squid::reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName) {
     startTaskClock("Creating OT Cabling map report.");
-    if (layoutName.find(default_cabledOTName) == std::string::npos) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    const bool compatibleOTCablingMap = std::any_of(insur::compatible_cabledOTName.begin(), insur::compatible_cabledOTName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledOTName) == std::string::npos) && !compatibleOTCablingMap) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
     if (tr) {
       // CREATE REPORT ON WEBSITE.
       v.outerCablingSummary(a, *tr, site);
@@ -539,7 +543,9 @@ namespace insur {
    */
   bool Squid::reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName) {
     startTaskClock("Creating IT Cabling map report.");
-    if (layoutName.find(default_cabledITName) == std::string::npos) logERROR("Cabling map is designed and implemented for IT613 only. Forcing it on another layout is at your own risks (could require adaptations).");
+    const bool compatibleITCablingMap = std::any_of(insur::compatible_cabledITName.begin(), insur::compatible_cabledITName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledITName) == std::string::npos) && !compatibleITCablingMap) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
     if (px) {
       // CREATE REPORT ON WEBSITE.
       v.innerCablingSummary(pixelAnalyzer, *px, site);
@@ -552,6 +558,34 @@ namespace insur {
       return false;
     }
   }
+
+  /**
+   * Add a file with the IT+OT cabling map to the website.
+   */
+
+  bool Squid::reportInnerAndOuterCablingMapSite(const bool innerCablingOption, const bool outerCablingOption, const std::string layoutName) {
+    startTaskClock("Creating IT+OT Cabling map report.");
+    const bool compatibleOTCablingMap = std::any_of(insur::compatible_cabledOTName.begin(), insur::compatible_cabledOTName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    const bool compatibleITCablingMap = std::any_of(insur::compatible_cabledITName.begin(), insur::compatible_cabledITName.end(), [&](std::string s) {
+        return (layoutName.find(s) != std::string::npos); });
+    if ((layoutName.find(default_cabledITName) == std::string::npos) && !compatibleITCablingMap) logERROR("Cabling map is designed and implemented for IT701 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
+    if ((layoutName.find(default_cabledOTName) == std::string::npos) && !compatibleOTCablingMap) logERROR("Cabling map is designed and implemented for OT616 only. Forcing it on another layout that is not compatible with it is at your own risks (could require adaptations).");
+    if (px) {
+      // CREATE REPORT ON WEBSITE.
+      v.innerAndOuterCablingSummary(*tr, *px, site);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      logERROR(err_no_tracker);
+      stopTaskClock();
+      return false;
+    }
+  }
+
+
+
 
 
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {

@@ -271,7 +271,9 @@ OT800_IT615.cfg	       Based from Outer Tracker version 616.
 
 OT800_IT630.cfg        Based on OT800_IT615. Very small pixels for phase3: TBPX L1, TBPX L2, TFPX R1 have a 15µm × 60µm size
 
-OT800_IT631.cfg        Based on OT800_IT630. Bit small pixels in Layer 1,2 and Ring 1,2 
+OT800_IT631.cfg        Based on OT800_IT630. But small pixels in Layer 1,2 and Ring 1,2 
+
+OT800_IT632.cfg        Based on OT800_IT631 (small pixels), but with no beam pipe material
 		       	  
 OT801_IT701.cfg	       Based from Outer Tracker version 800.
                        TB2S: inter-ladder radial spacing increased by 1 mm (smallDelta: 2.25 mm -> 2.75 mm). Z positions recomputed accordingly.		       	  
@@ -573,5 +575,28 @@ OT800_IT703.cfg                      OT Version 8.0.0
                                      Based on IT version 7.0.0.
                                      TPBX L1 with 3D sensors, planar 25x100 um2 pixels in TBPX L2,L3,L4; planar 50x50um2 pixels in TFPX and TEPX
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
+=============   BRICKED SENSOR STUDIES   =============
+OT800_IT800.cfg                      OT Version 8.0.0
+                                     Based on IT version 7.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2 bricked in central rod; TBPX L3+L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX
+                                     Bricked pixels everywhere in TEPX and TFPX
+
+OT800_IT801.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2 bricked in central rod; TBPX L3+L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX, TFPX and TEPX
+
+OT800_IT802.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2,L3 bricked in central rod; TBPX L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX and disks 1-4 of TFPX. 
+                                     Bricked pixels in TFPX disks 5-8 and in all of TEPX. 
+
+OT800_IT803.cfg                      OT Version 8.0.0
+                                     Based on IT version 8.0.0.
+                                     TPBX L1 with 3D sensors, TBPX L2,L3 bricked in central rod; TBPX L4 bricked in central 3 rods, planar 25x100 um2 pixels elsewhere in TBPX.
+                                     50x50 um2 pixels in TFPX and TEPX.
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
+
 
 

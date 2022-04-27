@@ -39,7 +39,7 @@ namespace insur {
     void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
     void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);
     void otst(CMSSWBundle& otstData, std::ofstream& out, std::istream& trackerVolumeTemplate, std::ofstream& mechanicalCategoriesRL, std::ofstream& mechanicalCategoriesIL, bool isPixelTracker, XmlTags& trackerXmlTags);
-    void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
+    void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, bool hasSubDisks, XmlTags& trackerXmlTags);
     void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags);
     void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt = false);

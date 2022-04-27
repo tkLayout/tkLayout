@@ -31,6 +31,7 @@ namespace insur {
     Tracker& tr = mb.getTracker();
     InactiveSurfaces& is = mb.getInactiveSurfaces();
     bool isPixelTracker = tr.isPixelTracker();
+    bool hasSubDisks = tr.hasSubDisks();
 
     //std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& ec = mb.getEndcapModuleCaps();
@@ -201,7 +202,11 @@ namespace insur {
     analyseLayers(mt, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
     std::cout << "Barrel layers done." << std::endl;
     // Analyse endcaps
-    analyseDiscs(mt, ec, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
+    if(!hasSubDisks){
+      analyseDiscs(mt, ec, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
+    } else {
+      analyseDiscsAndSubDiscs(mt, ec, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
+    }
     std::cout << "Endcap discs done." << std::endl;
     // Analyse services
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
@@ -2181,7 +2186,7 @@ namespace insur {
 	ril.index = discNumber;
 
 
-	//if (zmin > 0) {	
+	//if (zmin > 0) 	
         std::ostringstream dname, pconverter;
 	//disk name
         dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
@@ -2189,10 +2194,49 @@ namespace insur {
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
 
+      
+        std::map<int, std::vector<double>> phi_one;
+        std::map<int, std::vector<double>> phi_two;
+        std::map<int, std::vector<double>> radius_one;
+        std::map<int, std::vector<double>> radius_two;
+        std::map<int, std::vector<double>> yaw_one;
+        std::map<int, std::vector<double>> yaw_two;
+
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
+          if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
+            if(phi_one.count(iiter->getModule().uniRef().ring)==0){
+              phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(radius_one.count(iiter->getModule().uniRef().ring)==0){
+              radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(yaw_one.count(iiter->getModule().uniRef().ring)==0){
+              yaw_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(phi_two.count(iiter->getModule().uniRef().ring)==0){
+              phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(radius_two.count(iiter->getModule().uniRef().ring)==0){
+              radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(yaw_two.count(iiter->getModule().uniRef().ring)==0){
+              yaw_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(iiter->getModule().uniRef().phi%2 == 1){
+              phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              yaw_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+            } else {
+              phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              yaw_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+            }
+          }
+        }
 
         // LOOP ON MODULE CAPS
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
-	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	  if (iiter->getModule().uniRef().side > 0 &&  (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 	    // ring number
 	    int modRing = iiter->getModule().uniRef().ring;
 
@@ -2201,7 +2245,7 @@ namespace insur {
 
 	    if (iiter->getModule().uniRef().phi == 1) {
 	      // new ring
-	      //if (ridx.find(modRing) == ridx.end()) {
+	      //if (ridx.find(modRing) == ridx.end()) 
 	      ridx.insert(modRing);
 
 	      std::ostringstream matname, rname, mname, specname;
@@ -2438,6 +2482,7 @@ namespace insur {
 	      myRingInfo.zMax = ringzmax.at(modRing);
 	      myRingInfo.zMid = (myRingInfo.zMin + myRingInfo.zMax) / 2.;
 	      myRingInfo.isRingOn4Dees = myRing->isRingOn4Dees();
+              myRingInfo.isRegularRing = iiter->getModule().inRegularRing();
 
 	      // surface 1 is whatever surface the (phi == 1) module belongs to.
 	      myRingInfo.surface1ZMid = iiter->getModule().center().Z();
@@ -2573,6 +2618,7 @@ namespace insur {
 
 	    // Ring Surface 1 (half the modules)
 	    alg.name = xml_trackerring_algo;
+            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
             alg.parent = logic.shape_tag;
             alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
             pconverter << (myRingInfo.numModules / 2);
@@ -2587,6 +2633,14 @@ namespace insur {
             pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
+            if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
+              pconverter.str("");
+            } 
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
@@ -2600,6 +2654,7 @@ namespace insur {
 
 	    // Ring Surface 2 (half the modules)
 	    alg.name = xml_trackerring_algo;
+            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
             alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
             pconverter << (myRingInfo.numModules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
@@ -2613,6 +2668,14 @@ namespace insur {
             pconverter << myRingInfo.radiusMid << "*mm";
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
+            if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
+              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
+              pconverter.str("");
+              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
+              pconverter.str("");
+            } 
 	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
 	    pconverter << myRingInfo.isDiskAtPlusZEnd;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
@@ -2661,6 +2724,697 @@ namespace insur {
       layer++;
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
+    if (!rspec.partselectors.empty()) t.push_back(rspec);
+    if (!sspec.partselectors.empty()) t.push_back(sspec);
+    if (!mspec.partselectors.empty()) t.push_back(mspec);
+  }
+
+  /**
+   * This is a modification of analyseDiscs, for the case where we have subdisks. It examines the endcap discs in z+
+   * and the rings and modules within, extracting a great range of different pieces of information from the geometry layout. These
+   * are shapes for individual modules, but also for their enclosing volumes, divided into rings and then discs. They form hierarchies
+   * of volumes, one inside the other.
+   * Output information are volume hierarchy, material, shapes, positioning (potential use of algorithm and rotations). 
+   * They is also some topology, such as which volumes contain the active surfaces, and how those active surfaces are subdivided
+   * and connected to the readout electronics. Last but not least, overall radiation and interaction lengths for each layer are 
+   * calculated and stored; those are used as approximative values for certain CMSSW functions later on.
+   * @param mt A reference to the global material table; used as input
+   * @param ec A reference to the collection of material properties of the endcap modules; used as input
+   * @param tr A reference to the tracker object; used as input
+   * @param c A reference to the collection of composite material information; used for output
+   * @param l A reference to the collection of volume hierarchy information; used for output
+   * @param s A reference to the collection of shape parameters; used for output
+   * @param p A reference to the collection of volume positionings; used for output
+   * @param a A reference to the collection of algorithm calls and their parameters; used for output
+   * @param r A reference to the collection of rotations; used for output
+   * @param t A reference to the collection of topology information; used for output
+   * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
+   */
+  void Extractor::analyseDiscsAndSubDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags,
+                               std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so,
+			       std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+
+    // Container inits
+    ShapeInfo shape;
+    shape.dyy = 0.0;
+
+    ShapeOperationInfo shapeOp;
+
+    LogicalInfo logic;
+
+    PosInfo pos;
+    pos.copy = 1;
+    pos.trans.dx = 0.0;
+    pos.trans.dy = 0.0;
+    pos.trans.dz = 0.0;
+
+    AlgoInfo alg;
+
+    Rotation rot;
+    rot.phix = 0.0;
+    rot.phiy = 0.0;
+    rot.phiz = 0.0;
+    rot.thetax = 0.0;
+    rot.thetay = 0.0;
+    rot.thetaz = 0.0;
+
+    ModuleROCInfo minfo;
+    ModuleROCInfo minfo_zero={}; 
+    SpecParInfo rocdims, dspec, sdspec, rspec, sspec, mspec;
+    // Disc
+    dspec.name = trackerXmlTags.topo_disc_name + xml_par_tail;
+    dspec.parameter.first = xml_tkddd_structure;
+    dspec.parameter.second = trackerXmlTags.topo_disc_value;
+    // SubDisc
+    sdspec.name = trackerXmlTags.topo_subdisc_name + xml_par_tail;
+    sdspec.parameter.first = xml_tkddd_structure;
+    sdspec.parameter.second = trackerXmlTags.topo_subdisc_value;
+    // Ring
+    rspec.name = trackerXmlTags.topo_ring_name + xml_par_tail;
+    rspec.parameter.first = xml_tkddd_structure;
+    rspec.parameter.second = trackerXmlTags.topo_ring_value;
+    // Module stack
+    sspec.name = trackerXmlTags.topo_emodule_name + xml_par_tail;
+    sspec.parameter.first = xml_tkddd_structure;
+    sspec.parameter.second = trackerXmlTags.topo_emodule_value;
+    // Module detectors
+    mspec.name = xml_subdet_tiddet + xml_par_tail;
+    mspec.parameter.first = xml_tkddd_structure;
+    mspec.parameter.second = xml_det_tiddet;
+
+
+    // material properties
+    RILengthInfo ril;
+    ril.barrel = false;
+    ril.index = 0;  
+
+
+    LayerAggregator lagg;
+    tr.accept(lagg);
+
+    std::vector<std::vector<ModuleCap> >::iterator oiter;
+    std::vector<ModuleCap>::iterator iiter;
+
+    int layer = 1;
+    int discNumber = 1;
+
+
+    // LOOP ON DISKS
+    for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+   
+	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
+	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  int modRing = iiter->getModule().uniRef().ring;
+	  if (ringsIndexes.find(modRing) == ringsIndexes.end()) ringsIndexes.insert(modRing);
+	}
+
+	// Calculate z extrema of the disk, and diskThickness
+	// r extrema of disk and ring
+	double rmin = std::numeric_limits<double>::max();
+	double rmax = 0;
+	// z extrema of disk
+	double zmin = std::numeric_limits<double>::max();
+	double zmax = 0;
+	// z extrema of ring
+	std::map<int,double> ringzmin, ringzmax;
+	std::map<int,double> ringSmallAbsZModulesZMax, ringBigAbsZModulesZMin;
+	for (const auto& i : ringsIndexes) {
+	  ringzmin.insert( {i, std::numeric_limits<double>::max()} );
+	  ringzmax.insert( {i, 0.} );
+	  ringSmallAbsZModulesZMax.insert( {i, 0.} );
+	  ringBigAbsZModulesZMin.insert( {i, std::numeric_limits<double>::max()} );
+	}
+
+	// loop on module caps
+	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	    int modRing = iiter->getModule().uniRef().ring;
+	    //disk name
+	    std::ostringstream dname;
+	    dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
+	    //subdisk name
+	    std::ostringstream sdname;
+            if(iiter->getModule().uniRef().phi==1){
+              sdname << dname.str() << xml_subdisc << "1";
+            } else {
+              sdname << dname.str() << xml_subdisc << "2";
+            }
+	    // module name
+	    std::ostringstream mname;
+            if(iiter->getModule().uniRef().phi==1){
+              mname << dname.str() << xml_SD << "1"<< xml_R << modRing << xml_endcap_module; // e.g. OTDisc6SD1R1EModule
+            } else {
+              mname << dname.str() << xml_SD << "2"<< xml_R << modRing << xml_endcap_module; // e.g. OTDisc6SD2R1EModule
+            }
+	    // parent module name
+	    std::string parentName = mname.str();
+	    // build module volumes, with hybrids taken into account
+	    ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	    modcomplex.buildSubVolumes();
+	    rmin = MIN(rmin, modcomplex.getRmin());
+	    rmax = MAX(rmax, modcomplex.getRmax());
+	    zmin = MIN(zmin, modcomplex.getZmin());
+	    zmax = MAX(zmax, modcomplex.getZmax());
+	    ringzmin.at(modRing) = MIN(ringzmin.at(modRing), modcomplex.getZmin());  
+	    ringzmax.at(modRing) = MAX(ringzmax.at(modRing), modcomplex.getZmax());
+	    if (iiter->getModule().isSmallerAbsZModuleInRing()) { 
+	      ringSmallAbsZModulesZMax.at(modRing) = MAX(ringSmallAbsZModulesZMax.at(modRing), modcomplex.getZmax());
+	    }
+	    else {
+	      ringBigAbsZModulesZMin.at(modRing) = MIN(ringBigAbsZModulesZMin.at(modRing), modcomplex.getZmin());
+	    }
+	  }
+	}
+
+	double diskZ = 0;
+	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
+	else {
+	  int firstRingIndex = *(ringsIndexes.begin());
+	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
+	}
+	
+	//double diskThickness = zmax - zmin;
+	double diskThickness = 2. * MAX(fabs(zmin - diskZ), fabs(zmax - diskZ));
+
+	//shape.type = tp;
+        shape.rmin = 0.0;
+        shape.rmax = 0.0;
+        pos.trans.dz = 0.0;
+	shapeOp.trans.dz = 0.0;
+
+	// for material properties
+        double rtotal = 0.0, itotal = 0.0;
+        int count = 0;
+	ril.index = discNumber;
+
+
+	//if (zmin > 0) 	
+        std::ostringstream dname, pconverter, sdname;
+	//disk name
+        dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
+
+        std::map<int, ERingInfo> rinfo;
+	std::set<int> ridx;
+        int nRings = ringsIndexes.size();
+
+      
+        std::map<int, std::vector<double>> phi_one;
+        std::map<int, std::vector<double>> phi_two;
+        std::map<int, std::vector<double>> radius_one;
+        std::map<int, std::vector<double>> radius_two;
+        std::map<int, std::vector<double>> yaw_one;
+        std::map<int, std::vector<double>> yaw_two;
+
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
+          if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
+            if(phi_one.count(iiter->getModule().uniRef().ring)==0){
+              phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(radius_one.count(iiter->getModule().uniRef().ring)==0){
+              radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(yaw_one.count(iiter->getModule().uniRef().ring)==0){
+              yaw_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+            } 
+            if(phi_two.count(iiter->getModule().uniRef().ring)==0){
+              phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(radius_two.count(iiter->getModule().uniRef().ring)==0){
+              radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(yaw_two.count(iiter->getModule().uniRef().ring)==0){
+              yaw_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            }
+            if(iiter->getModule().uniRef().phi%2 == 1){
+              phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              yaw_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+            } else {
+              phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
+              radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
+              yaw_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+            }
+          }
+        }
+
+        // LOOP ON MODULE CAPS
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  if (iiter->getModule().uniRef().side > 0 &&  (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	    // ring number
+	    int modRing = iiter->getModule().uniRef().ring;
+
+	    if (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi==2) {
+	      // new ring  - in SD1 or 2 depending on whether it's phi 1/2
+	      int phiuniref = iiter->getModule().uniRef().phi;
+	      ridx.insert(modRing); //Just for the index, we'll loop over the subdisk indices as well later
+
+	      std::ostringstream matname, sdname, rname, mname, specname;
+              if(phiuniref==1){
+                // subdisc name
+                sdname << dname.str() << xml_subdisc << "1"; // e.g. OTDisc6SubDisc1
+                // ring name
+                rname << dname.str() << xml_subdisc << "1" << xml_ring << modRing; // e.g. OTDisc6SubDisc1Ring1
+                // module name
+                mname << dname.str() << xml_SD << "1" << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6SD1R1EModule
+              } else {
+                // subdisc name
+                sdname << dname.str() << xml_subdisc << "2"; // e.g. OTDisc6SubDisc2
+                // ring name
+                rname << dname.str() << xml_subdisc << "2" << xml_ring << modRing; // e.g. OTDisc6SubDisc2Ring1
+                // module name
+                mname << dname.str() << xml_SD << "2" << xml_R << modRing << xml_endcap_module; // e.g. OTDisc6SD2R1EModule
+              }
+	      // parent module name
+	      std::string parentName = mname.str();
+
+	      // build module volumes, with hybrids taken into account
+	      ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	      modcomplex.buildSubVolumes();          
+#ifdef __DEBUGPRINT__
+	      modcomplex.print();
+#endif
+
+
+	      // MODULE
+
+	      // module box
+	      shape.name_tag = mname.str();
+	      shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
+	      if (shape.type==bx) {
+		shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+		shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+		shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+	      } else { // obsolete !
+		shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+		shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+		shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+		shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+		shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
+	      }
+	      s.push_back(shape);
+
+	      // Get it back for sensors
+	      shape.dx = iiter->getModule().minWidth() / 2.0;
+	      shape.dxx = iiter->getModule().maxWidth() / 2.0;
+	      shape.dy = iiter->getModule().length() / 2.0;
+	      shape.dyy = iiter->getModule().length() / 2.0;
+	      shape.dz = iiter->getModule().thickness() / 2.0;
+
+	      logic.name_tag = mname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+
+	      logic.material_tag = xml_material_air;
+	      l.push_back(logic);
+
+	    //Topology
+	    sspec.partselectors.push_back(mname.str());
+            sspec.moduletypes.push_back(minfo_zero);
+
+
+
+	      // WAFER -- same x and y size of parent shape, but different thickness
+	    string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) {
+	      xml_base_lowerupper = xml_base_lower;
+	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	    }
+	    else {
+	      if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
+	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
+	      else { std::cerr << "Wafer : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	    }     
+
+	      shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+	      s.push_back(shape);
+
+	      logic.name_tag = shape.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      logic.material_tag = xml_material_air;
+	      l.push_back(logic);
+
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+	      if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
+	      else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
+	      p.push_back(pos);
+
+	      if (iiter->getModule().numSensors() == 2) {
+
+		xml_base_lowerupper = xml_base_upper;
+
+		//pos.parent_tag = logic.shape_tag;
+
+		shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
+		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
+		s.push_back(shape);
+
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+
+		pos.child_tag = logic.shape_tag;
+
+		if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
+		else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().dsDistance() / 2.0;
+		//pos.copy = 2;
+		if (iiter->getModule().stereoRotation() != 0) {
+		  rot.name = type_stereo + xml_endcap_module + mname.str();
+		  rot.thetax = 90.0;
+		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
+		  rot.thetay = 90.0;
+		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
+		}
+
+		p.push_back(pos);
+
+		// Now reset
+		pos.rotref.clear();
+		rot.name.clear();
+		rot.thetax = 0.0;
+		rot.phix = 0.0;
+		rot.thetay = 0.0;
+		rot.phiy = 0.0;
+		pos.copy = 1;
+	      }
+
+
+	      // ACTIVE SURFACE
+	      xml_base_lowerupper = "";
+	      if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower; 
+	      
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
+	      else if (iiter->getModule().isPixelModule()) {
+		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
+	      }
+	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      shape.dy = iiter->getModule().length() / 2.0;
+	      s.push_back(shape);
+
+	      logic.name_tag = shape.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_silicon;
+	      l.push_back(logic);
+
+	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	      else {
+		if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
+		else if (iiter->getModule().isPixelModule())  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
+		else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+	      }
+
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
+	      pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
+#endif
+	      p.push_back(pos);
+
+	      // Topology
+	      mspec.partselectors.push_back(logic.name_tag);
+	      minfo.name		= iiter->getModule().moduleType();
+	      minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
+	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
+	      minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+	      mspec.moduletypes.push_back(minfo);
+
+	      if (iiter->getModule().numSensors() == 2) {
+
+		xml_base_lowerupper = xml_base_upper;
+
+		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
+		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
+		s.push_back(shape);
+
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		logic.material_tag = xml_fileident + ":" + xml_tkLayout_material + xml_sensor_silicon;
+		l.push_back(logic);
+
+		pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		pos.child_tag = logic.shape_tag;
+		pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
+		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
+#endif
+		p.push_back(pos);
+
+		// Topology
+		mspec.partselectors.push_back(logic.name_tag);
+		minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
+		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
+		minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
+		minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		mspec.moduletypes.push_back(minfo);
+	      }
+
+	      modcomplex.addMaterialInfo(c);
+	      modcomplex.addShapeInfo(s);
+	      modcomplex.addLogicInfo(l);
+	      modcomplex.addPositionInfo(p);
+#ifdef __DEBUGPRINT__
+	      modcomplex.print();
+#endif
+	      
+	      // Collect ring info
+	      const Ring* myRing = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing);
+	      ERingInfo myRingInfo;
+	      myRingInfo.name = rname.str();
+	      myRingInfo.childname = mname.str();
+	      myRingInfo.isDiskAtPlusZEnd = iiter->getModule().uniRef().side;
+	      myRingInfo.numModules = myRing->numModules();
+	      myRingInfo.moduleThickness = modcomplex.getExpandedModuleThickness();
+	      myRingInfo.radiusMin  = modcomplex.getRmin();
+	      myRingInfo.radiusMid = iiter->getModule().center().Rho();
+	      myRingInfo.radiusMax = modcomplex.getRmax();
+	      myRingInfo.zMin = ringzmin.at(modRing);
+	      myRingInfo.smallAbsZSurfaceZMax = ringSmallAbsZModulesZMax.at(modRing);
+	      myRingInfo.bigAbsZSurfaceZMin = ringBigAbsZModulesZMin.at(modRing);
+	      myRingInfo.zMax = ringzmax.at(modRing);
+	      myRingInfo.zMid = (myRingInfo.zMin + myRingInfo.zMax) / 2.;
+	      myRingInfo.isRingOn4Dees = myRing->isRingOn4Dees();
+              myRingInfo.isRegularRing = iiter->getModule().inRegularRing();
+
+	      // surface 1 is whatever surface the (phi == 1) module belongs to.
+	      myRingInfo.surface1ZMid = iiter->getModule().center().Z();
+	      myRingInfo.surface1StartPhi = iiter->getModule().center().Phi();
+	      myRingInfo.surface1IsFlipped = iiter->getModule().flipped();
+	      rinfo.insert(std::pair<int, ERingInfo>(nRings*(phiuniref-1)+modRing, myRingInfo));
+
+	      // material properties
+	      rtotal = rtotal + iiter->getRadiationLength();
+	      itotal = itotal + iiter->getInteractionLength();
+	      count++;
+	    }
+	  }
+	}
+
+        if (count > 0) {
+          ril.rlength = rtotal / (double)count;
+          ril.ilength = itotal / (double)count;
+          ri.push_back(ril);
+        }
+
+        // rings
+        shape.type = tb;
+        shape.dx = 0.0;
+        shape.dy = 0.0;
+        shape.dyy = 0.0;
+        
+       
+
+        std::set<int> sdidx; //Double disc, so if we have subdisks there must be 2
+        sdidx.insert(1);
+        sdidx.insert(2);
+        
+        for (const auto& sdIndex : sdidx) {
+            std::ostringstream sdname;
+            sdname << dname.str() << xml_subdisc << sdIndex; // e.g. OTDisc6SubDisc2
+            //First determine subdisk position, based on the first 2 rings
+            float subDiskZPosition=0;
+            float ringZ=0;
+            for (const auto& ringIndex : ridx) {
+                if(ringIndex<3){
+                  const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
+                  if (found!=rinfo.end()) {
+                      const ERingInfo& myRingInfo = found->second;
+                      subDiskZPosition+=myRingInfo.surface1ZMid;
+                      ringZ+=myRingInfo.zMid;
+                  }   
+                }
+              }
+              subDiskZPosition=subDiskZPosition/2.;
+              ringZ=ringZ/2.;
+                
+            for (const auto& ringIndex : ridx) {
+            const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
+            if (found != rinfo.end()) {
+	      const ERingInfo& myRingInfo = found->second;
+              if (myRingInfo.numModules > 0) {
+
+                //When we have subdisks all rings are "flat" and there are no sections to be removed
+                shape.name_tag = myRingInfo.name;
+                shape.rmin = myRingInfo.radiusMin - xml_epsilon;
+                shape.rmax = myRingInfo.radiusMax + xml_epsilon;
+                shape.dz = diskThickness/(2*sdidx.size()*ridx.size()); //Bit of a hack, but works for now.
+                s.push_back(shape);
+	      }
+	      
+
+	      logic.name_tag = myRingInfo.name;
+              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+              logic.material_tag = xml_material_air;
+              l.push_back(logic);
+
+
+
+              pos.parent_tag = trackerXmlTags.nspace + ":" + sdname.str(); // CUIDADO ended with: + xml_plus;
+              pos.child_tag = logic.shape_tag;
+
+              pos.trans.dz = myRingInfo.surface1ZMid-subDiskZPosition;
+              p.push_back(pos);
+
+              rspec.partselectors.push_back(logic.name_tag);
+              rspec.moduletypes.push_back(minfo_zero);
+
+	      // Ring Surface 1 (half the modules - subdisk 1)
+	      if(sdIndex==1){
+                alg.name = xml_trackerring_algo;
+                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
+                alg.parent = logic.shape_tag;
+                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+                pconverter << (myRingInfo.numModules / 2);
+                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
+                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+                pconverter.str("");
+                pconverter << myRingInfo.radiusMid << "*mm";
+                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+                pconverter.str("");
+                if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
+                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
+                  pconverter.str("");
+                } 
+	        alg.parameters.push_back(vectorParam(0, 0, 0));
+	        pconverter << myRingInfo.isDiskAtPlusZEnd;
+	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	        pconverter.str("");
+	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	        pconverter << myRingInfo.surface1IsFlipped;
+                alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+                pconverter.str("");
+                a.push_back(alg);
+                alg.parameters.clear();
+              }
+
+	      // Ring Surface 2 (half the modules - subdisk 2)
+	      if(sdIndex==2){
+                alg.name = xml_trackerring_algo;
+                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
+                alg.parent = logic.shape_tag;
+                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+                pconverter << (myRingInfo.numModules / 2);
+                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
+                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+                pconverter.str("");
+                pconverter << myRingInfo.radiusMid << "*mm";
+                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+                pconverter.str("");
+                if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
+                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
+                  pconverter.str("");
+                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
+                  pconverter.str("");
+                } 
+	        alg.parameters.push_back(vectorParam(0, 0, 0));
+	        pconverter << myRingInfo.isDiskAtPlusZEnd;
+	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	        pconverter.str("");
+	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	        pconverter << myRingInfo.surface1IsFlipped;
+	        alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	        pconverter.str("");
+                a.push_back(alg);
+                alg.parameters.clear();
+              }
+            }
+          }
+          //subdisc
+          shape.name_tag = sdname.str();
+          shape.rmin = rmin - 2 * xml_epsilon;
+          shape.rmax = rmax + 2 * xml_epsilon;
+          shape.dz = (diskThickness / (2.0*sdidx.size())) + 2 * xml_epsilon; //(zmax - zmin) / 2.0; This is a hack, but it works for now
+          s.push_back(shape);
+
+          shape.name_tag = sdname.str();
+          logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
+          logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+          logic.material_tag = xml_material_air;
+          l.push_back(logic);
+
+          pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str();
+          pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+          pos.trans.dz = subDiskZPosition - ringZ;
+          p.push_back(pos);
+
+          sdspec.partselectors.push_back(logic.name_tag);
+          sdspec.moduletypes.push_back(minfo_zero);
+          sdspec.partextras.push_back(logic.extra);
+
+        }
+
+        //disc
+        shape.name_tag = dname.str();
+        shape.rmin = rmin - 2 * xml_epsilon;
+        shape.rmax = rmax + 2 * xml_epsilon;
+        shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
+        s.push_back(shape);
+
+	shape.name_tag = dname.str();
+        logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
+        logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+        logic.material_tag = xml_material_air;
+        l.push_back(logic);
+
+        pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
+        pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	pos.trans.dz = diskZ - xml_z_pixfwd;
+        p.push_back(pos);
+
+        dspec.partselectors.push_back(logic.name_tag);
+        dspec.moduletypes.push_back(minfo_zero);
+        dspec.partextras.push_back(logic.extra);
+	discNumber++;
+      }
+      layer++;
+    }
+    if (!dspec.partselectors.empty()) t.push_back(dspec);
+    if (!sdspec.partselectors.empty()) t.push_back(sdspec);
     if (!rspec.partselectors.empty()) t.push_back(rspec);
     if (!sspec.partselectors.empty()) t.push_back(sspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
@@ -3396,6 +4150,20 @@ namespace insur {
     res << xml_algorithm_vector_open << x << "*mm, " << y << "*mm, " << z << "*mm" << xml_algorithm_vector_close;
     return res.str();
   }
+
+ std::string Extractor::arbitraryLengthVector(std::string name, std::vector<double> invec){
+    std::ostringstream res;
+    std::string vector_opening = "<Vector name=\""+name+"\" type=\"numeric\" nEntries=\""+std::to_string(invec.size())+"\">";
+    if(invec.size() > 0){
+      res << vector_opening << invec.at(0);
+      for(unsigned int i=1; i<invec.size();i++){
+        res << "," << invec.at(i);
+      }
+      res << xml_algorithm_vector_close;
+    }
+    return res.str();
+ }
+    
 
   /**
    * Calculate the composite density of the material mix in a module. A boolean flag controls whether the sensor silicon

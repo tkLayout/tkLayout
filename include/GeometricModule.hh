@@ -39,6 +39,7 @@ protected:
   int numHits_ = 0;
   bool flipped_ = false;
   int tiltAngle_ = 0., skewAngle_ = 0.;
+  double zrotAngle_ = 0.;
   Polygon3d<4> basePoly_;
   std::vector<XYZVector> contour_;
 
@@ -63,6 +64,7 @@ public:
   const std::vector<XYZVector>& contour() const { return contour_; }
   const XYZVector& center() const { return basePoly_.getCenter(); }
   const XYZVector& normal() const { return basePoly_.getNormal(); }
+  const XYZVector& getVertex(int i) const {return basePoly_.getVertex(i);}
   virtual double area() const = 0;
   virtual double length() const = 0;
   virtual double maxWidth() const = 0;
@@ -72,6 +74,7 @@ public:
  
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
+  double zrotAngle() const { return zrotAngle_; }
   bool flipped() const { return flipped_; }
   bool flipped(bool newFlip) { flipped_=newFlip; return flipped_; }
 
@@ -80,6 +83,7 @@ public:
   void rotateX(double angle) { basePoly_.rotateX(angle); tiltAngle_ += angle; }
   void rotateY(double angle) { basePoly_.rotateY(angle); skewAngle_ += angle; }
   void rotateZ(double angle) { basePoly_.rotateZ(angle); }
+  void rotateZModCentre(double angle) {auto tmpvec = basePoly_.getCenter(); basePoly_.translate(-tmpvec); basePoly_.rotateZ(angle);basePoly_.translate(tmpvec);zrotAngle_+=angle;} 
 
   virtual void accept(GeometryVisitor& v) = 0;
   virtual void accept(ConstGeometryVisitor& v) const = 0;

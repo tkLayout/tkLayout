@@ -21,6 +21,7 @@
 #include "CoordinateOperations.hh"
 #include "Visitable.hh"
 #include "MaterialObject.hh"
+#include "Property.hh"
 
 namespace insur { class ModuleCap; }
 using insur::ModuleCap;
@@ -34,6 +35,8 @@ namespace insur { class OuterBundle; }
 using insur::OuterBundle;
 namespace insur { class OuterDTC; }
 using insur::OuterDTC;
+namespace insur { class OuterGBT;}
+using insur::OuterGBT;
 // IT CABLING MAP
 namespace insur { class PowerChain; }
 using insur::PowerChain;
@@ -146,6 +149,9 @@ public:
 
   Property<bool, Default> removeModule;
 
+  Property<double, Default> yawAngleFromConfig;
+  Property<double, Default> manualRhoCentre;
+
   const std::string subdetectorName() const { return subdetectorName_; }
   void subdetectorId(const int id) { subdetectorId_ = id; }
   const int subdetectorId() const { return subdetectorId_; }
@@ -209,6 +215,8 @@ public:
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       removeModule             ("removeModule"             , parsedOnly(), false),
+      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
+      manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
@@ -224,6 +232,7 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
+  const XYZVector& getVertex(int i) const { return decorated().getVertex(i); }
   double area() const { 
     //return decorated().area();
     const GeometricModule& module = decorated();
@@ -247,6 +256,8 @@ public:
   const bool isAtPlusXSide() const { return (center().X() >= -insur::geom_zero); }
   double tiltAngle() const { return tiltAngle_; }
   bool isTilted() const { return tiltAngle_ != 0.; }
+  double yawAngle() const { return yawAngle_; }
+  const XYZVector& getRAxis() const {return rAxis_;}
 
   // SPATIAL RESOLUTION
 
@@ -281,16 +292,20 @@ public:
   void rotateToNegativeZSide() {
     side(-side());
     rotateY(M_PI);  // Rotation around CMS_Y of angle Pi
+    yawAngle_=-yawAngle_; // Flip yawAngle to match how the modules are actually placed
     clearSensorPolys();
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
+  void yaw(double angle) { decorated().rotateZ(angle); clearSensorPolys(); yawAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
   const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
+  bool inRegularRing() { return isInRegularRing_;}
+  void notInRegularRing() {isInRegularRing_=false;}
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
@@ -400,6 +415,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
                                                               // 'Positive cabling side': the module end up connected on a DTC on (Z+) end.
   void setBundle(OuterBundle* bundle) { bundle_ = bundle ; }  // MFB
   const OuterBundle* getBundle() const { return bundle_; }
+  void setOuterGBT(OuterGBT* gbt) { outerGBT_ = gbt ; }
+  OuterGBT* getOuterGBT() const {return outerGBT_; }
   const int bundlePlotColor() const; 
   void setEndcapFiberFanoutBranch(const int branchIndex) { endcapFiberFanoutBranch_ = branchIndex; } // Branch of the MFB fanout
   const int getEndcapFiberFanoutBranch() const { return endcapFiberFanoutBranch_; }
@@ -443,6 +460,9 @@ protected:
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
   double tiltAngle_ = 0.;
+  double yawAngle_ = 0.;
+  bool isInRegularRing_ = true;
+
 
   int numHits_ = 0;
   
@@ -461,6 +481,7 @@ private:
   HvLine* hvLine_ = nullptr;
   int numELinks_;
   GBT* GBT_ =  nullptr;
+  OuterGBT* outerGBT_ =  nullptr;
   // The raw pointers are intended. DetectorModule is NOT owning the cabling resources.
   // All cabling ressources are owned by the CablingMap, which is a member variable of Tracker.
   // They get destructed when Tracker is destructed.

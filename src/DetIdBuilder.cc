@@ -130,8 +130,9 @@ void BarrelDetIdBuilder::visit(Sensor& s) {
     //*                                   //
     //************************************//
 
-EndcapDetIdBuilder::EndcapDetIdBuilder(bool isPixelTracker, std::vector<int> geometryHierarchySizes) : 
+EndcapDetIdBuilder::EndcapDetIdBuilder(bool isPixelTracker, bool hasSubDisks, std::vector<int> geometryHierarchySizes) : 
   isPixelTracker_(isPixelTracker),
+  hasSubDisks_(hasSubDisks),
   geometryHierarchySizes_(geometryHierarchySizes)
 {}
 
@@ -158,7 +159,11 @@ void EndcapDetIdBuilder::visit(Disk& d) {
 
   // !!! Disk level
   uint32_t diskRef = d.diskNumber();
-  geometryHierarchyIds_[4] = diskRef;
+  if(!hasSubDisks_){
+    geometryHierarchyIds_[4] = diskRef;
+  } else {
+    geometryHierarchyIds_[3] = diskRef;
+  }
 
   numEmptyRings_ = d.numEmptyRings();
 }
@@ -181,9 +186,22 @@ void EndcapDetIdBuilder::visit(EndcapModule& m) {
   // Calculates Phi identifier.
   uint32_t phiRef_ = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / phiSegment);
   geometryHierarchyIds_[7] = phiRef_;
+  if(hasSubDisks_){
+    if(phiRef_%2 == 1){
+      uint32_t phiSD1Ref_ = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / (2*phiSegment)); //Identifier for the first SD
+      geometryHierarchyIds_[4] = 0; 
+      geometryHierarchyIds_[7] = phiSD1Ref_;
+    } else {
+      uint32_t phiSD2Ref_ = 1 + round(femod(m.center().Phi() - (startAngle+phiSegment), 2*M_PI) / (2*phiSegment)); //Identifier for the second SD
+      geometryHierarchyIds_[4] = 1;
+      geometryHierarchyIds_[7] = phiSD2Ref_;
+    }
+  }
   // First module with Phi > 0 has phiRef 1. 
   // Next module (with bigger Phi) has phiRef 2. 
   // phiRef increments with increasing Phi.
+  // If we have subdisks, apply the same logic but to 
+  // modules in individual subdisks
 
   // !!! Assign a null ref to sensor level.
   uint32_t sensorRef = 0;

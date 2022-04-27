@@ -99,6 +99,7 @@ namespace insur {
     bool pureAnalyzeGeometry(int tracks);
     bool reportOuterCablingMapSite(const bool outerCablingOption, const std::string layoutName);
     bool reportInnerCablingMapSite(const bool innerCablingOption, const std::string layoutName);
+    bool reportInnerAndOuterCablingMapSite(const bool innerCablingOption, const bool outerCablingOption, const std::string layoutName);
     bool pureAnalyzeMaterialBudget(int tracks, bool triggerRes, bool triggerPatternReco, bool debugResolution);
     bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
@@ -157,6 +158,7 @@ namespace insur {
     std::set<std::string> includeSet_; // list of configuration files
     bool defaultMaterialFile;
     bool defaultPixelMaterialFile;
+    bool geometryWithSubDisks;
 
     RootWSite site;
 

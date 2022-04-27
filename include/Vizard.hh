@@ -139,6 +139,7 @@ namespace insur {
     bool geometrySummary(Analyzer& a, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool outerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool innerCablingSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool innerAndOuterCablingSummary(Tracker& tracker, Tracker& pixel, RootWSite& site);
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -301,7 +302,7 @@ namespace insur {
     std::string createBundlesToEndcapModulesCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
     std::string countBundlesToEndcapModulesCombinations(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
     std::string createPowerCablesDistributionCsv(const OuterCablingMap* myCablingMap, const bool isPositiveCablingSide);
-    std::string createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker);
+    std::string createCMSSWOuterTrackerCablingMapCsv(const Tracker& tracker, const bool withPreVisit);
 
     // Inner Tracker
     std::string createInnerTrackerModulesToDTCsCsv(const Tracker& tracker);

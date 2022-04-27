@@ -203,7 +203,7 @@ void Tracker::buildDetIds() {
   // Endcap part
   std::vector<int> endcapScheme = mainConfigHandler::instance().getDetIdScheme(endcapDetIdScheme());
   if (endcapScheme.size() != 0) {
-    EndcapDetIdBuilder v(isPixelTracker(), endcapScheme);
+    EndcapDetIdBuilder v(isPixelTracker(), hasSubDisks(), endcapScheme);
     accept(v);
   }
   checkDetIds();
