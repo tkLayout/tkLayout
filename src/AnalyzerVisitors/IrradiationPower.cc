@@ -79,8 +79,8 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   //
   m.sensorsIrradiationMean(irradiationMean); // 1MeV-equiv-neutrons / cm^2
   m.sensorsIrradiationMax(irradiationMax);   // 1MeV-equiv-neutrons / cm^2
-  m.sensorsDoseMean(doseMean); // 1MeV-equiv-neutrons / cm^2
-  m.sensorsDoseMax(doseMax);   // 1MeV-equiv-neutrons / cm^2
+  m.sensorsDoseMean(doseMean); // Gy
+  m.sensorsDoseMax(doseMax);   // Gy
   m.sensorsIrradiationPowerMean(sensorsPowerMean);  // W
   m.sensorsIrradiationPowerMax(sensorsPowerMax);    // W
   // Also gather results for all modules of a given type, identified by ModuleRef.
