@@ -41,3 +41,7 @@ double IrradiationMapsManager::calculateIrradiationPower(const std::pair<double,
 
   return irradiation;
 }
+
+std::set<IrradiationMap> IrradiationMapsManager::getIrradiationMaps() const{ 
+  return irradiationMaps;
+}

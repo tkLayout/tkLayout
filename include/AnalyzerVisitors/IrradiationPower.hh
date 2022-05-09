@@ -25,7 +25,9 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double alphaParam_;
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
+  const IrradiationMapsManager* doseMap_;
   std::pair<double, double> getModuleFluenceMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
+  std::pair<double, double> getModuleDoseMeanMax(const IrradiationMapsManager* doseMap, const DetectorModule& m);
   const double computeSensorsPower(const double& totalFluence,
 				   const double& alphaParam, const double& volume, const double& referenceTemp,
 				   const double& operatingTemp, const double& biasVoltage) const;
@@ -33,6 +35,8 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   bool isOuterRadiusRod_;
   std::map<ModuleRef, double> sensorsFluenceMean_;
   std::map<ModuleRef, double> sensorsFluenceMax_;
+  std::map<ModuleRef, double> sensorsDoseMean_;
+  std::map<ModuleRef, double> sensorsDoseMax_;
   std::map<ModuleRef, double> sensorsPowerMean_;
   std::map<ModuleRef, double> sensorsPowerMax_;
   std::map<ModuleRef, int> modulesCounter_;
@@ -40,9 +44,13 @@ class IrradiationPowerVisitor : public GeometryVisitor {
 
  public:
   MultiSummaryTable sensorsPowerSummary;
+  MultiSummaryTable sensorsDoseSummary;
   MultiSummaryTable sensorsFluenceSummary;
   SummaryTable sensorsFluencePerType;
-  
+  SummaryTable sensorsDosePerType;
+  std::string lumiInformation;
+  std::string mapInformation;
+ 
   void preVisit();
   void visit(SimParms& sp);
   void visit(Barrel& b);

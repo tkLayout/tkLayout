@@ -21,7 +21,11 @@ void ReportIrradiation::computeIrradiationPowerConsumption() {
 
   powerSummaries = irradiation_.sensorsPowerSummary;
   fluenceSummaries = irradiation_.sensorsFluenceSummary;
+  doseSummaries = irradiation_.sensorsDoseSummary;
   fluenceSummaryPerType = irradiation_.sensorsFluencePerType;
+  doseSummaryPerType = irradiation_.sensorsDosePerType;
+  lumiInfo_ = irradiation_.lumiInformation;
+  mapNames_ = irradiation_.mapInformation;
 }
 
 void ReportIrradiation::computeChipPowerConsumptionTable() {
@@ -63,7 +67,7 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     bool isOuterRadiusRod_;
   public:
     void preVisit() {
-      output_ << "Module DetId, Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsPowerMean_W, sensorsPowerMax_W, sensorsFluenceMean_Hb, sensorsFluenceMax_Hb" << std::endl;
+      output_ << "Module DetId, Section, Layer, Ring, moduleType, dsDistance, isOuterRadiusRod_bool, operatingTemperature_Celsius, biasVoltage_V, meanWidth_mm, length_mm, sensorThickness_mm, sensor(s)Volume(totalPerModule)_mm3, sensorsPowerMean_W, sensorsPowerMax_W, sensorsFluenceMean_Hb, sensorsFluenceMax_Hb, sensorsDoseMean_Gy, sensorsDoseMax_Gy" << std::endl;
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -89,7 +93,9 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
 	       << m.sensorsIrradiationPowerMean() << ", "
 	       << m.sensorsIrradiationPowerMax() << ", "
 	       << m.sensorsIrradiationMean() << ", "
-	       << m.sensorsIrradiationMax()	
+	       << m.sensorsIrradiationMax() << ","
+	       << m.sensorsDoseMean() << ","
+	       << m.sensorsDoseMax()
 	       << std::endl;
     }
 
@@ -122,10 +128,27 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   RootWPage& myPage = site.addPage(pageName);
   myPage.setAddress(pageAddress);
 
+  RootWContent& settingsContent = myPage.addContent("Simulation settings");
+  RootWInfo* lumInfo;
+  lumInfo = new RootWInfo("Integrated luminosity");
+  lumInfo->setValue(lumiInfo_);
+  settingsContent.addItem(lumInfo);
+  RootWInfo* mapNamesInfo;
+  mapNamesInfo = new RootWInfo("Dose and irradiation map names");
+  mapNamesInfo->setValue(mapNames_);
+  settingsContent.addItem(mapNamesInfo);
+
+
   // Irradiation on each module type (fine grained)
   RootWContent& summaryContent = myPage.addContent("Irradiation summary per module type");
   RootWTable& summaryTable = summaryContent.addTable();
   summaryTable.setContent(fluenceSummaryPerType.getContent());
+
+  // Dose on each module type (fine grained)
+  RootWContent& doseSummaryContent = myPage.addContent("Dose summary per module type");
+  RootWTable& doseSummaryTable = doseSummaryContent.addTable();
+  doseSummaryTable.setContent(doseSummaryPerType.getContent());
+
 
   // Power consumption per module tpye (coarse grained)
   RootWContent& chipContent = myPage.addContent("Chip power consumption per module type", false);
@@ -133,7 +156,8 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   typesTable.setContent(chipPowerPerType.getContent());
   
   dumpRadiationTableSummary(myPage, powerSummaries, "Power in irradiated sensors", "W");
-  dumpRadiationTableSummary(myPage, fluenceSummaries, "Fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
+  dumpRadiationTableSummary(myPage, fluenceSummaries, "Niel fluence on sensors", "1-MeV-n-eq×cm"+superStart+"-2"+superEnd);
+  dumpRadiationTableSummary(myPage, doseSummaries, "Dose on sensors", "Gy");
 
   // Some helper string objects
   ostringstream tempSS;
