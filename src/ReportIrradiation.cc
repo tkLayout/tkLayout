@@ -137,6 +137,18 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   mapNamesInfo = new RootWInfo("Dose and irradiation map names");
   mapNamesInfo->setValue(mapNames_);
   settingsContent.addItem(mapNamesInfo);
+  RootWInfo* notesInfo;
+  notesInfo = new RootWInfo("Note:");
+  std::string notesString_ = "The NIEL(irrad) and TID(dose) total radiation is computed for each module at the 4 corners of the module,"
+    " and at the central point of each side.<br/>\n"
+    "The average value is computed for each module, and the highest of thse is reported under \"Max. module irrad(dose)\", while the 95-th percentile is reported under \"95% module irrad(dose)\"<br/>\n"
+    "The dose (NIEL or TID) values are obtained from a linear interpolation of the nearest points in the (r,z) plane in the radiation map quoted here above."
+    "If more than one map covers the same point, the one with the finer grid is used (typically, the Inner Tracker is covered by a finer grid).<br/>\n"
+    "<b>Note:</b> the total integrated luminosity used here (" + lumiInfo_ + ") is used for scaling, but it is not necessarily the most up-to-date estimate.<br/>\n"
+    "<b>Note:</b> the estimate of bias current is based on a linear scaling: all relevant parameters are under the <a href=\"info.html\">info tab</a>\n";
+  notesInfo->setValue(notesString_);
+  settingsContent.addItem(notesInfo);
+  
 
 
   // Irradiation on each module type (fine grained)

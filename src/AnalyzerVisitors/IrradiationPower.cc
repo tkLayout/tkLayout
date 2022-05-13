@@ -49,20 +49,22 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   double doseMean = doseMeanMax.first * timeIntegratedLumi_;
   double doseMax = doseMeanMax.second * timeIntegratedLumi_;
   if(lumiInformation==""){
-    lumiInformation+=std::to_string(timeIntegratedLumi_);
-    lumiInformation+=" invfb";
+    lumiInformation+=std::to_string(int(timeIntegratedLumi_));
+    lumiInformation+=" fb<sup>-1</sup>";
   }
 
   if(mapInformation==""){
     for(auto irradMaps : irradiationMap_->getIrradiationMaps()){
       int theIdx = irradMaps.getMapName().rfind('/');
+      mapInformation+="<br/><code>";
       mapInformation+=(irradMaps.getMapName()).substr(theIdx+1);
-      mapInformation+=", ";
+      mapInformation+="</code>, ";
     }
     for(auto irradMaps : doseMap_->getIrradiationMaps()){
       int theIdx = irradMaps.getMapName().rfind('/');
+      mapInformation+="<br/><code>";
       mapInformation+=(irradMaps.getMapName()).substr(theIdx+1);
-      mapInformation+=", ";
+      mapInformation+="</code>, ";
     }
   }
 
