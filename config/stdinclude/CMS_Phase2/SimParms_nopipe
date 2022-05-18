@@ -20,7 +20,7 @@ SimParms {
     efficiency 1
     pixelEfficiency 1
     
-    timeIntegratedLumi 3000   // fb^-1
+    timeIntegratedLumi 4000   // fb^-1
     referenceTemp 20          // °C
     alphaParam 4.28e-17       // A/cm, radiation damage constant
     magneticField 3.8         // T
@@ -31,6 +31,7 @@ SimParms {
     numTriggerTowersPhi 8
 
     irradiationMapFiles 1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0.map,1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0_pixel.map
+    doseMapFiles  Dose_CMS_pp_Phase2_7TeVperbeam_FLUKA_v3.7.23.0.map,Dose_CMS_pp_Phase2_7TeVperbeam_FLUKA_v3.7.23.0_pixel.map
     
     Gabie IsAHero           // inside joke. forget about it
 }

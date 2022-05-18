@@ -20,7 +20,7 @@ SimParms {
     efficiency 1
     pixelEfficiency 1
     
-    timeIntegratedLumi 3000   // fb^-1
+    timeIntegratedLumi 4000   // fb^-1
     referenceTemp 20          // °C
     alphaParam 4.28e-17       // A/cm, radiation damage constant
     magneticField 3.8         // T
