@@ -27,6 +27,10 @@ IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
 IrradiationMap::IrradiationMap() : IrradiationMap("")
 {}
 
+std::string IrradiationMap::getMapName() const {
+  return mapName;
+}
+
 void IrradiationMap::ingest(std::string irradiationMapFile) {
   std::string line;
   bool found_rhoMin = false;
@@ -39,6 +43,7 @@ void IrradiationMap::ingest(std::string irradiationMapFile) {
   bool found_zBinNum = false;
   bool found_invFemUnit = false;
   double irradiationValue = 0;
+  mapName = irradiationMapFile;
   std::ifstream filein(irradiationMapFile);
 
   if (!filein.is_open()) {

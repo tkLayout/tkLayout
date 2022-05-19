@@ -101,6 +101,8 @@ public:
   Property<double, AutoDefault> sensorsIrradiationPowerMax;
   Property<double, AutoDefault> sensorsIrradiationMean;
   Property<double, AutoDefault> sensorsIrradiationMax;
+  Property<double, AutoDefault> sensorsDoseMean;
+  Property<double, AutoDefault> sensorsDoseMax;
 
   ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   // Local X resolution parameters

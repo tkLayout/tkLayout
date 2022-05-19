@@ -21,8 +21,12 @@ class ReportIrradiation : public Report, private insur::AnalyzerTools {
 private:
   std::map<std::string, SummaryTable> powerSummaries;
   std::map<std::string, SummaryTable> fluenceSummaries;
+  std::map<std::string, SummaryTable> doseSummaries;
   SummaryTable fluenceSummaryPerType;
+  SummaryTable doseSummaryPerType;
   SummaryTable chipPowerPerType;
+  std::string lumiInfo_="";  
+  std::string mapNames_="";
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();
   void computeIrradiationPowerConsumption();

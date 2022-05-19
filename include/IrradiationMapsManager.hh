@@ -44,6 +44,8 @@ public:
    */
   double calculateIrradiationPower(const std::pair<double,double>& coordinates) const;
 
+  std::set<IrradiationMap> getIrradiationMaps() const;
+
 private:
 
   /**
