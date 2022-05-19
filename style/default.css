@@ -75,7 +75,8 @@ float: left;
 width: 100%; /*width of menu*/
 border: 0px solid #564c66; /*dark purple border*/
 border-width: 0px 0;
-background: black url('images/a3.gif') top left repeat-x;
+background: #00377c url('images/a3.gif') bottom left repeat-x;
+padding-bottom: 20px;
 }
 
 #menu ul li
