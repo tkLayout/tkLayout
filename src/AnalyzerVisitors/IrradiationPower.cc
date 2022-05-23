@@ -119,6 +119,8 @@ void IrradiationPowerVisitor::postVisit() {
   sensorsDosePerType.setCell(0, 4, "z_max [mm]");
   sensorsDosePerType.setCell(0, 5, "r_max [mm]");
   int iRow=0;
+  maxFluence = 0;
+  maxDose = 0;
   for (auto& it : mapTypeToFluence_ ) {
     iRow++;
     const std::string& typeName = it.first;
@@ -135,6 +137,7 @@ void IrradiationPowerVisitor::postVisit() {
     auto& hottestModule =  irrads.at(nModules-1);
     auto& hottest95Module = irrads.at(ceil(double(nModules)*95/100-1));
     irrad_Max    << std::dec << std::scientific << std::setprecision(2) << hottestModule->sensorsIrradiationMean();
+    if(hottestModule->sensorsIrradiationMean() > maxFluence) maxFluence = hottestModule->sensorsIrradiationMean();
     irrad_95perc << std::dec << std::scientific << std::setprecision(2) <<  hottest95Module->sensorsIrradiationMean();
     max_z << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Z();
     max_r << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Rho();
@@ -162,6 +165,7 @@ void IrradiationPowerVisitor::postVisit() {
     auto& hottestModule =  irrads.at(nModules-1);
     auto& hottest95Module = irrads.at(ceil(double(nModules)*95/100-1));
     irrad_Max    << std::dec << std::scientific << std::setprecision(2) << hottestModule->sensorsDoseMean();
+    if(hottestModule->sensorsDoseMean() > maxDose) maxDose = hottestModule->sensorsDoseMean();
     irrad_95perc << std::dec << std::scientific << std::setprecision(2) <<  hottest95Module->sensorsDoseMean();
     max_z << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Z();
     max_r << std::dec << std::fixed << std::setprecision(2) << hottestModule->center().Rho();

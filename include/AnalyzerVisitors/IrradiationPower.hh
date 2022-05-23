@@ -43,6 +43,8 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   std::map<std::string, std::vector<const DetectorModule*> > mapTypeToFluence_;
 
  public:
+  double maxDose;
+  double maxFluence;
   MultiSummaryTable sensorsPowerSummary;
   MultiSummaryTable sensorsDoseSummary;
   MultiSummaryTable sensorsFluenceSummary;
