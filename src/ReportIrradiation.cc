@@ -339,7 +339,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legFullCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legFullCanvas->SetFillStyle(0);
   int drawnhists=0;
-  for (auto x : {"PS" , "2S", "TEPX" , "TFPX", "TBPX"}){
+  for (auto x : {"2S" , "PS", "TEPX" , "TFPX", "TBPX"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_fluence_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_fluence_")+x]->GetMaximum());
@@ -361,7 +361,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legFullCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legFullCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PS" , "2S", "TEPX" , "TFPX", "TBPX"}){
+  for (auto x : {"2S" , "PS", "TEPX" , "TFPX", "TBPX"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_fluence_")+x]->DrawCopy("L");
@@ -382,7 +382,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legSplitCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legSplitCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PSmed" ,"PSsmall","PSlarge", "2Ssmall", "2Slarge"}){
+  for (auto x : {"2Ssmall","2Slarge","PSsmall", "PSmed" ,"PSlarge"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_fluence_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_fluence_")+x]->GetMaximum());
@@ -403,7 +403,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legSplitCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legSplitCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PSmed" ,"PSsmall","PSlarge","2Ssmall", "2Slarge"}){
+  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed", "PSlarge"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_fluence_")+x]->DrawCopy("L");
@@ -425,7 +425,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseFullCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseFullCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PS" , "2S", "TEPX" , "TFPX", "TBPX"}){
+  for (auto x : {"2S" , "PS", "TEPX" , "TFPX", "TBPX"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_TID_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_TID_")+x]->GetMaximum());
@@ -446,7 +446,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseFullCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseFullCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PS" , "2S", "TEPX" , "TFPX", "TBPX"}){
+  for (auto x : {"2S" , "PS", "TEPX" , "TFPX", "TBPX"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_TID_")+x]->DrawCopy("L");
@@ -466,7 +466,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseSplitCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseSplitCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PSmed" , "PSsmall","PSlarge","2Ssmall", "2Slarge"}){
+  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed","PSlarge"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_TID_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_TID_")+x]->GetMaximum());
@@ -486,7 +486,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseSplitCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseSplitCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"PSmed" , "PSsmall","PSlarge","2Ssmall", "2Slarge"}){
+  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed" , "PSlarge"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_TID_")+x]->DrawCopy("C");
