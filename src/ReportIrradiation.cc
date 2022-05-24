@@ -125,8 +125,8 @@ std::map<std::string,TH1F*> ReportIrradiation::createSensorsIrradiationHistogram
       theMaxDose_ = dose;
     }
     void preVisit() {
-      for (auto x : {"PS" , "2S", "PSsmall","PSmed","PSlarge","2Ssmall","2Slarge","TEPX" , "TFPX", "TBPX"}) hist_map[std::string("tot_mod_fluence_")+x] = new TH1F(TString::Format("tot_mod_fluence_%s", x),";NIEL fluence[1 MeV n_{eq} / cm^2]; Number of modules",30,0.,1.05*theMaxFluence_);
-      for (auto x : {"PS" , "2S", "PSsmall","PSmed","PSlarge","2Ssmall","2Slarge","TEPX" , "TFPX", "TBPX"}) hist_map[std::string("tot_mod_TID_")+x] = new TH1F(TString::Format("tot_mod_TID_%s", x),";Absorbed dose[Gy]; Number of modules",30,0,1.05*theMaxDose_);
+      for (auto x : {"PS" , "2S", "PS-1.6mm","PS-2.6mm","PS-4.0mm","2S-1.8mm","2S-4.0mm","TEPX" , "TFPX", "TBPX"}) hist_map[std::string("tot_mod_fluence_")+x] = new TH1F(TString::Format("tot_mod_fluence_%s", x),";NIEL fluence[1 MeV n_{eq} / cm^2]; Number of modules",30,0.,1.05*theMaxFluence_);
+      for (auto x : {"PS" , "2S", "PS-1.6mm","PS-2.6mm","PS-4.0mm","2S-1.8mm","2S-4.0mm","TEPX" , "TFPX", "TBPX"}) hist_map[std::string("tot_mod_TID_")+x] = new TH1F(TString::Format("tot_mod_TID_%s", x),";Absorbed dose[Gy]; Number of modules",30,0,1.05*theMaxDose_);
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -147,30 +147,30 @@ std::map<std::string,TH1F*> ReportIrradiation::createSensorsIrradiationHistogram
         hist_map[std::string("tot_mod_fluence_2S")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_2S")]->Fill(m.sensorsDoseMean());
         if(m.dsDistance()<2.){
-          hist_map[std::string("tot_mod_fluence_2Ssmall")]->Fill(m.sensorsIrradiationMean());
-          hist_map[std::string("tot_mod_TID_2Ssmall")]->Fill(m.sensorsDoseMean());
+          hist_map[std::string("tot_mod_fluence_2S-1.8mm")]->Fill(m.sensorsIrradiationMean());
+          hist_map[std::string("tot_mod_TID_2S-1.8mm")]->Fill(m.sensorsDoseMean());
         } else {
-          hist_map[std::string("tot_mod_fluence_2Slarge")]->Fill(m.sensorsIrradiationMean());
-          hist_map[std::string("tot_mod_TID_2Slarge")]->Fill(m.sensorsDoseMean());
+          hist_map[std::string("tot_mod_fluence_2S-4.0mm")]->Fill(m.sensorsIrradiationMean());
+          hist_map[std::string("tot_mod_TID_2S-4.0mm")]->Fill(m.sensorsDoseMean());
         }
       } else if (m.moduleType()=="ptPS"){
         hist_map[std::string("tot_mod_fluence_PS")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_PS")]->Fill(m.sensorsDoseMean());
         if(m.dsDistance()<2.){
-          hist_map[std::string("tot_mod_fluence_PSsmall")]->Fill(m.sensorsIrradiationMean());
-          hist_map[std::string("tot_mod_TID_PSsmall")]->Fill(m.sensorsDoseMean());
+          hist_map[std::string("tot_mod_fluence_PS-1.6mm")]->Fill(m.sensorsIrradiationMean());
+          hist_map[std::string("tot_mod_TID_PS-1.6mm")]->Fill(m.sensorsDoseMean());
         } else if (m.dsDistance()<3.){
-          hist_map[std::string("tot_mod_fluence_PSmed")]->Fill(m.sensorsIrradiationMean());
-          hist_map[std::string("tot_mod_TID_PSmed")]->Fill(m.sensorsDoseMean());
+          hist_map[std::string("tot_mod_fluence_PS-2.6mm")]->Fill(m.sensorsIrradiationMean());
+          hist_map[std::string("tot_mod_TID_PS-2.6mm")]->Fill(m.sensorsDoseMean());
         } else {
-          hist_map[std::string("tot_mod_fluence_PSlarge")]->Fill(m.sensorsIrradiationMean());
-          hist_map[std::string("tot_mod_TID_PSlarge")]->Fill(m.sensorsDoseMean());
+          hist_map[std::string("tot_mod_fluence_PS-4.0mm")]->Fill(m.sensorsIrradiationMean());
+          hist_map[std::string("tot_mod_TID_PS-4.0mm")]->Fill(m.sensorsDoseMean());
         }
       }
     }
 
     std::map<std::string,TH1F*> output()  { 
-     for (auto x : {"PS","PSsmall","PSmed","PSlarge", "2S" , "2Ssmall","2Slarge", "TEPX","TFPX","TBPX"}){
+     for (auto x : {"PS","PS-1.6mm","PS-2.6mm","PS-4.0mm", "2S" , "2S-1.8mm","2S-4.0mm", "TEPX","TFPX","TBPX"}){
        hist_map[std::string("cumulative_fluence_")+x] = dynamic_cast<TH1F*>(hist_map[std::string("tot_mod_fluence_")+x]->GetCumulative(kFALSE));
        hist_map[std::string("cumulative_fluence_")+x]->SetName(TString::Format("cumulative_fluence_%s",x));
        hist_map[std::string("cumulative_fluence_")+x]->GetYaxis()->SetTitle("Fraction of modules");
@@ -184,27 +184,27 @@ std::map<std::string,TH1F*> ReportIrradiation::createSensorsIrradiationHistogram
      }
       std::map<std::string,int>  hist_colours;
       hist_colours["PS"] = 632;
-      hist_colours["PSsmall"] = 632;
-      hist_colours["PSmed"] = 910;
-      hist_colours["PSlarge"] = 803;
+      hist_colours["PS-1.6mm"] = 632;
+      hist_colours["PS-2.6mm"] = 910;
+      hist_colours["PS-4.0mm"] = 803;
       hist_colours["2S"] = 419;
-      hist_colours["2Ssmall"] = 419;
-      hist_colours["2Slarge"] = 860;
+      hist_colours["2S-1.8mm"] = 419;
+      hist_colours["2S-4.0mm"] = 860;
       hist_colours["TEPX"] = 600;
       hist_colours["TFPX"] = 810;
       hist_colours["TBPX"] = 922;
       std::map<std::string,float> bar_offsets;
       bar_offsets["PS"] = 0.2;
-      bar_offsets["PSsmall"] = 0.0;
-      bar_offsets["PSmed"] = 0.2;
-      bar_offsets["PSlarge"] = 0.4;
-      bar_offsets["2Ssmall"] = 0.6;
-      bar_offsets["2Slarge"] = 0.8;
+      bar_offsets["PS-1.6mm"] = 0.0;
+      bar_offsets["PS-2.6mm"] = 0.2;
+      bar_offsets["PS-4.0mm"] = 0.4;
+      bar_offsets["2S-1.8mm"] = 0.6;
+      bar_offsets["2S-4.0mm"] = 0.8;
       bar_offsets["2S"] = 0.4;
       bar_offsets["TEPX"] = 0.2;
       bar_offsets["TFPX"] = 0.4;
       bar_offsets["TBPX"] = 0.6;
-      for (auto x : {"PS" ,"PSsmall","PSmed","PSlarge", "2S","2Ssmall","2Slarge", "TEPX" ,"TFPX", "TBPX"}){
+      for (auto x : {"PS" ,"PS-1.6mm","PS-2.6mm","PS-4.0mm", "2S","2S-1.8mm","2S-4.0mm", "TEPX" ,"TFPX", "TBPX"}){
         for (auto y : {"tot_mod_fluence_", "tot_mod_TID_", "cumulative_fluence_", "cumulative_TID_"}){
           hist_map[std::string(y)+std::string(x)]->SetLineColor(hist_colours[x]);
           hist_map[std::string(y)+std::string(x)]->SetFillColor(hist_colours[x]);
@@ -266,9 +266,6 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   settingsContent.addItem(notesInfo);
   notesInfo = new RootWInfo("Note");
   notesInfo->setValue("the estimate of bias current is based on a linear scaling: all relevant parameters are under the <a href=\"info.html\">info tab</a>\n");
-  settingsContent.addItem(notesInfo);  
-  notesInfo = new RootWInfo("Note");
-  notesInfo->setValue("In the dose and fluence plots, \"small\",\"med\", and \"large\" refer to the module spacings");
   settingsContent.addItem(notesInfo);  
 
 
@@ -382,7 +379,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legSplitCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legSplitCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"2Ssmall","2Slarge","PSsmall", "PSmed" ,"PSlarge"}){
+  for (auto x : {"2S-1.8mm","2S-4.0mm","PS-1.6mm", "PS-2.6mm" ,"PS-4.0mm"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_fluence_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_fluence_")+x]->GetMaximum());
@@ -403,7 +400,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legSplitCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legSplitCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed", "PSlarge"}){
+  for (auto x : {"2S-1.8mm","2S-4.0mm","PS-1.6mm","PS-2.6mm", "PS-4.0mm"}){
     if(histos[std::string("tot_mod_fluence_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_fluence_")+x]->DrawCopy("L");
@@ -466,7 +463,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseSplitCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseSplitCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed","PSlarge"}){
+  for (auto x : {"2S-1.8mm","2S-4.0mm","PS-1.6mm","PS-2.6mm","PS-4.0mm"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("tot_mod_TID_")+x]->GetYaxis()->SetRangeUser(0,1.5*histos[std::string("tot_mod_TID_")+x]->GetMaximum());
@@ -486,7 +483,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   TLegend* legDoseSplitCumulCanvas = new TLegend(0.7,0.7,0.9,0.9);
   legDoseSplitCumulCanvas->SetFillStyle(0);
   drawnhists=0;
-  for (auto x : {"2Ssmall","2Slarge","PSsmall","PSmed" , "PSlarge"}){
+  for (auto x : {"2S-1.8mm","2S-4.0mm","PS-1.6mm","PS-2.6mm" , "PS-4.0mm"}){
     if(histos[std::string("tot_mod_TID_")+x]->GetEntries() > 0 ){
       if(drawnhists==0){
         histos[std::string("cumulative_TID_")+x]->DrawCopy("C");
