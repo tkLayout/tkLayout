@@ -6,7 +6,7 @@ Component {
   scaleOnSensor 0
   targetVolume 7
 
-  //2.6mm bridge
+  //2.6mm spacer
   Element {
     elementName Al-CF
     quantity 1.86
