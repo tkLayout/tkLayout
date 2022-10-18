@@ -25,12 +25,6 @@ Component {
     quantity 0.76
     unit g
   }
-  //Parylene 1.8mm
-  Element {
-    elementName Epoxy
-    quantity 0.061
-    unit g
-  }
   //Bridges glue 1.8 mm
   Element {
     elementName Epoxy
