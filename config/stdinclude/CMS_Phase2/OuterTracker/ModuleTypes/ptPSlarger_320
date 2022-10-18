@@ -39,7 +39,7 @@ Sensor 2 {
 serviceHybridWidth 12.0  // 10.63 hybrid + 1.37 inactive silicon // OK
 frontEndHybridWidth 11.5 // 10.05 hybrid + 1.45 inactive silicon // OK
 hybridThickness 1.0
-supportPlateThickness 1.0
+supportPlateThickness 0.2  // mm 
 outerSensorExtraLength 0.164
 
 
