@@ -4,12 +4,6 @@ Component {
   componentName "2S Module: FE hybrid spacers"
   targetVolume 56
 
-  //FEH spacer 1.8 mm
-  Element {
-    elementName Al-CF
-    quantity 0.786
-    unit g
-  }
   //FEH glue 1.8 mm
   Element {
     elementName Epoxy
