@@ -6,7 +6,7 @@ Component {
 
   //FEH spacer 4.0 mm
   Element {
-    elementName Al-CF
+    elementName AlN
     quantity 1.6
     unit g
   }
