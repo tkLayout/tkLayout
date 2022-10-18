@@ -34,10 +34,22 @@ Component {
     quantity 2.140
     unit g
   }
+  // FEH compensator top
+  Element {
+    elementName <unknown>
+    quantity <unknown>
+    unit g
+  }
   //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
     quantity 1.499
+    unit g
+  }
+  // FEH compensator fold-over
+  Element {
+    elementName <unknown>
+    quantity <unknown>
     unit g
   }
 }
@@ -51,6 +63,12 @@ Component {
   Element {
     elementName CFRP
     quantity 0.247
+    unit g
+  }
+  // ROH compensator
+  Element {
+    elementName <unknown>
+    quantity <unknown>
     unit g
   }
   // ROH copper
