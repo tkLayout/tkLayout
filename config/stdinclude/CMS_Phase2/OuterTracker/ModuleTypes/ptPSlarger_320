@@ -10,7 +10,7 @@ zCorrelation samesegment
 
 numSensors 2
 
-powerPerModule 6300 
+powerPerModule 9709  // mW 
 
 sensorThickness 0.29     // 290 um active + 30 um inactive
 
