@@ -31,13 +31,13 @@ Component {
     unit g
   }
 
-  //FEH CFRP support
+  //FEH CFRP stiffener top
   Element {
     elementName CFRP
     quantity 4.146
     unit g
   }
-  //FEH CFRP stiffener
+  //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
     quantity 0.786
@@ -50,7 +50,7 @@ Component {
   service false
   scaleOnSensor 0
   targetVolume 3
-  //SEH CFRP support
+  //SEH CFRP stiffener
   Element {
     elementName CFRP
     quantity 1.146
