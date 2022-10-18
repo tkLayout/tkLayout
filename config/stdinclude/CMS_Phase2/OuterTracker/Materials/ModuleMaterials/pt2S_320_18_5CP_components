@@ -1,0 +1,11 @@
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_referenceSensors
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2xSensor_Active_2S_290um
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_Inactive_Silicon_320um
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_Hybrid_Circuits
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_Hybrid_Spacers_18
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_Sensor_Spacers_18_5CP
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/Module_Fibers
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/Module_Power
+@include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/Components/2S_Module_Supports
+
+

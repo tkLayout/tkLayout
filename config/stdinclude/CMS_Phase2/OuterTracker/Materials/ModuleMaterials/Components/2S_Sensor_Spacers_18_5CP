@@ -1,4 +1,5 @@
 // Sensor spacers for 2S module 1.8 mm spacing
+// with 5 cooling points; one stump bridge
 
 Component {
   componentName "2S Module: Sensor spacers"

@@ -1,0 +1,9 @@
+// pt-2S module 10x10 for the outer region
+// 5 cooling points; one stump bridges
+// GBT on the module
+
+Materials module-pt2S_320_18_5CP {
+  type module
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/pt2S_320_18_5CP_components
+} 
+   

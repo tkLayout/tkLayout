@@ -1,0 +1,35 @@
+// Sensor spacers for 2S module 1.8 mm spacing
+// with 6 cooling points; two stump bridges
+
+Component {
+  componentName "2S Module: Sensor spacers"
+  service false
+  scaleOnSensor 0
+  targetVolume 7
+
+  //Long-1.8mm (Main Bridge)
+  Element {
+    elementName Al-CF
+    quantity 1.86
+    unit g
+  }
+  //2 x Short-1.8mm (Stump Bridge)
+  Element {
+    elementName Al-CF
+    quantity 0.36
+    unit g
+  }
+  //FEH support tab
+  Element {
+    targetVolume 0
+    elementName Al-CF
+    quantity 0.76
+    unit g
+  }
+  //Bridges glue 1.8 mm
+  Element {
+    elementName Epoxy
+    quantity 0.089
+    unit g
+  }
+}
