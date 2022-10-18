@@ -73,9 +73,9 @@ Component {
   service false
   scaleOnSensor 0
   targetVolume 4
-  // POH CFRP support
+  // POH FR4 stiffener
   Element {
-    elementName CFRP
+    elementName FR4
     quantity 0.247
     unit g
   }
