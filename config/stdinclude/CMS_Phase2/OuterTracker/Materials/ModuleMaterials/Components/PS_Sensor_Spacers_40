@@ -8,7 +8,7 @@ Component {
 
   //4.0mm spacer
   Element {
-    elementName Al-CF
+    elementName AlN
     quantity 2.64
     unit g
   }
