@@ -9,20 +9,20 @@ Component {
   //Long-4.0mm (Main Bridge)
   Element {
     elementName Al-CF
-    quantity 3.160
+    quantity 3.160   // V = XYZ mm^3 (both bridges)
     unit g
   }
   //Short-4.0mm (Stump Bridge)
   Element {
     elementName Al-CF
-    quantity 0.65
+    quantity 0.65   // V = XYZ mm^3 (both stump bridges)
     unit g
   }
-  //FEH support tab
+  //FEH support tab & module mounting
   Element {
     targetVolume 0
     elementName Al-CF
-    quantity 0.76
+    quantity 0.76   // V = XYZ mm^3 (everything related to targetVolume 0; incl. stump bridges)
     unit g
   }
   //Bridges glue 4.0 mm
