@@ -13,10 +13,17 @@ Component {
     unit g
   }
 
-  //Bridges glue 4.0 mm
+  //Spacer glue 4.0 mm top (between PSs and spacers)
   Element {
-    elementName Epoxy
-    quantity 0.163
+    elementName Epoxy_601LV
+    quantity 0.163   // for 4 spacers: V = 19.6292 mm^3
+    unit g
+  }
+
+  //Spacer glue 4.0 mm bottom (between MPAs and spacers)
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.163   // for 4 spacers: V = 19.6292 mm^3
     unit g
   }
 }
