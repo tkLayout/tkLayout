@@ -40,8 +40,14 @@ Component {
   }
   //Bridges glue 1.8 mm
   Element {
-    elementName Epoxy
-    quantity 0.089
+    elementName Epoxy_601LV
+    quantity 0.163   // V = XYZ mm^3 (glue between sensors and Kapton isolators)
+    unit g
+  }
+  //Bridges glue 1.8 mm
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.163   // V = XYZ mm^3 (glue bridges and Kapton isolators)
     unit g
   }
 }
