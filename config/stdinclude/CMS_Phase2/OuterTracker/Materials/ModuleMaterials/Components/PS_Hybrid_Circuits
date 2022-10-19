@@ -121,4 +121,12 @@ Component {
     quantity 3.108
     unit g
   }
+  
+    // POH zigzag power cable
+  Element {
+    targetVolume 7
+    elementName PS_POH_Polyimide
+    quantity 2.419   // V = 201.7204 mm^3
+    unit g
+  }
 }
