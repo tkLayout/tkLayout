@@ -13,10 +13,22 @@ Component {
     quantity 1.86   // V = XYZ mm^3 (both bridges)
     unit g
   }
+  //Long-1.8mm (Main Bridge Kapton isolators)
+  Element {
+    elementName Kapton
+    quantity 3.160   // V = XYZ mm^3 (for both bridges top and bottom)
+    unit g
+  }
   //Short-1.8mm (Stump Bridge)
   Element {
     elementName Al-CF
     quantity 0.36   // V = XYZ mm^3 (two stump bridges)
+    unit g
+  }
+  //Short-1.8mm (Stump Bridge Kapton isolators)
+  Element {
+    elementName Kapton
+    quantity 0.65   // V = XYZ mm^3 (for two stump bridges top and bottom)
     unit g
   }
   //FEH support tab & module mounting
