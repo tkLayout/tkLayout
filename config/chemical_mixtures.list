@@ -67,6 +67,12 @@ CF                         1.91                    C:1.0
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
+Epoxy_601LV                  1.15                CH2OCN:1
+# from Polytec PT technical data sheet
+
+Epoxy_TC437                  1.35                Epoxy:0.80        hBN:0.2
+# density from Polytec PT technical data sheet; BN doping ratio to be confirmed
+
 #CFRP	                     1.84	                   C:0.78            Epoxy:0.22
 # from Duccio, Composite materials, 14/01/2015
 # Density & compo ok??
