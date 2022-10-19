@@ -62,7 +62,13 @@ Component {
   // ROH compensator
   Element {
     elementName <unknown>
-    quantity <unknown>
+    quantity <unknown> // V = 130.0335 mm^3
+    unit g
+  }
+  // ROH glue
+  Element {
+    elementName Epoxy
+    quantity 0.095   // V = 32.4133 mm^3 (comp. - glue - CFRP - glue - flex)
     unit g
   }
   // ROH copper
