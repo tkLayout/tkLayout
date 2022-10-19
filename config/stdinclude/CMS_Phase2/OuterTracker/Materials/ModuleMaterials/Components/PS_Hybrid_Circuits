@@ -100,7 +100,13 @@ Component {
   // POH glue
   Element {
     elementName Epoxy
-    quantity 0.095   // V = 34.4308 mm^3 (BP - glue - FR4 - glue - flex)
+    quantity 0.095   // V = 17.2154 mm^3 (FR4 - glue - flex)
+    unit g
+  }
+  // POH glue
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.095   // V = 17.2154 mm^3 (BP - glue - FR4)
     unit g
   }
   // POH copper
