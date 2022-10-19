@@ -34,7 +34,7 @@ Component {
   //FEH CFRP stiffener top
   Element {
     elementName CFRP
-    quantity 4.146
+    quantity 4.146   // FEH-L: V = 1327.8998 mm^3
     unit g
   }
   // FEH compensator top
@@ -46,7 +46,7 @@ Component {
   //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
-    quantity 0.786
+    quantity 0.786   // FEH-L: V = 281.0697 mm^3
     unit g
   }
   // FEH compensator fold-over
@@ -65,7 +65,7 @@ Component {
   //SEH CFRP stiffener
   Element {
     elementName CFRP
-    quantity 1.146
+    quantity 1.146   // V = 734.3982 mm^3
     unit g
   }
   // SEH compensator

@@ -7,13 +7,13 @@ Component {
   //FEH spacer 4.0 mm
   Element {
     elementName AlN
-    quantity 1.6
+    quantity 1.6   // V = 338.5752 mm^3
     unit g
   }
   //FEH glue 4.0 mm
   Element {
     elementName Epoxy
-    quantity 0.413
+    quantity 0.413   // top and bottom: V = 15.7291 mm^3
     unit g
   }
 }

@@ -9,7 +9,7 @@ Component {
   //2.6mm spacer
   Element {
     elementName AlN
-    quantity 1.86
+    quantity 1.86   // 4 spacers: V = 706.6036 mm^3
     unit g
   }
 

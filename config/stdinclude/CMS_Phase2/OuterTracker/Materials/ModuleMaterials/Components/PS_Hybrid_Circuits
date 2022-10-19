@@ -43,7 +43,7 @@ Component {
   //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
-    quantity 1.499
+    quantity 1.499   // FEH-L: V = 500.7399 mm^3
     unit g
   }
   // FEH compensator fold-over
@@ -62,7 +62,7 @@ Component {
   // ROH CFRP stiffener
   Element {
     elementName CFRP
-    quantity 0.247
+    quantity 0.247 // V = 356.5467 mm^3
     unit g
   }
   // ROH compensator
@@ -94,13 +94,13 @@ Component {
   // POH FR4 stiffener
   Element {
     elementName FR4
-    quantity 0.247
+    quantity 0.247 // V = 198.3447 mm^3
     unit g
   }
   // POH glue
   Element {
     elementName Epoxy
-    quantity 0.095
+    quantity 0.095   // V = 34.4308 mm^3 (BP - glue - FR4 - glue - flex)
     unit g
   }
   // POH copper

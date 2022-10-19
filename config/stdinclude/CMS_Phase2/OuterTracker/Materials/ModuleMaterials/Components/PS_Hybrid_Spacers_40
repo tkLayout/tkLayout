@@ -7,7 +7,7 @@ Component {
   //FEH spacer 4.0 mm
   Element {
     elementName AlN
-    quantity 2.9
+    quantity 2.9   // FEH-L: V = 158.3900 mm^3 (2 x corner) + 625.6911 mm^3 (1 x middle)
     unit g
   }
 
@@ -33,7 +33,7 @@ Component {
   //ROH spacer 4.0 mm
   Element {
     elementName AlN
-    quantity 0.610
+    quantity 0.610   // V = 225.6022 mm^3
     unit g
   }
 }
