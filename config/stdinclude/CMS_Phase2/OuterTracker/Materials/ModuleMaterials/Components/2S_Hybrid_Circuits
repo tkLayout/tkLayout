@@ -55,6 +55,19 @@ Component {
     quantity <unknown>   // FEH-L: V = 101.7001 mm^3
     unit g
   }
+  // FEH glue
+  Element {
+    elementName Epoxy
+    quantity 0.095   // FEH-L: V = 270.7285 mm^3 (flex - glue - CFRP - glue - comp. for top and fold-over)
+    unit g
+  }
+  // FEH glue
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.089   // V = XYZ mm^3 (bridges - glue - FEH stiffener)
+    unit g
+  }
+  
 }
 
 Component {
@@ -77,7 +90,13 @@ Component {
   //SEH glue
   Element {
     elementName Epoxy
-    quantity 0.089
+    quantity 0.089   // V = XYZ mm^3 (glue within SEH)
+    unit g
+  }
+  //SEH glue
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.089   // V = XYZ mm^3 (bridges - glue - SEH stiffener)
     unit g
   }
   //SEH copper
