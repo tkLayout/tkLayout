@@ -14,7 +14,14 @@ Component {
   //FEH glue 4.0 mm
   Element {
     elementName Epoxy
-    quantity 0.212
+    quantity 0.212   // FEH-L: V = 2.2030 mm^3 (2 x corner top) + 26.8288 mm^3 (2 x middle)
+    unit g
+  }
+
+  //FEH glue 2.6 mm
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.260   // FEH-L: V = 2.2030 mm^3 (2 x corner bottom; BP - glue - corner spacer)
     unit g
   }
 }
@@ -26,7 +33,14 @@ Component {
   //ROH glue 4.0 mm
   Element {
     elementName Epoxy
-    quantity 0.057
+    quantity 0.057   // top and bottom: V = 3.2371 mm^3 (ROH spacer - glue - compensator)
+    unit g
+  }
+
+  //ROH glue 4.0 mm
+  Element {
+    elementName Epoxy_TC437
+    quantity 0.057   // top and bottom: V = 3.2371 mm^3 (BP - glue - ROH spacer)
     unit g
   }
 
