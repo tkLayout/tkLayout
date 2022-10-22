@@ -192,6 +192,8 @@ namespace insur {
     static const std::string xml_base_outer = "OUTER";
     static const std::string xml_base_lower = "Lower"; // This is for distinguishing inner/outer sensor!
     static const std::string xml_base_upper = "Upper";
+    static const std::string xml_base_one = "One"; // This is for distinguishing inner/outer sensor!
+    static const std::string xml_base_two = "Two";
     static const std::string xml_base_pixel = "MacroPixel";
     static const std::string xml_base_strip = "Strip";
     static const std::string xml_base_ps = "PS";

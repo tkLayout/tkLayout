@@ -182,6 +182,7 @@ namespace insur {
      const double getFrontEndHybridWidth() const { return frontEndHybridWidth; }
      const double getExpandedModuleWidth() const { return expandedModWidth; }
      const double getExpandedModuleLength() const { return expandedModLength; }
+     const double getExpandedModuleLengthPixelDoubleSens() const { return expandedModLengthPixDoubleSens; }
      const double getExpandedModuleThickness() const { return expandedModThickness; }
      double getRmin() const { return rmin; }
      double getRmax() const { return rmax; }
@@ -322,6 +323,7 @@ namespace insur {
       const double         sensorDistance;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
+      const double         modLengthDoubleSens; // Sensor length in case of two sensors next to each other
       const double         frontEndHybridWidth;
       const double         serviceHybridWidth;
       const double         hybridThickness;
@@ -349,6 +351,7 @@ namespace insur {
 	    double         rmaxatzmax;
 	    const double         expandedModWidth;
 	    const double         expandedModLength;
+	    const double         expandedModLengthPixDoubleSens;
 	    double               expandedModThickness; 
 	    const XYZVector      center; 
 	    const XYZVector      normal; 
