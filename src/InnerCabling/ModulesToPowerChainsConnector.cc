@@ -79,7 +79,8 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
   const bool isSmallerAbsZHalfRing = m.isSmallerAbsZModuleInRing();
   
   const double modPhi = m.center().Phi();
-  const std::pair<int, int> phiRefs = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd);
+  bool isTEPXSpecialRing = (endcapName_ == inner_cabling_tepx && ringNumber_>1);
+  const std::pair<int, int> phiRefs = computeForwardModulePhiPowerChain(modPhi, numModulesInRing_, isPositiveZEnd, isTEPXSpecialRing);
   const int powerChainPhiRef = phiRefs.first;
   const int modulePhiRefInPowerChain = phiRefs.second;
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
@@ -90,7 +91,7 @@ void ModulesToPowerChainsConnector::visit(EndcapModule& m) {
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
   const bool isLongBarrel = false;
-  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee);
+  buildPowerChain(m, powerChains_, isPositiveZEnd, isPositiveXSide, endcapName_, diskNumber_, powerChainPhiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee, isTEPXSpecialRing);
 }
 
 
@@ -154,7 +155,7 @@ const bool ModulesToPowerChainsConnector::computeBarrelCentralModuleZEnd(const i
 /*
  * Assign a Forward Module to a power chain based on its phi position in the ring.
  */
-const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const {
+const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd, const bool isTEPXSpecialRing) const {
   int powerChainPhiRef = 0;
 
   const int numModulesInRingEnd = numModulesInRing / 2;
@@ -163,7 +164,7 @@ const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhi
   int modulePhiRefInPowerChain = phiUnitRef;
 
   if (numModulesInRingQuarter > inner_cabling_maxNumModulesPerPowerChain) {
-    const int numModulesInPowerChain = numModulesInRingQuarter / 2;
+    const int numModulesInPowerChain = numModulesInRingQuarter / 2.;
     if (phiUnitRef <= (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
       powerChainPhiRef = 0;
       modulePhiRefInPowerChain = phiUnitRef; 
@@ -173,6 +174,32 @@ const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhi
       modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain; 
     }
   }
+
+  if (isTEPXSpecialRing) {
+    const int numModulesInPowerChain = numModulesInRingQuarter > 10 ? numModulesInRingQuarter / 2 : ceil(double(numModulesInRingQuarter) / 2.);
+    if (phiUnitRef <= (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
+      powerChainPhiRef = 0;
+      modulePhiRefInPowerChain = phiUnitRef; 
+    } 
+    else { 
+      powerChainPhiRef = 1; 
+      modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain; 
+    }
+  }
+
+
+  /*if (isTEPXSpecialRing) {
+    const int numModulesInPowerChain = numModulesInRingQuarter / 2;
+    if (phiUnitRef < (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
+      powerChainPhiRef = 0;
+      modulePhiRefInPowerChain = phiUnitRef; 
+    } 
+    else { 
+      powerChainPhiRef = 1; 
+      modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain + 1; 
+    }
+  }*/
+
   return std::make_pair(powerChainPhiRef, modulePhiRefInPowerChain);
 }
 
@@ -184,7 +211,7 @@ const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhi
  * Then, the bundle is created, and stored in the bundles_ or negPowerChains_ containers.
  * Lastly, each module is connected to its bundle, and vice-versa.
  */
-void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee) {
+void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing) {
   // COMPUTE POWER CHAIN ID
   const int powerChainId = computePowerChainId(isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, halfRingIndex);
 
@@ -192,7 +219,7 @@ void ModulesToPowerChainsConnector::buildPowerChain(DetectorModule& m, std::map<
   PowerChain* powerChain = nullptr;
   auto found = powerChains.find(powerChainId);
   if (found == powerChains.end()) {
-    powerChain = createAndStorePowerChain(powerChains, powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee);
+    powerChain = createAndStorePowerChain(powerChains, powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee, isTEPXSpecialRing);
   }
   else {
     powerChain = found->second;
@@ -210,7 +237,19 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
   const int innerTrackerQuarterIndex = inner_cabling_functions::computeInnerTrackerQuarterIndex(isPositiveZEnd, isPositiveXSide);
   const int subdetectorIndex = inner_cabling_functions::computeSubDetectorIndex(subDetectorName);
 
-  const int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + halfRingIndex * 10 + phiRef;
+  int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + halfRingIndex * 10 + phiRef;
+  if (subDetectorName==inner_cabling_tepx){
+      std::cout<<"this half ring index is "<<halfRingIndex<<std::endl;
+      if(halfRingIndex==2 || halfRingIndex==6){
+          powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + 2 * 10 + phiRef;
+      } else if (halfRingIndex==3 || halfRingIndex==7){
+          powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + 3 * 10 + phiRef;
+      } else if (halfRingIndex==4 || halfRingIndex==8){
+          powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + 4 * 10 + phiRef;
+      } else if (halfRingIndex==5 || halfRingIndex==9){
+          powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + 8 * 10 + phiRef;
+      }
+  }
   return powerChainId;
 }
 
@@ -218,9 +257,9 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
 /*  Create a powerChain, if it does not exist yet.
  *  Store it in the powerChains_ container.
  */
-PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee) {
+PowerChain* ModulesToPowerChainsConnector::createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing) {
 
-  PowerChain* powerChain = new PowerChain(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee);
+  PowerChain* powerChain = new PowerChain(powerChainId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, phiRef, isLongBarrel, halfRingIndex, isAtSmallerAbsZDeeInDoubleDisk, isAtSmallerAbsZSideInDee, isTEPXSpecialRing);
 
   powerChains.insert(std::make_pair(powerChainId, powerChain));
  

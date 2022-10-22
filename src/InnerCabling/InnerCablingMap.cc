@@ -64,33 +64,45 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
     const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
 
-    const std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
+    std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
     const int numGBTsInPowerChain = gbtsInPowerChain.first;
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
     myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
-
+    const bool isSplitOverRings = myPowerChain->isSplitOverRings(); //In this case we have to compute the correct lpGBT assignment in a more hacky way
+   
     const int powerChainId = myPowerChain->myid();
     const bool isLongBarrel = myPowerChain->isLongBarrel();
-    
 
-    // Loops on all modules of the power chain
-    for (auto& m : myPowerChain->modules()) {
 
-      // SET NUMBER OF ELINKS PER MODULE
-      m->setNumELinks(numELinksPerModule);
+    if (isSplitOverRings) {
+        const int phiRef = myPowerChain->phiRef();
+        for (auto& m: myPowerChain->modules()) {
+            int ringRef = m->uniRef().ring;
+            int phiRefInPowerChain = m->getPhiRefInPowerChain();
+            int numELinks = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, ringRef); 
+            int gbtIndex = computeGBTIndexInSpecialPowerChain(ringRef, numELinks, phiRefInPowerChain, phiRef);
+            const std::string myGBTId = computeGBTId(powerChainId, gbtIndex);
+            createAndStoreGBTs(myPowerChain, m, myGBTId, gbtIndex, numELinks, GBTs);
+        }
+     } else {
+        // Loops on all modules of the power chain
+        for (auto& m : myPowerChain->modules()) {
 
-      // COLLECT MODULE INFORMATION NEEDED TO BUILD GBT
-      const int ringRef = (isLongBarrel ? m->uniRef().ring - 1 : m->uniRef().ring - 2);
-      const int phiRefInPowerChain = m->getPhiRefInPowerChain();
+          // SET NUMBER OF ELINKS PER MODULE
+          m->setNumELinks(numELinksPerModule);
+
+          // COLLECT MODULE INFORMATION NEEDED TO BUILD GBT
+          const int ringRef = (isLongBarrel ? m->uniRef().ring - 1 : m->uniRef().ring - 2);
+          const int phiRefInPowerChain = m->getPhiRefInPowerChain();
       
-      const int myGBTIndexInPowerChain = computeGBTIndexInPowerChain(isBarrel, numModulesInPowerChain, ringRef, phiRefInPowerChain, numModulesPerGBTExact, numGBTsInPowerChain);
-      const std::string myGBTId = computeGBTId(powerChainId, myGBTIndexInPowerChain);
+          const int myGBTIndexInPowerChain = computeGBTIndexInPowerChain(isBarrel, numModulesInPowerChain, ringRef, phiRefInPowerChain, numModulesPerGBTExact, numGBTsInPowerChain);
+          const std::string myGBTId = computeGBTId(powerChainId, myGBTIndexInPowerChain);
 
-      // BUILD GBTS AND STORE THEM
-      createAndStoreGBTs(myPowerChain, m, myGBTId, myGBTIndexInPowerChain, numELinksPerModule, GBTs);
-    }
-  }
-
+          // BUILD GBTS AND STORE THEM
+          createAndStoreGBTs(myPowerChain, m, myGBTId, myGBTIndexInPowerChain, numELinksPerModule, GBTs);
+        }
+      }
+   }
   // CHECK GBTS
   checkModulesToGBTsCabling(GBTs);
 }
@@ -148,6 +160,56 @@ const int InnerCablingMap::computeGBTIndexInPowerChain(const bool isBarrel, cons
   }
 
   return myGBTIndexInPowerChain;
+}
+
+const int InnerCablingMap::computeGBTIndexInSpecialPowerChain(const int ringRef, const int numELinks, const int phiRefInPowerChain, const int phiRef) const {
+  int numModulesPerGBT;
+  int myGBTIndexInPowerChain = 0;
+  if(ringRef == 3 ){  
+    if(phiRef==0){
+      numModulesPerGBT = inner_cabling_maxNumELinksPerGBT/numELinks;
+    } else {
+      numModulesPerGBT = inner_cabling_maxNumELinksPerGBT/numELinks-1;
+    }
+    double myGBTIndexInPowerChainExact = phiRefInPowerChain/numModulesPerGBT;
+    myGBTIndexInPowerChain = (fabs(myGBTIndexInPowerChainExact - round(myGBTIndexInPowerChainExact)) < inner_cabling_roundingTolerance ?
+                                round(myGBTIndexInPowerChainExact) : std::floor(myGBTIndexInPowerChainExact));
+  } else if (ringRef == 5 ) {
+    numModulesPerGBT = inner_cabling_maxNumELinksPerGBT/numELinks;
+    double myGBTIndexInPowerChainExact = phiRefInPowerChain/numModulesPerGBT;
+    myGBTIndexInPowerChain = (fabs(myGBTIndexInPowerChainExact - round(myGBTIndexInPowerChainExact)) < inner_cabling_roundingTolerance ?
+                                2 + round(myGBTIndexInPowerChainExact) : 2 + std::floor(myGBTIndexInPowerChainExact)); //hack
+  } else {
+    if(ringRef==2){   
+        if(phiRef==0){
+            if(phiRefInPowerChain<=1){
+                myGBTIndexInPowerChain = 0;
+            } else {
+                myGBTIndexInPowerChain = phiRefInPowerChain-1; 
+            }
+        } else myGBTIndexInPowerChain = phiRefInPowerChain;
+    }    
+    if(ringRef==4){
+        if(phiRef==0){
+            if(phiRefInPowerChain==0){
+                myGBTIndexInPowerChain=0;
+            } else if (phiRefInPowerChain<=2){
+                myGBTIndexInPowerChain=1;
+            } else if (phiRefInPowerChain<=4){
+                myGBTIndexInPowerChain=2;
+            }
+        } else {
+            if(phiRefInPowerChain<=1){
+                myGBTIndexInPowerChain=0;
+            } else if (phiRefInPowerChain<=3){
+                myGBTIndexInPowerChain=1;
+            } else if (phiRefInPowerChain<=5){
+                myGBTIndexInPowerChain=2;
+            }
+        }
+    }
+  }
+ return myGBTIndexInPowerChain;
 }
 
 
@@ -360,22 +422,22 @@ const int InnerCablingMap::computeDTCId(const bool isPositiveZEnd, const bool is
   if (subDetectorName == inner_cabling_tbpx) myDTCId = layerDiskNumber;
 
   else if (subDetectorName == inner_cabling_tfpx) {
-    if (layerDiskNumber == 1) myDTCId = 5;
-    else if (layerDiskNumber == 2) myDTCId = 4;
+    if (layerDiskNumber == 1) myDTCId = 2;
+    else if (layerDiskNumber == 2) myDTCId = 3;
     else if (layerDiskNumber == 3) myDTCId = 3;
-    else if (layerDiskNumber == 4) myDTCId = 5;
+    else if (layerDiskNumber == 4) myDTCId = 4;
     else if (layerDiskNumber == 5) myDTCId = 4;
-    else if (layerDiskNumber == 6) myDTCId = 3;
-    else if (layerDiskNumber == 7) myDTCId = 2;
+    else if (layerDiskNumber == 6) myDTCId = 5;
+    else if (layerDiskNumber == 7) myDTCId = 5;
     else if (layerDiskNumber == 8) myDTCId = 5;
     else logERROR(any2str("Unexpected diskNumber in FPX : ") + any2str(layerDiskNumber));
   }
 
   else if (subDetectorName == inner_cabling_tepx) {
     if (layerDiskNumber == 1) myDTCId = 6;
-    else if (layerDiskNumber == 2) myDTCId = 6;
-    else if (layerDiskNumber == 3) myDTCId = 7;
-    else if (layerDiskNumber == 4) myDTCId = 7;
+    else if (layerDiskNumber == 2) myDTCId = 7;
+    else if (layerDiskNumber == 3) myDTCId = 8;
+    else if (layerDiskNumber == 4) myDTCId = 9;
     else logERROR(any2str("Unexpected diskNumber in EPX : ") + any2str(layerDiskNumber));
   }
 

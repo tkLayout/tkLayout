@@ -36,6 +36,7 @@ private:
   // CONNECT MODULES TO GBTS
   const std::pair<int, double> computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel);
   const int computeGBTIndexInPowerChain(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
+  const int computeGBTIndexInSpecialPowerChain(const int ringRef, const int numELinks, const int phiRefInPowerChain, const int phiRef) const;
   const std::string computeGBTId(const int powerChainId, const int myGBTIndex) const;
   void createAndStoreGBTs(PowerChain* myPowerChain, Module* m, const std::string myGBTId, const int myGBTIndex, const int numELinksPerModule, std::map<std::string, std::unique_ptr<GBT> >& GBTs);
   void connectOneModuleToOneGBT(Module* m, GBT* GBT) const;

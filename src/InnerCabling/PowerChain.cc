@@ -2,7 +2,7 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
@@ -11,7 +11,8 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
   isLongBarrel_(isLongBarrel),
   halfRingIndex_(halfRingIndex),
   isAtSmallerAbsZDeeInDoubleDisk_(isAtSmallerAbsZDeeInDoubleDisk),
-  isAtSmallerAbsZSideInDee_(isAtSmallerAbsZSideInDee)
+  isAtSmallerAbsZSideInDee_(isAtSmallerAbsZSideInDee),
+  isSplitOverRings_(isTEPXSpecialRing)
 {
   myid(powerChainId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
