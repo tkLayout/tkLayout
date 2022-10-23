@@ -64,7 +64,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
     const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
 
-    std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
+    std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel, layerNumber==4);
     const int numGBTsInPowerChain = gbtsInPowerChain.first;
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
     myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
@@ -113,9 +113,11 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
  * This also provides the exact average number of modules per GBT, in that power chain.
  * This is obviously based on the number of ELinks the modules are connected to, and the total number of modules in the power chain.
  */
-const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
+const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel, const bool isLayerFour) {
         
-  const double maxNumModulesPerGBTExact = std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
+  const double maxNumModulesPerGBTExact = (isBarrel && isLayerFour) ? std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
+						   static_cast<double>(inner_cabling_maxNumModulesPerGBTBarrelLayer4)) : 
+                                                   std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
 						   static_cast<double>(inner_cabling_maxNumModulesPerGBT));
   const int maxNumModulesPerGBT = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
 				   round(maxNumModulesPerGBTExact) 
@@ -136,6 +138,7 @@ const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const i
 
   return std::make_pair(numGBTs, numModulesPerGBTExact);
 }
+
 
 
 /* Compute the index associated to each GBT in each power chain.
@@ -320,8 +323,10 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
 		     : std::floor(myBundleIndexExact)
 		     );
   }
-  else if (subDetectorName == inner_cabling_tfpx || subDetectorName == inner_cabling_tepx) {
+  else if (subDetectorName == inner_cabling_tfpx ) {
     myBundleIndex = (!isAtSmallerAbsZDeeInDoubleDisk);
+  } else if (subDetectorName == inner_cabling_tepx) {
+    myBundleIndex = (!isAtSmallerAbsZDeeInDoubleDisk)*2+powerChainPhiRef;
   }
   else logERROR("Unsupported detector name.");
 

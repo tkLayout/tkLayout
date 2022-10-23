@@ -40,7 +40,7 @@ const int InnerBundle::computePlotColor(const bool isBarrel, const bool isPositi
   }
   else {
     const int plotLayer = femod(layerDiskNumber, 5);           //  ?
-    const int plotIndex = femod(bundleIndex, 2);
+    const int plotIndex = femod(bundleIndex, 4);
     plotColor = plotLayer * 2 + plotIndex + 1;
   }
 

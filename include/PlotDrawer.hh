@@ -245,6 +245,21 @@ struct DashedStyle {
   }
 };
 
+struct HatchedStyle {
+  template <class StatType> void operator()(TPolyLine& line, StatType& bin, const DrawerPalette& palette) const {
+    // dashed fill style
+    line.SetFillColor(palette.getColor(bin.get()));
+    line.SetFillStyle(3444); // dashed fill style
+    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY(),"f");
+
+    // draw contour as well for clarity
+    line.SetLineColor(palette.getColor(bin.get()));
+    line.SetLineWidth(2);
+    line.DrawPolyLine(line.GetN(),line.GetX(),line.GetY());
+  }
+};
+
+
 class ContourStyle {
   const int lineWidth_;
 public:

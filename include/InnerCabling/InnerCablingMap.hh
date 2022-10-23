@@ -34,7 +34,7 @@ private:
   void connectBundlesToDTCs(std::map<int, std::unique_ptr<InnerBundle> >& bundles, std::map<int, std::unique_ptr<InnerDTC> >& DTCs);
 
   // CONNECT MODULES TO GBTS
-  const std::pair<int, double> computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel);
+  const std::pair<int, double> computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel, const bool isLayerFour);
   const int computeGBTIndexInPowerChain(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
   const int computeGBTIndexInSpecialPowerChain(const int ringRef, const int numELinks, const int phiRefInPowerChain, const int phiRef) const;
   const std::string computeGBTId(const int powerChainId, const int myGBTIndex) const;

@@ -36,8 +36,10 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const bool isPositiveZEnd = barrelModuleZEnd.first;
   const bool isLongBarrel = barrelModuleZEnd.second;
 
-  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
-  const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
+  const int phiUnitRef = layerNumber_ ==3 ? inner_cabling_functions::computePhiUnitRefTBPXL3(rodPhi_, numRods_, isPositiveZEnd) : inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
+  int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
+  if (layerNumber_==3 && (phiUnitRef==2 || phiUnitRef ==3)) modulePhiRefInPowerChain = 0;
+  //const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
@@ -239,7 +241,6 @@ const int ModulesToPowerChainsConnector::computePowerChainId(const bool isPositi
 
   int powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + halfRingIndex * 10 + phiRef;
   if (subDetectorName==inner_cabling_tepx){
-      std::cout<<"this half ring index is "<<halfRingIndex<<std::endl;
       if(halfRingIndex==2 || halfRingIndex==6){
           powerChainId = innerTrackerQuarterIndex * 10000 + subdetectorIndex * 1000 + layerDiskNumber * 100 + 2 * 10 + phiRef;
       } else if (halfRingIndex==3 || halfRingIndex==7){

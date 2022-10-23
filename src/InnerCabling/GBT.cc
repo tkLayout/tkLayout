@@ -27,18 +27,18 @@ void GBT::addModule(Module* m) {
  * To distinguish different GBTs within the same power chain, alternation of fill, contour and dashed styles is used.
  */
 const int GBT::computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const {
-  const bool isBarrel = myPowerChain->isBarrel();
-  const int numGBTsInPowerChain = myPowerChain->numGBTsInPowerChain();
+  //const bool isBarrel = myPowerChain->isBarrel();
+  //const int numGBTsInPowerChain = myPowerChain->numGBTsInPowerChain();
 
   // Usually, only 2 plot styles are needed (for example, alternation of fill and empty plot styles) 
   // to distinguish the GBTs among a power chain.
   // Exception: case of an odd number of GBTs within the same power chain in the barrel:
   // a third plot style (for example, dashed) becomes necessary.
-  const int myGBTIndexInPowerChainPlotStyle = ( (!isBarrel || femod(numGBTsInPowerChain, 2) == 0 ) 
+  const int myGBTIndexInPowerChainPlotStyle = femod(myGBTIndexInPowerChain, 4);// ( (femod(numGBTsInPowerChain, 2) == 0 ) 
                                                 // 2 styles are enough (for example, full and contour)
-                                                ? femod(myGBTIndexInPowerChain, 2)
+                                                //? femod(myGBTIndexInPowerChain, 2)
                                                 // 3 styles are necessary (for example, full, contour, and dashed)
-                                                : femod(myGBTIndexInPowerChain, 3));
+                                                //: femod(myGBTIndexInPowerChain, 3));
  
   return myGBTIndexInPowerChainPlotStyle;
 }
