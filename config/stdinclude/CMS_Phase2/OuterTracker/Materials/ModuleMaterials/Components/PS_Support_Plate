@@ -7,8 +7,8 @@ Component {
   scaleOnSensor 0
   targetVolume 0
   Element {
-    elementName CFRP
-    quantity 1.295
+    elementName CFRP // Volume of complete base plate is 1290.9417 mm^3
+    quantity 1.295   // V = 190.0615 mm^3 + 187.3802 mm^3 = 377.4417 mm^3
     unit g
   }
  Element {
@@ -25,8 +25,8 @@ Component {
   scaleOnSensor 0
   targetVolume 8
   Element {
-    elementName CFRP
-    quantity 1.195
+    elementName CFRP // Volume of complete base plate is 1290.9417 mm^3
+    quantity 1.195   // V = 913.5000 mm^3
     unit g
   }
  Element {
