@@ -29,9 +29,14 @@ Component {
     quantity 1.195   // V = 913.5000 mm^3
     unit g
   }
- Element {
-    elementName Epoxy
-    quantity 0.141
+  Element {
+    elementName Kapton
+    quantity 0.141   // V = 116.2625 mm^3
+    unit g
+  }
+  Element {
+    elementName Epoxy_601LV
+    quantity 0.141   // V = 112.6575 mm^3 + 114.6371 mm^3 = 227.2946 mm^3
     unit g
   }
 }
