@@ -7,47 +7,47 @@ Component {
   scaleOnSensor 0
   targetVolume 7
 
-  //Long-1.8mm (Main Bridge)
+  //Long-1.8mm (Main Bridge) - Volume of two complete bridges is 2 x 680.3780 mm^3 = 1360.7560 mm^3
   Element {
     elementName Al-CF
-    quantity 1.86   // V = XYZ mm^3 (both bridges)
+    quantity 1.86   // V = 2 x 339.1481 mm^3 = 678.2962 mm^3 (both bridges)
     unit g
   }
   //Long-1.8mm (Main Bridge Kapton isolators)
   Element {
     elementName Kapton
-    quantity 3.160   // V = XYZ mm^3 (for both bridges top and bottom)
+    quantity 3.160   // V = 4 x 23.4125 mm^3 = 93.6500 mm^3 (for both bridges top and bottom)
     unit g
   }
-  //Short-1.8mm (Stump Bridge)
+  //Short-1.8mm (Stump Bridges) - Volume of two complete stump bridges is 2 x 202.6138 mm^3 = 405.2276 mm^3
   Element {
     elementName Al-CF
-    quantity 0.36   // V = XYZ mm^3 (two stump bridges)
+    quantity 0.36   // V = 2 x 89.7336 mm^3 = 179.4672 mm^3 (two stump bridges)
     unit g
   }
   //Short-1.8mm (Stump Bridge Kapton isolators)
   Element {
     elementName Kapton
-    quantity 0.65   // V = XYZ mm^3 (for two stump bridges top and bottom)
+    quantity 0.65   // V = 4 x 4.3523 mm^3 = 17.4092 mm^3 (for two stump bridges top and bottom)
     unit g
   }
   //FEH support tab & module mounting
   Element {
     targetVolume 0
     elementName Al-CF
-    quantity 0.76   // V = XYZ mm^3 (everything related to targetVolume 0; incl. stump bridges)
+    quantity 0.76   // V = 4 x 169.3900 mm^3 + 2 x 112.8802 mm^3 = 903.3204 mm^3 (everything related to targetVolume 0; incl. stump bridges)
     unit g
   }
   //Bridges glue 1.8 mm
   Element {
     elementName Epoxy_601LV
-    quantity 0.163   // V = XYZ mm^3 (glue between sensors and Kapton isolators)
+    quantity 0.163   // V = 4 x 23.0748 mm^3 + 4 x 4.1791 mm^3 = 109.0156 mm^3 (glue between sensors and Kapton isolators)
     unit g
   }
   //Bridges glue 1.8 mm
   Element {
     elementName Epoxy_TC437
-    quantity 0.163   // V = XYZ mm^3 (glue bridges and Kapton isolators)
+    quantity 0.163   // V = 4 x 6.8576 mm^3 + 4 x 1.7783 mm^3 = 34.5436 mm^3 (glue bridges and Kapton isolators)
     unit g
   }
 }
