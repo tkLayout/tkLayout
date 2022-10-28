@@ -31,7 +31,8 @@ FR4                         1.85               Si:0.18077359           O:0.40563
 # Fiber glass reinforced, from trackermaterial.xml (density 1.7 g/cm3 ?)
 # Yadira: density 1.91 in [TFPX_2019_03_19_YP]
 
-
+PyraluxLF                   5.19
+# Assumes 125um Kapton and 75um Copper; to be checked with Hybrids WG
 
 
 
