@@ -338,11 +338,14 @@ namespace material {
   const std::map<std::string, SupportStructure::Element::Unit> SupportStructure::Element::unitStringMap = {
       {"g", GRAMS},
       {"mm", MILLIMETERS},
-      {"g/m", GRAMS_METER}
+      {"g/m", GRAMS_METER},
+      {"mm3", CUBIC_MILLIMETERS}
   };
 
   double SupportStructure::Element::quantityInGrams(double length, double surface) const {
     double returnVal;
+    std::string elementNameString = elementName();
+    double elementDensity = materialsTable_.getDensity(elementNameString);
     try {
       switch (unitStringMap.at(unit())) {
       case Element::GRAMS:
@@ -354,10 +357,13 @@ namespace material {
         break;
 
       case Element::MILLIMETERS:
-        std::string elementNameString = elementName();
-        double elementDensity = materialsTable_.getDensity(elementNameString);
         returnVal = elementDensity * surface * quantity();
         break;
+
+      case Element::CUBIC_MILLIMETERS:
+        returnVal = elementDensity * quantity();
+        break;
+
       }
     } catch (const std::out_of_range& ex) {
       logERROR(msg_no_valid_unit + unit());
