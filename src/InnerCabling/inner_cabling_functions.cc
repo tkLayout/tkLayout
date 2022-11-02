@@ -26,43 +26,6 @@ namespace inner_cabling_functions {
     return phiUnitRef;
   }
 
-   /* ComputePhiUniRef, but modified for TBPX barrel layer 3, which is special
-   */
-  const int computePhiUnitRefTBPXL3(const double phi, const int numPhiUnits, const bool isPositiveZEnd) {
-
-    const double projectedPhi = computePhiFromMinY(phi, isPositiveZEnd);
-
-    const double phiUnitWidth = computePhiUnitWidth(numPhiUnits);
-    const double phiUnitStart = computePhiUnitStart(projectedPhi, phiUnitWidth);
-
-    const double phiRelative = femod(projectedPhi - phiUnitStart, M_PI);
-
-    int phiUnitRef = 0;
-    const double phiUnitRefExact = phiRelative / phiUnitWidth;
-
-    // In case phiUnitRefExact is an integer, round it to an int!
-    if (fabs((phiUnitRefExact - round(phiUnitRefExact))) < inner_cabling_roundingTolerance) phiUnitRef = fabs(round(phiUnitRefExact));
-    else phiUnitRef = std::floor(phiUnitRefExact);
-
-    int modifiedPhiUnitRef =0;
-    if(phiUnitRef <=1 ){
-        modifiedPhiUnitRef = 0;
-    } else if (phiUnitRef <=3 ){
-        modifiedPhiUnitRef = 1;
-    } else if (phiUnitRef <=4 ){
-        modifiedPhiUnitRef = 2;
-    } else if (phiUnitRef <=5){
-        modifiedPhiUnitRef = 3;
-    } else if (phiUnitRef <=7){
-        modifiedPhiUnitRef = 4;
-    } else if (phiUnitRef <=9 ){
-        modifiedPhiUnitRef = 5;
-    }
-       
-    return modifiedPhiUnitRef;
-  }
-
-
 
   /*
    * Starts counting Phi from -Pi/2.

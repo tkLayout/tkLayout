@@ -64,7 +64,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
     const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
 
-    std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel, layerNumber==4);
+    std::pair<int, double> gbtsInPowerChain = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
     const int numGBTsInPowerChain = gbtsInPowerChain.first;
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
     myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
@@ -113,11 +113,9 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
  * This also provides the exact average number of modules per GBT, in that power chain.
  * This is obviously based on the number of ELinks the modules are connected to, and the total number of modules in the power chain.
  */
-const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel, const bool isLayerFour) {
+const std::pair<int, double> InnerCablingMap::computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel) {
         
-  const double maxNumModulesPerGBTExact = (isBarrel && isLayerFour) ? std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
-						   static_cast<double>(inner_cabling_maxNumModulesPerGBTBarrelLayer4)) : 
-                                                   std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
+  const double maxNumModulesPerGBTExact = std::min(static_cast<double>(inner_cabling_maxNumELinksPerGBT) / numELinksPerModule, 
 						   static_cast<double>(inner_cabling_maxNumModulesPerGBT));
   const int maxNumModulesPerGBT = (fabs(maxNumModulesPerGBTExact - round(maxNumModulesPerGBTExact)) < inner_cabling_roundingTolerance ? 
 				   round(maxNumModulesPerGBTExact) 

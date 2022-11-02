@@ -36,9 +36,8 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
   const bool isPositiveZEnd = barrelModuleZEnd.first;
   const bool isLongBarrel = barrelModuleZEnd.second;
 
-  const int phiUnitRef = layerNumber_ ==3 ? inner_cabling_functions::computePhiUnitRefTBPXL3(rodPhi_, numRods_, isPositiveZEnd) : inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
-  int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
-  if (layerNumber_==3 && (phiUnitRef==2 || phiUnitRef ==3)) modulePhiRefInPowerChain = 0;
+  const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
+  const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
   //const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 

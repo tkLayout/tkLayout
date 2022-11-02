@@ -11,7 +11,6 @@ namespace inner_cabling_functions {
 
   // Phi-related free functions (IT cabling map related).
   const int computePhiUnitRef(const double phi, const int numPhiUnits, const bool isPositiveZEnd);
-  const int computePhiUnitRefTBPXL3(const double phi, const int numPhiUnits, const bool isPositiveZEnd);
   const double computePhiFromMinY(const double phi, const bool isPositiveZEnd);
   const double computeStereoPhi(const double phi, const bool isPositiveZEnd);
   const double computePhiUnitWidth(const int numPhiUnits);

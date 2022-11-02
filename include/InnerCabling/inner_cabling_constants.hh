@@ -14,8 +14,6 @@ static const int inner_cabling_maxNumModulesPerPowerChain = 12;
 static const int inner_cabling_maxNumELinksPerGBT = 7;
 // Maximum number of modules per GBT
 static const int inner_cabling_maxNumModulesPerGBT = 6;
-// Maximum number of modules per GBT in TBPXl4
-static const int inner_cabling_maxNumModulesPerGBTBarrelLayer4 = 3;
 // Maximum number of GBTs per bundle
 static const int inner_cabling_maxNumGBTsPerBundle = 12;
 // Maximum number of bundles per cable
