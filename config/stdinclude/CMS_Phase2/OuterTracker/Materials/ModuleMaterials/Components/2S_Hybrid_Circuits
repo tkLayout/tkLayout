@@ -34,38 +34,38 @@ Component {
   //FEH CFRP stiffener top
   Element {
     elementName CFRP
-    quantity 4.146   // FEH-L: V = 1327.8998 mm^3
-    unit g
+    quantity 2655.7996 // FEH-L: V = 1327.8998 mm^3
+    unit mm3
   }
   // FEH compensator top
   Element {
-    elementName <unknown>
-    quantity <unknown>   // FEH-L: V = 398.6725 mm^3
-    unit g
+    elementName PyraluxLF
+    quantity 797.3450 // FEH-L: V = 398.6725 mm^3
+    unit mm3
   }
   //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
-    quantity 0.786   // FEH-L: V = 281.0697 mm^3
-    unit g
+    quantity 562.1394 // FEH-L: V = 281.0697 mm^3
+    unit mm3
   }
   // FEH compensator fold-over
   Element {
-    elementName <unknown>
-    quantity <unknown>   // FEH-L: V = 101.7001 mm^3
-    unit g
+    elementName PyraluxLF
+    quantity 203.4002 // FEH-L: V = 101.7001 mm^3
+    unit mm3
   }
   // FEH glue
   Element {
     elementName Epoxy
-    quantity 0.095   // FEH-L: V = 270.7285 mm^3 (flex - glue - CFRP - glue - comp. for top and fold-over)
-    unit g
+    quantity 541.4570 // FEH-L: V = 270.7285 mm^3 (flex - glue - CFRP - glue - comp. for top and fold-over)
+    unit mm3
   }
   // FEH glue
   Element {
     elementName Epoxy_TC437
-    quantity 0.089   // V = XYZ mm^3 (bridges - glue - FEH stiffener)
-    unit g
+    quantity 12.9100 // V = 4 x 3.2275 mm^3 (bridges - glue - FEH stiffener)
+    unit mm3
   }
   
 }
@@ -78,26 +78,26 @@ Component {
   //SEH CFRP stiffener
   Element {
     elementName CFRP
-    quantity 1.146   // V = 734.3982 mm^3
-    unit g
+    quantity 734.3982 // V = 734.3982 mm^3
+    unit mm3
   }
   // SEH compensator
   Element {
-    elementName <unknown>
-    quantity <unknown>   // V = 210.1235 mm^3
-    unit g
+    elementName PyraluxLF
+    quantity 210.1235 // V = 104.9149 mm^3 + 105.2086 mm^3 = 210.1235 mm^3
+    unit mm3
   }
   //SEH glue
   Element {
     elementName Epoxy
-    quantity 0.089   // V = XYZ mm^3 (glue within SEH)
-    unit g
+    quantity 134.7673 // V = 134.7673 mm^3 (glue within SEH)
+    unit mm3
   }
   //SEH glue
   Element {
     elementName Epoxy_TC437
-    quantity 0.089   // V = XYZ mm^3 (bridges - glue - SEH stiffener)
-    unit g
+    quantity 8.7473   // V = 2 x 2.9337 mm^3 + 2.8800 mm^3 = 8.7473 mm^3 (bridges - glue - SEH stiffener)
+    unit mm3
   }
   //SEH copper
   Element {

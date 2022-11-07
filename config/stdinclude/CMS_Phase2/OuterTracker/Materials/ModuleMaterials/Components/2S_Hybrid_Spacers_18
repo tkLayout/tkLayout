@@ -7,7 +7,7 @@ Component {
   //FEH glue 1.8 mm
   Element {
     elementName Epoxy
-    quantity 0.504   // V = 25.3547 mm^3 (between folded stiffeners)
-    unit g
+    quantity 50.7094 // V = 2 x 25.3547 mm^3 = 50.7094 mm^3 (between folded stiffeners)
+    unit mm3
   }
 }

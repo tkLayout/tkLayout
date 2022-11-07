@@ -8,18 +8,18 @@ Component {
   targetVolume 0
   Element {
     elementName CFRP // Volume of complete base plate is 1290.9417 mm^3
-    quantity 1.295   // V = 190.0615 mm^3 + 187.3802 mm^3 = 377.4417 mm^3
-    unit g
+    quantity 377.4417 // V = 190.0615 mm^3 + 187.3802 mm^3 = 377.4417 mm^3
+    unit mm3
   }
   Element {
     elementName Epoxy_601LV
-    quantity 0.0  // V = 2 x 0.8663 mm^3 + 0.6283 mm^3 = 2.3609 mm^3
-    unit g
+    quantity 2.3609 // V = 2 x 0.8663 mm^3 + 0.6283 mm^3 = 2.3609 mm^3
+    unit mm3
   }
   Element {
     elementName EN_AW-7075 // AlZn5,5MgCu - 3.4365
-    quantity 0.0  // V = 2 x 3.6168 mm^3 + 3.7412 mm^3 = 10.9748 mm^3
-    unit g
+    quantity 10.9748 // V = 2 x 3.6168 mm^3 + 3.7412 mm^3 = 10.9748 mm^3
+    unit mm3
   }
 }
 
@@ -31,18 +31,18 @@ Component {
   targetVolume 8
   Element {
     elementName CFRP // Volume of complete base plate is 1290.9417 mm^3
-    quantity 1.195   // V = 913.5000 mm^3
-    unit g
+    quantity 913.5000 // V = 913.5000 mm^3
+    unit mm3
   }
   Element {
     elementName Kapton
-    quantity 0.141   // V = 116.2625 mm^3
-    unit g
+    quantity 116.2625 // V = 116.2625 mm^3
+    unit mm3
   }
   Element {
     elementName Epoxy_601LV
-    quantity 0.141   // V = 112.6575 mm^3 + 114.6371 mm^3 = 227.2946 mm^3
-    unit g
+    quantity 227.2946 // V = 112.6575 mm^3 + 114.6371 mm^3 = 227.2946 mm^3
+    unit mm3
   }
 }
 

@@ -31,20 +31,20 @@ Component {
   //FEH CFRP stiffener top
   Element {
     elementName CFRP
-    quantity 2.140   // FEH-L: V = 634.0936 mm^3
-    unit g
+    quantity 1268.1872 // FEH-L: V = 634.0936 mm^3
+    unit mm3
   }
   //FEH CFRP stiffener fold-over
   Element {
     elementName CFRP
-    quantity 1.499   // FEH-L: V = 500.7399 mm^3
-    unit g
+    quantity 1001.4798 // FEH-L: V = 500.7399 mm^3
+    unit mm3
   }
   // FEH glue
   Element {
     elementName Epoxy
-    quantity 0.095   // FEH-L: V = 103.1391 mm^3 (flex - glue - CFRP top/fold-over)
-    unit g
+    quantity 103.1391 // FEH-L: V = 103.1391 mm^3 (flex - glue - CFRP top/fold-over)
+    unit mm3
   }
 }
 
@@ -56,20 +56,20 @@ Component {
   // ROH CFRP stiffener
   Element {
     elementName CFRP
-    quantity 0.247 // V = 356.5467 mm^3
-    unit g
+    quantity 356.5467 // V = 356.5467 mm^3
+    unit mm3
   }
   // ROH compensator
   Element {
-    elementName <unknown>
-    quantity <unknown> // V = 130.0335 mm^3
-    unit g
+    elementName PyraluxLF
+    quantity 130.0335 // V = 130.0335 mm^3
+    unit mm3
   }
   // ROH glue
   Element {
     elementName Epoxy
-    quantity 0.095   // V = 32.4133 mm^3 (comp. - glue - CFRP - glue - flex)
-    unit g
+    quantity 32.4133 // V = 32.4133 mm^3 (comp. - glue - CFRP - glue - flex)
+    unit mm3
   }
   // ROH copper
   Element {
@@ -94,20 +94,20 @@ Component {
   // POH FR4 stiffener
   Element {
     elementName FR4
-    quantity 0.247 // V = 198.3447 mm^3
-    unit g
+    quantity 198.3447 // V = 198.3447 mm^3
+    unit mm3
   }
   // POH glue
   Element {
     elementName Epoxy
-    quantity 0.095   // V = 17.2154 mm^3 (FR4 - glue - flex)
-    unit g
+    quantity 17.2154 // V = 17.2154 mm^3 (FR4 - glue - flex)
+    unit mm3
   }
   // POH glue
   Element {
     elementName Epoxy_TC437
-    quantity 0.095   // V = 17.2154 mm^3 (BP - glue - FR4)
-    unit g
+    quantity 17.2154 // V = 17.2154 mm^3 (BP - glue - FR4)
+    unit mm3
   }
   // POH copper
   Element {
@@ -126,7 +126,7 @@ Component {
   Element {
     targetVolume 7
     elementName PS_POH_Polyimide
-    quantity 2.419   // V = 201.7204 mm^3
-    unit g
+    quantity 201.7204 // V = 201.7204 mm^3
+    unit mm3
   }
 }

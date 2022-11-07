@@ -9,21 +9,21 @@ Component {
   //1.6mm spacer
   Element {
     elementName AlN
-    quantity 1.120   // for 4 spacers: V = 314.0667 mm^3
-    unit g
+    quantity 314.0667 // for 4 spacers: V = 314.0667 mm^3
+    unit mm3
   }
 
   //Spacer glue 1.6 mm top (between PSs and spacers)
   Element {
     elementName Epoxy_601LV
-    quantity 0.163   // for 4 spacers: V = 19.6292 mm^3
-    unit g
+    quantity 19.6292 // for 4 spacers: V = 19.6292 mm^3
+    unit mm3
   }
 
   //Spacer glue 1.6 mm bottom (between MPAs and spacers)
   Element {
     elementName Epoxy_TC437
-    quantity 0.163   // for 4 spacers: V = 19.6292 mm^3
-    unit g
+    quantity 19.6292 // for 4 spacers: V = 19.6292 mm^3
+    unit mm3
   }
 }

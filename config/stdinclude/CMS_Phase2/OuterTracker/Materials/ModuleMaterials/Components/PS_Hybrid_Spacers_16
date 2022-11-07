@@ -7,22 +7,22 @@ Component {
   //FEH spacer 1.6 mm
   Element {
     elementName AlN
-    quantity 0.240   // FEH-L: V = 51.9889 mm^3 (2 x corner)
-    unit g
+    quantity 103.9778 // FEH-L: V = 51.9889 mm^3 (2 x corner)
+    unit mm3
   }
 
   //FEH glue 1.6 mm
   Element {
     elementName Epoxy
-    quantity 0.260   // FEH-L: V = 2.2030 mm^3 (2 x corner top) + 45.3437 mm^3 (1 x middle)
-    unit g
+    quantity 95.0934 // FEH-L: V = 2.2030 mm^3 (2 x corner top) + 45.3437 mm^3 (1 x middle) = 47.5467 mm^3
+    unit mm3
   }
 
   //FEH glue 1.6 mm
   Element {
     elementName Epoxy_TC437
-    quantity 0.260   // FEH-L: V = 2.2030 mm^3 (2 x corner bottom; BP - glue - corner spacer)
-    unit g
+    quantity 4.406 // FEH-L: V = 2.2030 mm^3 (2 x corner bottom; BP - glue - corner spacer)
+    unit mm3
   }
 }
 
@@ -33,21 +33,21 @@ Component {
   //ROH glue 1.6 mm
   Element {
     elementName Epoxy
-    quantity 0.061   // top and bottom: V = 4.4243 mm^3 (ROH spacer - glue - compensator)
-    unit g
+    quantity 4.4243 // top and bottom: V = 4.4243 mm^3 (ROH spacer - glue - compensator)
+    unit mm3
   }
 
   //ROH glue 1.6 mm
   Element {
     elementName Epoxy_TC437
-    quantity 0.061   // top and bottom: V = 4.4243 mm^3 (BP - glue - ROH spacer)
-    unit g
+    quantity 4.4243 // top and bottom: V = 4.4243 mm^3 (BP - glue - ROH spacer)
+    unit mm3
   }
 
   //ROH spacer 1.6 mm
   Element {
     elementName AlN
-    quantity 0.300   // V = 96.0000 mm^3
-    unit g
+    quantity 96.0000 // V = 96.0000 mm^3
+    unit mm3
   }
 }
