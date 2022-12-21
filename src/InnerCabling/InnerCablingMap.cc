@@ -68,7 +68,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
     const int numGBTsInPowerChain = gbtsInPowerChain.first;
     const double numModulesPerGBTExact = gbtsInPowerChain.second;
     myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
-    const bool isSplitOverRings = myPowerChain->isSplitOverRings(); //In this case we have to compute the correct lpGBT assignment in a more hacky way
+    const bool isSplitOverRings = myPowerChain->isSplitOverRings(); //If isSplitOverRings is true the power chain covers multiple rings; in that case we need a more hacky way to compute the correct lpGBT assignment
    
     const int powerChainId = myPowerChain->myid();
     const bool isLongBarrel = myPowerChain->isLongBarrel();

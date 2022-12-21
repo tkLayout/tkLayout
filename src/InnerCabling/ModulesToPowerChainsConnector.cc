@@ -38,7 +38,6 @@ void ModulesToPowerChainsConnector::visit(BarrelModule& m) {
 
   const int phiUnitRef = inner_cabling_functions::computePhiUnitRef(rodPhi_, halfNumRods, isPositiveZEnd);
   const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
-  //const int modulePhiRefInPowerChain = femod(inner_cabling_functions::computePhiUnitRef(rodPhi_, numRods_, isPositiveZEnd), 2);
   m.setPhiRefInPowerChain(modulePhiRefInPowerChain);
 
   // BUILD POWER CHAIN IF NECESSARY, AND CONNECT MODULE TO POWER CHAIN
@@ -187,19 +186,6 @@ const std::pair<int, int> ModulesToPowerChainsConnector::computeForwardModulePhi
       modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain; 
     }
   }
-
-
-  /*if (isTEPXSpecialRing) {
-    const int numModulesInPowerChain = numModulesInRingQuarter / 2;
-    if (phiUnitRef < (numModulesInPowerChain - 1) ) { // powerChainPhiRef starts numbering from 0
-      powerChainPhiRef = 0;
-      modulePhiRefInPowerChain = phiUnitRef; 
-    } 
-    else { 
-      powerChainPhiRef = 1; 
-      modulePhiRefInPowerChain = phiUnitRef - numModulesInPowerChain + 1; 
-    }
-  }*/
 
   return std::make_pair(powerChainPhiRef, modulePhiRefInPowerChain);
 }
