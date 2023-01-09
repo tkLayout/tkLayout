@@ -22,7 +22,7 @@ class PowerChain : public PropertyObject, public Buildable, public Identifiable<
   typedef std::vector<Module*> Container; 
 
 public:
-  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee);
+  PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing);
 
   // MODULES CONNECTED TO THE POWER CHAIN.
   const Container& modules() const { return modules_; }
@@ -53,6 +53,7 @@ public:
 
   const bool isBarrel() const { return isBarrel_; }
   const int ringNumber() const { return ringNumber_; }
+  const bool isSplitOverRings() const { return isSplitOverRings_; }
   const bool isSmallerAbsZHalfRing() const { return isSmallerAbsZHalfRing_; }
 
   const bool isLongBarrel() const {
@@ -88,6 +89,7 @@ private:
   
   bool isBarrel_;
   int ringNumber_;
+  bool isSplitOverRings_; 
   bool isSmallerAbsZHalfRing_;
 
   int plotColor_;
