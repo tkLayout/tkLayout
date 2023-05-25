@@ -1,0 +1,46 @@
+// 1x2 chips pixel module (25um x 100um), 3D sensor
+// Chip size 16.8 x 21.6
+moduleType pixel_1x2_25x100_wide_2sens_3D  // pixel modules should always have a type starting with keyword 'pixel_'
+
+// Active silicon size
+// (includes space between chips 0.25mm)
+width 16.8
+length 43.65
+
+numSensors 2
+zCorrelation samesegment
+
+powerPerModule 0 // mW
+
+sensorThickness 0.150
+hybridThickness 0.5
+chipThickness 0.5
+
+offsetForSensors 11.025
+centralDeadAreaLength 0.45
+
+deadAreaExtraLength 0.175
+deadAreaExtraWidth 0.175
+chipNegativeXExtraWidth 0.0   
+chipPositiveXExtraWidth 1.0
+
+Sensor 1 {
+  sensorType pixel
+  pitchEstimate 0.025
+  stripLengthEstimate 0.100
+  numROCX 1 
+  numROCY 1
+  powerPerChannel 0.0 // mW
+}
+
+Sensor 2 {
+  sensorType pixel
+  pitchEstimate 0.025
+  stripLengthEstimate 0.100
+  numROCX 1 
+  numROCY 1
+  powerPerChannel 0.0 // mW
+}
+
+
+plotColor 7  // dark green

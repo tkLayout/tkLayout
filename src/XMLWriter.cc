@@ -227,6 +227,8 @@ namespace insur {
 	// (only for OT)
 	if (!isPixelTracker) specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
 
+        if (isPixelTracker) specPar(trackerXmlTags.topo_bmodulecomb_name, t, out, trackerXmlTags);
+
         // Add Endcaps
 	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
 	out << xml_spec_par_selector;
@@ -292,6 +294,35 @@ namespace insur {
 	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_upper_detectors << xml_spec_par_parameter_second << xml_true;
 	  out << xml_spec_par_close;
 	}
+
+	if (isPixelTracker) {
+	  // Add OneDetectors
+	  out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_one_detectors << xml_par_tail << xml_general_inter;
+	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	  if (pos != -1) {
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_one) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
+	  }
+	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_one_detectors << xml_spec_par_parameter_second << xml_true;
+	  out << xml_spec_par_close;
+
+	  // Add TwoDetectors
+	  out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_two_detectors << xml_par_tail << xml_general_inter;
+	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	  if (pos != -1) {
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_two) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
+	  }
+	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_two_detectors << xml_spec_par_parameter_second << xml_true;
+	  out << xml_spec_par_close;
+	}
+
 		
 	//Write specPar blocks for ROC parameters 
 	//TOB

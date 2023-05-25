@@ -218,7 +218,7 @@ public:
       chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
-      centralDeadAreaLength    ("centralDeadAreaLength"   , parsedOnly(),0.),
+      centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
