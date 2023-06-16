@@ -148,11 +148,13 @@ public:
   Property<double, AutoDefault> chipNegativeXExtraWidth;
   Property<double, AutoDefault> chipPositiveXExtraWidth;
   Property<double, AutoDefault> outerSensorExtraLength;
+  Property<double, Default> centralDeadAreaLength;
 
   Property<bool, Default> removeModule;
 
   Property<double, Default> yawAngleFromConfig;
   Property<double, Default> manualRhoCentre;
+  Property<double, Default> offsetForSensors;
 
   const std::string subdetectorName() const { return subdetectorName_; }
   void subdetectorId(const int id) { subdetectorId_ = id; }
@@ -216,9 +218,11 @@ public:
       chipNegativeXExtraWidth  ("chipNegativeXExtraWidth"  , parsedOnly()),
       chipPositiveXExtraWidth  ("chipPositiveXExtraWidth"  , parsedOnly()),
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
+      centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
+      offsetForSensors         ("offsetForSensors"         , parsedOnly(), 0),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
       subdetectorName_         (subdetectorName),
       sensorNode               ("Sensor"                   , parsedOnly())
