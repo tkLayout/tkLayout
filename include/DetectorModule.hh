@@ -154,7 +154,7 @@ public:
 
   Property<double, Default> yawAngleFromConfig;
   Property<double, Default> manualRhoCentre;
-  Property<double, Default> offsetForSensors;
+  Property<double, Default> offsetForSensors; //offset from centre (in local y): used in cases where a module has two sensors that are explicitly placed separately
 
   const std::string subdetectorName() const { return subdetectorName_; }
   void subdetectorId(const int id) { subdetectorId_ = id; }
