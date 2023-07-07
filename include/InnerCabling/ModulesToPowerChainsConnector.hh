@@ -4,6 +4,7 @@
 #include <global_constants.hh>
 #include "global_funcs.hh"
 #include "InnerCabling/inner_cabling_functions.hh"
+#include "InnerCabling/inner_cabling_constants.hh"
 #include "InnerCabling/HvLine.hh"
 
 
@@ -32,12 +33,12 @@ private:
   const bool computeXSide(const double modCenterX) const;
   const std::pair<bool, bool> computeBarrelModuleZEnd(const int side, const int ring, const int layerNumber) const;
   const bool computeBarrelCentralModuleZEnd(const int layerNumber) const;
-  const std::pair<int, int> computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd) const;
+  const std::pair<int, int> computeForwardModulePhiPowerChain(const double modPhi, const int numModulesInRing, const bool isPositiveZEnd, const bool isTEPXSpecialRing) const;
 
   // BUILDING POWER CHAIN
-  void buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel = false, const int halfRingIndex = 0, const bool isAtSmallerAbsZDeeInDoubleDisk = false, const bool isAtSmallerAbsZSideInDee = false);
+  void buildPowerChain(DetectorModule& m, std::map<int, PowerChain*>& powerChains, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel = false, const int halfRingIndex = 0, const bool isAtSmallerAbsZDeeInDoubleDisk = false, const bool isAtSmallerAbsZSideInDee = false, const bool isTEPXSpecialRing = false);
   const int computePowerChainId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int halfRingIndex) const;
-  PowerChain* createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee);
+  PowerChain* createAndStorePowerChain(std::map<int, PowerChain*>& powerChains, const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing);
   void connectModuleToPowerChain(DetectorModule& m, PowerChain* powerChain) const;
 
   // CHECKING POWER CHAIN

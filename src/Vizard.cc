@@ -8292,6 +8292,16 @@ namespace insur {
 		  ); 
 	} );
       zphiBarrelDashedDrawerPos.drawModules<DashedStyle>(*ZPhiCanvasPos.get());
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelHatchedDrawerPos;
+      zphiBarrelHatchedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 3) // dashed style
+		  ); 
+	} );
+      zphiBarrelHatchedDrawerPos.drawModules<HatchedStyle>(*ZPhiCanvasPos.get());
+
 
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasPos));
       // NEGATIVE X SIDE
@@ -8330,6 +8340,16 @@ namespace insur {
 		  ); 
 	} );
       zphiBarrelDashedDrawerNeg.drawModules<DashedStyle>(*ZPhiCanvasNeg.get());
+      PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelHatchedDrawerNeg;
+      zphiBarrelHatchedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+	  return (m.subdet() == BARREL 
+		  && m.uniRef().layer == layerNumber
+		  && !m.isPositiveXSide()
+		  && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 3) // hatched style
+		  ); 
+	} );
+      zphiBarrelHatchedDrawerNeg.drawModules<HatchedStyle>(*ZPhiCanvasNeg.get());
+
       ZPhiLayerPlots.push_back(std::move(ZPhiCanvasNeg));
     }
 
@@ -8369,8 +8389,25 @@ namespace insur {
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
+	      //drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      //XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskDashedDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 2)
+			   );
+		} );
+	      xyDiskDashedDrawer.drawModules<DashedStyle>(*XYSurfaceDisk.get());
+	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskHatchedDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 3)
+			   );
+		} );
+	      xyDiskHatchedDrawer.drawModules<HatchedStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
+
 	    }
 	    // (+Z) towards you
 	    else {
@@ -8384,7 +8421,7 @@ namespace insur {
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 2) == 0)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 0)
 			   );
 		} );
 	      xyDiskFillDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get()); // Call once and first.
@@ -8394,10 +8431,25 @@ namespace insur {
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
 	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
 		  return ( (m.subdet() == ENDCAP)
-			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 2) == 1)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 1)
 			   );
 		} );
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
+	      //drawFrameOfReference(isRotatedY180, forwardScalingFactor);
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskDashedDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 2)
+			   );
+		} );
+	      xyDiskDashedDrawer.drawModules<DashedStyle>(*XYSurfaceDisk.get());
+	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskHatchedDrawer(forwardViewPort, forwardViewPort);
+	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+		  return ( (m.subdet() == ENDCAP)
+			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 3)
+			   );
+		} );
+	      xyDiskHatchedDrawer.drawModules<HatchedStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	    }

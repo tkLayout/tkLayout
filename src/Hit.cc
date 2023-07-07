@@ -195,6 +195,7 @@ void Hit::fillModuleLocalResolutionStats() {
 void Hit::setHitPassiveElement(const insur::InactiveElement* myPassiveElem) {
 
   if (myPassiveElem) m_hitPassiveElem = myPassiveElem;
+  else m_hitPassiveElem = nullptr;
   //else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");
 }
 
