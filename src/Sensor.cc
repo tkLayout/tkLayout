@@ -20,9 +20,21 @@ double Sensor::sensorNormalOffset() const {
   return offset;
 }
 
+double Sensor::sensorXOffset() const {
+  double offset;
+  if (parent_->numSensors() <= 1) offset = 0.;
+  else {
+    if (myid() == 1) offset = -parent_->offsetForSensors();
+    else offset = parent_->offsetForSensors();
+  }
+  return offset;
+}
+
+
 const Polygon3d<4>& Sensor::hitPoly() const {
   double offset = sensorNormalOffset();
-  if (hitPoly_ == 0) hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset);
+  double xOffset = sensorXOffset();
+  if (hitPoly_ == 0) hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset, xOffset);
   return *hitPoly_;
 }
 

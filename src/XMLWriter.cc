@@ -227,6 +227,8 @@ namespace insur {
 	// (only for OT)
 	if (!isPixelTracker) specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
 
+        if (isPixelTracker) specPar(trackerXmlTags.topo_bmodulecomb_name, t, out, trackerXmlTags);
+
         // Add Endcaps
 	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
 	out << xml_spec_par_selector;
@@ -292,6 +294,51 @@ namespace insur {
 	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_upper_detectors << xml_spec_par_parameter_second << xml_true;
 	  out << xml_spec_par_close;
 	}
+
+	if (isPixelTracker) {
+	  // Add OneDetectors
+	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	  if (pos != -1) {
+            int thePartSelCounter = 0;//First check if we have contents to include here
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+              if (t.at(pos).partselectors.at(i).find(xml_base_one) != std::string::npos) {
+                thePartSelCounter+=1;
+              }
+            }
+            if (thePartSelCounter > 0 ){//Otherwise we'd end up writing out a block without contents
+              out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_one_detectors << xml_par_tail << xml_general_inter;
+	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	        if (t.at(pos).partselectors.at(i).find(xml_base_one) != std::string::npos) {
+                  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                }
+               }
+               out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_one_detectors << xml_spec_par_parameter_second << xml_true;
+               out << xml_spec_par_close;
+            }
+	  }
+
+	  // Add TwoDetectors
+	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	  if (pos != -1) {
+            unsigned int thePartSelCounter = 0 ;//First check if we have contents to include here
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+              if (t.at(pos).partselectors.at(i).find(xml_base_two) != std::string::npos) {
+                 thePartSelCounter+=1;
+               }
+            }
+            if(thePartSelCounter > 0 ){ //Otherwise we'd end up writing out a block without contents
+              out << xml_spec_par_open << trackerXmlTags.trackerLong << xml_subdet_two_detectors << xml_par_tail << xml_general_inter;
+              for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                if (t.at(pos).partselectors.at(i).find(xml_base_two) != std::string::npos) {
+                  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                }
+              }
+              out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_two_detectors << xml_spec_par_parameter_second << xml_true;
+              out << xml_spec_par_close;
+            }
+	  }
+	}
+
 		
 	//Write specPar blocks for ROC parameters 
 	//TOB

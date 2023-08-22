@@ -575,7 +575,7 @@ namespace insur {
 
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={};
-    SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, mspec;    
+    SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, otcspec, mspec;    
     // Layer
     lspec.name = trackerXmlTags.topo_layer_name + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
@@ -596,6 +596,10 @@ namespace insur {
     sspec.name = trackerXmlTags.topo_bmodule_name + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
     sspec.parameter.second =  trackerXmlTags.topo_bmodule_value;
+    // Module 'stack' when there are two sensors in 3D module
+    otcspec.name = trackerXmlTags.topo_bmodulecomb_name + xml_par_tail;
+    otcspec.parameter.first = xml_tkddd_structure;
+    otcspec.parameter.second = trackerXmlTags.topo_bmodulecomb_value;
     // Module detectors
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
@@ -952,7 +956,11 @@ namespace insur {
 	      // For SolidSection in tracker.xml : module's box shape
 	      shape.name_tag = mname.str();
 	      shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
-	      shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+              //if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+              //    shape.dy = modcomplex.getExpandedModuleLengthPixelDoubleSens()/2.0;
+              //} else {
+                  shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+              //}
 	      shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
 	      s.push_back(shape);
 	    
@@ -1062,15 +1070,25 @@ namespace insur {
 		sspec.partselectors.push_back(mnameNeg.str());
 		sspec.moduletypes.push_back(minfo_zero);
 	      }
+
+
+             if(iiter->getModule().numSensors()==2){
+               otcspec.partselectors.push_back(mname.str());
+               otcspec.moduletypes.push_back(minfo_zero);
+             }
 	      
 
 
 	      // WAFER
 	      string xml_base_lowerupper = "";
-	      if (iiter->getModule().numSensors() == 2) {
+	      if (iiter->getModule().numSensors() == 2 && !iiter->getModule().isPixelModule()) {
 		xml_base_lowerupper = xml_base_lower;
 		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	      }	    
+              else if (iiter->getModule().numSensors() == 2 && iiter->getModule().isPixelModule()){
+                xml_base_lowerupper = xml_base_one;
+                shape.name_tag = mname.str()+xml_InnerPixel+xml_base_lowerupper+xml_base_waf;
+              }
 	      else {
 		if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_InnerPixel + xml_base_waf;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_waf;
@@ -1081,6 +1099,11 @@ namespace insur {
 	      shape.name_tag = shape.name_tag;
 	      shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	      shape.dy = iiter->getModule().length() / 2.0;
+             //When we have two sensors, need an additional factor 2 to account for the fact that there are two sensors. NB centralDeadAreaLength is the central dead area + the air gap
+              if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+                    shape.dy = (iiter->getModule().length() - iiter->getModule().centralDeadAreaLength()+iiter->getModule().outerSensorExtraLength())/4.0;
+              }
+
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0;
 	      s.push_back(shape);   
 
@@ -1093,7 +1116,7 @@ namespace insur {
 	      // PosPart section
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
-	      pos.trans.dx = 0.0;
+	      pos.trans.dy = -iiter->getModule().offsetForSensors();
 	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
 	      p.push_back(pos);
 
@@ -1109,13 +1132,14 @@ namespace insur {
 		p.push_back(pos);
 	      }
 
-	      if (iiter->getModule().numSensors() == 2) {
+	      if (iiter->getModule().numSensors() == 2 && !iiter->getModule().isPixelModule()) {
 
 		xml_base_lowerupper = xml_base_upper;
 
 		// SolidSection
 		shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 		shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
+
 		s.push_back(shape);
 
 		// LogicalPartSection
@@ -1125,6 +1149,7 @@ namespace insur {
 
 		// PosPart section
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+	        pos.trans.dy = iiter->getModule().offsetForSensors();
 		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
 		//pos.copy = 2;
 
@@ -1147,26 +1172,69 @@ namespace insur {
 		rot.thetay = 0.0;
 		rot.phiy = 0.0;
 		pos.copy = 1;
-	      }
+	      } else if (iiter->getModule().numSensors()==2 && iiter->getModule().isPixelModule()){
+		xml_base_lowerupper = xml_base_two;
 
+
+
+		// SolidSection
+                shape.name_tag = mname.str()+xml_InnerPixel+xml_base_lowerupper+xml_base_waf;
+                //When we have two sensors, need an additional factor 2 to account for the fact that there are two sensors. NB centralDeadAreaLength is the central dead area + the air gap
+		shape.dy = (iiter->getModule().length() - iiter->getModule().centralDeadAreaLength() + iiter->getModule().outerSensorExtraLength()) / 4.0; 
+		s.push_back(shape);
+
+		// LogicalPartSection
+		logic.name_tag = shape.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		l.push_back(logic);
+
+		// PosPart section
+		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+	        pos.trans.dy = iiter->getModule().offsetForSensors();
+		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
+		//pos.copy = 2;
+
+		if (iiter->getModule().stereoRotation() != 0) {
+		  rot.name = type_stereo + mname.str();
+		  rot.thetax = 90.0;
+		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
+		  rot.thetay = 90.0;
+		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
+		}
+		p.push_back(pos);
+
+		// Now reset
+		pos.rotref.clear();
+		rot.name.clear();
+		rot.thetax = 0.0;
+		rot.phix = 0.0;
+		rot.thetay = 0.0;
+		rot.phiy = 0.0;
+		pos.copy = 1;
+              }
 
 	      // ACTIVE SURFACE
 	      xml_base_lowerupper = "";
 	      if ( !iiter->getModule().isTimingModule()) {
-		if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
-
+		if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = iiter->getModule().isPixelModule() ? xml_base_one :  xml_base_lower;
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 		else if (iiter->getModule().isPixelModule()) {
-		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
-		  else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
+		  if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_lowerupper + xml_base_Act; }
+		  else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act + xml_base_lowerupper; }
 		}
 		else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	    
 		// SolidSection
 		shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 		shape.dy = iiter->getModule().length() / 2.0;
+                //When we have two sensors, need an additional factor 2 to account for the fact that there are two sensors. NB centralDeadAreaLength is the central dead area + the air gap
+                if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+                    shape.dy = (iiter->getModule().length() - iiter->getModule().centralDeadAreaLength() + iiter->getModule().outerSensorExtraLength())/4.0;
+                }
 		shape.dz = iiter->getModule().sensorThickness() / 2.0;
 		s.push_back(shape);   
 
@@ -1177,13 +1245,15 @@ namespace insur {
 		l.push_back(logic);
 
 		// PosPart section
-		if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		if (iiter->getModule().numSensors() == 2 && !iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+                else if (iiter->getModule().numSensors() == 2 && iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() +xml_InnerPixel+ xml_base_lowerupper + xml_base_waf;
 		else {
 		  if (iiter->getModule().isTimingModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_timing + xml_base_waf;
 		  else if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_InnerPixel + xml_base_waf;
 		  else { std::cerr << "Positioning active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		}
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+                pos.trans.dy = 0.0;
 		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
 		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
@@ -1196,19 +1266,30 @@ namespace insur {
                 minfo.bricked   = iiter->getModule().innerSensor().isBricked();
 		minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
 		minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
+                if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+                    minfo.roccols = any2str<int>(iiter->getModule().innerSensor().numROCCols()/2-2); //Hack for double-sensor modules (pix 3D). This could be made more general
+                }
 		minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 		minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
 		mspec.moduletypes.push_back(minfo);
 
 		if (iiter->getModule().numSensors() == 2) { 
 
-		  xml_base_lowerupper = xml_base_upper;
+		  xml_base_lowerupper = iiter->getModule().isPixelModule()? xml_base_two : xml_base_upper;
 
 		  // SolidSection
 		  if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		  else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+                  else if (iiter->getModule().isPixelModule()){
+                      if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_lowerupper + xml_base_Act; }
+                      else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act + xml_base_lowerupper; }
+                  }
 		  else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 		  shape.dy = (iiter->getModule().length() + iiter->getModule().outerSensorExtraLength()) / 2.0;
+                  //When we have two sensors, need an additional factor 2 to account for the fact that there are two sensors. NB centralDeadAreaLength is the central dead area + the air gap
+                  if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+                      shape.dy = (iiter->getModule().length() - iiter->getModule().centralDeadAreaLength() + iiter->getModule().outerSensorExtraLength())/4.0;
+                  }
 		  s.push_back(shape);
 
 		  // LogicalPartSection
@@ -1217,7 +1298,8 @@ namespace insur {
 		  l.push_back(logic);
 
 		  // PosPart section
-		  pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+                  if (iiter->getModule().isPixelModule()) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() +xml_InnerPixel+ xml_base_lowerupper + xml_base_waf;
+                  else pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		  pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
 		  pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
@@ -1229,6 +1311,9 @@ namespace insur {
                   minfo.bricked = iiter->getModule().outerSensor().isBricked();
 		  minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
 		  minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
+                  if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
+                      minfo.roccols = any2str<int>(iiter->getModule().outerSensor().numROCCols()/2-2); //Hack for double-sensor pixel modules (3D). This could be made more general
+                  }
 		  minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
 		  minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
 		  mspec.moduletypes.push_back(minfo);
@@ -2016,6 +2101,7 @@ namespace insur {
     if (!srspec.partselectors.empty()) t.push_back(srspec);
     if (!trspec.partselectors.empty()) t.push_back(trspec);
     if (!sspec.partselectors.empty()) t.push_back(sspec);
+    if (!otcspec.partselectors.empty()) t.push_back(otcspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
   
@@ -2389,7 +2475,7 @@ namespace insur {
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) {
 		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
-		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act + xml_base_lowerupper; }
 	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
@@ -3112,7 +3198,7 @@ namespace insur {
 	      else if (iiter->getModule().isTimingModule()) shape.name_tag = mname.str() + xml_timing + xml_base_act;
 	      else if (iiter->getModule().isPixelModule()) {
 		if (!iiter->getModule().is3DPixelModule()) { shape.name_tag = mname.str() + xml_InnerPixel + xml_base_Act; }
-		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act; }
+		else { shape.name_tag = mname.str() + xml_InnerPixel + xml_3D + xml_base_Act + xml_base_lowerupper; }
 	      }
 	      else { std::cerr << "Active surface : Unknown module type : " << iiter->getModule().moduleType() << "." << std::endl; }
 	      shape.dy = iiter->getModule().length() / 2.0;
@@ -4326,6 +4412,8 @@ namespace insur {
 
 
 
+
+
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
                                ModuleCap&  modcap        ) : modulecap(modcap),
@@ -4337,6 +4425,7 @@ namespace insur {
                                                              sensorDistance(module.dsDistance()),
 							     modWidth(module.area()/module.length()),
                                                              modLength(module.length() + module.outerSensorExtraLength()),
+                                                             modLengthDoubleSens(2*module.length() + module.outerSensorExtraLength()+module.centralDeadAreaLength()),
                                                              frontEndHybridWidth(module.frontEndHybridWidth()),
                                                              serviceHybridWidth(module.serviceHybridWidth()),
                                                              hybridThickness(module.hybridThickness()),
@@ -4344,6 +4433,7 @@ namespace insur {
                                                              chipThickness(module.chipThickness()),
 							     deadAreaExtraLength(module.deadAreaExtraLength()),
 							     deadAreaExtraWidth(module.deadAreaExtraWidth()),
+                                                             centralDeadAreaLength(module.centralDeadAreaLength()),
 							     chipNegativeXExtraWidth(module.chipNegativeXExtraWidth()),
 							     chipPositiveXExtraWidth(module.chipPositiveXExtraWidth()),
                                                              hybridTotalMass(0.),
@@ -4363,6 +4453,10 @@ namespace insur {
 															      frontEndHybridWidth,
 															      deadAreaExtraLength)
 									       ),
+                                                             expandedModLengthPixDoubleSens(ModuleComplexHelpers::computeExpandedModLength(modLengthDoubleSens,
+															      frontEndHybridWidth,
+															      deadAreaExtraLength)
+									       ),
 							     center(module.center()),
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
@@ -4375,7 +4469,7 @@ namespace insur {
     else {
       expandedModThickness = sensorThickness + 2.0 * MAX(chipThickness, hybridThickness);
       prefix_xmlfile = xml_PX_fileident + ":";
-      nTypes = 9;
+      nTypes = 11;
     }
   }
 
@@ -4596,10 +4690,15 @@ namespace insur {
       //Unused pointers
       vol[xml_PixelModuleNull] = 0;
       vol[xml_PixelModuleDeadArea] = 0;
+      vol[xml_PixelModuleDeadAreaFrontOfCentre] = 0;
+      vol[xml_PixelModuleDeadAreaBackOfCentre] = 0;
 
       // Hybrid Volume (Top Inactive)
       const double myHybridWidth = modWidth;
       const double myHybridLength = modLength;
+      /*if(module.numSensors()==2){
+          myHybridLength = modLengthDoubleSens;
+      }*/
       const double myHybridThickness = hybridThickness; 
       const double myHybridPosX = 0.;
       const double myHybridPosY = 0.;
@@ -4611,6 +4710,9 @@ namespace insur {
       // Dead area Right (Inactive silicon around sensor)
       const double myDeadAreaRightWidth = deadAreaExtraWidth;
       const double myDeadAreaRightLength = modLength;
+      /*if(module.numSensors()==2){
+          myDeadAreaRightLength = modLengthDoubleSens;
+      }*/
       const double myDeadAreaRightThickness = sensorThickness; 
       const double myDeadAreaRightPosX = (modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaRightPosY = 0.;
@@ -4618,6 +4720,8 @@ namespace insur {
       vol[xml_PixelModuleDeadAreaRight] = new Volume(moduleId + "DeadAreaRight", xml_PixelModuleDeadAreaRight, parentId, 
 					  myDeadAreaRightWidth, myDeadAreaRightLength, myDeadAreaRightThickness, 
 					  myDeadAreaRightPosX, myDeadAreaRightPosY, myDeadAreaRightPosZ);
+
+
 
       // Dead area Left (Inactive silicon around sensor)
       const double myDeadAreaLeftWidth = deadAreaExtraWidth;
@@ -4631,6 +4735,7 @@ namespace insur {
 					  myDeadAreaLeftPosX, myDeadAreaLeftPosY, myDeadAreaLeftPosZ);
 
 
+      
       // Dead area Front (Inactive silicon around sensor)
       const double myDeadAreaFrontWidth = modWidth + 2. * deadAreaExtraWidth;
       const double myDeadAreaFrontLength = deadAreaExtraLength;
@@ -4642,6 +4747,20 @@ namespace insur {
 					  myDeadAreaFrontWidth, myDeadAreaFrontLength, myDeadAreaFrontThickness, 
 					  myDeadAreaFrontPosX, myDeadAreaFrontPosY, myDeadAreaFrontPosZ);
 
+      // Dead area Front of centre (Inactive silicon around sensor)
+      if(module.numSensors()==2){
+        const double myDeadAreaFrontOfCentreWidth = modWidth + 2.* deadAreaExtraWidth;
+        const double myDeadAreaFrontOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
+        const double myDeadAreaFrontOfCentreThickness = sensorThickness; 
+        const double myDeadAreaFrontOfCentrePosX = 0.;
+        const double myDeadAreaFrontOfCentrePosY = (centralDeadAreaLength - deadAreaExtraLength) / 2.; //NB centralDeadAreaLength is total central dead area + air gap.
+        const double myDeadAreaFrontOfCentrePosZ = 0.;
+        vol[xml_PixelModuleDeadAreaFrontOfCentre] = new Volume(moduleId + "DeadAreaFrontOfCentre", xml_PixelModuleDeadAreaFrontOfCentre, parentId, 
+          					  myDeadAreaFrontOfCentreWidth, myDeadAreaFrontOfCentreLength, myDeadAreaFrontOfCentreThickness, 
+	        				  myDeadAreaFrontOfCentrePosX, myDeadAreaFrontOfCentrePosY, myDeadAreaFrontOfCentrePosZ);
+      }
+
+
       // Dead area Back (Inactive silicon around sensor)
       const double myDeadAreaBackWidth = modWidth + 2. * deadAreaExtraWidth;
       const double myDeadAreaBackLength = deadAreaExtraLength;
@@ -4652,6 +4771,22 @@ namespace insur {
       vol[xml_PixelModuleDeadAreaBack] = new Volume(moduleId + "DeadAreaBack", xml_PixelModuleDeadAreaBack, parentId, 
 					  myDeadAreaBackWidth, myDeadAreaBackLength, myDeadAreaBackThickness, 
 					  myDeadAreaBackPosX, myDeadAreaBackPosY, myDeadAreaBackPosZ);
+
+
+      // Dead area Back of centre (Inactive silicon around sensor)
+      if(module.numSensors()==2){
+        const double myDeadAreaBackOfCentreWidth = modWidth + 2*deadAreaExtraWidth;
+        const double myDeadAreaBackOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
+        const double myDeadAreaBackOfCentreThickness = sensorThickness; 
+        const double myDeadAreaBackOfCentrePosX = 0.;
+        const double myDeadAreaBackOfCentrePosY = -(centralDeadAreaLength - deadAreaExtraLength) / 2.; //NB centralDeadAreaLength is total central dead area + air gap
+        const double myDeadAreaBackOfCentrePosZ = 0.;
+        vol[xml_PixelModuleDeadAreaBackOfCentre] = new Volume(moduleId + "DeadAreaBackOfCentre", xml_PixelModuleDeadAreaBackOfCentre, parentId, 
+  		         			  myDeadAreaBackOfCentreWidth, myDeadAreaBackOfCentreLength, myDeadAreaBackOfCentreThickness, 
+	         				  myDeadAreaBackOfCentrePosX, myDeadAreaBackOfCentrePosY, myDeadAreaBackOfCentrePosZ);
+
+      }
+
 
       // Chip Volume (Bottom Inactive)
       const double myChipWidth = modWidth + chipNegativeXExtraWidth + chipPositiveXExtraWidth;
@@ -4705,6 +4840,12 @@ namespace insur {
     v[1] = module.center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[2] = module.center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[3] = module.center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
+    /*if(module.numSensors()==2){
+        v[0] = module.center() - expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
+        v[1] = module.center() - expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
+        v[2] = module.center() + expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
+        v[3] = module.center() + expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
+    }*/
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface
@@ -4890,7 +5031,9 @@ namespace insur {
 	else if ( el->targetVolume() != xml_PixelModuleHybrid &&
 		  el->targetVolume() != xml_PixelModuleChip &&
 		  el->targetVolume() != xml_PixelModuleDeadAreaRight && 
+		  el->targetVolume() != xml_PixelModuleDeadAreaFrontOfCentre && 
 		  el->targetVolume() != xml_PixelModuleDeadAreaLeft && 
+		  el->targetVolume() != xml_PixelModuleDeadAreaBackOfCentre && 
 		  el->targetVolume() != xml_PixelModuleDeadAreaFront && 
 		  el->targetVolume() != xml_PixelModuleDeadAreaBack && 
 		  el->targetVolume() != xml_PixelModuleDeadArea
@@ -4902,7 +5045,9 @@ namespace insur {
 	if ( el->targetVolume() == xml_PixelModuleHybrid   ||
 	     el->targetVolume() == xml_PixelModuleChip ||
 	     el->targetVolume() == xml_PixelModuleDeadAreaRight ||     
+	     el->targetVolume() == xml_PixelModuleDeadAreaFrontOfCentre ||     
 	     el->targetVolume() == xml_PixelModuleDeadAreaLeft ||
+	     el->targetVolume() == xml_PixelModuleDeadAreaBackOfCentre ||
 	     el->targetVolume() == xml_PixelModuleDeadAreaFront ||
 	     el->targetVolume() == xml_PixelModuleDeadAreaBack
 	     ) {
@@ -4917,16 +5062,34 @@ namespace insur {
 	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
+            if (module.numSensors()==2){
+            deadAreaTotalVolume_mm3 = vol[xml_PixelModuleDeadAreaRight]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
+	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
+            }
           }
 
           vol[xml_PixelModuleDeadAreaRight]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3);
           vol[xml_PixelModuleDeadAreaLeft]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);
+          if(module.numSensors()==2){
+            vol[xml_PixelModuleDeadAreaFrontOfCentre]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume()/deadAreaTotalVolume_mm3);
+            vol[xml_PixelModuleDeadAreaBackOfCentre]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume()/deadAreaTotalVolume_mm3);
+          }
+
+
           vol[xml_PixelModuleDeadAreaFront]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);
           vol[xml_PixelModuleDeadAreaBack]->addMaterial(el->elementName(), el->componentName(), el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
 
           // Uniform density distribution and consistent with total mass
           vol[xml_PixelModuleDeadAreaRight]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaRight]->getVolume()/deadAreaTotalVolume_mm3); 
           vol[xml_PixelModuleDeadAreaLeft]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaLeft]->getVolume()/deadAreaTotalVolume_mm3);   
+          if(module.numSensors()==2){
+            vol[xml_PixelModuleDeadAreaBackOfCentre]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume()/deadAreaTotalVolume_mm3); 
+            vol[xml_PixelModuleDeadAreaFrontOfCentre]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume()/deadAreaTotalVolume_mm3);   
+          }
           vol[xml_PixelModuleDeadAreaFront]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaFront]->getVolume()/deadAreaTotalVolume_mm3);   
           vol[xml_PixelModuleDeadAreaBack]->addMass(el->quantityInGrams(module)*vol[xml_PixelModuleDeadAreaBack]->getVolume()/deadAreaTotalVolume_mm3);
   	}
@@ -4949,6 +5112,10 @@ namespace insur {
       volumes.push_back(vol[xml_PixelModuleHybrid]);
       volumes.push_back(vol[xml_PixelModuleChip]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaRight]);
+     if(module.numSensors()==2){
+        volumes.push_back(vol[xml_PixelModuleDeadAreaBackOfCentre]);
+        volumes.push_back(vol[xml_PixelModuleDeadAreaFrontOfCentre]);
+     }
       volumes.push_back(vol[xml_PixelModuleDeadAreaLeft]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaFront]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaBack]);

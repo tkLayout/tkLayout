@@ -27,14 +27,14 @@ static const int inner_cabling_numELinksPerModuleBarrelLayer3 = 2;
 static const int inner_cabling_numELinksPerModuleBarrelLayer4 = 1;
 
 static const int inner_cabling_numELinksPerModuleForwardRing1 = 3;
-static const int inner_cabling_numELinksPerModuleForwardRing2 = 2;
+static const int inner_cabling_numELinksPerModuleForwardRing2 = 3;
 static const int inner_cabling_numELinksPerModuleForwardRing3 = 2;
-static const int inner_cabling_numELinksPerModuleForwardRing4 = 1;
+static const int inner_cabling_numELinksPerModuleForwardRing4 = 2;
 
-static const int inner_cabling_numELinksPerModuleEndcapRing1 = 3;
-static const int inner_cabling_numELinksPerModuleEndcapRing2 = 2;
-static const int inner_cabling_numELinksPerModuleEndcapRing3 = 1;
-static const int inner_cabling_numELinksPerModuleEndcapRing4 = 1;
+static const int inner_cabling_numELinksPerModuleEndcapRing1 = 4;
+static const int inner_cabling_numELinksPerModuleEndcapRing2 = 3;
+static const int inner_cabling_numELinksPerModuleEndcapRing3 = 2;
+static const int inner_cabling_numELinksPerModuleEndcapRing4 = 2;
 static const int inner_cabling_numELinksPerModuleEndcapRing5 = 1;
 
 

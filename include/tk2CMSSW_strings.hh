@@ -192,6 +192,8 @@ namespace insur {
     static const std::string xml_base_outer = "OUTER";
     static const std::string xml_base_lower = "Lower"; // This is for distinguishing inner/outer sensor!
     static const std::string xml_base_upper = "Upper";
+    static const std::string xml_base_one = "One"; // This is for distinguishing inner/outer sensor!
+    static const std::string xml_base_two = "Two";
     static const std::string xml_base_pixel = "MacroPixel";
     static const std::string xml_base_strip = "Strip";
     static const std::string xml_base_ps = "PS";
@@ -283,6 +285,8 @@ namespace insur {
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
     static const std::string xml_subdet_upper_detectors = "UpperDetectors";
+    static const std::string xml_subdet_one_detectors = "FirstDetectors";
+    static const std::string xml_subdet_two_detectors = "SecondDetectors";
     static const std::string xml_true = "true";
     static const std::string xml_readout = "Readout";
     static const std::string xml_roc_x = "PixelROC_X";
@@ -346,6 +350,9 @@ namespace insur {
     static const std::string xml_OT_topo_bmodule_value = "Phase2OTBarrelStack";
     static const std::string xml_PX_topo_bmodule_value = "InnerPixelBarrelStack";
 
+    static const std::string xml_PX_topo_bmodulecomb_name= "InnerTrackerBarrelCombined";
+    static const std::string xml_PX_topo_bmodulecomb_value= "Phase2ITBarrelCombined";
+
     static const std::string xml_OT_topo_endcaps_name = "Phase2OTEndcapSubDet";
     static const std::string xml_PX_topo_endcaps_name = "PixelPhase2EndcapSubDet";
 
@@ -404,6 +411,8 @@ namespace insur {
 	topo_tilted_ring_value(!isPixelTracker ? xml_OT_topo_tilted_ring_value : xml_PX_topo_tilted_ring_value),
 	topo_bmodule_name(!isPixelTracker ? xml_OT_topo_bmodule_name : xml_PX_topo_bmodule_name),
 	topo_bmodule_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodule_value),
+	topo_bmodulecomb_name(!isPixelTracker ? xml_OT_topo_bmodule_name : xml_PX_topo_bmodulecomb_name),
+	topo_bmodulecomb_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodulecomb_value),
 	topo_endcaps_name(!isPixelTracker ? xml_OT_topo_endcaps_name : xml_PX_topo_endcaps_name),
 	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
 	//topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
@@ -444,6 +453,8 @@ namespace insur {
       const std::string topo_tilted_ring_value;
       const std::string topo_bmodule_name;
       const std::string topo_bmodule_value;
+      const std::string topo_bmodulecomb_name;
+      const std::string topo_bmodulecomb_value;
       const std::string topo_endcaps_name;
       const std::string topo_endcaps_value;
       const std::string topo_disc_name;

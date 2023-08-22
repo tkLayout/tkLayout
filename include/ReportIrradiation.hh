@@ -22,6 +22,8 @@ private:
   std::map<std::string, SummaryTable> powerSummaries;
   std::map<std::string, SummaryTable> fluenceSummaries;
   std::map<std::string, SummaryTable> doseSummaries;
+  double maxFluence_;
+  double maxDose_;
   SummaryTable fluenceSummaryPerType;
   SummaryTable doseSummaryPerType;
   SummaryTable chipPowerPerType;
@@ -29,6 +31,7 @@ private:
   std::string mapNames_="";
   void dumpRadiationTableSummary(RootWPage& myPage, std::map<std::string, SummaryTable>& radiationSummaries, const std::string& title, std::string units);
   std::string createSensorsIrradiationCsv();
+  std::map<std::string,TH1F*> createSensorsIrradiationHistograms(double max_fluence, double max_dose);
   void computeIrradiationPowerConsumption();
   void computeChipPowerConsumptionTable();
   void preparePowerHistograms();

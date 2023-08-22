@@ -72,9 +72,11 @@ namespace CoordinateOperations {
     return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
-  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
+  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset, double yOffset) {
     Polygon* p = new Polygon(basePolygon);
     p->translate(p->getNormal() * normalOffset);
+    XYZVector yShift(0,yOffset,0);
+    p->translate(yShift);
     return p;
   }
 

@@ -171,6 +171,9 @@ namespace insur {
   static const int xml_PixelModuleDeadAreaLeft  = 6;
   static const int xml_PixelModuleDeadAreaFront = 7;
   static const int xml_PixelModuleDeadAreaBack  = 8;
+  static const int xml_PixelModuleDeadAreaFrontOfCentre = 9;
+  static const int xml_PixelModuleDeadAreaBackOfCentre  = 10;
+
 
 
   /**
