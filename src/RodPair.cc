@@ -176,12 +176,14 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   // Case A : zOverlap is considered for computing next Z
   double lastRA;
   double newRA;
+
   if (parity > 0) { // Going upwards
     lastRA = maxr - d + lastDsDistance/2;
     newRA = maxr + d - newDsDistance/2; // use of maxr because outer rod wins, from -d to +d because going upwards
   } else { // Going downwards
     lastRA = minr + d + lastDsDistance/2;
     newRA = minr - d - newDsDistance/2; // use of minr because inner rod wins, from +d to -d because going downwards
+
   }
 
   // Case B : zError is considered for computing next Z
@@ -246,6 +248,7 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
       }
     }
   }
+ // std::cout << "next Z -  " << newZ << std::endl; 
   return newZ;
 }
 
@@ -254,6 +257,8 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
 template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ) {
 
   vector<double> zList;
+  double zg = zGap();
+  double zc = zCentral();
 
   double targetZ = maxZ.state() ? maxZ() : std::numeric_limits<double>::max(); // unreachable target in case maxZ not set
   int targetMods = buildNumModules.state() ? buildNumModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
@@ -263,12 +268,15 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
   double newZ = startZ; // + lengthOffset/2;
 
   int parity = smallParity;
+  if (direction == BuildDir::RIGHT) newZ = newZ + zg;
+  else if (direction == BuildDir::LEFT) newZ = newZ - zg;
   BarrelModule* lastm = begin->get();
 
   int n = 0;
 
   if (fixedStartZ) {
     zList.push_back(newZ);
+ //   std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? (*begin)->length() : (*begin)->length());
     parity = -parity;
     ++begin;
@@ -280,6 +288,7 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
     newZ = computeNextZ(curm->length(), curm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
     zList.push_back(newZ);
+   // std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? curm->length() : -curm->length());
     lastm = curm.get();
     parity = -parity;
@@ -294,11 +303,48 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
     newZ += (direction == BuildDir::RIGHT ? lastm->length() : -lastm->length());
     parity = -parity;
   }
-
+  
+  if (direction == BuildDir::RIGHT && zc!= -999) zList[0] = zc;
+  for (int i=0; i< int(zList.size());i++){
+	 std::cout << zList[i] << std::endl;
+	}
   return zList;
 
 }
+/*
+template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, ReadonlyPropertyVector<std::vector<double> > zPlusList, ReadonlyPropertyVector<std::vector<double> > zMinusList) {
+  bool fixedStartZ = true;
+//  vector<double> zPlusList = computeZList(begin, end, startZ, BuildDir::RIGHT, zPlusParity(), fixedStartZ);
+//  vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -zPlusParity(), !fixedStartZ);
 
+  double zUnbalance = 0.;
+  //if (zPlusList.size()!=0 && zMinusList.size()!=0) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); } // balancing uneven pos/neg strings
+
+  if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge
+    std::ostringstream tempSS;
+    tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " didn't converge!! Layer is skewed";
+    tempSS << "Unbalance is " << zUnbalance << " mm";
+    logWARNING(tempSS);
+
+    return std::make_pair(zPlusList, zMinusList);
+  }
+
+  if (fabs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
+    return computeZListPair(begin, end,
+                            startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
+                            recursionCounter);
+  } else {
+    std::ostringstream tempSS;
+    tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " converged after " << recursionCounter << " step(s).\n" 
+           << "   Residual Z unbalance is " << zUnbalance << ".\n"
+           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n";
+    if (!zPlusList.empty()) { tempSS << "Z+ rod starts at " << zPlusList.front() << ".\n"; }
+    if (!zMinusList.empty()) { tempSS << "Z- rod starts at " << zMinusList.front() << ".\n"; }
+    logINFO(tempSS);
+    return std::make_pair(zPlusList, zMinusList);
+  }
+    return std::make_pair(zPlusList, zMinusList);
+}*/
 
 template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
   bool fixedStartZ = true;
@@ -358,7 +404,11 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
   /*std::cout << "startZ = " << startZ << std::endl;
   std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;*/
-  auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
+  std::pair<vector<double>,vector<double>>  zListPair;
+  //if (zPlusList.size() != 0 and zMinusList.size() != 0 )
+   //	 zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), zPlusList,zMinusList);
+//  else 
+  zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation
     // CUIDADO log rod balancing effort
@@ -377,8 +427,11 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
 }
 
 void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
-  // compute Z list (only once since the second mezzanine has just inverted signs for z) 
-  vector<double> zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDir::LEFT, zPlusParity(), false);
+  // compute Z list (only once since the second mezzanine has just inverted signs for z)
+//  vector<double> zList;
+//  if (zPlusList.size() != 0) zList = zPlusList
+//  else 
+  auto zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDir::LEFT, zPlusParity(), false);
   vector<double> zListNeg;
   std::transform(zList.begin(), zList.end(), std::back_inserter(zListNeg), std::negate<double>());
 

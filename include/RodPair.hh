@@ -139,6 +139,7 @@ class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
   double computeNextZ(double newDsLength, double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
   template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
+//  template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end,ReadonlyPropertyVector<std::vector<double> > zPlusList, ReadonlyPropertyVector<std::vector<double> > zMinusList);
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, bool isPlusBigDeltaRod, int parity, int side);
   void buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
   void buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
@@ -151,6 +152,8 @@ public:
   Property<double, NoDefault> maxBuildRadius;
 
   Property<double, Default> zOverlap;
+  Property<double, Default> zGap;
+  Property<double, Default> zCentral;
   Property<double, NoDefault> zError;
   Property<int, NoDefault> zPlusParity;
   Property<int, NoDefault> buildNumModules;
@@ -163,10 +166,18 @@ public:
 
   PropertyNode<int> ringNode;
   
+  //ReadonlyPropertyVector<std::vector<double>,',' > zPlusList;
+ // ReadonlyPropertyVector<std::vector<double>, ',' > zMinusList;
+ 
+//  std::vector<double> zPlusList ={0.70,45.10,89.50,133.90,178.30};
+//  std::vector<double> zMinusList={-45.10,-89.50,-133.90,-178.30};
+  
   StraightRodPair(const std::string subdetectorName) :
               RodPair             (subdetectorName),
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
+              zGap                ("zGap"                , parsedOnly() , 0.),
+              zCentral            ("zCentral"            , parsedOnly() , -999),
 	      zError              ("zError"              , parsedAndChecked()),
 	      zPlusParity         ("smallParity"         , parsedOnly()),
               mezzanine           ("mezzanine"           , parsedOnly(), false),
@@ -175,6 +186,8 @@ public:
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
 	      isFlatPart          ("isFlatPart"          , parsedOnly(), false),
 	      ringNode            ("Ring"                , parsedOnly())
+//	      zPlusList           ("zPlusList"           , parsedOnly()),
+//	      zMinusList          ("zMinusList"          , parsedOnly())
   {}
 
 
