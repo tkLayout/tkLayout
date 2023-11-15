@@ -22,10 +22,11 @@ namespace insur {
     static const double xml_outerTrackerEndcapsMinZ = 1250.;
     static const double xml_innerTrackerEndcapsMinZ = 227.;    // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
     static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
-    static const std::string xml_trackerOutermostRadius = "122.15*cm"; // Outermost tracker volume boundary
-
-    /**
-     * XML tags and attributes
+  //  static const std::string xml_trackerOutermostRadius = "122.15*cm"; // Outermost tracker volume boundary
+    static const std::string xml_trackerOutermostRadius = "1233*mm";
+     static const std::string xml_trackerInnermostRadius = "25*mm"; // Outermost tracker volume updated to reach CALO (https://github.com/cms-sw/cmssw/pull/43133)
+    static const std::string xml_trackerMaximumZ = "2935*mm";
+     /* XML tags and attributes
      */
     static const std::string xml_preamble_concise = "<?xml ";
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n";
@@ -33,7 +34,8 @@ namespace insur {
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
-    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";
+    //static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";
+    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerMaximumZ\" value=\"" + xml_trackerMaximumZ +"\"/>\n<Constant name=\"TrackerMinimumZ\" value=\"-[TrackerMaximumZ]\"/>\n<Constant name=\"TrackerInnermostRadius\" value=\"" + xml_trackerInnermostRadius +"\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";                         
     static const std::string xml_new_const_section = "<ConstantsSection label=\"newtracker.xml\" eval=\"true\">\n<Constant name=\"newDummyBackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
     static const std::string xml_recomat_radlength = "TrackerRadLength";
@@ -102,7 +104,7 @@ namespace insur {
     static const std::string xml_cone_fifth_inter = "*mm\" dz=\"";
     static const std::string xml_cone_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
     static const std::string xml_polycone_open = "<Polycone name=\"";
-    static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n";
+    static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n<ZSection z=\"[tracker:TrackerMinimumZ]\" rMin=\"[tracker:TrackerInnermostRadius]\" rMax=\"[tracker:TrackerOutermostRadius]\"/>\n<ZSection z=\"[tracker:TrackerMaximumZ]\" rMin=\"[tracker:TrackerInnermostRadius]\" rMax=\"[tracker:TrackerOutermostRadius]\"/>";
     static const std::string xml_polycone_close = "</Polycone>\n";
     static const std::string xml_rzpoint_open = "<RZPoint r=\"";
     static const std::string xml_rzpoint_inter = "*mm\" z=\"";
