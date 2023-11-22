@@ -33,7 +33,6 @@ namespace insur {
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
-    //static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";
     static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerMaximumZ\" value=\"" + xml_trackerMaximumZ +"\"/>\n<Constant name=\"TrackerMinimumZ\" value=\"-[TrackerMaximumZ]\"/>\n<Constant name=\"TrackerInnermostRadius\" value=\"" + xml_trackerInnermostRadius +"\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";                         
     static const std::string xml_new_const_section = "<ConstantsSection label=\"newtracker.xml\" eval=\"true\">\n<Constant name=\"newDummyBackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
