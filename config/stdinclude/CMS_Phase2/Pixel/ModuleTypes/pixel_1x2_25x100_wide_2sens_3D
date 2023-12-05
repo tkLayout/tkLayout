@@ -9,6 +9,7 @@ length 43.65
 
 numSensors 2
 zCorrelation samesegment
+sensorLayout mono
 
 powerPerModule 0 // mW
 

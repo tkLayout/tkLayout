@@ -93,6 +93,7 @@ void DetectorModule::build() {
       s->store(propertyTree());
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
       if (numSensors() == 1) s->innerOuter(SensorPosition::NO);
+      else if (sensorLayout() == SensorLayout::MONO) s->innerOuter(SensorPosition::NO);
       else {
 	if (i == 0) s->innerOuter(SensorPosition::LOWER);
 	else if (i == 1) s->innerOuter(SensorPosition::UPPER);
