@@ -676,8 +676,6 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
       // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
       if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; break; }
     }
-    // auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
-    // if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; } 
   } else {
     auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
@@ -687,7 +685,6 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
     } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
-  //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
   if (ht != HitType::NONE) numHits_++;
   return std::make_pair(gc, ht);
 };
