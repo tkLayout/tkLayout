@@ -4749,7 +4749,7 @@ namespace insur {
 
       // Dead area Front of centre (Inactive silicon around sensor)
       if(module.numSensors()==2){
-        const double myDeadAreaFrontOfCentreWidth = modWidth + 2.* deadAreaExtraWidth;
+        const double myDeadAreaFrontOfCentreWidth = modWidth;
         const double myDeadAreaFrontOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
         const double myDeadAreaFrontOfCentreThickness = sensorThickness; 
         const double myDeadAreaFrontOfCentrePosX = 0.;
@@ -4775,7 +4775,7 @@ namespace insur {
 
       // Dead area Back of centre (Inactive silicon around sensor)
       if(module.numSensors()==2){
-        const double myDeadAreaBackOfCentreWidth = modWidth + 2*deadAreaExtraWidth;
+        const double myDeadAreaBackOfCentreWidth = modWidth;
         const double myDeadAreaBackOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
         const double myDeadAreaBackOfCentreThickness = sensorThickness; 
         const double myDeadAreaBackOfCentrePosX = 0.;
