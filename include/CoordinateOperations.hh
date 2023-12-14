@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <Math/Vector3Dfwd.h>
+#include <Math/VectorUtil.h>
 #include <TVector3.h>
 #include "Polygon3d.hh"
 #include "global_funcs.hh"
@@ -72,14 +73,21 @@ namespace CoordinateOperations {
     return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
-  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset, double yOffset) {
+  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
     Polygon* p = new Polygon(basePolygon);
     p->translate(p->getNormal() * normalOffset);
-    XYZVector yShift(0,yOffset,0);
-    p->translate(yShift);
     return p;
   }
 
+  template<class Polygon> Polygon* computeResizedPolygon(const Polygon& basePolygon, const XYZVector& axis, double scale) {
+    Polygon* p = new Polygon();
+    const XYZVector& center = basePolygon.getCenter();
+    for (const XYZVector* vtx = basePolygon.begin(); vtx != basePolygon.end(); ++vtx) {
+      XYZVector shift = ROOT::Math::VectorUtil::ProjVector(center - *vtx, axis) * (1. - scale);
+      *p << (*vtx + shift);
+    }
+    return p;
+  }
 
   /**
    * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.

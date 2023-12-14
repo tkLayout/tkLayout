@@ -93,6 +93,7 @@ void DetectorModule::build() {
       s->store(propertyTree());
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
       if (numSensors() == 1) s->innerOuter(SensorPosition::NO);
+      else if (sensorLayout() == SensorLayout::MONO) s->innerOuter(SensorPosition::NO);
       else {
 	if (i == 0) s->innerOuter(SensorPosition::LOWER);
 	else if (i == 1) s->innerOuter(SensorPosition::UPPER);
@@ -668,10 +669,13 @@ double DetectorModule::effectiveDsDistance() const {
 std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
   HitType ht = HitType::NONE;
   XYZVector gc; // global coordinates of the hit
-  if (numSensors() == 1) {
-    auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
-    // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
-    if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; } 
+  if (numSensors() == 1 || (numSensors() > 1 && sensorLayout() == SensorLayout::MONO)) {
+    // Assuming 1 or more non-overlapping sensors on the same plane
+    for (auto& s : sensors_) {
+      auto segm = s.checkHitSegment(trackOrig, trackDir);
+      // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
+      if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; break; }
+    }
   } else {
     auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
@@ -681,7 +685,6 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
     } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
-  //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
   if (ht != HitType::NONE) numHits_++;
   return std::make_pair(gc, ht);
 };
