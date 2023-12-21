@@ -824,7 +824,7 @@ namespace insur {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
 	if (rmin > rmax || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined tub."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined tube."
 		    << " rmin = " << rmin << "rmax = " << rmax << " dz = " << dz << std::endl;
 	}
     }
@@ -845,7 +845,7 @@ namespace insur {
         stream << xml_cone_third_inter << rmin1 << xml_cone_fourth_inter << rmin2;
         stream << xml_cone_fifth_inter << dz << xml_cone_close;
 	if (rmin1 > rmax1 || rmin2 > rmax2 || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined tub."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined cone."
 		    << " rmin1 = " << rmin1 << "rmax1 = " << rmax1 << " rmin2 = " << rmin2 << "rmax2 = " << rmax2 << " dz = " << dz << std::endl;
 	}
     }
