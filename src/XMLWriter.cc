@@ -782,7 +782,7 @@ namespace insur {
         stream << xml_box_open << name << xml_box_first_inter << dx << xml_box_second_inter << dy;
         stream << xml_box_third_inter << dz << xml_box_close;
 	if (dx < 0. || dy < 0. || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined box."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined box."
 		    << " dx = " << dx << " dy = " << dy << " dz = " << dz << std::endl;
 	}
     }
@@ -806,7 +806,7 @@ namespace insur {
         //stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
         stream << xml_trapezoid_close;
 	if (dx < 0. || dxx < 0. || dy < 0. || dyy < 0. || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined trapezoid."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined trapezoid."
 		    << " dx = " << dx << "dxx = " << dxx << " dy = " << dy << " dyy = " << dyy << " dz = " << dz << std::endl;
 	}
     }
@@ -824,7 +824,7 @@ namespace insur {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
 	if (rmin > rmax || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined tub."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined tub."
 		    << " rmin = " << rmin << "rmax = " << rmax << " dz = " << dz << std::endl;
 	}
     }
@@ -845,7 +845,7 @@ namespace insur {
         stream << xml_cone_third_inter << rmin1 << xml_cone_fourth_inter << rmin2;
         stream << xml_cone_fifth_inter << dz << xml_cone_close;
 	if (rmin1 > rmax1 || rmin2 > rmax2 || dz < 0.) {
-	  std::cerr << "VERY IMPORTANT : " << name << "is not a properly defined tub."
+	  std::cerr << "VERY IMPORTANT : " << name << " is not a properly defined tub."
 		    << " rmin1 = " << rmin1 << "rmax1 = " << rmax1 << " rmin2 = " << rmin2 << "rmax2 = " << rmax2 << " dz = " << dz << std::endl;
 	}
     }
