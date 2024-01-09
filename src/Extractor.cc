@@ -5063,12 +5063,8 @@ namespace insur {
 	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
             if (module.numSensors()==2){
-            deadAreaTotalVolume_mm3 = vol[xml_PixelModuleDeadAreaRight]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
+              deadAreaTotalVolume_mm3 += vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume() 
+	        + vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume();
             }
           }
 
@@ -5113,8 +5109,8 @@ namespace insur {
       volumes.push_back(vol[xml_PixelModuleChip]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaRight]);
      if(module.numSensors()==2){
-        volumes.push_back(vol[xml_PixelModuleDeadAreaBackOfCentre]);
         volumes.push_back(vol[xml_PixelModuleDeadAreaFrontOfCentre]);
+        volumes.push_back(vol[xml_PixelModuleDeadAreaBackOfCentre]);
      }
       volumes.push_back(vol[xml_PixelModuleDeadAreaLeft]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaFront]);
