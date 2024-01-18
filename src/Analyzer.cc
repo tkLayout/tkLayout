@@ -880,7 +880,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 
                 std::string momentumString = any2str(iMomentum, 2);
                 if (stubEfficiencyCoverageProfiles[layerName].count(momentumString) == 0) {
-                  stubEfficiencyCoverageProfiles[layerName][momentumString] = new TH1I(Form("stubEfficiencyCoverageProfile%s%s", layerName.c_str(), momentumString.c_str()), (layerName + ";#eta;Stubs").c_str(), tracks.size(), 0.0, maxEta);
+                  stubEfficiencyCoverageProfiles[layerName][momentumString] = new TH1I(Form("stubEfficiencyCoverageProfile%s%s", layerName.c_str(), momentumString.c_str()), (layerName + ";#eta;Stubs").c_str(), tracks.size(), -maxEta, maxEta);
                 }
                 stubEfficiencyCoverageProfiles[layerName][momentumString]->Fill(iTrack->getEta(), 1);
               }
@@ -2947,14 +2947,14 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
        it!=moduleTypeCount.end(); it++) {
     TProfile& aProfile = etaProfileByType[(*it).first];
-    aProfile.SetBins(insur::vis_n_bins, 0, maxEta);  
+    aProfile.SetBins(insur::vis_n_bins, -maxEta, maxEta);  
     aProfile.SetName((*it).first.c_str());
     aProfile.SetTitle((*it).first.c_str());
   }
 
   for (auto mel : sensorTypeCount) {
     TProfile& aProfileStubs = etaProfileByTypeSensors[mel.first];
-    aProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
+    aProfileStubs.SetBins(insur::vis_n_bins, -maxEta, maxEta);
     aProfileStubs.SetName(mel.first.c_str());
     aProfileStubs.SetTitle(mel.first.c_str());
   }
@@ -2964,7 +2964,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     // Indeed, 1 IT 'offline' stub can be on different modules types!
     for (auto mel : moduleTypeCountStubs) {
       TProfile& aProfileStubs = etaProfileByTypeStubs[mel.first];
-      aProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
+      aProfileStubs.SetBins(insur::vis_n_bins, -maxEta, maxEta);
       aProfileStubs.SetName(mel.first.c_str());
       aProfileStubs.SetTitle(mel.first.c_str());
     }
@@ -2987,7 +2987,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetMarkerColor(1);
   totalEtaProfile.SetLineColor(1);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
-  totalEtaProfile.SetBins(insur::vis_n_bins, 0, maxEta);
+  //totalEtaProfile.SetBins(insur::vis_n_bins, 0, maxEta);
+  totalEtaProfile.SetBins(insur::vis_n_bins, -maxEta, maxEta);
   totalEtaProfile.SetStats(0);
 
   totalEtaProfileSensors.Reset();
@@ -2997,7 +2998,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileSensors.SetMarkerColor(1);
   totalEtaProfileSensors.SetLineColor(1);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
-  totalEtaProfileSensors.SetBins(insur::vis_n_bins, 0, maxEta);
+  //totalEtaProfileSensors.SetBins(insur::vis_n_bins, 0, maxEta);
+  totalEtaProfileSensors.SetBins(insur::vis_n_bins, -maxEta, maxEta);
   totalEtaProfileSensors.SetStats(0);
 
   totalEtaProfileStubs.Reset();
@@ -3008,7 +3010,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetLineColor(1);
   if (!tracker.isPixelTracker()) { totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs"); }
   else { totalEtaProfileStubs.SetTitle("Number of stubs;#eta;Number of stubs"); }
-  totalEtaProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
+  //totalEtaProfileStubs.SetBins(insur::vis_n_bins, 0, maxEta);
+  totalEtaProfileStubs.SetBins(insur::vis_n_bins, -maxEta, maxEta);
   totalEtaProfileStubs.SetStats(0);
 
   // CREATE PLOTS: distribution of tracks per number of stubs.
@@ -3016,7 +3019,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   for (int numberOfStubs = 0; numberOfStubs <= plotMaxNumberOfStubs; numberOfStubs++) {
     TProfile stubProfile = TProfile( Form("layerEtaCoverageProfileNumberOfStubs%d", numberOfStubs), 
 				     "Distribution of number of stub(s) per track;#eta;Fraction of tracks", 
-				     insur::vis_n_bins / 2., 0, maxEta); 
+				     insur::vis_n_bins / 2., -maxEta, maxEta); 
     tracksDistributionPerNumberOfStubs_[numberOfStubs] = stubProfile;
   }
 
@@ -3027,7 +3030,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileLayers.SetLineColor(1);
   totalEtaProfileLayers.SetMarkerSize(1);
   totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
-  totalEtaProfileLayers.SetBins(2. * insur::vis_n_bins, 0, maxEta);
+  totalEtaProfileLayers.SetBins(2. * insur::vis_n_bins, -maxEta, maxEta);
   totalEtaProfileLayers.SetStats(0);
 
   // CREATE COVERAGE PER LAYER PLOTS
@@ -3076,18 +3079,18 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       }
       // Fill the module type hit plot
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
-        etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
+        etaProfileByType[(*it).first].Fill(aLine.second, (*it).second);
       }
 
       for (auto& mel : sensorTypeCount) {
-        etaProfileByTypeSensors[mel.first].Fill(fabs(aLine.second), mel.second);
+        etaProfileByTypeSensors[mel.first].Fill(aLine.second, mel.second);
       }
 
       if (!tracker.isPixelTracker()) {
 	// Does not make sense to sort IT stubs per module type.
 	// Indeed, 1 IT 'offline' stub can be on different modules types!
 	for (auto& mel : moduleTypeCountStubs) {
-	  etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
+	  etaProfileByTypeStubs[mel.first].Fill(aLine.second, mel.second);
 	}
       }
       // Fill other plots
@@ -3095,8 +3098,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       mapPhiEtaDTC.Fill(aLine.first.Phi(), aLine.second, hitModulesDTC.size()); // phi, eta  DTC 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
-      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
-      totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
+    //  totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
+    //  totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
+      totalEtaProfile.Fill(aLine.second, hitModules.size());                // Total number of hits
+      totalEtaProfileSensors.Fill(aLine.second, numHits);
 
 
       // COVERAGE PER LAYER (fill 'per layer' plots and compute parameters of interest).
@@ -3584,7 +3589,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       // HITS (>=1) PER LAYER
       TProfile hitsPerLayer = TProfile(Form("hitCoveragePerLayer%s", layerName.c_str()), 
 				       layerName.c_str(),
-				       200, maxEta, maxEta);
+				       200, -maxEta, maxEta);
       hitsPerLayer.GetXaxis()->SetTitle("#eta");
       hitsPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
       hitCoveragePerLayer_[layerName] = hitsPerLayer;
@@ -3593,7 +3598,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       for (int numberOfHits = 1; numberOfHits <= plotMaxNumberOfHitsPerLayer; numberOfHits++) {
 	TProfile hitsCountPerLayer = TProfile(Form("hitCoveragePerLayerDetails%s%d", layerName.c_str(), numberOfHits), 
 					      layerName.c_str(),
-					      100, maxEta, maxEta);
+					      100, -maxEta, maxEta);
 	hitsCountPerLayer.GetXaxis()->SetTitle("#eta");
 	hitsCountPerLayer.GetYaxis()->SetTitle("Fraction of tracks");
 	hitCoveragePerLayerDetails_[layerName][numberOfHits] = hitsCountPerLayer;
@@ -3640,10 +3645,12 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 					       const int plotMaxNumberOfStubs) {
 
     // Number of hit layers
-    totalEtaProfileLayers.Fill(fabs(aLine.second), numLayersWithAtLeastOneHit);
+  //  totalEtaProfileLayers.Fill(fabs(aLine.second), numLayersWithAtLeastOneHit);
+    totalEtaProfileLayers.Fill(aLine.second, numLayersWithAtLeastOneHit);
 
     // Number of stubs
-    totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
+   // totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
+    totalEtaProfileStubs.Fill(aLine.second, numStubsPerTrack);
     
     // Distribution of tracks per number of stubs
     for (const auto& numStubsIndexIt : tracksDistributionPerNumberOfStubs_) {
@@ -3655,7 +3662,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 	   ) { 
 	result = 1; 
       }
-      tracksDistributionPerNumberOfStubs_[numStubsIndex].Fill(fabs(aLine.second), result); 
+      tracksDistributionPerNumberOfStubs_[numStubsIndex].Fill(aLine.second, result); 
     }
   }
 
