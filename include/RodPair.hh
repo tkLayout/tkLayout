@@ -166,12 +166,6 @@ public:
   MultiProperty<std::vector<double>, ','> modZList;
   PropertyNode<int> ringNode;
   
-  //ReadonlyPropertyVector<std::vector<double>,',' > zPlusList;
- // ReadonlyPropertyVector<std::vector<double>, ',' > zMinusList;
- 
-//  std::vector<double> zPlusList ={0.70,45.10,89.50,133.90,178.30};
-//  std::vector<double> zMinusList={-45.10,-89.50,-133.90,-178.30};
-  
   StraightRodPair(const std::string subdetectorName) :
               RodPair             (subdetectorName),
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
@@ -187,8 +181,6 @@ public:
 	      isFlatPart          ("isFlatPart"          , parsedOnly(), false),
 	      modZList ("modZList" , parsedOnly()),
         ringNode            ("Ring"                , parsedOnly())
-//	      zPlusList           ("zPlusList"           , parsedOnly()),
-//	      zMinusList          ("zMinusList"          , parsedOnly())
   {}
 
 
