@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
 ============= XML GENERATION METADATA HEADER =============
-tkLayout revision: master-3597-f329ed02
+tkLayout revision: nonNull_dx-3599-ea9aaab1
 tkLayout developed by https://github.com/tkLayout/tkLayout/graphs/contributors .
-Raffaella Tramontano (ratramon on lxplus924.cern.ch) responsible for cross-check of the automatically-generated description below.
-generation date: 2024-03-28.11:53:19
+Raffaella Tramontano (ratramon on lxplus920.cern.ch) responsible for cross-check of the automatically-generated description below.
+generation date: 2024-03-28.12:59:46
 note: see OT806_IT741_2024_03_28.cfg for full config files
 =========== END XML GENERATION METADATA HEADER ===========
 -->
@@ -18781,20 +18781,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R1BModule"/>
 <rChild name="tracker:OTLayer1R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R1BModule"/>
 <rChild name="tracker:OTLayer1R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R1BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R1BModuleUpperPSStripactive"/>
+<Translation x="3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R1BModule"/>
@@ -18840,20 +18842,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R2BModule"/>
 <rChild name="tracker:OTLayer1R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R2BModule"/>
 <rChild name="tracker:OTLayer1R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R2BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R2BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R2BModule"/>
@@ -18899,20 +18903,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R3BModule"/>
 <rChild name="tracker:OTLayer1R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R3BModule"/>
 <rChild name="tracker:OTLayer1R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R3BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R3BModuleUpperPSStripactive"/>
+<Translation x="3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R3BModule"/>
@@ -18958,20 +18964,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R4BModule"/>
 <rChild name="tracker:OTLayer1R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R4BModule"/>
 <rChild name="tracker:OTLayer1R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R4BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R4BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R4BModule"/>
@@ -19005,20 +19013,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R5BModule"/>
 <rChild name="tracker:OTLayer1R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R5BModule"/>
 <rChild name="tracker:OTLayer1R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R5BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R5BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R5BModule"/>
@@ -19052,20 +19062,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R6BModule"/>
 <rChild name="tracker:OTLayer1R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R6BModule"/>
 <rChild name="tracker:OTLayer1R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R6BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R6BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R6BModule"/>
@@ -19099,20 +19111,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R7BModule"/>
 <rChild name="tracker:OTLayer1R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R7BModule"/>
 <rChild name="tracker:OTLayer1R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R7BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R7BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R7BModule"/>
@@ -19146,20 +19160,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R8BModule"/>
 <rChild name="tracker:OTLayer1R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R8BModule"/>
 <rChild name="tracker:OTLayer1R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R8BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R8BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R8BModule"/>
@@ -19193,20 +19209,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R9BModule"/>
 <rChild name="tracker:OTLayer1R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R9BModule"/>
 <rChild name="tracker:OTLayer1R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R9BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R9BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R9BModule"/>
@@ -19240,20 +19258,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R10BModule"/>
 <rChild name="tracker:OTLayer1R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R10BModule"/>
 <rChild name="tracker:OTLayer1R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R10BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R10BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R10BModule"/>
@@ -19287,20 +19307,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R11BModule"/>
 <rChild name="tracker:OTLayer1R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R11BModule"/>
 <rChild name="tracker:OTLayer1R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R11BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R11BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R11BModule"/>
@@ -19334,20 +19356,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R12BModule"/>
 <rChild name="tracker:OTLayer1R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R12BModule"/>
 <rChild name="tracker:OTLayer1R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R12BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R12BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R12BModule"/>
@@ -19381,20 +19405,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R13BModule"/>
 <rChild name="tracker:OTLayer1R13BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R13BModule"/>
 <rChild name="tracker:OTLayer1R13BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R13BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R13BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R13BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R13BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R13BModule"/>
@@ -19428,20 +19454,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R14BModule"/>
 <rChild name="tracker:OTLayer1R14BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R14BModule"/>
 <rChild name="tracker:OTLayer1R14BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R14BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R14BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R14BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R14BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R14BModule"/>
@@ -19475,20 +19503,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R15BModule"/>
 <rChild name="tracker:OTLayer1R15BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R15BModule"/>
 <rChild name="tracker:OTLayer1R15BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R15BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R15BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R15BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R15BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R15BModule"/>
@@ -19522,20 +19552,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R16BModule"/>
 <rChild name="tracker:OTLayer1R16BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.5475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R16BModule"/>
 <rChild name="tracker:OTLayer1R16BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.5475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R16BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer1R16BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R16BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer1R16BModuleUpperPSStripactive"/>
+<Translation x="-3.5475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer1R16BModule"/>
@@ -19699,20 +19731,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R1BModule"/>
 <rChild name="tracker:OTLayer2R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R1BModule"/>
 <rChild name="tracker:OTLayer2R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R1BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R1BModuleUpperPSStripactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R1BModule"/>
@@ -19758,20 +19792,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R2BModule"/>
 <rChild name="tracker:OTLayer2R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R2BModule"/>
 <rChild name="tracker:OTLayer2R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R2BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R2BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R2BModule"/>
@@ -19817,20 +19853,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R3BModule"/>
 <rChild name="tracker:OTLayer2R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R3BModule"/>
 <rChild name="tracker:OTLayer2R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R3BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R3BModuleUpperPSStripactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R3BModule"/>
@@ -19876,20 +19914,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R4BModule"/>
 <rChild name="tracker:OTLayer2R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R4BModule"/>
 <rChild name="tracker:OTLayer2R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R4BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R4BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R4BModule"/>
@@ -19935,20 +19975,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R5BModule"/>
 <rChild name="tracker:OTLayer2R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R5BModule"/>
 <rChild name="tracker:OTLayer2R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R5BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R5BModuleUpperPSStripactive"/>
+<Translation x="3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R5BModule"/>
@@ -19994,20 +20036,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R6BModule"/>
 <rChild name="tracker:OTLayer2R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R6BModule"/>
 <rChild name="tracker:OTLayer2R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R6BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R6BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R6BModule"/>
@@ -20041,20 +20085,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R7BModule"/>
 <rChild name="tracker:OTLayer2R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R7BModule"/>
 <rChild name="tracker:OTLayer2R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R7BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R7BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R7BModule"/>
@@ -20088,20 +20134,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R8BModule"/>
 <rChild name="tracker:OTLayer2R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R8BModule"/>
 <rChild name="tracker:OTLayer2R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R8BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R8BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R8BModule"/>
@@ -20135,20 +20183,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R9BModule"/>
 <rChild name="tracker:OTLayer2R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R9BModule"/>
 <rChild name="tracker:OTLayer2R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R9BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R9BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R9BModule"/>
@@ -20182,20 +20232,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R10BModule"/>
 <rChild name="tracker:OTLayer2R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R10BModule"/>
 <rChild name="tracker:OTLayer2R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R10BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R10BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R10BModule"/>
@@ -20229,20 +20281,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R11BModule"/>
 <rChild name="tracker:OTLayer2R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R11BModule"/>
 <rChild name="tracker:OTLayer2R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R11BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R11BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R11BModule"/>
@@ -20276,20 +20330,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R12BModule"/>
 <rChild name="tracker:OTLayer2R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R12BModule"/>
 <rChild name="tracker:OTLayer2R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R12BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R12BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R12BModule"/>
@@ -20323,20 +20379,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R13BModule"/>
 <rChild name="tracker:OTLayer2R13BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R13BModule"/>
 <rChild name="tracker:OTLayer2R13BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R13BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R13BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R13BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R13BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R13BModule"/>
@@ -20370,20 +20428,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R14BModule"/>
 <rChild name="tracker:OTLayer2R14BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R14BModule"/>
 <rChild name="tracker:OTLayer2R14BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R14BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R14BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R14BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R14BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R14BModule"/>
@@ -20417,20 +20477,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R15BModule"/>
 <rChild name="tracker:OTLayer2R15BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R15BModule"/>
 <rChild name="tracker:OTLayer2R15BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R15BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R15BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R15BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R15BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R15BModule"/>
@@ -20464,20 +20526,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R16BModule"/>
 <rChild name="tracker:OTLayer2R16BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R16BModule"/>
 <rChild name="tracker:OTLayer2R16BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R16BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R16BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R16BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R16BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R16BModule"/>
@@ -20511,20 +20575,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R17BModule"/>
 <rChild name="tracker:OTLayer2R17BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R17BModule"/>
 <rChild name="tracker:OTLayer2R17BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R17BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R17BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R17BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R17BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R17BModule"/>
@@ -20558,20 +20624,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R18BModule"/>
 <rChild name="tracker:OTLayer2R18BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-2*mm"/>
+<Translation x="-3.0475*mm" y="-0*mm" z="-2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R18BModule"/>
 <rChild name="tracker:OTLayer2R18BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="2*mm"/>
+<Translation x="-3.0475*mm" y="0*mm" z="2*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R18BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer2R18BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R18BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer2R18BModuleUpperPSStripactive"/>
+<Translation x="-3.0475*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer2R18BModule"/>
@@ -20735,20 +20803,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R1BModule"/>
 <rChild name="tracker:OTLayer3R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R1BModule"/>
 <rChild name="tracker:OTLayer3R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R1BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R1BModuleUpperPSStripactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R1BModule"/>
@@ -20794,20 +20864,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R2BModule"/>
 <rChild name="tracker:OTLayer3R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R2BModule"/>
 <rChild name="tracker:OTLayer3R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R2BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R2BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R2BModule"/>
@@ -20853,20 +20925,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R3BModule"/>
 <rChild name="tracker:OTLayer3R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R3BModule"/>
 <rChild name="tracker:OTLayer3R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R3BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R3BModuleUpperPSStripactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R3BModule"/>
@@ -20912,20 +20986,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R4BModule"/>
 <rChild name="tracker:OTLayer3R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R4BModule"/>
 <rChild name="tracker:OTLayer3R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R4BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R4BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R4BModule"/>
@@ -20971,20 +21047,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R5BModule"/>
 <rChild name="tracker:OTLayer3R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R5BModule"/>
 <rChild name="tracker:OTLayer3R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R5BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R5BModuleUpperPSStripactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R5BModule"/>
@@ -21030,20 +21108,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R6BModule"/>
 <rChild name="tracker:OTLayer3R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R6BModule"/>
 <rChild name="tracker:OTLayer3R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R6BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R6BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R6BModule"/>
@@ -21089,20 +21169,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R7BModule"/>
 <rChild name="tracker:OTLayer3R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R7BModule"/>
 <rChild name="tracker:OTLayer3R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R7BModuleLowerPSMacroPixelactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R7BModuleUpperPSStripactive"/>
+<Translation x="3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R7BModule"/>
@@ -21148,20 +21230,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R8BModule"/>
 <rChild name="tracker:OTLayer3R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.8*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R8BModule"/>
 <rChild name="tracker:OTLayer3R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.8*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0.8*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R8BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R8BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R8BModule"/>
@@ -21195,20 +21279,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R9BModule"/>
 <rChild name="tracker:OTLayer3R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R9BModule"/>
 <rChild name="tracker:OTLayer3R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R9BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R9BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R9BModule"/>
@@ -21242,20 +21328,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R10BModule"/>
 <rChild name="tracker:OTLayer3R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R10BModule"/>
 <rChild name="tracker:OTLayer3R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R10BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R10BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R10BModule"/>
@@ -21289,20 +21377,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R11BModule"/>
 <rChild name="tracker:OTLayer3R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R11BModule"/>
 <rChild name="tracker:OTLayer3R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R11BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R11BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R11BModule"/>
@@ -21336,20 +21426,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R12BModule"/>
 <rChild name="tracker:OTLayer3R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R12BModule"/>
 <rChild name="tracker:OTLayer3R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R12BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R12BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R12BModule"/>
@@ -21383,20 +21475,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R13BModule"/>
 <rChild name="tracker:OTLayer3R13BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R13BModule"/>
 <rChild name="tracker:OTLayer3R13BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R13BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R13BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R13BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R13BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R13BModule"/>
@@ -21430,20 +21524,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R14BModule"/>
 <rChild name="tracker:OTLayer3R14BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R14BModule"/>
 <rChild name="tracker:OTLayer3R14BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R14BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R14BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R14BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R14BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R14BModule"/>
@@ -21477,20 +21573,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R15BModule"/>
 <rChild name="tracker:OTLayer3R15BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R15BModule"/>
 <rChild name="tracker:OTLayer3R15BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R15BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R15BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R15BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R15BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R15BModule"/>
@@ -21524,20 +21622,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R16BModule"/>
 <rChild name="tracker:OTLayer3R16BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R16BModule"/>
 <rChild name="tracker:OTLayer3R16BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R16BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R16BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R16BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R16BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R16BModule"/>
@@ -21571,20 +21671,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R17BModule"/>
 <rChild name="tracker:OTLayer3R17BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R17BModule"/>
 <rChild name="tracker:OTLayer3R17BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R17BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R17BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R17BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R17BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R17BModule"/>
@@ -21618,20 +21720,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R18BModule"/>
 <rChild name="tracker:OTLayer3R18BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R18BModule"/>
 <rChild name="tracker:OTLayer3R18BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R18BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R18BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R18BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R18BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R18BModule"/>
@@ -21665,20 +21769,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R19BModule"/>
 <rChild name="tracker:OTLayer3R19BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R19BModule"/>
 <rChild name="tracker:OTLayer3R19BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R19BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R19BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R19BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R19BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R19BModule"/>
@@ -21712,20 +21818,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R20BModule"/>
 <rChild name="tracker:OTLayer3R20BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-1.3*mm"/>
+<Translation x="-3.5844*mm" y="-0*mm" z="-1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R20BModule"/>
 <rChild name="tracker:OTLayer3R20BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="1.3*mm"/>
+<Translation x="-3.5844*mm" y="0*mm" z="1.3*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R20BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer3R20BModuleLowerPSMacroPixelactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R20BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer3R20BModuleUpperPSStripactive"/>
+<Translation x="-3.5844*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer3R20BModule"/>
@@ -21895,20 +22003,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R1BModule"/>
 <rChild name="tracker:OTLayer4R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R1BModule"/>
 <rChild name="tracker:OTLayer4R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R1BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R1BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R1BModule"/>
@@ -21949,20 +22059,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R2BModule"/>
 <rChild name="tracker:OTLayer4R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R2BModule"/>
 <rChild name="tracker:OTLayer4R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R2BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R2BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R2BModule"/>
@@ -22003,20 +22115,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R3BModule"/>
 <rChild name="tracker:OTLayer4R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R3BModule"/>
 <rChild name="tracker:OTLayer4R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R3BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R3BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R3BModule"/>
@@ -22057,20 +22171,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R4BModule"/>
 <rChild name="tracker:OTLayer4R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R4BModule"/>
 <rChild name="tracker:OTLayer4R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R4BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R4BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R4BModule"/>
@@ -22111,20 +22227,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R5BModule"/>
 <rChild name="tracker:OTLayer4R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R5BModule"/>
 <rChild name="tracker:OTLayer4R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R5BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R5BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R5BModule"/>
@@ -22165,20 +22283,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R6BModule"/>
 <rChild name="tracker:OTLayer4R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R6BModule"/>
 <rChild name="tracker:OTLayer4R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R6BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R6BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R6BModule"/>
@@ -22219,20 +22339,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R7BModule"/>
 <rChild name="tracker:OTLayer4R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R7BModule"/>
 <rChild name="tracker:OTLayer4R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R7BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R7BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R7BModule"/>
@@ -22273,20 +22395,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R8BModule"/>
 <rChild name="tracker:OTLayer4R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R8BModule"/>
 <rChild name="tracker:OTLayer4R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R8BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R8BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R8BModule"/>
@@ -22327,20 +22451,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R9BModule"/>
 <rChild name="tracker:OTLayer4R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R9BModule"/>
 <rChild name="tracker:OTLayer4R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R9BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R9BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R9BModule"/>
@@ -22381,20 +22507,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R10BModule"/>
 <rChild name="tracker:OTLayer4R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R10BModule"/>
 <rChild name="tracker:OTLayer4R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R10BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R10BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R10BModule"/>
@@ -22435,20 +22563,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R11BModule"/>
 <rChild name="tracker:OTLayer4R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R11BModule"/>
 <rChild name="tracker:OTLayer4R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R11BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R11BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R11BModule"/>
@@ -22489,20 +22619,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R12BModule"/>
 <rChild name="tracker:OTLayer4R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R12BModule"/>
 <rChild name="tracker:OTLayer4R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer4R12BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer4R12BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer4R12BModule"/>
@@ -22547,20 +22679,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R1BModule"/>
 <rChild name="tracker:OTLayer5R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R1BModule"/>
 <rChild name="tracker:OTLayer5R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R1BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R1BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R1BModule"/>
@@ -22601,20 +22735,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R2BModule"/>
 <rChild name="tracker:OTLayer5R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R2BModule"/>
 <rChild name="tracker:OTLayer5R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R2BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R2BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R2BModule"/>
@@ -22655,20 +22791,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R3BModule"/>
 <rChild name="tracker:OTLayer5R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R3BModule"/>
 <rChild name="tracker:OTLayer5R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R3BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R3BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R3BModule"/>
@@ -22709,20 +22847,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R4BModule"/>
 <rChild name="tracker:OTLayer5R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R4BModule"/>
 <rChild name="tracker:OTLayer5R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R4BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R4BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R4BModule"/>
@@ -22763,20 +22903,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R5BModule"/>
 <rChild name="tracker:OTLayer5R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R5BModule"/>
 <rChild name="tracker:OTLayer5R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R5BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R5BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R5BModule"/>
@@ -22817,20 +22959,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R6BModule"/>
 <rChild name="tracker:OTLayer5R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R6BModule"/>
 <rChild name="tracker:OTLayer5R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R6BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R6BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R6BModule"/>
@@ -22871,20 +23015,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R7BModule"/>
 <rChild name="tracker:OTLayer5R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R7BModule"/>
 <rChild name="tracker:OTLayer5R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R7BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R7BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R7BModule"/>
@@ -22925,20 +23071,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R8BModule"/>
 <rChild name="tracker:OTLayer5R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R8BModule"/>
 <rChild name="tracker:OTLayer5R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R8BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R8BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R8BModule"/>
@@ -22979,20 +23127,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R9BModule"/>
 <rChild name="tracker:OTLayer5R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R9BModule"/>
 <rChild name="tracker:OTLayer5R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R9BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R9BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R9BModule"/>
@@ -23033,20 +23183,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R10BModule"/>
 <rChild name="tracker:OTLayer5R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R10BModule"/>
 <rChild name="tracker:OTLayer5R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R10BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R10BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R10BModule"/>
@@ -23087,20 +23239,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R11BModule"/>
 <rChild name="tracker:OTLayer5R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R11BModule"/>
 <rChild name="tracker:OTLayer5R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R11BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R11BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R11BModule"/>
@@ -23141,20 +23295,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R12BModule"/>
 <rChild name="tracker:OTLayer5R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R12BModule"/>
 <rChild name="tracker:OTLayer5R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer5R12BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer5R12BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer5R12BModule"/>
@@ -23199,20 +23355,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R1BModule"/>
 <rChild name="tracker:OTLayer6R1BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R1BModule"/>
 <rChild name="tracker:OTLayer6R1BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R1BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R1BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R1BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R1BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R1BModule"/>
@@ -23253,20 +23411,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R2BModule"/>
 <rChild name="tracker:OTLayer6R2BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R2BModule"/>
 <rChild name="tracker:OTLayer6R2BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R2BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R2BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R2BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R2BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R2BModule"/>
@@ -23307,20 +23467,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R3BModule"/>
 <rChild name="tracker:OTLayer6R3BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R3BModule"/>
 <rChild name="tracker:OTLayer6R3BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R3BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R3BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R3BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R3BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R3BModule"/>
@@ -23361,20 +23523,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R4BModule"/>
 <rChild name="tracker:OTLayer6R4BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R4BModule"/>
 <rChild name="tracker:OTLayer6R4BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R4BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R4BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R4BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R4BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R4BModule"/>
@@ -23415,20 +23579,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R5BModule"/>
 <rChild name="tracker:OTLayer6R5BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R5BModule"/>
 <rChild name="tracker:OTLayer6R5BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R5BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R5BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R5BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R5BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R5BModule"/>
@@ -23469,20 +23635,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R6BModule"/>
 <rChild name="tracker:OTLayer6R6BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R6BModule"/>
 <rChild name="tracker:OTLayer6R6BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R6BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R6BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R6BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R6BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R6BModule"/>
@@ -23523,20 +23691,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R7BModule"/>
 <rChild name="tracker:OTLayer6R7BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R7BModule"/>
 <rChild name="tracker:OTLayer6R7BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R7BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R7BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R7BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R7BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R7BModule"/>
@@ -23577,20 +23747,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R8BModule"/>
 <rChild name="tracker:OTLayer6R8BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R8BModule"/>
 <rChild name="tracker:OTLayer6R8BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R8BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R8BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R8BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R8BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R8BModule"/>
@@ -23631,20 +23803,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R9BModule"/>
 <rChild name="tracker:OTLayer6R9BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R9BModule"/>
 <rChild name="tracker:OTLayer6R9BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R9BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R9BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R9BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R9BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R9BModule"/>
@@ -23685,20 +23859,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R10BModule"/>
 <rChild name="tracker:OTLayer6R10BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R10BModule"/>
 <rChild name="tracker:OTLayer6R10BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R10BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R10BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R10BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R10BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R10BModule"/>
@@ -23739,20 +23915,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R11BModule"/>
 <rChild name="tracker:OTLayer6R11BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="-2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R11BModule"/>
 <rChild name="tracker:OTLayer6R11BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="-2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R11BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R11BModuleLower2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R11BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R11BModuleUpper2Sactive"/>
+<Translation x="-2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R11BModule"/>
@@ -23793,20 +23971,22 @@ note: see OT806_IT741_2024_03_28.cfg for full config files
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R12BModule"/>
 <rChild name="tracker:OTLayer6R12BModuleLowerwafer"/>
-<Translation x="0*mm" y="-0*mm" z="-0.9*mm"/>
+<Translation x="2.9*mm" y="-0*mm" z="-0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R12BModule"/>
 <rChild name="tracker:OTLayer6R12BModuleUpperwafer"/>
-<Translation x="0*mm" y="0*mm" z="0.9*mm"/>
+<Translation x="2.9*mm" y="0*mm" z="0.9*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R12BModuleLowerwafer"/>
 <rChild name="tracker:OTLayer6R12BModuleLower2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R12BModuleUpperwafer"/>
 <rChild name="tracker:OTLayer6R12BModuleUpper2Sactive"/>
+<Translation x="2.9*mm" y="0*mm" z="0*mm"/>
 </PosPart>
 <PosPart copyNumber="1">
 <rParent name="tracker:OTLayer6R12BModule"/>
