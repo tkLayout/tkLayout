@@ -6,24 +6,24 @@ Component {
   scaleOnSensor 0
   targetVolume 7
 
-  //2.6mm bridge
+  //2.6mm spacer
   Element {
-    elementName Al-CF
-    quantity 1.86
-    unit g
+    elementName AlN
+    quantity 706.6036 // 4 spacers: V = 706.6036 mm^3
+    unit mm3
   }
 
-  //Parylene 2.6mm
+  //Spacer glue 2.6 mm top (between PSs and spacers)
   Element {
-    elementName Epoxy
-    quantity 0.09
-    unit g
+    elementName Epoxy_601LV
+    quantity 19.6292 // for 4 spacers: V = 19.6292 mm^3
+    unit mm3
   }
 
-  //Bridges glue 2.6 mm
+  //Spacer glue 2.6 mm bottom (between MPAs and spacers)
   Element {
-    elementName Epoxy
-    quantity 0.163
-    unit g
+    elementName Epoxy_TC437
+    quantity 19.6292 // for 4 spacers: V = 19.6292 mm^3
+    unit mm3
   }
 }

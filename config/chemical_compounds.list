@@ -23,6 +23,9 @@ C2H4                       0.89                       C:2                  H:4
 AlN	                       3.26	                     Al:1                  N:1
 # aluminium-nitride
 
+hBN                        2.1                        B:1                  N:1
+# hexagonal Boron nitride
+
 Si3N4                      3.183                     Si:3                  N:4
 # silicon nitride
 
