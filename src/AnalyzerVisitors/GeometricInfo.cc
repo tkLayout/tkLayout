@@ -138,11 +138,14 @@ void LayerDiskSummaryVisitor::visit(const Module& m) {
   totCountMod++;
   totCountSens += m.numSensors();
   totChannel += m.totalChannels();
-  totArea += m.area()*m.numSensors();
   totalSensorPower += m.sensorsIrradiationPowerMean();
   if (tagMap.find(aSensorTag)==tagMap.end()){
     // We have a new sensor geometry
     tagMap[aSensorTag] = &m;
+  }
+  // Summing sensor areas calculated from their respective polygons
+  for (int i = 0; i < m.numSensors(); i++) {
+    totArea += m.sensors().at(i).hitPoly().getDoubleArea()/2.;
   }
 }
 

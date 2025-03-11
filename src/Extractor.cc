@@ -4749,7 +4749,7 @@ namespace insur {
 
       // Dead area Front of centre (Inactive silicon around sensor)
       if(module.numSensors()==2){
-        const double myDeadAreaFrontOfCentreWidth = modWidth + 2.* deadAreaExtraWidth;
+        const double myDeadAreaFrontOfCentreWidth = modWidth;
         const double myDeadAreaFrontOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
         const double myDeadAreaFrontOfCentreThickness = sensorThickness; 
         const double myDeadAreaFrontOfCentrePosX = 0.;
@@ -4775,7 +4775,7 @@ namespace insur {
 
       // Dead area Back of centre (Inactive silicon around sensor)
       if(module.numSensors()==2){
-        const double myDeadAreaBackOfCentreWidth = modWidth + 2*deadAreaExtraWidth;
+        const double myDeadAreaBackOfCentreWidth = modWidth;
         const double myDeadAreaBackOfCentreLength = deadAreaExtraLength;//Assume the same silicon dead area as for the front - this could be made more general
         const double myDeadAreaBackOfCentreThickness = sensorThickness; 
         const double myDeadAreaBackOfCentrePosX = 0.;
@@ -5063,12 +5063,8 @@ namespace insur {
 	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
 	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
             if (module.numSensors()==2){
-            deadAreaTotalVolume_mm3 = vol[xml_PixelModuleDeadAreaRight]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaLeft]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaFront]->getVolume()
-	      + vol[xml_PixelModuleDeadAreaBack]->getVolume();
+              deadAreaTotalVolume_mm3 += vol[xml_PixelModuleDeadAreaFrontOfCentre]->getVolume() 
+	        + vol[xml_PixelModuleDeadAreaBackOfCentre]->getVolume();
             }
           }
 
@@ -5113,8 +5109,8 @@ namespace insur {
       volumes.push_back(vol[xml_PixelModuleChip]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaRight]);
      if(module.numSensors()==2){
-        volumes.push_back(vol[xml_PixelModuleDeadAreaBackOfCentre]);
         volumes.push_back(vol[xml_PixelModuleDeadAreaFrontOfCentre]);
+        volumes.push_back(vol[xml_PixelModuleDeadAreaBackOfCentre]);
      }
       volumes.push_back(vol[xml_PixelModuleDeadAreaLeft]);
       volumes.push_back(vol[xml_PixelModuleDeadAreaFront]);

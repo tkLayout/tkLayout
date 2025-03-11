@@ -7337,7 +7337,7 @@ namespace insur {
 
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas",  insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
-    PlotDrawer<YZ, Type> yzDrawer;
+    PlotDrawer<YZFull, Type> yzDrawer;
     yzDrawer.addModules(tracker);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
     yzDrawer.drawModules<ContourStyle>(*RZCanvas.get());
@@ -7345,7 +7345,7 @@ namespace insur {
     double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
     RZCanvasBarrel.reset(new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     RZCanvasBarrel->cd();
-    PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
+    PlotDrawer<YZFull, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
     yzDrawerBarrel.addModulesType(tracker, BARREL);
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel.get());
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel.get());
