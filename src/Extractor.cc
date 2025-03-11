@@ -1116,6 +1116,7 @@ namespace insur {
 	      // PosPart section
 	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
+	      pos.trans.dx = 0 ;
 	      pos.trans.dy = -iiter->getModule().offsetForSensors();
 	      pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
 	      p.push_back(pos);
