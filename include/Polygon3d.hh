@@ -26,7 +26,7 @@ template<class Coords, class FloatType>
 struct RotateX {};
 
 template<class FloatType>
-struct RotateX<XYZVector, FloatType> : public std::binary_function<XYZVector, FloatType, XYZVector> {
+struct RotateX<XYZVector, FloatType> {
   XYZVector operator()(const XYZVector& vector, FloatType angle) const {
     return XYZVector(vector.X(),
                      vector.Y()*cos(angle) - vector.Z()*sin(angle),
@@ -38,7 +38,7 @@ template<class Coords, class FloatType>
 struct RotateY {};
 
 template<class FloatType>
-struct RotateY<XYZVector, FloatType> : public std::binary_function<XYZVector, FloatType, XYZVector> {
+struct RotateY<XYZVector, FloatType> {
   XYZVector operator()(const XYZVector& vector, FloatType angle) const {
     return XYZVector(vector.Z()*sin(angle) + vector.X()*cos(angle),
                      vector.Y(),
@@ -50,7 +50,7 @@ template<class Coords, class FloatType>
 struct RotateZ {};
 
 template<class FloatType>
-struct RotateZ<XYZVector, FloatType> : public std::binary_function<XYZVector, FloatType, XYZVector> {
+struct RotateZ<XYZVector, FloatType> {
   XYZVector operator()(const XYZVector& vector, FloatType angle) const {
     return XYZVector(vector.X()*cos(angle) - vector.Y()*sin(angle),
                      vector.X()*sin(angle) + vector.Y()*cos(angle),
