@@ -6735,7 +6735,7 @@ namespace insur {
 	double min = a.getTriggerRangeLowLimit(profileNames[i]);
 	double max = a.getTriggerRangeHighLimit(profileNames[i]);
 	tempString = profileNames[i];
-	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
 	xAxis->SetBinLabel(i+1, tempString.c_str());
 	if (min<max) {
 	  rangeGraphPoints=rangeGraph->GetN();

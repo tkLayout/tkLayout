@@ -13,7 +13,6 @@ add_compile_options(
     -fmax-errors=2
     -Wno-error=deprecated-declarations
     -Wno-error=infinite-recursion
-    -Wno-error=unused-result
     -Wno-error=uninitialized
     -Wno-error=maybe-uninitialized
     -O3

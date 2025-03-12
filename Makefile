@@ -29,7 +29,6 @@ COMPILERFLAGS+=-Werror
 COMPILERFLAGS+=-fmax-errors=2
 COMPILERFLAGS+=-Wno-error=deprecated-declarations
 COMPILERFLAGS+=-Wno-error=infinite-recursion
-COMPILERFLAGS+=-Wno-error=unused-result
 COMPILERFLAGS+=-Wno-error=uninitialized
 COMPILERFLAGS+=-Wno-error=maybe-uninitialized
 #COMPILERFLAGS+=-Wextra
