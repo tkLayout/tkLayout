@@ -2145,7 +2145,7 @@ namespace insur {
       allInactives.insert(allInactives.end(), inactiveEndcapServices.begin(), inactiveEndcapServices.end() );
       allInactives.insert(allInactives.end(), inactiveSupports.begin(), inactiveSupports.end() );
       inactiveSurfacesTotalMass = 0;
-      for (const auto elem : allInactives ) {
+      for (const auto& elem : allInactives ) {
         if (elem.getTotalMass()>0) inactiveSurfacesTotalMass += elem.getTotalMass();
       }
     }
