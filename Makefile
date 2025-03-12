@@ -31,6 +31,8 @@ COMPILERFLAGS+=-Wno-error=deprecated-declarations
 COMPILERFLAGS+=-Wno-error=infinite-recursion
 COMPILERFLAGS+=-Wno-error=range-loop-construct
 COMPILERFLAGS+=-Wno-error=unused-result
+COMPILERFLAGS+=-Wno-error=uninitialized
+COMPILERFLAGS+=-Wno-error=maybe-uninitialized
 #COMPILERFLAGS+=-Wextra
 #COMPILERFLAGS+=-pedantic
 COMPILERFLAGS+=-g
