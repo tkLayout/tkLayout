@@ -840,7 +840,8 @@ namespace insur {
       std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
       std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
 
-      double firstPhiRodMeanPhi, nextPhiRodMeanPhi;
+      double firstPhiRodMeanPhi = 0;
+      double nextPhiRodMeanPhi = 0;
 
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
