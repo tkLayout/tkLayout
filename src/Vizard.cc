@@ -550,7 +550,7 @@ namespace insur {
 
 
     char titleString[256];
-    RootWTable* materialSummaryTable;
+    RootWTable* materialSummaryTable = nullptr;
 
 
 
@@ -1207,10 +1207,8 @@ namespace insur {
         }
       } else delta--;
     }
-    summaryContent.addItem(materialSummaryTable);
-    //} else {
-    //  delete materialSummaryTable;
-    //}
+    if (materialSummaryTable) summaryContent.addItem(materialSummaryTable);
+    else logWARNING("Missing Material Summary Table object");
 
   }
 
@@ -2134,7 +2132,7 @@ namespace insur {
 
 
     // Inactive surfaces
-    double inactiveSurfacesTotalMass;
+    double inactiveSurfacesTotalMass = 0;
     if (inactive) {
       std::vector<InactiveElement>& inactiveBarrelServices = inactive->getBarrelServices();
       std::vector<InactiveElement>& inactiveEndcapServices = inactive->getEndcapServices();
@@ -3587,7 +3585,7 @@ namespace insur {
     myPage->setAddress("info.html");
 
     site.addPage(myPage, RootWeb::most_relevant);
-    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
+    RootWContent *simulationContent = nullptr, *summaryContent = nullptr, *fullLayoutContent = nullptr, *configFilesContent = nullptr;
 
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = outerTracker.myid();
@@ -9459,7 +9457,8 @@ namespace insur {
    * Compute the max radii to be drawn on Barrel / Endcaps plots.
    */
   const std::pair<double, double> Vizard::computeInnerCablingPlotsMaxRadii(const Tracker& tracker) {
-    double barrelViewPort, forwardViewPort;
+    double barrelViewPort = 1e3;
+    double forwardViewPort = 1e3;
     if (tracker.isPixelTracker()) {
       if (tracker.barrels().size() > 0 && tracker.endcaps().size() >= 2) {
 	barrelViewPort = tracker.barrels().at(0).maxR() * 1.1;
@@ -9861,7 +9860,7 @@ namespace insur {
   const int Vizard::computeSubdetectorColor(const std::string subdetectorName,
 					    std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 					    const bool isEmpty) {
-    int color;
+    int color = kBlack;
 
     if (!isEmpty) {
       if (subdetectorName == "") color = kGray;
@@ -9887,7 +9886,6 @@ namespace insur {
 	//else color = kMagenta;
       }
     }
-    else { color = kBlack; }
 
     return color;
   }
