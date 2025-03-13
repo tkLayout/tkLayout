@@ -95,7 +95,7 @@ struct AutoDefault : public Default<T> { AutoDefault() : Default<T>(T()) {} };
 
 template<typename T>
 class NoDefault : public PropertyBase<T> {
-  T value_;
+  T value_ {};
   bool state_;
 public:
   NoDefault() : state_(false) {}
