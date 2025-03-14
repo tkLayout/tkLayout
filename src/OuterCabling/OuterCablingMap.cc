@@ -304,11 +304,10 @@ void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::ma
 /* Compute cabling type associated to a cable.
  */
 const int OuterCablingMap::computeCableTypeIndex(const Category& cableType) const {
-  int cableTypeIndex = -1;
+  int cableTypeIndex;
   if (cableType == Category::PS10G) cableTypeIndex = 0;
   else if (cableType == Category::PS5G) cableTypeIndex = 1;
   else if (cableType == Category::SS) cableTypeIndex = 2;
-  if (cableTypeIndex == -1) logWARNING("Unexpected cableType " + any2str(cableType) + ": assigning an invalid cableTypeIndex = -1");
   return cableTypeIndex;
 }
 
@@ -430,8 +429,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
       // Should the bundle be assigned to the lower or upper semi-nonant ?
       // 'lower' and 'upper' are defined by 'smaller' or 'bigger' Phi, 
       // in the trigonometric sense in the (XY) plane in CMS global frame of reference.
-      bool isLower = false; // what we want to compute!
-      bool isLowerAssigned = false;
+      bool isLower; // what we want to compute!
 
       // Identifier of the Phi nonant we are in.
       const int phiSectorRef = myBundle->getCable()->phiSectorRef();
@@ -440,7 +438,6 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 	phiSectorRefMarker = phiSectorRef;
 	// Starts by assigning to bundle to the lower semi-nonant.
 	isLower = true;
-	isLowerAssigned = true;
 	stereoPhiSectorRefMarker = -1;	
       }
 
@@ -455,14 +452,9 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 	// Decisive point!! 
 	// As soon as a change in the identifier of the stereoBundle Phi nonant is detected,
 	// one assigns the bundle to the upper semi-nonant.
-	if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) {
-		isLower = false;
-		isLowerAssigned = true;
-	}
+	if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) isLower = false;
 
 	// Lastly, assign the semi-nonant attribution decision to the bundle.
-	
-	if (!isLowerAssigned) logERROR("I did not manage to assign the 'isLower' variable for this cable. I pick a random one just to carry on (false)");
 	myBundle->setIsPowerRoutedToBarrelLowerSemiNonant(isLower);
 
 	// Keeps track of the Phi nonant in which the stereoBundle is located.

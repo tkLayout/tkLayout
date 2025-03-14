@@ -65,14 +65,14 @@ GraphBag::GraphBag(string meaning) {
 
 const std::set<int> GraphBag::getParameterSet() {
   std::set<int> result;
-  for (const auto& it : graphMap_) {
-    for (const auto& it2 : it.second) {
+  for (const auto it : graphMap_) {
+    for (const auto it2 : it.second) {
       result.insert(it2.first);
     }
   }
 
-  for (const auto& it : taggedGraphMap_) {
-    for (const auto& it2 : it.second) {
+  for (const auto it : taggedGraphMap_) {
+    for (const auto it2 : it.second) {
       result.insert(it2.first);
     }
   }

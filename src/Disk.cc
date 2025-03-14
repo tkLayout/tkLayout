@@ -296,8 +296,8 @@ const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, d
 */
 void Disk::computeActualZCoverage() {
   
-  double lastMinRho = 0.0; // will be properly initialized in the first iteration;
-  double lastMinZ = 0.0; // will be properly initialized in the first iteration;
+  double lastMinRho;
+  double lastMinZ;
   const double ringsSensorThickness = scanSensorThickness();
 
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
