@@ -27,8 +27,8 @@ COMPILERFLAGS+=-std=c++17
 COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Werror
 COMPILERFLAGS+=-fmax-errors=2
-COMPILERFLAGS+=-Wno-error=uninitialized
-COMPILERFLAGS+=-Wno-error=maybe-uninitialized
+#COMPILERFLAGS+=-Wno-error=uninitialized
+#COMPILERFLAGS+=-Wno-error=maybe-uninitialized
 #COMPILERFLAGS+=-Wextra
 #COMPILERFLAGS+=-pedantic
 COMPILERFLAGS+=-g

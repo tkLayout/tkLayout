@@ -11,8 +11,6 @@ add_compile_options(
     -Wall
     -Werror
     -fmax-errors=2
-    -Wno-error=uninitialized
-    -Wno-error=maybe-uninitialized
     -O3
 )
 
