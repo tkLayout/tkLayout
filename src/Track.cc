@@ -647,7 +647,11 @@ void Track::fillModuleLocalResolutionStats() {
 void Track::assignTrackingVolumesToHits() {
 
   // Code moved from hit.cc assignTrackingVolumesToHits method
-  double firstActiveHitPixelDistance, firstActiveHitOuterDistance, lastActiveHitPixelDistance, lastActiveHitOuterDistance;
+  // If I do not find any hits, I will assume the detector was left behind
+  double firstActiveHitPixelDistance = 0.; 
+  double firstActiveHitOuterDistance = 0.;
+  double lastActiveHitPixelDistance = 0.;
+  double lastActiveHitOuterDistance = 0.;
 
   // Get distance of first active pixel & non-pixel hit
   bool bySmallerRadius = true;
