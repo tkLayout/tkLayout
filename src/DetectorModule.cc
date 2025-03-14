@@ -809,6 +809,9 @@ const bool DetectorModule::isPositiveXSide() const {
   const PowerChain* myPowerChain = getPowerChain();
   if (myPowerChain) {
     isPositiveXSide = myPowerChain->isPositiveXSide();
+  } else {
+    logERROR("Module found not connected to any power chain. I do not know whether it is positive x side or not");
+    return true;
   }
   return isPositiveXSide;
 }
