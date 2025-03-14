@@ -3,3 +3,4 @@ lib
 tkgeometryrc
 test/testGraphVizCreatordoc/algorithms/scattering.aux
 doc/algorithms/scattering.log
+*.patch
