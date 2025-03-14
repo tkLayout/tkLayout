@@ -99,14 +99,18 @@ public:
   typedef typename std::map<InternalBinKey, T>::const_iterator internal_iterator;
 
   template<class U, class ExportableIteratorElement = typename U::exportable_iterator_element, class InternalIterator = typename U::internal_iterator>
-  class ConstIterator : public std::iterator<std::input_iterator_tag, ExportableIteratorElement> { // this is by definition a const iterator
+  // This is by definition a const iterator
+  class ConstIterator {
     typedef ConstIterator<U, ExportableIteratorElement, InternalIterator> exportable_iterator;
-    typedef exportable_iterator_element* pointer;
-    typedef exportable_iterator_element& reference;
     const U& histo_;
     InternalIterator binit_;
     exportable_iterator_element current_;
   public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type        = ExportableIteratorElement;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = const ExportableIteratorElement*;
+    using reference         = const ExportableIteratorElement&;
     ConstIterator(const InternalIterator& binit, const U& histo) : histo_(histo), binit_(binit) {}
     ConstIterator(const exportable_iterator& other) : histo_(other.histo_), binit_(other.binit_) {}
     exportable_iterator& operator++() { ++binit_; return *this; }
