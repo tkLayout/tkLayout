@@ -95,7 +95,7 @@ struct AutoDefault : public Default<T> { AutoDefault() : Default<T>(T()) {} };
 
 template<typename T>
 class NoDefault : public PropertyBase<T> {
-  T value_ {};
+  T value_;
   bool state_;
 public:
   NoDefault() : state_(false) {}
@@ -116,7 +116,7 @@ class Computable : public PropertyBase<T> {
   mutable bool state_;
 public:
   template<class U = Func> Computable(const U& getter /*= []()->T{ throw InvalidComputable(); }*/) : get(Func(getter)), state_(false) {} // default arg commented out due to bug in gcc 4.7.2-5
-  Computable() : get([]()->T{ throw InvalidComputable(); }), value_{}, state_(false) {}
+  Computable() : get([]()->T{ throw InvalidComputable(); }), state_(false) {}
   Computable(const Computable<T>& other) : Computable() { value_ = other.value_; state_ = other.state_; } // Func does not get copied!! needs to be manually setup() again to prevent issues with the captures (capture happens at point of declaration)
   void operator()(const T& value) { value_ = value; state_ = true; }
   const T& operator()() const {
@@ -136,7 +136,7 @@ class UncachedComputable : public PropertyBase<T> {
   mutable bool state_;
 public:
   template<class U = Func> UncachedComputable(const U& getter /*= []()->T{ throw InvalidComputable(); }*/) : get(Func(getter)), state_(false) {}
-  UncachedComputable() : get([]()->T{ throw InvalidComputable(); }), value_{}, state_(false) {}
+  UncachedComputable() : get([]()->T{ throw InvalidComputable(); }), state_(false) {}
   UncachedComputable(const UncachedComputable<T>& other) : UncachedComputable() { value_ = other.value_; state_ = other.state_; } // Func does not get copied!! needs to be manually setup() again to prevent issues with the captures (capture happens at point of declaration)
   void operator()(const T& value) { value_ = value; state_ = true; }
   const T& operator()() const { return state_ ? value_ : value_ = get(); }

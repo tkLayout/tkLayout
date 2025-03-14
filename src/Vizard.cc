@@ -550,7 +550,7 @@ namespace insur {
 
 
     char titleString[256];
-    RootWTable* materialSummaryTable = nullptr;
+    RootWTable* materialSummaryTable;
 
 
 
@@ -1207,8 +1207,10 @@ namespace insur {
         }
       } else delta--;
     }
-    if (materialSummaryTable) summaryContent.addItem(materialSummaryTable);
-    else logWARNING("Missing Material Summary Table object");
+    summaryContent.addItem(materialSummaryTable);
+    //} else {
+    //  delete materialSummaryTable;
+    //}
 
   }
 
@@ -2132,7 +2134,7 @@ namespace insur {
 
 
     // Inactive surfaces
-    double inactiveSurfacesTotalMass = 0;
+    double inactiveSurfacesTotalMass;
     if (inactive) {
       std::vector<InactiveElement>& inactiveBarrelServices = inactive->getBarrelServices();
       std::vector<InactiveElement>& inactiveEndcapServices = inactive->getEndcapServices();
@@ -2143,7 +2145,7 @@ namespace insur {
       allInactives.insert(allInactives.end(), inactiveEndcapServices.begin(), inactiveEndcapServices.end() );
       allInactives.insert(allInactives.end(), inactiveSupports.begin(), inactiveSupports.end() );
       inactiveSurfacesTotalMass = 0;
-      for (const auto& elem : allInactives ) {
+      for (const auto elem : allInactives ) {
         if (elem.getTotalMass()>0) inactiveSurfacesTotalMass += elem.getTotalMass();
       }
     }
@@ -3585,7 +3587,7 @@ namespace insur {
     myPage->setAddress("info.html");
 
     site.addPage(myPage, RootWeb::most_relevant);
-    RootWContent *simulationContent = nullptr, *summaryContent = nullptr, *fullLayoutContent = nullptr, *configFilesContent = nullptr;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent, *configFilesContent;
 
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = outerTracker.myid();
@@ -6733,7 +6735,7 @@ namespace insur {
 	double min = a.getTriggerRangeLowLimit(profileNames[i]);
 	double max = a.getTriggerRangeHighLimit(profileNames[i]);
 	tempString = profileNames[i];
-	tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
 	xAxis->SetBinLabel(i+1, tempString.c_str());
 	if (min<max) {
 	  rangeGraphPoints=rangeGraph->GetN();
@@ -9457,8 +9459,7 @@ namespace insur {
    * Compute the max radii to be drawn on Barrel / Endcaps plots.
    */
   const std::pair<double, double> Vizard::computeInnerCablingPlotsMaxRadii(const Tracker& tracker) {
-    double barrelViewPort = 1e3;
-    double forwardViewPort = 1e3;
+    double barrelViewPort, forwardViewPort;
     if (tracker.isPixelTracker()) {
       if (tracker.barrels().size() > 0 && tracker.endcaps().size() >= 2) {
 	barrelViewPort = tracker.barrels().at(0).maxR() * 1.1;
@@ -9860,7 +9861,7 @@ namespace insur {
   const int Vizard::computeSubdetectorColor(const std::string subdetectorName,
 					    std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 					    const bool isEmpty) {
-    int color = kBlack;
+    int color;
 
     if (!isEmpty) {
       if (subdetectorName == "") color = kGray;
@@ -9886,6 +9887,7 @@ namespace insur {
 	//else color = kMagenta;
       }
     }
+    else { color = kBlack; }
 
     return color;
   }
