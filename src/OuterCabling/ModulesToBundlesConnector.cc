@@ -234,7 +234,7 @@ void ModulesToBundlesConnector::buildGBT(DetectorModule& m, std::map<int, OuterG
 /* Compute the index associated to each bundle type.
  */
 const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
-  int bundleTypeIndex;
+  int bundleTypeIndex = -1;
   // BARREL
   if (isBarrel) {
     if (bundleType == Category::SS) bundleTypeIndex = 0;
@@ -255,6 +255,9 @@ const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel,
     else if (bundleType == Category::PS10GB) bundleTypeIndex = 1;
     else if (bundleType == Category::PS5G) bundleTypeIndex = 2;
     else if (bundleType == Category::SS) bundleTypeIndex = 3;
+  }
+  if (bundleTypeIndex == -1) {
+	  logERROR("I did not manage to idenify the bundle type " + any2str(bundleType) + ", so I assign an invalid bundleTypeIndex = -1");
   }
   return bundleTypeIndex;
 }
