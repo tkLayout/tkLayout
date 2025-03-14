@@ -57,9 +57,9 @@ static const double inner_cabling_roundingTolerance = outer_cabling_roundingTole
 
 // GEOMETRY NAMES
 // The cabling map is geometry-dependent, hence the subdetector names are placed here.
-static const std::string inner_cabling_tbpx = "PXB";
-static const std::string inner_cabling_tfpx = "FPIX_1";
-static const std::string inner_cabling_tepx = "FPIX_2";
+static const std::string inner_cabling_tbpx = "TBPX";
+static const std::string inner_cabling_tfpx = "TFPX";
+static const std::string inner_cabling_tepx = "TEPX";
 
 
 // CMSSW IDS
