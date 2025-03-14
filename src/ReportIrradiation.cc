@@ -134,13 +134,13 @@ std::map<std::string,TH1F*> ReportIrradiation::createSensorsIrradiationHistogram
     void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
     void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
     void visit(const Module& m) {
-      if(sectionName_=="PXB"){
+      if(sectionName_=="TBPX"){
         hist_map[std::string("tot_mod_fluence_TBPX")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_TBPX")]->Fill(m.sensorsDoseMean());
-      } else if (sectionName_=="FPIX_1"){
+      } else if (sectionName_=="TFPX"){
         hist_map[std::string("tot_mod_fluence_TFPX")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_TFPX")]->Fill(m.sensorsDoseMean());
-      } else if (sectionName_=="FPIX_2"){
+      } else if (sectionName_=="TEPX"){
         hist_map[std::string("tot_mod_fluence_TEPX")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_TEPX")]->Fill(m.sensorsDoseMean());
       } else if (m.moduleType()=="pt2S"){

@@ -8,7 +8,7 @@ Baseline_tilted_200_Pixel_1_4_1.cfg  Like 1.3.1 But a bit shorter barrel
 Baseline_tilted_200_Pixel_1_5_1.cfg  Like 1.3.1 But a lot shorter barrel
 Baseline_tilted_200_Pixel_1_5_2.cfg  Like 1.5.1, but without DC/DC converters
 
-Baseline_tilted_200_Pixel_3_5_1.cfg  2-rings step Like, TEDD and FPIX_2 disks moved to allow insertion -- small pixels everywhere
+Baseline_tilted_200_Pixel_3_5_1.cfg  2-rings step Like, TEDD and TEPX disks moved to allow insertion -- small pixels everywhere
 
 Baseline_tilted_200_Pixel_4_0_0.cfg  Like 3_5_1, but with 22x16.4 mm^2 chips (good for tilt?)
                                      BPIX=25x100 FPIX1=50x50 FPIX2=25x100
@@ -82,7 +82,7 @@ OT463_200_IT4025.cfg                 OT Version 4.6.3 <- like 4.6.2 but with 5 e
                                      Pixel version 4.0.2.5
 
 OT_Tilted_362_200_Pixel_4023.cfg     OT Version 3.6.2
-                                     Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 FPIX_1 disks and 4 FPIX_2 disks
+                                     Pixel version 4.0.2.3 <- like 4.0.2.1 but with 8 TFPX disks and 4 TEPX disks
 
 OT365_200_IT4022.cfg                 OT Version 3.6.5  <- like 3.6.4 but with adjusted tilted ring positions and increased layer radii
                                      Inner tracker version 4.0.2.2
@@ -96,7 +96,7 @@ OT365_200_IT4025.cfg                 OT Version 3.6.5
                                                                 smaller overlap (0.6mm) in L2
                                                                 bigger overlap (2.0mm) in L3,4
                                                                 radii 29.000, 70.146, 117.753, 157.388
-                                     and FPIX_2 shifted by 10 cm inwards
+                                     and TEPX shifted by 10 cm inwards
                                             disk z: 1750.0, 1985.43, 2250.83, 2550.0
                                      25x100 everywhere.
                                      Added the pixel support tube and service cylinders.
