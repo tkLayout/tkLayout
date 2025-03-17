@@ -4,16 +4,10 @@ Component {
   componentName "2S Module: FE hybrid spacers"
   targetVolume 56
 
-  //FEH spacer 1.8 mm
-  Element {
-    elementName Al-CF
-    quantity 0.786
-    unit g
-  }
   //FEH glue 1.8 mm
   Element {
     elementName Epoxy
-    quantity 0.504
-    unit g
+    quantity 50.7094 // V = 2 x 25.3547 mm^3 = 50.7094 mm^3 (between folded stiffeners)
+    unit mm3
   }
 }
