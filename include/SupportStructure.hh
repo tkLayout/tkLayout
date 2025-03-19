@@ -99,7 +99,7 @@ namespace material {
     
     class Element : public PropertyObject {
     public:
-      enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
+      enum Unit{GRAMS, MILLIMETERS, GRAMS_METER, CUBIC_MILLIMETERS};
       static const std::map<std::string, Unit> unitStringMap;
       Property<std::string, Default> subdetectorName;
       Property<std::string, NoDefault> componentName; //only the inner component's name
