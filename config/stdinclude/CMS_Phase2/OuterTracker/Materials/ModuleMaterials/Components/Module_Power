@@ -11,17 +11,17 @@ Component {
   service true
   scaleOnSensor 1
   Element {
-    elementName Al_MV
+    elementName Al_OTModule_power
     quantity 0.612
     unit g/m
   }
   Element {
-    elementName Cu
+    elementName Cu_OTModule_power
     quantity 0.218
     unit g/m
   }
   Element {
-    elementName PE
+    elementName PE_OTModule_power
     quantity 0.880
     unit g/m
   }
@@ -34,17 +34,17 @@ Component {
   service true
   scaleOnSensor 0
   Element {
-    elementName Al_HV
+    elementName Al_OTModule_HV
     quantity 0.2295
     unit g/m
   }
   Element {
-    elementName Cu
+    elementName Cu_OTModule_HV
     quantity 0.082
     unit g/m
   }
   Element {
-    elementName PE
+    elementName PE_OTModule_HV
     quantity 0.825
     unit g/m
   }
