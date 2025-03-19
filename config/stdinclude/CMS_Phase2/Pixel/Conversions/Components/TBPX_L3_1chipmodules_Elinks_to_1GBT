@@ -1,5 +1,5 @@
-// Layer 3:
-// 28 modules/GBT
+// Layer 3: module with 1 chip
+// 28 modules/GBT !!!!!!! Warning: Obviously wrong, was put as temp material for tilted IT.
 
 Conversion {
   Input {
@@ -11,6 +11,6 @@ Conversion {
     }
   }
   Output {
-    @include GBT_and_fibres  // = 1 GBT
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC  // = 1 GBT
   }
 }

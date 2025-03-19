@@ -7,6 +7,10 @@
 Steel	                     7.8	                    C:0.00089992039   Si:0.0015987127    Mn:0.0042943177       S:0.00017903506  P:0.00012830888  Ni:0.000095139401  Cu:0.00029757275   Al:0.00069973892  Fe:0.99180725          
 # from trackermaterial.xml
  
+StainlessSteel             8.02                     Fe:0.6996          C:0.0004       Mn:0.01         Cr:0.19   Ni:0.1
+# from materials.xml
+# NB: Density from Lea and Stefanos in [TEPX_2018_12_07_LC] is 7.8, which is probably a bit too low (stainless steel is more dense than steel).
+ 
 Kapton	                   1.42	                    C:0.59985105     H:0.080541353  O:0.31960759      
 # Polyimide. from trackermaterial.xml (density 1.40 g/cm3 ?)                        
    
@@ -16,14 +20,16 @@ Acrylate                   1.16                      C:0.5581   H:0.06977    O:0
 Glass                      2.33	                     Si:0.36611059    O:0.53173295   B:0.042228491  Na:0.059927964       
 # from materials.xml  (density 2.23 g/cm3 ?)
 
-Airex                      0.06                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
-# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml (is density accurate?)       
+Airex                      0.08                      N:0.09  C:0.6559   H:0.0486    O:0.2056       
+# from Geometry/TrackerCommonData/data/pixbarmaterial/2017ZeroMaterial/v1/pixbarmaterial.xml
+# density from [TEPX_2018_12_07_LC].
             
 Kevlar	                   1.42	                     C:0.71180785    N:0.11852895    O:0.12699531   H:0.04266788            
 # from materials.xml  (density 1.44 g/cm3 ?)
 
 FR4                         1.85               Si:0.18077359           O:0.4056325        C:0.27804208      H:0.068442752       Br:0.067109079     
 # Fiber glass reinforced, from trackermaterial.xml (density 1.7 g/cm3 ?)
+# Yadira: density 1.91 in [TFPX_2019_03_19_YP]
 
 
 
@@ -41,20 +47,76 @@ WB-enc                    1.50          Siliconeglue:1
 Acrylicglue                1.16                C5O2H8:1
 # from Duccio, Composite materials, 14/01/2015
 
+
+
+
+TPG	                       2.26	                   C:1
+# from materials.xml
+# WARNING: density was 2.47 in materials.xml, but 2.26 from Lea&Stefanos and from all online sources.
+
+Graphite_FPX               2.266                   C:1
+# Similar to TPG. Source: [TFPX_2019_03_19_YP]
+
+Graphite_EPX	             1.65                    C:1
+# Source: [TEPX_2019_04_12_LC]
+
+CF                         1.91                    C:1.0
+# High density CF. Density from [TBPX_2019_01_15_AB].
+# check compo??
+
 Epoxy	                     1.16                CH2OCN:1	 
 # EX1515 from Duccio, Composite materials, 14/01/2015
 
-CFRP	                     1.84	                   C:0.96            Epoxy:0.27
+#CFRP	                     1.84	                   C:0.78            Epoxy:0.22
 # from Duccio, Composite materials, 14/01/2015
+# Density & compo ok??
+# NB: materials.xml: CFRP  1.69   C:0.84491305 H:0.042542086 O:0.11254487
 
-CFRP_OTST                  1.55	                   CFRP:1
-# density from Szymon, composition from 'CFRP'
+CFRP_OTST                  1.55	                   C:0.71            Epoxy:0.29
+# density from Szymon, composition from 'CFRP_ITST'
 
 HexWebHRH10_OTST           0.0496	                 Airex:1
 # density from Sczymon, composition from 'Airex'
 
-Polyethylene                0.89              C2H4:1
+CFRP_ITST	                 1.622                   C:0.71            Epoxy:0.29
+# From Andreas Jung, 2019/01/15 email: 60% volume C fibres (density 1.91 g/cm3) + 40% volume resin (density 1.19 g/cm3).
+
+CFRP_EPX	                 1.43	                   C:0.71            Epoxy:0.29
+# from [TEPX_2018_12_07_LC], composition from 'CFRP_ITST'
+# check compo???
+
+CFRP_module	               1.43	                   C:0.71            Epoxy:0.29
+# from [TEPX_2018_12_07_LC], composition from 'CFRP_ITST'
+# check compo???
+
+CFRP                       1.43                    CFRP_EPX:1
+
+CFRP_FPX	                 2.198	                 C:0.71            Epoxy:0.29
+# Density from [TFPX_2019_03_19_YP].
+# Composition from 'CFRP_ITST'
+
+Carbon_foam_FPX	           0.249	                 C:1
+# Density from [TFPX_2019_03_19_YP].
+# Composition could not be found.
+
+Carbon_foam_BPX	           0.55 	                 C:1
+# Density from [TBPX_2019_01_15_AB].
+
+
+
+PCB_panel_EPX	             1.9	                   FR4:0.66             Cu:0.34
+# From [TEPX_2018_12_07_LC].
+# check compo??? proportion of FR4!! ~2/3 from Lea. Should also have connectors?????
+
+Polyethylene               0.89              C2H4:1
 # from Duccio, Composite materials, 14/01/2015
+
+LCP                        1.633                  C:0.52     O:0.39     Si:0.08   H:0.01
+# Glass enforced.
+# Density from [TFPX_2019_03_19_YP].
+# Composition from pixbarmaterial.xml
+
+
 
 Parylene	                 1.30	                C8H8:1  
 # from Duccio, Composite materials, 14/01/2015    
@@ -164,12 +226,30 @@ PS-FEH-mix	                1.61	    PS_FEH_Solder_mask_layer_top:0.067      PS_F
 
 
 
-Pix_Bumps                  8.92              Pb:0.506        Sn:0.494 
-# from Duccio, Pixel Phase 2 materials.
+
+
+
+# DEFINING IT-HDI-mix:
+IT_HDI_photoimage_mask_layer_top       1.42	             Kapton:1
+IT_HDI_photoimage_mask_layer_bottom    1.42	             Kapton:1
+IT_HDI_Copper_layers                   8.96              Cu:1
+IT_HDI_Polyimide_layers                1.42	             Kapton:1
+IT_HDI_Glue_for_lamination             1.19	             Acrylicglue:1
+IT_HDI_Coverlay_Kapton                 1.42	             Kapton:1
+IT_HDI_Coverlay_glue                   1.19	             Acrylicglue:1
+IT-HDI-mix              2.637443609      IT_HDI_photoimage_mask_layer_top:0.0404812133     IT_HDI_photoimage_mask_layer_bottom:0.0404812133    IT_HDI_Copper_layers:0.5874907349     IT_HDI_Polyimide_layers:0.1092992759      IT_HDI_Glue_for_lamination:0.0848109926    IT_HDI_Coverlay_Kapton:0.0526255773   IT_HDI_Coverlay_glue:0.0848109926
+# Source: [IT_MODULE_2019_03_21_MB]
+
+Pix_Bumps                  7.39              Ag:0.035        Sn:0.965 
+# from [IT_MODULE_2019_02_13_SO]
                  
-Pix_Caps                   6.33              SMDCapacitors:1
+Pix_Caps                   15.60             SMDCapacitors:1
 # The description in Pixel Phase 2 materials was wrong (no possible combination makes up to the specified RL/IL values, and density was made up).
 # So took the one from OT.
+
+
+
+
 
 Scint                      7.40              Lu:0.71         Si:0.07         O:0.18          Y:0.04        
 SenLYSO	                   7.40	             Scint:0.9981    Ce:0.0019
@@ -206,6 +286,7 @@ Cu_Elinks_TFPX_R2	       8.96	                    Cu:1
 Cu_Elinks_TFPX_R3		     8.96	                    Cu:1
 Cu_Elinks_TFPX_R4	       8.96	                    Cu:1
 Cu_Elinks_TEPX_R1	       8.96	                    Cu:1
+Cu_Elinks_TEPX_R1_4chipmodules		 8.96	                    Cu:1
 Cu_Elinks_TEPX_R2		     8.96	                    Cu:1
 Cu_Elinks_TEPX_R2_4chipmodules		 8.96	                    Cu:1
 Cu_Elinks_TEPX_R3	       8.96	                    Cu:1
@@ -213,18 +294,12 @@ Cu_Elinks_TEPX_R4	       8.96	                    Cu:1
 Cu_Elinks_TEPX_R5	       8.96	                    Cu:1
 TEDD_Cu	                 8.96                   	Cu:1
 FPIX_Cu	                 8.96	                    Cu:1
-FPIX_Ti	                 4.54                     Ti:1
-Ti_L1                    4.54	                    Ti:1
-Ti_L2	                   4.54	                    Ti:1
-Ti_L3	                   4.54	                    Ti:1
-Ti_L4	                   4.54	                    Ti:1
 
-CO2_L1	                 1.0	                   CO2:1
-CO2_L2	                 1.0	                   CO2:1
-CO2_L3	                 1.0	                   CO2:1
-CO2_L4	                 1.0	                   CO2:1
+StainlessSteel_fake1000factor	       8.02         StainlessSteel:1
+CO2_fake1000factor	                 1.0	                   CO2:1
+
 TEDD_CO2	               1.0	                   CO2:1
-FPIX_CO2	               1.0	                   CO2:1
+
 PE                       0.89           Polyethylene:1
 TEDD_PE	                 0.95	                    PE:1
 FPIX_PE	                 0.95	                    PE:1
@@ -246,7 +321,6 @@ CO2_TB2S_pipe            1.0                     CO2:1
 Cu_TB2S_twp              8.96                     Cu:1
 PE_TB2S_twp              0.95                     PE:1
 Al_TB2S_twp              2.698                    Al:1
-
 
 
 

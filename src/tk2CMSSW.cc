@@ -24,10 +24,11 @@ namespace insur {
   void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, std::string xmlDirectoryPath, std::string xmlOutputPath, std::string xmlOutputName, bool wt) {
 
     bool isPixelTracker = mb.getTracker().isPixelTracker();
+    bool hasSubDisks = mb.getTracker().hasSubDisks();
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
-        ex.analyse(mt, mb, trackerXmlTags, data, wt);
+        ex.analyse(mt, mb, trackerXmlTags, trackerData, otstData, wt);
 
         std::stringstream simpleHeaderStream;
 	std::string metdataFileName = xmlOutputName + "_" + currentDateTime(false) + ".cfg";
@@ -54,7 +55,7 @@ namespace insur {
 		outstream.open((xmlOutputPath + xml_pixbarfile).c_str());
 		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
 		//writeSimpleHeader(outstream);
-		wr.pixbar(data.shapes, instream, outstream);
+		wr.pixbar(trackerData.shapes, instream, outstream);
 		if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
 		instream.close();
 		instream.clear();
@@ -66,7 +67,7 @@ namespace insur {
 		outstream.open((xmlOutputPath + xml_pixfwdfile).c_str());
 		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
 		//writeSimpleHeader(outstream);
-		wr.pixfwd(data.shapes, instream, outstream);
+		wr.pixfwd(trackerData.shapes, instream, outstream);
 		if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
 		instream.close();
 		instream.clear();
@@ -80,18 +81,36 @@ namespace insur {
 	    else outstream.open((xmlOutputPath + trackerXmlTags.trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
             std::ifstream trackerVolumeTemplate((xmlDirectoryPath + "/" + xml_trackervolumefile).c_str());
-            wr.tracker(data, outstream, trackerVolumeTemplate, isPixelTracker, trackerXmlTags, wt);
+	    std::ofstream mechanicalCategoriesRL;
+	    mechanicalCategoriesRL.open((xmlOutputPath + xml_mechanicalCategoriesRLfile).c_str(), std::ofstream::app);
+	    std::ofstream mechanicalCategoriesIL;
+	    mechanicalCategoriesIL.open((xmlOutputPath + xml_mechanicalCategoriesILfile).c_str(), std::ofstream::app);
+            wr.tracker(trackerData, outstream, trackerVolumeTemplate, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW tracker geometry output has been written to " << xmlOutputPath << (wt ? xml_newtrackerfile : trackerXmlTags.trackerfile) << std::endl;
+
+	    // OTST
+	    if (!isPixelTracker) {
+	      outstream.open((xmlOutputPath + xml_OTSTfile).c_str());
+	      if (outstream.fail()) throw std::runtime_error("Error opening OTST file for writing.");
+	      std::ifstream emptyStream;
+	      wr.otst(otstData, outstream, emptyStream, mechanicalCategoriesRL, mechanicalCategoriesIL, isPixelTracker, trackerXmlTags);
+	      if (outstream.fail()) throw std::runtime_error("Error writing OTST file.");	     
+	      outstream.close();
+	      outstream.clear();
+	      mechanicalCategoriesRL.close();
+	      mechanicalCategoriesIL.close();
+	      std::cout << "CMSSW OTST output has been written to " << xmlOutputPath << xml_OTSTfile << std::endl;
+	    }
 
 	    if (wt) instream.open((xmlDirectoryPath + "/" + xml_newtopologyfile).c_str());
 	    else instream.open((xmlDirectoryPath + "/" + xml_topologyfile).c_str());
 	    outstream.open((xmlOutputPath + trackerXmlTags.topologyfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
             //writeSimpleHeader(outstream);
-            wr.topology(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.topology(trackerData.specs, instream, outstream, isPixelTracker, hasSubDisks, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing to topology file.");
             instream.close();
             instream.clear();
@@ -103,7 +122,7 @@ namespace insur {
 	    outstream.open((xmlOutputPath + trackerXmlTags.prodcutsfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
             //writeSimpleHeader(outstream);
-            wr.prodcuts(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.prodcuts(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing to prodcuts file.");
             instream.close();
             instream.clear();
@@ -115,7 +134,7 @@ namespace insur {
 	    outstream.open((xmlOutputPath + trackerXmlTags.trackersensfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
             //writeSimpleHeader(outstream);
-            wr.trackersens(data.specs, instream, outstream, isPixelTracker, trackerXmlTags);
+            wr.trackersens(trackerData.specs, instream, outstream, isPixelTracker, trackerXmlTags);
             if (outstream.fail()) throw std::runtime_error("Error writing trackersens to file.");
             instream.close();
             instream.clear();
@@ -133,7 +152,7 @@ namespace insur {
 	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
             //writeSimpleHeader(outstream);
-            wr.recomaterial(data.specs, data.lrilength, instream, outstream, isPixelTracker, trackerXmlTags, wt);
+            wr.recomaterial(trackerData.specs, trackerData.lrilength, instream, outstream, isPixelTracker, trackerXmlTags, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing recomaterial to file.");
             instream.close();
             instream.clear();
@@ -146,7 +165,7 @@ namespace insur {
     /**
      * This prints the contents of the internal CMSSWBundle collection; used for debugging.
      */
-    void tk2CMSSW::print() {
+    void tk2CMSSW::print(CMSSWBundle& data) {
         std::cout << "tm2CMSSW internal status:" << std::endl;
         std::cout << "elements: " << data.elements.size() << " entries." << std::endl;
         for (unsigned int i = 0; i < data.elements.size(); i++) {
@@ -241,20 +260,24 @@ namespace insur {
 
 
   void tk2CMSSW::writeSimpleHeader(std::ostream& os, std::string& metdataFileName) {
-      os << "<!--" << std::endl;
-      os << "============= XML GENERATION METADATA HEADER =============" << std::endl;
-      os << "tkLayout revision: " << SvnRevision::revisionNumber << std::endl;
-      os << "generated by: " << fullUserName() << std::endl;
-      os << "generation date: " << currentDateTime(true) << std::endl;
-      os << "note: see " << metdataFileName << " for full config files" << std::endl;
-      os << "=========== END XML GENERATION METADATA HEADER ===========" << std::endl;
-      os << "-->" << std::endl;
-    }
+    const std::string& revision = SvnRevision::revisionNumber;
+    os << "<!--" << std::endl;
+    os << "============= XML GENERATION METADATA HEADER =============" << std::endl;
+    os << "tkLayout revision: " << revision.substr(0, revision.find(" ")) << std::endl;
+    os << "tkLayout developed by https://github.com/tkLayout/tkLayout/graphs/contributors ." << std::endl;
+    os << fullUserName() << " responsible for cross-check of the automatically-generated description below." << std::endl;
+    os << "generation date: " << currentDateTime(true) << std::endl;
+    os << "note: see " << metdataFileName << " for full config files" << std::endl;
+    os << "=========== END XML GENERATION METADATA HEADER ===========" << std::endl;
+    os << "-->" << std::endl;
+  }
 
   void tk2CMSSW::writeMetadata(std::ofstream& out) {
+    const std::string& revision = SvnRevision::revisionNumber;
     out << "============= XML GENERATION METADATA =============" << std::endl;
-    out << "tkLayout revision: " << SvnRevision::revisionNumber << std::endl;
-    out << "generated by: " << fullUserName() << std::endl;
+    out << "tkLayout revision: " << revision.substr(0, revision.find(" ")) << std::endl;
+    out << "tkLayout developed by https://github.com/tkLayout/tkLayout/graphs/contributors ." << std::endl;
+    out << fullUserName() << " responsible for cross-check of the automatically-generated description below." << std::endl;
     out << "generation date: " << currentDateTime(true) << std::endl;
     for (std::vector<ConfigFile>::const_iterator it = getConfigFiles().begin(); it != getConfigFiles().end(); ++it) {
       out << std::endl << std::endl;

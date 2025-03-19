@@ -2,22 +2,24 @@
 #include "InnerCabling/HvLine.hh"
 
 
-PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const int ringQuarterIndex) :
+PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing) :
   isPositiveZEnd_(isPositiveZEnd),
   isPositiveXSide_(isPositiveXSide),
   subDetectorName_(subDetectorName),
   layerDiskNumber_(layerDiskNumber),
   phiRef_(phiRef),
-  ringQuarterIndex_(ringQuarterIndex)
+  isLongBarrel_(isLongBarrel),
+  halfRingIndex_(halfRingIndex),
+  isAtSmallerAbsZDeeInDoubleDisk_(isAtSmallerAbsZDeeInDoubleDisk),
+  isAtSmallerAbsZSideInDee_(isAtSmallerAbsZSideInDee),
+  isSplitOverRings_(isTEPXSpecialRing)
 {
   myid(powerChainId);
   isBarrel_ = inner_cabling_functions::isBarrel(subDetectorName);
-  ringNumber_ = inner_cabling_functions::computeRingNumber(ringQuarterIndex);
-  isRingInnerEnd_ = inner_cabling_functions::isRingInnerEnd(ringQuarterIndex);
+  ringNumber_ = inner_cabling_functions::computeRingNumber(halfRingIndex);
+  isSmallerAbsZHalfRing_ = inner_cabling_functions::isSmallerAbsZHalfRing(halfRingIndex);
 
-  powerChainType_ = computePowerChainType(isBarrel_, layerDiskNumber, ringNumber_);
-
-  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, phiRef, ringQuarterIndex);
+  plotColor_ = computePlotColor(isBarrel_, isPositiveZEnd, phiRef, halfRingIndex);
 
   // BUILD HVLINE, TO WHICH THE MODULES OF THE POWER CHAIN ARE ALL CONNECTED
   buildHvLine(powerChainId);
@@ -35,22 +37,27 @@ void PowerChain::addModule(Module* m) {
 
 
 /*
- * Compute wheter a power chain is 4 Ampere or 8 Ampere.
- * NB: WOULD BE NICER TO COMPUTE THIS AS A FUNCTION OF MODULE TYPE (1x2 or 2x2)
+ * Returns whether a power chain has 4 Ampere or 8 Ampere.
+ * NB 1: Assumed all modules conected to the same power chain are of the same type.
+ * NB 2: THIS DEPENDS ON THE MODULE TYPE: IT ONLY MAKES SENSE TO CALL THIS AFTER THE MODULES HAVE BEEN ASSIGNED TO THE POWER CHAIN.
  */
-const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, const int layerDiskNumber, const int ringNumber) const {
-  PowerChainType powerChainType = PowerChainType::IUNDEFINED;
-  if (isBarrel) {
-    if (layerDiskNumber <= 2) powerChainType = PowerChainType::I4A;
-    else powerChainType = PowerChainType::I8A;
+const PowerChainType PowerChain::powerChainType() const {
+  if (modules().size() == 0) {
+    logERROR("Tried to call PowerChain::powerChainType() on a power chain connected to 0 module.");
+    return PowerChainType::IUNDEFINED;
   }
-
   else {
-    if (ringNumber <= 2) powerChainType = PowerChainType::I4A;
-    else powerChainType = PowerChainType::I8A;
+    const int numROCsPerModule = modules().front()->outerSensor().totalROCs();
+    if (numROCsPerModule == 2) return PowerChainType::I4A;
+    else if (numROCsPerModule == 4) return PowerChainType::I8A;
+    else {
+      logERROR(any2str("Found ")
+	       + any2str(numROCsPerModule)
+	       + any2str(" ROCs per module, which is not supported. If this is intended, tune PowerChain::powerChainType().")
+	       );
+      return PowerChainType::IUNDEFINED;
+    }
   }
-
-  return powerChainType;
 }
 
 
@@ -58,7 +65,7 @@ const PowerChainType PowerChain::computePowerChainType(const bool isBarrel, cons
  * Compute power chain color on website.
  * Power chains next to each other in space, must be of different colors.
  */
-const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int ringQuarterIndex) const {
+const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiveZEnd, const int phiRef, const int halfRingIndex) const {
   int plotColor = 0;
 
   const int plotPhi = femod(phiRef, 2);
@@ -68,7 +75,7 @@ const int PowerChain::computePlotColor(const bool isBarrel, const bool isPositiv
     plotColor = plotZEnd * 2 + plotPhi + 6;
   }
   else {
-    const int plotRingQuarter = femod(ringQuarterIndex, 6);
+    const int plotRingQuarter = femod(halfRingIndex, 6);
     plotColor = plotRingQuarter * 2 + plotPhi + 1;
   }
 

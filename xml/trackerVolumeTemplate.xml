@@ -2,17 +2,11 @@
      Tracker volume contains Inner Tracker + Outer Tracker + (BTL) + OTST.
      (BTL) is in parentheses as it is not included in all geometry scenarios.
      See Configuration/Geometry/README.md for more details.
+     15-11-23 - Configuration of Tracker volume changed (Polycone -> cylinder) following https://github.com/cms-sw/cmssw/pull/43133
 -->
 <Polycone name="<!--mid point marker-->" startPhi="0*deg" deltaPhi="360*deg">
-  <!-- TEMPORARY!! Should be defined automatically -->
-  <ZSection z="-291.0*cm" rMin="6.3*cm" rMax="[tracker:TrackerOutermostRadius]"/>
-  <ZSection z="-150.0*cm" rMin="6.3*cm" rMax="[tracker:TrackerOutermostRadius]"/>
-  <ZSection z="-150.0*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>
-  <ZSection z="-22.70*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>    <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker 501 : z="-41.50*cm" -->
-  <ZSection z="-22.70*cm" rMin="2.6*cm" rMax="[tracker:TrackerOutermostRadius]"/>    <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker 501 : z="-41.50*cm" -->
-  <ZSection z="22.70*cm" rMin="2.6*cm" rMax="[tracker:TrackerOutermostRadius]"/>     <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker 501 : z="41.50*cm" -->
-  <ZSection z="22.70*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>     <!-- This is for Pixel 4_0_2_5. For Tilted Inner Tracker 501 : z="41.50*cm" -->
-  <ZSection z="150.0*cm" rMin="2.8*cm" rMax="[tracker:TrackerOutermostRadius]"/>
-  <ZSection z="150.0*cm" rMin="6.3*cm" rMax="[tracker:TrackerOutermostRadius]"/>
-  <ZSection z="291.0*cm" rMin="6.3*cm" rMax="[tracker:TrackerOutermostRadius]"/>
+  <ZSection z="[tracker:TrackerMinimumZ]" rMin="[tracker:TrackerInnermostRadius]" rMax="[tracker:TrackerOutermostRadius]"/>
+  <ZSection z="[tracker:TrackerMaximumZ]" rMin="[tracker:TrackerInnermostRadius]" rMax="[tracker:TrackerOutermostRadius]"/>
 </Polycone>
+
+  

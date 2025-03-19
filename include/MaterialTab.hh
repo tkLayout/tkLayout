@@ -14,14 +14,16 @@ namespace material {
 
   class ChemicalBase {
   public:
-    ChemicalBase(const double density);
+    ChemicalBase(const int materialsTreeHierarchyLevel, const double density);
     const double getDensity() const { return density_; }
     const double getRadiationLength() const { return radiationLength_; }
     const double getInteractionLength() const { return interactionLength_; }
+    const int getMaterialsTreeHierarchyLevel() const { return materialsTreeHierarchyLevel_; }
 
     //virtual const bool isChemicalElement() const = 0;
 
   protected:
+    int materialsTreeHierarchyLevel_;
     double density_;
     double radiationLength_;
     double interactionLength_;
@@ -70,6 +72,8 @@ namespace material {
     void normalizeMassComposition(MassComposition& fractions) const;
     void checkMassCompositionSum(const MassComposition& fractions) const;
 
+    const int computeMaterialsTreeHierarchyLevel(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const;
+
     const std::pair<double, double> computeRadiationAndInteractionLengths(const MassComposition& fractions, const ChemicalBaseMap& alreadyDefinedMaterials) const;
 
     ChemicalFormula formula_;
@@ -87,6 +91,8 @@ namespace material {
  
   public:
     static const MaterialsTable& instance();
+
+    int getMaxMaterialsTreeHierarchyLevel() const;
 
     double getDensity(const std::string materialName) const;  // TO DO: should return const double!!!
     double getRadiationLength(const std::string materialName) const;

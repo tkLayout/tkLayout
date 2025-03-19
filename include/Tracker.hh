@@ -173,7 +173,8 @@ public:
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
   Modules& modules() { return moduleSetVisitor_.modules(); }
 
-  bool isPixelTracker() const { return myid() == "Pixels"; }
+  bool isPixelTracker() const { return (myid() == "Pixels" || myid()=="PixelsSubDisk"); }
+  bool hasSubDisks() const { return myid()=="PixelsSubDisk"; }
 
   std::map<std::string, std::vector<int> > detIdSchemes();
 

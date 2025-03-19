@@ -112,7 +112,7 @@ void StraightRodPair::compressToZ(double z) {
     }
     Deltam = -fabs(z) - findMinZModule().planarMinZ(); 
   }  
-  if (i == 20) {
+  if (i == maxIterations) {
     logINFO("Iterative compression didn't terminate after " + any2str(maxIterations) + " iterations. Z- rod still exceeds by " + any2str(fabs(Deltam))); 
     logWARNING("Failed to compress Z- rod. Still exceeding by " + any2str(fabs(Deltam)) + ". Check info tab.");
   } else logINFO("Z- rod successfully compressed after " + any2str(i) + " iterations. Rod now only exceeds by " + any2str(fabs(Deltam)) + " mm.");
@@ -176,12 +176,14 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   // Case A : zOverlap is considered for computing next Z
   double lastRA;
   double newRA;
+
   if (parity > 0) { // Going upwards
     lastRA = maxr - d + lastDsDistance/2;
     newRA = maxr + d - newDsDistance/2; // use of maxr because outer rod wins, from -d to +d because going upwards
   } else { // Going downwards
     lastRA = minr + d + lastDsDistance/2;
     newRA = minr - d - newDsDistance/2; // use of minr because inner rod wins, from +d to -d because going downwards
+
   }
 
   // Case B : zError is considered for computing next Z
@@ -246,6 +248,7 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
       }
     }
   }
+ // std::cout << "next Z -  " << newZ << std::endl; 
   return newZ;
 }
 
@@ -254,6 +257,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
 template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ) {
 
   vector<double> zList;
+  //properties parametrizing the Z+/Z- gap
+  double zg = zGap(); // absolute value of translation Z+ -> and Z- <-  
+  double zc = zCentral();//position of central module 
 
   double targetZ = maxZ.state() ? maxZ() : std::numeric_limits<double>::max(); // unreachable target in case maxZ not set
   int targetMods = buildNumModules.state() ? buildNumModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
@@ -263,12 +269,16 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
   double newZ = startZ; // + lengthOffset/2;
 
   int parity = smallParity;
+  if (direction == BuildDir::RIGHT) newZ = newZ + zg;       //apply translation to Z+
+  else if (direction == BuildDir::LEFT) newZ = newZ - zg;   //apply translation to Z-
+
   BarrelModule* lastm = begin->get();
 
   int n = 0;
 
   if (fixedStartZ) {
     zList.push_back(newZ);
+ //   std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? (*begin)->length() : (*begin)->length());
     parity = -parity;
     ++begin;
@@ -280,6 +290,7 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
     newZ = computeNextZ(curm->length(), curm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
     zList.push_back(newZ);
+   // std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? curm->length() : -curm->length());
     lastm = curm.get();
     parity = -parity;
@@ -295,10 +306,12 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
     parity = -parity;
   }
 
+  //reposition central module
+  if (direction == BuildDir::RIGHT && zc!= -999) 
+	zList[0] = zc;
   return zList;
 
 }
-
 
 template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
   bool fixedStartZ = true;
@@ -356,9 +369,9 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
 
 void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
-  /*std::cout << "startZ = " << startZ << std::endl;
-  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;*/
-  auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
+  std::pair<vector<double>,vector<double>>  zListPair;
+  
+  zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation
     // CUIDADO log rod balancing effort
@@ -372,13 +385,44 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
   if (!collisionsZPlus.empty() || !collisionsZMinus.empty()) logWARNING("Some modules have been translated to avoid collisions. Check info tab");
 
   if (compressed() && maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
+   if (modZList.state()) {
+    // Manual modification of the mod z position required
+    
+    // Now let's sort the module z positions what we would /like/ to have:
+    std::sort(modZList.begin(), modZList.end());
+
+    // Let's see if they are compatible
+    if (zMinusModules_.size() + zPlusModules_.size() == modZList.size()) {
+      // They are compatible, so we will use the manually-given values
+      int iMod=0;
+      XYZVector movement(0, 0, 0);
+      // Scrolling through the negative modules from the lowest z (negative) to the highest one (around zero)
+      for (auto it = zMinusModules_.rbegin(); it < zMinusModules_.rend(); ++it) {
+        // translation to move the center of the module from the current to the desired z
+        movement.SetZ(modZList.at(iMod) - it->center().Z());
+        it->translate(movement);
+        ++iMod;
+      }
+      // Scrolling through the positive modules from the lowest z (around zero) to the highest one (positive)
+      for (auto it = zPlusModules_.begin(); it < zPlusModules_.end(); ++it) {
+        // translation to move the center of the module from the current to the desired z
+        movement.SetZ(modZList.at(iMod) - it->center().Z());
+        it->translate(movement);
+        ++iMod;
+      }
+    } else {
+      std::string errMsg = "The list of module z position length (" + std::to_string(modZList.size()) + ") does not match the number of built modules ("+std::to_string(zMinusModules_.size() + zPlusModules_.size())+")";
+      logERROR(errMsg);
+    }
+  }
   currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
 
 void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
-  // compute Z list (only once since the second mezzanine has just inverted signs for z) 
-  vector<double> zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDir::LEFT, zPlusParity(), false);
+  // compute Z list (only once since the second mezzanine has just inverted signs for z)
+  
+  auto zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDir::LEFT, zPlusParity(), false);
   vector<double> zListNeg;
   std::transform(zList.begin(), zList.end(), std::back_inserter(zListNeg), std::negate<double>());
 

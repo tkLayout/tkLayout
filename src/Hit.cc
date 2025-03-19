@@ -178,8 +178,8 @@ void Hit::fillModuleLocalResolutionStats() {
   } else {
     if (m_hitModule) {
       // Compute hit module local resolution.
-      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      const double resolutionLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
+      const double resolutionLocalY = m_hitModule->resolutionLocalY(getTrackDirection());
       
       // Fill the module statistics.
       if (m_hitModule->hasAnyResolutionLocalXParam()) m_hitModule->rollingParametrizedResolutionLocalX(resolutionLocalX);
@@ -195,7 +195,7 @@ void Hit::fillModuleLocalResolutionStats() {
 void Hit::setHitPassiveElement(const insur::InactiveElement* myPassiveElem) {
 
   if (myPassiveElem) m_hitPassiveElem = myPassiveElem;
-  //else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");
+  else logWARNING("Hit::setHitPassiveElement -> can't set inactive element to given hit, pointer null!");
 }
 
 /*
@@ -205,6 +205,19 @@ int Hit::getLayerOrDiscID() const {
 
   if (m_hitModule && m_hitModule->getConstModuleCap()!=nullptr) return m_hitModule->getConstModuleCap()->getLayerOrDiscID(); else return -1;
 }
+
+
+/**
+ * Get the track vector.
+ */
+const TVector3 Hit::getTrackDirection() const {
+
+  if (m_track==nullptr) {
+    logWARNING("Hit::getTrackDirection -> no track assigned, will return zero!");
+    return TVector3();
+  }
+  return m_track->getDirection();
+};
 
 
 /**
@@ -243,49 +256,69 @@ RILength Hit::getCorrectedMaterial() {
     return m_correctedMaterial;
 }
 
+
 /**
- * Getter for the rPhi resolution (local x coordinate for a module)
- * If the hit is not active it returns -1
- * If the hit is connected to a module, then the module's resolution
- * is retured (if the hit is trigger-type, then then module's trigger resultion is requested)
- * if there is not any hit module, then the hit's resolution property is read and returned
- * @return the hit's local resolution
+ * Returns the hit's Rphi resolution.
+ * If the hit is not active, it returns -1.
+ * IMPORTANT NB: THE deltaTheta PARAMETER INTRODUCES A DEPENDENCY ON THE TRACK'S deltaTheta RESOLUTION IN (RZ) PLANE.
+ * HENCE, Track::computeErrorsRZ IS CALLED AND COMPUTED FIRST!!
  */
-double Hit::getResolutionRphi(double trackRadius) {
+double Hit::getResolutionRphi(const double trackRadius, const double deltaTheta) const {
 
+  // INACTIVE HIT
   if (!(this->isActive())) {
-
     logERROR("Hit::getResolutionRphi called on a non-active hit");
     return -1;
   }
+
+  // ACTIVE HIT
   else {
 
-    // Module hit
+    // ON A MODULE
     if (m_hitModule) {
 
-      // R-Phi-resolution calculated as for a barrel-type module -> transform local R-Phi res. to a true module orientation (rotation by theta angle, skew, tilt)
-      // In detail, take into account a propagation of MS error on virtual barrel plane, on which all measurements are evaluated for consistency (global chi2 fit applied) ->
-      // in limit R->inf. propagation along line used, otherwise a very small correction factor coming from the circular shape of particle track is required (similar
-      // approach as for local resolutions)
-      // TODO: Currently, correction mathematicaly derived only for use case of const magnetic field -> more complex mathematical expression expected in non-const B field
-      // (hence correction not applied in such case)
-      double A = 0;
-      if (SimParms::getInstance().isMagFieldConst()) A = getRPos()/(2*trackRadius); // r_i / 2R
-      double B         = A/sqrt(1-A*A);
-      double tiltAngle = m_hitModule->tiltAngle();
-      double skewAngle = m_hitModule->skewAngle();
-      const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-      const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+      // Sensor local resolution
+      const double resoSensorLocalX = getHitModule()->resolutionLocalX(getTrackDirection());
+      const double resoSensorLocalY = getHitModule()->resolutionLocalY(getTrackDirection());
 
-      // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
-      double resolutionRPhi = sqrt(pow((B*sin(skewAngle)*cos(tiltAngle) + cos(skewAngle)) * resLocalX,2) + pow(B*sin(tiltAngle) * resLocalY,2));
+      // Also get hit position resolution in (RZ) plane
+      // Simply project R * deltaTheta into the sensor plane.
+      // Formula is: R * deltaTheta / sin(theta + tilt)
+      // * Barrel module: this is equivalent to: R * deltaTheta / sin(theta)
+      // * Endcap module: this is equivalent to: R * deltaTheta / cos(theta)
+      const double hitR = std::hypot(getZPos(), getRPos());
+      const double incidentAngleInRZPlane = fabs(getHitModule()->beta(getTrackDirection()));	    
+      const double resoPositionLocalY = hitR * deltaTheta / sin(incidentAngleInRZPlane);
+
+      // Resolution localY: 
+      // take into account both the sensor local Y resolution and the hit position resolution in (RZ) plane.
+      const double resoLocalY = pow( 1/pow(resoSensorLocalY, 2) + 1/pow(resoPositionLocalY , 2) , -0.5);
+
+      // Dependency on pT: compute B coefficient
+      // Very small correction factor, associated with the circular shape of particle track.
+      const double A = (SimParms::getInstance().isMagFieldConst() ? getRPos() / ( 2 * trackRadius) : 0.); // r_i / 2R
+      const double B         = A / sqrt(1. - pow(A, 2.));
+
+      // Sensor's orientation
+      const double tiltAngle = fabs(getHitModule()->tiltAngle());
+      const double skewAngle = fabs(getHitModule()->skewAngle());
+
+
+      // Can finally compute resolutionRPhi !!
+      const double resolutionRPhi = sqrt(
+					 pow( (B * sin(skewAngle) * cos(tiltAngle) + cos(skewAngle)) * resoSensorLocalX, 2.) 
+					 + pow(B * sin(tiltAngle) * resoLocalY, 2.)	
+					 );
 
       return resolutionRPhi;
     }
-    // IP or beam-constraint etc. hit
+
+    // IP OR BEAM-CONSTRAINT HIT
     else return m_resolutionRPhi;
   }
+
 }
+
 
 /**
  * Getter for the y resolution (local y coordinate for a module)
@@ -296,7 +329,7 @@ double Hit::getResolutionRphi(double trackRadius) {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionZ(double trackRadius) {
+double Hit::getResolutionZ(const double trackRadius) const {
 
   if (!(this->isActive())) {
 
@@ -326,11 +359,13 @@ double Hit::getResolutionZ(double trackRadius) {
         double D         = m_track->getCotgTheta()/sqrt(1-A*A);
         double tiltAngle = m_hitModule->tiltAngle();
         double skewAngle = m_hitModule->skewAngle();
-        const double resLocalX = m_hitModule->resolutionLocalX(getTrackPhi());
-        const double resLocalY = m_hitModule->resolutionLocalY(getTrackTheta());
+        const double resLocalX = m_hitModule->resolutionLocalX(getTrackDirection());
+        const double resLocalY = m_hitModule->resolutionLocalY(getTrackDirection());
 
         // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
         double resolutionZ = sqrt(pow(((D*cos(tiltAngle) + sin(tiltAngle))*sin(skewAngle)) * resLocalX,2) + pow((D*sin(tiltAngle) + cos(tiltAngle)) * resLocalY,2));
+	// NB: IN A SYMMETRIC WAY, HERE WE MIGHT HAVE WANTED A DEPENDENCY ON THE TRACK'S RPHI RESOLUTION,
+	// TO TAKE INTO ACCOUNT BOTH THE HIT'S POSITION RPHI RESOLUTION AND the sensor's resLocalX?????
 
         return resolutionZ;
       }
@@ -339,6 +374,7 @@ double Hit::getResolutionZ(double trackRadius) {
     else return m_resolutionZ;
   }
 }
+
 
 /*
  * Checks wether a module belongs to the outer endcap (no pixel allowed)

@@ -1,49 +1,48 @@
-# Prerequisites
-
-tkLayout requires:
-
-    ROOT version > 5.34.09 (root and root-config should be in user's path)
-    BOOST version > 1.55
-    gcc version > 4.7
-
-If you are on lxplus, you can just run a bash shell and then:
-
-     source setup_slc6.sh
-     
-     
-# Getting the code
+# Getting the repository
 
      git clone https://github.com/tkLayout/tkLayout.git
      cd tkLayout
 
-The latest official version is at tkLayout/master branch, the latest devolpment version at tkLayout/dev branch.
+The latest official version is at tkLayout/master branch, the latest development version at tkLayout/dev branch.
+
+
+# Environment
+
+tkLayout requires:
+
+    ROOT version 6.16.00 (root and root-config should be in user's path)
+    BOOST version 1.69.0
+    gcc version 8.2.0
+
+If you are on lxplus, you can just run a bash shell and then:
+
+     source setup_centos7.sh         # If you plan to use make directly
+     source setupCMake_centos7.sh    # If you plan to use make CMake
+     
 
 # Compilation
 
 Compilation using make:
 
-    make
+    make -j8
+    make install
 
-This will build the needed programs and put them in the ./bin directory.
+This will build the needed programs, and put them in the tkLayout/bin directory.
 
-Compilation using cmake (NEW):
+Compilation using cmake:
 
     mkdir build     (all object files, help files, libs, ... will be kept here)
     cd build
     cmake ..        (generate makefile)
-    make install    (or write make all + make install)
+    make -j8
+    
     make doc        (generate Doxygen-based documentation in doc directory)
-
+    
     make uninstall  (if cleaning needed)
     rm *            (clean all content in build directory & restart if needed)
 
-This will build the needed programs, copy the executables into tkLayout/bin directory and create symlink in ${HOME}/bin directory.
+This will build the needed programs, and put them in the tkLayout/build/bin directory.
 
-
-# Install
-  If the make command runs properly you can install the program with the script
-
-     make install
 
 ### First-time install
 If this is the first time that you install tkLayout, a few questions will be asked. You will need to provide:

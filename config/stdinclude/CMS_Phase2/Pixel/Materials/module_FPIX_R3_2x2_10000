@@ -3,12 +3,14 @@ Materials FPIX_R3_2x2_10000 {
   type module
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Active_Planar
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_2x2
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_10000
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Cooling_Blocks_TFPX
   @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TFPX_R3
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
-  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Chip_Caps
 }
 

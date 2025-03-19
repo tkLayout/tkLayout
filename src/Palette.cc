@@ -42,56 +42,56 @@ Color_t Palette::color(const unsigned int& plotIndex, bool isTransparent) {
 }
 
 Color_t Palette::color_int(const unsigned int& plotIndex, bool isTransparent) {
-  std::string colorCode;
-  
-  if (plotIndex==0) colorCode = "#000000";
+  short paletteIndex = kBlack;
+
+  if (plotIndex==0) paletteIndex = kBlack;
   else {
     int nColor=(plotIndex-1) % 12;
+
     switch (nColor) {
     case 0 :
-      colorCode="#004586";
+      paletteIndex = kAzure-6; // dark blue
       break;
     case 1 :
-      colorCode="#FF420E";
+      paletteIndex = kOrange+10; // red
       break;
     case 2 :
-      colorCode="#FFD320";
+      paletteIndex = kOrange-2; // yellow
       break;
     case 3 :
-      colorCode="#579D1C";
+      paletteIndex = kSpring-6; // dark green
       break;
     case 4 :
-      colorCode="#7E0021";
+      paletteIndex = kOrange+3; // brown
       break;
     case 5 :
-      colorCode="#83CAFF";
+      paletteIndex = kAzure+6; // very clear blue
       break;
     case 6 :
-      colorCode="#314004";
+      paletteIndex = kYellow+4; // very dark green
       break;
     case 7 :
-      colorCode="#AECF00";
+      paletteIndex = kSpring + 5;  // teal
       break;
     case 8 :
-      colorCode="#4B1F6F";
+      paletteIndex = kViolet + 3; // violet
       break;
     case 9 :
-      colorCode="#FF950E";
+      paletteIndex = kOrange+1; // orange
       break;
     case 10 :
-      colorCode="#C5000B";
+      paletteIndex = kRed+1; // dark red
       break;
     case 11 :
-      colorCode="#0084D1";
+      paletteIndex = kAzure-2; // blue azur
       break;
     default :
       std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
-      colorCode="#000000";
+      paletteIndex = kBlack;
       break;
     }
   }
   
-  short paletteIndex = TColor::GetColor(colorCode.c_str());
   if (isTransparent) paletteIndex = Palette::GetColorTransparent(paletteIndex, 0.2);
 
   return paletteIndex;
@@ -121,10 +121,10 @@ Color_t Palette::colorDTC(const int& colorIndex, bool isTransparent) {
       paletteIndex= kOrange;
       break;
     case 2 :
-      paletteIndex= kRed;
+      paletteIndex= kRed + 1;
       break;
     case 3 :
-      paletteIndex=kPink;
+      paletteIndex=kPink + 1;
       break;
     case 4 :
       paletteIndex=kMagenta;

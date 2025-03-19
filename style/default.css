@@ -75,7 +75,8 @@ float: left;
 width: 100%; /*width of menu*/
 border: 0px solid #564c66; /*dark purple border*/
 border-width: 0px 0;
-background: black url('images/a3.gif') top left repeat-x;
+background: #00377c url('images/a3.gif') bottom left repeat-x;
+padding-bottom: 20px;
 }
 
 #menu ul li
@@ -165,6 +166,10 @@ background: white;
 	clear: left;
 	line-height: 0;
 	height: 0;
+}
+
+#content div.below {
+    position: relative;
 }
 
 #cover{position:absolute;top:0px;left:0px;overflow:hidden;display:none;width:100%;height:100%;background-color:#000000;opacity:0.5;MozOpacity:0.5;zIndex:50;filter:alpha(opacity=50);text-align:center}

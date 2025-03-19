@@ -5,56 +5,44 @@
  *      Author: stefano
  */
 
-#ifndef CORDINATEOPERATIONS_H_
-#define CORDINATEOPERATIONS_H_
+#ifndef CORDINATEOPERATIONS_H
+#define CORDINATEOPERATIONS_H
 
-#include <Math/Vector3Dfwd.h>
 #include <vector>
+#include <Math/Vector3Dfwd.h>
+#include <Math/VectorUtil.h>
+#include <TVector3.h>
 #include "Polygon3d.hh"
 #include "global_funcs.hh"
 
 using ROOT::Math::XYZVector;
 
+
 namespace CoordinateOperations {
 
-/*
-  template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
-    std::vector<XYZVector> distanceVectors;
-    auto vertex0 = polygon.begin();
-    for(auto vertex1 = polygon.begin()+1; vertex1 != polygon.end(); vertex0 = vertex1++) {
-      XYZVector directionVector = (*vertex0 - *vertex1).Unit();
-      if (vertex0->Dot(directionVector) >= 0.0) {
-        distanceVectors.push_back(*vertex0);
-      }else if (vertex1->Dot(directionVector) <= 0.0) {
-        distanceVectors.push_back(*vertex1);
-      } else {
-
-        XYZVector appo = *vertex0 - (vertex0->Dot(directionVector) * directionVector);
-
-        distanceVectors.push_back(appo);
-      }
-    }
-    return distanceVectors;
+  /*
+   * Convert XYZVector or Polar3DVector into a TVector. 
+   * TVector is much more generic, and allows Angle() operation for example, which are not permitted with the old coord classes.
+   */
+  template<class CoordVector> const TVector3 convertCoordVectorToTVector3(const CoordVector& v) {
+    return TVector3(v.X(), v.Y(), v.Z());
   }
-*/
 
-/**
- * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
- */
-  template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
-    Polygon* midPoly = new Polygon();
 
-    XYZVector v0 = polygon.getVertex(0);
-    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
-      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
-      XYZVector vMid = (v0 + v1) / 2.;
-      *midPoly << vMid;
-      v0 = v1;   
-    }
-    return midPoly;
+  /*
+   * Returns projection of v1 on the plane which has v2 as a normal.
+   * WARNING!! Here, v2 needs to be unitary: ||v2|| = 1.
+   * || || used is the euclidian norm on R3.
+   * Dot is the scalar product associated to || ||.
+   * NB: Very weird that this is not provided by default, v1.Perp(v2) provides a scalar but not a vector.
+   */
+  template<class GeoVector> GeoVector projectv1OnPlaneOfNormalUnitv2(const GeoVector& v1, const GeoVector& v2) {
+    return (v1 - v1.Dot(v2) * v2);
   }
+
 
   XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
+
   template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
     std::vector<XYZVector> distanceVectors;
     XYZVector v0 = polygon.getVertex(0);
@@ -91,6 +79,33 @@ namespace CoordinateOperations {
     return p;
   }
 
+  template<class Polygon> Polygon* computeResizedPolygon(const Polygon& basePolygon, const XYZVector& axis, double scale) {
+    Polygon* p = new Polygon();
+    const XYZVector& center = basePolygon.getCenter();
+    for (const XYZVector* vtx = basePolygon.begin(); vtx != basePolygon.end(); ++vtx) {
+      XYZVector shift = ROOT::Math::VectorUtil::ProjVector(center - *vtx, axis) * (1. - scale);
+      *p << (*vtx + shift);
+    }
+    return p;
+  }
+
+  /**
+   * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
+   */
+  template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
+    Polygon* midPoly = new Polygon();
+
+    XYZVector v0 = polygon.getVertex(0);
+    for (int i = 1; i < polygon.getNumSides() + 1; i++) {
+      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      XYZVector vMid = (v0 + v1) / 2.;
+      *midPoly << vMid;
+      v0 = v1;   
+    }
+    return midPoly;
+  }
+
+
 /**
  * Compute the envelope polygon (2n vertices) from a polygon (n vertices) specified as a parameter.
  * param basePolygon
@@ -121,4 +136,4 @@ namespace CoordinateOperations {
 
 
 
-#endif /* CORDINATEOPERATIONS_H_ */
+#endif /* CORDINATEOPERATIONS_H */

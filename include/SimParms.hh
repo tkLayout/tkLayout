@@ -46,10 +46,15 @@ public:
   ReadonlyProperty<double, NoDefault> magField;
 
   PropertyVector<std::string, ','> irradiationMapFiles;
+  PropertyVector<std::string, ','> doseMapFiles;
 
   Property<double, NoDefault> minTracksEta, maxTracksEta;
 
   PropertyNode<std::string> taggedTracking;
+
+  ReadonlyProperty<double, Default> beamPipeX;
+  ReadonlyProperty<double, Default> beamPipeL;
+
 
   void build();
 
@@ -63,6 +68,7 @@ public:
 
   //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return irradiationMapsManager_; }
+  const IrradiationMapsManager& doseMapsManager() const { return doseMapsManager_; }
 
   void accept(GeometryVisitor& v) { v.visit(*this); }
   void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
@@ -75,6 +81,7 @@ private:
   SimParms();
 
   IrradiationMapsManager irradiationMapsManager_;
+  IrradiationMapsManager doseMapsManager_;
 };
 
 #endif

@@ -1,7 +1,14 @@
-source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.09/x86_64-slc6-gcc47-dbg/root/bin/thisroot.sh
-source /afs/cern.ch/sw/lcg/contrib/gcc/4.7/x86_64-slc6-gcc47-opt/setup.sh
-export CC=`which gcc`
-export CXX=`which g++`
-export BOOST_LIB=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/lib
-export BOOST_INCLUDE=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/include/boost-1_55
-export BOOST_SUFFIX=-gcc47-mt-1_55 
+#!/bin/bash
+
+# EXPLICIT, MINIMAL DPEENDENCIES FOR SLC6
+source setup_slc6.sh
+
+
+# CMAKE
+export PATH=$CONTRIB/CMake/3.13.4/Linux-x86_64/bin/:$PATH
+
+# BOOST
+export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$RELEASE_LCG/Boost/1.69.0/$ARCH-opt/include:$RELEASE_LCG/Boost/1.69.0/$ARCH-opt/lib
+
+# UPDATE PATH
+export PATH=`pwd`/build/bin:$PATH

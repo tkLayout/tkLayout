@@ -1,0 +1,62 @@
+// TFPX second-conversion stations (service cylinder)
+// twisted pairs -> GBT
+
+// distance from disk center: 13 mm
+// conversion station length: 43 mm
+
+Station {
+  stationName FPIX1
+  type second
+  minZ 291.00
+  maxZ 334.00
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX2
+  type second
+  minZ 360.95
+  maxZ 403.95
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX3
+  type second
+  minZ 450.23
+  maxZ 493.23
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX4
+  type second
+  minZ 564.20
+  maxZ 607.20
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX5
+  type second
+  minZ 709.68
+  maxZ 752.68
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX6
+  type second
+  minZ 880.38
+  maxZ 923.38
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX7
+  type second
+  minZ 1147.42
+  maxZ 1190.42
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+Station {
+  stationName FPIX8
+  type second
+  minZ 1435.00
+  maxZ 1478.00
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}

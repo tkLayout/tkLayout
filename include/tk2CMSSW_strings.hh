@@ -15,22 +15,25 @@ namespace insur {
     static const double xml_z_pixfwd = 291.0; // VERY IMPORTANT : xml_z_pixfwd defines the offset of the Pixel Forward container volume. 
     // It should be equal to ZPixelForward defined statically in pixfwd.xml. Otherwise, anything contained by Pixel Forward will have wrong Z in XMLs !!
     static const double xml_epsilon = 0.01; // Added to virtual geometrical mother volume to avoid extrusion of what it contains.
+    static const int xml_angle_precision = 10;
+    static const int xml_angle_name_precision = 3;
     static const double xml_composite_density_tolerance = 1E-07;
     static const double xml_composite_ratio_tolerance = 1E-07;
     static const double xml_outerTrackerEndcapsMinZ = 1250.;
     static const double xml_innerTrackerEndcapsMinZ = 227.;    // from PIXEL 4_0_2_1 onwards  // PIXEL 1_1_1 : 300.
     static const double xml_innerTiltedTrackerEndcapsMinZ = 415.; // 390. for IT_500
-    static const std::string xml_trackerOutermostRadius = "122.15*cm"; // Outermost tracker volume boundary
-    /**
-     * XML tags and attributes
+    static const std::string xml_trackerOutermostRadius = "1233*mm";
+    static const std::string xml_trackerInnermostRadius = "25*mm"; // Outermost tracker volume updated to reach CALO (https://github.com/cms-sw/cmssw/pull/43133)
+    static const std::string xml_trackerMaximumZ = "2935*mm";
+     /* XML tags and attributes
      */
     static const std::string xml_preamble_concise = "<?xml ";
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n";
-    static const std::string xml_definition = "<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";  
+    static const std::string xml_definition = "<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";  
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
-    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";
+    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n<Constant name=\"TrackerMaximumZ\" value=\"" + xml_trackerMaximumZ +"\"/>\n<Constant name=\"TrackerMinimumZ\" value=\"-[TrackerMaximumZ]\"/>\n<Constant name=\"TrackerInnermostRadius\" value=\"" + xml_trackerInnermostRadius +"\"/>\n<Constant name=\"TrackerOutermostRadius\" value=\"" + xml_trackerOutermostRadius + "\"/>\n</ConstantsSection>\n";                         
     static const std::string xml_new_const_section = "<ConstantsSection label=\"newtracker.xml\" eval=\"true\">\n<Constant name=\"newDummyBackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
     static const std::string xml_recomat_radlength = "TrackerRadLength";
@@ -52,8 +55,8 @@ namespace insur {
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
     static const std::string xml_algorithm_numeric = "<Numeric name=\"";
-    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\">";
-    static const std::string xml_algorithm_vector_close = "</Vector>\n";
+    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\"> ";
+    static const std::string xml_algorithm_vector_close = " </Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
     static const std::string xml_tkLayout_material = "tkLayout_";
@@ -99,7 +102,7 @@ namespace insur {
     static const std::string xml_cone_fifth_inter = "*mm\" dz=\"";
     static const std::string xml_cone_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
     static const std::string xml_polycone_open = "<Polycone name=\"";
-    static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n";
+    static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n<ZSection z=\"[tracker:TrackerMinimumZ]\" rMin=\"[tracker:TrackerInnermostRadius]\" rMax=\"[tracker:TrackerOutermostRadius]\"/>\n<ZSection z=\"[tracker:TrackerMaximumZ]\" rMin=\"[tracker:TrackerInnermostRadius]\" rMax=\"[tracker:TrackerOutermostRadius]\"/>";
     static const std::string xml_polycone_close = "</Polycone>\n";
     static const std::string xml_rzpoint_open = "<RZPoint r=\"";
     static const std::string xml_rzpoint_inter = "*mm\" z=\"";
@@ -135,8 +138,22 @@ namespace insur {
     static const std::string xml_spec_par_open = "<SpecPar name=\"";
     static const std::string xml_spec_par_selector = "<PartSelector path=\"//";
     static const std::string xml_spec_par_parameter_first = "<Parameter name=\"";
+    static const std::string xml_spec_par_parameter_evaluation = "\" eval=\"true"; // numerical parameters need to be evaluated
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
+
+    /**
+     * Mechanical categories files utilities
+     */
+    static const std::string xml_mechanicalCategoriesComment = "#";
+    static const std::string xml_mechanicalCategoriesHeader = "Phase 2 Tracker materials: 4 mechanical categories.";
+    static const std::string xml_mechanicalCategoriesSmallSpacer = " ";
+    static const std::string xml_mechanicalCategoriesBigSpacer = "           ";
+    static const std::string xml_mechanicalCategoriesMaterialName = "Material";
+    static const std::string xml_mechanicalCategoriesActiveSensor = "Active";
+    static const std::string xml_mechanicalCategoriesZero = "0.000";
+    static const std::string xml_mechanicalCategoriesOne = "1.000";
+
     /**
      * Input and output filenames
      */
@@ -146,6 +163,7 @@ namespace insur {
     static const std::string xml_trackervolumefile = "trackerVolumeTemplate.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
+    static const std::string xml_OTSTfile = "otst.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
     static const std::string xml_newtopologyfile = "newTrackerStructureTopology.xml";
     static const std::string xml_PX_topologyfile = "pixelStructureTopology.xml";
@@ -156,7 +174,10 @@ namespace insur {
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
     static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
     //static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
+    static const std::string xml_mechanicalCategoriesRLfile = "mechanicalCategoriesRL.txt";
+    static const std::string xml_mechanicalCategoriesILfile = "mechanicalCategoriesIL.txt";
     static const std::string xml_tmppath = "tmp";
+
     /**
      * Naming conventions and variable names
      */
@@ -171,20 +192,29 @@ namespace insur {
     static const std::string xml_base_outer = "OUTER";
     static const std::string xml_base_lower = "Lower"; // This is for distinguishing inner/outer sensor!
     static const std::string xml_base_upper = "Upper";
+    static const std::string xml_base_one = "One"; // This is for distinguishing inner/outer sensor!
+    static const std::string xml_base_two = "Two";
     static const std::string xml_base_pixel = "MacroPixel";
     static const std::string xml_base_strip = "Strip";
     static const std::string xml_base_ps = "PS";
     static const std::string xml_base_2s = "2S";
-    static const std::string xml_OT = "OuterTracker";
-    static const std::string xml_PX = "InnerPixel";
+    static const std::string xml_OTST = "OTST";
+    static const std::string xml_OuterTracker = "OuterTracker";
+    static const std::string xml_InnerPixel = "InnerPixel";
+    static const std::string xml_OT = "OT";
+    static const std::string xml_IT = "IT";
+    static const std::string xml_3D = "3D";
     static const std::string xml_timing = "Timing";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
     static const std::string xml_disc = "Disc";
+    static const std::string xml_subdisc = "SubDisc";
+    static const std::string xml_SD = "SD";
     static const std::string xml_rod = "Rod";
     static const std::string xml_unflipped = "Unflipped";
     static const std::string xml_flipped = "Flipped";
+    static const std::string xml_R = "R";
     static const std::string xml_ring = "Ring";
     static const std::string xml_positive_z = "PositiveZ";
     static const std::string xml_negative_z = "NegativeZ";
@@ -201,6 +231,7 @@ namespace insur {
     static const std::string xml_sensor_LYSO = "SenLYSO";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
+    static const std::string xml_otstident = "otst";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
     static const std::string xml_PX_fileident = "pixel";
@@ -219,6 +250,7 @@ namespace insur {
     static const std::string xml_phialt_algo = "track:DDTrackerPhiAltAlgo";
     static const std::string xml_angular_algo = "track:DDTrackerAngular";
     static const std::string xml_trackerring_algo = "track:DDTrackerRingAlgo";
+    static const std::string xml_trackerring_irregular_algo = "track:DDTrackerIrregularRingAlgo";
     static const std::string xml_angularv1_algo = "track:DDTrackerAngularV1";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
@@ -253,11 +285,15 @@ namespace insur {
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
     static const std::string xml_subdet_upper_detectors = "UpperDetectors";
+    static const std::string xml_subdet_one_detectors = "FirstDetectors";
+    static const std::string xml_subdet_two_detectors = "SecondDetectors";
     static const std::string xml_true = "true";
+    static const std::string xml_readout = "Readout";
     static const std::string xml_roc_x = "PixelROC_X";
     static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_roc_rows_name = "PixelROCRows";
     static const std::string xml_roc_cols_name = "PixelROCCols";
+    static const std::string xml_bricked_name = "isBricked";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_reco = "TrackerRecMaterial";
     static const std::string xml_OT_reco_layer_name = "Phase2OTBarrelLayer";
@@ -274,6 +310,7 @@ namespace insur {
     static const std::string xml_negative_z_tilted_mod_rot = "NEGATIVEZMODULETILT";
     static const std::string xml_Y180 = "Y180";
     static const std::string xml_endcap_rot = "EndcapRot";
+
     /**
      * CMSSW constants
      */
@@ -313,6 +350,9 @@ namespace insur {
     static const std::string xml_OT_topo_bmodule_value = "Phase2OTBarrelStack";
     static const std::string xml_PX_topo_bmodule_value = "InnerPixelBarrelStack";
 
+    static const std::string xml_PX_topo_bmodulecomb_name= "InnerTrackerBarrelCombined";
+    static const std::string xml_PX_topo_bmodulecomb_value= "Phase2ITBarrelCombined";
+
     static const std::string xml_OT_topo_endcaps_name = "Phase2OTEndcapSubDet";
     static const std::string xml_PX_topo_endcaps_name = "PixelPhase2EndcapSubDet";
 
@@ -321,9 +361,14 @@ namespace insur {
 
     static const std::string xml_OT_topo_disc_name = "OuterTrackerPixelEndcapDisk";
     static const std::string xml_PX_topo_disc_name = "PixelEndcapDisk";
+    static const std::string xml_PX_topo_disc_case_sd_name = "PixelEndcapDoubleDisk";
    
     static const std::string xml_OT_topo_disc_value = "Phase2OTEndcapDisk";
     static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapTDRDisk";
+    static const std::string xml_PX_topo_disc_case_sd_value = "PixelPhase2EndcapDoubleDisk";
+
+    static const std::string xml_PX_topo_subdisc_name = "PixelEndcapSubDisk";
+    static const std::string xml_PX_topo_subdisc_value = "PixelPhase2EndcapSubDisk";
 
     static const std::string xml_OT_topo_ring_name = "OuterTrackerPixelEndcapPanel";
     static const std::string xml_PX_topo_ring_name = "PixelEndcapRing";
@@ -342,9 +387,10 @@ namespace insur {
 
 
     struct XmlTags {
-    XmlTags(bool isPixelTracker) : 
-      nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
-	tracker(!isPixelTracker ? xml_OT : xml_PX),
+    XmlTags(bool isPixelTracker, bool hasSubDisk) : 
+        nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
+        tracker(!isPixelTracker ? xml_OT : xml_IT),
+	trackerLong(!isPixelTracker ? xml_OuterTracker : xml_InnerPixel),        
 	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
 	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
 
@@ -365,10 +411,16 @@ namespace insur {
 	topo_tilted_ring_value(!isPixelTracker ? xml_OT_topo_tilted_ring_value : xml_PX_topo_tilted_ring_value),
 	topo_bmodule_name(!isPixelTracker ? xml_OT_topo_bmodule_name : xml_PX_topo_bmodule_name),
 	topo_bmodule_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodule_value),
+	topo_bmodulecomb_name(!isPixelTracker ? xml_OT_topo_bmodule_name : xml_PX_topo_bmodulecomb_name),
+	topo_bmodulecomb_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodulecomb_value),
 	topo_endcaps_name(!isPixelTracker ? xml_OT_topo_endcaps_name : xml_PX_topo_endcaps_name),
 	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
-	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
-	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	//topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
+	//topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : hasSubDisk ? xml_PX_topo_disc_case_sd_name : xml_PX_topo_disc_name),
+	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : hasSubDisk ? xml_PX_topo_disc_case_sd_value : xml_PX_topo_disc_value),
+	topo_subdisc_name("PixelEndcapSubDisk"),
+        topo_subdisc_value("PixelPhase2EndcapSubDisk"),
 	topo_ring_name(!isPixelTracker ? xml_OT_topo_ring_name : xml_PX_topo_ring_name),
 	topo_ring_value(!isPixelTracker ? xml_OT_topo_ring_value : xml_PX_topo_ring_value),
 	topo_emodule_name(!isPixelTracker ? xml_OT_topo_emodule_name : xml_PX_topo_emodule_name),
@@ -380,6 +432,7 @@ namespace insur {
 
       const std::string nspace;
       const std::string tracker;
+      const std::string trackerLong;
       const std::string bar;
       const std::string fwd;
 
@@ -400,10 +453,14 @@ namespace insur {
       const std::string topo_tilted_ring_value;
       const std::string topo_bmodule_name;
       const std::string topo_bmodule_value;
+      const std::string topo_bmodulecomb_name;
+      const std::string topo_bmodulecomb_value;
       const std::string topo_endcaps_name;
       const std::string topo_endcaps_value;
       const std::string topo_disc_name;
       const std::string topo_disc_value;
+      const std::string topo_subdisc_name;
+      const std::string topo_subdisc_value;
       const std::string topo_ring_name;
       const std::string topo_ring_value;
       const std::string topo_emodule_name;

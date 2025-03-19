@@ -1,4 +1,4 @@
-// Layer 3:
+// Layer 3: module with 4 chips
 // ~2.25 modules/GBT
 
 Conversion {
@@ -11,6 +11,6 @@ Conversion {
     }
   }
   Output {
-    @include GBT_and_fibres // = 1 GBT
+    @include-std CMS_Phase2/Pixel/Materials/1_GBT_and_fibres_and_DCDC // = 1 GBT
   }
 }

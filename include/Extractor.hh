@@ -40,6 +40,10 @@ namespace insur {
    */
   class Extractor {
     class LayerAggregator : public GeometryVisitor { // CUIDADO quick'n'dirty visitor-based adaptor to interface with legacy spaghetti code
+      // NB: What the hell is this design??
+      // What should be done: add moduleComplex directy in the geo core, allowing to get extrema info as soon as the geo is built, from the geo classes.
+      // Remove the geo bundles and directly access info from the existing classes!
+      // Full Extractor in general would need to be written in a clean way (would require ~1 month work though).
       std::vector<Layer*> barrelLayers_;
       std::vector<Disk*> endcapLayers_;
       std::vector<std::vector<ModuleCap> > layerCap_;
@@ -81,7 +85,7 @@ namespace insur {
       }
     };
   public:
-    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
+    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& trackerData, CMSSWBundle& otstData, bool wt = false);
   protected:
     void analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites);
     void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
@@ -96,14 +100,34 @@ namespace insur {
                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p,
 		      std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri,
 		      bool wt = false);
+    void analyseDiscsAndSubDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
+                      std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p,
+		      std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri,
+		      bool wt = false);
     void analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
 			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
 			 std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
     void analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
-			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
+			 std::vector<Composite>& otstComposites, std::vector<LogicalInfo>& otstLogic, std::vector<ShapeInfo>& otstShapes, std::vector<PosInfo>& otstPositions, 
+			 std::vector<SpecParInfo>& t, 
+			 bool wt = false);
   private:
     void addTiltedModuleRot( std::map<std::string,Rotation>& rotations, double tiltAngle);
+    void addRotationAroundZAxis(std::map<std::string,Rotation>& storedRotations, 
+				const std::string rotationName,
+				const double rotationAngleInRad) const;
+    void createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
+						      const std::string nameSpace, 
+						      const std::string parentName,
+						      const std::string childName,
+						      const double startAngleInRad,
+						      const double rangeAngleInRad,
+						      const double radius,
+						      const XYZVector& center,
+						      const int numCopies,
+						      const int startCopyNumber,
+						      const int copyNumberIncrement);
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
@@ -114,6 +138,7 @@ namespace insur {
     std::string stringParam(std::string name, std::string value);
     std::string numericParam(std::string name, std::string value);
     std::string vectorParam(double x, double y, double z);
+    std::string arbitraryLengthVector(std::string name, std::vector<double> invec);
     double compositeDensity(ModuleCap& mc, bool nosensors = false);
     double compositeDensity(InactiveElement& ie);
     double fromRim(double r, double w);
@@ -140,6 +165,7 @@ namespace insur {
 					  const double deadAreaExtraLength);
   };
 
+
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
@@ -156,6 +182,7 @@ namespace insur {
      const double getFrontEndHybridWidth() const { return frontEndHybridWidth; }
      const double getExpandedModuleWidth() const { return expandedModWidth; }
      const double getExpandedModuleLength() const { return expandedModLength; }
+     const double getExpandedModuleLengthPixelDoubleSens() const { return expandedModLengthPixDoubleSens; }
      const double getExpandedModuleThickness() const { return expandedModThickness; }
      double getRmin() const { return rmin; }
      double getRmax() const { return rmax; }
@@ -203,8 +230,37 @@ namespace insur {
             if ( fdensity < 0. ) fdensity = fmass/fdxyz;
             return fdensity;
           }
-          const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
-          void   addMaterial( std::string tag, double val ) { fmatlist[tag] += val; }
+	  const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
+
+	/* Add a material to the module's volume.
+	 */
+	void addMaterial(const std::string elementName, const std::string componentName, const double mass) {
+	  // ADD THE ELEMENT'S MASS TO THE VOLUME'S MATERIALS
+	  fmatlist[elementName] += mass;
+
+	  // ADD THE ELEMENT'S CONTRIBUTIONS TO THE RL (OR IL) RATIOS PER MECHANICAL CATEGORY.
+	  const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
+	  const MechanicalCategory& mechanicalCategory = insur::computeMechanicalCategory(componentName);
+	  
+	  // RADIATION LENGTH
+	  const double myElementRadiationLength = materialsTable.getRadiationLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].first += mass / myElementRadiationLength;
+	  // INTERACTION LENGTH
+	  const double myElementInteractionLength = materialsTable.getInteractionLength(elementName);
+	  normalizedRIRatioPerMechanicalCategory_[mechanicalCategory].second += mass / myElementInteractionLength;
+
+	  // NB: normalizedRIRatioPerMechanicalCategory_ is not yet normalized here (other elements can be added).
+	  // It will be normalized only when getNormalizedRIRatioPerMechanicalCategory() is called.
+	}
+
+	/* Return the mechanical categories' normalized contributions to RI.
+	 */
+	const std::map<MechanicalCategory, std::pair<double, double> >& getNormalizedRIRatioPerMechanicalCategory() {
+	  // Normalize first.
+	  normalizeRIRatio(normalizedRIRatioPerMechanicalCategory_);
+	  return normalizedRIRatioPerMechanicalCategory_; 
+	}
+
           void   addMass( double dm ) { fmass += dm; }
           double getMass() const { return fmass; }
           void print() const { 
@@ -252,8 +308,10 @@ namespace insur {
           double       fdensity;
           double       fmass;
           std::map<std::string, double> fmatlist;
+	  std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory_;
 	  bool isValid_;
       };
+
 
       ModuleCap&           modulecap;
       Module&              module;
@@ -265,6 +323,7 @@ namespace insur {
       const double         sensorDistance;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
+      const double         modLengthDoubleSens; // Sensor length in case of two sensors next to each other
       const double         frontEndHybridWidth;
       const double         serviceHybridWidth;
       const double         hybridThickness;
@@ -272,6 +331,7 @@ namespace insur {
       const double         chipThickness;
       const double         deadAreaExtraLength;
       const double         deadAreaExtraWidth;
+      const double         centralDeadAreaLength;
       const double         chipNegativeXExtraWidth;
       const double         chipPositiveXExtraWidth;
             double         hybridTotalMass;
@@ -292,6 +352,7 @@ namespace insur {
 	    double         rmaxatzmax;
 	    const double         expandedModWidth;
 	    const double         expandedModLength;
+	    const double         expandedModLengthPixDoubleSens;
 	    double               expandedModThickness; 
 	    const XYZVector      center; 
 	    const XYZVector      normal; 

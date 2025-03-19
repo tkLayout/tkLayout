@@ -11,12 +11,16 @@ OuterCablingMap::OuterCablingMap(Tracker* tracker) {
     connectBundlesToCables(bundles_, cables_, DTCs_);
     connectBundlesToCables(negBundles_, negCables_, negDTCs_);
 
+    computeCMSSWIds(DTCs_);
+    computeCMSSWIds(negDTCs_);
+
     // COMPUTE SERVICES CHANNELS ASSIGNMENTS OF POWER CABLES
     computePowerServicesChannels();
   }
 
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 }
+
 
 
 /* MODULES TO BUNDLES CONNECTIONS.
@@ -35,6 +39,12 @@ void OuterCablingMap::connectModulesToBundles(Tracker* tracker) {
   for (const auto& bundleIt : bundlesBuilder.getNegBundles()) {
     std::unique_ptr<OuterBundle> myBundle(bundleIt.second);
     negBundles_.insert(std::make_pair(bundleIt.first, std::move(myBundle)));
+  }
+
+  //Store GBTs
+  for (const auto& gbtIt : bundlesBuilder.getGBTs()){
+   std::unique_ptr<OuterGBT> myGBT(gbtIt.second);
+   gbts_.insert(std::make_pair(gbtIt.first, std::move(myGBT)));
   }
 }
 
@@ -119,28 +129,43 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 
     // PS10G
     if (cableType == Category::PS10G) {
-      // BARREL FLAT PART + ENDCAPS DISKS 1, 3, 5
-      if ((subDetectorName == outer_cabling_tbps && !myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      // BARREL LAYER 1 FLAT PART + ENDCAPS DISKS 1, 3, 5
+      if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && !myBundle->isTiltedPart()) 
+	   || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1)
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3)	   
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 1;
       }
-      // BARREL TILTED PART + ENDCAPS DISKS 2, 4
-      if ((subDetectorName == outer_cabling_tbps && myBundle->isTiltedPart()) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)) {
+      // BARREL LAYER 1 TILTED PART + ENDCAPS DISKS 2B, 4
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 1 && myBundle->isTiltedPart()) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GB)
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 2;
+      }
+      // BARREL FULL LAYER 2 + ENDCAPS DISK 2A
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2 && bundleType == Category::PS10GA)
+		) {
+	slot = 3;
       }
     }
 
     // PS5G
     else if (cableType == Category::PS5G) {
-      if (subDetectorName == outer_cabling_tbps && layerDiskNumber == 2) {
-	slot = 3;
-      }
-
-      else if ((subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)) {
+      if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+	   || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+	   ) {
 	slot = 4;
       }
 
       // STAGGERING
-      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) || (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tbps && layerDiskNumber == 3) 
+		|| (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	// TBPS
 	if (subDetectorName == outer_cabling_tbps) {
 	  // TILTED PART
@@ -209,7 +234,9 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	}
       }
 
-      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) ) {
+      else if ( (subDetectorName == outer_cabling_tb2s && layerDiskNumber == 6) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 3) 
+		) {
 	// STAGGER BUNDLES : ASSIGN BUNDLES FROM LAYER 6 TO DISK 3
 	if (subDetectorName == outer_cabling_tb2s) {
 	  int& myPhiSectorCounter = Layer6PhiSectorsCounter[phiSectorRef];
@@ -220,18 +247,27 @@ const std::map<int, std::pair<int, int> > OuterCablingMap::computeCablesPhiSecto
 	else slot = 4;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 1) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 4)
+		) {
 	slot = 5;
       }
 
-      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) || (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5) ) {
+      else if ( (subDetectorName == outer_cabling_tedd1 && layerDiskNumber == 2) 
+		|| (subDetectorName == outer_cabling_tedd2 && layerDiskNumber == 5)
+		) {
 	slot = 6;
       }
     }
   
     if (slot == 0) {
-      std::cout << "bundleType = "  << bundleType << " cableType = " << cableType <<  " subDetectorName  =" << subDetectorName << " layerDiskNumber = " << layerDiskNumber << " isPositiveCablingSide = " << isPositiveCablingSide << std::endl;
-      logERROR("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.");
+      logERROR(any2str("Connection from ribbon to cable : ribbon category is unknown. Slot was not defined properly.")
+	       + " bundleType = " + any2str(bundleType) 
+	       + ", cableType = " + any2str(cableType) 
+	       + ", subDetectorName  =" + any2str(subDetectorName) 
+	       + ", layerDiskNumber = " + any2str(layerDiskNumber) 
+	       + ", isPositiveCablingSide = " + any2str(isPositiveCablingSide)
+	       );
     }
 
 
@@ -268,10 +304,11 @@ void OuterCablingMap::createAndStoreCablesAndDTCs(OuterBundle* myBundle, std::ma
 /* Compute cabling type associated to a cable.
  */
 const int OuterCablingMap::computeCableTypeIndex(const Category& cableType) const {
-  int cableTypeIndex;
+  int cableTypeIndex = -1;
   if (cableType == Category::PS10G) cableTypeIndex = 0;
   else if (cableType == Category::PS5G) cableTypeIndex = 1;
   else if (cableType == Category::SS) cableTypeIndex = 2;
+  if (cableTypeIndex == -1) logWARNING("Unexpected cableType " + any2str(cableType) + ": assigning an invalid cableTypeIndex = -1");
   return cableTypeIndex;
 }
 
@@ -300,13 +337,18 @@ void OuterCablingMap::checkBundlesToCablesCabling(const std::map<const int, std:
   for (const auto& c : cables) {
     const OuterCable* myCable = c.second.get();
 
-    // CHECK WHETHER THE PHI SLICES REF MAKE SENSE.
+    // CHECK THE CABLES TYPES, PHI SLICES REF AND SLOTS.
+    const Category& type = myCable->type();
     const int phiSectorRef = myCable->phiSectorRef();
-    if (phiSectorRef <= -1) {
+    const int slot = myCable->slot();
+    if (type == Category::UNDEFINED
+	|| phiSectorRef <= -1 || phiSectorRef >= outer_cabling_numNonants
+	|| (slot <= 0) || (slot >= (outer_cabling_maxNumDTCsPerNonantPerZEnd / 2 + 1))
+	) {
       logERROR(any2str("Building cabling map : a cable was not correctly created. ")
-	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(myCable->type())
+	       + "OuterCable " + any2str(c.first) + ", with cableType = " + any2str(type)
 	       + ", has phiSectorRef = " + any2str(phiSectorRef)
-	       + ", slot = " + any2str(myCable->slot())
+	       + ", slot = " + any2str(slot)
 	       );
     }
 
@@ -388,7 +430,8 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
       // Should the bundle be assigned to the lower or upper semi-nonant ?
       // 'lower' and 'upper' are defined by 'smaller' or 'bigger' Phi, 
       // in the trigonometric sense in the (XY) plane in CMS global frame of reference.
-      bool isLower; // what we want to compute!
+      bool isLower = false; // what we want to compute!
+      bool isLowerAssigned = false;
 
       // Identifier of the Phi nonant we are in.
       const int phiSectorRef = myBundle->getCable()->phiSectorRef();
@@ -397,6 +440,7 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 	phiSectorRefMarker = phiSectorRef;
 	// Starts by assigning to bundle to the lower semi-nonant.
 	isLower = true;
+	isLowerAssigned = true;
 	stereoPhiSectorRefMarker = -1;	
       }
 
@@ -411,9 +455,14 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 	// Decisive point!! 
 	// As soon as a change in the identifier of the stereoBundle Phi nonant is detected,
 	// one assigns the bundle to the upper semi-nonant.
-	if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) isLower = false;
+	if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) {
+		isLower = false;
+		isLowerAssigned = true;
+	}
 
 	// Lastly, assign the semi-nonant attribution decision to the bundle.
+	
+	if (!isLowerAssigned) logERROR("I did not manage to assign the 'isLower' variable for this cable. I pick a random one just to carry on (false)");
 	myBundle->setIsPowerRoutedToBarrelLowerSemiNonant(isLower);
 
 	// Keeps track of the Phi nonant in which the stereoBundle is located.
@@ -512,6 +561,55 @@ void OuterCablingMap::checkBundlesToPowerServicesChannels(const std::map<const i
 	       + any2str(" Max number of power cables per channel section is ") 
 	       + any2str(outer_cabling_maxNumPowerCablesPerChannel)
 	       );
+    }
+  }
+}
+
+/* Compute GBTs CMSSW Ids.
+ * Want to have these as consectuive integers, ordered by detID, so done after the full map is created.
+ */
+void OuterCablingMap::computeCMSSWIds(std::map<const std::string, std::unique_ptr<const OuterDTC> >& DTCs) {
+  std::string lastDTCId = "";
+
+  // DTCs loop
+  for (auto& it : DTCs) {
+    const std::string myDTCId = it.first;
+    const OuterDTC* myDTC = it.second.get();
+
+    if (myDTCId != lastDTCId) {
+      lastDTCId = myDTCId;
+    }
+
+    std::vector<int> detIds;
+    std::map<int, int> detIdToGBT;
+    int gbtCMSSWId=0;
+    const std::vector<OuterCable*>& myCables = myDTC->cable();
+    for (const auto& myCable : myCables){
+       const std::vector<OuterBundle*>& myBundles = myCable->bundles();
+       for (const auto& myBundle : myBundles){
+         const std::vector<Module*> & myModules = myBundle->modules();
+         for (const auto& myModule : myModules){
+             detIds.push_back(myModule->myDetId());
+         }
+      }
+    }
+    //Sort detIDs and determine GBT IDs
+    std::sort(detIds.begin(), detIds.end());
+    for(auto id : detIds){
+      detIdToGBT[id] = gbtCMSSWId;
+      gbtCMSSWId++;
+    }
+   
+    //Now loop again, extracting the GBT from the module and setting the GBT ID just stored in the detIdToGBT map.
+    for (const auto& myCable : myCables){
+       const std::vector<OuterBundle*>& myBundles = myCable->bundles();
+       for (const auto& myBundle : myBundles){
+         const std::vector<Module*> & myModules = myBundle->modules();
+         for (const auto& myModule : myModules){
+            OuterGBT* myGBT = myModule->getOuterGBT();
+            myGBT->setCMSSWId(detIdToGBT[myModule->myDetId()]);
+         }
+      }
     }
   }
 }

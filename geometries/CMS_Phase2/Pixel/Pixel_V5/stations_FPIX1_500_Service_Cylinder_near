@@ -6,40 +6,40 @@ Station {
   type second
   minZ 440.00
   maxZ 490.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 Station {
   stationName FPIX1_2
   type second
   minZ 554.00
   maxZ 604.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 Station {
   stationName FPIX1_3
   type second
   minZ 700.00
   maxZ 750.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 Station {
   stationName FPIX1_4
   type second
   minZ 885.00
   maxZ 935.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 Station {
   stationName FPIX1_5
   type second
   minZ 1120.00
   maxZ 1170.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }
 Station {
   stationName FPIX1_6
   type second
   minZ 1420.00
   maxZ 1470.00
-  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
 }

@@ -1,0 +1,60 @@
+// Flange service conversion
+// used to generate services at the FPIX flange 
+// Used for EACH TFPX or TEPX double-disk
+
+Station {
+  stationName flange_FPIX
+  type flange
+
+  // CONVERTED MATERIALS:
+  
+  // E-links
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TFPX_R4
+  
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R1_4chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R2_4chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TEPX_R5
+
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Kapton
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_PE
+  
+  
+  // Services
+  // NB: conversions are not really needed here: 
+  // materials are fakely put in negligible quantity before conversion, then a conversion factor 1->1000 is applied.
+  // This could be placed in 'non-converted materials section' instead.
+  @include-std CMS_Phase2/Pixel/Conversions/Components/StainlessSteel_fake1000factor_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CO2_fake1000factor_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Cu_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_HV_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000
+  
+  
+  
+  // MATERIALS INDEPENDENT FROM THE CONVERSIONS:
+  
+  // Local materials (located inside station volume) which are independent from any conversion
+  @include-std CMS_Phase2/Pixel/Conversions/Components/disk_extension_to_cylinder  
+  
+  // Services (directly routed from the station) which are independent from any conversion 
+  
+  // Example:
+  // NonConvertedMaterials {
+  // Element {
+  //     service true
+  //     scaleOnSensor 0
+  //     componentName "Gold"               
+  //     elementName Au     
+  //     quantity 1000          
+  //     unit g/m
+  //}
+  //} 
+}

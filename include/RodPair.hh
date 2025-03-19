@@ -78,6 +78,13 @@ public:
   
   virtual double thickness() const = 0;
   virtual bool isTilted() const = 0;
+  const double orientedSkewAngle() const {
+    double skewAngle = 0.;
+    if (zPlusModules_.size() == 0) { logERROR("Tried to access modules from a RodPair with 0 (Z+) module."); }
+    else { skewAngle = zPlusModules_.at(0).skewAngle(); }
+    return skewAngle;
+  }
+  const bool isSkewed() const { return (fabs(orientedSkewAngle()) > insur::geom_zero); }
 
   const std::string subdetectorName() const { return subdetectorName_; }
   bool isTiming() const {
@@ -144,6 +151,8 @@ public:
   Property<double, NoDefault> maxBuildRadius;
 
   Property<double, Default> zOverlap;
+  Property<double, Default> zGap;
+  Property<double, Default> zCentral;
   Property<double, NoDefault> zError;
   Property<int, NoDefault> zPlusParity;
   Property<int, NoDefault> buildNumModules;
@@ -153,13 +162,15 @@ public:
   Property<bool, Default> allowCompressionCuts;
 
   Property<bool, Default> isFlatPart;
-
+  MultiProperty<std::vector<double>, ','> modZList;
   PropertyNode<int> ringNode;
   
   StraightRodPair(const std::string subdetectorName) :
               RodPair             (subdetectorName),
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
+              zGap                ("zGap"                , parsedOnly() , 0.),
+              zCentral            ("zCentral"            , parsedOnly() , -999),
 	      zError              ("zError"              , parsedAndChecked()),
 	      zPlusParity         ("smallParity"         , parsedOnly()),
               mezzanine           ("mezzanine"           , parsedOnly(), false),
@@ -167,7 +178,8 @@ public:
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
 	      isFlatPart          ("isFlatPart"          , parsedOnly(), false),
-	      ringNode            ("Ring"                , parsedOnly())
+	      modZList ("modZList" , parsedOnly()),
+        ringNode            ("Ring"                , parsedOnly())
   {}
 
 

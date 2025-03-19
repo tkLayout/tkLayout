@@ -61,11 +61,11 @@ void LayerDiskSummaryVisitor::visit(const Endcap& e) {
 void LayerDiskSummaryVisitor::visit(const Disk& d) {
   nRings = 0;
   nRingsTotal = d.numRings() - d.numEmptyRings();
-  if (d.averageZ() < 0.) return;
+  if (d.centerZ() < 0.) return;
   ++nDisks;
   totalEndcapModules += d.totalModules();
   diskTable->setContent(1, nDisks, d.myid());
-  diskTable->setContent(2, nDisks, d.averageZ(), coordPrecision);
+  diskTable->setContent(2, nDisks, d.centerZ(), coordPrecision);
   diskTable->setContent(4, nDisks, d.totalModules());
 
   RootWTable* diskName = new RootWTable();
@@ -138,11 +138,14 @@ void LayerDiskSummaryVisitor::visit(const Module& m) {
   totCountMod++;
   totCountSens += m.numSensors();
   totChannel += m.totalChannels();
-  totArea += m.area()*m.numSensors();
   totalSensorPower += m.sensorsIrradiationPowerMean();
   if (tagMap.find(aSensorTag)==tagMap.end()){
     // We have a new sensor geometry
     tagMap[aSensorTag] = &m;
+  }
+  // Summing sensor areas calculated from their respective polygons
+  for (int i = 0; i < m.numSensors(); i++) {
+    totArea += m.sensors().at(i).hitPoly().getDoubleArea()/2.;
   }
 }
 
@@ -363,7 +366,7 @@ void TiltedLayersVisitor::visit(const Layer& l) {
     //************************************//
 void TrackerVisitor::preVisit() {
   //output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:tiltAngle_deg/D:phi_deg/D:meanWidth_mm/D:length_mm/D:sensorSpacing_mm/D:sensorThickness_mm/D, DetId/I" << std::endl;
-  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
+  output_ << "DetId/U, BinaryDetId/B, Section/C, Layer/I, Ring/I, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle_deg/D, skewAngle_deg/D, yawAngle_deg/D, phi_deg/D, vtxOneX_mm/D, vtxOneY_mm/D,vtxTwoX_mm/D,vtxTwoY_mm/D,vtxThreeX_mm/D,vtxThreeY_mm/D,vtxFourX_mm/D,vtxFourY_mm/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
 }
 
 void TrackerVisitor::visit(const Barrel& b) {
@@ -393,7 +396,16 @@ void TrackerVisitor::visit(const Module& m) {
 	  << m.center().Z() << ", "
 	  << m.tiltAngle() * 180. / M_PI << ", "
 	  << m.skewAngle() * 180. / M_PI << ", "
+	  << m.yawAngle() * 180. / M_PI << ", "
 	  << m.center().Phi() * 180. / M_PI << ", "
+          << m.getVertex(0).X() << ", "
+          << m.getVertex(0).Y() << ", "
+          << m.getVertex(1).X() << ", "
+          << m.getVertex(1).Y() << ", "
+          << m.getVertex(2).X() << ", "
+          << m.getVertex(2).Y() << ", "
+          << m.getVertex(3).X() << ", "
+          << m.getVertex(3).Y() << ", "
 	  << m.meanWidth() << ", "
 	  << m.length() << ", "
 	  << m.dsDistance() << ", "
@@ -408,7 +420,7 @@ void TrackerVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void BarrelVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Barrel-Layer name, r(mm), z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Barrel-Layer name, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle(deg), num mods, meanWidth(mm) (orthoradial), length(mm) (along Z), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 void BarrelVisitor::visit(const Barrel& b) {
   barName_ = b.myid();
@@ -443,7 +455,7 @@ std::string BarrelVisitor::output() const { return output_.str(); }
     //*                                   //
     //************************************//
 void EndcapVisitor::preVisit() {
-  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, r(mm), z(mm), tiltAngle(deg), phi(deg),  meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
+  output_ << "DetId, BinaryDetId, Endcap-Disc name, Ring, SensorCenter rho(mm), SensorCenter z(mm), tiltAngle(deg), yawAngle(deg), phi(deg), vtxOneX_mm/D, vtxOneY_mm/D,vtxTwoX_mm/D,vtxTwoY_mm/D,vtxThreeX_mm/D,vtxThreeY_mm/D,vtxFourX_mm/D,vtxFourY_mm/D, meanWidth(mm) (orthoradial), length(mm) (radial), sensorSpacing(mm), sensorThickness(mm)" << std::endl;
 }
 
 void EndcapVisitor::visit(const Endcap& e) {
@@ -465,7 +477,16 @@ void EndcapVisitor::visit(const EndcapModule& m) {
 		<< m.center().Rho() << ", "
 		<< m.center().Z() << ", "
 		<< m.tiltAngle() * 180. / M_PI << ", "
+		<< m.yawAngle() * 180. / M_PI << ", "
 		<< m.center().Phi() * 180. / M_PI << ", "
+                << m.getVertex(0).X() << ", "
+                << m.getVertex(0).Y() << ", "
+                << m.getVertex(1).X() << ", "
+                << m.getVertex(1).Y() << ", "
+                << m.getVertex(2).X() << ", "
+                << m.getVertex(2).Y() << ", "
+                << m.getVertex(3).X() << ", "
+                << m.getVertex(3).Y() << ", "
 		<< m.meanWidth() << ", "
 		<< m.length() << ", "
 		<< m.dsDistance() << ", "
@@ -527,7 +548,7 @@ ModulesToDTCsVisitor::ModulesToDTCsVisitor(bool isPositiveCablingSide) {
 }
 
 void ModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Bundle #/I, OPT Services Channel/I, PWR Services Channel/I, Cable #/I, Cable type/C, DTC name/C, DTC Phi Sector Ref/I, type /C, DTC Slot/I, DTC Phi Sector Width_deg/D" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, MFB/I, OPT_Services_Channel/I, PWR_Services_Channel/I, MFC/I, MFC_type/C, DTC_name/C, DTC_CMSSW_Id/i, DTC_Phi_Sector_Ref/I, type_/C, DTC_Slot/I, DTC_Phi_Sector_Width_deg/D" << std::endl;
 }
 
 void ModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -551,7 +572,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
   if (myBundle != nullptr) {
     if (myBundle->isPositiveCablingSide() == isPositiveCablingSide_) {
       std::stringstream moduleInfo;
-      moduleInfo << m.myDetId() << ","
+      moduleInfo << m.myDetId() << ", "
 		 << sectionName_ << ", "
 		 << layerId_ << ", "
 		 << m.moduleRing() << ", "
@@ -559,25 +580,26 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		 << m.center().Phi() * 180. / M_PI << ", ";
 
       std::stringstream bundleInfo;
-      bundleInfo << myBundle->myid() << ",";
+      bundleInfo << myBundle->myid() << ", ";
 
       const OuterCable* myCable = myBundle->getCable();
       if (myCable != nullptr) {
 	std::stringstream cableInfo;
-	cableInfo << myCable->myid() << ","
-		  << any2str(myCable->type()) << ",";
+	cableInfo << myCable->myid() << ", "
+		  << any2str(myCable->type()) << ", ";
 	bundleInfo << myCable->opticalChannelSection()->channelNumber() << " " 
-		   << any2str(myCable->opticalChannelSection()->channelSlot()) << ","
+		   << any2str(myCable->opticalChannelSection()->channelSlot()) << ", "
 		   << myBundle->powerChannelSection()->channelNumber() << " " 
-		   << any2str(myBundle->powerChannelSection()->channelSlot()) << ",";
+		   << any2str(myBundle->powerChannelSection()->channelSlot()) << ", ";
 	
 	const OuterDTC* myDTC = myCable->getDTC();
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
-	  DTCInfo << myDTC->name() << ","
-		  << myDTC->phiSectorRef() << ","
-		  << any2str(myDTC->type()) << ","
-		  << myDTC->slot() << ","
+	  DTCInfo << myDTC->name() << ", "
+		  << myDTC->getCMSSWId() << ", "
+		  << myDTC->phiSectorRef() << ", "
+		  << any2str(myDTC->type()) << ", "
+		  << myDTC->slot() << ", "
 		  << std::fixed << std::setprecision(6)
 		  << myDTC->phiSectorWidth() * 180. / M_PI;
 	  output_ << moduleInfo.str() << bundleInfo.str() << cableInfo.str() << DTCInfo.str() << std::endl;
@@ -592,12 +614,39 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 
     //************************************//
     //*               Visitor             //
+    //*     CMSSWOuterTrackerCablingMap   //
+    //*                                   //
+    //************************************//
+void CMSSWOuterTrackerCablingMapVisitor::preVisit() {
+  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
+}
+
+void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
+  std::stringstream moduleInfo;
+  moduleInfo << m.myDetId() << ", ";
+  const OuterGBT* myGBT = m.getOuterGBT();
+  if (myGBT) {
+    std::stringstream GBTInfo;
+    GBTInfo << myGBT->getCMSSWId() << ", ";
+    const OuterDTC* myDTC = m.getDTC();
+    if (myDTC) {
+      std::stringstream DTCInfo;
+      DTCInfo << myDTC->getCMSSWId();	 
+      output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
+    }
+  }
+  else output_ << moduleInfo.str() << std::endl;
+}
+
+
+    //************************************//
+    //*               Visitor             //
     //*    InnerTrackerModulesToDTCsCsv   //
     //*                                   //
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module DetId/U, Module Section/C, Module Layer/I, Module Ring/I, Module phi_deg/D, Long Barrel ?/Boolean, Power Chain #/I, Power Chain Type/C, # ELinks Per Module/I, LP GBT #/C, Bundle #/I, DTC #/I, (+Z) End ?/Boolean, (+X) Side?/Boolean" << std::endl;
+  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -625,10 +674,12 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 	       << layerId_ << ", "
 	       << m.moduleRing() << ", "
 	       << std::fixed << std::setprecision(6)
-	       << m.center().Phi() * 180. / M_PI << ", ";
+	       << m.center().Phi() * 180. / M_PI << ", "
+	       << m.outerSensor().totalROCs() << ", "
+	       << m.totalChannels() << ", ";
 
     std::stringstream powerChainInfo;
-    powerChainInfo << any2str(myPowerChain->isBarrelLong()) << ","
+    powerChainInfo << any2str(myPowerChain->isLongBarrel()) << ","
 		   << myPowerChain->myid() << ","
 		   << any2str(myPowerChain->powerChainType()) << ",";
 
@@ -636,7 +687,8 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     if (myGBT != nullptr) {
       std::stringstream GBTInfo;
       GBTInfo << myGBT->numELinksPerModule() << ","
-	      << any2str(myGBT->GBTId()) << ",";
+	      << any2str(myGBT->GBTId()) << ","
+	      << myGBT->getCMSSWId() << ",";
 
       const InnerBundle* myBundle = myGBT->getBundle();
       if (myBundle != nullptr) {
@@ -647,6 +699,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->myid() << ","
+		  << myDTC->getCMSSWId() << ","
 		  << myDTC->isPositiveZEnd() << ","
 		  << myDTC->isPositiveXSide();
 	  output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << DTCInfo.str() << std::endl;
@@ -657,4 +710,34 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     }
     else output_ << moduleInfo.str() << powerChainInfo.str() << std::endl;
   }
+}
+
+
+    //************************************//
+    //*               Visitor             //
+    //*     CMSSWInnerTrackerCablingMap   //
+    //*                                   //
+    //************************************//
+void CMSSWInnerTrackerCablingMapVisitor::preVisit() {
+  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
+}
+
+void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
+  std::stringstream moduleInfo;
+  moduleInfo << m.myDetId() << ", ";
+
+  const GBT* myGBT = m.getGBT();
+  if (myGBT) {
+    std::stringstream GBTInfo;
+    GBTInfo << myGBT->getCMSSWId() << ",";
+
+    const InnerDTC* myDTC = m.getInnerDTC();
+    if (myDTC) {
+      std::stringstream DTCInfo;
+      DTCInfo << myDTC->getCMSSWId();	 
+      output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
+    }
+    else output_ << moduleInfo.str() << GBTInfo.str() << std::endl;
+  }
+  else output_ << moduleInfo.str() << std::endl;
 }

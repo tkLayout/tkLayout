@@ -1,0 +1,11 @@
+// Pixel barrel second-station conversions (placed over TBPX)
+// twisted pairs->GBT
+
+Station {
+  stationName BPIX
+  type second
+  minZ 1
+  maxZ 220
+  @include-std CMS_Phase2/Pixel/Conversions/On_services_cylinder/conversion
+}
+

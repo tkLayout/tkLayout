@@ -62,7 +62,8 @@ std::string RootWeb::cleanUpObjectName(const std::string& source) {
 //*******************************************//
 // RootWTable                                //
 //*******************************************//
-RootWTable::RootWTable() {
+RootWTable::RootWTable(bool isPlacedBelow /*= false*/) {
+  isPlacedBelow_ = isPlacedBelow;
   serialRow_ = 0;
   serialCol_ = 0;
   maxRow_ = 0;
@@ -212,7 +213,7 @@ pair<int, int> RootWTable::newLine() {
 
 RootWImage::RootWImage() {
   imageCounter_++;
-  myCanvas_ = NULL;
+  myCanvas_ = nullptr;
   zoomedWidth_ = 0; zoomedHeight_ = 0;
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
@@ -222,10 +223,10 @@ RootWImage::RootWImage() {
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
   imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
+  myCanvas_ = nullptr;
+  setCanvas(std::move(myCanvas));
   setZoomedSize(witdh, height);
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
@@ -235,10 +236,10 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativehtmlDirectory) {
   imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
+  myCanvas_ = nullptr;
+  setCanvas(std::move(myCanvas));
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
   targetDirectory_ = "";
@@ -246,36 +247,6 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
-}
-
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
-  imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  relativeHtmlDirectory_ = "";
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
-RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
-  imageCounter_++;
-  myCanvas_ = NULL;
-  setCanvas(myCanvas);
-  setZoomedSize(witdh, height);
-  setRelativeHtmlDirectory(relativehtmlDirectory);
-  targetDirectory_ = "";
-  comment_ = "";
-  name_ = "img";
-  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
-  setDefaultExtensions();
-}
-
-RootWImage::~RootWImage() {
-  if (myCanvas_) delete myCanvas_;
 }
 
 void RootWImage::setDefaultExtensions() {
@@ -296,29 +267,11 @@ std::string RootWImage::getName() {
   return name_ ;
 }
 
-void RootWImage::setCanvas(TCanvas* myCanvas) {
-  if (myCanvas_) delete myCanvas_;
-  myCanvas_ = (TCanvas*)myCanvas->DrawClone();
+void RootWImage::setCanvas(std::unique_ptr<TCanvas> myCanvas) {
+  myCanvas_.reset(myCanvas.release()); // KEY POINT: instead of using TCanvas::DrawClone(), just transfer TCanvas object ownership from Vizard to RootWeb!
   std::ostringstream canvasName("");
   canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
-  TView* myView = myCanvas->GetView();
-  if (myView) {
-    TView* newView = myCanvas_->GetView();
-    if (newView) {
-      double min[3], max[3];
-      Int_t irep;
-      newView->SetView(myView->GetLongitude(),
-		       myView->GetLatitude(),
-		       myView->GetPsi(), irep);
-      myView->GetRange(min, max);
-      newView->SetRange(min, max);
-    }
-  }
-}
-
-void RootWImage::setCanvas(TCanvas& myCanvas) {
-  setCanvas(&myCanvas);
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {
@@ -439,7 +392,7 @@ bool RootWImage::addExtension(string myExtension) {
 void RootWImage::saveSummary(std::string baseName, TFile* myTargetFile) {
   if (!myCanvas_) return;
   baseName += name_;
-  saveSummaryLoop(myCanvas_, baseName, myTargetFile);
+  saveSummaryLoop(myCanvas_.get(), baseName, myTargetFile);
 }
 
 void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile) {
@@ -540,6 +493,10 @@ void RootWContent::addItem(RootWItem* newItem) {
   }
 }
 
+void RootWContent::addItem(std::unique_ptr<RootWItem> newItem) {
+  addItem(newItem.release());
+}
+
 void RootWContent::setTitle(string newTitle) {
   title_ = newTitle;
 }
@@ -597,26 +554,14 @@ RootWImage& RootWContent::addImage() {
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height) {
+  RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height);
   addItem(newImage);
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
-  addItem(newImage);
-  return (*newImage);
-}
-
-RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory) {
-  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+  RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);
 }
@@ -700,6 +645,7 @@ ostream& RootWContent::dump(ostream& output) {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
     }
+    if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\"> <br> <br> &nbsp;</div>"; }
     myItem->dump(output);
   }
   output << "<div class=\"clearer\">&nbsp;</div>";
@@ -770,6 +716,10 @@ void RootWPage::addContent(RootWContent* newContent) {
   if (newContent) {
     contentList_.push_back(newContent);
   }
+}
+
+void RootWPage::addContent(std::unique_ptr<RootWContent> newContent) {
+  addContent(newContent.release());
 }
 
 RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {
@@ -848,8 +798,9 @@ RootWSite::RootWSite() {
   title_ = "Untitled";
   comment_ = "";
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -861,8 +812,9 @@ RootWSite::RootWSite(string title) {
   title_ = title;
   comment_ = "";
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -874,8 +826,9 @@ RootWSite::RootWSite(string title, string comment) {
   title_ = title;
   comment_ = comment;
   commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
+  toolkitName_ = toolkit_name;
+  toolkitGithub_ = toolkit_github;
+  toolkitContributors_ = toolkit_contributors;
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
@@ -948,10 +901,6 @@ RootWPage& RootWSite::addPage(string newTitle, int relevance /* = least_relevant
   return (*newPage);
 }
 
-void RootWSite::addAuthor(string newAuthor) {
-  authorList_.push_back(newAuthor);
-}
-
 ostream& RootWSite::dumpFooter(ostream& output) {
   output  << "          </div>" << endl
 	  << "        </div>" << endl
@@ -959,24 +908,16 @@ ostream& RootWSite::dumpFooter(ostream& output) {
 	  << "      </div>" << endl
 	  << "      <div id=\"footer\">" << endl;
 
-  // Add the list of authors if any
-  bool firstAuthorFound=false;
-  for (vector<string>::iterator it= authorList_.begin();
-       it != authorList_.end(); ++it) {
-    if (!firstAuthorFound) {
-      firstAuthorFound = true;
-      output << "        <p>&copy; ";
-      output << (*it);
-    } else {
-      output << ", " << (*it);
-    }
-  }
-  if (firstAuthorFound) output <<"</p>" << endl;
+  output << "<p> &copy; tkLayout developers: " 
+	 << "<a href=\"" << toolkitContributors_ << "\">" << toolkitContributors_ << "</a>"
+	 << "</p>" 
+	 << std::endl;
+
 
   time_t rawtime;
   time ( &rawtime );
   output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << endl
-	 << "        <p>by <a href=\""<< programSite_ <<"\">"<<programName_<<"</a>";
+	 << "        <p>by <a href=\""<< toolkitGithub_ <<"\">"<< toolkitName_ <<"</a>";
   if (revision_!="")
     output << " revision " << revision_;
   output << "</p>" << endl
@@ -1075,9 +1016,9 @@ bool RootWSite::makeSite(bool verbose) {
 
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
-    summaryFile_ = new TFile(Form("%s/%s",
+    summaryFile_.reset(new TFile(Form("%s/%s",
 				  targetDirectory_.c_str(),
-				  summaryFileName_.c_str()), "RECREATE");
+				      summaryFileName_.c_str()), "RECREATE"));
   } else summaryFile_ = nullptr;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
@@ -1101,7 +1042,7 @@ bool RootWSite::makeSite(bool verbose) {
 }
 
 TFile* RootWSite::getSummaryFile() {
-  return summaryFile_;
+  return summaryFile_.get();
 }
 
 void RootWSite::setSummaryFile(bool doSummary) {
@@ -1193,7 +1134,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName))
         boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
-    } catch (boost::filesystem::filesystem_error e) {
+    } catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }
@@ -1236,7 +1177,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
       if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(*it++, destinationFileName);
     }
-    catch (boost::filesystem::filesystem_error e) {
+    catch (boost::filesystem::filesystem_error& e) {
       cerr << e.what() << endl;
       return output;
     }

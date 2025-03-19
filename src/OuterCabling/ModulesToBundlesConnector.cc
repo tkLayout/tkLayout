@@ -69,6 +69,9 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, barrelName_, layerNumber_, modulePhiPosition, isPositiveCablingSide, totalNumFlatRings_, isTilted, isExtraFlatPart);
+  
+  // ALSO BUILD A GBT
+  buildGBT(m, gbts_);
 }
 
 
@@ -102,6 +105,9 @@ void ModulesToBundlesConnector::visit(EndcapModule& m) {
 
   // BUILD BUNDLE IF NECESSARY, AND CONNECT MODULE TO BUNDLE
   buildBundle(m, bundles_, negBundles_, bundleType_, isBarrel_, endcapName_, diskNumber_, modulePhiPosition, isPositiveCablingSide);
+
+  // ALSO BUILD A GBT
+  buildGBT(m, gbts_);
 }
 
 
@@ -113,6 +119,10 @@ void ModulesToBundlesConnector::postVisit() {
   // CHECK
   checkModulesToBundlesCabling(bundles_);
   checkModulesToBundlesCabling(negBundles_);
+
+  // ENDCAPS ONLY: ASSIGN THE MFB FANOUTS BRANCHES TO THE MODULES
+  connectEndcapModulesToBundlesFanoutBranches(bundles_);
+  connectEndcapModulesToBundlesFanoutBranches(negBundles_);
 }
 
 
@@ -144,7 +154,7 @@ const Category ModulesToBundlesConnector::computeBundleType(const bool isBarrel,
     }
     // TBPS
     else if (subDetectorName == outer_cabling_tbps) {
-      bundleType = (layerDiskNumber == 1 ? Category::PS10G : Category::PS5G);
+      bundleType = (layerDiskNumber == 3 ? Category::PS5G : Category::PS10G);
     }
   }
 
@@ -207,11 +217,24 @@ void ModulesToBundlesConnector::buildBundle(DetectorModule& m, std::map<int, Out
   connectModuleToBundle(m, bundle);
 }
 
+void ModulesToBundlesConnector::buildGBT(DetectorModule& m, std::map<int, OuterGBT*>& gbts){
+  const int gbtId=m.myDetId();
+  OuterGBT* gbt = nullptr; 
+  auto found = gbts.find(gbtId);
+  if ( found == gbts.end()){
+     gbt= createAndStoreGBT(gbts, gbtId);
+  } else {
+     gbt = found->second; // This shouldn't happen, but just in case
+  }
+  // CONNECT MODULE TO GBT
+  connectModuleToGBT(m, gbt);
+}
+
 
 /* Compute the index associated to each bundle type.
  */
 const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel, const Category& bundleType, const int totalNumFlatRings, const bool isTilted, const bool isExtraFlatPart) const {
-  int bundleTypeIndex;
+  int bundleTypeIndex = -1;
   // BARREL
   if (isBarrel) {
     if (bundleType == Category::SS) bundleTypeIndex = 0;
@@ -232,6 +255,9 @@ const int ModulesToBundlesConnector::computeBundleTypeIndex(const bool isBarrel,
     else if (bundleType == Category::PS10GB) bundleTypeIndex = 1;
     else if (bundleType == Category::PS5G) bundleTypeIndex = 2;
     else if (bundleType == Category::SS) bundleTypeIndex = 3;
+  }
+  if (bundleTypeIndex == -1) {
+	  logERROR("I did not manage to idenify the bundle type " + any2str(bundleType) + ", so I assign an invalid bundleTypeIndex = -1");
   }
   return bundleTypeIndex;
 }
@@ -283,12 +309,25 @@ OuterBundle* ModulesToBundlesConnector::createAndStoreBundle(std::map<int, Outer
   return bundle;
 }
 
+OuterGBT* ModulesToBundlesConnector::createAndStoreGBT(std::map<int, OuterGBT*>& gbts, const int gbtId) {
+  OuterGBT* gbt = new OuterGBT(gbtId);
+  gbts.insert(std::make_pair(gbtId, gbt));
+  return gbt;
+}
+
 
 /* Connect module to bundle and vice-versa.
  */
 void ModulesToBundlesConnector::connectModuleToBundle(DetectorModule& m, OuterBundle* bundle) const {
   bundle->addModule(&m);
   m.setBundle(bundle);
+}
+
+/* Connect module to GBT and vice-versa.
+ */
+void ModulesToBundlesConnector::connectModuleToGBT(DetectorModule& m, OuterGBT* gbt) const {
+  gbt->addModule(&m);
+  m.setOuterGBT(gbt);
 }
  
 
@@ -441,7 +480,7 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
     const int phiSegmentRef = bundlePhiPosition.phiSegmentRef();
     const int phiRegionRef = bundlePhiPosition.phiRegionRef();
     const int phiSectorRef = bundlePhiPosition.phiSectorRef();
-    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1) {
+    if (phiSegmentRef <= -1 || phiRegionRef <= -1 || phiSectorRef <= -1 || phiSectorRef >= outer_cabling_numNonants) {
       logERROR(any2str("Building cabling map : a bundle was not correctly created. ")
 	       + "OuterBundle " + any2str(b.first) + ", with bundleType = " + any2str(b.second->type()) 
 	       + ", has phiSegmentRef = " + any2str(phiSegmentRef)
@@ -459,5 +498,191 @@ void ModulesToBundlesConnector::checkModulesToBundlesCabling(const std::map<int,
 	       );
     }
 
+  }
+}
+
+
+/*
+  Endcaps only: assign the MFB fanouts branches to the modules.
+  The modules are connected to the MFBs through 4 fanouts branches. 
+  In the Endcaps, this ends up complicated. It was hence requested by the Mechanics to have it in at automatic way.
+  This work can obviously only be done once the modules are assigned to the MFBs in a final way 
+  (hence once the modules staggering is already done).
+
+  Concept is the following: for each MFB, one looks at the modules connected to it.
+  Standard case: 1 fanout branch per disk surface.
+  Special case: phi sector crossing (Y=0): 
+  if a MFB has several modules on the same disk (not double-disk!) and in different dees,
+  then the fanout branch assignment is per dee.
+
+  Assumptions: 4 disk surfaces per dee + dee boundary at (Y=0).
+ */
+void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std::map<int, OuterBundle*>& bundles) {
+  // Loop on all MFBs
+  for (auto& b : bundles) {
+    // WORK ON A PER MFB BASIS
+    const OuterBundle* myBundle = b.second;
+    // Endcaps only
+    if (myBundle->subDetectorName() == outer_cabling_tedd1 || myBundle->subDetectorName() == outer_cabling_tedd2) {
+     
+
+      // STEP A: FIND, FOR EACH DISK (NOT DOUBLE-DISK!!), HOW THE BUNDLE'S MODULES SHOULD BE SORTED.
+
+      // BY DEFAULT, SORTING IS PER DISK SURFACE.
+      bool sortModulesInSmallAbsZDiskPerDee = false;
+      bool sortModulesInBigAbsZDiskPerDee = false;
+
+      // Assumes 4 disk surfaces per double-disk
+      const int numDiskSurfacesPerDoubleDisk = 4;
+
+      // Get all the modules connected to the MFB
+      const std::vector<Module*>& myModules = myBundle->modules();
+
+      // IF THE PHI SECTOR IS CROSSING SEVERAL DEES: 
+      // WE NEED TO LOOK ON WHICH DEE MODULES ARE ON.
+      const int& myPhiSectorRef = myBundle->phiPosition().phiSectorRef();    
+      if (myPhiSectorRef == outer_cabling_phiNonantCrossingDifferentDeesIndex) {
+
+	// Store, per disk surface, which dee modules are on.
+	std::map<int, bool> hasDiskSurfaceAnyModuleInYPosDee;
+	std::map<int, bool> hasDiskSurfaceAnyModuleInYNegDee;
+	// Initialize: by default, there is no module.
+	for (int diskSurfaceIndex = 1; diskSurfaceIndex <= numDiskSurfacesPerDoubleDisk; diskSurfaceIndex++) {
+	  hasDiskSurfaceAnyModuleInYPosDee[diskSurfaceIndex] = false;
+	  hasDiskSurfaceAnyModuleInYNegDee[diskSurfaceIndex] = false;
+	}
+
+	// loop on all modules connected to a MFB
+	for (const auto& module : myModules) {
+	  const double modPhiModuloPi = femod(module->center().Phi(), M_PI); // modulo PI
+
+	  // STORE, PER DISK SURFACE, WHICH DEE MODULES ARE ON.
+	  if ( fabs(modPhiModuloPi) > outer_cabling_roundingTolerance 
+	       && fabs(modPhiModuloPi - M_PI) > outer_cabling_roundingTolerance // module at (Y=0), if any, does not matter!
+	       ) {
+	    const int diskSurfaceIndex = module->diskSurface();
+	    const double modPhi = femod(module->center().Phi(), 2.*M_PI);      // modulo 2 PI
+
+	    // module is on (Y > 0) dee
+	    if (modPhi < M_PI) { hasDiskSurfaceAnyModuleInYPosDee[diskSurfaceIndex] = true; }
+	    // module is on (Y < 0) dee
+	    else { hasDiskSurfaceAnyModuleInYNegDee[diskSurfaceIndex] = true; }
+	  }
+	}
+
+	// IF MODULES ARE ON 2 DEES OF THE SAME DISK SURFACE: CHOOSE DEE SORTING!	  
+	for (int diskSurfaceIndex = 1; diskSurfaceIndex <= numDiskSurfacesPerDoubleDisk; diskSurfaceIndex++) {
+	  if (hasDiskSurfaceAnyModuleInYPosDee.at(diskSurfaceIndex) && hasDiskSurfaceAnyModuleInYNegDee.at(diskSurfaceIndex)) {
+	    // If surface 1 or 2 has modules on both dees
+	    if (diskSurfaceIndex == 1 || diskSurfaceIndex == 2) { 
+	      // then small |Z| disk should have a sorting per dee! 
+	      sortModulesInSmallAbsZDiskPerDee = true; 
+	    }
+	    // If surface 3 or 4 has modules on both dees
+	    else if (diskSurfaceIndex == 3 || diskSurfaceIndex == 4) { 
+	      // then big |Z| disk should have a sorting per dee! 
+	      sortModulesInBigAbsZDiskPerDee = true; 
+	    }
+	    else { 
+	      logERROR(any2str("Unexpected number of disk surfaces per double-disk")); 
+	    }
+	  } 
+	}
+
+      }
+
+
+      // STEP B: ASSIGN THE FANOUT BRANCH INDEX TO THE MFB'S MODULES.
+      for (const auto& module : myModules) {
+	const int diskSurfaceIndex = module->diskSurface();
+
+	// Find out which sorting mode is relevant
+	const bool sortModulesInDiskPerDee = ( (diskSurfaceIndex == 1 || (diskSurfaceIndex == 2)) ? sortModulesInSmallAbsZDiskPerDee 
+					       : sortModulesInBigAbsZDiskPerDee);
+	// Sort modules per disk surface:
+	// (+Z) end: fanout branch index = module's disk surface index.
+	// (-Z) end: fanout branch index = module's disk surface complementary index.
+	// The index itself does not matter anyway (only the grouping does).
+	// This indexing scheme, though, allows to show the cabling similitude on both (Z) ends:
+	// ((+Z) end, disk surface) <-> ((-Z) end, complementary disk surface) have the exact same cabling.
+	// Complementary disk surface: as defined in the code below.
+	if (!sortModulesInDiskPerDee) {
+	  const int isPositiveCablingSide = module->isPositiveCablingSide();
+	  int endcapFiberFanoutBranchIndex = 0;
+	  // (+Z) end: fanout branch index = module's disk surface index.
+	  if (isPositiveCablingSide > 0) { 
+	    endcapFiberFanoutBranchIndex = diskSurfaceIndex;
+	    
+	  } 
+	  // (-Z) end: fanout branch index = module's disk surface complementary index.
+	  else {
+	    // This defines the complementary disk surface, to the disk surface with diskSurfaceIndex:
+	    if (diskSurfaceIndex == 1) { endcapFiberFanoutBranchIndex = 2; }
+	    else if (diskSurfaceIndex == 2) { endcapFiberFanoutBranchIndex = 1; }
+	    else if (diskSurfaceIndex == 3) { endcapFiberFanoutBranchIndex = 4; }
+	    else if (diskSurfaceIndex == 4) { endcapFiberFanoutBranchIndex = 3; }
+	    else { logERROR(any2str("Unexpected number of disk surfaces per double-disk")); }
+	  }
+	  module->setEndcapFiberFanoutBranch(endcapFiberFanoutBranchIndex);
+	}
+	// Sort modules per dee:
+	// Small |Z| disk, (Y > 0) dee: fanout branch index = 1
+	// Small |Z| disk, (Y < 0) dee: fanout branch index = 2
+	// Big |Z| disk, (Y > 0) dee: fanout branch index = 3
+	// Big |Z| disk, (Y < 0) dee: fanout branch index = 4
+	else { 
+	  const double modPhi = femod(module->center().Phi(), 2.*M_PI);
+	  int endcapFiberFanoutBranchIndex = ( (modPhi < M_PI) ? 1 : 2);
+	  if (diskSurfaceIndex >= 3) endcapFiberFanoutBranchIndex += 2;
+	  module->setEndcapFiberFanoutBranch(endcapFiberFanoutBranchIndex);
+	}
+      }
+
+  
+    }
+  }
+
+  checkEndcapModulesToBundlesFanoutBranchesCabling(bundles);
+}
+
+
+/* TEDD: Check modules - bundles fanouts branches connections.
+ */
+void ModulesToBundlesConnector::checkEndcapModulesToBundlesFanoutBranchesCabling(const std::map<int, OuterBundle*>& bundles) const {
+
+  // Loop on all MFBs
+  for (auto& b : bundles) {
+    // Work on a per MFB basis
+    const OuterBundle* myBundle = b.second;
+    // Endcaps only
+    if (myBundle->subDetectorName() == outer_cabling_tedd1 || myBundle->subDetectorName() == outer_cabling_tedd2) {
+      std::set<int> allBranchesIndexes;
+
+      // Loop on all the modules connected to the MFB, ancd check their fanout branch index.
+      const std::vector<Module*>& myModules = myBundle->modules();
+      for (const auto& module : myModules) {
+	const int endcapFiberFanoutBranchIndex = module->getEndcapFiberFanoutBranch();    
+	if ( endcapFiberFanoutBranchIndex <= 0 
+	     || endcapFiberFanoutBranchIndex > outer_cabling_maxNumFanoutBranchesPerEndcapBundle) {
+	  logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
+		   + "OuterBundle "  + any2str(b.first)
+		   + ". Found a module connected to fanout index = " + any2str(endcapFiberFanoutBranchIndex) 
+		   + ", which is not supported."
+		   );
+	}
+	allBranchesIndexes.insert(endcapFiberFanoutBranchIndex);
+      }
+
+      // Check that, for each MFB, all fanout branches indexes are met at least once.
+      for (int branchIndex = 1; branchIndex <= outer_cabling_maxNumFanoutBranchesPerEndcapBundle; branchIndex++) {
+	if (allBranchesIndexes.find(branchIndex) == allBranchesIndexes.end()) {
+	  logERROR(any2str("TEDD: assigning MFB fanouts to modules. ")
+		   + "OuterBundle "  + any2str(b.first)
+		   + ". Found 0 module with fanout branch index = " + any2str(branchIndex)
+		   );
+	}
+      }
+
+    }
   }
 }

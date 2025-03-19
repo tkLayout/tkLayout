@@ -1,0 +1,36 @@
+// Parametrization by Riccardo del Burgo modified by Stefano Mersi via a simple scaling
+// Simulation parameters:
+// sensor thickness: 150 um
+// threshold: 1000 e-
+// digitization (4 bits)
+// voltage: 400V
+// gaussian noise: μ = 0 e-, σ = 120 e-
+// μRH: 0.053
+
+// This resolution was obtained by scaling all mm parameters from 25 to 15 in x and from 100 to 60 in y
+// all non-mm paramaters are left the same. Very crude attempt.
+
+// pitch in X = 15 um. 
+resolutionLocalXParam0 0.00336575 // mm
+resolutionLocalXParam1 0.00344948 // mm
+resolutionLocalXParam2 0.0042206 // mm
+resolutionLocalXParam3 1.99516
+resolutionLocalXParam4 -663.952
+resolutionLocalXParam5 0.0022512 // mm
+resolutionLocalXParam6 0
+resolutionLocalXParam7 -0.0704734
+resolutionLocalXParam8 2.7292e-05 // mm
+resolutionLocalXParam9 1.07359
+
+// pitch in Y = 60 um.
+resolutionLocalYParam0 0.013481 // mm
+resolutionLocalYParam1 0.00354839 // mm
+resolutionLocalYParam2 0.00586703 // mm
+resolutionLocalYParam3 5.14923        
+resolutionLocalYParam4 93.3833    
+resolutionLocalYParam5 -0.00212562 // mm
+resolutionLocalYParam6 1.39766     
+resolutionLocalYParam7 -0.156411   
+resolutionLocalYParam8 -0.0114485 // mm
+resolutionLocalYParam9 1.50209 
+

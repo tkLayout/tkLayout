@@ -1,0 +1,37 @@
+SimParms {
+    numMinBiasEvents 140      // Number of pile-up events
+    bunchSpacingNs 25
+    
+    // Luminous region used in analysis (IP always on (Z) axis, with Z centered around 0)
+    lumiRegZError                   70     // mm
+    lumiRegShape                    flat   // Choose among { spot, flat, gaussian }
+    lumiRegShapeInMatBudgetAnalysis spot
+
+    // Adds IP to the track with corresponding resolution
+    useIPConstraint 0
+    rphiErrorCollider 5      // mm
+
+    beamPipeX  0.0  // thickness of the beam pipe in units of radiation length
+    beamPipeL  0.0  // thickness of the beam pipe in units of nuclear interaction length
+    
+    ptCost 0                  // CHF / cm^2
+    stripCost 0               // CHF / cm^2
+    
+    efficiency 1
+    pixelEfficiency 1
+    
+    timeIntegratedLumi 4000   // fb^-1
+    referenceTemp 20          // °C
+    alphaParam 4.28e-17       // A/cm, radiation damage constant
+    magneticField 3.8         // T
+
+    triggerEtaCut 2.2
+    triggerPtCut 2
+    numTriggerTowersEta 6
+    numTriggerTowersPhi 8
+
+    irradiationMapFiles 1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0.map,1MeVneq_CMS_Phase2_HGCalMod_pp_7TeV_FLUKA_v3.7.20.0_pixel.map
+    doseMapFiles  Dose_CMS_pp_Phase2_7TeVperbeam_FLUKA_v3.7.23.0.map,Dose_CMS_pp_Phase2_7TeVperbeam_FLUKA_v3.7.23.0_pixel.map
+    
+    Gabie IsAHero           // inside joke. forget about it
+}

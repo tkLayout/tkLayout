@@ -67,6 +67,10 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
+
+  static const double mat_default_beam_pipe_radiation   = 0.0022761;  // default material amount (radiation length) in the beam pipe. It was 0.0023, adapted to fit CMSSW 81X 2016/11/30
+  static const double mat_default_beam_pipe_interaction = 0.0020334;  // default material amount (nucl. interaction lenggth) in the beam pipe. It was 0.0019, adapted to fit CMSSW 81X 2016/11/30
+
   static const double mat_negligible         = 1.0E-06; 
 
   static const double mat_a_silicon          = 28.0855;
@@ -114,7 +118,7 @@ namespace insur {
   static const int    vis_std_canvas_sizeY   = 900;
   static const int    vis_max_canvas_sizeY   =1800;
 
-  static const double vis_eta_step           = 0.1;
+  static const double vis_eta_step           = 0.02;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
 
@@ -134,7 +138,8 @@ namespace insur {
    * Internal string constants for modules types.
    */
   static const std::string type_pixel   = "pixel";
-  static const std::string type_timing = "timing";
+  static const std::string type_3D      = "3D";
+  static const std::string type_timing  = "timing";
 
 
   /**
@@ -166,6 +171,9 @@ namespace insur {
   static const int xml_PixelModuleDeadAreaLeft  = 6;
   static const int xml_PixelModuleDeadAreaFront = 7;
   static const int xml_PixelModuleDeadAreaBack  = 8;
+  static const int xml_PixelModuleDeadAreaFrontOfCentre = 9;
+  static const int xml_PixelModuleDeadAreaBackOfCentre  = 10;
+
 
 
   /**
@@ -183,8 +191,10 @@ namespace insur {
    */
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
-  static const std::string default_cabledOTName                  = "OT614";
-  static const std::string default_cabledITName                  = "IT404";
+  static const std::string default_cabledOTName                  = "OT616";
+  static const std::string default_cabledITName                  = "IT701";
+  static const std::vector<std::string> compatible_cabledOTName       = {"OT800","OT801"};
+  static const std::vector<std::string> compatible_cabledITName       = {"IT700"};
   static const std::string default_mattabdir                     = "config";
   static const std::string default_mattabfile                    = "mattab.list";
   static const std::string default_chemicalElementsFile          = "chemical_elements.list";

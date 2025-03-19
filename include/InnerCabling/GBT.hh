@@ -24,7 +24,7 @@ class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<Module*> Container; 
 
 public:
-  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex, const int myGBTIndexColor, const int numELinksPerModule);
+  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor, const int numELinksPerModule);
 
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
@@ -48,25 +48,30 @@ public:
 
   // GENERAL INFO ON THE GBT
   const std::string GBTId() const { return myGBTId_; }
-  const int GBTPhiIndex() const { return myGBTIndex_; }
-  const int indexColor() const { return myGBTIndexColor_; }
+  void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
+  const int getCMSSWId() const { return myGBTCMSSWId_; }
+  const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; } // GBT location index in power chain
+  const int plotStyleGBTIndexInPowerChain() const { return plotStyleGBTIndexInPowerChain_; } // GBT plotting style
   const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
   const bool isPositiveXSide() const { return myPowerChain_->isPositiveXSide(); }
   const bool isBarrel() const { return myPowerChain_->isBarrel(); }
-  const bool isBarrelLong() const { return myPowerChain_->isBarrelLong(); }
+  const bool isLongBarrel() const { return myPowerChain_->isLongBarrel(); }
   const std::string subDetectorName() const { return myPowerChain_->subDetectorName(); }
   const int layerDiskNumber() const { return myPowerChain_->layerDiskNumber(); }
   const int ringNumber() const { return myPowerChain_->ringNumber(); }
-  const bool isRingInnerEnd() const { return myPowerChain_->isRingInnerEnd(); }
-  const int ringQuarterIndex() const { return myPowerChain_->ringQuarterIndex(); }
+  const bool isSmallerAbsZHalfRing() const { return myPowerChain_->isSmallerAbsZHalfRing(); }
+  const int halfRingIndex() const { return myPowerChain_->halfRingIndex(); }
+  const bool isAtSmallerAbsZDeeInDoubleDisk() const { return myPowerChain_->isAtSmallerAbsZDeeInDoubleDisk(); }
+  const bool isAtSmallerAbsZSideInDee() const { return myPowerChain_->isAtSmallerAbsZSideInDee(); }
   const int powerChainPhiRef() const { return myPowerChain_->phiRef(); }
   
 
-  const int plotColor() const { return plotColor_; }
+  const int plotPowerChainColor() const { return plotPowerChainColor_; }
 
 private:
+  const int computePlotStyleGBTIndexInPowerChain(const int myGBTIndexInPowerChain, PowerChain* myPowerChain) const;
   const int computePlotColor(const PowerChain* myPowerChain) const;
 
   Container modules_;
@@ -75,11 +80,12 @@ private:
   InnerBundle* myBundle_ = nullptr;
 
   std::string myGBTId_;
-  int myGBTIndex_;
-  int myGBTIndexColor_;
+  int myGBTCMSSWId_;
+  int myGBTIndexInPowerChain_;
+  int plotStyleGBTIndexInPowerChain_;
   int numELinksPerModule_;
 
-  int plotColor_;
+  int plotPowerChainColor_;
 };
 
 

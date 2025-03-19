@@ -31,6 +31,7 @@ public:
   ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<double, NoDefault> stripLengthEstimate;
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
+  ReadonlyProperty<bool, Default> isBricked;
   ReadonlyProperty<double, NoDefault> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
   ReadonlyProperty<double, Computable> minR, maxR;
@@ -52,6 +53,7 @@ public:
     stripLengthEstimate("stripLengthEstimate", parsedOnly()),
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
+    isBricked("isBricked", parsedOnly(), false),
     sensorThickness("sensorThickness", parsedAndChecked()),
     type("sensorType", parsedOnly(), SensorType::None),
     powerPerChannel("powerPerChannel", parsedOnly()),
@@ -89,6 +91,7 @@ public:
   double alveolaLength() const;
 
   double sensorNormalOffset() const;             // normal offset of the sensor center, in the frame of reference of the module
+  double sensorXOffset() const;
   const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor
   const Polygon3d<4>& hitPoly() const;           // sensor rectangle (in plane containing the sensor center)
   const Polygon3d<4>& hitMidPoly() const;        // losange formed by the mid-points of hitPoly

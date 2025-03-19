@@ -101,15 +101,15 @@ void Tracker::addHierarchyInfoToModules() {
     }
     void visit(Disk& d)   {
       layerDiskId_ = d.myid();
-      diskAverageZ_ = d.averageZ();
     }
     void visit(RodPair& r){
       rodRingId_ = r.myid(); 
     }
     void visit(Ring& r) {
       rodRingId_ = r.myid();
-      ringAverageZ_ = r.averageZ();
-      bigDeltaIndex_ = ((fabs(ringAverageZ_) > fabs(diskAverageZ_)) ? 2 : 0);
+      isRingOn4Dees_ = r.isRingOn4Dees();
+      const int ringIncrement = (isRingOn4Dees_ ? 1 : 2);
+      bigDeltaIndex_ = (r.isSmallerAbsZRingInDisk() ? 0 : ringIncrement);
     }
     void visit(Module& m) { 
       m.subdetectorId(subdetectorId_); 
@@ -121,7 +121,8 @@ void Tracker::addHierarchyInfoToModules() {
     void visit(EndcapModule& m) { 
       m.disk(layerDiskId_);
       m.ring(rodRingId_);
-      int smallDeltaIndex = ((fabs(m.center().Z()) > fabs(ringAverageZ_)) ? 1 : 0);
+      const int moduleIncrement = (isRingOn4Dees_? 2 : 1);
+      int smallDeltaIndex = (m.isSmallerAbsZModuleInRing() ? 0 : moduleIncrement);
       // Get which disk surface the module belongs to.
       // Disk Surface 1 is the surface with the lowest |Z|.
       // Disk Surface 4 is the surface with the biggest |Z|.
@@ -133,8 +134,7 @@ void Tracker::addHierarchyInfoToModules() {
     int subdetectorId_ = 0;
     int layerDiskId_;
     int rodRingId_;
-    double diskAverageZ_;
-    double ringAverageZ_;
+    bool isRingOn4Dees_;
     int bigDeltaIndex_;
   };
 
@@ -163,7 +163,7 @@ void Tracker::addLayerDiskNumbers() {
 	layerNumber++; 
       }
 
-      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->averageZ()) < fabs(d2->averageZ()); });
+      std::sort(trackerDisks_.begin(), trackerDisks_.end(), [] (const Disk* d1, const Disk* d2) { return fabs(d1->centerZ()) < fabs(d2->centerZ()); });
       int positiveZDiskNumber = 1;
       int negativeZDiskNumber = 1;
       for (auto& d : trackerDisks_) {
@@ -203,7 +203,7 @@ void Tracker::buildDetIds() {
   // Endcap part
   std::vector<int> endcapScheme = mainConfigHandler::instance().getDetIdScheme(endcapDetIdScheme());
   if (endcapScheme.size() != 0) {
-    EndcapDetIdBuilder v(isPixelTracker(), endcapScheme);
+    EndcapDetIdBuilder v(isPixelTracker(), hasSubDisks(), endcapScheme);
     accept(v);
   }
   checkDetIds();

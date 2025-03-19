@@ -35,9 +35,12 @@ SimParms::SimParms() :
     alphaParam("alphaParam", parsedAndChecked()),    // radiation-damage coefficient, A/cm
     magField("magneticField", parsedAndChecked()),
     irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
+    doseMapFiles("doseMapFiles", parsedAndChecked()),
     minTracksEta("minTracksEta", parsedOnly()),
     maxTracksEta("maxTracksEta", parsedOnly()),
-    taggedTracking("TaggedTracking", parsedOnly())
+    taggedTracking("TaggedTracking", parsedOnly()),
+    beamPipeX("beamPipeX", parsedOnly(), insur::mat_default_beam_pipe_radiation),
+    beamPipeL("beamPipeL", parsedOnly(), insur::mat_default_beam_pipe_interaction)
 { }
 
 void SimParms::build() {
@@ -50,6 +53,12 @@ void SimParms::build() {
       std::string fullPath = irradiationMapDirectory_ + "/" + (*iterMapFile);
       irradiationMapsManager_.addIrradiationMap(fullPath.c_str());
     }
+    for(std::vector<std::string>::const_iterator iterDoseMapFile = doseMapFiles.begin(); iterDoseMapFile != doseMapFiles.end(); ++ iterDoseMapFile) {
+      std::string fullPath = irradiationMapDirectory_ + "/" + (*iterDoseMapFile);
+      doseMapsManager_.addIrradiationMap(fullPath.c_str());
+    }
+
+
 
     cleanup();
     builtok(true);

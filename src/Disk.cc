@@ -210,8 +210,10 @@ void Disk::buildTopDown(const ScanEndcapInfo& extremaDisksInfo) {
 
     // NOW THAT RADIUS HAS BEEN CALCULATED, FINISH BUILDING THE RING AND STORE IT
     ring->myid(i);
+    ring->setIsRingOn4Dees(ring->smallDelta() > bigDelta());
+    ring->setIsSmallerAbsZRingInDisk(parity < 0);
     ring->build();
-    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
+    ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());   
 
     rings_.insert(rings_.begin(), ring);
     ringIndexMap_[i] = ring;
@@ -294,8 +296,8 @@ const std::pair<double, bool> Disk::computeIntersectionWithZAxis(double lastZ, d
 */
 void Disk::computeActualZCoverage() {
   
-  double lastMinRho;
-  double lastMinZ;
+  double lastMinRho = 0.0; // will be properly initialized in the first iteration;
+  double lastMinZ = 0.0; // will be properly initialized in the first iteration;
   const double ringsSensorThickness = scanSensorThickness();
 
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
@@ -348,10 +350,10 @@ void Disk::computeActualCoverage() {
   for (auto& r : rings_) r.computeActualPhiCoverage();
 }
 
-void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.translateZ(z); }
+void Disk::translateZ(double z) { centerZ_ += z; for (auto& r : rings_) r.translateZ(z); }
 
 void Disk::rotateToNegativeZSide() {
-  averageZ_ = -averageZ_;
+  centerZ_ = -centerZ_;
   for (auto& r : rings_) r.rotateToNegativeZSide();
 }
 

@@ -34,6 +34,8 @@ namespace insur {
      * @return True if the element points up or down, false if it points sideways
      */
     bool InactiveElement::isVertical() const { return is_vertical; }
+
+  const double InactiveElement::tiltAngle() const { return (isVertical() ? M_PI/2. : 0.); }
     
     /**
      * Set the orientation flag of the object.

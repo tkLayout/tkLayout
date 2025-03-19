@@ -41,11 +41,11 @@ mainConfigHandler& mainConfigHandler::instance() {
 }
 
 bool mainConfigHandler::checkDirectory(string dirName) {
-  if (! filesystem::exists(dirName)) {
+  if (! boost::filesystem::exists(dirName)) {
     cout << "Directory '" << dirName << "' does not exist!" << endl;
     return false;
   }
-  if (! filesystem::is_directory(dirName) ) {
+  if (! boost::filesystem::is_directory(dirName) ) {
     cout << "Directory '" << dirName << "' is not a directory!" << endl;
     return false;    
   }

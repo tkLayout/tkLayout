@@ -15,7 +15,7 @@ sensorThickness 0.150
 hybridThickness 0.5
 chipThickness 0.5
 
-deadAreaExtraLength 0.5
+deadAreaExtraLength 0.09    // mass is correctly set up. Shorter length (0.09 mm instead of 0.5 mm) is only to avoid overlaps in old geometries.
 deadAreaExtraWidth 0.5
 chipNegativeXExtraWidth 0.0   
 chipPositiveXExtraWidth 1.0

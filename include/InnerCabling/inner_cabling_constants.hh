@@ -9,9 +9,11 @@
 
 // DESIGN
 // Maximum number of modules per serial power chain
-static const int inner_cabling_maxNumModulesPerPowerChain = 10;
+static const int inner_cabling_maxNumModulesPerPowerChain = 12;
 // Maximum number of ELinks per GBT
 static const int inner_cabling_maxNumELinksPerGBT = 7;
+// Maximum number of modules per GBT
+static const int inner_cabling_maxNumModulesPerGBT = 6;
 // Maximum number of GBTs per bundle
 static const int inner_cabling_maxNumGBTsPerBundle = 12;
 // Maximum number of bundles per cable
@@ -25,11 +27,15 @@ static const int inner_cabling_numELinksPerModuleBarrelLayer3 = 2;
 static const int inner_cabling_numELinksPerModuleBarrelLayer4 = 1;
 
 static const int inner_cabling_numELinksPerModuleForwardRing1 = 3;
-static const int inner_cabling_numELinksPerModuleForwardRing2 = 2;
+static const int inner_cabling_numELinksPerModuleForwardRing2 = 3;
 static const int inner_cabling_numELinksPerModuleForwardRing3 = 2;
-static const int inner_cabling_numELinksPerModuleForwardRing4 = 1;
+static const int inner_cabling_numELinksPerModuleForwardRing4 = 2;
 
-static const int inner_cabling_numELinksPerModuleEndcap = 1;
+static const int inner_cabling_numELinksPerModuleEndcapRing1 = 4;
+static const int inner_cabling_numELinksPerModuleEndcapRing2 = 3;
+static const int inner_cabling_numELinksPerModuleEndcapRing3 = 2;
+static const int inner_cabling_numELinksPerModuleEndcapRing4 = 2;
+static const int inner_cabling_numELinksPerModuleEndcapRing5 = 1;
 
 
 // MAX NUMBER OF POWER CHAINS PER FIBER BUNDLE, in TBPX
@@ -54,6 +60,13 @@ static const double inner_cabling_roundingTolerance = outer_cabling_roundingTole
 static const std::string inner_cabling_tbpx = "PXB";
 static const std::string inner_cabling_tfpx = "FPIX_1";
 static const std::string inner_cabling_tepx = "FPIX_2";
+
+
+// CMSSW IDS
+// Total number of DTCs in OT
+static const int outer_cabling_totalNumDTCs = 216; // This could be obtained by:
+// outer_cabling_numNonants * outer_cabling_maxNumDTCsPerNonantPerZEnd,
+// but ugly to introduce dependency of IT cabling map on OT, because the maps are actually fully independent.
 
 
 #endif  // INNER_CABLING_CONSTANTS_HH

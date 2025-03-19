@@ -93,6 +93,7 @@ public:
 
   Property<int, NoDefault> numRods;
   FixedSizeMultiProperty<std::vector<double>, 4,','> phiForbiddenRanges;
+  Property<bool, Default> rotateLayerByRodsDeltaPhiHalf;
 
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
@@ -126,7 +127,8 @@ public:
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), true),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    numRods        ("numRods"        , parsedOnly()),
-	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),	    
+	    phiForbiddenRanges("phiForbiddenRanges", parsedOnly()),
+	    rotateLayerByRodsDeltaPhiHalf("rotateLayerByRodsDeltaPhiHalf", parsedOnly(), false),
 	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),

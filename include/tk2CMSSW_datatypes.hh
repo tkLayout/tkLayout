@@ -11,6 +11,7 @@
 #include <map>
 #include <math.h> 
 #include <tk2CMSSW_strings.hh>
+#include "MaterialProperties.hh"
 
 namespace insur {
     /**
@@ -90,8 +91,14 @@ namespace insur {
         std::string fileName;
         const std::string fullName() const { return fileName + ":" + name; }
 
+        bool isMixture = false;
+        bool isPrinted = false;
+        std::map<MechanicalCategory, std::pair<double, double> > normalizedRIRatioPerMechanicalCategory;
+
+
         // This is to avoid the duplicated descriptions of composite materials in the XMLs (very significant effect on total XML size)
-        // 2 components are said equal if they have same total density, same mixture method, and exactly same composing elements.
+        // 2 components are said equal if they have same total density, same mixture method, 
+        // exactly same composing elements, and exactly same mechanical categories contributions.
         // No matter the name of the component !
         bool operator==(const Composite& otherComp) const {
 	  if ((fabs(density - otherComp.density) > xml_composite_density_tolerance)  // not same density ?
@@ -103,9 +110,27 @@ namespace insur {
 	    if ((elements.find(elem.first) == elements.end())  // not found in the composite ?
 	        || (fabs(elements.at(elem.first) - elem.second) > xml_composite_ratio_tolerance)) { // not same massic ratio ?
 	      return false;
+	    }
 	  }
-	}
-	return true;
+
+	  // Check mechanical categories contributions.
+	  for (const auto& mechanicalCategoryIt : otherComp.normalizedRIRatioPerMechanicalCategory) {  // for a given category :
+	    // mechanical category does not even exist for the other composite ?
+	    if (normalizedRIRatioPerMechanicalCategory.find(mechanicalCategoryIt.first) == normalizedRIRatioPerMechanicalCategory.end())  { 	      
+	      return false; 
+	    }
+	    // not same massic radiation length ratio?
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).first - mechanicalCategoryIt.second.first) > xml_composite_ratio_tolerance) { 	      
+	      return false;
+	    }
+	    // not same massic interaction length ratio?
+	    if (fabs(normalizedRIRatioPerMechanicalCategory.at(mechanicalCategoryIt.first).second - mechanicalCategoryIt.second.second) > xml_composite_ratio_tolerance) {	      
+	      return false;
+	    }
+	  }
+
+	  // Passed all tests, hence the 2 composites are considered equivalent.
+	  return true;
       }
     };
     /**
@@ -214,35 +239,48 @@ namespace insur {
     /**
      * @struct ERingInfo
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
-     * @param name The logical part name that identifies the ring
-     * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw Is it the forward ring of the disk ?
-     * @param isZPlus Is the ring (and disk) in the positive-z side ?
-     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
-     * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
-     * @param modules The number of modules within the ring
-     * @param mthk Thickness of one of the ring's modules (hybrids included)
-     * @param rmin The minimum radius of the ring, as measured from the z-axis 
-     * @param rmid The radius of the module mean point, as measured from the z-axis
-     * @param rmax The maximum radius of the ring, as measured from the z-axis
+     * @param name The logical part name that identifies the ring.
+     * @param childname The logical part name that identifies the modules contained in the ring.
+     * @param isDiskAtPlusZEnd Is the ring (and disk) in the Tracker positive (Z) end ?
+     * @param numModules The number of modules within the ring.
+     * @param moduleThickness Thickness of one of the ring's modules (hybrids included).
+     * @param radiusMin The minimum radius of the ring, as measured from the (Z) axis.
+     * @param radiusMid The radius of the module mean point, as measured from the (Z) axis.
+     * @param radiusMax The maximum radius of the ring, as measured from the (Z) axis.
+     * @param zMin Min Z ever reached by any point of a module belonging to the ring.
+     * @param smallAbsZSurfaceZMax MaxZ of the half of the modules which are located at the smallest |Z|.
+     * @param zMid ring's placement Z.
+     * @param bigAbsZSurfaceZMin MinZ of the half of the modules which are located at the biggest |Z|.
+     * @param zMax Max Z ever reached by any point of a module belonging to the ring.
+     * @param isRingOn4Dees Are the ring modules spread over 4 dees?
+     * surface i is randomly one half of the ring modules (Either the modules located at smaller |Z|, either the modules located at bigger |Z|).
+     * @param surfaceiZMid ZMid of modules belonging to surface i. Assumption: same for all modules.
+     * @param surfaceiStartPhi Start Phi Angle of modules belonging to surface i.
+     * @param surfaceiIsFlipped Are the modules belonging to surface i flipped?
      */
     struct ERingInfo {
         std::string name;
         std::string childname;
-        bool fw;
-        bool isZPlus;
-        bool fw_flipped;
-        int modules;
-        double mthk;
-        double rmin;
-        double rmid;
-        double rmax;
-        double zmin;
-        double zmax;
-        double zfw;
-        double startPhiAnglefw;  // in RAD
-        double zbw;
-        double startPhiAnglebw;  // in RAD
+        bool isDiskAtPlusZEnd;
+        int numModules;
+        double moduleThickness;
+        double radiusMin;
+        double radiusMid;
+        double radiusMax;
+        double zMin;
+        double smallAbsZSurfaceZMax;
+        double zMid;
+        double bigAbsZSurfaceZMin;
+        double zMax;
+        bool isRingOn4Dees;
+        
+        double surface1ZMid;
+        double surface1StartPhi;  // in RAD       
+        bool surface1IsFlipped;
+        double surface2ZMid;
+        double surface2StartPhi;  // in RAD
+        bool surface2IsFlipped;
+        bool isRegularRing;
     };
     /**
      * @struct BTiltedRingInfo
@@ -291,6 +329,7 @@ namespace insur {
       * * @struct ModuleROCInfo
       * * @brief The information in this struct is a parameter in SpecParInfo.
       * * @param name The module type
+      * * @param bricked Whether the module is bricked or not
       * * @param rocrows The number of ROCRows
       * * @param roccols The number of ROCCols
       * * @param rocx The number of ROC_X
@@ -298,6 +337,7 @@ namespace insur {
       * */
     struct ModuleROCInfo {
       std::string name;
+      bool bricked;
       std::string rocrows;
       std::string roccols;
       std::string rocx;

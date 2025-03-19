@@ -22,16 +22,20 @@ BINDIR=bin
 TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
+
+COMPILERFLAGS+=-std=c++17
 COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Werror
-COMPILERFLAGS+=-std=c++11 
-#COMPILERFLAGS+=-ggdb
-COMPILERFLAGS+=-g
-COMPILERFLAGS+=-fpermissive
-COMPILERFLAGS+=-lstdc++
 COMPILERFLAGS+=-fmax-errors=2
+#COMPILERFLAGS+=-Wno-error=uninitialized
+#COMPILERFLAGS+=-Wno-error=maybe-uninitialized
+#COMPILERFLAGS+=-Wextra
+#COMPILERFLAGS+=-pedantic
+COMPILERFLAGS+=-g
+#COMPILERFLAGS+=-ggdb
 #COMPILERFLAGS+=-pg
-#COMPILERFLAGS+=-O3
+COMPILERFLAGS+=-O3
+
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 #LINKERFLAGS+=-pg
 
@@ -140,6 +144,7 @@ OUTERCABLING+=outer_cabling_constants
 OUTERCABLING+=outer_cabling_functions
 OUTERCABLING+=OuterCablingMap
 OUTERCABLING+=OuterDTC
+OUTERCABLING+=OuterGBT
 OUTERCABLING+=ModulesToBundlesConnector
 OUTERCABLING+=PhiPosition
 OUTERCABLING+=ServicesChannel
@@ -278,6 +283,12 @@ $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cc $(LIBDIR)/MainConfigHandler.o 
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cc $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
 test: $(TESTDIR)/ModuleTest
+
+testMakeUnique14: $(TESTDIR)/testMakeUnique.cpp
+	g++ -std=c++14 $(TESTDIR)/testMakeUnique.cpp -o testMakeUnique14
+
+testMakeUnique17: $(TESTDIR)/testMakeUnique.cpp
+	g++ -std=c++17 $(TESTDIR)/testMakeUnique.cpp -o testMakeUnique17
 
 $(TESTDIR)/%: $(SRCDIR)/Tests/%.cc $(INCDIR)/Tests/%.hh
 	@echo "Building target $@..."

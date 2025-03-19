@@ -95,8 +95,8 @@ public:
   bool     isActivityUndefined() const { if (m_activity==HitActivity::Undefined) return true; else return false;};
   HitType  getActiveHitType() const    { return m_activeHitType; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
   RILength getCorrectedMaterial();
-  double   getResolutionRphi(double trackRadius);
-  double   getResolutionZ(double trackRadius);
+  double   getResolutionRphi(const double trackRadius, const double deltaTheta) const;
+  double   getResolutionZ(const double trackRadius) const;
   double   getD();
 
   std::string getDetName()       const { return m_detName; };
@@ -159,6 +159,7 @@ protected:
 
 private:
   
+  const TVector3 getTrackDirection() const;
   double getTrackPhi();
   double getTrackTheta();
 
