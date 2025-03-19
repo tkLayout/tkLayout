@@ -2,7 +2,7 @@
 // Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 // 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
-Materials FPIX_2_disk_2500_10000 {
+Materials TEPX_disk_2500_10000 {
   type layer
 
 
@@ -55,7 +55,7 @@ Materials FPIX_2_disk_2500_10000 {
   // Power for the module
   // Average on disk
   // 28 power chains per disk
-  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
+  // 70% of the amount in disk_TEPX : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   //Component {
   //  componentName "Cabling: Serial power chains (on dees)"
   //  service false
@@ -80,7 +80,7 @@ Materials FPIX_2_disk_2500_10000 {
   
   // fake numbers for calculating conversion with a factor of 1000
   // 28 power chains per disk
-  // 70% of the amount in disk_FPIX_2 : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
+  // 70% of the amount in disk_TEPX : 50% reduction in 3 rings out of 5 (hence reduction is 0.5*0.6 = 0.30)
   Component {
     componentName "Cabling: Serial power chains (routed)"
     service true
