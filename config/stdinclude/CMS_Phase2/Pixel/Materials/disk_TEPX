@@ -1,7 +1,7 @@
 // TEPX double-disk materials.
 // Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 
-Materials FPIX_2_disk {
+Materials TEPX_disk {
   type layer
 
 
