@@ -351,7 +351,8 @@ namespace material {
   const std::map<std::string, MaterialObject::Element::Unit> MaterialObject::Element::unitStringMap = {
       {"g", GRAMS},
       {"mm", MILLIMETERS},
-      {"g/m", GRAMS_METER}
+      {"g/m", GRAMS_METER},
+      {"mm3", CUBIC_MILLIMETERS}
   };
 
   void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices /*= false*/, double gramsMultiplier /*= 1.*/, Location requestedLocation /*= Location::ALL*/) const {
@@ -438,20 +439,6 @@ namespace material {
     // rho:     density
     // S:       surface
 
-    /*
-    std::map<std::pair<Unit, Unit>, double> conversionMatrix = {
-      {{GRAMS, GRAMS}, 1}, {{GRAMS, GRAMS_METER}, length/1000}, {{GRAMS, MILLIMETERS}, density*surface},
-      {{GRAMS_METER, GRAMS}, 1000/length}, {{GRAMS_METER, GRAMS_METER}, 1}, {{GRAMS_METER, MILLIMETERS}, (density*surface*1000)/length},
-      {{MILLIMETERS, GRAMS}, 1/(density*surface)}, {{MILLIMETERS, GRAMS_METER}, length/(density*surface*1000)}, {{MILLIMETERS, MILLIMETERS}, 1}
-    };
-
-    try {
-      returnVal = quantity() * conversionMatrix.at({unitStringMap.at(desiredUnit), unitStringMap.at(unit())});
-    } catch (const std::out_of_range& ex) {
-      logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
-    }
-    */
-
     try {
       desiredUnitVal = unitStringMap.at(desiredUnit);
       elementUnitVal = unitStringMap.at(unit());
@@ -472,6 +459,8 @@ namespace material {
         returnVal = quantity() * length / 1000.;
       else if ((desiredUnitVal == GRAMS) && (elementUnitVal == MILLIMETERS))
         returnVal = quantity() * density * surface;
+      else if ((desiredUnitVal == GRAMS) && (elementUnitVal == CUBIC_MILLIMETERS))
+        returnVal = quantity() * density;
       else if ((desiredUnitVal == GRAMS_METER) && (elementUnitVal == MILLIMETERS))
         returnVal = quantity() * (density * surface * 1000.) / length;
 
