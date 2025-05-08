@@ -2,7 +2,7 @@
 // Amounts of materials are PER DOUBLE-DISK (= 4 dees!!)
 // 2500 um^2 pixels in 1x2 modules, 10000 um^2 pixels in 2x2 modules
 
-Materials FPIX_disk_2500_10000 {
+Materials TFPX_disk_2500_10000 {
   type layer
 
 

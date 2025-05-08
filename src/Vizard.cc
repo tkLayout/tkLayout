@@ -1738,7 +1738,7 @@ namespace insur {
       RootWTable* barrelName = new RootWTable();
       barrelName->setContent(0, 0, "BPIX");
       RootWTable* forwardName = new RootWTable();
-      forwardName->setContent(0, 0, "FPIX and EPIX, (+Z) End");
+      forwardName->setContent(0, 0, "TFPX and TEPX, (+Z) End");
 
 
       // MODULES TO POWER CHAINS
