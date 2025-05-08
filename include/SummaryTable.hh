@@ -21,10 +21,12 @@ public:
   }
   void setPrecision(int precision) { precision_ = precision; } // has to be called before filling the table or conversions from floating point won't have the desired precision
 
-  template<typename T> void setCell(int row, int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
+  template<typename T> void setCell(int row, int column, const T& content) { setCellString(row, column, any2str(content, precision_)); }
+  void setCellString(int row, int column, const std::string& content);
   template<typename T, typename BinaryOp> void setCell(int row, int column, const T& content, BinaryOp binop) { setCell(row, column, binop(hasCell(row, column) ? str2any<T>(getCell(row, column)) : T(), content)); }
 
-  template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCell(label, any2str(content, precision_)); }
+  template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCellString(label, any2str(content, precision_)); }
+  void setSummaryCellString(std::string label, const std::string& content);
 
   std::string getCell(int row, int column) { return summaryTable[std::make_pair(row,column)];} // this actually alters the map if the cell's not there = DANGEROUS
 

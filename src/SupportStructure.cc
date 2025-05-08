@@ -342,28 +342,33 @@ namespace material {
   };
 
   double SupportStructure::Element::quantityInGrams(double length, double surface) const {
-    double returnVal;
+    double returnVal = 0;
+    bool returnValSet = false;
     try {
       switch (unitStringMap.at(unit())) {
       case Element::GRAMS:
         returnVal = quantity();
+	returnValSet = true;
         break;
 
       case Element::GRAMS_METER:
         returnVal = length * quantity() / 1000.0;
+	returnValSet = true;
         break;
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
         double elementDensity = materialsTable_.getDensity(elementNameString);
         returnVal = elementDensity * surface * quantity();
+	returnValSet = true;
         break;
       }
     } catch (const std::out_of_range& ex) {
       logERROR(msg_no_valid_unit + unit());
     }
 
-    returnVal *= insur::mat_budget_overall_scaling_factor;
+    if (returnValSet) returnVal *= insur::mat_budget_overall_scaling_factor;
+    else logERROR(msg_no_valid_unit + ". Returning zero material");
     return returnVal;
   }
 

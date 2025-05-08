@@ -27,12 +27,14 @@ COMPILERFLAGS+=-std=c++17
 COMPILERFLAGS+=-Wall
 COMPILERFLAGS+=-Werror
 COMPILERFLAGS+=-fmax-errors=2
+#COMPILERFLAGS+=-Wno-error=uninitialized
+#COMPILERFLAGS+=-Wno-error=maybe-uninitialized
 #COMPILERFLAGS+=-Wextra
 #COMPILERFLAGS+=-pedantic
 COMPILERFLAGS+=-g
 #COMPILERFLAGS+=-ggdb
 #COMPILERFLAGS+=-pg
-#COMPILERFLAGS+=-O3
+COMPILERFLAGS+=-O3
 
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 #LINKERFLAGS+=-pg
