@@ -140,7 +140,7 @@ namespace material {
 
     class Element : public PropertyObject {
     public:
-      enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
+      enum Unit{GRAMS, MILLIMETERS, GRAMS_METER, CUBIC_MILLIMETERS};
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
       
