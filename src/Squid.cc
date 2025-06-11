@@ -11,7 +11,6 @@
 #include "ReportIrradiation.hh"
 
 #include "AnalyzerVisitors/JsonVisitor.hh"
-#include "Utilities/PropertyJsonHelpers.hh"
 #include <fstream>
 
 namespace insur {
@@ -900,16 +899,12 @@ namespace insur {
 
 
   void Squid::dumpJson(std::string jsonout) {
-    if (tr) {
-      startTaskClock("Dumping tracker to JSON");
-      std::string jsonPath = "./";
-      if (!bfs::exists(jsonPath)) bfs::create_directory(jsonPath);
-      JsonVisitor visitor;
-      auto json_doc = visitor.build(*tr);
-      std::ofstream("tracker.json") << boost::json::serialize(json_doc);
-      stopTaskClock();
-    } else {
-      logERROR(err_no_tracker);
-    }
+    startTaskClock("Dumping tracker to JSON");
+    std::string jsonPath = "./";
+    if (!bfs::exists(jsonPath)) bfs::create_directory(jsonPath);
+    JsonVisitor visitor;
+    auto json_doc = visitor.build(tr, px);
+    std::ofstream("tracker.json") << boost::json::serialize(json_doc);
+    stopTaskClock();
   }
 }

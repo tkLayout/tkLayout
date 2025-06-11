@@ -135,6 +135,7 @@ ANALYZERVISITORS+=TriggerDistanceTuningPlots
 ANALYZERVISITORS+=TriggerFrequency
 ANALYZERVISITORS+=TriggerProcessorBandwidth
 ANALYZERVISITORS+=ModuleCount
+ANALYZERVISITORS+=JsonVisitor
 
 OUTERCABLING+=OuterBundle
 OUTERCABLING+=OuterCable
