@@ -10,6 +10,10 @@
 
 #include "ReportIrradiation.hh"
 
+#include "AnalyzerVisitors/JsonVisitor.hh"
+#include "Utilities/PropertyJsonHelpers.hh"
+#include <fstream>
+
 namespace insur {
   // public
   /**
@@ -892,5 +896,20 @@ namespace insur {
     std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
     std::string layoutPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
     v.createXmlSite(site, xmlPath, layoutPath);
+  }
+
+
+  void Squid::dumpJson(std::string jsonout) {
+    if (tr) {
+      startTaskClock("Dumping tracker to JSON");
+      std::string jsonPath = "./";
+      if (!bfs::exists(jsonPath)) bfs::create_directory(jsonPath);
+      JsonVisitor visitor;
+      auto json_doc = visitor.build(*tr);
+      std::ofstream("tracker.json") << boost::json::serialize(json_doc);
+      stopTaskClock();
+    } else {
+      logERROR(err_no_tracker);
+    }
   }
 }

@@ -120,6 +120,7 @@ namespace insur {
     void setCommandLine(int argc, char* argv[]);
     //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
+    void dumpJson(std::string jsonout);
   private:
     //std::string g;
     Tracker* tr;

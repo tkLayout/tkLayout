@@ -11,7 +11,7 @@ endif
 ifneq ($(strip $(BOOST_LIB)),)
 BOOSTLIBFLAGS=-L$(BOOST_LIB)
 endif
-BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
+BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX) -lboost_json$(BOOST_SUFFIX)
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS+=-Iinclude/

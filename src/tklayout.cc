@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
     ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
     ("graph,g", "Build and report neighbour graph.")
     ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
+    ("dump-json", "Dump full tracker structure as JSON to 'tracker.json'")
     ("html-dir", po::value<std::string>(&htmldir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
     ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
@@ -180,6 +181,7 @@ int main(int argc, char* argv[]) {
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
     if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
+    if (vm.count("dump-json")) squid.dumpJson("tracker.json");
 
     if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
