@@ -1032,7 +1032,7 @@ bool RootWSite::makeSite(bool verbose) {
       namespace fs = boost::filesystem;
       fs::path const from_path = myPageFileName;
       fs::path const to_path = targetDirectory_+"/index.html";
-      fs::copy_file(from_path, to_path, fs::copy_option::overwrite_if_exists);
+      fs::copy_file(from_path, to_path, fs::copy_options::overwrite_existing);
     }
   }
   if (verbose) std::cout << " ";
