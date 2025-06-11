@@ -16,7 +16,7 @@ namespace json = boost::json;
 class JsonVisitor
 {
 public:
-    json::object build(const Tracker* tracker, const Tracker* pixel);
+    json::object build(const Tracker &tracker);
 private:
     json::object visit_tracker(const Tracker &t);
     json::object visit_barrel(const Barrel &b);

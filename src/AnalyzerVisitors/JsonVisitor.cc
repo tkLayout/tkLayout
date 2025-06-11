@@ -20,39 +20,9 @@ boost::json::object JsonVisitor::merge_json(const boost::json::object& a, const 
     return result;
 }
 
-json::object JsonVisitor::build(const Tracker *tracker_ptr, const Tracker *pixel_ptr)
+json::object JsonVisitor::build(const Tracker &tracker)
 {
-    json::object outer, inner;
-    
-    if (tracker_ptr != nullptr) outer = visit_tracker(*tracker_ptr);
-    if (pixel_ptr != nullptr) inner = visit_tracker(*pixel_ptr);
-    
-    merge_json(outer, inner);
-    return outer;
-
-    // The following code is an example on how to use section names in the JSON output.
-    // auto add_sections = [&sections](const Tracker& t) {
-    //     for (const auto& b : t.barrels()) {
-    //         json::object section;
-    //         section["type"] = "barrel";
-    //         json::array layer_names;
-    //         for (const auto& l : b.layers())
-    //             layer_names.emplace_back("L" + std::to_string(l.layerNumber()));
-    //         section["layers"] = std::move(layer_names);
-    //         sections[b.myid()] = std::move(section);
-    //     }
-    // 
-    //     for (const auto& e : t.endcaps()) {
-    //         json::object section;
-    //         section["type"] = "endcap";
-    //         json::array disk_names;
-    //         for (const auto& d : e.disks())
-    //             disk_names.emplace_back("D" + std::to_string(d.diskNumber()));
-    //         section["disks"] = std::move(disk_names);
-    //         sections[e.myid()] = std::move(section);
-    //     }
-    // };
-
+    return visit_tracker(tracker);
 }
 
 json::object JsonVisitor::visit_tracker(const Tracker &t)
