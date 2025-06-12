@@ -8,35 +8,39 @@
 #include "Ring.hh"
 #include "DetectorModule.hh"
 #include "GeometricModule.hh"
-#include "Utilities/PropertyJsonHelpers.hh"
 #include "AnalyzerVisitors/JsonVisitor.hh"
 
 namespace json = boost::json;
 
-boost::json::object JsonVisitor::merge_json(const boost::json::object& a, const boost::json::object& b) {
-    boost::json::object result = a;
-    for (auto& kv : b)
-        result.insert_or_assign(kv.key(), kv.value());
-    return result;
-}
-
-json::object JsonVisitor::build(const Tracker &tracker)
+json::object JsonVisitor::build(const Tracker *t, const Tracker *p)
 {
-    return visit_tracker(tracker);
+    json::array trackers;
+    if (t) {
+        trackers.push_back(visit_tracker(*t));
+    }
+    if (p) {
+        trackers.push_back(visit_tracker(*p));
+    }
+    return json::object{
+        {"Trackers", std::move(trackers)}
+    };
 }
 
 json::object JsonVisitor::visit_tracker(const Tracker &t)
 {
     json::object jo;
+    jo["type"] = "Tracker";
+    jo["myid"] = t.myid();
+    
     json::array barrels;
     for (const auto &b : t.barrels())
         barrels.push_back(visit_barrel(b));
-    jo["barrels"] = std::move(barrels);
-
+    jo["Barrels"] = std::move(barrels);
+    
     json::array endcaps;
     for (const auto &e : t.endcaps())
         endcaps.push_back(visit_endcap(e));
-    jo["endcaps"] = std::move(endcaps);
+    jo["Endcaps"] = std::move(endcaps);
 
     return jo;
 }
@@ -44,84 +48,88 @@ json::object JsonVisitor::visit_tracker(const Tracker &t)
 json::object JsonVisitor::visit_barrel(const Barrel &b)
 {
     json::object jo;
-    // jo["properties"] = dump_properties(b);
-
+    jo["type"] = "Barrel";
+    jo["myid"] = b.myid();
     json::array layers;
     for (const auto &l : b.layers())
         layers.push_back(visit_layer(l));
-    jo["layers"] = std::move(layers);
+    jo["Layers"] = std::move(layers);
     return jo;
 }
 
 json::object JsonVisitor::visit_endcap(const Endcap &e)
 {
     json::object jo;
-    // jo["properties"] = dump_properties(e);
-
+    jo["type"] = "Endcap";
+    jo["myid"] = e.myid();
+    // Add disks to the endcap
     json::array disks;
     for (const auto &d : e.disks())
         disks.push_back(visit_disk(d));
-    jo["disks"] = std::move(disks);
+    jo["Disks"] = std::move(disks);
     return jo;
 }
 
 json::object JsonVisitor::visit_disk(const Disk &d)
 {
     json::object jo;
+    jo["type"] = "Disk";
+    jo["myid"] = d.myid(); // Assuming myid() returns the disk number
     json::array rings;
 
     for (const auto &ring : d.rings())
-    {
         rings.push_back(visit_ring(ring));
-    }
-    jo["name"] = "ANAME"; // Placeholder for disk name; replace with actual name
-    jo["rings"] = std::move(rings);
+    jo["Rings"] = std::move(rings);
     return jo;
 }
 
 json::object JsonVisitor::visit_layer(const Layer &l)
 {
     json::object jo;
-    // jo["properties"] = dump_properties(l);
-
-    json::array rods;
+    jo["type"] = "Layer";
+    jo["myid"] = l.myid();
+    json::array ladderPairs;
     for (const auto &r : l.rods())
-        rods.push_back(visit_rodpairs(r));
-    jo["name"] = "ANAME"; // Placeholder for disk name; replace with actual name
-    jo["rods"] = std::move(rods);
+        ladderPairs.push_back(visit_rodpairs(r));
+    jo["ladderPairs"] = std::move(ladderPairs);
     return jo;
 }
 
 json::object JsonVisitor::visit_rodpairs(const RodPair& r) {
     json::object jo;
-    // jo["properties"] = dump_properties(r);
-
-    json::array modules;
+    jo["type"] = "LadderPair";
+    jo["myid"] = r.myid();
+    json::array zPlusModules;
+    json::array zMinusModules;
     for (const auto& mod : r.modules().first)
-        modules.push_back(visit_module(mod));
+        zPlusModules.push_back(visit_module(mod));
     for (const auto& mod : r.modules().second)
-        modules.push_back(visit_module(mod));
+        zMinusModules.push_back(visit_module(mod));
 
-    jo["modules"] = std::move(modules);
+    jo["zPlusModules"] = std::move(zPlusModules);
+    jo["zMinusModules"] = std::move(zMinusModules);
     return jo;
 }
 
 json::object JsonVisitor::visit_ring(const Ring &r)
 {
     json::object jo;
-    // jo["properties"] = dump_properties(r);
-
+    jo["type"] = "Ring";
+    jo["myid"] = r.myid();
     json::array mods;
     for (const auto &m : r.modules())
         mods.push_back(visit_module(m));
-    jo["modules"] = std::move(mods);
+    jo["Modules"] = std::move(mods);
     return jo;
 }
 
 json::object JsonVisitor::visit_module(const DetectorModule &m)
 {
     json::object jo;
-    // jo["properties"] = dump_properties(m);
+    jo["type"] = "Module";
+    jo["myid"] = m.myid();
+    jo["moduleType"] = m.moduleType();
+    jo["dsDistance"] = m.dsDistance();
 
     const auto &c = m.center();
     json::object pos;

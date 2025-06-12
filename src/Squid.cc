@@ -903,14 +903,8 @@ namespace insur {
     std::string jsonPath = "./";
     if (!bfs::exists(jsonPath)) bfs::create_directory(jsonPath);
     JsonVisitor visitor;
-    if (tr) {
-      auto json_doc = visitor.build(*tr);
-      std::ofstream("ot.json") << boost::json::serialize(json_doc);
-    }
-    if (px) {
-      auto json_doc = visitor.build(*px);
-      std::ofstream("it.json") << boost::json::serialize(json_doc);
-    }
+    auto json_doc = visitor.build(tr, px);
+    std::ofstream("tracker.json") << boost::json::serialize(json_doc);
     stopTaskClock();
   }
 }

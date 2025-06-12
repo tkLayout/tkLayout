@@ -9,14 +9,13 @@
 #include "Ring.hh"
 #include "DetectorModule.hh"
 #include "GeometricModule.hh"
-#include "Utilities/PropertyJsonHelpers.hh"
 
 namespace json = boost::json;
 
 class JsonVisitor
 {
 public:
-    json::object build(const Tracker &tracker);
+    json::object build(const Tracker *t, const Tracker *p);
 private:
     json::object visit_tracker(const Tracker &t);
     json::object visit_barrel(const Barrel &b);
