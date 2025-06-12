@@ -15,12 +15,9 @@ namespace json = boost::json;
 json::object JsonVisitor::build(const Tracker *t, const Tracker *p)
 {
     json::array trackers;
-    if (t) {
-        trackers.push_back(visit_tracker(*t));
-    }
-    if (p) {
-        trackers.push_back(visit_tracker(*p));
-    }
+    if (t) trackers.push_back(visit_tracker(*t));
+    if (p) trackers.push_back(visit_tracker(*p));
+
     return json::object{
         {"Trackers", std::move(trackers)}
     };

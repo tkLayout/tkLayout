@@ -175,6 +175,7 @@ namespace insur {
     TGeoMaterial* matserf;
     TGeoMaterial* matlazy;
   private:
+    RootWContent* summaryContent_ = nullptr;
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     TProfile* totalEtaProfileLayers_ = 0, *totalEtaProfileLayersPixel_ = 0;
     RIPlotsPerComponentAndPerSubdetectorAndPerMechanicalCategory radiationAndInteractionLengthPlotsInPixelTrackingVolume_;

@@ -181,10 +181,10 @@ int main(int argc, char* argv[]) {
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
    
     if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
-    if (vm.count("all") || vm.count("dump-json")) squid.dumpJson("tracker.json");
 
     if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
+    if (vm.count("all") || vm.count("dump-json")) squid.dumpJson("tracker.json");
     if (!squid.makeSite()) return EXIT_FAILURE;
 
   } else {

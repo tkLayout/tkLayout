@@ -1168,7 +1168,6 @@ namespace insur {
     myImage->setName("hadHitsTracks");
     myContent->addItem(myImage);
 
-    //if (name=="outer") {
     // Summary table
     RootWContent& summaryContent = myPage->addContent("Summary", false);
     RootWTable& cutsTable = summaryContent.addTable();
@@ -3637,6 +3636,7 @@ namespace insur {
     RootWContent* materialsTablesContent = new RootWContent("Materials tables");
     myPage->addContent(materialsTablesContent);
     summaryContent = new RootWContent("Summary");
+    summaryContent_ = summaryContent;
     myPage->addContent(summaryContent);
     configFilesContent = new RootWContent("Configuration files", false);
     myPage->addContent(configFilesContent);
@@ -9891,18 +9891,22 @@ namespace insur {
   }
 
   void Vizard::createJsonSite(RootWSite& site, std::string jsonDir, std::string jsonFileName, const boost::json::object& json_doc) {
-    RootWPage* myPage = new RootWPage("JSON");
-    myPage->setAddress("json.html");
-    site.addPage(myPage);
-
-    RootWContent* content = new RootWContent("JSON file");
-    myPage->addContent(content);
+    RootWContent* myContent;
+    if (summaryContent_)  myContent = summaryContent_;
+    else {
+      logDEBUG("Vizard::createJsonSite : global summary content is missing. Creating JSON dedicated page.");
+      RootWPage* myPage = new RootWPage("JSON");
+      myPage->setAddress("json.html");
+      site.addPage(myPage);
+      myContent = new RootWContent("JSON file");
+      myPage->addContent(myContent);  
+    }
 
     std::string jsonFilePath = jsonDir + "/" + jsonFileName;
     std::ofstream(jsonFilePath) << boost::json::serialize(json_doc);
-    RootWBinaryFile* jsonFile = new RootWBinaryFile(jsonFileName, "ROOT file with all relevant plots");
+    RootWBinaryFile* jsonFile = new RootWBinaryFile(jsonFileName, "JSON file with the Tracker structure and geometry");
     jsonFile->setNoCopy(true);
-    content->addItem(jsonFile);
+    myContent->addItem(jsonFile);
     
   }
 
