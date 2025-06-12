@@ -897,14 +897,12 @@ namespace insur {
     v.createXmlSite(site, xmlPath, layoutPath);
   }
 
-
-  void Squid::dumpJson(std::string jsonout) {
+  void Squid::dumpJson(std::string jsonFileName) {
     startTaskClock("Dumping tracker to JSON");
-    std::string jsonPath = "./";
-    if (!bfs::exists(jsonPath)) bfs::create_directory(jsonPath);
+    std::string jsonPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ + "/";
     JsonVisitor visitor;
     auto json_doc = visitor.build(tr, px);
-    std::ofstream("tracker.json") << boost::json::serialize(json_doc);
+    v.createJsonSite(site, jsonPath, jsonFileName, json_doc);
     stopTaskClock();
   }
 }

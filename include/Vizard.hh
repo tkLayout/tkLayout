@@ -65,6 +65,8 @@
 #include <AnalyzerVisitors/GeometricInfo.hh>
 #include "VizardTools.hh"
 
+#include <boost/json.hpp>
+
 
 using namespace material;
 
@@ -153,6 +155,7 @@ namespace insur {
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
     void createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
+    void createJsonSite(RootWSite& site, std::string jsonDir, std::string jsonFileName, const boost::json::object& json_doc);
 
   protected:
     TGeoManager* gm;

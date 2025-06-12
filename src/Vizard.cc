@@ -9890,8 +9890,21 @@ namespace insur {
     return color;
   }
 
+  void Vizard::createJsonSite(RootWSite& site, std::string jsonDir, std::string jsonFileName, const boost::json::object& json_doc) {
+    RootWPage* myPage = new RootWPage("JSON");
+    myPage->setAddress("json.html");
+    site.addPage(myPage);
 
+    RootWContent* content = new RootWContent("JSON file");
+    myPage->addContent(content);
 
+    std::string jsonFilePath = jsonDir + "/" + jsonFileName;
+    std::ofstream(jsonFilePath) << boost::json::serialize(json_doc);
+    RootWBinaryFile* jsonFile = new RootWBinaryFile(jsonFileName, "ROOT file with all relevant plots");
+    jsonFile->setNoCopy(true);
+    content->addItem(jsonFile);
+    
+  }
 
 
   // Create an extra tab for XML files linking

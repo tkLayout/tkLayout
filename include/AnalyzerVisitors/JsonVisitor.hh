@@ -27,5 +27,5 @@ private:
     json::object visit_module(const DetectorModule &m);
     // json::object visit_geometric_module(const GeometricModule &m);
     // json::object visit_support(const SupportStructure &s);
-    boost::json::object merge_json(const boost::json::object& a, const boost::json::object& b);
+    json::object merge_json(const boost::json::object& a, const boost::json::object& b);
 };
