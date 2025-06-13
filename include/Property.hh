@@ -164,6 +164,8 @@ public:
 typedef std::map<string, Parsable*> PropertyMap;
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-reference"
 template<typename T, template<typename> class ValueHolder>
 class Property : public PropertyBase<T>, public Parsable {
   ValueHolder<T> valueHolder_;
@@ -184,6 +186,7 @@ public:
   void fromPtree(const ptree& pt) { valueHolder_(str2any<T>(pt.data())); }
   void fromString(const string& s) { valueHolder_(str2any<T>(s)); }
 };
+#pragma GCC diagnostic pop
 
 template<typename T, template<typename> class ValueHolder>
 class ReadonlyProperty : public Property<T, ValueHolder> {
