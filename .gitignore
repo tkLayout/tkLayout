@@ -6,3 +6,4 @@ doc/algorithms/scattering.log
 *.patch
 build.log
 build/
+xml/tmptrackerRecoMaterial.xml
