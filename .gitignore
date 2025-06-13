@@ -7,3 +7,4 @@ doc/algorithms/scattering.log
 build.log
 build/
 xml/tmptrackerRecoMaterial.xml
+.vscode
