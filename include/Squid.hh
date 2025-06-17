@@ -121,6 +121,7 @@ namespace insur {
     //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
     void dumpJson(std::string jsonout);
+    bool prepareTargetDirectory();
   private:
     //std::string g;
     Tracker* tr;
@@ -168,6 +169,9 @@ namespace insur {
 
     bool prepareWebsite();
     bool sitePrepared;
+    std::string getTrackerName();
+    std::string getTargetDirectory();
+
   };
 }
 #endif	/* _SQUID_H */
