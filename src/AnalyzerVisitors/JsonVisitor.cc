@@ -71,7 +71,7 @@ json::object JsonVisitor::visit_disk(const Disk &d)
 {
     json::object jo;
     jo["type"] = "Disk";
-    jo["myid"] = d.myid(); // Assuming myid() returns the disk number
+    jo["myid"] = d.myid(); // myid() returns the disk number
     json::array rings;
 
     for (const auto &ring : d.rings())
@@ -125,6 +125,9 @@ json::object JsonVisitor::visit_module(const DetectorModule &m)
     json::object jo;
     jo["type"] = "Module";
     jo["myid"] = m.myid();
+    jo["subType"] = m.moduleSubType();
+    jo["detId"] = m.myDetId();
+    
     jo["moduleType"] = m.moduleType();
     jo["dsDistance"] = m.dsDistance();
 
