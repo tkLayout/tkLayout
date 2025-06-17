@@ -993,13 +993,7 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 
 }
 
-bool RootWSite::makeSite(bool verbose) {
-  ofstream myPageFile;
-  RootWPage* myPage;
-  string myPageFileName;
-  //string targetStyleDirectory = targetDirectory_ + "/style";
-
-
+bool RootWSite::prepareTargetDirectory() {
   // Check if the directory already exists
   if (boost::filesystem::exists( targetDirectory_ )) {
     if (! boost::filesystem::is_directory(targetDirectory_) ) {
@@ -1013,6 +1007,15 @@ bool RootWSite::makeSite(bool verbose) {
       return false;
     }
   }
+  return true;
+}
+
+bool RootWSite::makeSite(bool verbose) {
+  ofstream myPageFile;
+  RootWPage* myPage;
+  string myPageFileName;
+
+  prepareTargetDirectory();
 
   vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
@@ -1032,7 +1035,11 @@ bool RootWSite::makeSite(bool verbose) {
       namespace fs = boost::filesystem;
       fs::path const from_path = myPageFileName;
       fs::path const to_path = targetDirectory_+"/index.html";
+#if BOOST_VERSION >= 106000
+      fs::copy_file(from_path, to_path, fs::copy_options::overwrite_existing);
+#else
       fs::copy_file(from_path, to_path, fs::copy_option::overwrite_if_exists);
+#endif
     }
   }
   if (verbose) std::cout << " ";
