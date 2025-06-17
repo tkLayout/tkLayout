@@ -82,6 +82,7 @@ public:
   Property<double, Computable> minPhi, maxPhi;
   
   ReadonlyProperty<std::string, Default> moduleType; 
+  ReadonlyProperty<int, Default> moduleSubType;
   ReadonlyProperty<int, AutoDefault>     numSensors;
   ReadonlyProperty<SensorLayout, Default> sensorLayout;
   ReadonlyProperty<ZCorrelation, NoDefault> zCorrelation;
@@ -164,6 +165,7 @@ public:
     Decorator<GeometricModule>(decorated),
       skewAngle                ("skewAngle"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
+      moduleSubType            ("moduleSubType"            , parsedOnly() , 0),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
       zCorrelation             ("zCorrelation"             , parsedOnly()),
