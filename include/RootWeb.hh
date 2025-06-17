@@ -308,7 +308,7 @@ public:
   RootWPage& addPage(string title, int relevance = least_relevant);
   void addPage(RootWPage* newPage, int relevance = least_relevant);
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
-  //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
+  bool prepareTargetDirectory();
   bool makeSite(bool verbose);
   void setSummaryFile(bool);
   TFile* getSummaryFile();
