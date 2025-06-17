@@ -451,6 +451,30 @@ namespace insur {
     new ((void*) &v) Vizard();
   }
 
+  
+  std::string Squid::getTrackerName() {
+    std::string trackerName;
+    if (htmlDir_ != "") trackerName = htmlDir_;
+    else {
+      if (tr) trackerName = baseName_;
+      else trackerName = default_trackername;
+    }
+    return trackerName;
+  }
+
+  std::string Squid::getTargetDirectory() {
+    std::string targetDirectory = mainConfiguration.getLayoutDirectory();
+    targetDirectory += "/" + getTrackerName();
+    return targetDirectory;
+  }
+
+  bool Squid::prepareTargetDirectory() {
+    string layoutDirectory = getTargetDirectory();
+    if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
+    else return false;
+    return site.prepareTargetDirectory();
+  }
+
   /**
    * Prepare the website object (if not done yet) from the configuration file
    * it needs the tracker object to be already there
@@ -458,18 +482,9 @@ namespace insur {
    */
   bool Squid::prepareWebsite() {
     if (sitePrepared) return true;
-    string trackerName;
-    if (htmlDir_ != "") trackerName = htmlDir_;
-    else {
-      if (tr) trackerName = baseName_;
-      else trackerName = default_trackername;
-    }
-    string layoutDirectory;
-    //styleDirectory=mainConfiguration.getStyleDirectory();
-    layoutDirectory=mainConfiguration.getLayoutDirectory();
-    layoutDirectory+="/"+trackerName;
-    if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
-    else return false;
+    string trackerName = getTrackerName();
+    if (!prepareTargetDirectory()) return false;
+
     site.setTitle(trackerName);
     site.setComment("layouts");
     site.setCommentLink("../");

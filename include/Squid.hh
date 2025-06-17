@@ -120,6 +120,7 @@ namespace insur {
     void setCommandLine(int argc, char* argv[]);
     //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
+    bool prepareTargetDirectory();
   private:
     //std::string g;
     Tracker* tr;
@@ -167,6 +168,9 @@ namespace insur {
 
     bool prepareWebsite();
     bool sitePrepared;
+    std::string getTrackerName();
+    std::string getTargetDirectory();
+
   };
 }
 #endif	/* _SQUID_H */
