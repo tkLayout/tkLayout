@@ -151,6 +151,8 @@ int main(int argc, char* argv[]) {
     // The tracker should pick the types here but in case it does not,
     // we can still write something
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+
+    if (!squid.prepareTargetDirectory()) return EXIT_FAILURE;
     
     if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
