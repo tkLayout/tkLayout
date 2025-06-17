@@ -130,6 +130,7 @@ int main(int argc, char* argv[]) {
 
   // The tracker (and possibly pixel) must be build in any case
   if (!squid.buildTracker()) return EXIT_FAILURE;
+  if (!squid.prepareTargetDirectory()) return EXIT_FAILURE;
 
   // Build cabling map.
   // With option 'all', cabling map is only computed on a specific layout, for which the map is designed.
