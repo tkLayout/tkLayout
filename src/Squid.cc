@@ -10,6 +10,9 @@
 
 #include "ReportIrradiation.hh"
 
+#include "AnalyzerVisitors/JsonVisitor.hh"
+#include <fstream>
+
 namespace insur {
   // public
   /**
@@ -907,5 +910,14 @@ namespace insur {
     std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
     std::string layoutPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
     v.createXmlSite(site, xmlPath, layoutPath);
+  }
+
+  void Squid::dumpJson(std::string jsonFileName) {
+    startTaskClock("Dumping tracker to JSON");
+    std::string jsonPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ + "/";
+    JsonVisitor visitor;
+    auto json_doc = visitor.build(tr, px);
+    v.createJsonSite(site, jsonPath, jsonFileName, json_doc);
+    stopTaskClock();
   }
 }
