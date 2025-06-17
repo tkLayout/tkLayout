@@ -36,7 +36,7 @@ MARK_AS_ADVANCED( EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH )
 #----------------------------------------------------------------------------
 # Project dependencies
 
-FIND_PACKAGE( Boost COMPONENTS program_options filesystem system REQUIRED )
+FIND_PACKAGE( Boost COMPONENTS program_options filesystem system json REQUIRED )
 
 find_package(ROOT COMPONENTS Geom RIO HistPainter)
 include_directories(${ROOT_INCLUDE_DIRS})
