@@ -646,7 +646,7 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i, Module_SubType/I, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -670,6 +670,7 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
   if (myPowerChain != nullptr) {
     std::stringstream moduleInfo;
     moduleInfo << m.myDetId() << ","
+         << m.moduleSubType() << ","
 	       << sectionName_ << ", "
 	       << layerId_ << ", "
 	       << m.moduleRing() << ", "
