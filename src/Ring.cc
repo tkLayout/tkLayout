@@ -118,6 +118,14 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
         nominalZRot = (i + alignmentRotation)*deltaPhiNom + (1+alignmentRotation)*(deltaPhiLarge-deltaPhiNom);
       } 
     }
+    if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state()) {
+        logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
+    }
+    if (mod->manualPhiCenter.state()) {
+      nominalZRot = mod->manualPhiCenter();
+    } else if (mod->manualPhiCenterDeg.state()) {
+      nominalZRot = mod->manualPhiCenterDeg() / 180 * M_PI;
+    }
     mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta);
