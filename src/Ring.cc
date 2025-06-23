@@ -95,7 +95,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
-    if(mod->yawAngleFromConfig() > INVALID_ANGLE){
+    if (mod->yawAngleFromConfig.state()) {
       mod->notInRegularRing();
       double tmp_r = mod->center().Rho();
       mod->translateR(-tmp_r); //perform yaw angle rotation with the module at the centre
