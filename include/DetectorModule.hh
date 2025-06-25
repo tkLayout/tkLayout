@@ -154,6 +154,7 @@ public:
   Property<bool, Default> removeModule;
 
   Property<double, NoDefault> yawAngleFromConfig;
+  Property<bool, Default> yawFlip;
   Property<double, NoDefault> manualPhiCenter;
   Property<double, NoDefault> manualPhiCenterDeg;
   Property<double, Default> manualRhoCentre;
@@ -225,6 +226,7 @@ public:
       centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
+      yawFlip                  ("yawFlip"                  , parsedOnly(), false),
       manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
       manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
