@@ -7328,6 +7328,45 @@ namespace insur {
     //return summaryCanvas;
   }
 
+  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale) {
+    const auto& locX = aModule->getLocalX();
+    const auto& locY = aModule->getLocalY();
+    const auto& center = aModule->center();
+    double arrow_length_x = aModule->meanWidth()/3.;
+    double arrow_length_y = aModule->length()/3.;
+
+    const double arrow_size = 0.005;  // ROOT size of the arrow
+    const char* arrow_option = "|>";  // ROOT arrow shape option
+
+    // Define axes arrows
+    TArrow* xArrow = new TArrow(center.X(), center.Y(),
+                                center.X() + arrow_length_x * locX.X(), center.Y() + arrow_length_x * locX.Y(),
+                                arrow_size, arrow_option);
+    TArrow* yArrow = new TArrow(center.X(), center.Y(),
+                                center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
+                                arrow_size, arrow_option);
+    
+    // Draw X and Y axis arrows
+    xArrow->SetLineColor(kRed);
+    xArrow->SetFillColor(kRed);
+    xArrow->Draw();
+    yArrow->SetLineColor(kBlue);
+    yArrow->SetFillColor(kBlue);
+    yArrow->Draw();
+
+    // Draw label if set
+    if (aModule->label.state()) {
+      const std::string& labelText = aModule->label();
+      TLatex* label = new TLatex(center.X(), center.Y(), labelText.c_str());
+      ROOT::Math::XYZVector a;
+      double angle = atan2(locY.Y()*yScale, locY.X())*180./M_PI;
+      label->SetTextAngle(angle);
+      label->SetTextSize(0.015);
+      label->SetTextAlign(23);
+      label->Draw();
+    }
+  }
+
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
                                         std::unique_ptr<TCanvas> &RZCanvas, std::unique_ptr<TCanvas> &RZCanvasBarrel, std::unique_ptr<TCanvas> &XYCanvas,
@@ -7387,6 +7426,10 @@ namespace insur {
 	    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC.get());
 	    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC.get());
 	    xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC.get());
+      if (localAxesLabels_) {
+        double yScale = getCanvasScaleY(*XYCanvasEC);
+        for (auto& module : surfaceModules) drawAxesAndNameXY(module, yScale);
+      }
 	    XYCanvasesEC.push_back(std::move(XYCanvasEC));
 	  }
 	  else logERROR("Tried to access modules belonging to one of the 4 disk surfaces, but empty container.");
@@ -9908,6 +9951,17 @@ namespace insur {
     jsonFile->setNoCopy(true);
     myContent->addItem(jsonFile);
     
+  }
+
+
+  double Vizard::getCanvasScaleY(const TCanvas& c) {
+    double x1 = c.GetUxmin();
+    double x2 = c.GetUxmax();
+    double y1 = c.GetUymin();
+    double y2 = c.GetUymax();
+    double padWidth = c.XtoPixel(x2) - c.XtoPixel(x1);
+    double padHeight = c.YtoPixel(y1) - c.YtoPixel(y2);
+    return (padWidth / (x2 - x1)) / (padHeight / (y2 - y1));
   }
 
 

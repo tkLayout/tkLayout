@@ -686,7 +686,8 @@ namespace insur {
    * Produces the output of the analysis of the geomerty analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportGeometrySite(bool debugResolution) {
+  bool Squid::reportGeometrySite(bool debugResolution, bool addLocalAxesLabels) {
+    v.setLocalAxesLabels(addLocalAxesLabels);
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, is, site, debugResolution);
