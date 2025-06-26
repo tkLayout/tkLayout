@@ -156,6 +156,7 @@ namespace insur {
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; };
     void createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
     void createJsonSite(RootWSite& site, std::string jsonDir, std::string jsonFileName, const boost::json::object& json_doc);
+    void setLocalAxesLabels(bool setLabels) { localAxesLabels_ = setLabels; }
 
   protected:
     TGeoManager* gm;
@@ -183,6 +184,7 @@ namespace insur {
     std::pair<TH1D*, TH1D*> radiationAndInteractionLengthInPixelTrackingVolumeGrandTotal_;
     bool geometry_created;
     std::string commandLine_;
+    bool localAxesLabels_ = false;
     int detailedModules(std::vector<Layer*>* layers,
                         TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
     TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
@@ -191,6 +193,8 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &YZCanvasBarrel, std::unique_ptr<TCanvas> &XYCanvas, std::vector<std::unique_ptr<TCanvas> > &XYCanvasEC);
+    void drawAxesAndNameXY(const Module* aModule, double yScale);
+    double getCanvasScaleY(const TCanvas& c);
 
     // OT CABLING
     void createOuterCablingPlotsBundles(const Tracker& tracker, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYNegCanvas, 
