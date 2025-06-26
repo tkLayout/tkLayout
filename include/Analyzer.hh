@@ -526,6 +526,9 @@ namespace insur {
     static int bsCounter;
     
     std::string billOfMaterials_;
+
+    double getCanvasScaleY(const TPad* p);
+
   };
 }
 #endif  /* _ANALYZER_H */
