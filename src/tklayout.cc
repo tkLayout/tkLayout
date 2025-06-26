@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
 
   po::options_description otheropt("Other options");
   otheropt.add_options()
+    ("localAxesLabels", "Prints local axes and labels in the geometry output.\nThis is useful for debugging purposes, makes the output uglier.\nDisabled by default.")
     ("version,v", "Prints software version (SVN revision) and quits.")
     ("webOutput,w", "Prepares the output for web publishing (local running is assumed otherwise).")
     ;
@@ -185,7 +186,9 @@ int main(int argc, char* argv[]) {
    
     if (vm.count("xml")) squid.createAdditionalXmlSite(xmldir);
 
-    if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
+    bool debugResolution = vm.count("debug-resolution") > 0;
+    bool localAxesLabels = vm.count("localAxesLabels") > 0;
+    if (!squid.reportGeometrySite(debugResolution, localAxesLabels)) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
     if (vm.count("all") || vm.count("dump-json")) squid.dumpJson("tracker.json");
     if (!squid.makeSite()) return EXIT_FAILURE;
