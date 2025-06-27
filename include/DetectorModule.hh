@@ -153,11 +153,11 @@ public:
 
   Property<bool, Default> removeModule;
 
+  Property<string, NoDefault> label;
   Property<double, NoDefault> yawAngleFromConfig;
   Property<bool, Default> yawFlip;
   Property<double, NoDefault> manualPhiCenter;
   Property<double, NoDefault> manualPhiCenterDeg;
-  Property<string, NoDefault> label;
   Property<double, Default> manualRhoCentre;
   Property<double, Default> offsetForSensors; //offset from centre (in local y): used in cases where a module has two sensors that are explicitly placed separately
 
