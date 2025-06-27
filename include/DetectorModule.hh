@@ -154,7 +154,10 @@ public:
   Property<bool, Default> removeModule;
 
   Property<string, NoDefault> label;
-  Property<double, Default> yawAngleFromConfig;
+  Property<double, NoDefault> yawAngleFromConfig;
+  Property<bool, Default> yawFlip;
+  Property<double, NoDefault> manualPhiCenter;
+  Property<double, NoDefault> manualPhiCenterDeg;
   Property<double, Default> manualRhoCentre;
   Property<double, Default> offsetForSensors; //offset from centre (in local y): used in cases where a module has two sensors that are explicitly placed separately
 
@@ -224,7 +227,10 @@ public:
       centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
       label                    ("label"                    , parsedOnly()),
-      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
+      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
+      yawFlip                  ("yawFlip"                  , parsedOnly(), false),
+      manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
+      manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
       offsetForSensors         ("offsetForSensors"         , parsedOnly(), 0),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
