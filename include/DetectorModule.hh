@@ -225,6 +225,7 @@ public:
       outerSensorExtraLength   ("outerSensorExtraLength"   , parsedOnly()),
       centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
+      label                    ("label"                    , parsedOnly()),
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
       manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
       manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
