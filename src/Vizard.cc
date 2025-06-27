@@ -7345,6 +7345,9 @@ namespace insur {
     TArrow* yArrow = new TArrow(center.X(), center.Y(),
                                 center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
                                 arrow_size, arrow_option);
+    // Z axis
+    TVector3 locZ = locX.Cross(locY);
+
     
     // Draw X and Y axis arrows
     xArrow->SetLineColor(kRed);
@@ -7353,6 +7356,34 @@ namespace insur {
     yArrow->SetLineColor(kBlue);
     yArrow->SetFillColor(kBlue);
     yArrow->Draw();
+
+    // Z axis symbol
+    const double zSymbolSize = std::max(arrow_length_x, arrow_length_y) / 5;
+    if (locZ.Z() > 0) {
+      TEllipse* circle = new TEllipse(center.X(), center.Y(), zSymbolSize);
+      circle->SetFillColor(kGreen + 2);
+      circle->SetFillStyle(1001);
+      circle->SetLineStyle(0);
+      circle->Draw();
+
+    } else if (locZ.Z() < 0) {
+      //double x = center.X();
+      //double y = center.Y();
+      TVector3 cross1 = zSymbolSize * (locX + locY);
+      TVector3 cross2 = zSymbolSize * (locX - locY);
+      //TLine* line1 = new TLine(x - zSymbolSize, y - zSymbolSize,
+      //                        x + zSymbolSize, y + zSymbolSize);
+      //TLine* line2 = new TLine(x - zSymbolSize, y + zSymbolSize,
+      //                        x + zSymbolSize, y - zSymbolSize);
+      TLine* line1 = new TLine(center.X()-cross1.X(), center.Y()-cross1.Y(),
+                               center.X()+cross1.X(), center.Y()+cross1.Y());
+      TLine* line2 = new TLine(center.X()-cross2.X(), center.Y()-cross2.Y(),
+                               center.X()+cross2.X(), center.Y()+cross2.Y());
+      line1->SetLineColor(kGreen + 2);
+      line2->SetLineColor(kGreen + 2);
+      line1->Draw();
+      line2->Draw();
+    }
 
     // Draw label if set
     if (aModule->label.state()) {
