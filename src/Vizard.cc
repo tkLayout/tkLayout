@@ -7448,7 +7448,7 @@ namespace insur {
 	  if (found != allSurfaceModules.end()) {
 	    const std::vector<const Module*>& surfaceModules = found->second;
 	    std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
-					      Form("XY section of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
+					      Form("XY Endcap %s surf. %d, z>0, looking into IP", anEndcap.myid().c_str(), surfaceIndex),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	    XYCanvasEC->cd();
 	    PlotDrawer<XY, Type> xyEndcapDrawer;
