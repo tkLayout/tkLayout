@@ -529,58 +529,38 @@ public:
   void setup() override {
     DetectorModule::setup();
     minPhi.setup([&](){
-
-      double min = 0;
-      // Module corners arranged normally or flipped:
-      // 0 |-----|3      3|-----|0
-      //   |     |   or   |     |
-      // 1 |-----|2      2|-----|1
-      //
-      //              x (inter. point)
-      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
-      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
-
-        min = MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      const XYZVector& pC = basePoly().getCenter();
+      double avg_phi = pC.Phi();
+      auto tempPoly = basePoly();
+      tempPoly.rotateZ(-avg_phi);
+      // The following line will result in the module being put back in its original position
+      // but with 2*M_PI more if its original average position is below -M_PI/2
+      if (avg_phi<-M_PI/2) avg_phi+=2*M_PI;
+      double phi;
+      double min = std::numeric_limits<double>::max();
+      for (int i=0; i<4; ++i) {
+        phi = tempPoly.getVertex(i).Phi();
+        if (phi<min) min=phi;
       }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
-      else {
-
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        min = MIN(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
-
-        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-        min += M_PI;
-      }
+      min+=avg_phi;
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return min;
     });
     maxPhi.setup([&](){
-
-      double max = 0;
-      // Module corners arranged normally or flipped:
-      // 0 |-----|3      3|-----|0
-      //   |     |   or   |     |
-      // 1 |-----|2      2|-----|1
-      //
-      //              x (inter. point)
-      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
-      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
-
-        max = MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      const XYZVector& pC = basePoly().getCenter();
+      double avg_phi = pC.Phi();
+      auto tempPoly = basePoly();
+      tempPoly.rotateZ(-avg_phi);
+      // The following line will result in the module being put back in its original position
+      // but with 2*M_PI more if its original average position is below -M_PI/2
+      if (avg_phi<-M_PI/2) avg_phi+=2*M_PI;
+      double max = std::numeric_limits<double>::min();
+      double phi;
+      for (int i=0; i<4; ++i) {
+        phi = tempPoly.getVertex(i).Phi();
+        if (phi>max) max=phi;
       }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
-      else {
-
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        max = MAX(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
-
-        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-        max += M_PI;
-      }
+      max+=avg_phi;
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return max;
     });
@@ -651,95 +631,38 @@ public:
   void setup() override {
     DetectorModule::setup();
     minPhi.setup([&](){
-
-      double min = 0;
-      // Module corners arranged normally:
-      // 0 |-----|3
-      //   |     |
-      // 1 |-----|2
-      //
-      //      x (inter. point)
-      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
-          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
-          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
-
-        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      const XYZVector& pC = basePoly().getCenter();
+      double avg_phi = pC.Phi();
+      auto tempPoly = basePoly();
+      tempPoly.rotateZ(-avg_phi);
+      // The following line will result in the module being put back in its original position
+      // but with 2*M_PI more if its original average position is below -M_PI/2
+      if (avg_phi<-M_PI/2) avg_phi+=2*M_PI;
+      double phi;
+      double min = std::numeric_limits<double>::max();
+      for (int i=0; i<4; ++i) {
+        phi = tempPoly.getVertex(i).Phi();
+        if (phi<min) min=phi;
       }
-      // Module corners flipped:
-      // 3 |-----|0
-      //   |     |
-      // 2 |-----|1
-      //
-      //      x (inter. point)
-      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
-               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
-               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
-
-        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
-      else {
-
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
-
-        // Normal arrangement or flipped arrangement
-        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
-
-          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-          min += M_PI;
-        }
-        else logERROR("Endcap module min calculation failed - algorithm problem. Check algorithm!");
-
-      }
+      min+=avg_phi;
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return min;
     });
     maxPhi.setup([&](){
-
-      double max = 0;
-      // Module corners arranged normally:
-      // 0 |-----|3
-      //   |     |
-      // 1 |-----|2
-      //
-      //      x (inter. point)
-      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
-          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
-          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
-
-        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      const XYZVector& pC = basePoly().getCenter();
+      double avg_phi = pC.Phi();
+      auto tempPoly = basePoly();
+      tempPoly.rotateZ(-avg_phi);
+      // The following line will result in the module being put back in its original position
+      // but with 2*M_PI more if its original average position is below -M_PI/2
+      if (avg_phi<-M_PI/2) avg_phi+=2*M_PI;
+      double max = std::numeric_limits<double>::min();
+      double phi;
+      for (int i=0; i<4; ++i) {
+        phi = tempPoly.getVertex(i).Phi();
+        if (phi>max) max=phi;
       }
-      // Module corners flipped:
-      // 3 |-----|0
-      //   |     |
-      // 2 |-----|1
-      //
-      //      x (inter. point)
-      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
-               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
-               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
-
-        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
-      else {
-
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
-
-        // Normal arrangement or flipped arrangement
-        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
-
-          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-          max += M_PI;
-        }
-        else logERROR("Endcap module max calculation failed - algorithm problem. Check algorithm!");
-      }
+      max+=avg_phi;
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return max;
     });
