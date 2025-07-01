@@ -162,6 +162,7 @@ EXES+=tklayout
 EXES+=setup
 EXES+=diskPlace
 EXES+=ringPlace
+EXES+=ringName
 
 OBJECTFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/,${OBJS}))
 ANALYZERVISITORFILES=$(addsuffix .o,$(addprefix ${LIBDIR}/AnalyzerVisitors/,${ANALYZERVISITORS}))
@@ -260,6 +261,9 @@ $(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR
 
 $(BINDIR)/ringPlace: $(SRCDIR)/ringPlace.cc
 	$(COMP) $(SRCDIR)/ringPlace.cc -o $(BINDIR)/ringPlace
+
+$(BINDIR)/ringName: $(SRCDIR)/ringName.cc
+	$(COMP) $(SRCDIR)/ringName.cc -o $(BINDIR)/ringName
 
 # Clean and documentation
 clean: clean_exes clean_objects clean_analyzerVisitors clean_outerCabling clean_innerCabling
