@@ -20,8 +20,7 @@ void generateTepx() {
 
 void generateTeddRing(int ring, int nMods) {
   printf("  Ring %d {\n", ring);
-  int nModsHalf = nMods/2;
-  for (int i=0; i<nMods; ++i) printf("    Module %d { label \"%d-%d\" }\n", i, ring, (i%nModsHalf)+1);
+  for (int i=0; i<nMods; ++i) printf("    Module %d { label \"%d-%d\" }\n", i, ring, i+1);
   printf("  }\n");
 }
 
