@@ -156,6 +156,7 @@ public:
   Property<string, NoDefault> label;
   Property<double, NoDefault> yawAngleFromConfig;
   Property<bool, Default> yawFlip;
+  Property<bool, Default> yawFlipNeg;
   Property<double, NoDefault> manualPhiCenter;
   Property<double, NoDefault> manualPhiCenterDeg;
   Property<double, Default> manualRhoCentre;
@@ -229,6 +230,7 @@ public:
       label                    ("label"                    , parsedOnly()),
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
       yawFlip                  ("yawFlip"                  , parsedOnly(), false),
+      yawFlipNeg               ("yawFlipNeg"               , parsedOnly(), false),
       manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
       manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
@@ -313,6 +315,7 @@ public:
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
+  void rotateXModCentre(double angle) { decorated().rotateXModCentre(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
   void yaw(double angle) { decorated().rotateZ(angle); clearSensorPolys(); yawAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }

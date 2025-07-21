@@ -2932,7 +2932,7 @@ namespace insur {
       myImage->setComment("RZ positions of the modules.");
       myContent->addItem(myImage);
     }
-    if ((RZCanvasBarrel) && isPixelTracker) {
+    if (RZCanvasBarrel) {
       myImage = new RootWImage(std::move(RZCanvasBarrel), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("RZ positions of the barrel modules.");
       myContent->addItem(myImage);
@@ -7328,9 +7328,57 @@ namespace insur {
     //return summaryCanvas;
   }
 
+  void Vizard::drawAxesAndNameRZ(const Module* aModule, double yScale) {
+    const auto& locX = aModule->getLocalX();
+    const auto& locY = aModule->getLocalY();
+    // Z axis
+    TVector3 locZ = locX.Cross(locY);
+    const auto& center = aModule->center();
+    double arrow_length = sqrt(aModule->meanWidth() * aModule->length()) / 3.;
+
+    const double arrow_size = 0.005;  // ROOT size of the arrow
+    const char* arrow_option = "|>";  // ROOT arrow shape option
+
+    // Define axes arrows
+//    TArrow* yArrow = new TArrow(center.Z(), center.R(),
+//                                center.Z() + arrow_length * locY.Z(), center.R() + arrow_length * locY.Y(),
+//                                arrow_size, arrow_option);
+
+    TVector3 zArrowEnd(center.X(), center.Y(), center.Z());
+    zArrowEnd += arrow_length * locZ;
+
+    TArrow* zArrow = new TArrow(center.Z(), center.Rho(),
+                                zArrowEnd.Z(), zArrowEnd.Perp(), 
+                                arrow_size, arrow_option);
+
+
+    // Draw X and Y axis arrows
+    zArrow->SetLineColor(kBlue);
+    zArrow->SetFillColor(kBlue);
+    zArrow->Draw();
+
+/*
+    // Draw label if set
+    if (aModule->label.state()) {
+      const std::string& labelText = aModule->label();
+      TLatex* label = new TLatex(center.X(), center.Y(), labelText.c_str());
+      ROOT::Math::XYZVector a;
+      double angle = atan2(locY.Y()*yScale, locY.X())*180./M_PI;
+      label->SetTextAngle(angle);
+      label->SetTextSize(0.015);
+      label->SetTextAlign(23);
+      label->Draw();
+    }
+
+    */
+  }
+
+
   void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
+    // Z axis
+    TVector3 locZ = locX.Cross(locY);
     const auto& center = aModule->center();
     double arrow_length_x = aModule->meanWidth()/3.;
     double arrow_length_y = aModule->length()/3.;
@@ -7345,8 +7393,6 @@ namespace insur {
     TArrow* yArrow = new TArrow(center.X(), center.Y(),
                                 center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
                                 arrow_size, arrow_option);
-    // Z axis
-    TVector3 locZ = locX.Cross(locY);
 
     
     // Draw X and Y axis arrows
@@ -7418,12 +7464,35 @@ namespace insur {
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel.get());
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel.get());
 
+    class BarrelVisitor : public ConstGeometryVisitor {
+      public:
+        std::set<const Module*> moduleSet;
+        void visit(const BarrelModule& m) { moduleSet.insert(&m); }
+    };
+    BarrelVisitor bv;
+
+    if (localAxesLabels_) {
+      RZCanvasBarrel->cd();
+      double yScale = getCanvasScaleY(*RZCanvasBarrel);
+      tracker.accept(bv);
+      for (const auto& aModule : bv.moduleSet) {
+        drawAxesAndNameRZ(aModule, yScale);
+      }
+    }
+
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
+    /*
+    if (localAxesLabels_) {
+      XYCanvas->cd();
+      double yScale = getCanvasScaleY(*XYCanvas);
+      for (const auto& aModule : bv.moduleSet) drawAxesAndNameXY(aModule, yScale);
+    }
+    */
 
     for (auto& anEndcap : tracker.endcaps() ) {
       std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),

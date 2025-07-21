@@ -415,6 +415,13 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
       logERROR(errMsg);
     }
   }
+
+  // yawFlipping as last thing
+  for (auto& it : zPlusModules_)
+    if (it.yawFlip()) it.rotateXModCentre(M_PI);
+  for (auto& it : zMinusModules_)
+    if (it.yawFlipNeg()) it.rotateXModCentre(M_PI);
+
   currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
