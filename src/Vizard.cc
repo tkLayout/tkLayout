@@ -7325,52 +7325,61 @@ namespace insur {
       myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
     }
 
-    //return summaryCanvas;
   }
+
+void drawArrowDot(double x, double y, double symbolSize, int color) {
+      TEllipse* circle = new TEllipse(x, y, symbolSize);
+      circle->SetFillColor(color);
+      circle->SetFillStyle(1001);
+      circle->SetLineStyle(0);
+      circle->Draw();
+}
+void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY, double symbolSize, int color) {
+      TVector3 cross1 = symbolSize * (locX + locY);
+      TVector3 cross2 = symbolSize * (locX - locY);
+      TLine* line1 = new TLine(x-cross1.X(), y-cross1.Y(),
+                               x+cross1.X(), y+cross1.Y());
+      TLine* line2 = new TLine(x-cross2.X(), y-cross2.Y(),
+                               x+cross2.X(), y+cross2.Y());
+      line1->SetLineColor(color);
+      line2->SetLineColor(color);
+      line1->Draw();
+      line2->Draw();
+}
 
   void Vizard::drawAxesAndNameRZ(const Module* aModule, double yScale) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
     // Z axis
     TVector3 locZ = locX.Cross(locY);
-    const auto& center = aModule->center();
+    const auto& moduleCenter = aModule->center();
     double arrow_length = sqrt(aModule->meanWidth() * aModule->length()) / 3.;
 
     const double arrow_size = 0.005;  // ROOT size of the arrow
     const char* arrow_option = "|>";  // ROOT arrow shape option
 
     // Define axes arrows
-//    TArrow* yArrow = new TArrow(center.Z(), center.R(),
-//                                center.Z() + arrow_length * locY.Z(), center.R() + arrow_length * locY.Y(),
-//                                arrow_size, arrow_option);
+    TVector3 center(moduleCenter.X(), moduleCenter.Y(), moduleCenter.Z());
+    TVector3 xArrowEnd = center + arrow_length * locX;
+    TVector3 yArrowEnd = center + arrow_length * locY;
+    TVector3 zArrowEnd = center + arrow_length * locZ;
 
-    TVector3 zArrowEnd(center.X(), center.Y(), center.Z());
-    zArrowEnd += arrow_length * locZ;
-
-    TArrow* zArrow = new TArrow(center.Z(), center.Rho(),
+    TArrow* yArrow = new TArrow(center.Z(), center.Perp(),
+                                yArrowEnd.Z(), yArrowEnd.Perp(), 
+                                arrow_size, arrow_option);
+    TArrow* zArrow = new TArrow(center.Z(), center.Perp(),
                                 zArrowEnd.Z(), zArrowEnd.Perp(), 
                                 arrow_size, arrow_option);
 
 
-    // Draw X and Y axis arrows
-    zArrow->SetLineColor(kBlue);
-    zArrow->SetFillColor(kBlue);
+    // Draw y and z axis arrows
+    yArrow->SetLineColor(kBlue);
+    yArrow->SetFillColor(kBlue);
+    yArrow->Draw();
+    zArrow->SetLineColor(kGreen + 2);
+    zArrow->SetFillColor(kGreen + 2);
     zArrow->Draw();
 
-/*
-    // Draw label if set
-    if (aModule->label.state()) {
-      const std::string& labelText = aModule->label();
-      TLatex* label = new TLatex(center.X(), center.Y(), labelText.c_str());
-      ROOT::Math::XYZVector a;
-      double angle = atan2(locY.Y()*yScale, locY.X())*180./M_PI;
-      label->SetTextAngle(angle);
-      label->SetTextSize(0.015);
-      label->SetTextAlign(23);
-      label->Draw();
-    }
-
-    */
   }
 
 
@@ -7406,29 +7415,9 @@ namespace insur {
     // Z axis symbol
     const double zSymbolSize = std::max(arrow_length_x, arrow_length_y) / 5;
     if (locZ.Z() > 0) {
-      TEllipse* circle = new TEllipse(center.X(), center.Y(), zSymbolSize);
-      circle->SetFillColor(kGreen + 2);
-      circle->SetFillStyle(1001);
-      circle->SetLineStyle(0);
-      circle->Draw();
-
+      drawArrowDot(center.X(), center.Y(), zSymbolSize, kGreen + 2);
     } else if (locZ.Z() < 0) {
-      //double x = center.X();
-      //double y = center.Y();
-      TVector3 cross1 = zSymbolSize * (locX + locY);
-      TVector3 cross2 = zSymbolSize * (locX - locY);
-      //TLine* line1 = new TLine(x - zSymbolSize, y - zSymbolSize,
-      //                        x + zSymbolSize, y + zSymbolSize);
-      //TLine* line2 = new TLine(x - zSymbolSize, y + zSymbolSize,
-      //                        x + zSymbolSize, y - zSymbolSize);
-      TLine* line1 = new TLine(center.X()-cross1.X(), center.Y()-cross1.Y(),
-                               center.X()+cross1.X(), center.Y()+cross1.Y());
-      TLine* line2 = new TLine(center.X()-cross2.X(), center.Y()-cross2.Y(),
-                               center.X()+cross2.X(), center.Y()+cross2.Y());
-      line1->SetLineColor(kGreen + 2);
-      line2->SetLineColor(kGreen + 2);
-      line1->Draw();
-      line2->Draw();
+      drawArrowCross(center.X(), center.Y(), locX, locY, zSymbolSize, kGreen + 2);
     }
 
     // Draw label if set
