@@ -476,6 +476,8 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
+    if (mod->yawFlip() && (side==1)) mod->rotateXModCentre(M_PI);
+    if (mod->yawFlipNeg() && (side==-1)) mod->rotateXModCentre(M_PI);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
     if (tmspecs[i].gamma == 0) { // FLAT PART OF THE TILTED ROD
