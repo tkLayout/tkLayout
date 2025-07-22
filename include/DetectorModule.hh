@@ -319,7 +319,7 @@ public:
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
   void yaw(double angle) { decorated().rotateZ(angle); clearSensorPolys(); yawAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
-  void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  void tilt(double angle) { rotateY(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
   const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }
