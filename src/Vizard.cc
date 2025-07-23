@@ -7383,7 +7383,7 @@ void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY
   }
 
 
-  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale) {
+  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap=true) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
     // Z axis
@@ -7402,15 +7402,25 @@ void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY
     TArrow* yArrow = new TArrow(center.X(), center.Y(),
                                 center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
                                 arrow_size, arrow_option);
+    TArrow* zArrow = new TArrow(center.X(), center.Y(),
+                                center.X() + arrow_length_x * locZ.X(), center.Y() + arrow_length_x * locZ.Y(),
+                                arrow_size, arrow_option);
+
 
     
     // Draw X and Y axis arrows
     xArrow->SetLineColor(kRed);
     xArrow->SetFillColor(kRed);
     xArrow->Draw();
-    yArrow->SetLineColor(kBlue);
-    yArrow->SetFillColor(kBlue);
-    yArrow->Draw();
+    if (endcap) {
+      yArrow->SetLineColor(kBlue);
+      yArrow->SetFillColor(kBlue);
+      yArrow->Draw();
+    } else {
+      zArrow->SetLineColor(kGreen+2);
+      zArrow->SetFillColor(kGreen+2);
+      zArrow->Draw();
+    }
 
     // Z axis symbol
     const double zSymbolSize = std::max(arrow_length_x, arrow_length_y) / 5;
@@ -7475,13 +7485,11 @@ void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY
     xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
-    /*
     if (localAxesLabels_) {
       XYCanvas->cd();
       double yScale = getCanvasScaleY(*XYCanvas);
-      for (const auto& aModule : bv.moduleSet) drawAxesAndNameXY(aModule, yScale);
+      for (const auto& aModule : bv.moduleSet) drawAxesAndNameXY(aModule, yScale, false);
     }
-    */
 
     for (auto& anEndcap : tracker.endcaps() ) {
       std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),

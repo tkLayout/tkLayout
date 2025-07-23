@@ -193,7 +193,7 @@ namespace insur {
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &YZCanvasBarrel, std::unique_ptr<TCanvas> &XYCanvas, std::vector<std::unique_ptr<TCanvas> > &XYCanvasEC);
-    void drawAxesAndNameXY(const Module* aModule, double yScale);
+    void drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap);
     void drawAxesAndNameRZ(const Module* aModule, double yScale);
     double getCanvasScaleY(const TCanvas& c);
 
