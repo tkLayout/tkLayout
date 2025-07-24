@@ -157,6 +157,7 @@ public:
   Property<double, NoDefault> yawAngleFromConfig;
   Property<bool, Default> yawFlip;
   Property<bool, Default> yawFlipNeg;
+  PropertyVector<int, ','> yawFlipRods;
   Property<double, NoDefault> manualPhiCenter;
   Property<double, NoDefault> manualPhiCenterDeg;
   Property<double, Default> manualRhoCentre;
@@ -231,6 +232,7 @@ public:
       yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
       yawFlip                  ("yawFlip"                  , parsedOnly(), false),
       yawFlipNeg               ("yawFlipNeg"               , parsedOnly(), false),
+      yawFlipRods              ("yawFlipRods"              , parsedOnly()),
       manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
       manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
