@@ -7327,14 +7327,14 @@ namespace insur {
 
   }
 
-void drawArrowDot(double x, double y, double symbolSize, int color) {
+void Vizard::drawArrowDot(double x, double y, double symbolSize, int color) {
       TEllipse* circle = new TEllipse(x, y, symbolSize);
       circle->SetFillColor(color);
       circle->SetFillStyle(1001);
       circle->SetLineStyle(0);
       circle->Draw();
 }
-void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY, double symbolSize, int color) {
+void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY, double symbolSize, int color) {
       TVector3 cross1 = symbolSize * (locX + locY);
       TVector3 cross2 = symbolSize * (locX - locY);
       TLine* line1 = new TLine(x-cross1.X(), y-cross1.Y(),
@@ -7406,6 +7406,11 @@ void drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY
                                 center.X() + arrow_length_x * locZ.X(), center.Y() + arrow_length_x * locZ.Y(),
                                 arrow_size, arrow_option);
 
+#ifdef only_plot_plank_modules_facing_outwards
+    TVector3 startZ(center.X(), center.Y(), center.Z());
+    TVector3 stopZ = startZ + locZ;
+    if (stopZ.Perp2() < startZ.Perp2()) return;
+#endif
 
     
     // Draw X and Y axis arrows

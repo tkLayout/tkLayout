@@ -196,6 +196,9 @@ namespace insur {
     void drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap);
     void drawAxesAndNameRZ(const Module* aModule, double yScale);
     double getCanvasScaleY(const TCanvas& c);
+    void drawArrowDot(double x, double y, double symbolSize, int color);
+    void drawArrowCross(double x, double y,const TVector3& locX, const TVector3& locY, double symbolSize, int color);
+
 
     // OT CABLING
     void createOuterCablingPlotsBundles(const Tracker& tracker, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYNegCanvas, 
