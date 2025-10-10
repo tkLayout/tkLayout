@@ -600,4 +600,5 @@ OT800_IT803.cfg                      OT Version 8.0.0
 
 OT806_IT743.cfg                      Just like OT806_IT742, but with moduleSubType assigned to the pixel modules
 OT807_IT743.cfg                      Just like OT806_IT743, but with fixed module orientation in TB2S
+OT807_IT744.cfg                      Just like OT806_IT744, but with the order of rings swapped in TEPX disks 2 and 4  
 
