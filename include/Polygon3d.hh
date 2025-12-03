@@ -158,7 +158,7 @@ AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, 
 
 template<int NumSides, class Coords, class Random, class FloatType>
 AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateX(FloatType angle) {
-  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return RotateY<Coords, FloatType>()(coord, angle); });
+  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return RotateX<Coords, FloatType>()(coord, angle); });
   setGeomDirty(true);
   return *this;
 }

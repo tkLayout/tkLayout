@@ -1048,33 +1048,22 @@ void Layer::buildTilted() {
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>(subdetectorName());
-  first->store(propertyTree());
-  first->myid(1); 
-  const bool isFirstRodAtOuterRadius = (bigParity() > 0 ? true : false);
-  const std::vector<TiltedModuleSpecs> myFirstRodSensorsCenters = (isFirstRodAtOuterRadius ? tmspecso : tmspecsi);
-  first->isOuterRadiusRod(isFirstRodAtOuterRadius); 
-  first->build(rodTemplate, myFirstRodSensorsCenters, !isFirstRodAtOuterRadius);
   const double rodCenterPhiShift = 2 * M_PI / numRods();
-  if (rotateLayerByRodsDeltaPhiHalf()) { first->rotateZ(rodCenterPhiShift / 2.); }
-  rods_.push_back(first);
+  const double firstRodCenterPhi = (rotateLayerByRodsDeltaPhiHalf()) ? rodCenterPhiShift / 2. : 0;
 
-  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>(subdetectorName());
-  second->store(propertyTree());
-  second->myid(2);
-  const bool isSecondRodAtOuterRadius = (bigParity() > 0 ? false : true);
-  const std::vector<TiltedModuleSpecs> mySecondRodSensorsCenters = (isSecondRodAtOuterRadius ? tmspecso : tmspecsi);
-  second->isOuterRadiusRod(isSecondRodAtOuterRadius);  
-  second->build(rodTemplate, mySecondRodSensorsCenters, !isSecondRodAtOuterRadius);
-  
-  const double firstRodCenterPhi = first->Phi();
-  second->rotateZ(firstRodCenterPhi + rodCenterPhiShift);
-  rods_.push_back(second);
-
-  for (int i = 2; i < numRods(); i++) {
-    RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
+  for (int i = 0; i < numRods(); i++) {
+    TiltedRodPair* rod = GeometryFactory::make<TiltedRodPair>(subdetectorName());
+    rod->store(propertyTree());
     rod->myid(i+1);
-    rod->rotateZ(rodCenterPhiShift*(i%2 ? i-1 : i));
+    bool isRodAtOuterRadius;
+    // For positive bigParity, even rods are at outer radius
+    if (i%2==0) isRodAtOuterRadius = (bigParity() > 0 ? true : false);
+    // For positive bigParity, odd rods are are lower radius
+    else isRodAtOuterRadius = (bigParity() > 0 ? false : true);
+    const std::vector<TiltedModuleSpecs> myRodSensorsCenters = (isRodAtOuterRadius ? tmspecso : tmspecsi);
+    rod->isOuterRadiusRod(isRodAtOuterRadius); 
+    rod->build(rodTemplate, myRodSensorsCenters, !isRodAtOuterRadius);
+    rod->rotateZ(firstRodCenterPhi + rodCenterPhiShift * i);
     rods_.push_back(rod);
   }
 
