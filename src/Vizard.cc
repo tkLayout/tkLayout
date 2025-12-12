@@ -2932,7 +2932,7 @@ namespace insur {
       myImage->setComment("RZ positions of the modules.");
       myContent->addItem(myImage);
     }
-    if ((RZCanvasBarrel) && isPixelTracker) {
+    if (RZCanvasBarrel) {
       myImage = new RootWImage(std::move(RZCanvasBarrel), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("RZ positions of the barrel modules.");
       myContent->addItem(myImage);
@@ -7325,12 +7325,69 @@ namespace insur {
       myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
     }
 
-    //return summaryCanvas;
   }
 
-  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale) {
+void Vizard::drawArrowDot(double x, double y, double symbolSize, int color) {
+      TEllipse* circle = new TEllipse(x, y, symbolSize);
+      circle->SetFillColor(color);
+      circle->SetFillStyle(1001);
+      circle->SetLineStyle(0);
+      circle->Draw();
+}
+void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVector3& locY, double symbolSize, int color) {
+      TVector3 cross1 = symbolSize * (locX + locY);
+      TVector3 cross2 = symbolSize * (locX - locY);
+      TLine* line1 = new TLine(x-cross1.X(), y-cross1.Y(),
+                               x+cross1.X(), y+cross1.Y());
+      TLine* line2 = new TLine(x-cross2.X(), y-cross2.Y(),
+                               x+cross2.X(), y+cross2.Y());
+      line1->SetLineColor(color);
+      line2->SetLineColor(color);
+      line1->Draw();
+      line2->Draw();
+}
+
+  void Vizard::drawAxesAndNameRZ(const Module* aModule, double yScale) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
+    // Z axis
+    TVector3 locZ = locX.Cross(locY);
+    const auto& moduleCenter = aModule->center();
+    double arrow_length = sqrt(aModule->meanWidth() * aModule->length()) / 3.;
+
+    const double arrow_size = 0.005;  // ROOT size of the arrow
+    const char* arrow_option = "|>";  // ROOT arrow shape option
+
+    // Define axes arrows
+    TVector3 center(moduleCenter.X(), moduleCenter.Y(), moduleCenter.Z());
+    TVector3 xArrowEnd = center + arrow_length * locX;
+    TVector3 yArrowEnd = center + arrow_length * locY;
+    TVector3 zArrowEnd = center + arrow_length * locZ;
+
+    TArrow* yArrow = new TArrow(center.Z(), center.Perp(),
+                                yArrowEnd.Z(), yArrowEnd.Perp(), 
+                                arrow_size, arrow_option);
+    TArrow* zArrow = new TArrow(center.Z(), center.Perp(),
+                                zArrowEnd.Z(), zArrowEnd.Perp(), 
+                                arrow_size, arrow_option);
+
+
+    // Draw y and z axis arrows
+    yArrow->SetLineColor(kBlue);
+    yArrow->SetFillColor(kBlue);
+    yArrow->Draw();
+    zArrow->SetLineColor(kGreen + 2);
+    zArrow->SetFillColor(kGreen + 2);
+    zArrow->Draw();
+
+  }
+
+
+  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap=true) {
+    const auto& locX = aModule->getLocalX();
+    const auto& locY = aModule->getLocalY();
+    // Z axis
+    TVector3 locZ = locX.Cross(locY);
     const auto& center = aModule->center();
     double arrow_length_x = aModule->meanWidth()/3.;
     double arrow_length_y = aModule->length()/3.;
@@ -7345,14 +7402,38 @@ namespace insur {
     TArrow* yArrow = new TArrow(center.X(), center.Y(),
                                 center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
                                 arrow_size, arrow_option);
+    TArrow* zArrow = new TArrow(center.X(), center.Y(),
+                                center.X() + arrow_length_x * locZ.X(), center.Y() + arrow_length_x * locZ.Y(),
+                                arrow_size, arrow_option);
+
+#ifdef only_plot_plank_modules_facing_outwards
+    TVector3 startZ(center.X(), center.Y(), center.Z());
+    TVector3 stopZ = startZ + locZ;
+    if (stopZ.Perp2() < startZ.Perp2()) return;
+#endif
+
     
     // Draw X and Y axis arrows
     xArrow->SetLineColor(kRed);
     xArrow->SetFillColor(kRed);
     xArrow->Draw();
-    yArrow->SetLineColor(kBlue);
-    yArrow->SetFillColor(kBlue);
-    yArrow->Draw();
+    if (endcap) {
+      yArrow->SetLineColor(kBlue);
+      yArrow->SetFillColor(kBlue);
+      yArrow->Draw();
+    } else {
+      zArrow->SetLineColor(kGreen+2);
+      zArrow->SetFillColor(kGreen+2);
+      zArrow->Draw();
+    }
+
+    // Z axis symbol
+    const double zSymbolSize = std::max(arrow_length_x, arrow_length_y) / 5;
+    if (locZ.Z() > 0) {
+      drawArrowDot(center.X(), center.Y(), zSymbolSize, kGreen + 2);
+    } else if (locZ.Z() < 0) {
+      drawArrowCross(center.X(), center.Y(), locX, locY, zSymbolSize, kGreen + 2);
+    }
 
     // Draw label if set
     if (aModule->label.state()) {
@@ -7387,12 +7468,33 @@ namespace insur {
     yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel.get());
     yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel.get());
 
+    class BarrelVisitor : public ConstGeometryVisitor {
+      public:
+        std::set<const Module*> moduleSet;
+        void visit(const BarrelModule& m) { moduleSet.insert(&m); }
+    };
+    BarrelVisitor bv;
+
+    if (localAxesLabels_) {
+      RZCanvasBarrel->cd();
+      double yScale = getCanvasScaleY(*RZCanvasBarrel);
+      tracker.accept(bv);
+      for (const auto& aModule : bv.moduleSet) {
+        drawAxesAndNameRZ(aModule, yScale);
+      }
+    }
+
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker, BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
+    if (localAxesLabels_) {
+      XYCanvas->cd();
+      double yScale = getCanvasScaleY(*XYCanvas);
+      for (const auto& aModule : bv.moduleSet) drawAxesAndNameXY(aModule, yScale, false);
+    }
 
     for (auto& anEndcap : tracker.endcaps() ) {
       std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s", anEndcap.myid().c_str()),
@@ -7417,7 +7519,7 @@ namespace insur {
 	  if (found != allSurfaceModules.end()) {
 	    const std::vector<const Module*>& surfaceModules = found->second;
 	    std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
-					      Form("XY section of Endcap %s -- surface %d", anEndcap.myid().c_str(), surfaceIndex),
+					      Form("XY Endcap %s surf. %d, z>0, looking into IP", anEndcap.myid().c_str(), surfaceIndex),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	    XYCanvasEC->cd();
 	    PlotDrawer<XY, Type> xyEndcapDrawer;

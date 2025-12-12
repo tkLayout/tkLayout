@@ -415,6 +415,13 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
       logERROR(errMsg);
     }
   }
+
+  // yawFlipping as last thing
+  for (auto& it : zPlusModules_)
+    if (it.yawFlip()) it.rotateXModCentre(M_PI);
+  for (auto& it : zMinusModules_)
+    if (it.yawFlipNeg()) it.rotateXModCentre(M_PI);
+
   currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
@@ -463,15 +470,23 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   int i = 0;
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < (int)tmspecs.size(); i++, ++it) {
+    bool isTiltedModule = (tmspecs[i].gamma == 0);
     //std::cout << "i = " << i << std::endl;
     //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
     //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
+    mod->store(propertyTree());
+    if (mod->yawFlip() && (side==1)) mod->rotateXModCentre(M_PI);
+    if (mod->yawFlipNeg() && (side==-1)) mod->rotateXModCentre(M_PI);
+    // Use the yawFlipRods only for the tilted part
+    if (isTiltedModule)
+      for (auto& iRod : mod->yawFlipRods)
+        if (iRod == myid()) mod->rotateXModCentre(M_PI);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
-    if (tmspecs[i].gamma == 0) { // FLAT PART OF THE TILTED ROD
+    if (isTiltedModule) { // FLAT PART OF THE TILTED ROD
       if (!mod->isPixelModule()) mod->flipped(i%2);         // Rod in Outer Tracker: alternates flip along z. i is the ring number.
       else mod->flipped(flip);                              // Rod in Inner Tracker: all modules of a given rod have same flip. 
                                                             // (Modules of the lower radius rods are all flipped).

@@ -95,11 +95,21 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
-    if(mod->yawAngleFromConfig() > INVALID_ANGLE){
+    double yawAngle = 0;
+    bool doYaw = false;
+    if (mod->yawAngleFromConfig.state()) {
+      doYaw = true;
       mod->notInRegularRing();
+      yawAngle = mod->yawAngleFromConfig();
+    }
+    if (mod->yawFlip()) {
+      doYaw = true;
+      yawAngle += M_PI;
+    }
+    if (doYaw) {
       double tmp_r = mod->center().Rho();
       mod->translateR(-tmp_r); //perform yaw angle rotation with the module at the centre
-      mod->yaw(mod->yawAngleFromConfig());
+      mod->yaw(yawAngle);
       if(mod->manualRhoCentre() > 0 ){// For irregular rings (with yawed modules) that need to stay tangent to the same inner/outer radius, the module centre is shifted
         mod->translateR(mod->manualRhoCentre()-mod->center().Rho());
       } else {
@@ -117,6 +127,14 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
       } else {
         nominalZRot = (i + alignmentRotation)*deltaPhiNom + (1+alignmentRotation)*(deltaPhiLarge-deltaPhiNom);
       } 
+    }
+    if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state()) {
+        logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
+    }
+    if (mod->manualPhiCenter.state()) {
+      nominalZRot = mod->manualPhiCenter();
+    } else if (mod->manualPhiCenterDeg.state()) {
+      nominalZRot = mod->manualPhiCenterDeg() / 180 * M_PI;
     }
     mod->rotateZ(nominalZRot);
     mod->rotateZ(zRotation());

@@ -154,7 +154,12 @@ public:
   Property<bool, Default> removeModule;
 
   Property<string, NoDefault> label;
-  Property<double, Default> yawAngleFromConfig;
+  Property<double, NoDefault> yawAngleFromConfig;
+  Property<bool, Default> yawFlip;
+  Property<bool, Default> yawFlipNeg;
+  PropertyVector<int, ','> yawFlipRods;
+  Property<double, NoDefault> manualPhiCenter;
+  Property<double, NoDefault> manualPhiCenterDeg;
   Property<double, Default> manualRhoCentre;
   Property<double, Default> offsetForSensors; //offset from centre (in local y): used in cases where a module has two sensors that are explicitly placed separately
 
@@ -224,7 +229,12 @@ public:
       centralDeadAreaLength    ("centralDeadAreaLength"    , parsedOnly(),0.),
       removeModule             ("removeModule"             , parsedOnly(), false),
       label                    ("label"                    , parsedOnly()),
-      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly(),-999.),
+      yawAngleFromConfig       ("yawAngleFromConfig"       , parsedOnly()),
+      yawFlip                  ("yawFlip"                  , parsedOnly(), false),
+      yawFlipNeg               ("yawFlipNeg"               , parsedOnly(), false),
+      yawFlipRods              ("yawFlipRods"              , parsedOnly()),
+      manualPhiCenter          ("manualPhiCenter"          , parsedOnly()),
+      manualPhiCenterDeg       ("manualPhiCenterDeg"       , parsedOnly()),
       manualRhoCentre          ("manualRhoCentre"          , parsedOnly(),0.),
       offsetForSensors         ("offsetForSensors"         , parsedOnly(), 0),
       materialObject_          (MaterialObject::MODULE, subdetectorName),
@@ -307,10 +317,11 @@ public:
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
+  void rotateXModCentre(double angle) { decorated().rotateXModCentre(angle); clearSensorPolys(); }
   void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
   void yaw(double angle) { decorated().rotateZ(angle); clearSensorPolys(); yawAngle_+=angle; } //To rotate around the module's Z-axis. Only call after shifting the module back to the centre of the reference frame
   void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
-  void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  void tilt(double angle) { rotateY(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   // void skew(double angle) { rotateY(-angle); skewAngle_ += angle; } // This works for endcap modules only !!
   // Skew is now defined at construction time instead, before the module has had a chance to be translated/rotated!
   const bool isSkewed() const { return (fabs(skewAngle()) > insur::geom_zero); }

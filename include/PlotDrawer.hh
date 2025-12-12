@@ -453,11 +453,11 @@ public:
       if (contourSize==0) return nullptr;
      
       // Our local axes in global coordinates
-      XYZVector ey = m.basePoly().getVertex(0) - m.basePoly().getVertex(1) ;
-      XYZVector ex = m.basePoly().getVertex(2) - m.basePoly().getVertex(1) ;
+      TVector3 mex = m.getLocalX();
+      TVector3 mey = m.getLocalY();
+      XYZVector ex(mex.X(), mex.Y(), mex.Z());
+      XYZVector ey(mey.X(), mey.Y(), mey.Z());
       XYZVector center = m.center();
-      ex = ex / sqrt(ex.Mag2());
-      ey = ey / sqrt(ey.Mag2());
       double x[contourSize+1];
       double y[contourSize+1];
       std::set<CoordType> xy; // duplicate detection

@@ -81,6 +81,7 @@ public:
   void translate(const XYZVector& vector) { basePoly_.translate(vector); }
   void mirror(const XYZVector& vector) { basePoly_.mirror(vector); }
   void rotateX(double angle) { basePoly_.rotateX(angle); tiltAngle_ += angle; }
+  void rotateXModCentre(double angle) {auto tmpvec = basePoly_.getCenter(); basePoly_.translate(-tmpvec); basePoly_.rotateX(angle);basePoly_.translate(tmpvec); }
   void rotateY(double angle) { basePoly_.rotateY(angle); skewAngle_ += angle; }
   void rotateZ(double angle) { basePoly_.rotateZ(angle); }
   void rotateZModCentre(double angle) {auto tmpvec = basePoly_.getCenter(); basePoly_.translate(-tmpvec); basePoly_.rotateZ(angle);basePoly_.translate(tmpvec);zrotAngle_+=angle;} 
