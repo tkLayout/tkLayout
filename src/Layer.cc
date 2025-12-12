@@ -18,7 +18,7 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
   double rStartInner;
   double zStartInner_REAL;
   double rEndInner = 0.; // It gets set at the first iteration
-  double zEndInner_REAL;
+  double zEndInner_REAL = 0.;
   int smallParity = minusBigDeltaRod->zPlusParity();
   for (const auto& m : minusBigDeltaModules) {
     if (i > 0) {
@@ -69,7 +69,7 @@ void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightR
   double rStartOuter;
   double zStartOuter_REAL;
   double rEndOuter = 0.; // It gets set at the first iteration
-  double zEndOuter_REAL;
+  double zEndOuter_REAL = 0.;
   smallParity = plusBigDeltaRod->zPlusParity();
   for (const auto& m : plusBigDeltaModules) {
     if (i > 0) {
