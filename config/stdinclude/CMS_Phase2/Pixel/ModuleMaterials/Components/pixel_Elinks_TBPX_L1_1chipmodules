@@ -1,4 +1,4 @@
-// (3+1) High-Speed TWP / module
+// (6+1 / 2 = 3 + 0.5) High-Speed TWP / module
 
 Component {
   componentName "Cabling: E-links"
@@ -7,14 +7,14 @@ Component {
   // Two conductors
   Element {
     elementName Cu_Elinks_TBPX_L1_1chipmodules
-    quantity 0.884
+    quantity 0.7735
     unit g/m
     targetVolume 1
   }
   // Two insulations
   Element {
     elementName Kapton
-    quantity 0.077
+    quantity 0.067
     unit g/m
     targetVolume 1
   }

@@ -1,0 +1,71 @@
+// BPIX Cooling blocks
+// module with 2 chips
+
+
+// Epoxy (25 um)
+Component {
+  componentName "Epoxy (25 um)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Araldite2020
+    quantity 0.024
+    unit g
+    //Angela: 0.700g / 60 * 2 = 0.012
+  }
+}
+
+
+//cold plate
+Component {
+  componentName "Cold plate"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName CF
+    quantity 0.250 //1.253 
+    unit g                  
+    targetVolume 3 // --> ?
+//Angela: 7.518g / 6 / 5 = 0.250
+  }
+}
+
+
+//Space frame
+Component {
+  componentName "Space frame"
+  service false
+  Element {
+    scaleOnSensor 0
+    elementName CF   
+    quantity 0.119
+    unit g
+    targetVolume 3 // -->
+//Angela: 3.575g / 6 / 5 = 0.119
+  }
+}
+
+
+//ladder cooling pipes + CO2
+Component {
+  componentName "ladder cooling pipes + CO2"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Ti //was StainlessSteel
+    quantity 0.184 
+    unit g             
+    targetVolume 3      //--> ?
+
+//Angela: 5.514g / 6 / 5 = 0.919
+  }
+  Element {
+    elementName CO2
+    quantity 0.131 
+    unit g             
+    targetVolume 3      //--> ?
+//Angela: 3.931g / 12 ladders / 5 * 2  modules = 0.049
+  }  
+}
+
+

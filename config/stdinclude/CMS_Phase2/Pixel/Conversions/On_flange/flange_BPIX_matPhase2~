@@ -1,0 +1,29 @@
+// Flange service conversion
+// used to generate services at the BPIX flange 
+
+Station {
+  stationName flange_BPIX
+  type flange
+  
+  // E-links
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L1_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L2_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L3_2chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_1chipmodules
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_Elinks_TBPX_L4_2chipmodules
+  
+  // Cooling pipes
+  @include-std CMS_Phase2/Pixel/Conversions/Components/StainlessSteel_fake1000factor_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CO2_fake1000factor_1:1000
+
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Al_HV
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Kapton
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_PE
+}

@@ -1,0 +1,6 @@
+// We are not currently using the scaleOnSensor property
+// Include this to be aware of possible mistakes
+ReferenceSensor 1 {
+  numStripsAcross 1
+  numSegments 1
+}
