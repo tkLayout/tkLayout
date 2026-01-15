@@ -1,0 +1,13 @@
+
+Materials BPIX_L1_1x2_2500_phase3 {
+  type module
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Reference_Sensor_symbolic_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/phase3/pixel_Module_Common
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Active_Planar_3D_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Sensor_Dead_Area_1x2_3D_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Bumps_2500_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_ROC_matPhase2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/phase3/pixel_Cooling_Blocks_TBPX_1x2
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Elinks_TBPX_L1_matPhase2
+}

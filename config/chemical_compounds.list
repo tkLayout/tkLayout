@@ -35,8 +35,12 @@ C8H8C4H6C3H3N              1.052                     C:15                  H:17 
 # Unused:
 #BaF2                       4.89                     Ba:1                  F:2
 #NaI                        3.67                     Na:1                  I:1
+Ar2020Resin    1.12 C:21 H:24 O:4
+Ar2020Hardener 0.95 C:4 H:13 N:3
 
-
+##Prepreg
+HL832_A  1.10  C:21 H:24 O:4
+HL832_B  0.95  C:4  H:13 N:3
 
 
 

@@ -7,7 +7,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
-    quantity 0.133 //it was 0.133          // Thickness from Malte Backhaus.
+    quantity 0.189 //0.0193 //it was 0.133          // Thickness from Malte Backhaus.
     unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
                             // APPROXIMATION: from Malte, surface of HDI is instead 1541 mm2, hence more than the active area surface (~1471 mm2). !!!!!!!!!!!!
     targetVolume 1          // Approximation: All components (various layers in HDI) all mixed up together into one homogeneous volume.
@@ -22,23 +22,23 @@ Component {
 // SMD resistors and capacitors.
 // This gathers all SMD components from HDI and RD53A.
 // 20 SMDCapacitors per ROC (in pixel_ROC) + 5 per module (in this file).
-Component {
-  componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Pix_Caps               
-    quantity 0.0195 //it was 0.0195                    // = 5 * 15.60 * 0.25 / 1000
+//Component {
+//  componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
+//  service false
+//  scaleOnSensor 0
+//  Element {
+ //   elementName Pix_Caps               
+//    quantity 0.085 //it was 0.0195                    // = 5 * 15.60 * 0.25 / 1000
                                        // About 5 SMDCapacitors per module.                                    
                                        // Assumes density is 15.60 g/cm3.
                                        // Assumes volume is 0.25 mm3 (model 402)
                                        // NB: ~20 modules/ROC are also added, in pixel_ROC cfg file.
                                        // Source: [IT_MODULE_2019_03_21_MB]
-    unit g
-    targetVolume 1
+//    unit g
+//    targetVolume 1
     //Angela: here I'm assuming 5 per module 0.0170 * 1 * 5 = 0.085
-  }
-}
+//  }
+//}
 
 
 
@@ -80,11 +80,12 @@ Component {
   scaleOnSensor 0
   Element {
     elementName StainlessSteel
-    quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
+    quantity 0.04 //it was 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
                        // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
                        // Can be set in dedicated files later, but this is better than nothing.
     unit g
     targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
+        //Angela: 180/30 = 6 per module 0.0080*0.90*6 = 0.04
   }
 }
 
@@ -102,7 +103,7 @@ Component {
                        // Can be set in dedicated files later, but this is better than nothing.
     unit g
     targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
-    //Angela: 
+    //Angela: 180/30 = 6 per module 
   }
 }
 

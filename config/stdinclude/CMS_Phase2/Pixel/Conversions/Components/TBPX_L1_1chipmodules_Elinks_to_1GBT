@@ -6,7 +6,7 @@ Conversion {
     // Two conductors
     Element {
       elementName Cu_Elinks_TBPX_L1_1chipmodules
-      quantity 1.768         // = 2 * quantity / module
+      quantity 1.547 //it was 1.768         // = 2 * quantity / module // 1.547 to add
       unit g/m
     }
   }

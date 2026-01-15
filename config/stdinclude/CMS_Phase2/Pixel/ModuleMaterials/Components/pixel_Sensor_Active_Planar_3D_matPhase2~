@@ -8,7 +8,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName SenSi
-    quantity 0.15 // it was 0.15       
+    quantity 0.16 // it was 0.15       
     unit mm                  // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
     targetVolume 2
     // Angela from INFN Torino: g/mm3 = 0.54; g = 16.20 ==> g/(g/mm3) = 30mm3 and now I have to divide for the active area: (16.8 x 21.6)mm2 chip size ==> 30mm3/(16.9x21.6)mm2 = 0.08mm per chip which times 2 chips is 0.16 CAVEAT: here I'm ignoring the dead area

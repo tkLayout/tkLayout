@@ -1,44 +1,115 @@
 // MATERIALS COMMON TO ALL MODULES TYPES
 // This obviously does not include bumps, ROC, cooling blocks, connectivity (dedicated ModuleMaterials files).
 
-Component {
-  componentName "IT Module: HDI" 
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
-    quantity 0.133 //it was 0.133          // Thickness from Malte Backhaus.
-    unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+//Component {
+//  componentName "IT Module: HDI" 
+//  service false
+//  scaleOnSensor 0
+//  Element {
+//    elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
+//    quantity 0.189 //0.0193 //it was 0.133          // Thickness from Malte Backhaus.
+//    unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
                             // APPROXIMATION: from Malte, surface of HDI is instead 1541 mm2, hence more than the active area surface (~1471 mm2). !!!!!!!!!!!!
     targetVolume 1          // Approximation: All components (various layers in HDI) all mixed up together into one homogeneous volume.
     //Angela: From the CAD we have: HDI 35.15x44.1 mm2.
     //g/mm3 = 0.89; g = 26.70 so g/(g/mm3) = 30mm3 which divided by the area is 30mm3/(35.15x44.1)mm2 = 0.0193mm
-  } 
+//  } 
 
 }
 
+Component {
+  componentName "HDI: Layer 0 /5- Coverlay1 (Epoxy)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.0364
+    unit g                                             
+    targetVolume 1
+    //Angela: 1.092/6/5
+  }
 
+Component {
+  componentName "HDI: Prepreg (3 layers)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Prepreg
+    quantity 0.063
+    unit g
+    targetVolume 1
+    //Angela: 5.670/18/5
+  }
+
+Component {
+  componentName "HDI: Layer 1"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Cu
+    quantity 0.012
+    unit g
+    targetVolume 1
+    //Angela: 0.364/6/5
+  }
+
+Component {
+  componentName "HDI: Layer 2"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Al
+    quantity 0.022
+    unit g
+    targetVolume 1
+    //Angela: 0.674/6/5
+  }
+
+
+Component {
+  componentName "HDI: Layer 3"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Cu
+    quantity 0.009
+    unit g
+    targetVolume 1
+    //Angela: 0.297/6/5
+  }
+
+Component {
+  componentName "HDI: Layer 4"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Al
+    quantity 0.0226
+    unit g
+    targetVolume 1
+    //Angela: 0.678/6/5
+  }
 
 // SMD resistors and capacitors.
 // This gathers all SMD components from HDI and RD53A.
 // 20 SMDCapacitors per ROC (in pixel_ROC) + 5 per module (in this file).
-Component {
-  componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Pix_Caps               
-    quantity 0.0195 //it was 0.0195                    // = 5 * 15.60 * 0.25 / 1000
+//Component {
+//  componentName "IT Module: SMD capacitors"  // NB: THIS NEEDS TO BE CONFIRMED!!!! LOOK AT DENSITY!! SEE WITH MALTE.
+//  service false
+//  scaleOnSensor 0
+//  Element {
+ //   elementName Pix_Caps               
+//    quantity 0.085 //it was 0.0195                    // = 5 * 15.60 * 0.25 / 1000
                                        // About 5 SMDCapacitors per module.                                    
                                        // Assumes density is 15.60 g/cm3.
                                        // Assumes volume is 0.25 mm3 (model 402)
                                        // NB: ~20 modules/ROC are also added, in pixel_ROC cfg file.
                                        // Source: [IT_MODULE_2019_03_21_MB]
-    unit g
-    targetVolume 1
+//    unit g
+//    targetVolume 1
     //Angela: here I'm assuming 5 per module 0.0170 * 1 * 5 = 0.085
-  }
-}
+//  }
+//}
 
 
 
@@ -69,40 +140,6 @@ Component {
                       // APPROXIMATION: takes same weights for all types of modules.
                       // Can be set in dedicated files later, but this is better than nothing.
     targetVolume 3
-  }
-}
-
-
-
-Component {
-  componentName "IT Module: Screws"  
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName StainlessSteel
-    quantity 0.08      // 4 screws, M1. Source: [TEPX_2018_12_07_LC]
-                       // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
-                       // Can be set in dedicated files later, but this is better than nothing.
-    unit g
-    targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
-  }
-}
-
-
-
-Component {
-  componentName "IT Module: Thread bushing"
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName Brass
-    quantity 0.16      // 4 screws, M1 thread bushing. Source: [TEPX_2018_12_07_LC]
-                       // NB: This was on the disk slide, but divided by number of modules.
-                       // APPROXIMATION: takes same weights for all types of modules (also TBPX and TFPX). 
-                       // Can be set in dedicated files later, but this is better than nothing.
-    unit g
-    targetVolume 3     // WARNING: SHOULD SET TARGETVOLUME ON EXTERNAL VOLUME ONLY!!!!
-    //Angela: 
   }
 }
 
