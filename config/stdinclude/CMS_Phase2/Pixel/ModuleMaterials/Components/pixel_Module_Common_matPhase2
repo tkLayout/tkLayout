@@ -1,22 +1,51 @@
 // MATERIALS COMMON TO ALL MODULES TYPES
 // This obviously does not include bumps, ROC, cooling blocks, connectivity (dedicated ModuleMaterials files).
 
-Component {
-  componentName "IT Module: HDI" 
-  service false
-  scaleOnSensor 0
-  Element {
-    elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
-    quantity 0.189 //0.0193 //it was 0.133          // Thickness from Malte Backhaus.
-    unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+//Component {
+//  componentName "IT Module: HDI" 
+//  service false
+//  scaleOnSensor 0
+//  Element {
+//    elementName IT-HDI-mix  // Mixture source: [IT_MODULE_2019_03_21_MB].
+//    quantity 0.189 //0.378 //0.189 --> from email thinkness //0.0193 //it was 0.133          // Thickness from Malte Backhaus.
+//    unit mm                 // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
                             // APPROXIMATION: from Malte, surface of HDI is instead 1541 mm2, hence more than the active area surface (~1471 mm2). !!!!!!!!!!!!
     targetVolume 1          // Approximation: All components (various layers in HDI) all mixed up together into one homogeneous volume.
     //Angela: From the CAD we have: HDI 35.15x44.1 mm2.
     //g/mm3 = 0.89; g = 26.70 so g/(g/mm3) = 30mm3 which divided by the area is 30mm3/(35.15x44.1)mm2 = 0.0193mm
-  } 
+//  } 
 
+//}
+
+Component {
+  componentName "IT Module: HDI - Cu"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Cu 
+    //quantity 0.034
+    //unit mm
+    quantity 0.2329 //26mm3 of copper from stella * copper density
+    unit g
+    targetVolume 1 
+    //Angela: From stella we have HDI area = 17.15x43.9 = 752.88mm2, Cu volume = 26mm3 ==> Thickness =26/752.88 = 0.034mm
+  }
 }
 
+Component {
+  componentName "IT Module: HDI - kapton"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Kapton
+    //quantity 0.145
+    //unit mm
+    quantity 0.2213 //total weight from pierfilippo - components that I don't have - copper
+    unit g
+    targetVolume 1
+    //Angela: From stella we have kapton+glue thickness = 0.037+0.071+0.037=0.145
+  }
+}
 
 
 // SMD resistors and capacitors.
