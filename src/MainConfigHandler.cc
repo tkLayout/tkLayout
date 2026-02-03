@@ -41,6 +41,7 @@ mainConfigHandler& mainConfigHandler::instance() {
 }
 
 bool mainConfigHandler::checkDirectory(string dirName) {
+  if ( dirName.empty()) return false;
   if (! boost::filesystem::exists(dirName)) {
     cout << "Directory '" << dirName << "' does not exist!" << endl;
     return false;
@@ -53,36 +54,41 @@ bool mainConfigHandler::checkDirectory(string dirName) {
   return true;
 }
 
-void mainConfigHandler::askBinDirectory() {
-  cout << "*** What is the bin directory where you want to" << endl
-      << "    place your executables?" << endl
-      << "    Example: " << getenv(HOMEDIRECTORY) << "/bin : ";
-  cin >> binDirectory_;
-}
-
-void mainConfigHandler::askLayoutDirectory() {
-  cout << "*** What is the web server directory where you want to" << endl
-    << "    place your output?" << endl
-    << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
-  cin >> layoutDirectory_;
-}
-
 void mainConfigHandler::askStandardDirectory() {
-  cout << "*** What is the standard output directory?" << endl
-      << "    xml files and other various output will be put here" << endl
-      << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
+  cout << "*** Q1. What is the standard include/output directory" << endl
+  << "    used to store configurations and analysis output?" << endl
+  << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
   cin >> standardDirectory_;
 }
 
+void mainConfigHandler::askLayoutDirectory() {
+  string defaultString = getenv(HOMEDIRECTORY) << "/www/layouts";
+  cout << "*** Q2. What is the web server directory where you want to" << endl
+  << "    place your output?" << endl
+  << "    Default: " << defaultString << " : ";
+  cin >> layoutDirectory_;
+  if (layoutDirectory_.empty()) layoutDirectory_ = defaultString;
+}
+
+void mainConfigHandler::askBinDirectory() {
+  string defaultString = getenv(HOMEDIRECTORY) << "/bin";
+  cout << "*** Q3. What is the bin directory where you want to" << endl
+      << "    place your executables?" << endl
+      << "    Default: " << defaultString << " : ";
+  cin >> binDirectory_;
+  if (binDirectory_.empty()) binDirectory_ = defaultString;
+}
+
 void mainConfigHandler::askMomenta() {
+  string defaultString = "1, 10, 100";
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+  cout << "*** Q4. Specify the list of transverse momenta to be used for the" << endl
       << "    tracking performance test (in GeV/c)" << endl
-      << "    Example: 1, 10, 100 : ";
+      << "    Default: " << defaultString << " : ";
   cin >> tempString;
-
+  if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
   momenta_ = parseDoubleList(tempString);
@@ -90,13 +96,15 @@ void mainConfigHandler::askMomenta() {
 }
 
 void mainConfigHandler::askTriggerMomenta() {
+  string defaultString = "1, 2, 5, 10";
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+  cout << "*** Q5. Specify the list of transverse momenta to be used for the" << endl
       << "    trigger efficiency performance test (in GeV/c)" << endl
-      << "    Example: 1, 2, 5, 10 : ";
+      << "    Default: " << defaultString << " : ";
   cin >> tempString;
+  if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
   triggerMomenta_ = parseDoubleList(tempString);
@@ -104,13 +112,15 @@ void mainConfigHandler::askTriggerMomenta() {
 }
 
 void mainConfigHandler::askThresholdProbabilities() {
+  string defaultString = "1, 50, 90, 95";
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Specify the list of trigger efficiency to be used for the" << endl
-      << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
-      << "    Example: 1, 50, 90, 95 : ";
+  cout << "*** Q6. Specify the list of trigger efficiencies to be used for the" << endl
+      << "    pt threshold find test (in percent: type 100 for full efficiency)" << endl
+      << "    Default: " << defaultString << " : ";
   cin >> tempString;
+  if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
   thresholdProbabilities_ = parseDoubleList(tempString);
@@ -130,17 +140,16 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     << " maybe this is the first time you run with the new system." << endl;
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
+  cout << "Press ENTER to accept the default value." << endl;
+  cout << endl;
+  
+  while (!checkDirectory(standardDirectory_)) askStandardDirectory();
   cout << endl;
 
-  askBinDirectory();
-  if (!checkDirectory(binDirectory_)) return false;
+  while (!checkDirectory(layoutDirectory_)) askLayoutDirectory();
   cout << endl;
 
-  askLayoutDirectory();
-  if (!checkDirectory(layoutDirectory_)) return false;
-  cout << endl;
-
-  askStandardDirectory();
+  while(!checkDirectory(binDirectory_)) askBinDirectory();
   cout << endl;
 
   askMomenta();
