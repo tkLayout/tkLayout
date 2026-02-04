@@ -9,24 +9,13 @@
 #include <string>
 #include <vector>
 #include <set>
+
 #include <global_constants.hh>
 #include <global_funcs.hh>
 #include "MessageLogger.hh"
-
 #include "GraphVizCreator.hh"
 
 using namespace std;
-
-#define HOMEDIRECTORY "HOME"
-#define TKDIRECTORY "TKLAYOUTDIRECTORY"
-#define CONFIGURATIONFILENAME ".tkgeometryrc"
-#define CONFIGURATIONFILENAMEDEFINITION "TKGEOMETRYRC"
-#define BINDIRECTORYDEFINITION "TKG_BINDIRECTORY"
-#define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
-#define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
-#define MOMENTADEFINITION "TKG_MOMENTA" 
-#define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
-#define THRESHOLDPROBABILITIESDEFINITION "TKG_THRESHOLD_PROB"
 
 class ConfigInputOutput {
 public:

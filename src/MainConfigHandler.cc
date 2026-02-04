@@ -8,22 +8,30 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <boost/filesystem/operations.hpp>
 
 #include <sys/types.h>
 
-#include <MainConfigHandler.hh>
+#include "MainConfigHandler.hh"
 #include "Units.hh"
 
 using namespace std;
 using namespace boost;
 
-template <class T> bool from_string(T& t, const std::string& s, 
-                                    std::ios_base& (*f)(std::ios_base&)) {
+static const char* HOMEDIRECTORY = getenv("HOME");
+static constexpr char CONFIGURATIONFILENAME[] = ".tkgeometryrc";
+static constexpr char CONFIGURATIONFILENAMEDEFINITION[] = "TKGEOMETRYRC";
+static constexpr char BINDIRECTORYDEFINITION[] = "TKG_BINDIRECTORY";
+static constexpr char LAYOUTDIRECTORYDEFINITION[] = "TKG_LAYOUTDIRECTORY";
+static constexpr char STANDARDDIRECTORYDEFINITION[] = "TKG_STANDARDDIRECTORY";
+static constexpr char MOMENTADEFINITION[] = "TKG_MOMENTA";
+static constexpr char TRIGGERMOMENTADEFINITION[] = "TKG_TRIGGERMOMENTA";
+static constexpr char THRESHOLDPROBABILITIESDEFINITION[] = "TKG_THRESHOLD_PROB";
+
+template <class T> bool from_string(T& t, const std::string& s, std::ios_base& (*f)(std::ios_base&)) {
   std::istringstream iss(s);
   return !(iss >> f >> t).fail();
 }
@@ -41,45 +49,40 @@ mainConfigHandler& mainConfigHandler::instance() {
 }
 
 bool mainConfigHandler::checkDirectory(string dirName) {
-  if ( dirName.empty()) return false;
-  if (! boost::filesystem::exists(dirName)) {
-    cout << "Directory '" << dirName << "' does not exist!" << endl;
-    return false;
+  if ( boost::filesystem::exists(dirName) ) {
+    if (! boost::filesystem::is_directory(dirName) ) { 
+      cout << "Directory '" << dirName << "' is not a directory!" << endl;
+      return false; // If it exists and it is not a directory, error
+    }
+  } 
+  else {
+    if (! boost::filesystem::create_directories(dirName) ) { // Try to create the specified directory if it doesn't exist
+      cout << "Directory '" << dirName << "' does not exist and could not be created!" << endl;
+      return false; // One of the elements in the path is likely a file
+    }
   }
-  if (! boost::filesystem::is_directory(dirName) ) {
-    cout << "Directory '" << dirName << "' is not a directory!" << endl;
-    return false;    
-  }
-
-  return true;
-}
-
-void mainConfigHandler::askStandardDirectory() {
-  string defaultString = string(getenv(HOMEDIRECTORY))+"/tkgeometry";
-  if (getenv(TKDIRECTORY)) defaultString = string(getenv(TKDIRECTORY));
-  cout << "*** Q1/6. What is the standard include/output directory" << endl
-  << "    used to store configurations and analysis output?" << endl
-  << "    Default: " << defaultString << " : ";
-  getline(cin, standardDirectory_);
-  if (standardDirectory_.empty()) standardDirectory_ = defaultString;
-}
-
-void mainConfigHandler::askLayoutDirectory() {
-  string defaultString = string(getenv(HOMEDIRECTORY)) + "/www/layouts";
-  cout << "*** Q2/6. What is the web-server directory where" << endl
-  << "    to store the tkLayout results pages?" << endl
-  << "    Default: " << defaultString << " : ";
-  getline(cin, layoutDirectory_);
-  if (layoutDirectory_.empty()) layoutDirectory_ = defaultString;
+  return true; // If it exists and it is a directory, or if it has been created successfully
 }
 
 void mainConfigHandler::askBinDirectory() {
-  string defaultString = string(getenv(HOMEDIRECTORY)) + "/bin";
-  cout << "*** Q3/6. What is the bin/ directory where to" << endl
-      << "    place tkLayout executables?" << endl
-      << "    Default: " << defaultString << " : ";
-  getline(cin, binDirectory_);
-  if (binDirectory_.empty()) binDirectory_ = defaultString;
+  cout << "*** What is the bin directory where you want to" << endl
+      << "    place your executables?" << endl
+      << "    Example: " << HOMEDIRECTORY << "/bin : ";
+  cin >> binDirectory_;
+}
+
+void mainConfigHandler::askLayoutDirectory() {
+  cout << "*** What is the web server directory where you want to" << endl
+    << "    place your output?" << endl
+    << "    Example: " << HOMEDIRECTORY << "/www/layouts : ";
+  cin >> layoutDirectory_;
+}
+
+void mainConfigHandler::askStandardDirectory() {
+  cout << "*** What is the standard output directory?" << endl
+      << "    xml files and other various output will be put here" << endl
+      << "    Example: " << HOMEDIRECTORY << "/tkgeometry : ";
+  cin >> standardDirectory_;
 }
 
 void mainConfigHandler::askMomenta() {
@@ -139,17 +142,18 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   //cout << "\033[1;1H"; // Places cursor on line 1
 
   // I have no configuration, so I must create it
-  cout << "Could not find the configuration file: "  << configFileName << endl;
-  cout << "Maybe this is the first time you run with the new system." << endl;
+  cout << "Could not find the configuration file "  << configFileName
+    << " maybe this is the first time you run with the new system." << endl;
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
-  cout << "Press ENTER to accept the default value." << endl;
-  cout << endl;
-  
-  while (!checkDirectory(standardDirectory_)) askStandardDirectory();
   cout << endl;
 
-  while (!checkDirectory(layoutDirectory_)) askLayoutDirectory();
+  askBinDirectory();
+  if (!checkDirectory(binDirectory_)) return false;
+  cout << endl;
+
+  askLayoutDirectory();
+  if (!checkDirectory(layoutDirectory_)) return false;
   cout << endl;
 
   while(!checkDirectory(binDirectory_)) askBinDirectory();
@@ -172,6 +176,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << LAYOUTDIRECTORYDEFINITION << "=\"" << layoutDirectory_ << "\"" << endl;
     configFile << STANDARDDIRECTORYDEFINITION << "=\"" << standardDirectory_ << "\"" << endl;
 
+    // Write the momenta
     configFile << MOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
       if (it!=momenta_.begin()) configFile << ", ";
@@ -179,6 +184,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     }
     configFile << "\"" << std::endl;
 
+    // Write the trigger momenta
     configFile << TRIGGERMOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
       if (it!=triggerMomenta_.begin()) configFile << ", ";
@@ -186,6 +192,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     }
     configFile << "\"" << std::endl;
 
+    // Write the threshold probabilities
     configFile << THRESHOLDPROBABILITIESDEFINITION << "=\"";
     for (std::vector<double>::iterator it = thresholdProbabilities_.begin(); it!=thresholdProbabilities_.end(); ++it) {
       if (it!=thresholdProbabilities_.begin()) configFile << ", ";
@@ -305,7 +312,7 @@ bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
 string mainConfigHandler::getConfigFileName() {
   char* specialConfigFile = getenv(CONFIGURATIONFILENAMEDEFINITION);
   if (specialConfigFile) return string(specialConfigFile);
-  string homeDirectory = string(getenv(HOMEDIRECTORY));
+  string homeDirectory = string(HOMEDIRECTORY);
   return homeDirectory+"/"+CONFIGURATIONFILENAME;
 }
 
@@ -313,7 +320,7 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   if (goodConfigurationRead_) return true;
 
   ifstream configFile;
-  string homeDirectory = string(getenv(HOMEDIRECTORY));
+  string homeDirectory = string(HOMEDIRECTORY);
   string configFileName = getConfigFileName();
   bool goodConfig=false;
 
