@@ -55,27 +55,30 @@ bool mainConfigHandler::checkDirectory(string dirName) {
 }
 
 void mainConfigHandler::askStandardDirectory() {
-  cout << "*** Q1. What is the standard include/output directory" << endl
+  string defaultString = string(getenv(HOMEDIRECTORY))+"/tkgeometry";
+  if (getenv(TKDIRECTORY)) defaultString = string(getenv(TKDIRECTORY));
+  cout << "*** Q1/6. What is the standard include/output directory" << endl
   << "    used to store configurations and analysis output?" << endl
-  << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
-  cin >> standardDirectory_;
+  << "    Default: " << defaultString << " : ";
+  getline(cin, standardDirectory_);
+  if (standardDirectory_.empty()) standardDirectory_ = defaultString;
 }
 
 void mainConfigHandler::askLayoutDirectory() {
-  string defaultString = getenv(HOMEDIRECTORY) << "/www/layouts";
-  cout << "*** Q2. What is the web server directory where you want to" << endl
-  << "    place your output?" << endl
+  string defaultString = string(getenv(HOMEDIRECTORY)) + "/www/layouts";
+  cout << "*** Q2/6. What is the web-server directory where" << endl
+  << "    to store the tkLayout results pages?" << endl
   << "    Default: " << defaultString << " : ";
-  cin >> layoutDirectory_;
+  getline(cin, layoutDirectory_);
   if (layoutDirectory_.empty()) layoutDirectory_ = defaultString;
 }
 
 void mainConfigHandler::askBinDirectory() {
-  string defaultString = getenv(HOMEDIRECTORY) << "/bin";
-  cout << "*** Q3. What is the bin directory where you want to" << endl
-      << "    place your executables?" << endl
+  string defaultString = string(getenv(HOMEDIRECTORY)) + "/bin";
+  cout << "*** Q3/6. What is the bin/ directory where to" << endl
+      << "    place tkLayout executables?" << endl
       << "    Default: " << defaultString << " : ";
-  cin >> binDirectory_;
+  getline(cin, binDirectory_);
   if (binDirectory_.empty()) binDirectory_ = defaultString;
 }
 
@@ -84,10 +87,10 @@ void mainConfigHandler::askMomenta() {
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Q4. Specify the list of transverse momenta to be used for the" << endl
+  cout << "*** Q4/6. Specify the list of transverse momenta to be used for the" << endl
       << "    tracking performance test (in GeV/c)" << endl
       << "    Default: " << defaultString << " : ";
-  cin >> tempString;
+  getline(cin, tempString);
   if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
@@ -100,10 +103,10 @@ void mainConfigHandler::askTriggerMomenta() {
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Q5. Specify the list of transverse momenta to be used for the" << endl
+  cout << "*** Q5/6. Specify the list of transverse momenta to be used for the" << endl
       << "    trigger efficiency performance test (in GeV/c)" << endl
       << "    Default: " << defaultString << " : ";
-  cin >> tempString;
+  getline(cin, tempString);
   if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
@@ -116,10 +119,10 @@ void mainConfigHandler::askThresholdProbabilities() {
   string tempString = "";
   string tempString2 = "";
 
-  cout << "*** Q6. Specify the list of trigger efficiencies to be used for the" << endl
+  cout << "*** Q6/6. Specify the list of trigger efficiencies to be used for the" << endl
       << "    pt threshold find test (in percent: type 100 for full efficiency)" << endl
       << "    Default: " << defaultString << " : ";
-  cin >> tempString;
+  getline(cin, tempString);
   if (tempString.empty()) tempString = defaultString;
   getline(cin,tempString2);
   tempString+=tempString2;
@@ -136,8 +139,8 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   //cout << "\033[1;1H"; // Places cursor on line 1
 
   // I have no configuration, so I must create it
-  cout << "Could not find the configuration file "  << configFileName
-    << " maybe this is the first time you run with the new system." << endl;
+  cout << "Could not find the configuration file: "  << configFileName << endl;
+  cout << "Maybe this is the first time you run with the new system." << endl;
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << "Press ENTER to accept the default value." << endl;
