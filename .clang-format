@@ -1,0 +1,20 @@
+---
+Language:        Cpp
+BasedOnStyle:    Google
+IndentWidth:     4
+ColumnLimit:     400                                                                                                                                                            
+DerivePointerAlignment: false
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Empty
+SpacesBeforeTrailingComments: 1
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterControlStatement: false
+BinPackArguments: false
+BinPackParameters: false
+AllowAllConstructorInitializersOnNextLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AlwaysBreakAfterReturnType: None
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakString: 0
+FixNamespaceComments: false
