@@ -35,21 +35,22 @@ if $TKG_SETUP_BIN ; then
         exit -1
     fi
 
-    echo "Installing main program"
+    echo "Installing main program -> $TKG_BINDIRECTORY"
     cp -f $TKG_MAIN $TKG_BINDIRECTORY \
-	&& echo "+ Main program installed/updated" \
-	|| echo "- Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY"
+        && echo "+ Main program installed/updated" \
+        || echo "- Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY"
 
     # Copying the directory with .css and all that jazz
-    echo "Copying style files to the web directory"
-    cp -R $TKG_SOURCE_STYLE $TKG_LAYOUTDIRECTORY
+    echo "Copying style files to the web directory -> $TKG_LAYOUTDIRECTORY"
+        cp -R $TKG_SOURCE_STYLE $TKG_LAYOUTDIRECTORY \
+        && echo "+ Style files copied"
           
 
     if ! $TKG_SETUP_BIN --checkDir ; then
-	echo "- Problem during installation"
-	exit -1
+        echo "- Problem during installation"
+        exit -1
     else
-	echo "+ Installation successful"
+        echo "+ Installation successful"
     fi
 else
     echo "- The setup program could not read/create the configuration file $HOME/.tkgeometryrc properly"
