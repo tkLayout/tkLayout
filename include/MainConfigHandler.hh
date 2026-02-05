@@ -40,7 +40,6 @@ public:
   static mainConfigHandler& instance();
 
   bool getConfiguration(bool checkDirExists = true);
-  //bool getConfiguration(std::string& layoutDirectory, std::string& xmlDirectory);
   bool getConfiguration(std::string& layoutDirectory);
   std::string getBinDirectory();
   std::string getLayoutDirectory();
@@ -65,14 +64,12 @@ private:
 
   bool goodConfigurationRead_;
   std::map<std::string, std::vector<int> > detIdSchemes_;
-  //std::string styleDirectory_;
   std::string binDirectory_;
   std::string layoutDirectory_;
-  //std::string xmlDirectory_;
   std::string standardDirectory_;
-  std::vector<double> momenta_;
-  std::vector<double> triggerMomenta_;
-  std::vector<double> thresholdProbabilities_;
+  std::vector<double> momenta_; // [MeV/c]
+  std::vector<double> triggerMomenta_; // [MeV/c]
+  std::vector<double> thresholdProbabilities_; // [%]
   bool checkDirectory(std::string dirName);
   void askBinDirectory();
   void askLayoutDirectory();
