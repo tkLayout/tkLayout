@@ -38,9 +38,12 @@ template <class T> bool from_string(T& t, const std::string& s, std::ios_base& (
 
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
-  binDirectory_ = "";
-  layoutDirectory_ = "";
-  standardDirectory_ = "";
+  binDirectory_ = HOMEDIRECTORY + static_cast<string>("/bin");
+  layoutDirectory_ = HOMEDIRECTORY + static_cast<string>("/www/layouts");
+  standardDirectory_ = HOMEDIRECTORY + static_cast<string>("/geometry");
+  momenta_ = { 1.00e3, 10.00e3, 100.00e3 };
+  triggerMomenta_ = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 };
+  thresholdProbabilities_ = { 1e-2, 50e-2, 90e-2, 95e-2 };
 }
 
 mainConfigHandler& mainConfigHandler::instance() {
@@ -147,6 +150,29 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
+  cout << "Could not find the configuration file "  << configFileName
+      << " maybe this is the first time you run with the new system." << endl;
+  cout << "Answer to the following questions to have your configuration file automatically created." << endl;
+  cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
+  cout << endl;
+
+  char userAnswer = 'y';
+  cout << "*** Would you like to use the default .tkgeometryrc configuration? [y/n]\n"
+       << "    - Executables directory:                               '$HOME/bin'\n"
+       << "    - Web server output directory:                         '$HOME/www/layouts'\n"
+       << "    - Standard output directory:                           '$HOME/tkgeometry'\n"
+       << "    - List of transverse momenta for the \n" \
+          "      tracking performance test (in GeV/c):                '1.00, 10.00, 100.00'\n" \
+       << "    - List of transverse momenta for the \n" \
+          "      efficiency performance test (in GeV/c):              '1.00, 2.00, 5.00, 10.00'\n" \
+       << "    - List of trigger efficiency for the \n" \
+          "      pt threshold find test (in %):                       '1, 50, 90, 95'" << endl;
+  do { cin >> userAnswer; }
+  while( !std::cin.fail() && userAnswer != 'y' && userAnswer != 'n' );
+
+  if ( userAnswer == 'n' ) {
+    // Clear the default config
+    momenta_.clear(); triggerMomenta_.clear(); thresholdProbabilities_.clear();
 
   askBinDirectory();
   if (!checkDirectory(binDirectory_)) return false;
@@ -156,14 +182,15 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   if (!checkDirectory(layoutDirectory_)) return false;
   cout << endl;
 
-  while(!checkDirectory(binDirectory_)) askBinDirectory();
-  cout << endl;
+    askStandardDirectory();
+    cout << endl;
 
-  askMomenta();
+    askMomenta();
 
-  askTriggerMomenta();
+    askTriggerMomenta();
 
-  askThresholdProbabilities();
+    askThresholdProbabilities();
+  }
 
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
@@ -203,7 +230,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
   }
 
-  return true;
+  return true; 
 }
 
 
