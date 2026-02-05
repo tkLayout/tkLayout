@@ -8,6 +8,7 @@
 #include "OuterCabling/ModulesToBundlesConnector.hh"
 #include "OuterCabling/OuterDTC.hh"
 
+namespace insur {
 
 /* Build the cabling map.
    The cabling map contains all the necessary bundles, cables and DTCs for a given tracker.
@@ -62,5 +63,6 @@ private:
   // All bundles, cables, and DTC are owned by the Cabling map, and the Cabling map only!!
 };
 
+}
 
 #endif  // OUTERCABLINGMAP_HH

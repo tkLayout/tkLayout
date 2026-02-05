@@ -9,6 +9,7 @@
 #include "InnerCabling/InnerBundle.hh"
 #include "InnerCabling/inner_cabling_functions.hh"
 
+namespace insur {
 
 /*
  * Inner Tracker DTC class.
@@ -46,6 +47,6 @@ private:
   int plotColor_;
 };
 
-
+}
 
 #endif

@@ -301,14 +301,14 @@ struct CheckPhiIndex {
 
 struct Rounder {
   virtual ~Rounder() {};
-  static const int mmFraction = 1000;  // Drawing with 1 micrometer precision
+  static constexpr int mmFraction = 1000;  // Drawing with 1 micrometer precision
   int round(double x) { return floor(x*mmFraction+0.5); }
 };
 
-struct XY : public std::pair<int, int>, private Rounder {
+struct XY : private Rounder, public std::pair<int, int> {
   const bool valid;
   // XY coordinates of the centre of module m.
- XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   // XY coordinates of vector v.
  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
@@ -319,7 +319,7 @@ struct XY : public std::pair<int, int>, private Rounder {
 };
 
 // Same as XY, but for (-Z) side.
-struct XYRotateY180 : public std::pair<int, int>, private Rounder {
+struct XYRotateY180 : private Rounder, public std::pair<int, int> {
   const bool valid;
   // XY coordinates of the centre of module m.
  XYRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
@@ -332,7 +332,7 @@ struct XYRotateY180 : public std::pair<int, int>, private Rounder {
 };
 
 // Same as XY, but for (-Z) side.
-struct XYNeg : public std::pair<int, int>, private Rounder {
+struct XYNeg : private Rounder, public std::pair<int, int> {
   const bool valid;
   // XY coordinates of the centre of module m.
  XYNeg(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
@@ -345,7 +345,7 @@ struct XYNeg : public std::pair<int, int>, private Rounder {
 };
 
 // Same as XY, but for (-Z) side.
-struct XYNegRotateY180 : public std::pair<int, int>, private Rounder {
+struct XYNegRotateY180 : private Rounder, public std::pair<int, int> {
   const bool valid;
   // XY coordinates of the centre of module m.
  XYNegRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
@@ -357,7 +357,7 @@ struct XYNegRotateY180 : public std::pair<int, int>, private Rounder {
   int y() const { return this->second; }
 };
 
-struct YZ : public std::pair<int, int>, private Rounder {
+struct YZ : private Rounder, public std::pair<int, int>  {
   const bool valid;
   // RZ coordinates of the centre of module m, in the plane (RZ) defined by ((Z axis), moduleCenter).
  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
@@ -390,7 +390,7 @@ struct YZFull : public YZ {
  YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
 };
 
-struct ZPhi : public std::pair<double, double>, private Rounder {
+struct ZPhi : private Rounder, public std::pair<double, double> {
   const bool valid;
   // ZPhi coordinates of the centre of module m.
   ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
@@ -458,8 +458,8 @@ public:
       XYZVector ex(mex.X(), mex.Y(), mex.Z());
       XYZVector ey(mey.X(), mey.Y(), mey.Z());
       XYZVector center = m.center();
-      double x[contourSize+1];
-      double y[contourSize+1];
+      std::vector<double> x(contourSize+1);
+      std::vector<double> y(contourSize+1);
       std::set<CoordType> xy; // duplicate detection
 
       int j=0;
@@ -482,7 +482,7 @@ public:
       y[j++] = y[0];
 
       // std::cerr << std::endl;
-      return new TPolyLine(j, x, y);
+      return new TPolyLine(j, x.data(), y.data());
     }
   }
 };
@@ -734,7 +734,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const Visitabl
   public:
     ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd, const ModuleValidator& isValid) : pd_(pd), isValid_(isValid) {};
     void visit(const Module& m) {
-      int subDet = m.subdet();
+      //int subDet = m.subdet();
       if (isValid_(m)) pd_->add(m);
     }
   };

@@ -849,7 +849,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 
           myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
           double curAvgTrue=0;
-          double curAvgInteresting=0;
           double curAvgFake=0;
           double bgReductionFactor; // Reduction of the combinatorial background for ptPS modules by turning off the appropriate pixels
 
@@ -864,8 +863,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
               if (hitModule==nullptr) logERROR("Track::fillTriggerEfficiencyGraphs: This SHOULD NOT happen -> an active hit does not correspond to any module!");
 
               PtErrorAdapter pterr(*hitModule);
-              // Hits that we would like to have from tracks above this threshold
-              curAvgInteresting += pterr.getParticleFrequencyPerEventAbove(iMomentum);
               // ... out of which we only see these
               curAvgTrue += pterr.getTriggerFrequencyTruePerEventAbove(iMomentum);
 
@@ -1411,7 +1408,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   origin    = track.getOrigin();
   direction = track.getDirection();
   double distance, r;
-  int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
@@ -1426,7 +1422,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
         if (h.second != HitType::NONE) {
           distance = h.first.R();
           // module was hit
-          hits++;
           r = distance * sin(track.getTheta());
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
@@ -1446,8 +1441,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
             tmp.interaction = tmp.interaction / cos(track.getTheta() + tiltAngle - M_PI/2);
           }
 
-          double tmpr = 0., tmpi = 0.;
-
 	  const double theta = track.getTheta();
 
 	  const std::map<LocalElement, RILength, ComponentNameCompare>& modulesComponentsRI = iter->getComponentsRI();
@@ -1460,9 +1453,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
 	    sumComponentsRI[componentName].radiation += correctedMat.radiation;
 	    sumComponentsRI[componentName].interaction += correctedMat.interaction;
 
-	    // TO DO: what the hell is this duplicated work? also, the sum might not even be ok.
-            tmpr += sumComponentsRI.at(componentName).radiation; 
-            tmpi += sumComponentsRI.at(componentName).interaction;
           }
           // 2D plot and eta plot results
           if (!isPixel) fillCell(r, track.getEta(), track.getTheta(), tmp);
@@ -1568,7 +1558,6 @@ RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
   XYZVector origin, direction;
   origin    = t.getOrigin();
   direction = t.getDirection();
-  int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
@@ -1576,7 +1565,6 @@ RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
         auto h = iter->getModule().checkTrackHits(origin, direction); 
         if (h.second != HitType::NONE) {
           // module was hit
-          hits++;
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
@@ -2541,7 +2529,7 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   //std::pair<double, TGraph> elemTotalGraph;
   std::pair<double, TProfile> elemTotalProfile;
   //TGraph totalGraph;
-  char dummyName[256]; sprintf(dummyName, "dummyName%d", bsCounter++);
+  char dummyName[256]; snprintf(dummyName, 256, "dummyName%d", bsCounter++);
   TProfile totalProfile(dummyName, dummyName, nbins, 0, myEtaMax);
   //elemTotalGraph.first = GraphBag::Triggerable;
   //elemTotalGraph.second = totalGraph;
@@ -3151,7 +3139,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   //TProfile* total = total2D.ProfileX("etaProfileTotal");
   char profileName_[256];
-  sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
+  snprintf(profileName_, 256, "etaProfileTotal%d", bsCounter++);
   // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
   const double plotNumberOfHitModulesMaxY = (!tracker.isPixelTracker() ? plotNumberOfOuterTrackerHitModulesMaxY : plotNumberOfInnerTrackerHitModulesMaxY);

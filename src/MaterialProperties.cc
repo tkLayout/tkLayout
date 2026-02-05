@@ -19,13 +19,11 @@ const RILength RILength::operator+(const RILength &other) const {
   return result;              // All done!
 }
 
+define_enum_strings(insur::MechanicalCategory) = { "Unknown", "Module", "Cabling", "Supports & Cooling" };
 
+define_enum_strings(insur::MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
 
 namespace insur {
-
-  define_enum_strings(MechanicalCategory) = { "Unknown", "Module", "Cabling", "Supports & Cooling" };
-
-
 
     /*-----public functions-----*/
     /**
@@ -390,8 +388,5 @@ namespace insur {
         return split.first;
     }
 
-
-
-  define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
 }
 

@@ -10,9 +10,9 @@
 #include "InnerCabling/inner_cabling_functions.hh"
 
 
-namespace insur { class InnerBundle; }
-using insur::InnerBundle;
+namespace insur {
 
+class InnerBundle;
 
 /*
  * Low-Power Giga Bit Transceiver class.
@@ -88,6 +88,6 @@ private:
   int plotPowerChainColor_;
 };
 
-
+}
 
 #endif

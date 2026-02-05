@@ -327,7 +327,7 @@ RodTemplate Layer::makeRodTemplate(const double skewAngle) {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   const int numModules = rodTemplate.size();
   for (int i = 0; i < numModules; i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>(), subdetectorName())));
+    rodTemplate[i] = std::unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>(), subdetectorName()));
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
     if (isSkewedForInstallation()) rodTemplate[i]->skewAngle(skewAngle);

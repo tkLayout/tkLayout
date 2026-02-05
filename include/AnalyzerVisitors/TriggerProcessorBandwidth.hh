@@ -58,7 +58,6 @@ class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   const Tracker* tracker_;
   const SimParms* simParms_;
 
-  int accumulatedLayerOffset_ = 0;
 public:
   SummaryTable processorConnectionSummary, processorInboundBandwidthSummary, processorInboundStubPerEventSummary;
   SummaryTable processorCommonConnectionSummary;

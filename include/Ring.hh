@@ -34,8 +34,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double thetaStart_, thetaEnd_;
 
-  double thetaStartInner_, thetaEndInner_;
-
   double numPhi_, phiOverlap_;
 
   double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
@@ -71,12 +69,12 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   void buildLeftRight(double lastThetaEnd);
   void check() override;
 
-  void accept(GeometryVisitor& v) {
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     for (auto& m : modules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const {
-    v.visit(*this); 
+  void accept(ConstGeometryVisitor& v) const override {
+    v.visit(*this);
     for (const auto& m : modules_) { m.accept(v); }
     }
 
@@ -200,27 +198,7 @@ public:
 
   int nModules() const { return modules_.size(); }
  
-  Ring(const std::string subdetectorName) :
-    materialObject_(MaterialObject::ROD, subdetectorName),
-      moduleShape           ("moduleShape"           , parsedAndChecked()),
-      phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
-      requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
-      phiSegments           ("phiSegments"           , parsedOnly(), 4),
-      additionalModules     ("additionalModules"     , parsedOnly(), 0),
-      alignEdges            ("alignEdges"            , parsedOnly(), true),
-      ringGap               ("ringGap"               , parsedOnly(), 0.),
-      smallParity           ("smallParity"           , parsedOnly(), 1),
-      moduleNode            ("Module"                , parsedOnly()),
-      subdetectorName_      (subdetectorName),
-      smallDelta            ("smallDelta"            , parsedAndChecked()),
-      phiShift              ("phiShift"              , parsedOnly(),0.),
-      zError                ("zError"                , parsedAndChecked()),
-      rSafetyMargin         ("rSafetyMargin"         , parsedOnly(), 0.),
-      numModules            ("numModules"            , parsedOnly()),
-      zRotation             ("zRotation"             , parsedOnly(), 0.),
-      ringOuterRadius       ("ringOuterRadius"       , parsedOnly(), -1.),
-      ringInnerRadius       ("ringInnerRadius"       , parsedOnly(), -1.)
-  {}
+  Ring(const std::string subdetectorName);
 
   void setup() {
     minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
@@ -265,11 +243,11 @@ public:
 
   void computeActualPhiCoverage();
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     for (auto& m : modules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const override {
     v.visit(*this); 
     for (const auto& m : modules_) { m.accept(v); }
   }

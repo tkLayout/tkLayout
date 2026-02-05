@@ -246,7 +246,7 @@ public:
 
   virtual void setup();
   void check() override;
-  virtual void build();
+  virtual void build() override;
   // Geometric module interface
   const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
 
@@ -514,19 +514,19 @@ class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
   int16_t ring() const { return (int16_t)myid(); }
-  int16_t moduleRing() const { return ring(); }
+  int16_t moduleRing() const override { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
   BarrelModule(Decorated* decorated, const std::string subdetectorName) :
     DetectorModule(decorated, subdetectorName)
   { setup(); }
 
-  void accept(GeometryVisitor& v) {
+  void accept(GeometryVisitor& v) override {
     v.visit(*this);
     v.visit(*(DetectorModule*)this);
     decorated().accept(v);
   }
-  void accept(ConstGeometryVisitor& v) const {
+  void accept(ConstGeometryVisitor& v) const override {
     v.visit(*this);
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v);
@@ -603,7 +603,7 @@ public:
       });
   }
 
-  void build();
+  void build() override;
 
 
   //double maxZ() const { return MAX(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
@@ -611,11 +611,11 @@ public:
   //double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
   //double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
 
-  virtual ModuleSubdetector subdet() const { return BARREL; }
+  virtual ModuleSubdetector subdet() const override { return BARREL; }
 
-  PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
-  TableRef tableRef() const { return (TableRef){ subdetectorName(), layer(), ring() }; }
-  UniRef uniRef() const { return UniRef{ subdetectorName(), layer(), ring(), rod(), side() }; }
+  PosRef posRef() const override { return (PosRef){ subdetectorId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
+  TableRef tableRef() const override { return (TableRef){ subdetectorName(), layer(), ring() }; }
+  UniRef uniRef() const override { return UniRef{ subdetectorName(), layer(), ring(), rod(), side() }; }
 };
 
 
@@ -624,7 +624,7 @@ class EndcapModule : public DetectorModule, public Clonable<EndcapModule> {
 public:
   Property<int16_t, AutoDefault> disk;
   Property<int16_t, AutoDefault> ring;
-  int16_t moduleRing() const { return ring(); };
+  int16_t moduleRing() const override { return ring(); };
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
   Property<int, AutoDefault> endcapDiskSurface;
@@ -703,15 +703,15 @@ public:
       });
   }
 
-  void build();
+  void build() override;
 
-  void accept(GeometryVisitor& v) {
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     v.visit(*(DetectorModule*)this);
     decorated().accept(v); 
   }
-  void accept(ConstGeometryVisitor& v) const {
-    v.visit(*this); 
+  void accept(ConstGeometryVisitor& v) const override {
+    v.visit(*this);
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
   }
@@ -729,11 +729,11 @@ public:
   //                      return ((side[0]+side[1])/2).Rho(); }
 
 
-  virtual ModuleSubdetector subdet() const { return ENDCAP; }
+  virtual ModuleSubdetector subdet() const override { return ENDCAP; }
 
-  PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
-  TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }
-  UniRef uniRef() const { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
+  PosRef posRef() const override { return (PosRef){ subdetectorId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
+  TableRef tableRef() const override { return (TableRef){ subdetectorName(), disk(), ring() }; }
+  UniRef uniRef() const override { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
 
 private:
   bool isSmallerAbsZModuleInRing_;

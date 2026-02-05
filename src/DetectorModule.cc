@@ -764,7 +764,7 @@ const OuterDTC* DetectorModule::getDTC() const {
   const OuterDTC* myDTC = nullptr;
   const OuterBundle* myBundle = getBundle();
   if (myBundle) {
-    const OuterCable* myCable = myBundle->getCable();
+    const insur::OuterCable* myCable = myBundle->getCable();
     if (myCable) {
       myDTC = myCable->getDTC();
     }

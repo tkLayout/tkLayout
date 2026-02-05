@@ -10,9 +10,9 @@
 #include "InnerCabling/inner_cabling_functions.hh"
 
 
-namespace insur { class InnerDTC; }
-using insur::InnerDTC;
+namespace insur {
 
+class InnerDTC;
 
 /*
  * Inner Tracker Fiber Bundle class.
@@ -67,6 +67,6 @@ private:
   int plotColor_;
 };
 
-
+}
 
 #endif

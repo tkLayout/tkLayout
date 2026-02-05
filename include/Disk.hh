@@ -147,11 +147,11 @@ public:
   void computeActualCoverage();
   void computeActualZCoverage();
 
-  void accept(GeometryVisitor& v) {
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     for (auto& r : rings_) { r.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const override {
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
   }

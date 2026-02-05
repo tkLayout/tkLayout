@@ -32,17 +32,17 @@ using boost::property_tree::ptree;
 
 
 class PathfulException : public std::invalid_argument {
-  string path_;
+  string path_, whatstr_;
 public:
-  PathfulException(const string& what, const string& path) : std::invalid_argument(what.c_str()) { pushPath(path); }
-  template<class T> PathfulException(const string& what, const T& obj, const string& objid) : std::invalid_argument(what.c_str()) { pushPath(obj, objid); }
-  PathfulException(const string& what) : std::invalid_argument(what.c_str()) {}
+  PathfulException(const string& what, const string& path) : std::invalid_argument(what.c_str()) { pushPath(path); whatstr_ =(this->path() + " : " + dynamic_cast<const std::invalid_argument*>(this)->what()); }
+  template<class T> PathfulException(const string& what, const T& obj, const string& objid) : std::invalid_argument(what.c_str()) { pushPath(obj, objid); whatstr_ = (this->path() + " : " + dynamic_cast<const std::invalid_argument*>(this)->what()); }
+  PathfulException(const string& what) : std::invalid_argument(what.c_str()) { whatstr_ = what;}
   virtual ~PathfulException() throw() {};
   void pushPath(const string& p) { path_ = p + (!path_.empty() ? "." + path_ : ""); }
   template<class T> void pushPath(const T& obj, const string& objid) { pushPath(string(typeid(obj).name()) + "(" + objid + ")"); }
   template<class T, class U> void pushPath(const T& obj, const U& objid) { pushPath(string(typeid(obj).name()) + "(" + any2str(objid) + ")"); }
   const string& path() const { return path_; }
-  virtual const char* what() const throw() override { return (path() + " : " + std::invalid_argument::what()).c_str(); }
+  virtual const char* what() const throw() override { return whatstr_.c_str(); }
 };
 
 struct CheckedPropertyMissing : public PathfulException { CheckedPropertyMissing(const string& objid) : PathfulException("Checked property not set", objid) {} };
@@ -164,8 +164,6 @@ public:
 typedef std::map<string, Parsable*> PropertyMap;
 
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdangling-reference"
 template<typename T, template<typename> class ValueHolder>
 class Property : public PropertyBase<T>, public Parsable {
   ValueHolder<T> valueHolder_;
@@ -186,7 +184,6 @@ public:
   void fromPtree(const ptree& pt) { valueHolder_(str2any<T>(pt.data())); }
   void fromString(const string& s) { valueHolder_(str2any<T>(s)); }
 };
-#pragma GCC diagnostic pop
 
 template<typename T, template<typename> class ValueHolder>
 class ReadonlyProperty : public Property<T, ValueHolder> {
@@ -452,8 +449,8 @@ public:
 
 };
 
-inline ptree getChild(const ptree& pt, const string& name) { return pt.get_child(name, ptree()); }
-inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); } 
+inline ptree getChild(const ptree& pt, const string& name) { ptree default_tree; return pt.get_child(name, default_tree); }
+inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); }
 
 
 std::set<string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);

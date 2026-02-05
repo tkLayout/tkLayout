@@ -8,7 +8,7 @@
 
 #----------------------------------------------------------------------------
 # CMAKE compatibility issues
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 #----------------------------------------------------------------------------
 # Project name and version
@@ -20,8 +20,8 @@ OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF )
 
 
 # using cache lets users override with " cmake -DCMAKE_CXX_STANDARD=14 .. "
-SET(CMAKE_CXX_STANDARD 17 CACHE STRING "")
-add_compile_options(-Wall -Werror -fmax-errors=2 -g)
+SET(CMAKE_CXX_STANDARD 20 CACHE STRING "")
+add_compile_options(-Wall -Werror -Wno-undefined-var-template -g)
 
 
 
@@ -70,8 +70,13 @@ FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh
 # Exlude files with main function defined
 SET ( sources "" )
 FOREACH( file ${all_sources} )
- IF ( ${file} MATCHES "MaterialSection.cc" OR ${file} MATCHES "HoughTrack.cc" OR
-      ${file} MATCHES "TrackShooter.cc" OR ${file} MATCHES "tunePtParam.cc" OR ${file} MATCHES "diskPlace.cc")
+ IF ( ${file} MATCHES "MaterialSection.cc" OR
+      ${file} MATCHES "HoughTrack.cc" OR
+      ${file} MATCHES "TrackShooter.cc" OR
+      ${file} MATCHES "tunePtParam.cc" OR
+      ${file} MATCHES "diskPlace.cc" OR
+      ${file} MATCHES "ringPlace.cc" OR
+      ${file} MATCHES "ringName.cc" )
    SET ( APPEND source_other ${file} )
    MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
  ELSEIF( ${file} MATCHES "tklayout.cc" OR ${file} MATCHES "setup.cc" OR ${file} MATCHES "delphize.cc" )

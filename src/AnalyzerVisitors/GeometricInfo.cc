@@ -582,7 +582,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
       std::stringstream bundleInfo;
       bundleInfo << myBundle->myid() << ", ";
 
-      const OuterCable* myCable = myBundle->getCable();
+      const insur::OuterCable* myCable = myBundle->getCable();
       if (myCable != nullptr) {
 	std::stringstream cableInfo;
 	cableInfo << myCable->myid() << ", "
@@ -592,7 +592,7 @@ void ModulesToDTCsVisitor::visit(const Module& m) {
 		   << myBundle->powerChannelSection()->channelNumber() << " " 
 		   << any2str(myBundle->powerChannelSection()->channelSlot()) << ", ";
 	
-	const OuterDTC* myDTC = myCable->getDTC();
+	const insur::OuterDTC* myDTC = myCable->getDTC();
 	if (myDTC != nullptr) {
 	  std::stringstream DTCInfo;
 	  DTCInfo << myDTC->name() << ", "

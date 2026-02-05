@@ -128,7 +128,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
       if (textX > (endL + textDistanceL)) textX = endL + textDistanceL;
       if (textY > (endR + textDistanceR)) textY = endR + textDistanceR;
 
-      sprintf(labelChar, "%.01f", eta);
+      snprintf(labelChar, 10, "%.01f", eta);
       aLabel = new TText(textX, textY, labelChar);
       aLabel->SetTextAlign(21);
       aLabel->SetTextSize(labelSize);

@@ -332,7 +332,7 @@ namespace insur {
                 }
             }
         }
-        else throw std::out_of_range("Layer index is out of range: " + layer);
+        else throw std::out_of_range(std::string("Layer index is out of range: ") + layer);
         return index;
     }
 

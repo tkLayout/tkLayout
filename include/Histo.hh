@@ -268,13 +268,13 @@ public:
     Histo<M, T, B>* folded = new Histo<M, T>();
     for (int i=0; i < M; i++) {
       int index = indices[i];
-      folded.setBinning(i, nbins_[index], lo_[index], hi_[index]);
+      folded->setBinning(i, nbins_[index], lo_[index], hi_[index]);
     }
 
     for (typename std::map<InternalBinKey, T>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
       typename Histo<M, T>::InternalBinKey key;
       for (int i=0; i < M; i++) key.set(i, it->first.at(indices[i]));
-      folded.bins_[key] += it->second;
+      folded->bins_[key] += it->second;
     }
 
     return folded;

@@ -4421,7 +4421,7 @@ namespace insur {
 
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
-                               ModuleCap&  modcap        ) : modulecap(modcap),
+                               ModuleCap&  modcap        ) :
 							     module(modcap.getModule()),
 							     moduleId(moduleName),
                                                              parentId(parentName),
@@ -4441,7 +4441,6 @@ namespace insur {
                                                              centralDeadAreaLength(module.centralDeadAreaLength()),
 							     chipNegativeXExtraWidth(module.chipNegativeXExtraWidth()),
 							     chipPositiveXExtraWidth(module.chipPositiveXExtraWidth()),
-                                                             hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
@@ -4484,7 +4483,7 @@ namespace insur {
   }
 
   void ModuleComplex::buildSubVolumes() {
-    Volume* vol[nTypes];
+    std::vector<Volume*> vol(nTypes);
     if (!module.isPixelModule()) {
 
       if (!module.isTimingModule()) {

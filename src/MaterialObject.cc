@@ -16,6 +16,7 @@
 #include "MessageLogger.hh"
 #include <stdexcept>
 
+define_enum_strings(material::Location) = { "all", "dee", "external" };
 
 namespace material {
   const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
@@ -24,7 +25,6 @@ namespace material {
       {LAYER, "layer"}
   };
 
-  define_enum_strings(Location) = { "all", "dee", "external" };
 
   MaterialObject::MaterialObject(Type materialType, const std::string subdetectorName) :
     subdetectorName_(subdetectorName),

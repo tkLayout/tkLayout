@@ -1863,11 +1863,8 @@ namespace material {
 
     //modules
     class ModuleVisitor : public GeometryVisitor {
-    private:
-      WeightDistributionGrid& weightDistribution_;
     public:
-      ModuleVisitor(WeightDistributionGrid& weightDistribution) :
-        weightDistribution_(weightDistribution) {}
+      ModuleVisitor(WeightDistributionGrid& weightDistribution) {}
       virtual ~ModuleVisitor() {}
 
       void visit(DetectorModule& module) {

@@ -625,7 +625,7 @@ namespace insur {
 	  myLegend->SetTextSize(0.025);
 
 	  myTable = new RootWTable();
-	  sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+	  snprintf(titleString, 256, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
 	  myTable->setContent(0, 0, titleString);
 	  myTable->setContent(0, 1, "Radiation length");
 	  myTable->setContent(0, 2, "Interaction length");
@@ -732,7 +732,7 @@ namespace insur {
 	allSubdetectorsLegend->SetTextSize(0.025);
 
 	RootWTable* allSubdetectorsTable = new RootWTable();
-	sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+	snprintf(titleString, 256, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
 	allSubdetectorsTable->setContent(0, 0, titleString);
 	allSubdetectorsTable->setContent(0, 1, "Radiation length");
 	allSubdetectorsTable->setContent(0, 2, "Interaction length");
@@ -836,7 +836,7 @@ namespace insur {
 	myLegend->SetTextSize(0.025);
 
 	myTable = new RootWTable();
-	sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+	snprintf(titleString, 256, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
 	myTable->setContent(0, 0, titleString);
 	myTable->setContent(0, 1, "Radiation length");
 	myTable->setContent(0, 2, "Interaction length");
@@ -928,7 +928,7 @@ namespace insur {
       myPad->SetFillColor(color_pad_background);
 
       myTable = new RootWTable();
-      sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+      snprintf(titleString, 256, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
       myTable->setContent(0, 0, titleString);
       myTable->setContent(0, 1, "Radiation length");
       myTable->setContent(0, 2, "Interaction length");
@@ -3439,7 +3439,7 @@ namespace insur {
     // COLLECT DETAILED INFO (FULL TRACKER MATERIALS, TRACKING VOLUME)
     RootWTable* myTable = new RootWTable();
     char titleString[256];
-    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    snprintf(titleString, 256, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
@@ -3476,7 +3476,7 @@ namespace insur {
 
     // TOTAL PER LOCATION (FULL TRACKER MATERIALS, TRACKING VOLUME)
     myTable = new RootWTable();
-    sprintf(titleString, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    snprintf(titleString, 256, "Average (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
@@ -3567,9 +3567,9 @@ namespace insur {
     myImage->setComment("Material in total tracking volume");
     myImage->setName("fullLayoutMatOverviewTrackingVolume");
     myTable = new RootWTable();
-    sprintf(titleString, "Average radiation length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    snprintf(titleString, 256, "Average radiation length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(1, 1, titleString);
-    sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
+    snprintf(titleString, 256, "Average interaction length in tracking volume (eta = [0, %.1f])", analyzer.getEtaMaxMaterial());
     myTable->setContent(2, 1, titleString);
     if (fullTrackerTrackingVolumeTotalR) myTable->setContent(1, 2, averageHistogramValues(*fullTrackerTrackingVolumeTotalR, analyzer.getEtaMaxMaterial()), 5);
     if (fullTrackerTrackingVolumeTotalI) myTable->setContent(2, 2, averageHistogramValues(*fullTrackerTrackingVolumeTotalI, analyzer.getEtaMaxMaterial()), 5);
@@ -7090,7 +7090,7 @@ namespace insur {
         pw[1]=endTick.Y();
         pw[2]=endTick.Z();
         myView->WCtoNDC(pw, pn);
-        sprintf(labelChar, "%.01f", eta);
+        snprintf(labelChar, 10, "%.01f", eta);
         aLabel = new TText(pn[0], pn[1], labelChar);
         aLabel->SetTextSize(aLabel->GetTextSize()*.6);
         aLabel->SetTextAlign(21);
@@ -7117,7 +7117,7 @@ namespace insur {
       pw[1]=endTick.Y();
       pw[2]=endTick.Z();
       myView->WCtoNDC(pw, pn);
-      sprintf(labelChar, "%.01f", analyzer.getEtaMaxGeometry());
+      snprintf(labelChar, 10, "%.01f", analyzer.getEtaMaxGeometry());
       aLabel = new TText(pn[0], pn[1], labelChar);
       aLabel->SetTextSize(aLabel->GetTextSize()*.8);
       aLabel->SetTextAlign(21);
@@ -7139,7 +7139,7 @@ namespace insur {
         pw[1]=-tickLength;
         pw[2]=endTick.Z();
         myView->WCtoNDC(pw, pn);
-        sprintf(labelChar, "%.0f", z);
+        snprintf(labelChar, 10, "%.0f", z);
         aLabel = new TText(pn[0], pn[1], labelChar);
         aLabel->SetTextSize(aLabel->GetTextSize()*.6);
         aLabel->SetTextAlign(23);
@@ -7160,7 +7160,7 @@ namespace insur {
         pw[1]=endTick.Y();
         pw[2]=-tickLength;
         myView->WCtoNDC(pw, pn);
-        sprintf(labelChar, "%.0f", y);
+        snprintf(labelChar, 10, "%.0f", y);
         aLabel = new TText(pn[0], pn[1], labelChar);
         aLabel->SetTextSize(aLabel->GetTextSize()*.6);
         aLabel->SetTextAlign(32);

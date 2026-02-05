@@ -47,9 +47,8 @@ namespace insur {
      * results for the new files are discarded.
      */
     class tk2CMSSW {
-        mainConfigHandler& mainConfiguration;
     public:
-        tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
+        tk2CMSSW(mainConfigHandler& mch) {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, std::string xmlDirectoryPath, std::string xmlOutputPath, std::string xmlOutputName = "", bool wt = false);
         struct ConfigFile { std::string name, content; };

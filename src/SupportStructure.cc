@@ -131,7 +131,9 @@ namespace material {
         layerRadii.erase(std::prev(layerRadii.end()));
 
         //build inactiveElements inside spaces
-        for(std::set<double>::iterator minIter = layerRadii.begin(), maxIter = ++ layerRadii.begin(); minIter != layerRadii.end(); std::advance(minIter,2), std::advance(maxIter,2)) {
+        for(std::set<double>::iterator minIter = layerRadii.begin(), maxIter = std::next(layerRadii.begin());
+            std::distance(minIter, layerRadii.end()) > 0;
+            std::advance(minIter,2), std::advance(maxIter,std::min(2, (int)std::distance(maxIter, layerRadii.end())))) {
           buildInactiveElementPair(direction_, autoPosition(), *minIter, *maxIter - *minIter);
         }
         logINFO("Building barrel support structure vertically oriented, positioned at Z: "+any2str(autoPosition()));

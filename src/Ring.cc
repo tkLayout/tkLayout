@@ -1,6 +1,28 @@
 #include "Ring.hh"
 #include "MessageLogger.hh"
 
+Ring::Ring(const std::string subdetectorName) :
+  materialObject_(MaterialObject::ROD, subdetectorName),
+    moduleShape           ("moduleShape"           , parsedAndChecked()),
+    phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
+    requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
+    phiSegments           ("phiSegments"           , parsedOnly(), 4),
+    additionalModules     ("additionalModules"     , parsedOnly(), 0),
+    alignEdges            ("alignEdges"            , parsedOnly(), true),
+    ringGap               ("ringGap"               , parsedOnly(), 0.),
+    smallParity           ("smallParity"           , parsedOnly(), 1),
+    moduleNode            ("Module"                , parsedOnly()),
+    subdetectorName_      (subdetectorName),
+    smallDelta            ("smallDelta"            , parsedAndChecked()),
+    phiShift              ("phiShift"              , parsedOnly(),0.),
+    zError                ("zError"                , parsedAndChecked()),
+    rSafetyMargin         ("rSafetyMargin"         , parsedOnly(), 0.),
+    numModules            ("numModules"            , parsedOnly()),
+    zRotation             ("zRotation"             , parsedOnly(), 0.),
+    ringOuterRadius       ("ringOuterRadius"       , parsedOnly(), -1.),
+    ringInnerRadius       ("ringInnerRadius"       , parsedOnly(), -1.)
+{}
+
 inline void Ring::check() {
   PropertyObject::check();
   if (moduleShape() == ModuleShape::WEDGE && buildDirection() == TOPDOWN) throw PathfulException("Wedge-module rings cannot be built top down");

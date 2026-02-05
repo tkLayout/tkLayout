@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
   
   if (itPtProfiles==ptProfiles.end()) {
     std::cerr << "Error: the collection of profiles is empty" << std::endl;
-    return false;
+    return 1;
   }
   
   // First profile -> get eta, rescale bins, ...
@@ -287,5 +287,5 @@ int main(int argc, char* argv[]) {
   outFile->close();
   delete outFile;
 
-  return true;
+  return 0;
 }

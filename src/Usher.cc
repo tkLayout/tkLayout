@@ -1456,7 +1456,6 @@ namespace insur {
           std::vector<int> layer_counters_;
           std::vector<bool>& barrel_has_services_;
           
-          double prevZ = -1.;
           int index = 0;
         public:
           BarrelVisitor(std::vector<std::pair<double, double> >& radius_list_io, 
@@ -1537,7 +1536,6 @@ namespace insur {
           std::vector<int> layer_counters_;
           std::vector<bool>& endcap_has_services_;
 
-          double prevR = -1.;
           int index = 0;
         public:
           EndcapVisitor(std::vector<std::pair<double, double> >& radius_list_io, 

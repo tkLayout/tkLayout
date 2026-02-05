@@ -6,12 +6,12 @@
 
 #include "Property.hh"
 #include "Module.hh"
+#include "OuterCabling/OuterCable.hh"
 #include "OuterCabling/PhiPosition.hh"
 #include "OuterCabling/ServicesChannel.hh"
 
 
-namespace insur { class OuterCable; }
-using insur::OuterCable;
+namespace insur {
 
 
 class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
@@ -102,6 +102,6 @@ private:
   bool isPowerRoutedToBarrelLowerSemiNonant_;
 };
 
-
+}
 
 #endif

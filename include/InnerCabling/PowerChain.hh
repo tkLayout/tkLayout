@@ -9,9 +9,9 @@
 #include "InnerCabling/inner_cabling_functions.hh"
 
 
-namespace insur { class HvLine; }
-using insur::HvLine;
+namespace insur {
 
+class HvLine;
 
 /*
  * Power chain class.
@@ -95,6 +95,6 @@ private:
   int plotColor_;
 };
 
-
+}
 
 #endif

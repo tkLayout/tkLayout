@@ -186,11 +186,11 @@ public:
 
   bool isTiming() const { return rods_.front().isTiming(); }
 
-  void accept(GeometryVisitor& v) {
+  void accept(GeometryVisitor& v) override {
     v.visit(*this);
     for (auto& r : rods_) { r.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const override {
     v.visit(*this);
     for (const auto& r : rods_) { r.accept(v); }
   }

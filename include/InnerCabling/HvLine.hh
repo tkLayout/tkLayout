@@ -7,6 +7,7 @@
 #include "InnerCabling/PowerChain.hh"
 #include "Module.hh"
 
+namespace insur {
 
 /*
  * High Voltage line class.
@@ -43,6 +44,6 @@ private:
   PowerChain* powerChain_ = nullptr;
 };
 
-
+}
 
 #endif

@@ -1,6 +1,7 @@
 #include "OuterCabling/OuterCable.hh"
 #include "OuterCabling/OuterDTC.hh"
 
+using namespace insur;
 
 OuterCable::OuterCable(const int id, const double phiSectorWidth, const int phiSectorRef, const Category& type, const int slot, const bool isPositiveCablingSide) : 
   phiSectorWidth_(phiSectorWidth),

@@ -25,7 +25,7 @@
 
 using std::set;
 using material::SupportStructure;
-
+using insur::OuterCablingMap;
 
 
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {

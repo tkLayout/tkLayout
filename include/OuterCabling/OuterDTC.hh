@@ -5,8 +5,10 @@
 #include <string>
 
 #include "OuterCable.hh"
+#include "OuterBundle.hh"
 #include "Module.hh"
 
+namespace insur {
 
 class OuterDTC : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<OuterCable*> Container;
@@ -49,6 +51,6 @@ private:
   int plotColor_;
 };
 
-
+}
 
 #endif

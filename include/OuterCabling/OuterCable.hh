@@ -5,12 +5,12 @@
 #include <string>
 
 #include "Property.hh"
-#include "OuterBundle.hh"
+#include "OuterCabling/ServicesChannel.hh"
 
+namespace insur {
 
-namespace insur { class DTC; }
-using insur::DTC;
-
+class OuterDTC;
+class OuterBundle;
 
 class OuterCable : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<OuterBundle*> Container;
@@ -61,6 +61,6 @@ private:
   std::unique_ptr<const ChannelSection> opticalChannelSection_; // opticalChannelSection is owned by OuterCable
 };
 
-
+}
 
 #endif

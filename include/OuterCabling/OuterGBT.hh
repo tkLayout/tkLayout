@@ -7,6 +7,8 @@
 #include "Property.hh"
 #include "Module.hh"
 
+namespace insur{
+
 class OuterGBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<Module*> Container; 
 
@@ -30,6 +32,7 @@ private:
 
 };
 
+}
 
 
 #endif

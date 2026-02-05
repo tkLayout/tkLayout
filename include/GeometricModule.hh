@@ -114,7 +114,7 @@ public:
       waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
-  virtual RectangularModule* clone() const { return Clonable<RectangularModule>::clone(); }
+  virtual RectangularModule* clone() const override { return Clonable<RectangularModule>::clone(); }
 
   virtual double area() const override { return length()*width(); }
   virtual double length() const override { return length_(); }
@@ -124,12 +124,12 @@ public:
 
   void length(double l) { length_(l); }
 
-  virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
-  virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
+  virtual void accept(GeometryVisitor& v) override { v.visit(*this); v.visit(*(GeometricModule*)this); }
+  virtual void accept(ConstGeometryVisitor& v) const override { v.visit(*this); v.visit(*(const GeometricModule*)this); }
   virtual void check() override;
   virtual void build() override;
 
-  virtual ModuleShape shape() const { return RECTANGULAR; }
+  virtual ModuleShape shape() const override { return RECTANGULAR; }
 };
 
 
@@ -152,7 +152,7 @@ public:
       waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
-  virtual WedgeModule* clone() const { return Clonable<WedgeModule>::clone(); }
+  virtual WedgeModule* clone() const override { return Clonable<WedgeModule>::clone(); }
 
   virtual double area() const override { return area_; }
   virtual double length() const override { return length_; }
@@ -160,12 +160,12 @@ public:
   virtual double maxWidth() const override { return maxWidth_; }
   virtual double meanWidth() const override { return (maxWidth_ + minWidth_)/2; }
 
-  virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
-  virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
+  virtual void accept(GeometryVisitor& v) override { v.visit(*this); v.visit(*(GeometricModule*)this); }
+  virtual void accept(ConstGeometryVisitor& v) const override { v.visit(*this); v.visit(*(const GeometricModule*)this); }
 
   virtual void build() override;
 
-  virtual ModuleShape shape() const { return WEDGE; }
+  virtual ModuleShape shape() const override { return WEDGE; }
 };
 
 
