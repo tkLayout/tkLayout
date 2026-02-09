@@ -9,3 +9,4 @@ build/
 xml/tmptrackerRecoMaterial.xml
 .vscode
 scripts
+doc/doxygen/
