@@ -31,6 +31,13 @@ static constexpr char MOMENTADEFINITION[] = "TKG_MOMENTA";
 static constexpr char TRIGGERMOMENTADEFINITION[] = "TKG_TRIGGERMOMENTA";
 static constexpr char THRESHOLDPROBABILITIESDEFINITION[] = "TKG_THRESHOLD_PROB";
 
+static const string defaultBinDir = string(HOMEDIRECTORY) + "/bin";
+static const string defaultLayoutDir = string(HOMEDIRECTORY) + "/www/layouts";
+static const string defaultStandardDir = string(HOMEDIRECTORY) + "/tkgeometry";
+static const vector<double> defaultMomenta = { 1.00e3, 10.00e3, 100.00e3 }; // In MeV/c
+static const vector<double> defaultTriggerMomenta = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 }; // In MeV/c
+static const vector<double> defaultThresholdProbabilities = { 1e-2, 50e-2, 90e-2, 95e-2 }; // In percent
+
 template <class T> bool from_string(T& t, const std::string& s, std::ios_base& (*f)(std::ios_base&)) {
   std::istringstream iss(s);
   return !(iss >> f >> t).fail();
@@ -38,12 +45,12 @@ template <class T> bool from_string(T& t, const std::string& s, std::ios_base& (
 
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
-  binDirectory_ = HOMEDIRECTORY + static_cast<string>("/bin");
-  layoutDirectory_ = HOMEDIRECTORY + static_cast<string>("/www/layouts");
-  standardDirectory_ = HOMEDIRECTORY + static_cast<string>("/geometry");
-  momenta_ = { 1.00e3, 10.00e3, 100.00e3 };
-  triggerMomenta_ = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 };
-  thresholdProbabilities_ = { 1e-2, 50e-2, 90e-2, 95e-2 };
+  binDirectory_ = defaultBinDir;
+  layoutDirectory_ = defaultLayoutDir;
+  standardDirectory_ = defaultStandardDir;
+  momenta_ = defaultMomenta;
+  triggerMomenta_ = defaultTriggerMomenta;
+  thresholdProbabilities_ = defaultThresholdProbabilities;
 }
 
 mainConfigHandler& mainConfigHandler::instance() {
@@ -54,13 +61,13 @@ mainConfigHandler& mainConfigHandler::instance() {
 bool mainConfigHandler::checkDirectory(string dirName) {
   if ( boost::filesystem::exists(dirName) ) {
     if (! boost::filesystem::is_directory(dirName) ) { 
-      cout << "Directory '" << dirName << "' is not a directory!" << endl;
+      cerr << "Directory '" << dirName << "' is not a directory!" << endl;
       return false; // If it exists and it is not a directory, error
     }
-  } 
+  }
   else {
     if (! boost::filesystem::create_directories(dirName) ) { // Try to create the specified directory if it doesn't exist
-      cout << "Directory '" << dirName << "' does not exist and could not be created!" << endl;
+      cerr << "Directory '" << dirName << "' does not exist and could not be created!" << endl;
       return false; // One of the elements in the path is likely a file
     }
   }
@@ -68,75 +75,71 @@ bool mainConfigHandler::checkDirectory(string dirName) {
 }
 
 void mainConfigHandler::askBinDirectory() {
-  cout << "*** What is the bin directory where you want to" << endl
-      << "    place your executables?" << endl
-      << "    Example: " << HOMEDIRECTORY << "/bin : ";
-  cin >> binDirectory_;
+  string input = "";
+  cout << "*** What is the bin directory where you want to place your executables?" << endl
+       << "    Default (press ENTER): " << defaultBinDir << endl;
+  getline(cin, input);
+  if (input.empty()) binDirectory_ = defaultBinDir; // Use the default value
+  else binDirectory_ = input; // Use the user-specified value
 }
 
 void mainConfigHandler::askLayoutDirectory() {
-  cout << "*** What is the web server directory where you want to" << endl
-    << "    place your output?" << endl
-    << "    Example: " << HOMEDIRECTORY << "/www/layouts : ";
-  cin >> layoutDirectory_;
+  string input = "";
+  cout << "*** What is the web server directory where you want to place your output?" << endl
+       << "    Default (press ENTER): " << defaultLayoutDir << endl;
+  getline(cin, input);
+  if (input.empty()) layoutDirectory_ = defaultLayoutDir; // Use the default value
+  else layoutDirectory_ = input; // Use the user-specified value
 }
 
 void mainConfigHandler::askStandardDirectory() {
+  string input = "";
   cout << "*** What is the standard output directory?" << endl
-      << "    xml files and other various output will be put here" << endl
-      << "    Example: " << HOMEDIRECTORY << "/tkgeometry : ";
-  cin >> standardDirectory_;
+       << "    .xml files and other various output will be put here" << endl
+       << "    Default (press ENTER): " << defaultStandardDir << endl;
+  getline(cin, input);
+  if (input.empty()) standardDirectory_ = defaultStandardDir; // Use the default value
+  else standardDirectory_ = input; // Use the user-specified value
 }
 
 void mainConfigHandler::askMomenta() {
-  string defaultString = "1, 10, 100";
-  string tempString = "";
-  string tempString2 = "";
-
-  cout << "*** Q4/6. Specify the list of transverse momenta to be used for the" << endl
-      << "    tracking performance test (in GeV/c)" << endl
-      << "    Default: " << defaultString << " : ";
-  getline(cin, tempString);
-  if (tempString.empty()) tempString = defaultString;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  momenta_ = parseDoubleList(tempString);
-  for (double& iMom : momenta_) iMom *= Units::GeV;
+  string input = "";
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+       << "    tracking performance test (in GeV/c)" << endl
+       << "    Default (press ENTER): 1, 10, 100" << endl;
+  getline(cin, input);
+  if (!input.empty()) { // Use the user-specified value
+    momenta_.clear(); // Clear the default config
+    momenta_ = parseDoubleList(input);
+    for (double& iMom : momenta_) iMom *= Units::GeV;
+  }
 }
 
 void mainConfigHandler::askTriggerMomenta() {
-  string defaultString = "1, 2, 5, 10";
-  string tempString = "";
-  string tempString2 = "";
-
-  cout << "*** Q5/6. Specify the list of transverse momenta to be used for the" << endl
-      << "    trigger efficiency performance test (in GeV/c)" << endl
-      << "    Default: " << defaultString << " : ";
-  getline(cin, tempString);
-  if (tempString.empty()) tempString = defaultString;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  triggerMomenta_ = parseDoubleList(tempString);
-  for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
+  string input = "";
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+       << "    efficiency performance test (in GeV/c)" << endl
+       << "    Default (press ENTER): 1, 2, 5, 10" << endl;
+  getline(cin, input);
+  if (!input.empty()) { // Use the user-specified value
+    triggerMomenta_.clear(); // Clear the default config
+    triggerMomenta_ = parseDoubleList(input);
+    for (double& iMom : triggerMomenta_) iMom *= Units::GeV;
+  }
 }
 
 void mainConfigHandler::askThresholdProbabilities() {
-  string defaultString = "1, 50, 90, 95";
-  string tempString = "";
-  string tempString2 = "";
-
-  cout << "*** Q6/6. Specify the list of trigger efficiencies to be used for the" << endl
-      << "    pt threshold find test (in percent: type 100 for full efficiency)" << endl
-      << "    Default: " << defaultString << " : ";
-  getline(cin, tempString);
-  if (tempString.empty()) tempString = defaultString;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  thresholdProbabilities_ = parseDoubleList(tempString);
-  for (vector<double>::iterator it = thresholdProbabilities_.begin();
-      it!=thresholdProbabilities_.end(); ++it) (*it)/=100;
+  string input = "";
+  cout << "*** Specify the list of trigger efficiency to be used for the" << endl
+       << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
+       << "    Default (press ENTER): 1, 50, 90, 95" << endl;
+  getline(cin, input);
+  if (!input.empty()) { // Use the user-specified value
+    thresholdProbabilities_.clear(); // Clear the default config
+    thresholdProbabilities_ = parseDoubleList(input);
+    for (double& prob : thresholdProbabilities_) prob *= 0.01;
+  }
 }
-
 
 bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
 
@@ -167,23 +170,20 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
           "      efficiency performance test (in GeV/c):              '1.00, 2.00, 5.00, 10.00'\n" \
        << "    - List of trigger efficiency for the \n" \
           "      pt threshold find test (in %):                       '1, 50, 90, 95'" << endl;
-  do { cin >> userAnswer; }
+  do { 
+    if (std::cin >> userAnswer) std::cin.get(); // Consume the '\n' left behind in case the user types a single character
+  }
   while( !std::cin.fail() && userAnswer != 'y' && userAnswer != 'n' );
-
+  
   if ( userAnswer == 'n' ) {
-    // Clear the default config
-    momenta_.clear(); triggerMomenta_.clear(); thresholdProbabilities_.clear();
+    do { askBinDirectory(); }
+    while (!checkDirectory(binDirectory_));
 
-  askBinDirectory();
-  if (!checkDirectory(binDirectory_)) return false;
-  cout << endl;
+    do { askLayoutDirectory(); }
+    while (!checkDirectory(layoutDirectory_));
 
-  askLayoutDirectory();
-  if (!checkDirectory(layoutDirectory_)) return false;
-  cout << endl;
-
-    askStandardDirectory();
-    cout << endl;
+    do { askStandardDirectory(); }
+    while (!checkDirectory(standardDirectory_));
 
     askMomenta();
 
