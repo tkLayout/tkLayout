@@ -2,8 +2,6 @@
 
 myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
-#TKG_MATSHOW=$myDir/bin/materialShow
-#TKG_TUNE=$myDir/bin/tunePtParam
 TKG_SETUP_BIN=$myDir/bin/setup
 
 if [ ! -f $TKG_MAIN ] ; then
@@ -22,16 +20,16 @@ fi
 export TKLAYOUTDIRECTORY=`realpath -s $myDir`
 
 # Create/read the configuration file
-if $TKG_SETUP_BIN ; then
+if $TKG_SETUP_BIN; then
     # Get the variables from the program
     eval "`$TKG_SETUP_BIN --dirNames`"
+
     # Get the rest of the configuration from the config file itself
     source $TKG_CONFIGFILE
 
     mkdir -p $TKG_BINDIRECTORY
-
     if [ ! -d $TKG_BINDIRECTORY ] ; then
-        echo "- I cannot find the target directory $(TKG_BINDIRECTORY)"
+        echo I cannot find the target directory $TKG_BINDIRECTORY
         exit -1
     fi
 
@@ -41,10 +39,21 @@ if $TKG_SETUP_BIN ; then
         || echo "- Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY"
 
     # Copying the directory with .css and all that jazz
-    echo "Copying style files to the web directory -> $TKG_LAYOUTDIRECTORY"
-        cp -R $TKG_SOURCE_STYLE $TKG_LAYOUTDIRECTORY \
-        && echo "+ Style files copied"
-          
+    mkdir -p $TKG_LAYOUTDIRECTORY
+    if [ ! -d $TKG_LAYOUTDIRECTORY ] ; then
+        echo I cannot find the target directory $TKG_LAYOUTDIRECTORY
+        exit -1
+    fi
+    cp -R $TKG_SOURCE_STYLE $TKG_LAYOUTDIRECTORY
+
+    # Copying the xml and the config files to the standard directory
+    mkdir -p $TKG_STANDARDDIRECTORY
+    if [ ! -d $TKG_STANDARDDIRECTORY ] ; then
+        echo I cannot find the target directory $TKG_STANDARDDIRECTORY
+        exit -1
+    fi
+    cp -R --parents $myDir/xml $TKG_STANDARDDIRECTORY/
+    cp -R --parents $myDir/config $TKG_STANDARDDIRECTORY/
 
     if ! $TKG_SETUP_BIN --checkDir ; then
         echo "- Problem during installation"
@@ -54,11 +63,5 @@ if $TKG_SETUP_BIN ; then
     fi
 else
     echo "- The setup program could not read/create the configuration file $HOME/.tkgeometryrc properly"
-fi
-unset TKLAYOUTDIRECTORY
-
-cd $myDir
-if [ "$TKG_STANDARDDIRECTORY" != `pwd` ]
-then echo -e "ERROR: your config file $TKG_CONFIGFILE should contain the following line:\nTKG_STANDARDDIRECTORY=\"`pwd`\""
 fi
 
