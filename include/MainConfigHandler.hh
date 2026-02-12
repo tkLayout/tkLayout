@@ -34,15 +34,24 @@ public:
 // If the configuration file is not present, wuations will
 // be asked directly through std::cin and the corresponding
 // configuration file will be saved in the home directory
-
 class mainConfigHandler : public GraphVizCreator {
 private:
   mainConfigHandler();
 public:
   ~mainConfigHandler() {};
+
+  static const std::string HOMEDIRECTORY;
+  static constexpr char CONFIGURATIONFILENAME[] = ".tkgeometryrc";
+  static constexpr char CONFIGURATIONFILENAMEDEFINITION[] = "TKGEOMETRYRC";
+  static constexpr char BINDIRECTORYDEFINITION[] = "TKG_BINDIRECTORY";
+  static constexpr char LAYOUTDIRECTORYDEFINITION[] = "TKG_LAYOUTDIRECTORY";
+  static constexpr char STANDARDDIRECTORYDEFINITION[] = "TKG_STANDARDDIRECTORY";
+  static constexpr char MOMENTADEFINITION[] = "TKG_MOMENTA";
+  static constexpr char TRIGGERMOMENTADEFINITION[] = "TKG_TRIGGERMOMENTA";
+  static constexpr char THRESHOLDPROBABILITIESDEFINITION[] = "TKG_THRESHOLD_PROB";
+
   static mainConfigHandler& instance();
   bool getConfiguration(bool checkDirExists = true);
-  //bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& layoutDirectory);
   string getBinDirectory();
   string getLayoutDirectory();
@@ -61,17 +70,16 @@ public:
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();
+
 private:
   bool goodConfigurationRead_;
   std::map<std::string, std::vector<int> > detIdSchemes_;
-  //string styleDirectory_;
   string binDirectory_;
   string layoutDirectory_;
-  //string xmlDirectory_;
   string standardDirectory_;
-  vector<double> momenta_;
-  vector<double> triggerMomenta_;
-  vector<double> thresholdProbabilities_;
+  vector<double> momenta_; // [MeV/c]
+  vector<double> triggerMomenta_; // [MeV/c]
+  vector<double> thresholdProbabilities_; // [0,1]
   bool checkDirectory(string dirName) ;
   void askBinDirectory();
   void askLayoutDirectory();
@@ -96,7 +104,6 @@ private:
   void readDetIdSchemes();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();
-
 };
 
 #endif

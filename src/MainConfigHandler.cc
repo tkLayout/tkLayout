@@ -15,28 +15,17 @@
 
 #include <sys/types.h>
 
+#include "global_constants.hh"
 #include "MainConfigHandler.hh"
 #include "Units.hh"
 
 using namespace std;
 using namespace boost;
 
-static const char* HOMEDIRECTORY = getenv("HOME");
-static constexpr char CONFIGURATIONFILENAME[] = ".tkgeometryrc";
-static constexpr char CONFIGURATIONFILENAMEDEFINITION[] = "TKGEOMETRYRC";
-static constexpr char BINDIRECTORYDEFINITION[] = "TKG_BINDIRECTORY";
-static constexpr char LAYOUTDIRECTORYDEFINITION[] = "TKG_LAYOUTDIRECTORY";
-static constexpr char STANDARDDIRECTORYDEFINITION[] = "TKG_STANDARDDIRECTORY";
-static constexpr char MOMENTADEFINITION[] = "TKG_MOMENTA";
-static constexpr char TRIGGERMOMENTADEFINITION[] = "TKG_TRIGGERMOMENTA";
-static constexpr char THRESHOLDPROBABILITIESDEFINITION[] = "TKG_THRESHOLD_PROB";
-
-static const string defaultBinDir = string(HOMEDIRECTORY) + "/bin";
-static const string defaultLayoutDir = string(HOMEDIRECTORY) + "/www/layouts";
-static const string defaultStandardDir = string(HOMEDIRECTORY) + "/tkgeometry";
-static const vector<double> defaultMomenta = { 1.00e3, 10.00e3, 100.00e3 }; // In MeV/c
-static const vector<double> defaultTriggerMomenta = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 }; // In MeV/c
-static const vector<double> defaultThresholdProbabilities = { 1e-2, 50e-2, 90e-2, 95e-2 }; // In percent
+const std::string mainConfigHandler::HOMEDIRECTORY = std::getenv("HOME");
+static const std::string defaultBinDir = mainConfigHandler::HOMEDIRECTORY + "/bin";
+static const std::string defaultLayoutDir = mainConfigHandler::HOMEDIRECTORY + "/www/layouts";
+static const std::string defaultStandardDir = mainConfigHandler::HOMEDIRECTORY + "/tkgeometry";
 
 template <class T> bool from_string(T& t, const std::string& s, std::ios_base& (*f)(std::ios_base&)) {
   std::istringstream iss(s);
@@ -48,9 +37,9 @@ mainConfigHandler::mainConfigHandler() {
   binDirectory_ = defaultBinDir;
   layoutDirectory_ = defaultLayoutDir;
   standardDirectory_ = defaultStandardDir;
-  momenta_ = defaultMomenta;
-  triggerMomenta_ = defaultTriggerMomenta;
-  thresholdProbabilities_ = defaultThresholdProbabilities;
+  momenta_ = insur::defaultMomenta;
+  triggerMomenta_ = insur::defaultTriggerMomenta;
+  thresholdProbabilities_ = insur::defaultThresholdProbabilities;
 }
 
 mainConfigHandler& mainConfigHandler::instance() {
@@ -59,19 +48,25 @@ mainConfigHandler& mainConfigHandler::instance() {
 }
 
 bool mainConfigHandler::checkDirectory(string dirName) {
-  if ( boost::filesystem::exists(dirName) ) {
-    if (! boost::filesystem::is_directory(dirName) ) { 
+  // Check if the path exists
+  if (boost::filesystem::exists(dirName)) {
+    // Check if the path is a directory
+    if (!boost::filesystem::is_directory(dirName)) {
       cerr << "Directory '" << dirName << "' is not a directory!" << endl;
-      return false; // If it exists and it is not a directory, error
+      return false;
     }
   }
+  // Try to create the specified directory if it doesn't exist
   else {
-    if (! boost::filesystem::create_directories(dirName) ) { // Try to create the specified directory if it doesn't exist
+    // Check if the directory can be created
+    if (!boost::filesystem::create_directories(dirName)) {
       cerr << "Directory '" << dirName << "' does not exist and could not be created!" << endl;
-      return false; // One of the elements in the path is likely a file
+      return false;
     }
   }
-  return true; // If it exists and it is a directory, or if it has been created successfully
+  // Returns true if the path exists and it is a directory,
+  // or if a directory has been created successfully
+  return true;
 }
 
 void mainConfigHandler::askBinDirectory() {
@@ -159,22 +154,53 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
 
+  // Convert the units for proper display in the TUI
+  std::vector<double> momentaInGeV = insur::defaultMomenta;
+  for (double& iMom : momentaInGeV) iMom /= Units::GeV;
+  std::vector<double> triggerMomentaInGeV = insur::defaultTriggerMomenta;
+  for (double& iMom : triggerMomentaInGeV) iMom /= Units::GeV;
+  std::vector<double> threshProbInPercent = insur::defaultThresholdProbabilities;
+  for (double& prob : threshProbInPercent) prob *= 100.0;
+
   char userAnswer = 'y';
   cout << "*** Would you like to use the default .tkgeometryrc configuration? [y/n]\n"
-       << "    - Executables directory:                               '$HOME/bin'\n"
-       << "    - Web server output directory:                         '$HOME/www/layouts'\n"
-       << "    - Standard output directory:                           '$HOME/tkgeometry'\n"
-       << "    - List of transverse momenta for the \n" \
-          "      tracking performance test (in GeV/c):                '1.00, 10.00, 100.00'\n" \
-       << "    - List of transverse momenta for the \n" \
-          "      efficiency performance test (in GeV/c):              '1.00, 2.00, 5.00, 10.00'\n" \
-       << "    - List of trigger efficiency for the \n" \
-          "      pt threshold find test (in %):                       '1, 50, 90, 95'" << endl;
-  do { 
-    if (std::cin >> userAnswer) std::cin.get(); // Consume the '\n' left behind in case the user types a single character
+       << "    - Executables directory:                               '" << defaultBinDir << "'\n"
+       << "    - Web server output directory:                         '" << defaultLayoutDir << "'\n"
+       << "    - Standard output directory:                           '" << defaultStandardDir << "'\n";
+
+  // Print the list of transverse momenta
+  cout << "    - List of transverse momenta for the \n" \
+          "      tracking performance test (in GeV/c):                '";
+  for (const double& iMom : momentaInGeV) {
+    cout << std::fixed << std::setprecision(2) << iMom;
+    if (&iMom != &momentaInGeV.back()) cout << ", ";
+  }
+  cout << "'\n";
+
+  // Print the list of trigger momenta
+  cout << "    - List of transverse momenta for the \n" \
+          "      efficiency performance test (in GeV/c):              '";
+  for (const double& iMom : triggerMomentaInGeV) { 
+    cout << std::fixed << std::setprecision(2) << iMom; 
+    if (&iMom != &triggerMomentaInGeV.back()) cout << ", "; 
+  }
+  cout << "'\n";
+
+  // Print the list of threshold probabilities
+  cout << "    - List of trigger efficiency for the \n" \
+          "      pt threshold find test (in %):                       '";
+  for (const double& prob : threshProbInPercent) { 
+    cout << std::fixed << std::setprecision(2) << prob; 
+    if (&prob != &threshProbInPercent.back()) cout << ", "; 
+  }
+  cout << "'" << endl;
+
+  do {
+    // std::cin.get() will consume the '\n' left behind in case the user types a single character and presses ENTER
+    if (std::cin >> userAnswer) std::cin.get();
   }
   while( !std::cin.fail() && userAnswer != 'y' && userAnswer != 'n' );
-  
+
   if ( userAnswer == 'n' ) {
     do { askBinDirectory(); }
     while (!checkDirectory(binDirectory_));
