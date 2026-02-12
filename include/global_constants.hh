@@ -11,6 +11,9 @@
 #include <vector>
 
 namespace insur {
+  static const std::vector<double> defaultMomenta = { 1.00e3, 10.00e3, 100.00e3 }; // In MeV/c
+  static const std::vector<double> defaultTriggerMomenta = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 }; // In MeV/c
+  static const std::vector<double> defaultThresholdProbabilities = { 1e-2, 50e-2, 90e-2, 95e-2 };
 
   /**
    * Physics constants.
