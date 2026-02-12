@@ -18,13 +18,13 @@ BOOST version 1.82.0
 gcc version 13.1.0
 ```
 
-If your environment can see the CVMFS, you can run a bash shell and then from inside the repository home directory:
+If you are on AlmaLinux-9 and your environment can see the CVMFS, you can run a bash shell and then from inside the repository home directory:
 
 ```
 source setup_el9.sh
 ```
 
-Currently, **tkLayout** only supports AlmaLinux-9.
+**tkLayout** is also compatible with Ubuntu, though it is not the main supported version.
 
 # Compilation
 
@@ -43,9 +43,9 @@ This will build the binaries and place them in the `tkLayout/bin` directory. If 
 
 If this is the first time installing **tkLayout**, you will need to provide:
 
-1. The directory where you want to store the **tkLayout** executable (e.g. `/afs/cern.ch/user/y/yourname/bin`).
-2. The destination directory for the web output of the program (e.g. `/afs/cern.ch/user/y/yourname/www/layouts`). This directory needs to be writable by you and readable by the web server. The style files will be copied during the installation to that directory. If the style files get changed during the development, a new `./install.sh` will be needed to get this propagated to the output. Alternatively, you can choose to make a symbolic link between the `tkLayout/style` directory and the `www/layouts` directory. This avoids the need of repeating the `./install.sh` at every update of the style files (but in order to do this, the `tkLayout/style` directory should also be within the reach of the web server).
-3. The path to your **tkLayout** source directory (e.g. `/afs/cern.ch/user/y/yourname/tkLayout`).
+1. The directory where you want to store the **tkLayout** executable (e.g. `/eos/user/y/yourname/bin`).
+2. The destination directory for the web output of the program (e.g. `/eos/user/y/yourname/www/layouts`). This directory needs to be writable by you and readable by the web server. The style files will be copied during the installation to that directory. If the style files get changed during the development, a new `./install.sh` will be needed to get this propagated to the output. Alternatively, you can choose to make a symbolic link between the `tkLayout/style` directory and the `www/layouts` directory. This avoids the need of repeating the `./install.sh` at every update of the style files (but in order to do this, the `tkLayout/style` directory should also be within the reach of the web server).
+3. The path to your **tkLayout** source directory (e.g. `/eos/user/y/yourname/tkLayout`).
 4. The set of momentum values to be used for the simulation.
 
 **tkLayout** writes the installation configuration to `~/.tkgeometryrc`. In the case of a misinput, you can directly modify the file and rerun `make install`.
