@@ -15,18 +15,16 @@
 #include "MessageLogger.hh"
 #include "GraphVizCreator.hh"
 
-using namespace std;
-
 class ConfigInputOutput {
 public:
-  ConfigInputOutput(istream& newIs, ostream& newOs) : is(newIs) , os(newOs) {}
-  istream& is;
-  ostream& os;
-  string absoluteFileName = "";
-  string relativeFileName = "";
+  ConfigInputOutput(std::istream& newIs, std::ostream& newOs) : is(newIs) , os(newOs) {}
+  std::istream& is;
+  std::ostream& os;
+  std::string absoluteFileName = "";
+  std::string relativeFileName = "";
   bool standardInclude = false;
-  set<string> includePathList;
-  string getIncludedFile(string fileName);
+  std::set<std::string> includePathList;
+  std::string getIncludedFile(std::string fileName);
   bool webOutput;
 };
 
@@ -52,58 +50,58 @@ public:
 
   static mainConfigHandler& instance();
   bool getConfiguration(bool checkDirExists = true);
-  bool getConfiguration(string& layoutDirectory);
-  string getBinDirectory();
-  string getLayoutDirectory();
-  string getStandardDirectory();
-  string getStyleDirectory();
-  string getXmlDirectory();
-  string getMattabDirectory();
-  string getIrradiationDirectory();
-  string getDefaultMaterialsDirectory();
-  string getDetIdSchemesDirectory();
+  bool getConfiguration(std::string& layoutDirectory);
+  std::string getBinDirectory();
+  std::string getLayoutDirectory();
+  std::string getStandardDirectory();
+  std::string getStyleDirectory();
+  std::string getXmlDirectory();
+  std::string getMattabDirectory();
+  std::string getIrradiationDirectory();
+  std::string getDefaultMaterialsDirectory();
+  std::string getDetIdSchemesDirectory();
   std::vector<int> getDetIdScheme(std::string schemeName);
-  string getStandardIncludeDirectory();
-  string getGeometriesDirectory();
-  string getConfigFileName();
-  std::set<string> preprocessConfiguration(ConfigInputOutput);
-  vector<double>& getMomenta();
-  vector<double>& getTriggerMomenta();
-  vector<double>& getThresholdProbabilities();
+  std::string getStandardIncludeDirectory();
+  std::string getGeometriesDirectory();
+  std::string getConfigFileName();
+  std::set<std::string> preprocessConfiguration(ConfigInputOutput);
+  std::vector<double>& getMomenta();
+  std::vector<double>& getTriggerMomenta();
+  std::vector<double>& getThresholdProbabilities();
 
 private:
   bool goodConfigurationRead_;
   std::map<std::string, std::vector<int> > detIdSchemes_;
-  string binDirectory_;
-  string layoutDirectory_;
-  string standardDirectory_;
-  vector<double> momenta_; // [MeV/c]
-  vector<double> triggerMomenta_; // [MeV/c]
-  vector<double> thresholdProbabilities_; // [0,1]
-  bool checkDirectory(string dirName) ;
+  std::string binDirectory_;
+  std::string layoutDirectory_;
+  std::string standardDirectory_;
+  std::vector<double> momenta_; // [MeV/c]
+  std::vector<double> triggerMomenta_; // [MeV/c]
+  std::vector<double> thresholdProbabilities_; // [0,1]
+  bool checkDirectory(std::string dirName) ;
   void askBinDirectory();
   void askLayoutDirectory();
   void askStandardDirectory();
   void askMomenta();
   void askTriggerMomenta();
   void askThresholdProbabilities();
-  bool createConfigurationFileFromQuestions(string& configFileName);
-  bool parseLine(const char* codeLine, string& parameter, string& value);
-  bool readConfigurationFile(string& configFileName);
+  bool createConfigurationFileFromQuestions(std::string& configFileName);
+  bool parseLine(const char* codeLine, std::string& parameter, std::string& value);
+  bool readConfigurationFile(std::string& configFileName);
   bool readConfiguration(bool checkDirExists);
-  vector<double> parseDoubleList(string);
-  string getBinDirectory_();
-  string getLayoutDirectory_();
-  string getStandardDirectory_();
-  string getStyleDirectory_();
-  string getXmlDirectory_();
-  string getMattabDirectory_();
-  string getIrradiationDirectory_();
-  string getDefaultMaterialsDirectory_();
-  string getDetIdSchemesDirectory_();
+  std::vector<double> parseDoubleList(std::string);
+  std::string getBinDirectory_();
+  std::string getLayoutDirectory_();
+  std::string getStandardDirectory_();
+  std::string getStyleDirectory_();
+  std::string getXmlDirectory_();
+  std::string getMattabDirectory_();
+  std::string getIrradiationDirectory_();
+  std::string getDefaultMaterialsDirectory_();
+  std::string getDetIdSchemesDirectory_();
   void readDetIdSchemes();
-  string getStandardIncludeDirectory_();
-  string getGeometriesDirectory_();
+  std::string getStandardIncludeDirectory_();
+  std::string getGeometriesDirectory_();
 };
 
 #endif

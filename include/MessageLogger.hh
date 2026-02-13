@@ -19,28 +19,26 @@
 #define logUniqueINFO(message) MessageLogger::instance()->addMessage(__func__, message, MessageLogger::INFO, MessageLogger::UNIQUE)
 #define logUniqueDEBUG(message) MessageLogger::instance()->addMessage(__func__, message, MessageLogger::DEBUG, MessageLogger::UNIQUE)
 
-using namespace std;
-
 class LogMessage {
  public:
   LogMessage() {};
   ~LogMessage() {};
   int level;
-  string message;
+  std::string message;
 };
 
 class MessageLogger {
  public:
   static MessageLogger* instance();
-  bool addMessage(string sourceFunction, string message, int level=UNKNOWN, bool unique=false);
-  bool addMessage(string sourceFunction, ostringstream& message, int level=UNKNOWN, bool unique=false);
-  static string getLatestLog();
-  static string getLatestLog(int level);
+  bool addMessage(std::string sourceFunction, std::string message, int level=UNKNOWN, bool unique=false);
+  bool addMessage(std::string sourceFunction, std::ostringstream& message, int level=UNKNOWN, bool unique=false);
+  static std::string getLatestLog();
+  static std::string getLatestLog(int level);
   // NumberOfLevels should always be the last here
   enum {UNKNOWN, ERROR, WARNING, INFO, DEBUG, NumberOfLevels};
   static const bool UNIQUE = true;
   static std::string shortLevelCode[];
-  static string getLevelName(int level);
+  static std::string getLevelName(int level);
   static bool hasEmptyLog(int level);
   void setScreenLevel(int screenLevel) { screenLevel_ = screenLevel; }
  private:

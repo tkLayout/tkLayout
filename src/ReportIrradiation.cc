@@ -293,7 +293,7 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   dumpRadiationTableSummary(myPage, doseSummaries, "Dose on sensors", "Gy");
 
   // Some helper string objects
-  ostringstream tempSS;
+  std::ostringstream tempSS;
   std::string tempString;
 
   struct SensorsIrradiationPower {

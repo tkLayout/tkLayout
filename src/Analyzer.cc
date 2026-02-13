@@ -416,9 +416,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 //
 // Check that a file can be opened
 //
-bool Analyzer::checkFile(const std::string& fileName, const std::string& filePath)
-{
-  fstream     file;
+bool Analyzer::checkFile(const std::string& fileName, const std::string& filePath){
+  std::ifstream     file;
   std::string fullFileName(filePath+"/"+fileName);
   file.open(fullFileName);
   if (file.is_open()) {
@@ -2348,8 +2347,8 @@ void Analyzer::clearMaterialBudgetHistograms() {
             hadronNeededHitsFraction.end());
 
   // Prepare the plots for the track survival fraction
-  ostringstream tempSS;
-  string tempString;
+  std::ostringstream tempSS;
+  std::string tempString;
   TGraph* myGraph;
   for (unsigned int i=0;
        i<hadronNeededHitsFraction.size();
@@ -2454,8 +2453,7 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
 
   // PT Threshold maps here
-  ostringstream tempSS;
-  // string tempString;
+  std::ostringstream tempSS;
   for (std::vector<double>::const_iterator it = thresholdProbabilities.begin();
        it!=thresholdProbabilities.end(); ++it) {
     TH2D& myMap = thresholdMaps[(*it)];

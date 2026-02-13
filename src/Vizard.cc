@@ -544,7 +544,7 @@ namespace insur {
     std::string name_hadTrackRanger = std::string("hadTrackRanger") + name ;
 
 
-    ostringstream label;
+    std::ostringstream label;
     std::map<int, std::vector<double> > averages;
     TH2D *mapRad = nullptr, *mapInt = nullptr;
 
@@ -1135,7 +1135,7 @@ namespace insur {
     myAxis = ranger->GetYaxis();
     myAxis->SetTitle("Tracks fraction");
     ranger->Draw();
-    ostringstream tempSS;
+    std::ostringstream tempSS;
     std::map<int, std::string> fractionTitles;
     for (unsigned int i=0;
          i<hadronGoodTracksFraction.size();
@@ -3069,7 +3069,7 @@ namespace insur {
     int colorIndex = 1;
     for (auto& detailIt : tracksDistributionPerNumberOfStubs) {
       const int numberOfStubs = detailIt.first;
-      ostringstream titleStream;
+      std::ostringstream titleStream;
       if (numberOfStubs < plotMaxNumberOfStubs) {
 	titleStream << numberOfStubs << " stub";
       }
@@ -3880,7 +3880,7 @@ namespace insur {
     myDescription->addText( "(Pt modules: ignored)<br/>");
     myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
     myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
-    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << SimParms::getInstance().numMinBiasEvents();
+    std::ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << SimParms::getInstance().numMinBiasEvents();
     aStringStream <<" minimum bias events assumed</br>";
     myDescription->addText( aStringStream.str() );
 
@@ -4033,7 +4033,7 @@ namespace insur {
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 
     // Some helper string objects
-    ostringstream tempSS;
+    std::ostringstream tempSS;
     std::string tempString;
 
     RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
@@ -4416,7 +4416,7 @@ namespace insur {
       }
 
       // Prepare the cuts for the averages
-      ostringstream label;
+      std::ostringstream label;
       std::string name;
       RootWTable* myTable;
 
@@ -5350,7 +5350,7 @@ namespace insur {
       }
 
       // Prepare the cuts for the averages
-      ostringstream label;
+      std::ostringstream label;
       std::string name;
       RootWTable* myTable;
 
@@ -6267,7 +6267,7 @@ namespace insur {
     myPage.setAddress(pageAddress);
 
     // Some helper string objects
-    ostringstream tempSS;
+    std::ostringstream tempSS;
     std::string tempString;
 
     //********************************//
@@ -10101,7 +10101,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       }
     }
     catch (boost::filesystem::filesystem_error& e) {
-      cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
+      std::cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << std::endl;
     }
 
     RootWContent* content = new RootWContent("XML files");
