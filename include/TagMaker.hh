@@ -7,12 +7,9 @@
 #include "Visitor.hh"
 #include "Module.hh"
 
-using std::string;
-using std::stringstream;
-
 class TagMaker : public ConstGeometryVisitor {
 public:
-  string sensorTag, sensorGeoTag, posTag;
+  std::string sensorTag, sensorGeoTag, posTag;
 
   TagMaker(const Module& m) { m.accept(*this); }
 
@@ -29,10 +26,10 @@ public:
   }
 
 
-  static string makeSensorTag(const BarrelModule& m) {
-    stringstream ss;
+  static std::string makeSensorTag(const BarrelModule& m) {
+    std::stringstream ss;
     ss << "Barrel" 
-       << "/Tag=" << m.subdetectorName() << "L" << setfill('0') << setw(2) << m.layer() // << "R" << m.ring();
+       << "/Tag=" << m.subdetectorName() << "L" << std::setfill('0') << std::setw(2) << m.layer() // << "R" << m.ring();
        << "/Width=" << m.maxWidth() 
        << "/Height=" << m.length()
        << "/Thickness=" << m.thickness()
@@ -40,10 +37,10 @@ public:
     return ss.str();
   }
 
-  static string makeSensorTag(const EndcapModule& m) {
-    stringstream ss;
+  static std::string makeSensorTag(const EndcapModule& m) {
+    std::stringstream ss;
     ss << "Endcap"
-       << "/Tag=" << m.subdetectorName() << "R" << setfill('0') << setw(2) << m.ring() << "D" << m.disk() 
+       << "/Tag=" << m.subdetectorName() << "R" << std::setfill('0') << std::setw(2) << m.ring() << "D" << m.disk() 
        << "/WidthLo=" << m.minWidth()
        << "/WidthHi=" << m.maxWidth()
        << "/Height="  << m.length()
@@ -52,8 +49,8 @@ public:
     return ss.str();
   } 
 
-  static string makeSensorGeoTag(const BarrelModule& m) {
-    stringstream ss;
+  static std::string makeSensorGeoTag(const BarrelModule& m) {
+    std::stringstream ss;
     ss << "Barrel"
        << "/Width=" << int(m.maxWidth()*1000)/1000.
        << "/Height=" << int(m.length()*1000)/1000.
@@ -66,8 +63,8 @@ public:
     return ss.str();
   }
                           
-  static string makeSensorGeoTag(const EndcapModule& m) {
-    stringstream ss;
+  static std::string makeSensorGeoTag(const EndcapModule& m) {
+    std::stringstream ss;
     ss << "Endcap"
        << "/WidthLo=" << int(m.minWidth()*1000)/1000.
        << "/WidthHi=" << int(m.maxWidth()*1000)/1000.
@@ -81,21 +78,18 @@ public:
     return ss.str();
   }    
 
-  static string makePosTag(const BarrelModule& m) {
-    stringstream ss;
-    ss << m.subdetectorName() << "L" << setfill('0') << setw(2) << m.layer() /*<< "R" << m.ring() */;
+  static std::string makePosTag(const BarrelModule& m) {
+    std::stringstream ss;
+    ss << m.subdetectorName() << "L" << std::setfill('0') << std::setw(2) << m.layer() /*<< "R" << m.ring() */;
     return ss.str();
   }
 
-  static string makePosTag(const EndcapModule& m) {
-    stringstream ss;
-    ss << m.subdetectorName() << "R" << setfill('0') << setw(2) << m.ring();
+  static std::string makePosTag(const EndcapModule& m) {
+    std::stringstream ss;
+    ss << m.subdetectorName() << "R" << std::setfill('0') << std::setw(2) << m.ring();
     //<< "D" << m.disk();
     return ss.str();
   }
-
-  
 };
-
 
 #endif

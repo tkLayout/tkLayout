@@ -247,7 +247,7 @@ void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
           processorConnections_[std::make_pair(j,i)] += 1;
           processorConnectionSummary.setCell(j+1, i+1, processorConnections_[std::make_pair(j,i)]);
 
-          moduleConnections[&m].connectedProcessors.insert(make_pair(i+1, j+1));
+          moduleConnections[&m].connectedProcessors.insert(std::make_pair(i+1, j+1));
 
           processorInboundBandwidths_[std::make_pair(j,i)] += triggerDataBandwidths_[p.table][std::make_pair(p.row, p.col)]; // *2 takes into account negative Z's
           processorInboundBandwidthSummary.setCell(j+1, i+1, processorInboundBandwidths_[std::make_pair(j,i)]);
@@ -255,7 +255,7 @@ void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
           processorInboundStubsPerEvent_[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][std::make_pair(p.row, p.col)];
           processorInboundStubPerEventSummary.setCell(j+1, i+1, processorInboundStubsPerEvent_[std::make_pair(j,i)]);
 
-          sectorMap[make_pair(i+1, j+1)].insert(moduleConnections[&m].detId());
+          sectorMap[std::make_pair(i+1, j+1)].insert(moduleConnections[&m].detId());
         } 
       }
     }
@@ -277,16 +277,16 @@ void TriggerProcessorBandwidthVisitor::postVisit() {
 
   for (auto mvp : moduleConnections) {
     moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
-    std::set<pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
+    std::set<std::pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
     if (connectedProcessors.size() == 1) {
       int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
       processorCommonConnectionMatrix[std::make_pair(ref, ref)] += 1;
     } else {
       while (!connectedProcessors.empty()) {
-        pair<int, int> colRef = *connectedProcessors.begin();
+        std::pair<int, int> colRef = *connectedProcessors.begin();
         int col = colRef.second + numProcPhi*(colRef.first-1);
         connectedProcessors.erase(connectedProcessors.begin());
-        for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
+        for (std::set<std::pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
           int row = pIt->second + numProcPhi*(pIt->first-1);
           processorCommonConnectionMatrix[std::make_pair(row, col)] += 1;
         }

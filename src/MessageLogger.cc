@@ -25,7 +25,7 @@ MessageLogger::MessageLogger() {
   ++countInstances;
 }
 
-bool MessageLogger::addMessage(string sourceFunction, string message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
+bool MessageLogger::addMessage(std::string sourceFunction, std::string message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
   if(unique) {
     if(uniqueMessages.count(message) == 0) {
       uniqueMessages.insert(message);
@@ -54,8 +54,8 @@ bool MessageLogger::addMessage(string sourceFunction, string message, int level 
   } else return false;
 }
 
-bool MessageLogger::addMessage(string sourceFunction, ostringstream& message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
-  string newMessage = message.str();
+bool MessageLogger::addMessage(std::string sourceFunction, std::ostringstream& message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
+  std::string newMessage = message.str();
   return addMessage(sourceFunction, newMessage, level, unique);
 }
 
@@ -66,8 +66,8 @@ bool MessageLogger::hasEmptyLog(int level) {
   return true;
 }
 
-string MessageLogger::getLatestLog(int level) {
-  string result="";
+std::string MessageLogger::getLatestLog(int level) {
+  std::string result="";
   if ((level>=0)&&(level<NumberOfLevels)) {
     std::vector<LogMessage>::iterator itMessage;
     //std::vector<LogMessage>::iterator nextMessage;
@@ -87,8 +87,8 @@ string MessageLogger::getLatestLog(int level) {
   return result;
 }
 
-string MessageLogger::getLatestLog() {
-  string result="";
+std::string MessageLogger::getLatestLog() {
+  std::string result="";
   std::vector<LogMessage>::iterator itMessage=logMessageV.begin();
   while (itMessage!=logMessageV.end()) {
     result += "(" + shortLevelCode[itMessage->level]+ ") " + itMessage->message+"\n";
@@ -104,7 +104,7 @@ MessageLogger::~MessageLogger() {
     std::cerr << getLatestLog();
 }
 
-string MessageLogger::getLevelName(int level) {
+std::string MessageLogger::getLevelName(int level) {
   switch (level) {
   case UNKNOWN: return "Unknown";
   case ERROR: return "Error";

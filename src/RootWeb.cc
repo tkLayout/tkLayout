@@ -70,14 +70,14 @@ RootWTable::RootWTable(bool isPlacedBelow /*= false*/) {
   maxCol_ = 0;
 }
 
-ostream& RootWTable::dump(ostream& output) {
+std::ostream& RootWTable::dump(std::ostream& output) {
   RootWTable& myRootWTable = (*this);
 
   int minRow = tableContent_.begin()->first.first; int maxRow=0;
   int minCol = tableContent_.begin()->first.second; int maxCol=0;
   bool firstNotFound = true;
 
-  pair<int, int> myIndex;
+  std::pair<int, int> myIndex;
   rootWTableContent::iterator tableContentIt;
   rootWTableContent& myTableContent = myRootWTable.tableContent_;
 
@@ -114,7 +114,7 @@ ostream& RootWTable::dump(ostream& output) {
       else myCellCode = "td";
 
       output << "<" << myCellCode;
-      myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
+      myColorIndex = tableContentColor_[std::make_pair(iRow, iCol)];
       if (myColorIndex!=0) {
 	      myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();
 	      output << " style=\"color:" << myColorCode << ";\" " << std::endl;
@@ -128,7 +128,7 @@ ostream& RootWTable::dump(ostream& output) {
       if (isBoldCell) output << "<strong>";
 
       // ADD CONTENT
-      output << myTableContent[make_pair(iRow, iCol)];
+      output << myTableContent[std::make_pair(iRow, iCol)];
 
       // BOLD CELL CASE
       if (isBoldCell) output << "</strong>";
@@ -137,23 +137,23 @@ ostream& RootWTable::dump(ostream& output) {
     }
     output << "</tr>";
   }
-  output << "</table>" << endl;
+  output << "</table>" << std::endl;
 
   return output;
 }
 
 void RootWTable::setColor(const int row, const int column, const int color) {
   if (color != kBlack) {
-    tableContentColor_[make_pair(row, column)] = color;
+    tableContentColor_[std::make_pair(row, column)] = color;
   }
 }
 
 void RootWTable::setBold(const int row, const int column, const bool isBold) {
-  tableContentBold_[make_pair(row, column)] = isBold;
+  tableContentBold_[std::make_pair(row, column)] = isBold;
 }
 
-void RootWTable::setContent(int row, int column, string content, const bool isBold, const int color) {
-  tableContent_[make_pair(row, column)] = content;
+void RootWTable::setContent(int row, int column, std::string content, const bool isBold, const int color) {
+  tableContent_[std::make_pair(row, column)] = content;
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
@@ -161,10 +161,10 @@ void RootWTable::setContent(int row, int column, string content, const bool isBo
 }
 
 void RootWTable::setContent(int row, int column, int number, const bool isBold, const int color) {
-  stringstream myNum_;
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << number;
-  tableContent_[make_pair(row, column)] = myNum_.str();
+  myNum_ << std::dec << number;
+  tableContent_[std::make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
@@ -172,39 +172,39 @@ void RootWTable::setContent(int row, int column, int number, const bool isBold, 
 }
 
 void RootWTable::setContent(int row, int column, double number, int precision, const bool isBold, const int color) {
-  stringstream myNum_;
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << fixed << setprecision(precision) << number;
-  tableContent_[make_pair(row, column)] = myNum_.str();
+  myNum_ << std::dec << std::fixed << std::setprecision(precision) << number;
+  tableContent_[std::make_pair(row, column)] = myNum_.str();
   maxRow_ = MAX(maxRow_, row);
   maxCol_ = MAX(maxCol_, column);
   setBold(row, column, isBold);
   setColor(row, column, color);
 }
 
-pair<int, int> RootWTable::addContent(string myContent) {
+std::pair<int, int> RootWTable::addContent(std::string myContent) {
   setContent(serialRow_, serialCol_++, myContent);
-  return make_pair(serialRow_, serialCol_);
+  return std::make_pair(serialRow_, serialCol_);
 }
 
-pair<int, int> RootWTable::addContent(int number) {
-  stringstream myNum_;
+std::pair<int, int> RootWTable::addContent(int number) {
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << number;
+  myNum_ << std::dec << number;
   return(addContent(myNum_.str()));
 }
 
-pair<int, int> RootWTable::addContent(double number, int precision) {
-  stringstream myNum_;
+std::pair<int, int> RootWTable::addContent(double number, int precision) {
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << fixed << setprecision(precision) << number;
+  myNum_ << std::dec << std::fixed << std::setprecision(precision) << number;
   return(addContent(myNum_.str()));
 }
 
-pair<int, int> RootWTable::newLine() {
+std::pair<int, int> RootWTable::newLine() {
   serialRow_++;
   serialCol_=0;
-  return make_pair(serialRow_, serialCol_);
+  return std::make_pair(serialRow_, serialCol_);
 }
 
 //*******************************************//
@@ -236,7 +236,7 @@ RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height)
   setDefaultExtensions();
 }
 
-RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativehtmlDirectory) {
+RootWImage::RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, std::string relativehtmlDirectory) {
   imageCounter_++;
   myCanvas_ = nullptr;
   setCanvas(std::move(myCanvas));
@@ -255,11 +255,11 @@ void RootWImage::setDefaultExtensions() {
    addExtension("root");
 }
 
-void RootWImage::setComment(string newComment) {
+void RootWImage::setComment(std::string newComment) {
   comment_ = newComment;
 }
 
-void RootWImage::setName(string newName) {
+void RootWImage::setName(std::string newName) {
   name_ = newName;
 }
 
@@ -270,7 +270,7 @@ std::string RootWImage::getName() {
 void RootWImage::setCanvas(std::unique_ptr<TCanvas> myCanvas) {
   myCanvas_.reset(myCanvas.release()); // KEY POINT: instead of using TCanvas::DrawClone(), just transfer TCanvas object ownership from Vizard to RootWeb!
   std::ostringstream canvasName("");
-  canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
+  canvasName << "canvas" << std::setfill('0') << std::setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
 }
 
@@ -279,37 +279,37 @@ void RootWImage::setZoomedSize(int witdh, int height) {
   zoomedHeight_ = height;
 }
 
-void RootWImage::setRelativeHtmlDirectory(string newDirectory) {
+void RootWImage::setRelativeHtmlDirectory(std::string newDirectory) {
   relativeHtmlDirectory_ = newDirectory;
 }
 
-void RootWImage::setTargetDirectory(string newDirectory) {
+void RootWImage::setTargetDirectory(std::string newDirectory) {
   targetDirectory_ = newDirectory;
 }
 
-string RootWImage::saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight) {
+std::string RootWImage::saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight) {
   setZoomedSize(largeWidth, largeHeight);
   return saveFiles(smallWidth, smallHeight);
 }
 
 RootWImageSize RootWImage::makeSizeCode(int sw, int sh, int lw, int lh) {
-  stringstream aString;
+  std::stringstream aString;
   aString << sw <<"x" << sh << "-" << lw <<"x" << lh;
   return aString.str();
 }
 
-string RootWImage::saveFiles(int smallWidth, int smallHeight) {
+std::string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   RootWImageSize myImageSize;
   myImageSize = makeSizeCode(smallWidth,smallHeight,zoomedWidth_,zoomedHeight_);
   std::ostringstream tmpCanvasName("");
-  tmpCanvasName << name_ << setfill('0') << setw(3) << imageNameCounter_[name_]++;
-  string canvasName = tmpCanvasName.str();
+  tmpCanvasName << name_ << std::setfill('0') << std::setw(3) << imageNameCounter_[name_]++;
+  std::string canvasName = tmpCanvasName.str();
   myCanvas_->SetName(canvasName.c_str());
   if (fileSaved_[myImageSize]) {
     return myText_[myImageSize];
   }
 
-  stringstream thisText;
+  std::stringstream thisText;
   thisText.clear();
   if (relativeHtmlDirectory_ == "") relativeHtmlDirectory_ = ".";
   if (targetDirectory_ == "" ) targetDirectory_ = ".";
@@ -317,8 +317,8 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   if (!myCanvas_) return "";
 
   //string canvasName = myCanvas_->GetName();
-  string smallCanvasFileName = canvasName + "-" + myImageSize + "_small.png";
-  string largeCanvasFileBaseName = canvasName;
+  std::string smallCanvasFileName = canvasName + "-" + myImageSize + "_small.png";
+  std::string largeCanvasFileBaseName = canvasName;
 
   double wScale = double(smallWidth) / double(zoomedWidth_);
   double hScale = double(smallHeight) / double(zoomedHeight_);
@@ -330,8 +330,8 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   int canW = int(imgW * thumb_compression_);
   int canH = int(imgH * thumb_compression_);
 
-  string smallCanvasCompleteFileName = targetDirectory_+"/"+smallCanvasFileName;
-  string largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + ".png";
+  std::string smallCanvasCompleteFileName = targetDirectory_+"/"+smallCanvasFileName;
+  std::string largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + ".png";
 
   gErrorIgnoreLevel = 1500;
   myCanvas_->cd();
@@ -341,8 +341,8 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   myCanvas_->SetCanvasSize(zoomedWidth_, zoomedHeight_);
   myCanvas_->Print(largeCanvasCompleteFileName.c_str());
 
-  string fileTypeList;
-  for (vector<string>::iterator it=fileTypeV_.begin(); it!=fileTypeV_.end(); ++it) {
+  std::string fileTypeList;
+  for (std::vector<std::string>::iterator it=fileTypeV_.begin(); it!=fileTypeV_.end(); ++it) {
     largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + "." + (*it);
     myCanvas_->Print(largeCanvasCompleteFileName.c_str());
     if (it!=fileTypeV_.begin()) fileTypeList+="|";
@@ -357,33 +357,33 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   return thisText.str();
 }
 
-ostream& RootWImage::dump(ostream& output) {
+std::ostream& RootWImage::dump(std::ostream& output) {
   output << myText_[lastSize_];
   return output;
 }
 
-bool RootWImage::addExtension(string myExtension) {
+bool RootWImage::addExtension(std::string myExtension) {
   // First check if the extension has not a "|" inside, which
   // would invalidate the search
-  if (myExtension.find("|")!=string::npos) {
-    cerr << "In bool RootWImage::addExtension(string myExtension) extension contains '|', which is not allowed" << endl;
+  if (myExtension.find("|")!=std::string::npos) {
+    std::cerr << "In bool RootWImage::addExtension(std::string myExtension) extension contains '|', which is not allowed" << std::endl;
     return false;
   }
   bool result = false;
 
   // Then create the real search pattern
-  string mySearchExtension="|"+myExtension+"|";
+  std::string mySearchExtension="|"+myExtension+"|";
 
   // Last: check if the extension is in the list of allowed extensions
-  if (allowedExtensions_.find(mySearchExtension)!=string::npos) {
+  if (allowedExtensions_.find(mySearchExtension)!=std::string::npos) {
     // Try to find if the extension is already registered
-    vector<string>::iterator anExtension = find(fileTypeV_.begin(), fileTypeV_.end(), myExtension);
+    std::vector<std::string>::iterator anExtension = find(fileTypeV_.begin(), fileTypeV_.end(), myExtension);
     if (anExtension == fileTypeV_.end()) {
       fileTypeV_.push_back(myExtension);
       result=true;
     }
   } else {
-    cerr << "Extension '" << myExtension << "' is not allowed for canvas saving: new file type not added." << endl;
+    std::cerr << "Extension '" << myExtension << "' is not allowed for canvas saving: new file type not added." << std::endl;
   }
 
   return result;
@@ -464,13 +464,13 @@ RootWContent::RootWContent() {
   visible_ = true;
 }
 
-RootWContent::RootWContent(string title, bool visible /*=true*/) {
+RootWContent::RootWContent(std::string title, bool visible /*=true*/) {
   title_ = title;
   targetDirectory_ = "";
   visible_ = visible;
 }
 
-void RootWContent::setTargetDirectory(string newTargetDirectory) {
+void RootWContent::setTargetDirectory(std::string newTargetDirectory) {
   targetDirectory_ = newTargetDirectory;
 }
 
@@ -497,11 +497,11 @@ void RootWContent::addItem(std::unique_ptr<RootWItem> newItem) {
   addItem(newItem.release());
 }
 
-void RootWContent::setTitle(string newTitle) {
+void RootWContent::setTitle(std::string newTitle) {
   title_ = newTitle;
 }
 
-void RootWContent::addParagraph(string parText) {
+void RootWContent::addParagraph(std::string parText) {
   RootWText* newText = new RootWText;
   //newText->addText("<p>");
   newText->addText(parText);
@@ -518,7 +518,7 @@ RootWText& RootWContent::addText() {
   return (*newText);
 }
 
-RootWText& RootWContent::addText(string newText) {
+RootWText& RootWContent::addText(std::string newText) {
   RootWText* newTextItem = new RootWText(newText);
   addItem(newTextItem);
   return (*newTextItem);
@@ -530,13 +530,13 @@ RootWInfo& RootWContent::addInfo() {
   return (*newInfo);
 }
 
-RootWInfo& RootWContent::addInfo(string description)  {
+RootWInfo& RootWContent::addInfo(std::string description)  {
   RootWInfo* newInfo = new RootWInfo(description);
   addItem(newInfo);
   return (*newInfo);
 }
 
-RootWInfo& RootWContent::addInfo(string description, string value)  {
+RootWInfo& RootWContent::addInfo(std::string description, std::string value)  {
   RootWInfo* newInfo = new RootWInfo(description, value);
   addItem(newInfo);
   return (*newInfo);
@@ -560,7 +560,7 @@ RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh,
   return (*newImage);
 }
 
-RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+RootWImage& RootWContent::addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, std::string relativeHtmlDirectory) {
   RootWImage* newImage = new RootWImage(std::move(myCanvas), witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);
@@ -572,13 +572,13 @@ RootWTextFile& RootWContent::addTextFile() {
   return (*newTextFile);
 }
 
-RootWTextFile& RootWContent::addTextFile(string newFileName) {
+RootWTextFile& RootWContent::addTextFile(std::string newFileName) {
   RootWTextFile* newTextFile = new RootWTextFile(newFileName);
   addItem(newTextFile);
   return (*newTextFile);
 }
 
-RootWTextFile& RootWContent::addTextFile(string newFileName, string newDescription) {
+RootWTextFile& RootWContent::addTextFile(std::string newFileName, std::string newDescription) {
   RootWTextFile* newTextFile = new RootWTextFile(newFileName, newDescription);
   addItem(newTextFile);
   return (*newTextFile);
@@ -590,27 +590,27 @@ RootWBinaryFile& RootWContent::addBinaryFile() {
   return (*newBinaryFile);
 }
 
-RootWBinaryFile& RootWContent::addBinaryFile(string newFileName) {
+RootWBinaryFile& RootWContent::addBinaryFile(std::string newFileName) {
   RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName);
   addItem(newBinaryFile);
   return (*newBinaryFile);
 }
 
-RootWBinaryFile& RootWContent::addBinaryFile(string newFileName, string newDescription) {
+RootWBinaryFile& RootWContent::addBinaryFile(std::string newFileName, std::string newDescription) {
   RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName, newDescription);
   addItem(newBinaryFile);
   return (*newBinaryFile);
 }
 
-RootWBinaryFile& RootWContent::addBinaryFile(string newFileName, string newDescription, string newOriginalFile) {
+RootWBinaryFile& RootWContent::addBinaryFile(std::string newFileName, std::string newDescription, std::string newOriginalFile) {
   RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName, newDescription, newOriginalFile);
   addItem(newBinaryFile);
   return (*newBinaryFile);
 }
 
 
-ostream& RootWContent::dump(ostream& output) {
-  vector<RootWItem*>::iterator it;
+std::ostream& RootWContent::dump(std::ostream& output) {
+  std::vector<RootWItem*>::iterator it;
   RootWItem* myItem;
   RootWImage* myImage;
   RootWFile* myFile;
@@ -619,7 +619,7 @@ ostream& RootWContent::dump(ostream& output) {
   if (page_ != nullptr) baseName = page_->getTitle() + ".";
 
   //std::cerr << "Content: " << title_ <<endl; //debug
-  output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
+  output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << std::endl;
   if (visible_) {
     output << "<div class=\"hideable\"> ";
   } else {
@@ -633,7 +633,7 @@ ostream& RootWContent::dump(ostream& output) {
 	if (summaryFile) myImage->saveSummary(baseName, summaryFile);
         myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
       } else {
-        cout << "WARNING: this should never happen. contact the author immediately!" << endl;
+        std::cout << "WARNING: this should never happen. contact the author immediately!" << std::endl;
       }
     }
     if (myItem->isFile()) {
@@ -642,14 +642,14 @@ ostream& RootWContent::dump(ostream& output) {
       } else if (RootWFileList* myFileList=dynamic_cast<RootWFileList*>(myItem)) {
         myFileList->setTargetDirectory(targetDirectory_);
       } else {
-        cout << "WARNING: this should never happen. contact the author immediately!" << endl;
+        std::cout << "WARNING: this should never happen. contact the author immediately!" << std::endl;
       }
     }
     if (myItem->isPlacedBelow()) { output << "<div class=\"clearer\"> <br> <br> &nbsp;</div>"; }
     myItem->dump(output);
   }
   output << "<div class=\"clearer\">&nbsp;</div>";
-  output << "</div>" << endl;
+  output << "</div>" << std::endl;
   return output;
 }
 
@@ -677,7 +677,7 @@ RootWPage::RootWPage() {
   alert_ = 0;
 }
 
-RootWPage::RootWPage(string title) {
+RootWPage::RootWPage(std::string title) {
   setTitle(title);
   site_ = NULL;
   targetDirectory_ = "";
@@ -687,24 +687,24 @@ RootWPage::RootWPage(string title) {
 RootWPage::~RootWPage() {
 }
 
-void RootWPage::setTargetDirectory(string newTargetDirectory) {
+void RootWPage::setTargetDirectory(std::string newTargetDirectory) {
   targetDirectory_ = newTargetDirectory;
 }
 
-void RootWPage::setTitle(string newTitle) {
+void RootWPage::setTitle(std::string newTitle) {
   title_ = newTitle;
   if (address_=="") address_ = title_+".html";
 }
 
-string RootWPage::getTitle() {
+std::string RootWPage::getTitle() {
   return title_;
 }
 
-void RootWPage::setAddress(string newAddress) {
+void RootWPage::setAddress(std::string newAddress) {
   address_ = newAddress;
 }
 
-string RootWPage::getAddress() {
+std::string RootWPage::getAddress() {
   return address_;
 }
 
@@ -722,7 +722,7 @@ void RootWPage::addContent(std::unique_ptr<RootWContent> newContent) {
   addContent(newContent.release());
 }
 
-RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {
+RootWContent& RootWPage::addContent(std::string title, bool visible /*=true*/) {
   RootWContent* newContent = new RootWContent(title, visible);
   addContent(newContent);
   return (*newContent);
@@ -738,7 +738,7 @@ double RootWPage::getAlert() {
   return alert_;
 }
 
-ostream& RootWPage::dump(ostream& output) {
+std::ostream& RootWPage::dump(std::ostream& output) {
   bool fakeSite=false;
   if (site_==NULL) {
     fakeSite = true;
@@ -750,7 +750,7 @@ ostream& RootWPage::dump(ostream& output) {
   // up to opening the primaryContent div
   site_->dumpHeader(output, this);
 
-  vector<RootWContent*>::iterator it;
+  std::vector<RootWContent*>::iterator it;
   RootWContent* myContent;
   for (it = contentList_.begin(); it != contentList_.end(); ++it) {
     myContent =(*it);
@@ -808,7 +808,7 @@ RootWSite::RootWSite() {
   summaryFileName_ = "summary.root";
 }
 
-RootWSite::RootWSite(string title) {
+RootWSite::RootWSite(std::string title) {
   title_ = title;
   comment_ = "";
   commentLink_ = "";
@@ -822,7 +822,7 @@ RootWSite::RootWSite(string title) {
   summaryFileName_ = "summary.root";
 }
 
-RootWSite::RootWSite(string title, string comment) {
+RootWSite::RootWSite(std::string title, std::string comment) {
   title_ = title;
   comment_ = comment;
   commentLink_ = "";
@@ -839,35 +839,35 @@ RootWSite::RootWSite(string title, string comment) {
 RootWSite::~RootWSite() {
 }
 
-void RootWSite::setTitle(string newTitle) {
+void RootWSite::setTitle(std::string newTitle) {
   title_ = newTitle;
 }
 
-void RootWSite::setComment(string newComment) {
+void RootWSite::setComment(std::string newComment) {
   comment_ = newComment;
 }
 
-void RootWSite::setCommentLink(string newCommentLink) {
+void RootWSite::setCommentLink(std::string newCommentLink) {
   commentLink_ = newCommentLink;
 }
 
-string RootWSite::getTitle() {
+std::string RootWSite::getTitle() {
   return title_;
 }
 
-string RootWSite::getComment() {
+std::string RootWSite::getComment() {
   return comment_;
 }
 
-string RootWSite::getCommentLink() {
+std::string RootWSite::getCommentLink() {
   return commentLink_;
 }
 
-string RootWSite::getRevision() {
+std::string RootWSite::getRevision() {
   return revision_;
 }
 
-void RootWSite::setRevision(string newRevision) {
+void RootWSite::setRevision(std::string newRevision) {
   revision_ = newRevision;
 }
 
@@ -880,8 +880,8 @@ void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */
   } else {
     // Go through the vector to find the first element which has a
     // lower relevance than 'relevance'
-    vector<RootWPage*>::iterator it = pageList_.begin();
-    vector<RootWPage*>::iterator beforeThis = pageList_.end();
+    std::vector<RootWPage*>::iterator it = pageList_.begin();
+    std::vector<RootWPage*>::iterator beforeThis = pageList_.end();
     RootWPage* aPage;
     for (; it!=pageList_.end(); ++it) {
       aPage = *it;
@@ -895,18 +895,18 @@ void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */
   newPage->setSite(this);
 }
 
-RootWPage& RootWSite::addPage(string newTitle, int relevance /* = least_relevant */ ) {
+RootWPage& RootWSite::addPage(std::string newTitle, int relevance /* = least_relevant */ ) {
   RootWPage* newPage = new RootWPage(newTitle);
   addPage(newPage, relevance);
   return (*newPage);
 }
 
-ostream& RootWSite::dumpFooter(ostream& output) {
-  output  << "          </div>" << endl
-	  << "        </div>" << endl
-	  << "        <div class=\"clear\"></div>" << endl
-	  << "      </div>" << endl
-	  << "      <div id=\"footer\">" << endl;
+std::ostream& RootWSite::dumpFooter(std::ostream& output) {
+  output  << "          </div>" << std::endl
+	  << "        </div>" << std::endl
+	  << "        <div class=\"clear\"></div>" << std::endl
+	  << "      </div>" << std::endl
+	  << "      <div id=\"footer\">" << std::endl;
 
   output << "<p> &copy; tkLayout developers: " 
 	 << "<a href=\"" << toolkitContributors_ << "\">" << toolkitContributors_ << "</a>"
@@ -916,60 +916,60 @@ ostream& RootWSite::dumpFooter(ostream& output) {
 
   time_t rawtime;
   time ( &rawtime );
-  output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << endl
+  output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << std::endl
 	 << "        <p>by <a href=\""<< toolkitGithub_ <<"\">"<< toolkitName_ <<"</a>";
   if (revision_!="")
     output << " revision " << revision_;
-  output << "</p>" << endl
-	 << "      </div>" << endl
-	 << "    </div>" << endl
-	 << "  </body>" << endl
-	 << "</html>" << endl;
+  output << "</p>" << std::endl
+	 << "      </div>" << std::endl
+	 << "    </div>" << std::endl
+	 << "  </body>" << std::endl
+	 << "</html>" << std::endl;
   return output;
 }
 
-ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
-  output << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << endl
-	 << "  <head>" << endl
-	 << "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />" << endl
-	 << "    <title>"<< title_ << " - " << thisPage->getTitle() <<"</title>" << endl
-         << "    <meta http-equiv=\"cache-control\" content=\"max-age=0\" />" << endl
-         << "    <meta http-equiv=\"cache-control\" content=\"no-cache\" />" << endl
-         << "    <meta http-equiv=\"expires\" content=\"0\" />" << endl
-         << "    <meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />" << endl
-         << "    <meta http-equiv=\"pragma\" content=\"no-cache\" />" << endl
-	 << "    <meta name=\"keywords\" content=\"CERN CMS tracker upgrade\" />" << endl
-	 << "    <meta name=\"description\" content=\"CMS Tracker upgrade summary page\" />" << endl
-	 << "    <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << endl
-	 << "    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << endl
-	 << " </head>" << endl
-	 << "  <script type=\"text/javascript\" src=\"../style/functions.js\"></script>" << endl
-	 << "  <body onload=\"preparePageGoodies();\">" << endl
-	 << "    <div id=\"outer\">" << endl
-	 << "      <div id=\"header\">" << endl
-	 << "        <h1>" << endl
-	 << "    <a href=\"index.html\">" << title_ << "</a>" << endl
-	 << "        </h1>" << endl;
+std::ostream& RootWSite::dumpHeader(std::ostream& output, RootWPage* thisPage) {
+  output << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl
+	 << "  <head>" << std::endl
+	 << "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />" << std::endl
+	 << "    <title>"<< title_ << " - " << thisPage->getTitle() <<"</title>" << std::endl
+         << "    <meta http-equiv=\"cache-control\" content=\"max-age=0\" />" << std::endl
+         << "    <meta http-equiv=\"cache-control\" content=\"no-cache\" />" << std::endl
+         << "    <meta http-equiv=\"expires\" content=\"0\" />" << std::endl
+         << "    <meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />" << std::endl
+         << "    <meta http-equiv=\"pragma\" content=\"no-cache\" />" << std::endl
+	 << "    <meta name=\"keywords\" content=\"CERN CMS tracker upgrade\" />" << std::endl
+	 << "    <meta name=\"description\" content=\"CMS Tracker upgrade summary page\" />" << std::endl
+	 << "    <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << std::endl
+	 << "    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << std::endl
+	 << " </head>" << std::endl
+	 << "  <script type=\"text/javascript\" src=\"../style/functions.js\"></script>" << std::endl
+	 << "  <body onload=\"preparePageGoodies();\">" << std::endl
+	 << "    <div id=\"outer\">" << std::endl
+	 << "      <div id=\"header\">" << std::endl
+	 << "        <h1>" << std::endl
+	 << "    <a href=\"index.html\">" << title_ << "</a>" << std::endl
+	 << "        </h1>" << std::endl;
   if (commentLink_=="") {
-    output << "    <h2>"<<comment_<<"</h2>" << endl;
+    output << "    <h2>"<<comment_<<"</h2>" << std::endl;
   } else {
     output << "    <h2>"
 	   << "<a href=\"" << commentLink_ << "\">"
 	   << comment_
 	   << "</a>"
-	   << "</h2>" << endl;
+	   << "</h2>" << std::endl;
   }
-  output << "      </div>" << endl
-	 << "      <div id=\"menu\">" << endl
-	 << "        <ul>" << endl;
-  for (vector<RootWPage*>::iterator it = pageList_.begin();
+  output << "      </div>" << std::endl
+	 << "      <div id=\"menu\">" << std::endl
+	 << "        <ul>" << std::endl;
+  for (std::vector<RootWPage*>::iterator it = pageList_.begin();
        it !=pageList_.end(); ++it) {
     output << "          <li";
     if ((*it)==(thisPage)) output << " class=\"current\"";
     output << ">";
     output  << "    <a href=\"" << (*it)->getAddress() << "\" ";
     if ((*it)->getAlert()>0) {
-      ostringstream anAlarmColor;
+      std::ostringstream anAlarmColor;
       anAlarmColor.str("");
       anAlarmColor << "rgb(255, "
 		   << int(255 * (1-(*it)->getAlert())) // the bigger the alert int, the more red we want to be!
@@ -981,13 +981,13 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
     }
     output << ">";
     output << (*it)->getTitle();
-    output <<"</a>" << "          </li>" << endl;
+    output <<"</a>" << "          </li>" << std::endl;
   }
-  output << "        </ul>" << endl
-	 << "      </div>" << endl
-	 << "      <div id=\"content\">" << endl
-	 << "        <div id=\"primaryContentContainer\">" << endl
-	 << "          <div id=\"primaryContent\">" << endl;
+  output << "        </ul>" << std::endl
+	 << "      </div>" << std::endl
+	 << "      <div id=\"content\">" << std::endl
+	 << "        <div id=\"primaryContentContainer\">" << std::endl
+	 << "          <div id=\"primaryContent\">" << std::endl;
 
   return output;
 
@@ -997,13 +997,13 @@ bool RootWSite::prepareTargetDirectory() {
   // Check if the directory already exists
   if (boost::filesystem::exists( targetDirectory_ )) {
     if (! boost::filesystem::is_directory(targetDirectory_) ) {
-      cerr << "A file named " << targetDirectory_ << " already exists. Cannot create target directory" << endl;
+      std::cerr << "A file named " << targetDirectory_ << " already exists. Cannot create target directory" << std::endl;
       return false;
     }
   } else {
     // If the directory does not exist, then try to create it
     if (!boost::filesystem::create_directory(targetDirectory_)) {
-      cerr << "Couldn't create directory " << targetDirectory_ << endl;
+      std::cerr << "Couldn't create directory " << targetDirectory_ << std::endl;
       return false;
     }
   }
@@ -1011,13 +1011,13 @@ bool RootWSite::prepareTargetDirectory() {
 }
 
 bool RootWSite::makeSite(bool verbose) {
-  ofstream myPageFile;
+  std::ofstream myPageFile;
   RootWPage* myPage;
-  string myPageFileName;
+  std::string myPageFileName;
 
   prepareTargetDirectory();
 
-  vector<RootWPage*>::iterator it;
+  std::vector<RootWPage*>::iterator it;
   if (createSummaryFile_) {
     summaryFile_.reset(new TFile(Form("%s/%s",
 				  targetDirectory_.c_str(),
@@ -1027,7 +1027,7 @@ bool RootWSite::makeSite(bool verbose) {
     myPage = (*it);
     if (verbose) std::cout << " " << myPage->getTitle() << std::flush;
     myPageFileName = targetDirectory_+"/"+myPage->getAddress();
-    myPageFile.open(myPageFileName.c_str(), ios::out);
+    myPageFile.open(myPageFileName.c_str(), std::ios::out);
     myPage->setTargetDirectory(targetDirectory_);
     myPage->dump(myPageFile);
     myPageFile.close();
@@ -1067,26 +1067,26 @@ void RootWSite::setSummaryFileName(std::string newName) {
 //*******************************************//
 
 
-RootWItem* RootWItemCollection::getItem(string itemName) {
+RootWItem* RootWItemCollection::getItem(std::string itemName) {
   RootWItem* result;
   result=itemCollection_[itemName];
   if (result!=NULL) result->taken=true;
   return result;
 }
 
-void RootWItemCollection::addItem(RootWItem* anItem, string itemName) {
+void RootWItemCollection::addItem(RootWItem* anItem, std::string itemName) {
   RootWItem* findItem;
   findItem=itemCollection_[itemName];
   if (findItem!=NULL) {
-    cerr << "Warning in RootWItemCollection::addItem(): item named " << itemName << " already exists! Overwriting it." << endl;
+    std::cerr << "Warning in RootWItemCollection::addItem(): item named " << itemName << " already exists! Overwriting it." << std::endl;
   }
   itemCollection_[itemName]=anItem;
 }
 
-vector<RootWItem*> RootWItemCollection::getOtherItems() {
-  vector<RootWItem*> result;
-  map<string, RootWItem*>::iterator itItem=itemCollection_.begin();
-  map<string, RootWItem*>::iterator endItem=itemCollection_.end();
+std::vector<RootWItem*> RootWItemCollection::getOtherItems() {
+  std::vector<RootWItem*> result;
+  std::map<std::string, RootWItem*>::iterator itItem=itemCollection_.begin();
+  std::map<std::string, RootWItem*>::iterator endItem=itemCollection_.end();
   for (; itItem!=endItem; ++itItem) {
     if (!(*itItem).second->taken) result.push_back((*itItem).second);
   }
@@ -1097,20 +1097,20 @@ vector<RootWItem*> RootWItemCollection::getOtherItems() {
 // RootWTextFile                             //
 //*******************************************//
 
-ostream& RootWTextFile::dump(ostream& output) {
+std::ostream& RootWTextFile::dump(std::ostream& output) {
 
   if (fileName_=="") {
-    cerr << "Warning: RootWTextFile::dump() was called without prior setting the destination file name" << endl;
+    std::cerr << "Warning: RootWTextFile::dump() was called without prior setting the destination file name" << std::endl;
     return output;
   }
 
   std::ofstream outputFile;
-  string destinationFileName = targetDirectory_ +"/" + fileName_;
+  std::string destinationFileName = targetDirectory_ +"/" + fileName_;
   outputFile.open(destinationFileName.c_str());
   // TODO: add a check here if the file was correctly opened
   // outputFile << myText_.str();
   // myText_ >> outputFile;
-  outputFile << myText_.str() << endl;
+  outputFile << myText_.str() << std::endl;
   outputFile.close();
 
   output << "<b>" << description_ << ":</b> <a href=\""
@@ -1124,17 +1124,17 @@ ostream& RootWTextFile::dump(ostream& output) {
 // RootWBinaryFile                           //
 //*******************************************//
 
-ostream& RootWBinaryFile::dump(ostream& output) {
+std::ostream& RootWBinaryFile::dump(std::ostream& output) {
   if ((originalFileName_=="")&&(!noCopy_)) {
-    cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
+    std::cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << std::endl;
     return output;
   }
   if (fileName_=="") {
-    cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the destination file name" << endl;
+    std::cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the destination file name" << std::endl;
     return output;
   }
 
-  string destinationFileName = targetDirectory_ +"/" + fileName_;
+  std::string destinationFileName = targetDirectory_ +"/" + fileName_;
 
   if ((!noCopy_)&&(boost::filesystem::exists(originalFileName_) && originalFileName_ != destinationFileName)) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
     try {
@@ -1142,7 +1142,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
         boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
     } catch (boost::filesystem::filesystem_error& e) {
-      cerr << e.what() << endl;
+      std::cerr << e.what() << std::endl;
       return output;
     }
   }
@@ -1157,35 +1157,30 @@ ostream& RootWBinaryFile::dump(ostream& output) {
 // RootWBinaryFileList                       //
 //*******************************************//
 
-ostream& RootWBinaryFileList::dump(ostream& output) {
+std::ostream& RootWBinaryFileList::dump(std::ostream& output) {
   if (originalFileNames_.empty()) {
-    cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the original file names" << endl;
+    std::cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the original file names" << std::endl;
     return output;
   }
   if (fileNames_.empty()) {
-    cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the destination file names" << endl;
+    std::cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the destination file names" << std::endl;
     return output;
   }
   if (fileNames_.size() != originalFileNames_.size()) {
-    cerr << "Warning: RootWBinaryFileList::dump() was called with original and destination file name lists differing in length" << endl;
+    std::cerr << "Warning: RootWBinaryFileList::dump() was called with original and destination file name lists differing in length" << std::endl;
     return output;
   }
 
   auto it = originalFileNames_.begin();
   for (auto fn : fileNames_) {
-    //auto path = split(fn, "/");
-    string destinationFileName = targetDirectory_;
-    //std::for_each(path.begin(), path.end()-1, [&destinationFileName](string p) {
-    //  destinationFileName += "/" + p;
-    //  if (!boost::filesystem::exists(destinationFileName)) boost::filesystem::create_directory(destinationFileName);
-    //});
+    std::string destinationFileName = targetDirectory_;
     destinationFileName += "/" + fn; //path.back();
     try {
       if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(*it++, destinationFileName);
     }
     catch (boost::filesystem::filesystem_error& e) {
-      cerr << e.what() << endl;
+      std::cerr << e.what() << std::endl;
       return output;
     }
   }
@@ -1193,8 +1188,8 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
   std::vector<std::string> cleanedUpFileNames;
   std::transform(originalFileNames_.begin(), originalFileNames_.end(), std::back_inserter(cleanedUpFileNames), [](const std::string& s) {
       auto pos = s.find("stdinclude");
-      if (s.find("xml") != string::npos) pos = s.rfind("/") + 1;
-      return pos != string::npos ? s.substr(pos) : s;
+      if (s.find("xml") != std::string::npos) pos = s.rfind("/") + 1;
+      return pos != std::string::npos ? s.substr(pos) : s;
     });
   output << "<b>" << description_ << ":</b>";
   auto dfn = fileNames_.begin();
@@ -1210,43 +1205,43 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
 // RootWInfo                                 //
 //*******************************************//
 
-string RootWInfo::setValue(string newText) {
+std::string RootWInfo::setValue(std::string newText) {
   value_ = newText;
   return newText;
 }
 
-string RootWInfo::setValue(int number) {
-  stringstream myNum_;
+std::string RootWInfo::setValue(int number) {
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << number;
+  myNum_ << std::dec << number;
   return(setValue(myNum_.str()));
 }
 
-string RootWInfo::setValue(double number, int precision) {
-  stringstream myNum_;
+std::string RootWInfo::setValue(double number, int precision) {
+  std::stringstream myNum_;
   myNum_.clear();
-  myNum_ << dec << fixed << setprecision(precision) << number;
+  myNum_ << std::dec << std::fixed << std::setprecision(precision) << number;
   return(setValue(myNum_.str()));
 }
 
-string RootWInfo::setValueSci(double number, int precision) {
-  stringstream myNum_;
+std::string RootWInfo::setValueSci(double number, int precision) {
+  std::stringstream myNum_;
   myNum_.clear();
   int nearestLog = floor(log10(number));
   double mantissa = number/pow(10, nearestLog);
-  myNum_.unsetf(ios_base::floatfield);
+  myNum_.unsetf(std::ios_base::floatfield);
   myNum_.precision(5);
-  myNum_ << dec << mantissa;
+  myNum_ << std::dec << mantissa;
   myNum_ << "&times;10<sup>" << nearestLog << "</sup>";
   return(setValue(myNum_.str()));
 }
 
-string RootWInfo::appendValue(string aString) {
-  stringstream myNum_;
+std::string RootWInfo::appendValue(std::string aString) {
+  std::stringstream myNum_;
   return setValue(value_ + aString);
 }
 
-ostream& RootWInfo::dump(ostream& output) {
+std::ostream& RootWInfo::dump(std::ostream& output) {
   std::ofstream outputFile;
 
   output << "<b>" << description_ << ":</b> "
@@ -1258,14 +1253,14 @@ ostream& RootWInfo::dump(ostream& output) {
 // RootWGraphViz                             //
 //*******************************************//
 
-ostream& RootWGraphViz::dump(ostream& output) {
-  string myDescription = description_;
+std::ostream& RootWGraphViz::dump(std::ostream& output) {
+  std::string myDescription = description_;
   description_ += " (GraphViz)";
   RootWTextFile::dump(output);
   int result = system("which dot > /dev/null");
   if (result==0) {
-    string svgFileName = fileName_+".svg";
-    string command = "dot -Tsvg " + targetDirectory_ +"/" + fileName_ + " > " + targetDirectory_ + "/" + svgFileName;
+    std::string svgFileName = fileName_+".svg";
+    std::string command = "dot -Tsvg " + targetDirectory_ +"/" + fileName_ + " > " + targetDirectory_ + "/" + svgFileName;
     result = system(command.c_str());
     if (result==0) {
       RootWBinaryFile* mySvg = new RootWBinaryFile(svgFileName, myDescription+" (SVG)" );

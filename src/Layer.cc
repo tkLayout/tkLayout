@@ -975,21 +975,18 @@ void Layer::buildTilted() {
 
 
       }
-      else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }     
+      else { logERROR(std::to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }     
     }
 
 
     const int numInnerUntiltedModules = tmspecsi.size();
     if (numInnerUntiltedModules != buildNumModulesFlat()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part inner rod has " + to_string(tmspecsi.size()) + " module(s).");
+      logERROR("Layer " + std::to_string(myid()) + " : numModulesFlat = " + std::to_string(buildNumModulesFlat()) + " but flat part inner rod has " + std::to_string(tmspecsi.size()) + " module(s).");
     }
     const int numOuterUntiltedModules = tmspecso.size();
     if (numOuterUntiltedModules != buildNumModulesFlat()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part outer rod has " + to_string(tmspecso.size()) + " module(s).");
+      logERROR("Layer " + std::to_string(myid()) + " : numModulesFlat = " + std::to_string(buildNumModulesFlat()) + " but flat part outer rod has " + std::to_string(tmspecso.size()) + " module(s).");
     }
-    
-
-
 
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
@@ -1029,7 +1026,7 @@ void Layer::buildTilted() {
       tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), flatPartrEndInner, flatPartrEndOuter, flatPartzEnd,  flatPartzEnd_REAL, tiltedRingsGeometry_);
     } 
     else {
-      logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
+      logERROR("numModulesTilted = " + std::to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + std::to_string(tiltedRingsGeometry_.size()) + " elements.");
     }
 
 
@@ -1037,11 +1034,11 @@ void Layer::buildTilted() {
 
     const int numInnerModules = tmspecsi.size();
     if (numInnerModules != buildNumModules()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
+      logERROR("Layer " + std::to_string(myid()) + " : numModulesFlat = " + std::to_string(buildNumModulesFlat()) + " and numModulesTilted = " + std::to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + std::to_string(tmspecsi.size()) + " module(s) in total.");
     }
     const int numOuterModules = tmspecso.size();
     if (numOuterModules != buildNumModules()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
+      logERROR("Layer " + std::to_string(myid()) + " : numModulesFlat = " + std::to_string(buildNumModulesFlat()) + " and numModulesTilted = " + std::to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + std::to_string(tmspecso.size()) + " module(s) in total.");
     }
 
   }

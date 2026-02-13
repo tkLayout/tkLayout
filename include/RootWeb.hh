@@ -16,8 +16,6 @@
 #include <vector>
 #include <memory>
 
-using namespace std;
-
 #define THUMBSMALLSIZE 120
 // The following is a list of allowed file etensions for TCanvas::SaveAs
 // It should be separated, start and end with '|'
@@ -42,7 +40,7 @@ public:
   virtual bool isImage() {return false;};
   virtual bool isText() {return false;};
   virtual bool isFile() {return false;};
-  virtual ostream& dump(ostream& output) {return output;};
+  virtual std::ostream& dump(std::ostream& output) {return output;};
   bool taken;
   virtual bool isPlacedBelow() { return isPlacedBelow_; }
 protected:
@@ -52,52 +50,52 @@ protected:
 class RootWText: public RootWItem {
 public:
   RootWText() {myText_.clear();};
-  RootWText(string newText) {myText_.str(newText); };
+  RootWText(std::string newText) {myText_.str(newText); };
   ~RootWText() {};
-  void addText(string newText) { myText_ << newText; };
-  ostream& dump(ostream& output) {output << myText_.str(); return output;};
+  void addText(std::string newText) { myText_ << newText; };
+  std::ostream& dump(std::ostream& output) {output << myText_.str(); return output;};
   bool isText() {return true;};
 protected:
-  stringstream myText_;
+  std::stringstream myText_;
 };
 
 class RootWInfo: public RootWItem {
 public:
   RootWInfo() {description_="missing_description";value_="missing_value";};
-  RootWInfo(string description) {description_=description; value_="missing_value";};
-  RootWInfo(string description, string value) {description_=description;value_=value;};
+  RootWInfo(std::string description) {description_=description; value_="missing_value";};
+  RootWInfo(std::string description, std::string value) {description_=description;value_=value;};
   ~RootWInfo() {};
-  string setDescription(string newText) { description_ = newText; return newText; };
-  string setValue(string newText);
-  string setValue(int number);
-  string setValue(double number, int precision);
-  string setValueSci(double number, int precision);
-  string appendValue(string);
-  string addValueText(string newText) {value_+=newText; return value_;};
-  ostream& dump(ostream& output);
+  std::string setDescription(std::string newText) { description_ = newText; return newText; };
+  std::string setValue(std::string newText);
+  std::string setValue(int number);
+  std::string setValue(double number, int precision);
+  std::string setValueSci(double number, int precision);
+  std::string appendValue(std::string);
+  std::string addValueText(std::string newText) {value_+=newText; return value_;};
+  std::ostream& dump(std::ostream& output);
 protected:
-  string description_;
-  string value_;
+  std::string description_;
+  std::string value_;
 };
 
-typedef std::map<pair<int,int>, string> rootWTableContent;
-typedef std::map<pair<int,int>, int> rootWTableContentColor;
-typedef std::map<pair<int,int>, bool> rootWTableContentBold;
+typedef std::map<std::pair<int,int>, std::string> rootWTableContent;
+typedef std::map<std::pair<int,int>, int> rootWTableContentColor;
+typedef std::map<std::pair<int,int>, bool> rootWTableContentBold;
 class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
   RootWTable(bool isPlacedBelow = false);
-  void setContent(int row, int column, string content, const bool isBold = false, const int color = kBlack);
+  void setContent(int row, int column, std::string content, const bool isBold = false, const int color = kBlack);
   void setContent(int row, int column, int number, const bool isBold = false, const int color = kBlack);
   void setContent(int row, int column, double number, int precision, const bool isBold = false, const int color = kBlack);
   void setContent(const rootWTableContent& newContent) { tableContent_ = newContent; };
   void setColor(const int row,const  int column, const int newColor);
   void setBold(const int row, const int column, const bool isBold);
-  ostream& dump(ostream& output);
-  pair<int, int> addContent(string content);
-  pair<int, int> addContent(int number);
-  pair<int, int> addContent(double number, int precision);
-  pair<int, int> newLine();
+  std::ostream& dump(std::ostream& output);
+  std::pair<int, int> addContent(std::string content);
+  std::pair<int, int> addContent(int number);
+  std::pair<int, int> addContent(double number, int precision);
+  std::pair<int, int> newLine();
   bool isTable() {return true;};
   const int maxRow() const { return maxRow_; }
   const int maxCol() const { return maxCol_; }
@@ -109,44 +107,44 @@ private:
   int maxRow_, maxCol_;
 };
 
-typedef string RootWImageSize;
+typedef std::string RootWImageSize;
 
 class RootWImage : public RootWItem {
 public:
   RootWImage();
   // TODO: the methods with TCanvas* (pointer) should be made obsolete
   RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
-  RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  RootWImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, std::string relativeHtmlDirectory); // TODO: is this used for real?
   void setCanvas(std::unique_ptr<TCanvas> myCanvas);
-  void setComment(string newComment);
-  void setName(string newName);
+  void setComment(std::string newComment);
+  void setName(std::string newName);
   std::string getName();
   void setZoomedSize(int witdh, int height);
-  void setRelativeHtmlDirectory(string newDirectory);
-  void setTargetDirectory(string newDirectory);
-  string saveFiles(int smallWidth, int smallHeight);
-  string saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight);
-  ostream& dump(ostream& output);
+  void setRelativeHtmlDirectory(std::string newDirectory);
+  void setTargetDirectory(std::string newDirectory);
+  std::string saveFiles(int smallWidth, int smallHeight);
+  std::string saveFiles(int smallWidth, int smallHeight, int largeWidth, int largeHeight);
+  std::ostream& dump(std::ostream& output);
   bool isImage() {return true;};
-  bool addExtension(string newExt);
+  bool addExtension(std::string newExt);
   void saveSummary(std::string baseName, TFile* myTargetFile);
 private:
   std::unique_ptr<TCanvas> myCanvas_ = nullptr;
   int zoomedWidth_;
   int zoomedHeight_;
-  string relativeHtmlDirectory_;
-  string targetDirectory_;
-  map<RootWImageSize, string> myText_;
-  map<RootWImageSize, bool> fileSaved_;
+  std::string relativeHtmlDirectory_;
+  std::string targetDirectory_;
+  std::map<RootWImageSize, std::string> myText_;
+  std::map<RootWImageSize, bool> fileSaved_;
   RootWImageSize lastSize_;
-  string comment_;
-  string name_;
+  std::string comment_;
+  std::string name_;
   RootWImageSize makeSizeCode(int sw, int sh, int lw, int lh);
-  vector<string> fileTypeV_;
+  std::vector<std::string> fileTypeV_;
   void saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile);
 
   static constexpr double thumb_compression_ = 2.;
-  string allowedExtensions_; // Will be initialized in the constructor
+  std::string allowedExtensions_; // Will be initialized in the constructor
   void setDefaultExtensions();
 
   static int imageCounter_;
@@ -155,82 +153,82 @@ private:
 
 class RootWFile : public RootWItem {
 protected:
-  string fileName_; // The destination file name
-  string description_;
-  string targetDirectory_;
+  std::string fileName_; // The destination file name
+  std::string description_;
+  std::string targetDirectory_;
 public:
   RootWFile() {fileName_="aFile.txt";};
   ~RootWFile() {};
-  RootWFile(string newFileName) { setFileName(newFileName); setDescription(""); };
-  RootWFile(string newFileName, string newDescription) {setFileName(newFileName); setDescription(newDescription); };
-  void setFileName(string newFileName) { fileName_ = newFileName;};
-  void setDescription(string newDescription) { description_=newDescription; };
-  string getFileName() { return fileName_ ; };
-  string getDescription() { return description_ ; };
-  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
+  RootWFile(std::string newFileName) { setFileName(newFileName); setDescription(""); };
+  RootWFile(std::string newFileName, std::string newDescription) {setFileName(newFileName); setDescription(newDescription); };
+  void setFileName(std::string newFileName) { fileName_ = newFileName;};
+  void setDescription(std::string newDescription) { description_=newDescription; };
+  std::string getFileName() { return fileName_ ; };
+  std::string getDescription() { return description_ ; };
+  void setTargetDirectory(std::string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   bool isFile() {return true;};
 };
 
 class RootWFileList : public RootWItem {
 protected:
-  std::list<string> fileNames_;
-  string description_;
-  string targetDirectory_;
+  std::list<std::string> fileNames_;
+  std::string description_;
+  std::string targetDirectory_;
 public:
   RootWFileList() {};
   template<class I> RootWFileList(I begin, I end) { addFileNames(begin, end); }
-  template<class I> RootWFileList(I begin, I end, const string& description) : description_(description) { addFileNames(begin, end); }
-  void addFileName(string newFileName) { fileNames_.push_back(newFileName); }
+  template<class I> RootWFileList(I begin, I end, const std::string& description) : description_(description) { addFileNames(begin, end); }
+  void addFileName(std::string newFileName) { fileNames_.push_back(newFileName); }
   template<class I> void addFileNames(I begin, I end) { fileNames_.insert(fileNames_.end(), begin, end); }
-  void setDescription(string newDescription) { description_ = newDescription; }
-  const std::list<string>& getFileNames() const { return fileNames_; }
-  string getDescription() { return description_; }
-  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; }
+  void setDescription(std::string newDescription) { description_ = newDescription; }
+  const std::list<std::string>& getFileNames() const { return fileNames_; }
+  std::string getDescription() { return description_; }
+  void setTargetDirectory(std::string newTargetDirectory) {targetDirectory_ = newTargetDirectory; }
   bool isFile() {return true;}
 };
 
 class RootWTextFile : public RootWFile {
 private:
-  stringstream myText_;
+  std::stringstream myText_;
 public:
   RootWTextFile() {};
   ~RootWTextFile() {};
-  RootWTextFile(string newFileName) {setFileName(newFileName); setDescription(""); };
-  RootWTextFile(string newFileName, string newDescription) {setFileName(newFileName); setDescription(newDescription); };
-  void addText(string newText) {myText_ << newText ; };
-  void addText(stringstream& newText) {myText_ << newText.str() ; };
-  ostream& dump(ostream& output);
+  RootWTextFile(std::string newFileName) {setFileName(newFileName); setDescription(""); };
+  RootWTextFile(std::string newFileName, std::string newDescription) {setFileName(newFileName); setDescription(newDescription); };
+  void addText(std::string newText) {myText_ << newText ; };
+  void addText(std::stringstream& newText) {myText_ << newText.str() ; };
+  std::ostream& dump(std::ostream& output);
 };
 
 class RootWBinaryFile : public RootWFile {
 private:
-  string originalFileName_;
+  std::string originalFileName_;
   bool noCopy_ = false;
 public:
   RootWBinaryFile() {};
   ~RootWBinaryFile() {};
-  RootWBinaryFile(string newFileName) {setFileName(newFileName); setDescription(""); setOriginalFile(""); };
-  RootWBinaryFile(string newFileName, string newDescription) {setFileName(newFileName); setDescription(newDescription); setOriginalFile("");};
-  RootWBinaryFile(string newFileName, string newDescription, string newOriginalFile) {
+  RootWBinaryFile(std::string newFileName) {setFileName(newFileName); setDescription(""); setOriginalFile(""); };
+  RootWBinaryFile(std::string newFileName, std::string newDescription) {setFileName(newFileName); setDescription(newDescription); setOriginalFile("");};
+  RootWBinaryFile(std::string newFileName, std::string newDescription, std::string newOriginalFile) {
     setFileName(newFileName); setDescription(newDescription); setOriginalFile(newOriginalFile);};
-  void setOriginalFile(string newFile) {originalFileName_ = newFile ; };
-  ostream& dump(ostream& output);
+  void setOriginalFile(std::string newFile) {originalFileName_ = newFile ; };
+  std::ostream& dump(std::ostream& output);
   void setNoCopy(bool newNoCopy) { noCopy_ = newNoCopy ; }
 };
 
 class RootWBinaryFileList : public RootWFileList {
 private:
-  std::list<string> originalFileNames_;
+  std::list<std::string> originalFileNames_;
 public:
   RootWBinaryFileList() {};
   ~RootWBinaryFileList() {};
   template<class I> RootWBinaryFileList(I begin, I end) : RootWFileList(begin, end) {}
-  template<class I> RootWBinaryFileList(I begin, I end, string newDescription) : RootWFileList(begin, end, newDescription) {}
-  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) {
+  template<class I> RootWBinaryFileList(I begin, I end, std::string newDescription) : RootWFileList(begin, end, newDescription) {}
+  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, std::string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) {
     setOriginalFiles(beginOrigNames, endOrigNames);
   }
   template<class I> void setOriginalFiles(I begin, I end) { originalFileNames_.insert(originalFileNames_.end(), begin, end); }
-  ostream& dump(ostream& output);
+  std::ostream& dump(std::ostream& output);
 };
 
 class RootWPage;
@@ -239,38 +237,38 @@ class RootWContent {
 public:
   ~RootWContent();
   RootWContent();
-  RootWContent(string title, bool visible=true);
-  void setTargetDirectory(string newTargetDirectory);
-  void addParagraph(string parText) ;
-  void setTitle(string newTitle) ;
+  RootWContent(std::string title, bool visible=true);
+  void setTargetDirectory(std::string newTargetDirectory);
+  void addParagraph(std::string parText) ;
+  void setTitle(std::string newTitle) ;
   void addItem(RootWItem* newItem);
   void addItem(std::unique_ptr<RootWItem> newItem);
-  ostream& dump(ostream& output);
+  std::ostream& dump(std::ostream& output);
   RootWText& addText();
-  RootWText& addText(string newText);
+  RootWText& addText(std::string newText);
   RootWInfo& addInfo();
-  RootWInfo& addInfo(string description);
-  RootWInfo& addInfo(string description, string value);
+  RootWInfo& addInfo(std::string description);
+  RootWInfo& addInfo(std::string description, std::string value);
   RootWTable& addTable();
   RootWImage& addImage();
   RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height);
-  RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  RootWImage& addImage(std::unique_ptr<TCanvas> myCanvas, int witdh, int height, std::string relativeHtmlDirectory); // TODO: is this used for real?
   RootWTextFile& addTextFile();
-  RootWTextFile& addTextFile(string newFileName);
-  RootWTextFile& addTextFile(string newFileName, string newDescription);
+  RootWTextFile& addTextFile(std::string newFileName);
+  RootWTextFile& addTextFile(std::string newFileName, std::string newDescription);
   RootWBinaryFile& addBinaryFile();
-  RootWBinaryFile& addBinaryFile(string newFileName);
-  RootWBinaryFile& addBinaryFile(string newFileName, string newDescription);
-  RootWBinaryFile& addBinaryFile(string newFileName, string newDescription, string newOriginalFile);
+  RootWBinaryFile& addBinaryFile(std::string newFileName);
+  RootWBinaryFile& addBinaryFile(std::string newFileName, std::string newDescription);
+  RootWBinaryFile& addBinaryFile(std::string newFileName, std::string newDescription, std::string newOriginalFile);
   void setPage(RootWPage*);
   TFile* getSummaryFile();
 private:
   bool visible_;
-  string title_;
+  std::string title_;
   RootWPage* page_;
   //void setDefaultParameters();
-  vector<RootWItem*> itemList_;
-  string targetDirectory_;
+  std::vector<RootWItem*> itemList_;
+  std::string targetDirectory_;
 };
 
 class RootWPage;
@@ -278,36 +276,36 @@ class RootWPage;
 class RootWSite {
 protected:
 private:
-  vector<RootWPage*> pageList_;
-  string title_;
-  string comment_;
-  string commentLink_;
+  std::vector<RootWPage*> pageList_;
+  std::string title_;
+  std::string comment_;
+  std::string commentLink_;
   std::string toolkitName_;
   std::string toolkitGithub_;
   std::string toolkitContributors_;
-  string revision_;
-  string targetDirectory_;
+  std::string revision_;
+  std::string targetDirectory_;
   std::unique_ptr<TFile> summaryFile_;
   bool createSummaryFile_;
-  string summaryFileName_;
+  std::string summaryFileName_;
 public:
   ~RootWSite();
   RootWSite();
-  RootWSite(string title);
-  RootWSite(string title, string comment);
-  void setTitle(string newTitle);
-  void setComment(string newComment);
-  void setCommentLink(string newCommentLink);
-  string getTitle();
-  string getComment();
-  string getCommentLink();
-  string getRevision();
-  void setRevision (string newRevision);
-  ostream& dumpHeader(ostream& output, RootWPage* thisPage);
-  ostream& dumpFooter(ostream& output);
-  RootWPage& addPage(string title, int relevance = least_relevant);
+  RootWSite(std::string title);
+  RootWSite(std::string title, std::string comment);
+  void setTitle(std::string newTitle);
+  void setComment(std::string newComment);
+  void setCommentLink(std::string newCommentLink);
+  std::string getTitle();
+  std::string getComment();
+  std::string getCommentLink();
+  std::string getRevision();
+  void setRevision (std::string newRevision);
+  std::ostream& dumpHeader(std::ostream& output, RootWPage* thisPage);
+  std::ostream& dumpFooter(std::ostream& output);
+  RootWPage& addPage(std::string title, int relevance = least_relevant);
   void addPage(RootWPage* newPage, int relevance = least_relevant);
-  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
+  void setTargetDirectory(std::string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   bool prepareTargetDirectory();
   bool makeSite(bool verbose);
   void setSummaryFile(bool);
@@ -317,26 +315,26 @@ public:
 
 class RootWPage {
 private:
-  string title_;
-  string address_;
-  vector<RootWContent*> contentList_;
+  std::string title_;
+  std::string address_;
+  std::vector<RootWContent*> contentList_;
   RootWSite* site_;
-  string targetDirectory_;
+  std::string targetDirectory_;
   double alert_;
   int relevance;
 public:
   ~RootWPage();
   RootWPage();
-  RootWPage(string title);
-  void setTargetDirectory(string newTargetDirectory);
-  void setTitle(string newTitle);
-  string getTitle();
-  void setAddress(string newAddress);
-  string getAddress();
+  RootWPage(std::string title);
+  void setTargetDirectory(std::string newTargetDirectory);
+  void setTitle(std::string newTitle);
+  std::string getTitle();
+  void setAddress(std::string newAddress);
+  std::string getAddress();
   void setSite(RootWSite* newSite);
-  ostream& dump(ostream& output);
+  std::ostream& dump(std::ostream& output);
   void addContent(RootWContent* newContent);
-  RootWContent& addContent(string title, bool visible=true);
+  RootWContent& addContent(std::string title, bool visible=true);
   void addContent(std::unique_ptr<RootWContent> newContent);
   void setAlert(double alert);
   double getAlert();
@@ -347,22 +345,19 @@ public:
 
 class RootWItemCollection {
 private:
-  map<string, RootWItem*> itemCollection_;
+  std::map<std::string, RootWItem*> itemCollection_;
 public:
   RootWItemCollection() {};
   ~RootWItemCollection() {};
-  RootWItem* getItem(string itemName);
-  void  addItem(RootWItem* anItem, string itemName);
-  vector<RootWItem*> getOtherItems();
+  RootWItem* getItem(std::string itemName);
+  void  addItem(RootWItem* anItem, std::string itemName);
+  std::vector<RootWItem*> getOtherItems();
 };
 
 class RootWGraphViz : public RootWTextFile {
 public:
-  RootWGraphViz(string a, string b) : RootWTextFile(a, b) {} ;
-  ostream& dump(ostream& output);
+  RootWGraphViz(std::string a, std::string b) : RootWTextFile(a, b) {} ;
+  std::ostream& dump(std::ostream& output);
 };
-
-
-
 
 #endif
