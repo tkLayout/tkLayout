@@ -8861,10 +8861,16 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 
   void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
     triggerSectorMapCsv_.clear();
-    triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol;
-    for (TriggerSectorMap::const_iterator it = tsm.begin(); it != tsm.end(); ++it) {
-      triggerSectorMapCsv_ += any2str(it->first.first) + csv_separator + any2str(it->first.second);
-      for (std::set<int>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+    // Reserve 500KB to avoid multiple reallocations
+    triggerSectorMapCsv_.reserve(1024 * 512);
+    // .csv header
+    triggerSectorMapCsv_ += "eta_idx, phi_idx, module_list" + csv_eol;
+    // Iterate the trigger sector map and build the CSV string
+    for (const auto& mapel : tsm) {
+      // Get the trigger sector indexes and the list of modules in the sector
+      triggerSectorMapCsv_ += any2str(mapel.first.first) + csv_separator + any2str(mapel.first.second);
+      // Add the remaining module indexes to the CSV string
+      for (std::set<int>::const_iterator it2 = mapel.second.begin(); it2 != mapel.second.end(); ++it2) {
         triggerSectorMapCsv_ += csv_separator + any2str(*it2);
       }
       triggerSectorMapCsv_ += csv_eol;
@@ -8872,17 +8878,31 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   void Vizard::createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections) {
-    std::stringstream ss;
-    ss << "subdetectorId, z, rho, phi, detId, tt_list" << csv_eol;
-    for (const auto& mapel : moduleConnections) {
-      auto pos = mapel.first->posRef();
-      ss << pos.subdetectorId << csv_separator << pos.z << csv_separator << pos.rho << csv_separator << pos.phi << csv_separator << mapel.second.detId();
-      for (const auto& conn : mapel.second.connectedProcessors) {
-        ss << csv_separator << 't' << conn.first << '_' << conn.second;
+    moduleConnectionsCsv_.clear();
+    // Reserve 500KB to avoid multiple reallocations
+    moduleConnectionsCsv_.reserve(1024 * 512);
+    // .csv header
+    moduleConnectionsCsv_ += "subdetectorId, z, rho, phi, detId, tt_list" + csv_eol;
+    // Copy of the map to vector of pairs for sorting by detId
+    std::vector<std::pair<const Module*, TriggerProcessorBandwidthVisitor::ModuleConnectionData>> vecModCon(moduleConnections.cbegin(), moduleConnections.cend());
+    std::sort(vecModCon.begin(), vecModCon.end(), [](const auto& a, const auto& b) {
+      return a.second.detId() < b.second.detId();
+    });
+    // Iterate the module connections and build the CSV string
+    for (const auto& elem : vecModCon) {
+      // Get the module position and connection details
+      auto pos = elem.first->posRef();
+      moduleConnectionsCsv_ += any2str(pos.subdetectorId) + csv_separator 
+                               + any2str(pos.z) + csv_separator 
+                               + any2str(pos.rho) + csv_separator 
+                               + any2str(pos.phi) + csv_separator 
+                               + any2str(elem.second.detId());
+      // Add the connected processors (TTs) to the CSV string
+      for (const auto& conn : elem.second.connectedProcessors) {
+        moduleConnectionsCsv_ += csv_separator + 't' + any2str(conn.first) + '_' + any2str(conn.second);
       }
-      ss << csv_eol;
+      moduleConnectionsCsv_ += csv_eol;
     }
-    moduleConnectionsCsv_ = ss.str();
   }
 
   std::string Vizard::createAllModulesCsv(const Tracker& t, bool& withHeader) {
@@ -8940,12 +8960,6 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     myCsv << "Atomic Symbol /C, Density (g/cm^3) /D, Atomic Number /I, Standard Atomic Weight (u) /D, Radiation length (g/cm^2) /D, Interaction length (g/cm^2) /D" << std::endl;
 
     const MaterialsTable& myTable = MaterialsTable::instance();
-    /*
-    double density = myTable.density("CO2");
-    double rl = myTable.radiationLength("CO2");
-    double il = myTable.interactionLength("CO2");
-    std::cout << "CO2" << " density = " << density << " rl = " << rl << " il = " << il << std::endl;
-    */
     const ChemicalElementMap& allChemicalElements = myTable.getAllChemicalElements();
 
     for (const auto& elemIt : allChemicalElements) {
@@ -8958,7 +8972,6 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    << elem.getRadiationLength() << ","
 	    << elem.getInteractionLength() 
 	    << std::endl;
-      //myCsv << std::endl;
     }
 
     return myCsv.str();
