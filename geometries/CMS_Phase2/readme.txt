@@ -598,7 +598,8 @@ OT800_IT803.cfg                      OT Version 8.0.0
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>                                     
 
-OT806_IT743.cfg                      Just like OT806_IT742, but with moduleSubType assigned to the pixel modules
+OT806_IT742.cfg                      Inner Tracker like IT711, but with a zGap of 0.7 mm
+OT806_IT743.cfg                      Just like OT806_IT742, but with HUGE fix of TEPX and moduleSubType assigned to the pixel modules
 OT807_IT743.cfg                      Just like OT806_IT743, but with fixed module orientation in TB2S
 OT807_IT744.cfg                      Just like OT806_IT744, but with the order of rings swapped in TEPX disks 2 and 4  
 OT807_IT745.cfg                      Just like OT807_IT744, but without gap and using module_BPIX_L1_1x2_2500_2sens_3D instead of module_BPIX_L1_1x2_2500_3D
