@@ -305,7 +305,6 @@ namespace insur {
       };
 
 
-      ModuleCap&           modulecap;
       Module&              module;
       std::vector<Volume*> volumes;
       std::string          moduleId;
@@ -326,7 +325,6 @@ namespace insur {
       const double         centralDeadAreaLength;
       const double         chipNegativeXExtraWidth;
       const double         chipPositiveXExtraWidth;
-            double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;

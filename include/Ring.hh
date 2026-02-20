@@ -33,8 +33,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double thetaStart_, thetaEnd_;
 
-  double thetaStartInner_, thetaEndInner_;
-
   double numPhi_, phiOverlap_;
 
   double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;

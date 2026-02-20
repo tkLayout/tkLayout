@@ -4362,8 +4362,7 @@ namespace insur {
 
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
-                               ModuleCap&  modcap        ) : modulecap(modcap),
-							     module(modcap.getModule()),
+                               ModuleCap&  modcap        ) : module(modcap.getModule()),
 							     moduleId(moduleName),
                                                              parentId(parentName),
 							     modThickness(module.thickness()),
@@ -4382,7 +4381,6 @@ namespace insur {
                                                              centralDeadAreaLength(module.centralDeadAreaLength()),
 							     chipNegativeXExtraWidth(module.chipNegativeXExtraWidth()),
 							     chipPositiveXExtraWidth(module.chipPositiveXExtraWidth()),
-                                                             hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
