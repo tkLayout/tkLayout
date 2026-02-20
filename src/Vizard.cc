@@ -8860,9 +8860,11 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
+    // Expected number of bytes per line in the CSV + 20% margin
+    static constexpr size_t bytes_per_line = 4120UL * 5 / 4;
+    // Clear string and reserve to avoid multiple reallocations
     triggerSectorMapCsv_.clear();
-    // Reserve 500KB to avoid multiple reallocations
-    triggerSectorMapCsv_.reserve(1024 * 512);
+    triggerSectorMapCsv_.reserve(tsm.size() * bytes_per_line);
     // .csv header
     triggerSectorMapCsv_ += "eta_idx, phi_idx, module_list" + csv_eol;
     // Iterate the trigger sector map and build the CSV string
@@ -8878,9 +8880,11 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   void Vizard::createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections) {
+    // Expected number of bytes per line in the CSV + 20% margin
+    static constexpr size_t bytes_per_line = 30UL * 5 / 4;
+    // Clear string and reserve to avoid multiple reallocations
     moduleConnectionsCsv_.clear();
-    // Reserve 500KB to avoid multiple reallocations
-    moduleConnectionsCsv_.reserve(1024 * 512);
+    moduleConnectionsCsv_.reserve(moduleConnections.size() * bytes_per_line);
     // .csv header
     moduleConnectionsCsv_ += "subdetectorId, z, rho, phi, detId, tt_list" + csv_eol;
     // Copy of the map to vector of pairs for sorting by detId
