@@ -12,20 +12,6 @@
 #include <TH2.h>
 #include <TH3.h>
 
-/*
-template<class T>
-class Seqv {
-protected:
-  std::vector<T> elems_;
-public:
-  Seqv(const T& elem) { elems_.push_back(elem); }
-  Seqv<T>& operator()(const T& elem) { elems_.push_back(elem); return *this; }
-  T& operator[](int i) { return elems_[i]; }
-  const T& operator[](int i) const { return elems_[i]; }
-  size_t size() const { return elems_.size(); }
-};
-*/
-
 template<int N, class T>
 class Seq {
 protected:
@@ -340,11 +326,6 @@ public:
     InternalBinKey k; k.set(0, coordToKey(x,0));
     return Indexer<N-1, Histo<N,T,B> >(*this, k);
   }
-
-  /*Indexer<0, Histo<N,T> > operator[](const InternalBinKey& k) {
-    currentBin_ = k;
-    return Indexer<0, Histo<N,T> >(*this, currentBin_);
-  }*/
 
   Indexer<0, Histo<N,T,B> > operator[](const ExportableBinKey& k) {
     currentBin_ = makeInternalBinKey(k);

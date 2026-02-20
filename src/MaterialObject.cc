@@ -5,12 +5,10 @@
  * @author Stefano Martina
  */
 
-//#include "Materialway.hh"
 #include "MaterialObject.hh"
 #include "ConversionStation.hh"
 #include "global_constants.hh"
 #include "MaterialTab.hh"
-//#include "InactiveElement.hh"
 #include "MaterialProperties.hh"
 #include "DetectorModule.hh"
 #include "MessageLogger.hh"
@@ -33,7 +31,6 @@ namespace material {
       destination_ ("destination", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
-      // sensorNode_ ("Sensor", parsedOnly()),
       materials_ (nullptr) 
   {}
 
@@ -42,13 +39,6 @@ namespace material {
   {
     materials_ = other.materials_;
     serviceElements_ = other.serviceElements_; //do shallow copies
-  }
-
-  MaterialObject::~MaterialObject() {
-    // if (materials_ != nullptr) {
-    //   delete materials_;
-    //   materials_ = nullptr;
-    // }
   }
 
   const std::string MaterialObject::getTypeString() const {
@@ -73,19 +63,7 @@ namespace material {
 
   void MaterialObject::build() {
     check();
-    if (!debugInactivate_()) {
-      // for (auto& currentSensor : sensorNode_) {
-      //   ReferenceSensor temporarySensor;
-      //   temporarySensor.store(currentSensor.second);
-      //   temporarySensor.check();
-      //   temporarySensor.cleanup();
-
-      //   std::cout << "[" << currentSensor.first << "]=" << temporarySensor.numChannels() << "; ";
-      //   sensorChannels[currentSensor.first] = temporarySensor.numChannels();
-      // }
-      // std::cout << "}" << std::endl;
-      
-
+    if (!debugInactivate_()) {   
       static std::map<MaterialObjectKey, Materials*> materialsMap_; //for saving memory
       for (auto& currentMaterialNode : materialsNode_) {
         store(currentMaterialNode.second);
@@ -146,9 +124,6 @@ namespace material {
 	if (currElement->subdetectorName() == "") std::cout << "MaterialObject::populateMaterialProperties currElement->subdetectorName() = " << currElement->subdetectorName() << std::endl;
 
         if (currElement->componentName.state()) {
-	  /*if (currElement->componentName() == "High voltage lines") {
-	    std::cout << "currElement->componentName()" << currElement->componentName() << "currElement->elementName() = " << currElement->elementName() << "quantity = " << quantity << std::endl;
-	    }*/
           materialProperties.addLocalMass(currElement->subdetectorName(), currElement->elementName(), currElement->componentName(), quantity);
         } else {
 	  std::cout << "MaterialObject::populateMaterialProperties: No component name, element name = " << currElement->elementName() << std::endl;
@@ -174,11 +149,6 @@ namespace material {
   bool MaterialObject::isPopulated() const {
     return (materials_ != nullptr);
   }
-
-
-  //void MaterialObject::chargeTrain(Materialway::Train& train) const {
-  //  materials_->chargeTrain(train);
-  //}
 
   MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType, const std::string subdetectorName) :
     componentsNode_ ("Component", parsedOnly()),
@@ -250,7 +220,6 @@ namespace material {
 
   void MaterialObject::Component::build(const std::map<int, int>& newSensorChannels) {
     check();
-    //std::cout << "COMPONENT " << componentName() << std::endl;
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
@@ -307,10 +276,6 @@ namespace material {
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType, const std::string subdetectorName) :
     componentName ("componentName", parsedOnly()),
-    //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
-    //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
-    //nStripsAcross("nStripsAcross", parsedOnly()),
-    //nSegments("nSegments", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     service ("service", parsedOnly(), false),
     scaleOnSensor ("scaleOnSensor", parsedOnly(), false),
@@ -506,8 +471,6 @@ namespace material {
 
   void MaterialObject::Element::build(const std::map<int, int>& newSensorChannels) {
     check();
-    // if(destination.state())
-    //   std::cout << "DESTINATION " << destination() << " for " << elementName() << std::endl;
     for (const auto& aSensorChannel : newSensorChannels ) {
       sensorChannels_[aSensorChannel.first] = aSensorChannel.second;
     }
@@ -519,24 +482,7 @@ namespace material {
       newReferenceSensor->cleanup();
       referenceSensors_[currentSensorNode.first] = newReferenceSensor;
     }
-    /*
-    std::cout << "  ELEMENT " << elementName() << std::endl;
-    std::cout << "    DATA "
-        << " componentName " << (componentName.state() ? componentName() : "NOT_SET")
-        << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
-        << " service " << service()
-        << " scaleOnSensor " << scaleOnSensor()
-        << " quantity " << quantity()
-        << " unit " << unit()
-        << " station " << (destination.state() ? destination() : "NOT_SET")
-        << std::endl;
-    */
   }
-
-//  void MaterialObject::Element::chargeTrain(Materialway::Train& train) const {
-//    if (service()) {
-//      train.addWagon(elementName(), )
-//  }
 
   void MaterialObject::Element::populateMaterialProperties(MaterialProperties& materialProperties) const {
     double quantity;

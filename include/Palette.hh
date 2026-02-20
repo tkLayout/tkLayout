@@ -23,10 +23,6 @@ class Palette {
   static bool initialized;
   static void initializeMe();
   static Int_t GetColorTransparent(Int_t colorIndex, Float_t ratio);
-  // static void skipColors(unsigned int colorIndex);
-  //private:
-  //static unsigned int myColorBase;
-  //static unsigned int myColors;
 };
 
 #endif

@@ -1491,24 +1491,6 @@ namespace insur {
             if (barrel.minZwithHybrids() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, barrel.minZwithHybrids()));
           }
 
-/*
-          void visit(const Layer& l) {
-            if (l.maxZwithHybrids() > 0.) { // skip Z- mezzanine layers
-              real_index_.push_back(index);
-              radius_list_io_.push_back(std::make_pair(l.minRwithHybrids(), l.maxRwithHybrids()));
-              if (prevZ == l.maxZwithHybrids()) layer_counters_.back()++;
-              else {
-                prevZ = l.maxZwithHybrids();
-                double len = l.maxZwithHybrids() - l.minZwithHybrids();
-                layer_counters_.push_back(1);
-                length_offset_list_.push_back(std::make_pair(len, l.maxZwithHybrids()));
-                if (l.minZwithHybrids() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, l.minZwithHybrids()));
-              }
-            }
-            index++;
-          }
-*/
-
           const std::vector<int>& layer_counters() const { return layer_counters_; }
         };
 
@@ -1566,23 +1548,6 @@ namespace insur {
             layer_counters_.push_back(counter);
             radius_list_io_.push_back(std::make_pair(endcap.minRwithHybrids(), endcap.maxRwithHybrids()));
           }
-
-          /*
-          void visit(const Disk& d) {
-            if (d.maxZwithHybrids() > 0.) {
-              double len = d.maxZwithHybrids() - d.minZwithHybrids();
-              length_offset_list_.push_back(std::make_pair(len, d.minZwithHybrids()));
-              real_index_.push_back(index);
-              if (prevR == d.maxRwithHybrids()) layer_counters_.back()++;
-              else {
-                prevR = d.maxRwithHybrids();
-                layer_counters_.push_back(1);
-                radius_list_io_.push_back(std::make_pair(d.minRwithHybrids(), d.maxRwithHybrids()));
-              }
-            }
-            index++;
-          }
-           */
 
           const std::vector<int>& layer_counters() const { return layer_counters_; }
         };

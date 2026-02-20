@@ -79,18 +79,6 @@ struct SmartBin {
     }
     return *this;
   }
-/*  SmartBin& operator=(const SmartBin& other) {
-    count_ = other.count_;
-    eventid_ = other.eventid_;
-    hitmask_ = other.hitmask_;
-    stacked_ = other.stacked_;
-    return *this;
-  }*/
- /* uint8_t count() const { return count_; }
-  uint8_t eventid() const { return eventid_; }
-  uint16_t hitmask() const { return hitmask_; }
-  uint16_t stacked() const { return stacked_; }
-*/
   operator int() const { return count; }
 };
 

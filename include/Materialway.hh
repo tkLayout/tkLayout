@@ -295,10 +295,6 @@ namespace material {
                                                                             actually transforms millimiters in microns */
     static const int sectionWidth;     /**< the width of a section */
     static const int safetySpace;           /**< the safety space between sections */
-    //static const double globalMaxZ_mm;                     /**< the Z coordinate of the end point of the sections */
-    //static const double globalMaxR_mm;                   /**< the rho coordinate of the end point of the sections */
-    //static const int globalMaxZ;
-    //static const int globalMaxR;
     static const int boundaryPaddingBarrel;
     static const int boundaryPaddingEndcaps;
     static const int boundaryPrincipalPaddingBarrel;
@@ -331,17 +327,13 @@ namespace material {
     void buildInternalSections(Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
     void routeServices(const Tracker& tracker);
-    //void routeModuleServices();
-    //void routeRodMaterials();
     void firstStepConversions();
     void secondStepConversions();
     void createModuleCaps(Tracker& tracker);
     void duplicateSections();
     void populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution);
-    //void calculateMaterialValues(Tracker& tracker);
     void buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface);
     void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
-    //InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
 
     BarrelBoundaryMap barrelBoundaryAssociations_;
@@ -349,7 +341,6 @@ namespace material {
     ModuleSectionMap moduleSectionAssociations_; /**< Map that associate each module with the section that it feeds */
     LayerRodSectionsMap layerRodSections_;      /**< maps for sections of the rods */
     DiskRodSectionsMap diskRodSections_;
-    //std::map<Boundary&, Section*> boundarySectionAssociations;         /**< Map that associate each boundary with the outgoing section (for the construction) */
   };
 
 } /* namespace material */

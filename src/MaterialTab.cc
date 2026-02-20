@@ -94,7 +94,6 @@ namespace material {
   {
     fractions_ = computeMassComposition(formula, allChemicalElements);
 
-    //ChemicalBaseMap alreadyDefinedMaterials(allChemicalElements.begin(), allChemicalElements.end());
     ChemicalBaseMap alreadyDefinedMaterials;
     alreadyDefinedMaterials.insert(allChemicalElements.begin(), allChemicalElements.end());
 
@@ -117,7 +116,6 @@ namespace material {
 
   const MassComposition ChemicalMixture::computeMassComposition(const ChemicalFormula& formula, const ChemicalElementMap& allChemicalElements) const {
     MassComposition fractions;
-    //double totalMoleculeMass = 0.;
 
     for (const auto& elementIt : formula) {
       const std::string chemicalElementName = elementIt.first;
@@ -132,15 +130,6 @@ namespace material {
 	const double elementAtomicWeight = element.getAtomicWeight();
 	const double mass = chemicalElementNumber * elementAtomicWeight;
 	fractions.push_back(std::make_pair(chemicalElementName, mass));
-	//totalMoleculeMass += mass;
-
-	/*std::cout << "ChemicalMixture::computeMassComposition " 
-		  << "chemicalElementName = " << chemicalElementName 
-		  << "chemicalElementNumber = " << chemicalElementNumber
-		  << "chemicalElementName = " << chemicalElementName
-		  << "elementAtomicWeight = " << elementAtomicWeight
-		  << "mass = " << mass
-		  << std::endl;*/
 
 
       }
@@ -252,13 +241,6 @@ namespace material {
 	  invertedInteractionLength += chemicalBaseMassFraction / interactionLength;
 	}
 
-	/*std::cout << "ChemicalMixture::computeRadiationAndInteractionLengths " 
-		  << "chemicalBaseName = " << chemicalBaseName 
-		  << "base density = " << base.getDensity()
-		  << "base radiationLength = " << radiationLength
-		  << "base interactionLength = " << interactionLength
-		  << std::endl;*/
-
       }
     }
 
@@ -277,7 +259,6 @@ namespace material {
 
 
   MaterialsTable::MaterialsTable() {
-    //std::string mattabFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_mattabfile);
 
     // CHEMICAL ELEMENTS
     std::ifstream chemicalElementsFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_chemicalElementsFile);
@@ -303,16 +284,8 @@ namespace material {
           myLine >> elementDensity >> atomicNumber >> atomicWeight;
           elementDensity /= 1000.;   // convert g/cm3 in g/mm3
 
-	  /*std::cout << "MaterialsTable::MaterialsTable() create eleemtray table " 
-		    << " elementName = " <<  elementName
-		    << " elementDensity = " << elementDensity 
-		    << " atomicNumber = " << atomicNumber
-		    << " atomicWeight  =" << atomicWeight 
-		    << std::endl;*/
-
 
 	  ChemicalElement element = ChemicalElement(elementDensity, atomicNumber, atomicWeight);
-	  //const auto found = allChemicalElements.find(elementName);
           allChemicalElements.insert(std::make_pair(elementName, element));
         }
         myLine.clear();
@@ -320,29 +293,6 @@ namespace material {
     } else {
       logERROR("Could not open chemical elements file.");
     }
-
-   
-    /*
-    for (const auto& elemIt : allChemicalElements) {
-      const MaterialTab& oldTable = MaterialTab::instance();
-      const double oldRad = oldTable.radiationLength(elemIt.first);
-      const double oldInt = oldTable.interactionLength(elemIt.first);
-      const ChemicalElement& elem = elemIt.second;
-      const double radRatio = (elem.getRadiationLength() - oldRad) / oldRad * 100.;
-      const double intRatio = (elem.getInteractionLength() - oldInt) / oldInt * 100.;
-      std::cout << elemIt.first << " radRatio = " << radRatio << "intRatio = " << intRatio << std::endl;
-
-      
-      std::cout << "MaterialsTable::MaterialsTable finsihed computing all pure elem. load Elementary mat = " << elemIt.first;
-      const ChemicalElement& elem = elemIt.second;
-      std::cout << " elem.getDensity() = " << elem.getDensity()
-		<< " elem.getRadiationLength() = " << elem.getRadiationLength()
-		<< " elem.getInteractionLength() = " << elem.getInteractionLength() 
-		<< " elem.getAtomicNumber() = " << elem.getAtomicNumber()
-		<< " elem.getAtomicWeight() = " << elem.getAtomicWeight()
-		<< " elem.isChemicalElement() = " << elem.isChemicalElement()
-		<< std::endl;
-		}*/
     
     
 
@@ -371,10 +321,6 @@ namespace material {
 	  ChemicalFormula compoundFormula;
 	  std::string element;
 
-	  /*std::cout << "MaterialsTable::MaterialsTable() create compound table " 
-		    << " compoundName = " <<  compoundName
-		    << " compoundDensity = " << compoundDensity;*/
-
 
 	  while (myLine >> element) {
 
@@ -383,15 +329,12 @@ namespace material {
 	      const std::string elementName = element.substr(0, delimiterPosition);
 	      const std::string elementNumberString = element.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const int elementNumber = atoi(elementNumberString.c_str());
-	      //std::cout << "elementName = " << elementName << " elementNumber = " << elementNumber;
 	      compoundFormula.push_back(std::make_pair(elementName, elementNumber));
 	    }
 	    else { std::cout << "Chemical compound " << compoundName << ": could not find the : delimiter." << std::endl; }
 
 	    element.clear();
 	  }
-
-	  //std::cout << "." << std::endl;
 
 	  ChemicalMixture coumpound = ChemicalMixture(compoundDensity, compoundFormula, allChemicalElements);
 	  allChemicalMixtures.insert(std::make_pair(compoundName, coumpound));	  
@@ -402,38 +345,6 @@ namespace material {
     else {
       logERROR("Could not open chemical compounds file.");
     }
-
-
-    /*
-    for (const auto& mixIt : allChemicalMixtures) {
-      const MaterialTab& oldTable = MaterialTab::instance();
-      const double oldRad = oldTable.radiationLength(mixIt.first);
-      const double oldInt = oldTable.interactionLength(mixIt.first);
-      const ChemicalMixture& mix = mixIt.second;
-      const double radRatio = (mix.getRadiationLength() - oldRad) / oldRad * 100.;
-      const double intRatio = (mix.getInteractionLength() - oldInt) / oldInt * 100.;
-      std::cout << mixIt.first << " radRatio = " << radRatio << "intRatio = " << intRatio << std::endl;
-
-      
-	std::cout << "MaterialsTable::MaterialsTable finsihed computing all chemical composites. load Composite = " << mixIt.first;
-	const ChemicalMixture& mix = mixIt.second;
-	std::cout << " mix.getDensity() = " << mix.getDensity()
-	<< " mix.getRadiationLength() = " << mix.getRadiationLength()
-	<< " mix.getInteractionLength() = " << mix.getInteractionLength() 
-	<< " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
-	<< " mix.isChemicalElement() = " << mix.isChemicalElement();
-	const ChemicalFormula& formula = mix.getChemicalFormula();
-	for (const auto& formulaIt : formula) {
-	std::cout << " formulaIt.first = " << formulaIt.first
-	<< " formulaIt.second = " << formulaIt.second;
-	}
-	const MassComposition& fraction = mix.getMassComposition();
-	for (const auto& fractionIt : fraction) {
-	std::cout << " fractionIt.first = " << fractionIt.first
-	<< " fractionIt.second = " << fractionIt.second;
-	}
-	std::cout << "." << std::endl;
-    }*/
     
     
 
@@ -461,11 +372,6 @@ namespace material {
           mixtureDensity /= 1000.;   // convert g/cm3 in g/mm3
 
 
-	  /*std::cout << "MaterialsTable::MaterialsTable() create mixture table " 
-		    << " mixtureName = " <<  mixtureName
-		    << " mixtureDensity = " << mixtureDensity;*/
-
-
 	  MassComposition mixtureComposition;
 	  std::string constituant;
 	  while (myLine >> constituant) { // TO DO: !!!!! should check for (myLine >> constituant) error
@@ -475,7 +381,6 @@ namespace material {
 	      const std::string constituantName = constituant.substr(0, delimiterPosition);
 	      const std::string constituantMassFractionString = constituant.substr(delimiterPosition + insur::default_composition_delimiter.length());
 	      const double constituantMassFraction = std::stod(constituantMassFractionString);
-	      //std::cout << "constituantName = " << constituantName << " constituantMassFraction = " << constituantMassFraction;
 	      mixtureComposition.push_back(std::make_pair(constituantName, constituantMassFraction));
 	    }
 	    else { 
@@ -484,8 +389,6 @@ namespace material {
 
 	    constituant.clear();
 	  }
-
-	  //std::cout << "." << std::endl;
 
 	  ChemicalMixture mixture = ChemicalMixture(mixtureDensity, mixtureComposition, alreadyDefinedMaterials);
 	  allChemicalMixtures.insert(std::make_pair(mixtureName, mixture));
@@ -497,65 +400,6 @@ namespace material {
     else {
       logERROR("Could not open chemical mixtures file.");
     }
-
-    
-    
-    //for (const auto& mixIt : allChemicalMixtures) {
-
-      /*
-	HEREEEEEEEEE
-	const MaterialTab& oldTable = MaterialTab::instance();
-	if (oldTable.find(mixIt.first) != oldTable.end()) {
-	const double oldRad = oldTable.radiationLength(mixIt.first);
-	const double oldInt = oldTable.interactionLength(mixIt.first);
-	const double oldDensity = oldTable.density(mixIt.first);
-
-	const ChemicalMixture& mix = mixIt.second;
-	const double radRatio = (mix.getRadiationLength() - oldRad) / oldRad * 100.;
-	const double intRatio = (mix.getInteractionLength() - oldInt) / oldInt * 100.;
-	const double densityRatio = (mix.getDensity() - oldDensity) / oldDensity * 100.;
-	std::cout << mixIt.first << " radRatio = " << radRatio << " intRatio = " << intRatio << " densityRatio = " << densityRatio << std::endl;
-	}	
-      */
-
-
-
-
-
-
-
-
-
-
-
-      
-      /*
-	std::cout << "MaterialsTable::MaterialsTable finsihed computing all mixtures. load mixture = " << mixIt.first;
-	const ChemicalMixture& mix = mixIt.second;
-	std::cout << " mix.getDensity() = " << mix.getDensity()
-	<< " mix.getRadiationLength() = " << mix.getRadiationLength()
-	<< " mix.getInteractionLength() = " << mix.getInteractionLength() 
-	<< " mix.hasChemicalFormula() = " << mix.hasChemicalFormula()
-	<< " mix.isChemicalElement() = " << mix.isChemicalElement();
-	const ChemicalFormula& formula = mix.getChemicalFormula();
-	for (const auto& formulaIt : formula) {
-	std::cout << " formulaIt.first = " << formulaIt.first
-	<< " formulaIt.second = " << formulaIt.second;
-	}
-	const MassComposition& fraction = mix.getMassComposition();
-	for (const auto& fractionIt : fraction) {
-	std::cout << " fractionIt.first = " << fractionIt.first
-	<< " fractionIt.second = " << fractionIt.second;
-	}
-	std::cout << "." << std::endl;*/
-
-
-      //}
-      //}
-    
-    
-
-
 
     this->first = allChemicalElements;
     this->second = allChemicalMixtures;

@@ -18,10 +18,8 @@ std::set<int> getModuleOctants(const Module* mod) {
 ParticleGenerator::ParticleGenerator(TRandom& aDie) : die(aDie) {
   // if parameter tree is not specified (or zero), connect the file
   // used to generate this class and read the Tree.
-    //TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("BunchX_PhaseIISLHC_rootuple.root");
   TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("MinBias12k_ppAt14TeV_rootuple.root");
   if (!f) {
-    //f = new TFile("BunchX_PhaseIISLHC_rootuple.root");
     f = new TFile("MinBias12k_ppAt14TeV_rootuple.root");
   }
   TTree* tree = (TTree*)gDirectory->Get("particles");
@@ -161,36 +159,6 @@ XYVector TrackShooter::convertToLocalCoords(const XYZVector& globalHit, const En
   XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(globalHit - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit (which now looks like a polygon in the XY plane with the local axes XY reverse-matched with the global YX), then we drop the irrelevant coordinate (Z)
   return XYVector(locv.Y(), locv.X());
 }
-
-/*
-int detectCollisionSlanted(XYVector& helixAxis, double R, double z0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
-  std::vector<XYZVector> bcol, ecol;
-  detectCollisionBarrel(helixAxisOrigin, poly, bcol);
-  detectCollisionEndcap(helixAxisOrigin, poly, ecol);
-
-  double phi0 = origin.Phi() - M_PI/2;
-  double h = helixAxis.X();
-  double k = helixAxis.Y();
-
-  double L = tan(M_PI/2 - theta);
-  if (bcol.size() > 0 || ecol.size() > 0) {
-    for (int i = 0; i < bcol.size(); i++) {
-      double zz = (ecol.size() > 0) ? ecol[0].Z()*sin(mod.getGamma()) + bcol[i].Z()*cos(mod.getGamma()) : bcol[i].Z();
-      XYZVector& P = mod.getCorner(0);
-      XYZVector& N = mod.getNormal();
-      XYZVector Q;
-      do {
-        double tt = (zz - z0)/(L*R);
-        XYZVector H(h + R*sin(phi0 + tt), k - R*cos(phi0 + tt), zz);
-        Q = H - N.Dot(H - P) * N;
-        zz = Q.Z(); 
-      } while (N.Dot(Q - P) > 1e-3)
-      collisions.push_back(Q);
-    }
-  }  
-  return collisions.size();
-}
-*/
 
 int TrackShooter::detectCollisionEndcap(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
   // get z from module
@@ -358,14 +326,6 @@ void TrackShooter::setDefaultParameters() {
 
 
 void TrackShooter::shootTracks(const po::variables_map& varmap, int seed) {
-
-//  std::string line;
-
-//  while (line = std::getline(cfg, line, ";")) {
-//    if (line.find("//") != string::npos) line.erase(line.find("//")); // remove comments
-//    line = trim(line);
-//    if (line.empty()) continue;
-//    std::vector<string> tokens = split(line, "=,");
   for (po::variables_map::const_iterator it = varmap.begin(); it != varmap.end(); ++it) {
     std::string key(it->first);
     if (key == "eta") eta_ = valueFromString<double>(die_, it->second.as<std::string>());
@@ -445,7 +405,6 @@ void TrackShooter::shootTracks() {
 
   Tracks tracks("tracks");
   Hits hits("hits");
-//  Hits plhits("plhits");
 
   printParameters();
 
@@ -465,7 +424,6 @@ void TrackShooter::shootTracks() {
 
   tracks.setupBranches(*tree);
   hits.setupBranches(*tree);
-  //plhits.setupBranches(*tree);
 
   // build ordered maps
   for (long int i=eventOffset_, totTracks = eventOffset_*numTracksEv_; i<numEvents_+eventOffset_; i++) {
@@ -482,17 +440,6 @@ void TrackShooter::shootTracks() {
 #else
       if ((totTracks % 5000) == 0) cout << "Track " << totTracks << " of " << (numEvents_+eventOffset_)*numTracksEv_ << std::endl;
 #endif
-/*      
-      // or pick from file
-      //
-      //
-      ParticleGenerator::Particle particle = partGen.getParticle();
-      
-      double pt = particle.pt;
-      double eta = particle.eta;
-      double phi0 = particle.phi;
-      double z0 = particle.z0;
-  */    
 
       Helix helix(pt, eta, phi0, z0, 0.); // CUIDADO: d0 not supported yet
       int dir = helix.dir;
@@ -511,8 +458,6 @@ void TrackShooter::shootTracks() {
         double y = dir*R*(1-cos(B*(z-z0)));
         double xrot = x*cos(phi0) - y*sin(phi0);
         double yrot = x*sin(phi0) + y*cos(phi0);
-       // double phirot = atan2(y,x) + phi0;
-       // if (phirot > M_PI) phirot -= 2*M_PI;
 
         const BarrelOctants& octants = rit->second;
         const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point (CUIDADO octant is determined used non-planar mods)
@@ -524,7 +469,6 @@ void TrackShooter::shootTracks() {
           double xpl;
           double ypl;
           double zpl;
-          //bool planarcoll = false;
           if (detectCollisionBarrel(helix, poly, collisions)) { // planar collisions 
             xpl = collisions[0].X();
             ypl = collisions[0].Y();
@@ -537,10 +481,6 @@ void TrackShooter::shootTracks() {
             PosRef posref = mod->getPositionalReference();
             hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.subdetectorId, posref.z, posref.rho, posref.phi/*, -1., -1., eta*/);
             collisions.clear();
-            //planarcoll = true;
-            //numpl++;
-            //xpl = locv.X();
-            //ypl = locv.Y();
             if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }
 /*
@@ -595,10 +535,6 @@ void TrackShooter::shootTracks() {
           EndcapModule* mod = (*mit);
 
           const Polygon3d<4>& poly = mod->getFacePolygon(0);
-         // poly << (mod->getCorner(0) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
 
           if (detectCollisionEndcap(helix, poly, collisions)) {
             ptError* modPtError = mod->getPtError();

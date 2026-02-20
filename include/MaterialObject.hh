@@ -9,9 +9,6 @@
 #define MATERIALOBJECT_H_
 
 #include "Property.hh"
-//#include "Materialway.hh"
-
-
 #include "MaterialTab.hh"
 
 
@@ -46,7 +43,7 @@ namespace material {
 
     MaterialObject(Type materialType, const std::string subdetectorName);
     MaterialObject(const MaterialObject& other);
-    virtual ~MaterialObject();
+    virtual ~MaterialObject() = default;
 
     const std::string subdetectorName() const { return subdetectorName_; }
 

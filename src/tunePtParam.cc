@@ -18,7 +18,6 @@ using namespace std;
 namespace po = boost::program_options;
 
 void syntax(char* programName) {
-  //void syntax(char* po::options_description& visible, char* programName) {
   std::cout << "Syntax: " << programName << endl
             << " [Barrel|Endcap]" << std::endl
             << " mod_d_start mod_d_stop mod_d_step" << std::endl
@@ -27,7 +26,6 @@ void syntax(char* programName) {
   std::cout << "Pitch    : micrometers" << std::endl;
   std::cout << "mod_*    : millimeters" << std::endl;
   std::cout << "window   : number of strips" << std::endl;
-  //std::cout << "And then the show: " << visible << std::endl;
 }
 
 enum { Momentum, Distance };
@@ -82,30 +80,23 @@ int main(int argc, char*argv[]) {
     myError.setDistance(mod_d);
     
     p_cut = myError.stripsToP(window/2.);
-    //cur_cut = 1/p_cut;
 
-    //cout << mod_d << " "
-    //     << p_cut << " ";
     printf("%.2f %.2f ", mod_d, p_cut);
 
     p = 1;
     curvature = 1 / p;
     cur_error = myError.computeError(p) * curvature;
-    //cout << 100 * myError.probabilityInside(cur_cut, curvature, cur_error) * myError.geometricEfficiency() << " ";
     printf("%.2f ", 100 * myError.probabilityInside(1/p_cut, curvature, cur_error) * myError.geometricEfficiency());
 
     p = efficient_pt;
     curvature = 1 / p;
     cur_error = myError.computeError(p) * curvature;
-    //cout << 100-100 * myError.probabilityInside(cur_cut, curvature, cur_error) * myError.geometricEfficiency() << " ";
     printf("%.2f ",100-100 * myError.probabilityInside(1/p_cut, curvature, cur_error) * myError.geometricEfficiency());
 
     double myValue;
     myValue = myError.find_probability(0.01, p_cut);
-    //std::cout << 1/myValue << " ";
     printf("%.2f ", myValue);
     myValue = myError.find_probability(0.90, p_cut);
-    //std::cout << 1/myValue;
     printf("%.2f ", myValue);
 
 

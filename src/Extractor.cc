@@ -156,23 +156,6 @@ namespace insur {
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 #endif
 
-    // EndcapRot is not needed any more
-    /*
-       rot.name = xml_endcap_rot;
-       rot.thetax = 90.0;
-       rot.phix = 90.0;
-       rot.thetay = 90.0;
-       rot.phiy = 180.0;
-       rot.thetaz = 0.0;
-       rot.phiz = 0.0;
-       r.push_back(rot);
-       */
-
-    // These seem not to be needed here
-    //LogicalInfo logic;
-    //AlgoInfo alg;
-    //SpecParInfo spec;
-
     // Define top-level barrel and endcap volume containers (polycone)
     // This just fill the polycone profiles of the two volumes
     ShapeInfo shape;
@@ -227,25 +210,6 @@ namespace insur {
    * @param elems A reference to the collection of elementary material information; used as output
    */
   void Extractor::analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites) {
-    
-    /*
-    // PREVIOUS CODE
-    for (unsigned int i = 0; i < mattab.rowCount(); i++) {
-    Element e;
-    MaterialRow& r = mattab.getMaterial(i);
-    e.tag = r.tag;
-    e.density = r.density;
-    std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
-    e.atomic_weight = AZ.first;
-    e.atomic_number = AZ.second;
-    // Z and A are calculated from radiation length and nuclear interaction lengths.
-    // THIS IS BECAUSE RADIATION LENGTH AND NUCLEAR INTERACTION LENGTH CANNOT BE TRANSMITED DIRECTLY TO CMSSW.
-    // Hence, Z and A (and density) only are transmitted to CMSSW.
-    // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from this Z, A, and density info.
-    elems.push_back(e);
-    }
-    */
-
     const MaterialsTable& myTable = MaterialsTable::instance();
 
     // FROM TABLE: CHEMICAL ELEMENTS
@@ -427,9 +391,6 @@ namespace insur {
     auto el = lagg.getEndcapLayers();
     int layer = 1;
     int n_of_layers = el->size();
-
-    //lagg.postVisit();   
-    //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
       std::set<int> ridx;
@@ -893,8 +854,6 @@ namespace insur {
 	  // tilt angle of the module
 	  double tiltAngle = 0;
 	  if (isTilted) { tiltAngle = iiter->getModule().tiltAngle() * 180. / M_PI; }
-	    
-	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().posRef().phi = " << iiter->getModule().posRef().phi << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  // module name
 	  std::ostringstream mname;
@@ -960,11 +919,7 @@ namespace insur {
 	      // For SolidSection in tracker.xml : module's box shape
 	      shape.name_tag = mname.str();
 	      shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
-              //if(iiter->getModule().isPixelModule() && iiter->getModule().numSensors()==2){
-              //    shape.dy = modcomplex.getExpandedModuleLengthPixelDoubleSens()/2.0;
-              //} else {
                   shape.dy = modcomplex.getExpandedModuleLength()/2.0;
-              //}
 	      shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
 	      s.push_back(shape);
 	    
@@ -1156,7 +1111,6 @@ namespace insur {
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 	        pos.trans.dy = iiter->getModule().offsetForSensors();
 		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
-		//pos.copy = 2;
 
 		if (iiter->getModule().stereoRotation() != 0) {
 		  rot.name = type_stereo + mname.str();
@@ -1197,7 +1151,6 @@ namespace insur {
 		pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 	        pos.trans.dy = iiter->getModule().offsetForSensors();
 		pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
-		//pos.copy = 2;
 
 		if (iiter->getModule().stereoRotation() != 0) {
 		  rot.name = type_stereo + mname.str();
@@ -2261,8 +2214,7 @@ namespace insur {
 	  int secondRingIndex = *ringsIndexes.begin() + 1;
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
-	
-	//double diskThickness = zmax - zmin;
+
 	double diskThickness = 2. * MAX(fabs(zmin - diskZ), fabs(zmax - diskZ));
 
 	//shape.type = tp;
@@ -2331,9 +2283,6 @@ namespace insur {
 	    // ring number
 	    int modRing = iiter->getModule().uniRef().ring;
 
-	    //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
-
-
 	    if (iiter->getModule().uniRef().phi == 1) {
 	      // new ring
 	      //if (ridx.find(modRing) == ridx.end()) 
@@ -2361,11 +2310,6 @@ namespace insur {
 	      // module box
 	      shape.name_tag = mname.str();
 	      shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
-	      //shape.dx = iiter->getModule().minWidth() / 2.0;
-	      //shape.dxx = iiter->getModule().maxWidth() / 2.0;
-	      //shape.dy = iiter->getModule().length() / 2.0;
-	      //shape.dyy = iiter->getModule().length() / 2.0;
-	      //shape.dz = iiter->getModule().thickness() / 2.0;    
 	      if (shape.type==bx) {
 		shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
 		shape.dy = modcomplex.getExpandedModuleLength()/2.0;
@@ -2392,9 +2336,6 @@ namespace insur {
 	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
-	      // module composite material
-	      //matname << xml_base_actcomp << "D" << discNumber << "R" << modRing;
-	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 	    //Topology
 	    sspec.partselectors.push_back(mname.str());
@@ -4701,9 +4642,6 @@ namespace insur {
       // Hybrid Volume (Top Inactive)
       const double myHybridWidth = modWidth;
       const double myHybridLength = modLength;
-      /*if(module.numSensors()==2){
-          myHybridLength = modLengthDoubleSens;
-      }*/
       const double myHybridThickness = hybridThickness; 
       const double myHybridPosX = 0.;
       const double myHybridPosY = 0.;
@@ -4715,9 +4653,6 @@ namespace insur {
       // Dead area Right (Inactive silicon around sensor)
       const double myDeadAreaRightWidth = deadAreaExtraWidth;
       const double myDeadAreaRightLength = modLength;
-      /*if(module.numSensors()==2){
-          myDeadAreaRightLength = modLengthDoubleSens;
-      }*/
       const double myDeadAreaRightThickness = sensorThickness; 
       const double myDeadAreaRightPosX = (modWidth + deadAreaExtraWidth) / 2.;
       const double myDeadAreaRightPosY = 0.;

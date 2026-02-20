@@ -55,9 +55,6 @@ double HoughTrack::calcTheta(double x, double y, double z, double z0, double pt)
   double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
 
   double theta = myatan2(R*acos(1-r*r/(2*R*R)),(z-z0));
-//  double theta = atan(R*acos(1-r*r/(2*R*R))/(z-z0));
-
-  //double theta = atan2(r, z-z0);
 
   return theta;
 }
@@ -73,7 +70,6 @@ void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, d
   const double sigmaZ0 = 70;
   const double sigmaZ = yResolution*sqrt(12)/2;
   double sigmaInvPt = 3*ptError*1/fabs(pt);
-  //double invPt = die_.Gaus(1/pt, ptError); 
   double invPt = die_.Uniform(1/pt - sigmaInvPt, 1/pt + sigmaInvPt);
   int nSamplesPt = 2*sigmaInvPt/histo_.getWbins(H_K); 
   z = die_.Uniform(z-sigmaZ, z+sigmaZ);
@@ -87,7 +83,6 @@ void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, d
       for (int m = 0; m < nSamplesZ; m++) {
         double zSample = rectangularSmear(z, sigmaZ, nSamplesZ, m);
         double theta = calcTheta(x, y, zSample, z0Sample, 1/invPtSample);
-        //histo_.fill(seq<4>(invPtSample)(phi0)(z0Sample)(theta));
         histo_[invPtSample][phi0][z0Sample][theta] += SmartBin(1, evid, 1 << hitid);
       }
     }
@@ -146,8 +141,6 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
 
   infile->GetObject("trackhits", tree);
 
-  //TBranch *eventn, *trackn, *eta, *phi0, *z0, *pt, *glox, *gloy, *gloz, *locx, *locy, *pterr, *hitprob, *deltas, *cnt, *z, *rho, *phi;
-
   tree->SetBranchAddress("tracks.eventn", &tracks.eventn);//, &eventn);
   tree->SetBranchAddress("tracks.trackn", &tracks.trackn);
   tree->SetBranchAddress("tracks.eta", &tracks.eta);
@@ -171,7 +164,6 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
 
   long int nevents = tree->GetEntriesFast();
 #ifdef GENERATE_HIT_MAP
-  //TH2I* trackHitsHisto = new TH2I("track_hits", "track hits;pt;eta", 100, -50, 50, 100, -2, 2);
   Histo<2, int> invPtEtaTrackCount(Seq<2,int>   (100)(100),
                                    Seq<2,double>(-.6)(-2.2),
                                    Seq<2,double> (.6)(2.2));
@@ -199,8 +191,6 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
         pterror.setInefficiencyType((ptError::InefficiencyType)mdata.inefftype);
         pterror.setModuleType(mdata.type);
         processHit(i, k, hits.glox->at(k), hits.gloy->at(k), hits.gloz->at(k), tracks.pt->at(j), hits.pterr->at(k), mdata.yres);
-        //if (tracks.nhits->at(j) > 10) 
-        //  std::cout << "  Mod z, rho, phi: " << mdata.z << "," << mdata.rho << "," << mdata.phi << " Hit invPt, pterr: " << 1/pt << "," << hits.pterr->at(k) << std::endl;
       }
 #else
       double invpt = 1/tracks.pt->at(j), eta = tracks.eta->at(j);
@@ -258,12 +248,6 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
 
   thisto2->SetNameTitle("z0_theta", "histo2;z0;theta");
   toTH2(histo_, *thisto2, H_Z0, H_THETA);
-
-//  thisto3->SetNameTitle("invpt_theta", "histo3;invpt;theta");
-//  toTH2(histo_, *thisto3, 0, 3);
-
-//  thisto4->SetNameTitle("invpt_z0", "histo4;invpt;z0");
-//  toTH2(histo_, *thisto4, 0, 2);
 
   gStyle->SetOptStat(0);
 

@@ -118,12 +118,10 @@ namespace insur {
 
     void simulateTracks(const po::variables_map& varmap, int seed);
     void setCommandLine(int argc, char* argv[]);
-    //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
     void dumpJson(std::string jsonout);
     bool prepareTargetDirectory();
   private:
-    //std::string g;
     Tracker* tr;
     InactiveSurfaces* is;
     MaterialBudget* mb;
@@ -145,7 +143,6 @@ namespace insur {
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);
-    Squid& operator=(const Squid& s);
     void resetVizard();
     std::string baseName_;
     std::string htmlDir_;
