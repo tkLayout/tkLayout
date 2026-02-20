@@ -14,7 +14,6 @@
 #include <set>
 #include <string>
 #include "MaterialObject.hh"
-//#include "global_constants.hh"
 
 class DetectorModule;
 class Tracker;

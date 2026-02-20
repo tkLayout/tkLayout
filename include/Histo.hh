@@ -58,8 +58,6 @@ class BinKey {
   T elems_[N];
 public:
   typedef T ElemType;
-  //T& operator[](int i) { return elems_[i]; }
-  //const T& operator[](int i) const { return elems_[i]; }
   void set(int i, T k) { elems_[i] = k; }
   T at(int i) const { return elems_[i]; }
   size_t size() const { return N; }
@@ -112,52 +110,6 @@ public:
   };
 
   typedef ConstIterator<Histo<N, T, B> > const_iterator;
-
-  template<int M, class H>
-    class Indexer {
-      template<int O, class I> friend class Indexer;
-      Indexer<M-1, H> sub;
-      H& h_;
-      typename H::InternalBinKey& k_;
-      typename H::InternalBinKey& key() { return sub.key(); }
-    public:
-      Indexer(H& h, typename H::InternalBinKey& k) : sub(h, k) , h_(h), k_(sub.key()) {}
-      //Indexer<M-1, H> operator[](double x) {
-      //  k_[H::Dimensions-M] = h_.coordToKey(x, H::Dimensions-M);
-      //  return Indexer<M-1, H>(h_, k_);
-     // }
-      Indexer<M-1, H>& operator[](double x) {
-        k_.set(H::Dimensions-M, h_.coordToKey(x, H::Dimensions-M));
-        return sub;
-      }
-    };
-
-  template<class H>
-    class Indexer<0, H> {
-      H& h_;
-      template<int O, class I> friend class Indexer;
-      typename H::InternalBinKey k_;
-      typename H::InternalBinKey& key() { return k_; }
-      //const typename H::InternalBinKey& key() const { return k_; }
-    public:
-      Indexer(H& h, typename H::InternalBinKey& k) : h_(h), k_(k) {}
-      operator const typename H::BinType&() { return h_.bins_[k_]; }
-      Indexer<0, H>& operator+=(const typename H::BinType& w) { 
-        typename H::BinType& bin = h_.bins_[k_];
-        bin += w; h_.minMax(bin);
-        return *this;
-      }
-      Indexer<0, H>& operator=(const typename H::BinType& w) {
-        typename H::BinType& bin = h_.bins_[k_];
-        bin = w; h_.minMax(bin);
-        return *this;
-      }
-      
-      bool overflow() const { return k_.overflow(); }
-      bool underflow() const { return k_.underflow(); }
-
-      //operator const typename H::BinType&() const { return h_.bins_.at(k_); }
-    };
 
 protected:
   friend class ConstIterator<Histo<N, T, B> >;
@@ -226,9 +178,6 @@ public:
     min_ = std::numeric_limits<T>::max();
     max_ = T(0);
   }
-//  Histo(const Seq<N, int>& nbins, const Seq<N, double>& lo, const Seq<N, double>& hi) 
-//    : nbins_(nbins), lo_(lo), hi_(hi), 
-//      min_(std::numeric_limits<T>::max()), max_(T(0)) {}
 
   Histo(std::istream& is) {
     deserialize(is);
@@ -250,22 +199,6 @@ public:
     return key;
   }
 
-  template<int M> Histo<M, T, B>* fold(int indices[M]) const {
-    Histo<M, T, B>* folded = new Histo<M, T>();
-    for (int i=0; i < M; i++) {
-      int index = indices[i];
-      folded.setBinning(i, nbins_[index], lo_[index], hi_[index]);
-    }
-
-    for (typename std::map<InternalBinKey, T>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
-      typename Histo<M, T>::InternalBinKey key;
-      for (int i=0; i < M; i++) key.set(i, it->first.at(indices[i]));
-      folded.bins_[key] += it->second;
-    }
-
-    return folded;
-  }
-
   int getNbins(int k) const { return nbins_[k]; }
   double getLo(int k) const { return lo_[k]; }
   double getHi(int k) const { return hi_[k]; }
@@ -278,12 +211,6 @@ public:
 
   const_iterator begin() const { return const_iterator(bins_.begin(), *this); }
   const_iterator end() const { return const_iterator(bins_.end(), *this); }
-
-  void clear() {
-    bins_.clear();
-    min_ = std::numeric_limits<T>::max;
-    max_ = T(0);
-  }
 
   void suppressZeros(const T& threshold = T(0)) {
     for (typename std::map<InternalBinKey, T>::iterator it = bins_.begin(); it != bins_.end(); it++) {
@@ -319,17 +246,6 @@ public:
     if (i < size) return false;
 
     return true;
-  }
-
-
-  Indexer<N-1, Histo<N,T,B> > operator[](double x) {
-    InternalBinKey k; k.set(0, coordToKey(x,0));
-    return Indexer<N-1, Histo<N,T,B> >(*this, k);
-  }
-
-  Indexer<0, Histo<N,T,B> > operator[](const ExportableBinKey& k) {
-    currentBin_ = makeInternalBinKey(k);
-    return Indexer<0, Histo<N,T,B> >(*this, currentBin_);
   }
 };
 

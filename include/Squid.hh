@@ -84,12 +84,9 @@ namespace insur {
     bool buildTracker();
     bool buildOuterCablingMap(const bool outerCablingOption);
     bool buildInnerCablingMap(const bool innerCablingOption);
-    //bool buildTrackerSystem();
-    //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
     bool buildMaterials(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
-    //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
     bool translateFullSystemToXML(std::string xmlout = "");
     bool webOutput = false;

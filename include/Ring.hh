@@ -90,9 +90,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
   double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
 
-  //double thetaStartInner() const { return thetaStartInner_; }
-  //double thetaEndInner() const { return thetaEndInner_; }
-
   double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
   double averageZ() const { return (zInner() + zOuter()) / 2.; }
 

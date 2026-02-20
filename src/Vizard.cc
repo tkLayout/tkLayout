@@ -91,164 +91,6 @@ namespace insur {
   }
 
   /**
-   * This function turns the abstract representation of the active and inactive surfaces in a tracker geometry into
-   * a series of ROOT shapes. Those shapes are added as leaves to the collections of volumes that were previously
-   * initialised in the constructor. Once all of them have been added to the volume tree, the geometry manager is
-   * closed, making it ready to be displayed or written to file.
-   *
-   * NOTE: It is highly recommended to use the <i>simplified</i> flag to have layers and discs represented as
-   * bounding boxes rather than by individual module. In a typical case, the modules in a tracker number in the
-   * thousands; since volume creation and placement in this function is at this point unoptimised, this will cause
-   * considerable strain on the resources of whatever is used to visualise the geometry tree later.
-   *
-   * @param am A reference to the tracker object that contains the collection of active surfaces
-   * @param is A reference to the collection of inactive surfaces
-   * @param simplified A flag indicating whether to draw bounding boxes around the layers/discs or whether to display each module individually
-   */
-  void Vizard::buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified) {
-/*    int c = 0;
-    TGeoVolume* vol=nullptr;
-    TGeoTranslation* trans=nullptr;
-    TGeoCombiTrans* trafo=nullptr;
-    Layer* current=nullptr;
-    std::vector<Module*> templates;
-    // barrels
-    if (simplified) {
-      // layer loop, one tube per layer
-      for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
-        current = am.getBarrelLayers()->at(i);
-        // short layers
-        if ((current->getMinZ() > 0) || (current->getMaxZ() < 0)) {
-          vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(), (current->getMaxZ() - current->getMinZ()) / 2.0);
-          vol->SetLineColor(kRed);
-          trans = new TGeoTranslation(0, 0, current->getMaxZ() - (current->getMaxZ() - current->getMinZ()) / 2.0);
-          barrels->AddNode(vol, c, trans);
-        }
-        // regular layers
-        else {
-          vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(), current->getMaxZ());
-          vol->SetLineColor(kRed);
-          barrels->AddNode(vol, c);
-        }
-        c++;
-      }
-    }
-    else c = detailedModules(am.getBarrelLayers(), vol, trafo, barrels, c);
-    // endcaps
-    if (simplified) {
-      // disc loop, one (very short) tube per disc
-      for (unsigned int i = 0; i < am.getEndcapLayers()->size(); i++) {
-        current = am.getEndcapLayers()->at(i);
-        vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(),
-                           (current->getMaxZ() - current->getMinZ()) / 2.0);
-        vol->SetLineColor(kRed);
-        trans = new TGeoTranslation(0, 0, current->getMaxZ() - (current->getMaxZ() - current->getMinZ()) / 2.0);
-        endcaps->AddNode(vol, c, trans);
-        c++;
-      }
-    }
-    else c = detailedModules(am.getEndcapLayers(), vol, trafo, endcaps, c);
-
-    // services
-    int skip = is.getBarrelServices().size() / 2;
-    // barrel services loop using symmetries with respect to z=0
-    for (int i = 0; i < skip; i++) {
-      vol = gm->MakeTube("", medserf, is.getBarrelServicePart(i).getInnerRadius(),
-                         is.getBarrelServicePart(i).getInnerRadius() + is.getBarrelServicePart(i).getRWidth(),
-                         is.getBarrelServicePart(i).getZLength() / 2.0);
-      vol->SetLineColor(kBlue);
-      trans = new TGeoTranslation(0, 0, (is.getBarrelServicePart(i).getZOffset() + is.getBarrelServicePart(i).getZLength() / 2.0));
-      services->AddNode(vol, c, trans);
-      trans = new TGeoTranslation(0, 0, (is.getBarrelServicePart(i + skip).getZOffset() + is.getBarrelServicePart(i + skip).getZLength() / 2.0));
-      services->AddNode(vol, c + skip, trans);
-      c++;
-    }
-    c = c + skip;
-    skip = is.getEndcapServices().size() / 2;
-    // endcap services loop using symmetries with respect to z=0
-    for (int i = 0; i < skip; i++) {
-      vol = gm->MakeTube("", medserf, is.getEndcapServicePart(i).getInnerRadius(),
-                         is.getEndcapServicePart(i).getInnerRadius() + is.getEndcapServicePart(i).getRWidth(),
-                         is.getEndcapServicePart(i).getZLength() / 2.0);
-      vol->SetLineColor(kBlue);
-      trans = new TGeoTranslation(0, 0, (is.getEndcapServicePart(i).getZOffset() + is.getEndcapServicePart(i).getZLength() / 2.0));
-      services->AddNode(vol, c, trans);
-      trans = new TGeoTranslation(0, 0, (is.getEndcapServicePart(i + skip).getZOffset() + is.getEndcapServicePart(i + skip).getZLength() / 2.0));
-      services->AddNode(vol, c + skip, trans);
-      c++;
-    }
-    c = c + skip;
-
-    // supports
-    skip = is.getSupports().size();
-    // support parts loop, using all entries
-    for (int i = 0; i < skip; i++) {
-      // process entry if its rightmost point is in z+ - this includes tubes that cross z=0 but not disc supports in z-
-      if ((is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength()) > 0) {
-        vol = gm->MakeTube("", medlazy, is.getSupportPart(i).getInnerRadius(),
-                           is.getSupportPart(i).getInnerRadius() + is.getSupportPart(i).getRWidth(),
-                           is.getSupportPart(i).getZLength() / 2.0);
-        vol->SetLineColor(kGray);
-        trans = new TGeoTranslation(0, 0, (is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength() / 2.0));
-        supports->AddNode(vol, c, trans);
-        c++;
-        // use symmetries with respect to z=0: if volume is completely in z+, it will have a twin in z-
-        if (is.getSupportPart(i).getZOffset() > 0) {
-          trans = new TGeoTranslation(0, 0, (0.0 - is.getSupportPart(i).getZOffset() - is.getSupportPart(i).getZLength() / 2.0));
-          supports->AddNode(vol, c, trans);
-          c++;
-        }
-      }
-    }
-    // check overlaps, write status to cout
-    gm->CloseGeometry();
-    geometry_created = true;*/
-  }
-
-  /**
-   * This function writes the previously created geometry tree (including the geometry manager) to a ROOT
-   * file. If it finds that the internal representation using ROOT shapes has not been initialised, it prints an
-   * error message and does nothing.
-   * @param rootfilename The name of the output file that will be written to the application's default directory for root files
-   */
-  void Vizard::display(std::string rootfilename) {
-    if (geometry_created) {
-      std::string outfilename = default_rootfiledir + "/";
-      if (rootfilename.empty()) outfilename = outfilename + default_rootfile;
-      else outfilename = outfilename + rootfilename;
-      TFile f(outfilename.c_str(), "recreate");
-      if (f.IsZombie()) {
-        std::cout << root_wrong << std::endl;
-      }
-      else {
-        gm->Write();
-        f.Close();
-        std::cout << "Geometry written to file '" << outfilename << "'." << std::endl;
-      }
-      // display top volume after opening file in ROOT with:
-      // TFile f("rootfiles/output.root");
-      // TGeoManager* gm = (TGeoManager*)f.Get("display");
-      // gm->GetMasterVolume()->Draw("ogl");
-      // press 'w' for wireframe or 't' for outline view
-      // when done: delete gm, f.Close()
-    }
-    else std::cout << msg_uninitialised << std::endl;
-  }
-
-  /**
-   * This convenience function provides a frame for creation of a geometry tree from a tracker object and a
-   * collection of inactive surfaces and for writing them to a ROOT file in a single step.
-   * @param am A reference to the tracker object that contains the collection of active surfaces
-   * @param is A reference to the collection of inactive surfaces
-   * @param rootfilename The name of the output file that will be written to the application's default directory for ROOT files
-   * @param simplified A flag indicating whether to draw bounding boxes around the layers/discs or whether to display each module individually
-   */
-  void Vizard::display(Tracker& am, InactiveSurfaces& is, std::string rootfilename, bool simplified) {
-    buildVisualization(am, is, simplified);
-    display(rootfilename);
-  }
-
-  /**
    * This convenience function writes the feeder/neighbour relations of a collection of inactive surfaces to a
    * default file.
    * @param is A reference to the collection of inactive surfaces
@@ -393,9 +235,6 @@ namespace insur {
 
   // TODO: if weightGrid is actually unused, then remove it
   void Vizard::weigthSummary(Analyzer& a, MaterialBudget& materialBudget, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
-
-    //RootWContent* myContent;
-
     // Initialize the page with the material budget
     std::string pageTitle="Weights";
     if (name!="") pageTitle+=" (" +name+")";
@@ -406,45 +245,8 @@ namespace insur {
 
     const WeightsPerSubdetector& weightsPerSubdetector = computeDetailedWeights(materialBudget, myPage);
 
-    // weight plot
-    //myContent = new RootWContent("Overview plot", true);
-    //myPage.addContent(myContent);
-
-    /*
-    std::map<std::string, SummaryTable>* summaryTables;
-
-    // Write the summary for barrel first and endcap second
-    for (int i=0; i<2; ++i) {
-      if (i==0) summaryTables = &a.getBarrelWeightSummary();
-      else summaryTables = &a.getEndcapWeightSummary();
-
-      std::map<std::string, SummaryTable>::iterator it;
-      for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
-        // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first + " - modules only (chemical elements)", false);
-        RootWTable& myTable = myContent.addTable();
-        myTable.setContent(it->second.getContent());
-      }
-    }
-
-    // Write the category summary for barrel first and endcap second
-    for (int i=0; i<2; ++i) {
-      if (i==0) summaryTables = &a.getBarrelWeightComponentSummary();
-      else summaryTables = &a.getEndcapWeightComponentSummary();
-
-      std::map<std::string, SummaryTable>::iterator it;
-      for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
-        // Create one content per layer
-        RootWContent& myContent = myPage.addContent(it->first + " - modules only (components)", false);
-        RootWTable& myTable = myContent.addTable();
-        myTable.setContent(it->second.getContent());
-      }
-    }
-    */
-
 
     // TOTAL WEIGHT
-    //const WeightsPerSubdetector& weightsPerSubdetectorAndComponent = a.getWeightBySubdetector();
 
     double totalWeight = 0.;
 
@@ -1144,10 +946,6 @@ namespace insur {
          i<hadronGoodTracksFraction.size();
          ++i) {
       TGraph* myGraph = &hadronGoodTracksFraction.at(i);
-      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph->GetN() << " points" << std::endl;
-      //double xx, yy;
-      //myGraph->GetPoint(myGraph->GetN()-1, xx, yy);
-      //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
       averages[i] = Analyzer::average(*myGraph, geom_range_eta_regions);
       closeGraph(*myGraph);
       myGraph->SetFillColor(Palette::color(i+1));
@@ -1215,54 +1013,6 @@ namespace insur {
   }
 
   /**
-   * This geometry function computes the transformation matrix that describes the position of a given module
-   * in space. It also sets the shape of the provided template volume to correspond to that of the module.
-   * @param m A pointer to the module object that needs to be visualised
-   * @param v A pointer to the template volume that will represent the module in the visualisation
-   * @return A pointer to the finished transformation matrix object
-   */
-  TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
-    //XYZVector ex, ey, ez, b, c, d, p;
-    //TGeoArb8* arb;
-    //TGeoRotation* rot;
-    TGeoCombiTrans* tr = nullptr;
-    // copy of module placement parameters in Module class
-/*    b = m->getCorner(1) - m->getCorner(0);
-    c = m->getCorner(2) - m->getCorner(0);
-    d = m->getCorner(3) - m->getCorner(0);
-    ex = b / b.R();
-    p = (d.Dot(ex) * ex);
-    // unit vectors for module coordinate system
-    ey = d - p;
-    ey = ey / ey.R();
-    ez = ex.Cross(ey);
-    // set vertices in volume v according to extracted module measurements
-    arb = (TGeoArb8*)(v->GetShape());
-    for (int i = 0; i < 5; i = i + 4) {
-      arb->SetVertex(i, 0, 0);
-      arb->SetVertex(i + 1, b.R(), 0);
-      arb->SetVertex(i + 2, c.Dot(ex), c.Dot(ey));
-      arb->SetVertex(i + 3, d.Dot(ex), d.Dot(ey));
-    }
-    // set position of module within the tracker volume
-    double matrix[9];
-    matrix[0] = ex.X();
-    matrix[1] = ey.X();
-    matrix[2] = ez.X();
-    matrix[3] = ex.Y();
-    matrix[4] = ey.Y();
-    matrix[5] = ez.Y();
-    matrix[6] = ex.Z();
-    matrix[7] = ey.Z();
-    matrix[8] = ez.Z();
-    rot = new TGeoRotation();
-    rot->SetMatrix(matrix);
-    // save position in transformation object
-    tr = new TGeoCombiTrans(m->getCorner(0).X(), m->getCorner(0).Y(), m->getCorner(0).Z(), rot); */
-    return tr;
-  }
-
-  /**
    * This function computes the average of a range of histogram bins: from the first to the one that includes a
    * cutoff value along the axis.
    * @param histo A reference to the histogram data
@@ -1275,10 +1025,7 @@ namespace insur {
     // find last relevant bin
     while ((cobin < histo.GetNbinsX()) && (histo.GetBinLowEdge(cobin) < cutoff)) cobin++;
     // calculate average
-   // if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
-   // else {
       for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
-   // }
     return avg;
   }
 
@@ -2370,7 +2117,6 @@ namespace insur {
       }
       // Tag
       aTag.str("");
-      //aTag << smallStart << aModule->getTag() << smallEnd;
       aTag << smallStart;
       for (std::set<std::string>::iterator strIt = v.tagMapPositions[(*tagMapIt).first].begin();
            strIt!=v.tagMapPositions[(*tagMapIt).first].end(); ++strIt)
@@ -2915,10 +2661,7 @@ namespace insur {
       etafour->SetPoint(1, 2700, 98.9376398798);
       etafour->Draw("same");
     }
-    // createColorPlotCanvas(tracker, 1, RZCanvas);
 
-
-    //TVirtualPad* myPad;
     myContent = new RootWContent("Plots");
     myPage->addContent(myContent);
 
@@ -2994,7 +2737,6 @@ namespace insur {
 
     std::unique_ptr<TCanvas> hitMapCanvas(new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     hitMapCanvas->cd();
-    //gStyle->SetPalette(1);
     hitMapCanvas->SetFillColor(color_plot_background);
     hitMapCanvas->SetBorderMode(0);
     hitMapCanvas->SetBorderSize(0);
@@ -4001,7 +3743,6 @@ namespace insur {
 
     SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary();
     SummaryTable& processorCommonSummary = analyzer.getProcessorCommonConnectionSummary();
-    //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
     // Connections between modules and trigger towers
     RootWContent& summaryContent = myPage->addContent("Summary tables", false);
@@ -4088,33 +3829,16 @@ namespace insur {
 
 
 
-    /*
-       moduleConnectionEtaCanvas->SetFillColor(color_plot_background);
-       moduleConnectionPhiCanvas->SetFillColor(color_plot_background);
-    //moduleConnectionEndcapPhiCanvas->SetFillColor(color_plot_background);
-
-    moduleConnectionEtaCanvas->cd();
-    moduleConnectionEtaMap.Draw("colz");
-    */
     RootWImage& moduleConnectionEtaImage = myContent.addImage(std::move(moduleConnectionEtaCanvas), vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
-    /*
-       moduleConnectionPhiCanvas->cd();
-       moduleConnectionPhiMap.Draw("colz");
-       */
     RootWImage& moduleConnectionPhiImage = myContent.addImage(std::move(moduleConnectionPhiCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
     moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
 
-    // moduleConnectionEndcapPhiCanvas->cd();
-    // moduleConnectionEndcapPhiMap.Draw("colz");
-
     RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(std::move(moduleConnectionEndcapPhiCanvas), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
     moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
-
-    //    myContent = myPage->addContent("Module Connections distribution", true);
 
     std::unique_ptr<TCanvas> moduleConnectionsCanvas(new TCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY));
     moduleConnectionsCanvas->cd();
@@ -6289,8 +6013,6 @@ namespace insur {
     if (!triggerProfiles.empty()) {
       somethingFound = true;
 
-      // std::cerr << "found " << triggerProfiles.size() <<" profiles for trigger" << std::endl; // debug
-
       std::string plotOption;
       int myColor;
       double miny, maxy;
@@ -6329,7 +6051,6 @@ namespace insur {
         }
 
         npointsProfile.SetMinimum(1E-2);
-        //npointsProfile.GetXaxis()->SetLimits(0, 2.4);
         npointsProfile.SetLineColor(Palette::color(myColor));
         npointsProfile.SetMarkerColor(Palette::color(myColor));
         npointsProfile.SetFillColor(Palette::color(myColor));
@@ -6338,11 +6059,8 @@ namespace insur {
         pointsCanvas->SetFillColor(color_plot_background);
 
         pointsCanvas->cd();
-        // std::cerr << "About to draw plot " << myPt << std::endl; // debug
         npointsProfile.Draw(plotOption.c_str());
-        //plotOption = "E6 same";
         plotOption = "E1 same";
-        //plotOption = "same";
       }
       tempSS << " GeV";
 
@@ -6373,8 +6091,6 @@ namespace insur {
       gStyle->SetGridColor(color_hard_grid);
 
       // Loop over the plots and draw on the canvas
-      //miny=1000;
-      //maxy=0;
       for (std::map<double, TProfile>::iterator plot_iter = triggerFractionProfiles.begin();
            plot_iter != triggerFractionProfiles.end();
            ++plot_iter) {
@@ -6383,8 +6099,6 @@ namespace insur {
 
         miny = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
         maxy = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
-        //std::cerr << "miny = " << miny << std::endl; // debug
-        //std::cerr << "maxy = " << maxy << std::endl; // debug
 
         if (myPt!=0) {
           tempSS << tempString.c_str() << any2str(myPt/Units::GeV,2) ; tempString = ", ";
@@ -6400,14 +6114,8 @@ namespace insur {
         fractionCanvas->SetFillColor(color_plot_background);
 
         fractionCanvas->cd();
-        // std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
         fractionProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
-        //aValue = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
-        //if (aValue>maxy) maxy=aValue;
-        //aValue = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
-        //if (aValue<miny) miny=aValue;
-        //std::cerr << "Fraction plots between " << miny << " and " << maxy << std::endl;
       }
       tempSS << " GeV";
 
@@ -6439,8 +6147,6 @@ namespace insur {
       gStyle->SetGridColor(color_hard_grid);
 
       // Loop over the plots and draw on the canvas
-      //miny=1000;
-      //maxy=0;
       for (std::map<double, TProfile>::iterator plot_iter = triggerPurityProfiles.begin();
            plot_iter != triggerPurityProfiles.end();
            ++plot_iter) {
@@ -6449,8 +6155,6 @@ namespace insur {
 
         miny = purityProfile.GetBinContent(purityProfile.GetMinimumBin());
         maxy = purityProfile.GetBinContent(purityProfile.GetMaximumBin());
-        //std::cerr << "miny = " << miny << std::endl; // debug
-        //std::cerr << "maxy = " << maxy << std::endl; // debug
 
         if (myPt!=0) {
           tempSS << tempString.c_str() << any2str(myPt/Units::GeV,2) ; tempString = ", ";
@@ -6466,14 +6170,8 @@ namespace insur {
         purityCanvas->SetFillColor(color_plot_background);
 
         purityCanvas->cd();
-        // std::cerr << "About to draw purity plot " << myPt << std::endl; // debug
         purityProfile.Draw(plotOption.c_str());
         plotOption = "E1 same";
-        //aValue = purityProfile.GetBinContent(purityProfile.GetMaximumBin());
-        //if (aValue>maxy) maxy=aValue;
-        //aValue = purityProfile.GetBinContent(purityProfile.GetMinimumBin());
-        //if (aValue<miny) miny=aValue;
-        //std::cerr << "Purity plots between " << miny << " and " << maxy << std::endl;
       }
       tempSS << " GeV";
 
@@ -6504,7 +6202,6 @@ namespace insur {
     double maxPt = -1;
     // Check if the maps exist at all
     if (!efficiencyMaps.empty()) {
-      // std::cerr << "Found " << efficiencyMaps.size() << " efficiency maps"<< std::endl; // debug
       somethingFound = true;
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Efficiency maps", false);
@@ -6541,40 +6238,6 @@ namespace insur {
 
     //********************************//
     //*                              *//
-    //*   Stub Efficiency Coverage   *//
-    //*                              *//
-    //********************************//
-
-/*    std::map<std::string, std::map<std::string, TH1I*>>& profiles = a.getStubEfficiencyCoverageProfiles();
-    if (!profiles.empty()) {
-      RootWContent& myContent = myPage.addContent("Stub efficiency coverage", false);
-      for (const auto& lmel : profiles) {
-        std::unique_ptr<TCanvas> myCanvas(new TCanvas(Form("StubEfficiencyCoverageCanvas%s", lmel.first.c_str()), "Stub efficiency eta coverage", vis_std_canvas_sizeX, vis_min_canvas_sizeY));
-        //myCanvas->SetFillColor(color_plot_background);
-        myCanvas->cd();
-        std::vector<std::string> momenta;
-        int myColor = 1;
-        std::string drawOpts = "";
-        for (const auto& mmel : lmel.second) {
-          momenta.push_back(mmel.first);
-          mmel.second->SetLineColor(Palette::color(myColor));
-          mmel.second->SetMarkerColor(Palette::color(myColor));
-          //mmel.second->SetFillColor(Palette::color(myColor));
-          mmel.second->SetMarkerStyle(1);
-          mmel.second->Draw(drawOpts.c_str());
-          myCanvas->cd();
-          myColor++;
-          drawOpts = "same";
-          break;
-        }
-        RootWImage* myImage = new RootWImage(std::move(myCanvas), vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-        myImage->setComment("Stub efficiency coverage in eta for pT = " + join(momenta, ","));
-        myContent.addItem(myImage);
-      }
-    }*/
-
-    //********************************//
-    //*                              *//
     //*   Trigger threshold maps     *//
     //*                              *//
     //********************************//
@@ -6582,7 +6245,6 @@ namespace insur {
     // Check if the maps exist at all
     if (!thresholdMaps.empty()) {
       somethingFound = true;
-      // std::cerr << "Found " << thresholdMaps.size() << " threshold maps"<< std::endl; // debug
 
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Threshold maps", false);
@@ -6654,21 +6316,12 @@ namespace insur {
 
 
     // Actually plot the maps
-    //thickCanvas->cd();
-    //thicknessMap.Draw("colz");
-    //windowCanvas->cd();
-    //windowMap.Draw("colz");
     if (extended) {
       suggestedSpacingCanvas->cd();
       suggestedSpacingMap.Draw("colz");
       suggestedSpacingAWCanvas->cd();
       suggestedSpacingMapAW.Draw("colz");
       nominalCutCanvas->cd();
-      //struct PtCut { double operator()(const Module& m) { return PtErrorAdapter(m).getPtCut(); } };
-      //PlotDrawer<YZ, PtCut> cutDrawer;
-      //cutDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-      //cutDrawer.drawFrame<HistogramFrameStyle>(*nominalCutCanvas.get());
-      //cutDrawer.drawModules<ContourStyle>(*nominalCutCanvas.get());
       nominalCutCanvas->SetLogz();
       nominalCutMap.Draw("colz");
     }
@@ -6705,9 +6358,6 @@ namespace insur {
 
     if (profileNames.size()!=0) {
       somethingFound = true;
-
-      // std::cerr << "Found " << profileNames.size() << " spacing tuning profiles" << std::endl; // debug
-
       // Create the content
       RootWContent& spacingSummaryContent = myPage.addContent("Sensor spacing tuning summary", true);
 
@@ -6851,13 +6501,10 @@ namespace insur {
           TProfile& tuningProfile = itProfile->second;
           tuningProfile.SetMaximum(100);
           tuningProfile.SetMinimum(0);
-          //tuningProfile.SetMaximum(10);
-          //tuningProfile.SetMinimum(-10);
           tuningProfile.SetLineColor(Palette::color(myColor));
           tuningProfile.SetFillColor(Palette::color(myColor));
           tuningProfile.SetMarkerColor(Palette::color(myColor));
           myColor++;
-          //tuningProfile.SetMarkerStyle(8);
           tuningProfile.Draw(plotOption.c_str());
           plotOption = "same E1";
         }
@@ -6959,7 +6606,6 @@ namespace insur {
     std::vector<std::string> plotNames;
 
     myIndex.name=plotName;
-    //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
@@ -6972,7 +6618,6 @@ namespace insur {
         p = (*graphsIterator).first;
         myIndex.p = p;
         myPlotMap[myIndex] = myGraph;
-        //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
       }
     }
 
@@ -6992,7 +6637,6 @@ namespace insur {
     std::vector<std::string> plotNames;
 
     myIndex.name=plotName;
-    //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
@@ -7005,7 +6649,6 @@ namespace insur {
         p = (*graphsIterator).first;
         myIndex.p = p;
         myPlotMap[myIndex] = myGraph;
-        //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
       }
     }
 
@@ -10092,12 +9735,6 @@ std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* my
 	  }
 	  else { logERROR("Not enough colors are defined with respect to the total number of subdetectors"); }
 	}
-	//if (subdetectorName == "TBPS" || subdetectorName == "TBPX") color = kAzure + 1;
-	//else if (subdetectorName == "TB2S") color = kCyan;
-	//else if (subdetectorName == "TEDD_1" || subdetectorName == "TFPX") color = kRed;
-	// else if (subdetectorName == "TEDD_2" || subdetectorName == "TEPX") color = kOrange;
-	//else if (subdetectorName == "OTST" || subdetectorName == "ITST") color = kGreen;
-	//else color = kMagenta;
       }
     }
 

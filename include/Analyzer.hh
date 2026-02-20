@@ -60,10 +60,6 @@ namespace insur {
   typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
   typedef TriggerProcessorBandwidthVisitor::TriggerSectorMap TriggerSectorMap;
 
-  // TODO:
-  // Move this to track.hh?
-  //typedef std::vector<Track> TrackCollection;
-  //typedef double TrackCollectionKey;
   typedef std::map<int, TrackCollection> TrackCollectionMap;
 
   typedef std::map<int, TProfile> CoveragePerNumberOfHits;
@@ -137,7 +133,6 @@ namespace insur {
     TH2D& getHistoMapRadiation();
     TH2D& getHistoMapInteraction();
     TH1D& getHistoOptimalSpacing(bool actualWindow);
-    //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
     std::map<int, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getDGraphs(bool ideal, bool isTrigger);
@@ -458,7 +453,6 @@ namespace insur {
                                      const std::vector<double>& triggerMomenta,
                                      const TrackCollection& tracks);
     void fillTriggerPerformanceMaps(Tracker& tracker);
-    //void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();
     void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
     void prepareTriggerProcessorHistograms();
@@ -470,7 +464,6 @@ namespace insur {
     void fillMapRT(const double& r, const double& theta, const RILength& mat);
     void fillMapRZ(const double& r, const double& z, const RILength& mat);
     void transformEtaToZ();
-    double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     std::pair<double, double> computeMinMaxTracksEta(const Tracker& t) const;
 
   private:
@@ -483,16 +476,11 @@ namespace insur {
     std::vector<std::pair<Module*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
-    Color_t colorPicker(std::string);
     std::map<std::string, Color_t> colorPickMap;
     Color_t lastPickedColor;
     int geometryTracksUsed;
     int materialTracksUsed;
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
-
-    bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
-    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
-
     
     const std::pair<int, int> computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
 						      const std::vector<std::pair<Module*, HitType>>& hitModules, 
@@ -526,9 +514,6 @@ namespace insur {
     static int bsCounter;
     
     std::string billOfMaterials_;
-
-    double getCanvasScaleY(const TPad* p);
-
   };
 }
 #endif  /* _ANALYZER_H */

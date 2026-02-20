@@ -454,8 +454,4 @@ inline ptree getChild(const ptree& pt, const string& name) {
 }
 inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); } 
 
-
-std::set<string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);
-
-
 #endif

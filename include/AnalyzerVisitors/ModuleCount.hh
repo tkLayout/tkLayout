@@ -21,7 +21,6 @@ private:
   std::map<std::pair<std::string, std::string>, int> count_TypeSub;
   std::string currentSubdetector;
   int currentSubdetectorIndex;
-  std::string moduleSummaryType(const DetectorModule& m) const;
   void sortTypesAndDetectors();
 public:
   RootWTable* makeTable();

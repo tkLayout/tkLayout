@@ -12,7 +12,6 @@
 #include <TH3.h>
 #include <TRandom.h>
 
-#include <Histo.hh>
 #include <TrackShooter.hh>
 #include <PtError.hh>
 #include <global_funcs.hh>

@@ -77,8 +77,6 @@ namespace material {
 
 using namespace boost::accumulators;
 using material::WeightDistributionGrid;
-//namespace insur { class CablingMap; }
-//using insur::CablingMap;
 
 namespace insur {
 
@@ -124,9 +122,6 @@ namespace insur {
     Vizard();
     virtual ~Vizard();
     bool needsReset() { return geometry_created; }
-    void buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified);
-    void display(std::string rootfilename = "");
-    void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
     void writeNeighbourGraph(InactiveSurfaces& is);
     void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
@@ -185,9 +180,6 @@ namespace insur {
     bool geometry_created;
     std::string commandLine_;
     bool localAxesLabels_ = false;
-    int detailedModules(std::vector<Layer*>* layers,
-                        TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
-    TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
     double averageHistogramValues(TH1D& histo, double cutoff);
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
@@ -329,7 +321,6 @@ namespace insur {
     void stackHistos(const std::map<std::string, TH1D*>& histoMap, RootWTable*& myTable, int& index, THStack*& totalStack, TLegend*& legend, bool& isRadiation);
     void addHisto(const std::string name, TH1D* histo, RootWTable*& myTable, int& index, THStack*& totalStack, TLegend*& legend, bool& isRadiation);
 
-    // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     std::vector<MaterialBudget*> materialBudgets_;
     std::unique_ptr<TCanvas> drawFullLayoutRZ();
