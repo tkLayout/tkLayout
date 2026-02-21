@@ -1,0 +1,30 @@
+# Let Git autodetect text files
+* text=auto
+
+# Except for the names that match the following overriding patterns
+# <add an overriding pattern here>
+
+# Definitively text files
+*.txt text
+*.cfg text
+*.xml text
+*.tex text
+*.css text
+*.md text
+*.c text
+*.h text
+*.cc text
+*.hh text
+*.cpp text
+*.hpp text
+*.C text
+
+# Definitively binary files
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.gif binary
+*.ppm binary
+*.svg binary
+*.png binary
+*.cur binary
